@@ -65,43 +65,29 @@ Current Business Model Canvas:
 
 Please provide specific, actionable insights and suggestions for improvement.`;
 
-    // Use Microsoft Search API to get relevant organizational context
-    const organizationalResults = await microsoftAuth.searchOrganizationalContent(
-      `business model ${request.message} ${request.canvas.name}`
-    );
+    // Create dynamic context based on the specific user question
+    const questionContext = `
+User's Specific Question: "${request.message}"
 
-    const orgContext = await microsoftAuth.getOrganizationalContext();
-    
-    // Format organizational search results
-    const retrievalData = {
-      results: organizationalResults.map(hit => ({
-        content: hit.summary || hit.resource?.name || 'Organizational document',
-        source: hit.resource?.webUrl || 'Microsoft 365',
-        relevance: hit.score || 0.5
-      }))
-    };
-    
-    // Create enriched context with organizational data and specific user question
-    const organizationalContext = retrievalData.results?.map((result: any) => 
-      `Document: ${result.resource?.name}\nContent: ${result.summary}`
-    ).join('\n\n') || 'No specific organizational documents found.';
+Analysis Focus Instructions:
+- If asking about RISKS: Focus on potential threats, market risks, operational risks, financial risks
+- If asking about VALUE PROPOSITION: Focus on customer benefits, differentiation, competitive advantages  
+- If asking about OPPORTUNITIES: Focus on market expansion, new revenue streams, partnerships
+- If asking about CUSTOMERS: Focus on target segments, customer needs, acquisition strategies
+- If asking about OPERATIONS: Focus on key activities, resources, processes, efficiency
+- If asking about FINANCIALS: Focus on costs, revenue models, profitability, pricing
 
-    const enrichedPrompt = systemPrompt + `
+Provide a UNIQUE response that specifically addresses "${request.message}" with:
+1. Direct analysis of the question topic
+2. Specific recommendations for the current business model
+3. Actionable next steps
+4. Different insights than previous responses
 
-Organizational Context:
-${organizationalContext}
+Current timestamp: ${new Date().toISOString()}
+Response variation key: ${Math.random().toString(36).substring(7)}
+`;
 
-Organization: ${orgContext?.organization?.displayName || 'Your Organization'}
-Specific Question: "${request.message}"
-
-Please provide a detailed response that:
-1. Directly addresses the user's specific question about "${request.message}"
-2. References the organizational context when relevant
-3. Provides actionable business insights
-4. Suggests specific improvements to the business model canvas
-5. Varies the response based on the specific question asked
-
-Make sure each response is unique and tailored to the specific question being asked.`;
+    const enrichedPrompt = systemPrompt + questionContext;
 
     // Generate contextual response using the enhanced prompt
     const response = await generateBusinessModelResponse(request.message, request.canvas, enrichedPrompt);
