@@ -260,27 +260,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         material.diffuseColor = color; // Original color
       }));
 
-      // Create GUI for title only
-      const rect = new Rectangle(`rect_${elementId}`);
-      rect.widthInPixels = 180;
-      rect.heightInPixels = 60;
-      rect.cornerRadius = 8;
-      rect.color = "transparent";
-      rect.thickness = 0;
-      advancedTexture.addControl(rect);
+      // Create billboard plane for title that always faces camera
+      const billboard = MeshBuilder.CreatePlane(`billboard_${elementId}`, {
+        width: 2.2,
+        height: 0.6
+      }, scene);
+      
+      billboard.position = new Vector3(position.x, position.y + 1.2, position.z);
+      billboard.billboardMode = Mesh.BILLBOARDMODE_ALL;
+      
+      // Create billboard material
+      const billboardMaterial = new StandardMaterial(`billboardMaterial_${elementId}`, scene);
+      billboardMaterial.diffuseColor = new Color3(1, 1, 1);
+      billboardMaterial.alpha = 0.9;
+      billboard.material = billboardMaterial;
 
-      // Title text only
+      // Create GUI for billboard
+      const billboardTexture = AdvancedDynamicTexture.CreateForMesh(billboard, 512, 128);
+      
+      // Title text on billboard
       const titleText = new TextBlock(`title_${elementId}`, element.title);
       titleText.color = "#2D3748";
-      titleText.fontSize = 16;
+      titleText.fontSize = 24;
       titleText.fontWeight = "bold";
       titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
       titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-      rect.addControl(titleText);
-
-      // Link GUI to 3D position
-      rect.linkWithMesh(box);
-      rect.linkOffsetY = -30;
+      billboardTexture.addControl(titleText);
 
       return box;
     };
