@@ -57,13 +57,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     directionalLight.intensity = 0.4;
     directionalLight.diffuse = new Color3(0.9, 0.9, 1);
     
-    // Add ambient lighting to reduce harsh shadows
-    scene.ambientColor = new Color3(0.3, 0.3, 0.3);
+    // Add bright ambient lighting to ensure white floor appearance
+    scene.ambientColor = new Color3(0.6, 0.6, 0.6);
 
     // Create ground with grid pattern
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseColor = new Color3(1, 1, 1); // White
+    groundMaterial.diffuseColor = new Color3(1, 1, 1); // Pure white
+    groundMaterial.emissiveColor = new Color3(0.2, 0.2, 0.2); // Self-illumination to ensure white appearance
+    groundMaterial.disableLighting = false; // Keep lighting but boost brightness
     ground.material = groundMaterial;
 
     // Create grid lines within floor bounds (20x14)
