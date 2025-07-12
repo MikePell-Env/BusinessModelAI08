@@ -2,10 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { processAIChat, analyzeCanvas } from "./services/openai";
+import { processCopilotChat, analyzeCopilotCanvas } from "./services/microsoftCopilot";
+import { microsoftAuth } from "./services/microsoftAuth";
 import { BusinessModelCanvas } from "../client/src/types/canvas";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // AI Chat endpoint
+  // AI Chat endpoint (Microsoft Copilot with OpenAI fallback)
   app.post("/api/ai/chat", async (req, res) => {
     try {
       const { message, canvas, chatHistory } = req.body;
@@ -16,13 +18,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const response = await processAIChat({
-        message,
-        canvas,
-        chatHistory: chatHistory || []
-      });
-
-      res.json(response);
+      // Try Microsoft Copilot first, fallback to OpenAI
+      try {
+        const response = await processCopilotChat({
+          message,
+          canvas,
+          chatHistory: chatHistory || []
+        });
+        res.json(response);
+      } catch (copilotError) {
+        console.log("Microsoft Copilot failed, falling back to OpenAI:", copilotError instanceof Error ? copilotError.message : 'Unknown error');
+        const response = await processAIChat({
+          message,
+          canvas,
+          chatHistory: chatHistory || []
+        });
+        res.json(response);
+      }
     } catch (error) {
       console.error("Error in AI chat:", error);
       res.status(500).json({ 
@@ -57,50 +69,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test Microsoft Copilot API connection
   app.post("/api/test-copilot", async (req, res) => {
     try {
-      const accessToken = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN;
-      const clientId = process.env.MICROSOFT_CLIENT_ID;
-      const tenantId = process.env.MICROSOFT_TENANT_ID;
-
-      if (!accessToken || !clientId || !tenantId) {
-        return res.json({
-          success: false,
-          message: 'Microsoft credentials not configured. Please set MICROSOFT_GRAPH_ACCESS_TOKEN, MICROSOFT_CLIENT_ID, and MICROSOFT_TENANT_ID environment variables.',
-          configured: false
-        });
-      }
-
-      // Test connection to Microsoft Graph API
-      const testResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (testResponse.ok) {
-        const userData = await testResponse.json();
+      // Test the Microsoft Graph authentication and connection
+      const connectionResult = await microsoftAuth.testConnection();
+      
+      if (connectionResult.success) {
         res.json({
           success: true,
-          message: `Connected to Microsoft Graph API successfully as ${userData.displayName || 'user'}`,
-          configured: true,
-          details: {
-            userPrincipalName: userData.userPrincipalName,
-            tenantId: tenantId.substring(0, 8) + '...' // Partial tenant ID for security
-          }
+          message: 'Microsoft Graph connection successful',
+          userInfo: connectionResult.userInfo,
+          configured: true
         });
       } else {
         res.json({
           success: false,
-          message: `Microsoft Graph API connection failed with status ${testResponse.status}`,
-          configured: true
+          message: connectionResult.message,
+          configured: false
         });
       }
     } catch (error) {
       console.error('Microsoft Copilot test error:', error);
       res.json({
         success: false,
-        message: 'Failed to test Microsoft Copilot connection',
-        configured: !!process.env.MICROSOFT_GRAPH_ACCESS_TOKEN
+        message: 'Failed to test Microsoft Copilot connection: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        configured: false
       });
     }
   });
