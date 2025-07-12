@@ -81,19 +81,30 @@ Please provide specific, actionable insights and suggestions for improvement.`;
       }))
     };
     
-    // Format conversation history for Copilot
-    const conversationHistory = [
-      { role: 'system', content: systemPrompt },
-      ...request.chatHistory,
-      { role: 'user', content: request.message }
-    ];
+    // Create enriched context with organizational data and specific user question
+    const organizationalContext = retrievalData.results?.map((result: any) => 
+      `Document: ${result.resource?.name}\nContent: ${result.summary}`
+    ).join('\n\n') || 'No specific organizational documents found.';
 
-    // Note: Microsoft 365 Copilot Chat API is currently in private preview
-    // For now, we'll use the retrieval results to enhance our response
-    const enhancedContext = retrievalData.results?.map((result: any) => result.content).join('\n\n') || '';
-    
-    // Generate response based on retrieved context and business model analysis
-    const response = await generateBusinessModelResponse(request.message, request.canvas, enhancedContext);
+    const enrichedPrompt = systemPrompt + `
+
+Organizational Context:
+${organizationalContext}
+
+Organization: ${orgContext?.organization?.displayName || 'Your Organization'}
+Specific Question: "${request.message}"
+
+Please provide a detailed response that:
+1. Directly addresses the user's specific question about "${request.message}"
+2. References the organizational context when relevant
+3. Provides actionable business insights
+4. Suggests specific improvements to the business model canvas
+5. Varies the response based on the specific question asked
+
+Make sure each response is unique and tailored to the specific question being asked.`;
+
+    // Generate contextual response using the enhanced prompt
+    const response = await generateBusinessModelResponse(request.message, request.canvas, enrichedPrompt);
 
     return {
       response: response.content,
