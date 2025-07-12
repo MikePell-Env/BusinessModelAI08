@@ -63,7 +63,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Create ground with grid pattern
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseColor = new Color3(0.9, 0.9, 0.9); // Light grey
+    groundMaterial.diffuseColor = new Color3(1, 1, 1); // White
     ground.material = groundMaterial;
 
     // Create grid lines within floor bounds (20x14)
@@ -75,7 +75,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const points = [new Vector3(-10, 0.01, i), new Vector3(10, 0.01, i)];
       const line = MeshBuilder.CreateLines(`hLine_${i}`, { points: points }, scene);
       const lineMaterial = new StandardMaterial(`hLineMaterial_${i}`, scene);
-      lineMaterial.emissiveColor = new Color3(1, 1, 1); // Pure white emission
+      lineMaterial.emissiveColor = new Color3(0.95, 0.95, 0.95); // Super light grey
       lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
       lineMaterial.disableLighting = true; // Ignore lighting
       line.material = lineMaterial;
@@ -87,7 +87,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const points = [new Vector3(i, 0.01, -7), new Vector3(i, 0.01, 7)];
       const line = MeshBuilder.CreateLines(`vLine_${i}`, { points: points }, scene);
       const lineMaterial = new StandardMaterial(`vLineMaterial_${i}`, scene);
-      lineMaterial.emissiveColor = new Color3(1, 1, 1); // Pure white emission
+      lineMaterial.emissiveColor = new Color3(0.95, 0.95, 0.95); // Super light grey
       lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
       lineMaterial.disableLighting = true; // Ignore lighting
       line.material = lineMaterial;
