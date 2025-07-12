@@ -66,28 +66,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     groundMaterial.diffuseColor = new Color3(0.9, 0.9, 0.9); // Light grey
     ground.material = groundMaterial;
 
-    // Create grid lines
+    // Create grid lines within floor bounds (20x14)
     const gridSpacing = 1;
     const gridLines = [];
     
-    // Horizontal grid lines
-    for (let i = -10; i <= 10; i += gridSpacing) {
+    // Horizontal grid lines (within floor height of 14)
+    for (let i = -7; i <= 7; i += gridSpacing) {
       const points = [new Vector3(-10, 0.01, i), new Vector3(10, 0.01, i)];
       const line = MeshBuilder.CreateLines(`hLine_${i}`, { points: points }, scene);
       const lineMaterial = new StandardMaterial(`hLineMaterial_${i}`, scene);
-      lineMaterial.diffuseColor = new Color3(1, 1, 1); // White
-      lineMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Slight glow
+      lineMaterial.emissiveColor = new Color3(1, 1, 1); // Pure white emission
+      lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
+      lineMaterial.disableLighting = true; // Ignore lighting
       line.material = lineMaterial;
       gridLines.push(line);
     }
     
-    // Vertical grid lines
-    for (let i = -7; i <= 7; i += gridSpacing) {
-      const points = [new Vector3(i, 0.01, -10), new Vector3(i, 0.01, 10)];
+    // Vertical grid lines (within floor width of 20)
+    for (let i = -10; i <= 10; i += gridSpacing) {
+      const points = [new Vector3(i, 0.01, -7), new Vector3(i, 0.01, 7)];
       const line = MeshBuilder.CreateLines(`vLine_${i}`, { points: points }, scene);
       const lineMaterial = new StandardMaterial(`vLineMaterial_${i}`, scene);
-      lineMaterial.diffuseColor = new Color3(1, 1, 1); // White
-      lineMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Slight glow
+      lineMaterial.emissiveColor = new Color3(1, 1, 1); // Pure white emission
+      lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
+      lineMaterial.disableLighting = true; // Ignore lighting
       line.material = lineMaterial;
       gridLines.push(line);
     }
