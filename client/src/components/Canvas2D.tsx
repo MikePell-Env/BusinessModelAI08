@@ -40,7 +40,7 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
       className={`w-full h-full p-6 transition-all duration-500 ${
         isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
       }`}
-      style={{ backgroundColor: '#f8f9fa' }}
+      style={{ backgroundColor: '#e9ecef' }}
     >
       {/* Header */}
       <div className="mb-6 text-center">
