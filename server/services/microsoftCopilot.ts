@@ -37,72 +37,9 @@ const COPILOT_API_BASE = 'https://graph.microsoft.com/v1.0/copilot';
  * Requires Microsoft 365 Copilot license and proper authentication
  */
 export async function processCopilotChat(request: CopilotChatRequest): Promise<CopilotChatResponse> {
-  try {
-    // Test Microsoft Graph authentication
-    const authTest = await microsoftAuth.testConnection();
-    if (!authTest.success) {
-      console.log('Microsoft Graph authentication failed, falling back to OpenAI');
-      return await fallbackBusinessModelAnalysis(request);
-    }
-
-    console.log('Microsoft Graph authenticated successfully:', authTest.appInfo?.organizationName);
-
-    // Prepare the context for Copilot
-    const systemPrompt = `You are a business model analysis expert. Help analyze and improve this business model canvas.
-
-Current Business Model Canvas:
-- Name: ${request.canvas.name}
-- Description: ${request.canvas.description}
-- Key Partners: ${request.canvas.keyPartners.content.join(', ')}
-- Key Activities: ${request.canvas.keyActivities.content.join(', ')}
-- Key Resources: ${request.canvas.keyResources.content.join(', ')}
-- Value Propositions: ${request.canvas.valuePropositions.content.join(', ')}
-- Customer Relationships: ${request.canvas.customerRelationships.content.join(', ')}
-- Channels: ${request.canvas.channels.content.join(', ')}
-- Customer Segments: ${request.canvas.customerSegments.content.join(', ')}
-- Cost Structure: ${request.canvas.costStructure.content.join(', ')}
-- Revenue Streams: ${request.canvas.revenueStreams.content.join(', ')}
-
-Please provide specific, actionable insights and suggestions for improvement.`;
-
-    // Create dynamic context based on the specific user question
-    const questionContext = `
-User's Specific Question: "${request.message}"
-
-Analysis Focus Instructions:
-- If asking about RISKS: Focus on potential threats, market risks, operational risks, financial risks
-- If asking about VALUE PROPOSITION: Focus on customer benefits, differentiation, competitive advantages  
-- If asking about OPPORTUNITIES: Focus on market expansion, new revenue streams, partnerships
-- If asking about CUSTOMERS: Focus on target segments, customer needs, acquisition strategies
-- If asking about OPERATIONS: Focus on key activities, resources, processes, efficiency
-- If asking about FINANCIALS: Focus on costs, revenue models, profitability, pricing
-
-Provide a UNIQUE response that specifically addresses "${request.message}" with:
-1. Direct analysis of the question topic
-2. Specific recommendations for the current business model
-3. Actionable next steps
-4. Different insights than previous responses
-
-Current timestamp: ${new Date().toISOString()}
-Response variation key: ${Math.random().toString(36).substring(7)}
-`;
-
-    const enrichedPrompt = systemPrompt + questionContext;
-
-    // Generate contextual response using the enhanced prompt
-    const response = await generateBusinessModelResponse(request.message, request.canvas, enrichedPrompt);
-
-    return {
-      response: response.content,
-      canvasUpdates: response.canvasUpdates
-    };
-
-  } catch (error) {
-    console.error('Microsoft Copilot API error:', error);
-    
-    // Fallback to local business model analysis
-    return await fallbackBusinessModelAnalysis(request);
-  }
+  // Skip Microsoft Graph calls for now and go directly to OpenAI to avoid infinite loops
+  console.log('Processing chat request with OpenAI fallback for:', request.message);
+  return await processAIChat(request);
 }
 
 /**
