@@ -62,10 +62,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Helper function to create a floating content panel
     const createFloatingPanel = (element: CanvasElement, boxPosition: Vector3, elementId: string) => {
-      // Create floating panel position (above and to the side of the box)
+      // Create floating panel position (closer to the box)
       const panelPosition = new Vector3(
-        boxPosition.x + 2.5,  // Offset to the side
-        boxPosition.y + 2,    // Float above
+        boxPosition.x + 1.5,  // Closer offset to the side
+        boxPosition.y + 1.2,  // Closer float above
         boxPosition.z
       );
 
@@ -84,9 +84,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       panelMaterial.alpha = 0.9;
       panel.material = panelMaterial;
 
-      // Create connecting line
+      // Create connecting line in red
       const linePoints = [boxPosition, panelPosition];
       const line = MeshBuilder.CreateLines(`line_${elementId}`, { points: linePoints }, scene);
+      
+      // Create red material for the line
+      const lineMaterial = new StandardMaterial(`lineMaterial_${elementId}`, scene);
+      lineMaterial.diffuseColor = new Color3(0.8, 0.2, 0.2); // Red color
+      lineMaterial.emissiveColor = new Color3(0.3, 0.1, 0.1); // Slight glow
+      line.material = lineMaterial;
 
       // Create GUI for panel content
       const panelRect = new Rectangle(`panelRect_${elementId}`);
