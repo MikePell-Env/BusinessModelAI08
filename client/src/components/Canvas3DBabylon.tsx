@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
@@ -12,7 +12,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
-  const [selectedElement, setSelectedElement] = useState<string | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -59,6 +58,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Store floating panels and connecting lines
     const floatingPanels = new Map<string, { panel: Mesh, line: LinesMesh, gui: Rectangle }>();
+    let currentSelectedElement: string | null = null;
 
     // Helper function to create a floating content panel
     const createFloatingPanel = (element: CanvasElement, boxPosition: Vector3, elementId: string) => {
@@ -87,9 +87,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Create connecting line
       const linePoints = [boxPosition, panelPosition];
       const line = MeshBuilder.CreateLines(`line_${elementId}`, { points: linePoints }, scene);
-      const lineMaterial = new StandardMaterial(`lineMaterial_${elementId}`, scene);
-      lineMaterial.diffuseColor = new Color3(0.6, 0.6, 0.6);
-      line.material = lineMaterial;
 
       // Create GUI for panel content
       const panelRect = new Rectangle(`panelRect_${elementId}`);
@@ -154,27 +151,44 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Function to show floating panel
     const showFloatingPanel = (element: CanvasElement, boxPosition: Vector3, elementId: string) => {
+      console.log(`Showing panel for ${elementId}`);
+      
       // Hide any existing panel first
-      hideFloatingPanel(selectedElement);
+      if (currentSelectedElement && floatingPanels.has(currentSelectedElement)) {
+        const currentPanel = floatingPanels.get(currentSelectedElement);
+        if (currentPanel) {
+          currentPanel.panel.dispose();
+          currentPanel.line.dispose();
+          advancedTexture.removeControl(currentPanel.gui);
+          floatingPanels.delete(currentSelectedElement);
+        }
+      }
       
       // Create and show new panel
-      const panelData = createFloatingPanel(element, boxPosition, elementId);
-      floatingPanels.set(elementId, panelData);
-      setSelectedElement(elementId);
+      try {
+        const panelData = createFloatingPanel(element, boxPosition, elementId);
+        floatingPanels.set(elementId, panelData);
+        currentSelectedElement = elementId;
+        console.log(`Panel created successfully for ${elementId}`);
+      } catch (error) {
+        console.error(`Error creating panel for ${elementId}:`, error);
+      }
     };
 
     // Function to hide floating panel
     const hideFloatingPanel = (elementId: string | null) => {
       if (!elementId) return;
       
+      console.log(`Hiding panel for ${elementId}`);
       const panelData = floatingPanels.get(elementId);
       if (panelData) {
         panelData.panel.dispose();
         panelData.line.dispose();
         advancedTexture.removeControl(panelData.gui);
         floatingPanels.delete(elementId);
+        console.log(`Panel hidden for ${elementId}`);
       }
-      setSelectedElement(null);
+      currentSelectedElement = null;
     };
 
     // Helper function to create a business model block (simplified - title only)
@@ -202,9 +216,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       // Add interaction
       box.actionManager = new ActionManager(scene);
-      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, (evt) => {
         console.log(`Clicked on ${element.title}`);
-        if (selectedElement === elementId) {
+        // Prevent camera movement when clicking on the box
+        evt.sourceEvent?.stopPropagation();
+        
+        if (currentSelectedElement === elementId) {
           // If already selected, hide panel
           hideFloatingPanel(elementId);
         } else {
@@ -248,14 +265,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
 
     // Create business model canvas blocks matching 2D grid layout
-    // 2D Layout: 10-column grid with 3 rows
-    // Col 1-2: Key Partners (spans 2 cols, 2 rows)
-    // Col 3-4: Key Activities (top), Key Resources (bottom)
-    // Col 5-6: Value Propositions (spans 2 cols, 2 rows)
-    // Col 7-8: Customer Relationships (top), Channels (bottom)
-    // Col 9-10: Customer Segments (spans 2 cols, 2 rows)
-    // Row 3: Cost Structure (5 cols), Revenue Streams (5 cols)
-    
     const blocks = [
       // Column 1-2: Key Partners (left, spans 2 rows)
       createBusinessBlock(
@@ -339,8 +348,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       )
     ];
 
-    // Removed central flow indicator (no spinning elements)
-
     // Add title text
     const titleRect = new Rectangle("titleRect");
     titleRect.widthInPixels = 400;
@@ -379,7 +386,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       window.removeEventListener('resize', handleResize);
       engine.dispose();
     };
-  }, [canvas, selectedElement]);
+  }, [canvas]);
 
   if (!canvas) return null;
 
