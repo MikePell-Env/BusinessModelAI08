@@ -60,11 +60,37 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Add ambient lighting to reduce harsh shadows
     scene.ambientColor = new Color3(0.3, 0.3, 0.3);
 
-    // Create ground
+    // Create ground with grid pattern
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseColor = new Color3(0.97, 0.98, 0.99);
+    groundMaterial.diffuseColor = new Color3(0.9, 0.9, 0.9); // Light grey
     ground.material = groundMaterial;
+
+    // Create grid lines
+    const gridSpacing = 1;
+    const gridLines = [];
+    
+    // Horizontal grid lines
+    for (let i = -10; i <= 10; i += gridSpacing) {
+      const points = [new Vector3(-10, 0.01, i), new Vector3(10, 0.01, i)];
+      const line = MeshBuilder.CreateLines(`hLine_${i}`, { points: points }, scene);
+      const lineMaterial = new StandardMaterial(`hLineMaterial_${i}`, scene);
+      lineMaterial.diffuseColor = new Color3(1, 1, 1); // White
+      lineMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Slight glow
+      line.material = lineMaterial;
+      gridLines.push(line);
+    }
+    
+    // Vertical grid lines
+    for (let i = -7; i <= 7; i += gridSpacing) {
+      const points = [new Vector3(i, 0.01, -10), new Vector3(i, 0.01, 10)];
+      const line = MeshBuilder.CreateLines(`vLine_${i}`, { points: points }, scene);
+      const lineMaterial = new StandardMaterial(`vLineMaterial_${i}`, scene);
+      lineMaterial.diffuseColor = new Color3(1, 1, 1); // White
+      lineMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Slight glow
+      line.material = lineMaterial;
+      gridLines.push(line);
+    }
 
     // Create GUI
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
