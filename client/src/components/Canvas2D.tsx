@@ -13,7 +13,7 @@ const CanvasBlock: React.FC<{ element: CanvasElement; className?: string }> = ({
 }) => (
   <Card 
     className={`h-full transition-all duration-300 hover:shadow-lg ${className}`}
-    style={{ backgroundColor: element.color || '#f5f5f5' }}
+    style={{ backgroundColor: 'white' }}
   >
     <CardHeader className="pb-2">
       <CardTitle className="text-sm font-semibold text-gray-800">
