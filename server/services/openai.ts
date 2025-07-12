@@ -19,16 +19,59 @@ interface ChatResponse {
 }
 
 export async function processAIChat(request: ChatRequest): Promise<ChatResponse> {
-  // First try Microsoft Copilot API
-  try {
-    const copilotResponse = await processCopilotChat(request);
-    return copilotResponse;
-  } catch (copilotError) {
-    console.log('Microsoft Copilot not available, falling back to OpenAI:', copilotError.message);
-    
-    // Fallback to OpenAI if Microsoft Copilot is not available
-    return await processOpenAIChat(request);
+  // Skip Microsoft Copilot for now and go directly to OpenAI for reliable responses
+  console.log('Processing chat request with OpenAI for:', request.message);
+  
+  // Check if OpenAI API key is available
+  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your-openai-api-key-here") {
+    console.log('OpenAI API key not configured, using simple fallback');
+    return generateFallbackResponse(request);
   }
+  
+  try {
+    return await processOpenAIChat(request);
+  } catch (error) {
+    console.log('OpenAI request failed, using fallback response:', error.message);
+    return generateFallbackResponse(request);
+  }
+}
+
+function generateFallbackResponse(request: ChatRequest): ChatResponse {
+  const { message, canvas } = request;
+  const lowerMessage = message.toLowerCase();
+  
+  let response = `I understand you're asking about "${message}". Based on your ${canvas.name} business model, here are some insights:\n\n`;
+  
+  if (lowerMessage.includes('market') || lowerMessage.includes('opportunity') || lowerMessage.includes('opportunities')) {
+    response += `For market opportunities, consider:
+- Expanding to new customer segments beyond ${canvas.customerSegments.content.join(', ')}
+- Leveraging your key resources (${canvas.keyResources.content.join(', ')}) in new markets
+- Exploring partnerships that complement your value propositions: ${canvas.valuePropositions.content.join(', ')}
+- Digital transformation opportunities in your channels: ${canvas.channels.content.join(', ')}
+
+Your current revenue streams (${canvas.revenueStreams.content.join(', ')}) could be expanded or diversified to capture these opportunities.`;
+  } else if (lowerMessage.includes('value proposition') || lowerMessage.includes('value')) {
+    response += `Your value propositions focus on: ${canvas.valuePropositions.content.join(', ')}. Consider how these create unique value for your customers and differentiate you from competitors.`;
+  } else if (lowerMessage.includes('customer') || lowerMessage.includes('segment')) {
+    response += `Your customer segments include: ${canvas.customerSegments.content.join(', ')}. Think about how to better serve these specific groups and identify potential new segments.`;
+  } else if (lowerMessage.includes('revenue') || lowerMessage.includes('money') || lowerMessage.includes('income')) {
+    response += `Your revenue streams are: ${canvas.revenueStreams.content.join(', ')}. Consider diversifying or optimizing these income sources for better financial stability.`;
+  } else if (lowerMessage.includes('cost') || lowerMessage.includes('expense')) {
+    response += `Your cost structure includes: ${canvas.costStructure.content.join(', ')}. Look for ways to optimize and reduce unnecessary expenses while maintaining quality.`;
+  } else if (lowerMessage.includes('partner') || lowerMessage.includes('partnership')) {
+    response += `Your key partners are: ${canvas.keyPartners.content.join(', ')}. Consider how to strengthen these relationships and identify new strategic partnerships.`;
+  } else {
+    response += `I can help you analyze different aspects of your business model. Feel free to ask about:
+- Value propositions and how they serve your customers
+- Customer segments and market opportunities
+- Revenue streams and financial optimization
+- Cost structure and operational efficiency
+- Strategic partnerships and key resources`;
+  }
+  
+  response += `\n\nWould you like me to elaborate on any of these suggestions?`;
+  
+  return { response };
 }
 
 async function processOpenAIChat(request: ChatRequest): Promise<ChatResponse> {
@@ -107,7 +150,9 @@ Always be helpful, insightful, and provide actionable advice. Focus on practical
 
   } catch (error) {
     console.error('Error processing AI chat:', error);
-    throw new Error('Failed to process AI request');
+    
+    // Don't throw error here, let the upper level function handle it
+    throw error;
   }
 }
 
