@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { BusinessModelCanvas, CanvasUpdateRequest } from "../../client/src/types/canvas";
+import { processCopilotChat, analyzeCopilotCanvas } from './microsoftCopilot';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -18,6 +19,19 @@ interface ChatResponse {
 }
 
 export async function processAIChat(request: ChatRequest): Promise<ChatResponse> {
+  // First try Microsoft Copilot API
+  try {
+    const copilotResponse = await processCopilotChat(request);
+    return copilotResponse;
+  } catch (copilotError) {
+    console.log('Microsoft Copilot not available, falling back to OpenAI:', copilotError.message);
+    
+    // Fallback to OpenAI if Microsoft Copilot is not available
+    return await processOpenAIChat(request);
+  }
+}
+
+async function processOpenAIChat(request: ChatRequest): Promise<ChatResponse> {
   try {
     const { message, canvas, chatHistory } = request;
 
@@ -98,6 +112,31 @@ Always be helpful, insightful, and provide actionable advice. Focus on practical
 }
 
 export async function analyzeCanvas(canvas: BusinessModelCanvas): Promise<{
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+  recommendations: string[];
+}> {
+  // First try Microsoft Copilot API
+  try {
+    const copilotAnalysis = await analyzeCopilotCanvas(canvas);
+    return {
+      strengths: copilotAnalysis.insights,
+      weaknesses: copilotAnalysis.risks,
+      opportunities: copilotAnalysis.suggestions,
+      threats: copilotAnalysis.risks,
+      recommendations: copilotAnalysis.suggestions
+    };
+  } catch (copilotError) {
+    console.log('Microsoft Copilot analysis not available, falling back to OpenAI:', copilotError.message);
+    
+    // Fallback to OpenAI analysis
+    return await analyzeCanvasWithOpenAI(canvas);
+  }
+}
+
+async function analyzeCanvasWithOpenAI(canvas: BusinessModelCanvas): Promise<{
   strengths: string[];
   weaknesses: string[];
   opportunities: string[];

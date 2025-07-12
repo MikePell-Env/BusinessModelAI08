@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { Canvas2D } from './Canvas2D';
 import { Canvas3D } from './Canvas3D';
 import { Canvas3DSimple } from './Canvas3DSimple';
 import { Canvas3DBabylon } from './Canvas3DBabylon';
 import { AIChat } from './AIChat';
+import { MicrosoftStackStatus } from './MicrosoftStackStatus';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
-import { Eye, Box, RotateCcw, Layers } from 'lucide-react';
+import { Eye, Box, RotateCcw, Layers, Settings } from 'lucide-react';
 
 export const BusinessModelCanvas: React.FC = () => {
   const {
@@ -137,8 +139,27 @@ export const BusinessModelCanvas: React.FC = () => {
 
       </div>
 
-      {/* Reset Button */}
-      <div className="absolute top-4 right-4 z-40">
+      {/* Reset Button & Microsoft Stack Status */}
+      <div className="absolute top-4 right-4 z-40 flex space-x-2">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white border-gray-300 hover:bg-gray-50 shadow-md"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Microsoft Stack
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-5xl">
+            <DialogHeader>
+              <DialogTitle>Microsoft Technology Stack Migration</DialogTitle>
+            </DialogHeader>
+            <MicrosoftStackStatus />
+          </DialogContent>
+        </Dialog>
+        
         <Button
           onClick={handleReset}
           variant="outline"

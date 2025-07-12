@@ -54,6 +54,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test Microsoft Copilot API connection
+  app.post("/api/test-copilot", async (req, res) => {
+    try {
+      const accessToken = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN;
+      const clientId = process.env.MICROSOFT_CLIENT_ID;
+      const tenantId = process.env.MICROSOFT_TENANT_ID;
+
+      if (!accessToken || !clientId || !tenantId) {
+        return res.json({
+          success: false,
+          message: 'Microsoft credentials not configured. Please set MICROSOFT_GRAPH_ACCESS_TOKEN, MICROSOFT_CLIENT_ID, and MICROSOFT_TENANT_ID environment variables.',
+          configured: false
+        });
+      }
+
+      // Test connection to Microsoft Graph API
+      const testResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (testResponse.ok) {
+        const userData = await testResponse.json();
+        res.json({
+          success: true,
+          message: `Connected to Microsoft Graph API successfully as ${userData.displayName || 'user'}`,
+          configured: true,
+          details: {
+            userPrincipalName: userData.userPrincipalName,
+            tenantId: tenantId.substring(0, 8) + '...' // Partial tenant ID for security
+          }
+        });
+      } else {
+        res.json({
+          success: false,
+          message: `Microsoft Graph API connection failed with status ${testResponse.status}`,
+          configured: true
+        });
+      }
+    } catch (error) {
+      console.error('Microsoft Copilot test error:', error);
+      res.json({
+        success: false,
+        message: 'Failed to test Microsoft Copilot connection',
+        configured: !!process.env.MICROSOFT_GRAPH_ACCESS_TOKEN
+      });
+    }
+  });
+
   // Canvas CRUD endpoints
   app.get("/api/canvas/:id", async (req, res) => {
     try {

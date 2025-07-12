@@ -32,7 +32,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       Vector3.Zero(),
       scene
     );
-    camera.attachControls(canvasRef.current, true);
     camera.setTarget(Vector3.Zero());
 
     // Create lighting
@@ -123,12 +122,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return box;
     };
 
-    // Create business model canvas blocks
+    // Create business model canvas blocks (closer positions)
     const blocks = [
       // Left side - Key Partners
       createBusinessBlock(
         canvas.keyPartners,
-        new Vector3(-6, 0.5, 2),
+        new Vector3(-4, 0.5, 1),
         new Vector3(2, 1, 2),
         Color3.FromHexString(canvas.keyPartners.color || '#FFE5E5'),
         canvas.keyPartners.id
@@ -137,7 +136,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Upper Left - Key Activities
       createBusinessBlock(
         canvas.keyActivities,
-        new Vector3(-3, 0.5, 4),
+        new Vector3(-2, 0.5, 2.5),
         new Vector3(2, 1, 2),
         Color3.FromHexString(canvas.keyActivities.color || '#E5F3FF'),
         canvas.keyActivities.id
@@ -146,7 +145,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Lower Left - Key Resources
       createBusinessBlock(
         canvas.keyResources,
-        new Vector3(-3, 0.5, 0),
+        new Vector3(-2, 0.5, -0.5),
         new Vector3(2, 1, 2),
         Color3.FromHexString(canvas.keyResources.color || '#E5FFE5'),
         canvas.keyResources.id
@@ -155,7 +154,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Center - Value Propositions
       createBusinessBlock(
         canvas.valuePropositions,
-        new Vector3(0, 0.5, 2),
+        new Vector3(0, 0.5, 1),
         new Vector3(3, 1, 3),
         Color3.FromHexString(canvas.valuePropositions.color || '#FFF5E5'),
         canvas.valuePropositions.id
@@ -164,7 +163,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Upper Right - Customer Relationships
       createBusinessBlock(
         canvas.customerRelationships,
-        new Vector3(3, 0.5, 4),
+        new Vector3(2, 0.5, 2.5),
         new Vector3(2, 1, 2),
         Color3.FromHexString(canvas.customerRelationships.color || '#F5E5FF'),
         canvas.customerRelationships.id
@@ -173,7 +172,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Lower Right - Channels
       createBusinessBlock(
         canvas.channels,
-        new Vector3(3, 0.5, 0),
+        new Vector3(2, 0.5, -0.5),
         new Vector3(2, 1, 2),
         Color3.FromHexString(canvas.channels.color || '#E5FFFF'),
         canvas.channels.id
@@ -182,7 +181,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Right Side - Customer Segments
       createBusinessBlock(
         canvas.customerSegments,
-        new Vector3(6, 0.5, 2),
+        new Vector3(4, 0.5, 1),
         new Vector3(2, 1, 2),
         Color3.FromHexString(canvas.customerSegments.color || '#FFE5F5'),
         canvas.customerSegments.id
@@ -191,7 +190,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Bottom Left - Cost Structure
       createBusinessBlock(
         canvas.costStructure,
-        new Vector3(-2, 0.5, -3),
+        new Vector3(-1, 0.5, -2.5),
         new Vector3(4, 1, 1.5),
         Color3.FromHexString(canvas.costStructure.color || '#F0F0F0'),
         canvas.costStructure.id
@@ -200,31 +199,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Bottom Right - Revenue Streams
       createBusinessBlock(
         canvas.revenueStreams,
-        new Vector3(2, 0.5, -3),
+        new Vector3(1, 0.5, -2.5),
         new Vector3(4, 1, 1.5),
         Color3.FromHexString(canvas.revenueStreams.color || '#E5F5E5'),
         canvas.revenueStreams.id
       )
     ];
 
-    // Create central flow indicator
-    const centralFlow = MeshBuilder.CreateBox("centralFlow", {
-      width: 0.5,
-      height: 0.1,
-      depth: 2
-    }, scene);
-    centralFlow.position = new Vector3(0, 1, 2);
-    
-    const flowMaterial = new StandardMaterial("flowMaterial", scene);
-    flowMaterial.diffuseColor = new Color3(0.29, 0.56, 0.89);
-    centralFlow.material = flowMaterial;
-
-    // Add rotation animation to central flow
-    let angle = 0;
-    const animate = () => {
-      angle += 0.01;
-      centralFlow.rotation.y = angle;
-    };
+    // Removed central flow indicator (no spinning elements)
 
     // Add title text
     const titleRect = new Rectangle("titleRect");
@@ -245,7 +227,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Render loop
     engine.runRenderLoop(() => {
-      animate();
       scene.render();
     });
 

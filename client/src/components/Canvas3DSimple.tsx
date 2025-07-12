@@ -77,33 +77,9 @@ const SimpleBlock: React.FC<SimpleBlockProps> = ({
   );
 };
 
-// Simple Central Flow Component
+// Simple Central Flow Component (removed spinning elements)
 const SimpleCentralFlow: React.FC = () => {
-  const flowRef = useRef<THREE.Mesh>(null);
-  
-  useFrame((state) => {
-    if (flowRef.current) {
-      flowRef.current.rotation.y += 0.01;
-    }
-  });
-
-  return (
-    <group position={[0, 0.5, 0]}>
-      {/* Central rotating indicator */}
-      <Box 
-        ref={flowRef} 
-        args={[0.5, 0.1, 2]} 
-        position={[0, 0, 0]}
-      >
-        <meshStandardMaterial color="#4A90E2" />
-      </Box>
-      
-      {/* Value indicator */}
-      <Box args={[0.3, 0.3, 0.3]} position={[0, 0.3, 0]}>
-        <meshStandardMaterial color="#E53E3E" />
-      </Box>
-    </group>
-  );
+  return null; // No spinning elements
 };
 
 export const Canvas3DSimple: React.FC<Canvas3DSimpleProps> = ({ canvas, isTransitioning }) => {
@@ -148,7 +124,7 @@ export const Canvas3DSimple: React.FC<Canvas3DSimpleProps> = ({ canvas, isTransi
         {/* Left Side - Key Partners */}
         <SimpleBlock
           element={canvas.keyPartners}
-          position={[-6, 0.5, 2]}
+          position={[-4, 0.5, 1]}
           size={[2, 1, 2]}
           color={canvas.keyPartners.color || '#FFE5E5'}
           onClick={() => handleBlockClick(canvas.keyPartners.id)}
@@ -157,7 +133,7 @@ export const Canvas3DSimple: React.FC<Canvas3DSimpleProps> = ({ canvas, isTransi
         {/* Upper Left - Key Activities */}
         <SimpleBlock
           element={canvas.keyActivities}
-          position={[-3, 0.5, 4]}
+          position={[-2, 0.5, 2.5]}
           size={[2, 1, 2]}
           color={canvas.keyActivities.color || '#E5F3FF'}
           onClick={() => handleBlockClick(canvas.keyActivities.id)}
@@ -166,28 +142,25 @@ export const Canvas3DSimple: React.FC<Canvas3DSimpleProps> = ({ canvas, isTransi
         {/* Lower Left - Key Resources */}
         <SimpleBlock
           element={canvas.keyResources}
-          position={[-3, 0.5, 0]}
+          position={[-2, 0.5, -0.5]}
           size={[2, 1, 2]}
           color={canvas.keyResources.color || '#E5FFE5'}
           onClick={() => handleBlockClick(canvas.keyResources.id)}
         />
 
         {/* Center - Value Propositions */}
-        <group position={[0, 0, 2]}>
-          <SimpleBlock
-            element={canvas.valuePropositions}
-            position={[0, 0.5, 0]}
-            size={[3, 1, 3]}
-            color={canvas.valuePropositions.color || '#FFF5E5'}
-            onClick={() => handleBlockClick(canvas.valuePropositions.id)}
-          />
-          <SimpleCentralFlow />
-        </group>
+        <SimpleBlock
+          element={canvas.valuePropositions}
+          position={[0, 0.5, 1]}
+          size={[3, 1, 3]}
+          color={canvas.valuePropositions.color || '#FFF5E5'}
+          onClick={() => handleBlockClick(canvas.valuePropositions.id)}
+        />
 
         {/* Upper Right - Customer Relationships */}
         <SimpleBlock
           element={canvas.customerRelationships}
-          position={[3, 0.5, 4]}
+          position={[2, 0.5, 2.5]}
           size={[2, 1, 2]}
           color={canvas.customerRelationships.color || '#F5E5FF'}
           onClick={() => handleBlockClick(canvas.customerRelationships.id)}
@@ -196,7 +169,7 @@ export const Canvas3DSimple: React.FC<Canvas3DSimpleProps> = ({ canvas, isTransi
         {/* Lower Right - Channels */}
         <SimpleBlock
           element={canvas.channels}
-          position={[3, 0.5, 0]}
+          position={[2, 0.5, -0.5]}
           size={[2, 1, 2]}
           color={canvas.channels.color || '#E5FFFF'}
           onClick={() => handleBlockClick(canvas.channels.id)}
@@ -205,7 +178,7 @@ export const Canvas3DSimple: React.FC<Canvas3DSimpleProps> = ({ canvas, isTransi
         {/* Right Side - Customer Segments */}
         <SimpleBlock
           element={canvas.customerSegments}
-          position={[6, 0.5, 2]}
+          position={[4, 0.5, 1]}
           size={[2, 1, 2]}
           color={canvas.customerSegments.color || '#FFE5F5'}
           onClick={() => handleBlockClick(canvas.customerSegments.id)}
@@ -214,7 +187,7 @@ export const Canvas3DSimple: React.FC<Canvas3DSimpleProps> = ({ canvas, isTransi
         {/* Bottom Left - Cost Structure */}
         <SimpleBlock
           element={canvas.costStructure}
-          position={[-2, 0.5, -3]}
+          position={[-1, 0.5, -2.5]}
           size={[4, 1, 1.5]}
           color={canvas.costStructure.color || '#F0F0F0'}
           onClick={() => handleBlockClick(canvas.costStructure.id)}
@@ -223,7 +196,7 @@ export const Canvas3DSimple: React.FC<Canvas3DSimpleProps> = ({ canvas, isTransi
         {/* Bottom Right - Revenue Streams */}
         <SimpleBlock
           element={canvas.revenueStreams}
-          position={[2, 0.5, -3]}
+          position={[1, 0.5, -2.5]}
           size={[4, 1, 1.5]}
           color={canvas.revenueStreams.color || '#E5F5E5'}
           onClick={() => handleBlockClick(canvas.revenueStreams.id)}
