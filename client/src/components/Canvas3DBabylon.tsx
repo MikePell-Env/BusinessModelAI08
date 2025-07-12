@@ -252,7 +252,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Create material
       const material = new StandardMaterial(`material_${elementId}`, scene);
       material.diffuseColor = color;
-      material.alpha = 0.8;
+      material.alpha = 1.0; // Fully opaque
       box.material = material;
 
       // Add interaction
