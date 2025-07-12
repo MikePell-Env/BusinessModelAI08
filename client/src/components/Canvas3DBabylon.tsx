@@ -137,12 +137,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       panelRect.color = "#E2E8F0";
       panelRect.thickness = 2;
       panelRect.background = "#FFFFFF";
-      panelRect.alpha = 0.5; // 50% opacity
+      panelRect.alpha = 0.25; // 25% opacity
       advancedTexture.addControl(panelRect);
 
       // Panel title
       const panelTitle = new TextBlock(`panelTitle_${elementId}`, element.title);
-      panelTitle.color = "#2D3748";
+      panelTitle.color = "#1e3a8a"; // Dark blue
       panelTitle.fontSize = 16;
       panelTitle.fontWeight = "bold";
       panelTitle.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
@@ -155,7 +155,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const contentText = contentLines.map(item => `• ${item}`).join('\n');
       
       const panelContent = new TextBlock(`panelContent_${elementId}`, contentText);
-      panelContent.color = "#4A5568";
+      panelContent.color = "#1e40af"; // Dark blue
       panelContent.fontSize = 12;
       panelContent.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
       panelContent.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
