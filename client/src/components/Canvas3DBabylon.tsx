@@ -134,10 +134,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       panelRect.widthInPixels = 350;
       panelRect.heightInPixels = 250;
       panelRect.cornerRadius = 10;
-      panelRect.color = "#E2E8F0";
-      panelRect.thickness = 2;
+      panelRect.color = "#1e40af"; // Blue border
+      panelRect.thickness = 3;
       panelRect.background = "#FFFFFF";
-      panelRect.alpha = 0.25; // 25% opacity
+      panelRect.alpha = 0.75; // 75% opacity
       advancedTexture.addControl(panelRect);
 
       // Panel title
