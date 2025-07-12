@@ -189,28 +189,9 @@ Would you like me to elaborate on any specific aspect of your business model?`,
  * Fallback business model analysis when Microsoft APIs are unavailable
  */
 async function fallbackBusinessModelAnalysis(request: CopilotChatRequest): Promise<CopilotChatResponse> {
-  const response = `I understand you're asking about: "${request.message}"
-
-Based on your business model canvas analysis:
-
-**Key Observations:**
-- Value Propositions: ${request.canvas.valuePropositions.content.slice(0, 2).join(', ')}
-- Target Customers: ${request.canvas.customerSegments.content.slice(0, 2).join(', ')}
-- Revenue Model: ${request.canvas.revenueStreams.content.slice(0, 2).join(', ')}
-
-**Recommendations:**
-1. Consider how your value propositions directly address customer pain points
-2. Evaluate if your channels effectively reach your target segments
-3. Assess if your cost structure supports sustainable growth
-
-**Next Steps:**
-- Review customer feedback to validate value propositions
-- Analyze competitor positioning in your market
-- Consider partnerships to strengthen your key resources
-
-Would you like me to dive deeper into any specific area of your business model?`;
-
-  return { response };
+  // Use OpenAI as fallback to ensure dynamic responses
+  console.log('Falling back to OpenAI for:', request.message);
+  return await processAIChat(request);
 }
 
 /**
