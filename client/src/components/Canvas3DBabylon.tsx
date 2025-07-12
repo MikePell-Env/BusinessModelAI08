@@ -46,19 +46,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;
     camera.upperBetaLimit = Math.PI / 2.2;
 
-    // Create improved lighting to prevent washout from top view
+    // Create balanced lighting to show floor contrast
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 0.8;
+    hemisphericLight.intensity = 0.5;
     hemisphericLight.diffuse = new Color3(1, 1, 1);
     hemisphericLight.specular = new Color3(0.3, 0.3, 0.3);
     
     // Add directional light for better definition
     const directionalLight = new HemisphericLight("directionalLight", new Vector3(0.5, -1, 0.5), scene);
-    directionalLight.intensity = 0.6;
-    directionalLight.diffuse = new Color3(1, 1, 1);
+    directionalLight.intensity = 0.3;
+    directionalLight.diffuse = new Color3(0.9, 0.9, 1);
     
-    // Add bright ambient lighting to ensure white appearance
-    scene.ambientColor = new Color3(0.8, 0.8, 0.8);
+    // Reduce ambient lighting to show floor texture
+    scene.ambientColor = new Color3(0.4, 0.4, 0.4);
 
     // Create ground with grid pattern
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -252,7 +252,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Create material
       const material = new StandardMaterial(`material_${elementId}`, scene);
       material.diffuseColor = color;
-      material.emissiveColor = new Color3(0.3, 0.3, 0.3); // Self-illumination to ensure white appearance
+      material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Subtle self-illumination
       material.alpha = 1.0; // Fully opaque
       box.material = material;
 
