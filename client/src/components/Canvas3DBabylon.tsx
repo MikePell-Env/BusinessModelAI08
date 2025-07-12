@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, FreeCamera, Tools } from '@babylonjs/core';
+import React, { useRef, useEffect, useState } from 'react';
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
@@ -12,6 +12,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
+  const [selectedElement, setSelectedElement] = useState<string | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -55,8 +56,128 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Create GUI
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    
+    // Store floating panels and connecting lines
+    const floatingPanels = new Map<string, { panel: Mesh, line: LinesMesh, gui: Rectangle }>();
 
-    // Helper function to create a business model block
+    // Helper function to create a floating content panel
+    const createFloatingPanel = (element: CanvasElement, boxPosition: Vector3, elementId: string) => {
+      // Create floating panel position (above and to the side of the box)
+      const panelPosition = new Vector3(
+        boxPosition.x + 2.5,  // Offset to the side
+        boxPosition.y + 2,    // Float above
+        boxPosition.z
+      );
+
+      // Create the floating panel
+      const panel = MeshBuilder.CreateBox(`panel_${elementId}`, {
+        width: 3,
+        height: 2,
+        depth: 0.1
+      }, scene);
+      
+      panel.position = panelPosition;
+      
+      // Create panel material
+      const panelMaterial = new StandardMaterial(`panelMaterial_${elementId}`, scene);
+      panelMaterial.diffuseColor = new Color3(0.95, 0.95, 0.95);
+      panelMaterial.alpha = 0.9;
+      panel.material = panelMaterial;
+
+      // Create connecting line
+      const linePoints = [boxPosition, panelPosition];
+      const line = MeshBuilder.CreateLines(`line_${elementId}`, { points: linePoints }, scene);
+      const lineMaterial = new StandardMaterial(`lineMaterial_${elementId}`, scene);
+      lineMaterial.diffuseColor = new Color3(0.6, 0.6, 0.6);
+      line.material = lineMaterial;
+
+      // Create GUI for panel content
+      const panelRect = new Rectangle(`panelRect_${elementId}`);
+      panelRect.widthInPixels = 350;
+      panelRect.heightInPixels = 250;
+      panelRect.cornerRadius = 10;
+      panelRect.color = "#E2E8F0";
+      panelRect.thickness = 2;
+      panelRect.background = "#FFFFFF";
+      advancedTexture.addControl(panelRect);
+
+      // Panel title
+      const panelTitle = new TextBlock(`panelTitle_${elementId}`, element.title);
+      panelTitle.color = "#2D3748";
+      panelTitle.fontSize = 16;
+      panelTitle.fontWeight = "bold";
+      panelTitle.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      panelTitle.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      panelTitle.paddingTop = "15px";
+      panelRect.addControl(panelTitle);
+
+      // Panel content
+      const contentLines = element.content.slice(0, 5); // Show up to 5 bullet points
+      const contentText = contentLines.map(item => `• ${item}`).join('\n');
+      
+      const panelContent = new TextBlock(`panelContent_${elementId}`, contentText);
+      panelContent.color = "#4A5568";
+      panelContent.fontSize = 12;
+      panelContent.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+      panelContent.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      panelContent.paddingTop = "50px";
+      panelContent.paddingLeft = "20px";
+      panelContent.paddingRight = "20px";
+      panelContent.textWrapping = true;
+      panelRect.addControl(panelContent);
+
+      // Close button
+      const closeButton = new TextBlock(`closeBtn_${elementId}`, "✕");
+      closeButton.color = "#E53E3E";
+      closeButton.fontSize = 18;
+      closeButton.fontWeight = "bold";
+      closeButton.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      closeButton.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      closeButton.paddingTop = "10px";
+      closeButton.paddingRight = "15px";
+      closeButton.widthInPixels = 30;
+      closeButton.heightInPixels = 30;
+      closeButton.isPointerBlocker = true;
+      panelRect.addControl(closeButton);
+
+      // Add close button interaction
+      closeButton.onPointerClickObservable.add(() => {
+        hideFloatingPanel(elementId);
+      });
+
+      // Link panel GUI to 3D position
+      panelRect.linkWithMesh(panel);
+      panelRect.linkOffsetY = -125;
+
+      return { panel, line, gui: panelRect };
+    };
+
+    // Function to show floating panel
+    const showFloatingPanel = (element: CanvasElement, boxPosition: Vector3, elementId: string) => {
+      // Hide any existing panel first
+      hideFloatingPanel(selectedElement);
+      
+      // Create and show new panel
+      const panelData = createFloatingPanel(element, boxPosition, elementId);
+      floatingPanels.set(elementId, panelData);
+      setSelectedElement(elementId);
+    };
+
+    // Function to hide floating panel
+    const hideFloatingPanel = (elementId: string | null) => {
+      if (!elementId) return;
+      
+      const panelData = floatingPanels.get(elementId);
+      if (panelData) {
+        panelData.panel.dispose();
+        panelData.line.dispose();
+        advancedTexture.removeControl(panelData.gui);
+        floatingPanels.delete(elementId);
+      }
+      setSelectedElement(null);
+    };
+
+    // Helper function to create a business model block (simplified - title only)
     const createBusinessBlock = (
       element: CanvasElement,
       position: Vector3,
@@ -83,6 +204,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       box.actionManager = new ActionManager(scene);
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
         console.log(`Clicked on ${element.title}`);
+        if (selectedElement === elementId) {
+          // If already selected, hide panel
+          hideFloatingPanel(elementId);
+        } else {
+          // Show floating panel with content
+          showFloatingPanel(element, position, elementId);
+        }
       }));
 
       // Add hover effect
@@ -94,39 +222,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         material.diffuseColor = color; // Original color
       }));
 
-      // Create GUI elements for text
+      // Create GUI for title only
       const rect = new Rectangle(`rect_${elementId}`);
-      rect.widthInPixels = 200;
-      rect.heightInPixels = 100;
-      rect.cornerRadius = 10;
+      rect.widthInPixels = 180;
+      rect.heightInPixels = 60;
+      rect.cornerRadius = 8;
       rect.color = "transparent";
       rect.thickness = 0;
       advancedTexture.addControl(rect);
 
-      // Title text
+      // Title text only
       const titleText = new TextBlock(`title_${elementId}`, element.title);
       titleText.color = "#2D3748";
-      titleText.fontSize = 18;
+      titleText.fontSize = 16;
       titleText.fontWeight = "bold";
       titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-      titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-      titleText.paddingTop = "10px";
+      titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
       rect.addControl(titleText);
-
-      // Content text
-      const contentText = new TextBlock(`content_${elementId}`, 
-        element.content.slice(0, 2).join(' • ') + (element.content.length > 2 ? '...' : '')
-      );
-      contentText.color = "#4A5568";
-      contentText.fontSize = 12;
-      contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-      contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-      contentText.paddingBottom = "10px";
-      rect.addControl(contentText);
 
       // Link GUI to 3D position
       rect.linkWithMesh(box);
-      rect.linkOffsetY = -50;
+      rect.linkOffsetY = -30;
 
       return box;
     };
@@ -255,10 +371,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Cleanup
     return () => {
+      // Clean up floating panels
+      floatingPanels.forEach((panelData, elementId) => {
+        hideFloatingPanel(elementId);
+      });
+      
       window.removeEventListener('resize', handleResize);
       engine.dispose();
     };
-  }, [canvas]);
+  }, [canvas, selectedElement]);
 
   if (!canvas) return null;
 
