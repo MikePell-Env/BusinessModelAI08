@@ -23,7 +23,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create camera
+    // Create camera with user controls
     const camera = new ArcRotateCamera(
       "camera",
       -Math.PI / 2,
@@ -33,6 +33,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       scene
     );
     camera.setTarget(Vector3.Zero());
+    
+    // Enable camera controls on the canvas
+    camera.attachControl(canvasRef.current, true);
+    
+    // Set camera limits for better user experience
+    camera.lowerRadiusLimit = 5;
+    camera.upperRadiusLimit = 25;
+    camera.lowerBetaLimit = 0.1;
+    camera.upperBetaLimit = Math.PI / 2.2;
 
     // Create lighting
     const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
