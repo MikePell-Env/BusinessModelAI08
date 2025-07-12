@@ -249,11 +249,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       box.position = position;
       
-      // Create plastic material with white color
-      const material = new PBRMaterial(`material_${elementId}`, scene);
-      material.baseColor = new Color3(1, 1, 1); // Pure white base color
-      material.metallicFactor = 0.0; // Non-metallic (plastic)
-      material.roughnessFactor = 0.3; // Slightly glossy plastic finish
+      // Create plastic-like material with white color
+      const material = new StandardMaterial(`material_${elementId}`, scene);
+      material.diffuseColor = new Color3(1, 1, 1); // Pure white diffuse
+      material.specularColor = new Color3(0.2, 0.2, 0.2); // Low specular for plastic look
+      material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight self-illumination
       material.alpha = 1.0; // Fully opaque
       box.material = material;
 
@@ -275,11 +275,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       // Add hover effect
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-        material.baseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
+        material.diffuseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
       }));
 
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        material.baseColor = new Color3(1, 1, 1); // White color
+        material.diffuseColor = new Color3(1, 1, 1); // White color
       }));
 
       // Create billboard text using GUI directly on screen (no mesh plane)
