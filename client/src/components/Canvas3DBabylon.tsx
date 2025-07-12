@@ -43,9 +43,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;
     camera.upperBetaLimit = Math.PI / 2.2;
 
-    // Create lighting
-    const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
-    light.intensity = 0.8;
+    // Create improved lighting to prevent washout from top view
+    const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
+    hemisphericLight.intensity = 0.6;
+    hemisphericLight.diffuse = new Color3(1, 1, 1);
+    hemisphericLight.specular = new Color3(0.3, 0.3, 0.3);
+    
+    // Add directional light for better definition
+    const directionalLight = new HemisphericLight("directionalLight", new Vector3(0.5, -1, 0.5), scene);
+    directionalLight.intensity = 0.4;
+    directionalLight.diffuse = new Color3(0.9, 0.9, 1);
+    
+    // Add ambient lighting to reduce harsh shadows
+    scene.ambientColor = new Color3(0.3, 0.3, 0.3);
 
     // Create ground
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -340,20 +350,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.customerSegments.id
       ),
 
-      // Row 3: Cost Structure (spans 5 columns)
+      // Row 3: Cost Structure (left aligned with Key Partners)
       createBusinessBlock(
         canvas.costStructure,
-        new Vector3(-1, 0.5, -2.5),
-        new Vector3(4.5, 1, 1),
+        new Vector3(-2, 0.5, -2.5),
+        new Vector3(3.8, 1, 1),
         Color3.FromHexString(canvas.costStructure.color || '#F0F0F0'),
         canvas.costStructure.id
       ),
 
-      // Row 3: Revenue Streams (spans 5 columns)
+      // Row 3: Revenue Streams (right side)
       createBusinessBlock(
         canvas.revenueStreams,
-        new Vector3(1, 0.5, -2.5),
-        new Vector3(4.5, 1, 1),
+        new Vector3(2, 0.5, -2.5),
+        new Vector3(3.8, 1, 1),
         Color3.FromHexString(canvas.revenueStreams.color || '#E5F5E5'),
         canvas.revenueStreams.id
       )
