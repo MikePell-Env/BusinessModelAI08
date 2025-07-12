@@ -48,21 +48,21 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
       </div>
 
       {/* Business Model Canvas Grid */}
-      <div className="grid grid-cols-5 grid-rows-3 gap-4 h-5/6 max-w-7xl mx-auto">
+      <div className="grid grid-cols-10 grid-rows-3 gap-4 h-5/6 max-w-7xl mx-auto">
         {/* Row 1 */}
-        <CanvasBlock element={canvas.keyPartners} className="row-span-2" />
-        <CanvasBlock element={canvas.keyActivities} />
-        <CanvasBlock element={canvas.valuePropositions} className="row-span-2" />
-        <CanvasBlock element={canvas.customerRelationships} />
-        <CanvasBlock element={canvas.customerSegments} className="row-span-2" />
+        <CanvasBlock element={canvas.keyPartners} className="row-span-2 col-span-2" />
+        <CanvasBlock element={canvas.keyActivities} className="col-span-2" />
+        <CanvasBlock element={canvas.valuePropositions} className="row-span-2 col-span-2" />
+        <CanvasBlock element={canvas.customerRelationships} className="col-span-2" />
+        <CanvasBlock element={canvas.customerSegments} className="row-span-2 col-span-2" />
         
         {/* Row 2 */}
-        <CanvasBlock element={canvas.keyResources} />
-        <CanvasBlock element={canvas.channels} />
+        <CanvasBlock element={canvas.keyResources} className="col-span-2" />
+        <CanvasBlock element={canvas.channels} className="col-span-2" />
         
-        {/* Row 3 - Bottom boxes meeting at center of value propositions */}
-        <CanvasBlock element={canvas.costStructure} className="col-span-2" />
-        <CanvasBlock element={canvas.revenueStreams} className="col-span-3" />
+        {/* Row 3 - Bottom boxes with cost structure 20% wider */}
+        <CanvasBlock element={canvas.costStructure} className="col-span-5" />
+        <CanvasBlock element={canvas.revenueStreams} className="col-span-5" />
       </div>
     </div>
   );
