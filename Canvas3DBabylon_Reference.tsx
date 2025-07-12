@@ -1,3 +1,7 @@
+// REFERENCE: Complete Babylon.js Canvas3D File
+// This file shows the exact structure and positioning used in the 3D view
+// Location: client/src/components/Canvas3DBabylon.tsx
+
 import React, { useRef, useEffect } from 'react';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, FreeCamera, Tools } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
@@ -26,10 +30,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Create camera with user controls
     const camera = new ArcRotateCamera(
       "camera",
-      -Math.PI / 2,
-      Math.PI / 2.5,
-      12,
-      Vector3.Zero(),
+      -Math.PI / 2,    // Alpha (horizontal rotation)
+      Math.PI / 2.5,   // Beta (vertical rotation)
+      12,              // Radius (distance from target)
+      Vector3.Zero(),  // Target position
       scene
     );
     camera.setTarget(Vector3.Zero());
@@ -38,10 +42,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.attachControl(canvasRef.current, true);
     
     // Set camera limits for better user experience
-    camera.lowerRadiusLimit = 5;
-    camera.upperRadiusLimit = 25;
-    camera.lowerBetaLimit = 0.1;
-    camera.upperBetaLimit = Math.PI / 2.2;
+    camera.lowerRadiusLimit = 5;      // Minimum zoom distance
+    camera.upperRadiusLimit = 25;     // Maximum zoom distance
+    camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
+    camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
 
     // Create lighting
     const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
@@ -131,7 +135,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return box;
     };
 
-    // Create business model canvas blocks matching 2D grid layout
+    // POSITIONING: Matches 2D grid layout exactly
     // 2D Layout: 10-column grid with 3 rows
     // Col 1-2: Key Partners (spans 2 cols, 2 rows)
     // Col 3-4: Key Activities (top), Key Resources (bottom)
@@ -144,8 +148,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Column 1-2: Key Partners (left, spans 2 rows)
       createBusinessBlock(
         canvas.keyPartners,
-        new Vector3(-4, 0.5, 0),
-        new Vector3(1.8, 1, 2.5),
+        new Vector3(-4, 0.5, 0),    // Position: far left, centered vertically
+        new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
         Color3.FromHexString(canvas.keyPartners.color || '#FFE5E5'),
         canvas.keyPartners.id
       ),
@@ -153,8 +157,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Column 3-4: Key Activities (top)
       createBusinessBlock(
         canvas.keyActivities,
-        new Vector3(-2, 0.5, 1),
-        new Vector3(1.8, 1, 1.2),
+        new Vector3(-2, 0.5, 1),    // Position: left-center, forward
+        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
         Color3.FromHexString(canvas.keyActivities.color || '#E5F3FF'),
         canvas.keyActivities.id
       ),
@@ -162,8 +166,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Column 3-4: Key Resources (bottom)
       createBusinessBlock(
         canvas.keyResources,
-        new Vector3(-2, 0.5, -1),
-        new Vector3(1.8, 1, 1.2),
+        new Vector3(-2, 0.5, -1),   // Position: left-center, back
+        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
         Color3.FromHexString(canvas.keyResources.color || '#E5FFE5'),
         canvas.keyResources.id
       ),
@@ -171,8 +175,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Column 5-6: Value Propositions (center, spans 2 rows)
       createBusinessBlock(
         canvas.valuePropositions,
-        new Vector3(0, 0.5, 0),
-        new Vector3(1.8, 1, 2.5),
+        new Vector3(0, 0.5, 0),     // Position: center, centered vertically
+        new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
         Color3.FromHexString(canvas.valuePropositions.color || '#FFF5E5'),
         canvas.valuePropositions.id
       ),
@@ -180,8 +184,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Column 7-8: Customer Relationships (top)
       createBusinessBlock(
         canvas.customerRelationships,
-        new Vector3(2, 0.5, 1),
-        new Vector3(1.8, 1, 1.2),
+        new Vector3(2, 0.5, 1),     // Position: right-center, forward
+        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
         Color3.FromHexString(canvas.customerRelationships.color || '#F5E5FF'),
         canvas.customerRelationships.id
       ),
@@ -189,8 +193,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Column 7-8: Channels (bottom)
       createBusinessBlock(
         canvas.channels,
-        new Vector3(2, 0.5, -1),
-        new Vector3(1.8, 1, 1.2),
+        new Vector3(2, 0.5, -1),    // Position: right-center, back
+        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
         Color3.FromHexString(canvas.channels.color || '#E5FFFF'),
         canvas.channels.id
       ),
@@ -198,8 +202,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Column 9-10: Customer Segments (right, spans 2 rows)
       createBusinessBlock(
         canvas.customerSegments,
-        new Vector3(4, 0.5, 0),
-        new Vector3(1.8, 1, 2.5),
+        new Vector3(4, 0.5, 0),     // Position: far right, centered vertically
+        new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
         Color3.FromHexString(canvas.customerSegments.color || '#FFE5F5'),
         canvas.customerSegments.id
       ),
@@ -207,8 +211,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Row 3: Cost Structure (spans 5 columns)
       createBusinessBlock(
         canvas.costStructure,
-        new Vector3(-1, 0.5, -2.5),
-        new Vector3(4.5, 1, 1),
+        new Vector3(-1, 0.5, -2.5), // Position: left side, back
+        new Vector3(4.5, 1, 1),     // Size: wide width, short height
         Color3.FromHexString(canvas.costStructure.color || '#F0F0F0'),
         canvas.costStructure.id
       ),
@@ -216,63 +220,49 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Row 3: Revenue Streams (spans 5 columns)
       createBusinessBlock(
         canvas.revenueStreams,
-        new Vector3(1, 0.5, -2.5),
-        new Vector3(4.5, 1, 1),
+        new Vector3(1, 0.5, -2.5),  // Position: right side, back
+        new Vector3(4.5, 1, 1),     // Size: wide width, short height
         Color3.FromHexString(canvas.revenueStreams.color || '#E5F5E5'),
         canvas.revenueStreams.id
       )
     ];
 
-    // Removed central flow indicator (no spinning elements)
-
-    // Add title text
-    const titleRect = new Rectangle("titleRect");
-    titleRect.widthInPixels = 400;
-    titleRect.heightInPixels = 60;
-    titleRect.color = "transparent";
-    titleRect.thickness = 0;
-    titleRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-    titleRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-    titleRect.paddingTop = "20px";
-    advancedTexture.addControl(titleRect);
-
-    const titleText = new TextBlock("canvasTitle", canvas.name);
-    titleText.color = "#1A202C";
-    titleText.fontSize = 28;
-    titleText.fontWeight = "bold";
-    titleRect.addControl(titleText);
-
-    // Render loop
+    // Start the render loop
     engine.runRenderLoop(() => {
-      scene.render();
+      if (scene) {
+        scene.render();
+      }
     });
 
-    // Handle window resize
-    const handleResize = () => {
-      engine.resize();
-    };
-    window.addEventListener('resize', handleResize);
-
-    // Cleanup
+    // Clean up on unmount
     return () => {
-      window.removeEventListener('resize', handleResize);
-      engine.dispose();
+      if (engineRef.current) {
+        engineRef.current.dispose();
+      }
+      if (sceneRef.current) {
+        sceneRef.current.dispose();
+      }
     };
   }, [canvas]);
 
-  if (!canvas) return null;
-
   return (
-    <div 
-      className={`w-full h-full transition-all duration-500 ${
-        isTransitioning ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
-      }`}
-    >
+    <div className={`w-full h-full ${isTransitioning ? 'opacity-50' : ''}`}>
       <canvas
         ref={canvasRef}
-        className="w-full h-full outline-none"
-        style={{ width: '100%', height: '100%' }}
+        className="w-full h-full"
+        style={{ outline: 'none' }}
       />
     </div>
   );
 };
+
+// POSITIONING GUIDE:
+// X-axis: -4 (left) to +4 (right) 
+// Y-axis: 0.5 (ground level)
+// Z-axis: -2.5 (back) to +1 (front)
+//
+// Box sizes follow 2D proportions:
+// - Tall boxes (2-row span): depth=2.5
+// - Short boxes (1-row span): depth=1.2  
+// - Wide boxes (5-col span): width=4.5
+// - Narrow boxes (2-col span): width=1.8
