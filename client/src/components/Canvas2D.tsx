@@ -60,8 +60,9 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
         <CanvasBlock element={canvas.keyResources} />
         <CanvasBlock element={canvas.channels} />
         
-        {/* Row 3 */}
+        {/* Row 3 - Bottom boxes with equal widths */}
         <CanvasBlock element={canvas.costStructure} className="col-span-2" />
+        <div className="col-span-1"></div> {/* Empty spacer for value propositions */}
         <CanvasBlock element={canvas.revenueStreams} className="col-span-2" />
       </div>
     </div>
