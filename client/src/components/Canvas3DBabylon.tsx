@@ -20,8 +20,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const engine = new Engine(canvasRef.current, true);
     const scene = new Scene(engine);
     
-    // Set light grey background
-    scene.clearColor = new Color3(0.95, 0.95, 0.95);
+    // Set white background
+    scene.clearColor = new Color3(1, 1, 1);
     
     engineRef.current = engine;
     sceneRef.current = scene;
@@ -75,7 +75,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const points = [new Vector3(-10, 0.01, i), new Vector3(10, 0.01, i)];
       const line = MeshBuilder.CreateLines(`hLine_${i}`, { points: points }, scene);
       const lineMaterial = new StandardMaterial(`hLineMaterial_${i}`, scene);
-      lineMaterial.emissiveColor = new Color3(0.95, 0.95, 0.95); // Super light grey
+      lineMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Light grey
       lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
       lineMaterial.disableLighting = true; // Ignore lighting
       line.material = lineMaterial;
@@ -87,7 +87,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const points = [new Vector3(i, 0.01, -7), new Vector3(i, 0.01, 7)];
       const line = MeshBuilder.CreateLines(`vLine_${i}`, { points: points }, scene);
       const lineMaterial = new StandardMaterial(`vLineMaterial_${i}`, scene);
-      lineMaterial.emissiveColor = new Color3(0.95, 0.95, 0.95); // Super light grey
+      lineMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Light grey
       lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
       lineMaterial.disableLighting = true; // Ignore lighting
       line.material = lineMaterial;
