@@ -45,7 +45,7 @@ export async function processCopilotChat(request: CopilotChatRequest): Promise<C
       return await fallbackBusinessModelAnalysis(request);
     }
 
-    console.log('Microsoft Graph authenticated successfully:', authTest.userInfo?.displayName);
+    console.log('Microsoft Graph authenticated successfully:', authTest.appInfo?.organizationName);
 
     // Prepare the context for Copilot
     const systemPrompt = `You are a business model analysis expert. Help analyze and improve this business model canvas.

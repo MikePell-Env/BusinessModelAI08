@@ -86,27 +86,32 @@ class MicrosoftAuthService {
   /**
    * Test the Microsoft Graph connection
    */
-  async testConnection(): Promise<{ success: boolean; message: string; userInfo?: any }> {
+  async testConnection(): Promise<{ success: boolean; message: string; appInfo?: any }> {
     try {
-      const graphClient = await this.getGraphClient();
+      // Just test token acquisition without making Graph API calls
+      const token = await this.getAccessToken();
       
-      // Try to get user information as a connection test
-      const me = await graphClient.api('/me').get();
-      
-      return {
-        success: true,
-        message: 'Microsoft Graph connection successful',
-        userInfo: {
-          displayName: me.displayName,
-          mail: me.mail,
-          id: me.id
-        }
-      };
+      if (token && token.length > 0) {
+        return {
+          success: true,
+          message: 'Microsoft Graph authentication successful - token acquired',
+          appInfo: {
+            tokenLength: token.length,
+            tenantId: this.authConfig.tenantId.substring(0, 8) + '...',
+            clientId: this.authConfig.clientId.substring(0, 8) + '...'
+          }
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Failed to acquire valid access token'
+        };
+      }
     } catch (error) {
       console.error('Microsoft Graph connection test failed:', error);
       return {
         success: false,
-        message: `Connection test failed: ${error.message}`
+        message: `Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
