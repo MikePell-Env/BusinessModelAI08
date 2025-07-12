@@ -69,8 +69,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Create GUI
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
     
-    // Store floating panels and connecting lines
-    const floatingPanels = new Map<string, { panel: Mesh, line: LinesMesh, gui: Rectangle }>();
+    // Store floating panels (no connecting lines)
+    const floatingPanels = new Map<string, { panel: Mesh, gui: Rectangle }>();
     let currentSelectedElement: string | null = null;
 
     // Helper function to create a floating content panel
@@ -97,18 +97,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       panelMaterial.alpha = 0.9;
       panel.material = panelMaterial;
 
-      // Create connecting line in red (thicker)
-      const linePoints = [boxPosition, panelPosition];
-      const line = MeshBuilder.CreateLines(`line_${elementId}`, { 
-        points: linePoints,
-        width: 8  // Make lines thicker
-      }, scene);
-      
-      // Create red material for the line
-      const lineMaterial = new StandardMaterial(`lineMaterial_${elementId}`, scene);
-      lineMaterial.diffuseColor = new Color3(0.8, 0.2, 0.2); // Red color
-      lineMaterial.emissiveColor = new Color3(0.3, 0.1, 0.1); // Slight glow
-      line.material = lineMaterial;
+      // No connecting line for floating panels
 
       // Create GUI for panel content
       const panelRect = new Rectangle(`panelRect_${elementId}`);
@@ -170,7 +159,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       panelRect.linkWithMesh(panel);
       panelRect.linkOffsetY = -125;
 
-      return { panel, line, gui: panelRect };
+      return { panel, gui: panelRect };
     };
 
     // Function to show floating panel
@@ -182,7 +171,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const currentPanel = floatingPanels.get(currentSelectedElement);
         if (currentPanel) {
           currentPanel.panel.dispose();
-          currentPanel.line.dispose();
           advancedTexture.removeControl(currentPanel.gui);
           floatingPanels.delete(currentSelectedElement);
         }
@@ -207,7 +195,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const panelData = floatingPanels.get(elementId);
       if (panelData) {
         panelData.panel.dispose();
-        panelData.line.dispose();
         advancedTexture.removeControl(panelData.gui);
         floatingPanels.delete(elementId);
         console.log(`Panel hidden for ${elementId}`);
@@ -263,45 +250,41 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         material.diffuseColor = color; // Original color
       }));
 
-      // Create billboard plane for title that always faces camera
-      const billboard = MeshBuilder.CreatePlane(`billboard_${elementId}`, {
-        width: 2.2,
-        height: 0.6
-      }, scene);
-      
-      billboard.position = new Vector3(position.x, position.y + 0.9, position.z);
-      billboard.billboardMode = Mesh.BILLBOARDMODE_ALL;
-      
-      // Create transparent billboard material (no visible plane)
-      const billboardMaterial = new StandardMaterial(`billboardMaterial_${elementId}`, scene);
-      billboardMaterial.diffuseColor = new Color3(1, 1, 1);
-      billboardMaterial.alpha = 0; // Make completely transparent
-      billboard.material = billboardMaterial;
+      // Create billboard text using GUI directly on screen (no mesh plane)
+      const titleRect = new Rectangle(`titleRect_${elementId}`);
+      titleRect.widthInPixels = 200;
+      titleRect.heightInPixels = 40;
+      titleRect.color = "transparent";
+      titleRect.thickness = 0;
+      advancedTexture.addControl(titleRect);
 
-      // Create GUI for billboard
-      const billboardTexture = AdvancedDynamicTexture.CreateForMesh(billboard, 512, 128);
-      
-      // Title text on billboard
+      // Title text with billboard behavior
       const titleText = new TextBlock(`title_${elementId}`, element.title);
       titleText.color = "#2D3748";
-      titleText.fontSize = 24;
+      titleText.fontSize = 16;
       titleText.fontWeight = "bold";
       titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
       titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-      billboardTexture.addControl(titleText);
+      titleRect.addControl(titleText);
+
+      // Link to position above the box
+      const labelPosition = new Vector3(position.x, position.y + 0.9, position.z);
+      titleRect.linkWithMesh(box);
+      titleRect.linkOffsetY = -60;
 
       // Create vertical white line from title to box surface
-      const lineStartPoint = new Vector3(position.x, position.y + 0.9, position.z); // Billboard position
+      const lineStartPoint = new Vector3(position.x, position.y + 0.9, position.z); // Label position
       const lineEndPoint = new Vector3(position.x, position.y + 0.5, position.z);   // Box top surface
       const titleLine = MeshBuilder.CreateLines(`titleLine_${elementId}`, { 
         points: [lineStartPoint, lineEndPoint],
-        width: 3
+        width: 4
       }, scene);
       
-      // Create white material for the title line
+      // Create white material for the title line with no lighting effects
       const titleLineMaterial = new StandardMaterial(`titleLineMaterial_${elementId}`, scene);
-      titleLineMaterial.diffuseColor = new Color3(1, 1, 1); // White color
-      titleLineMaterial.emissiveColor = new Color3(0.3, 0.3, 0.3); // Slight glow
+      titleLineMaterial.diffuseColor = new Color3(1, 1, 1); // Pure white
+      titleLineMaterial.emissiveColor = new Color3(1, 1, 1); // Always emit white light
+      titleLineMaterial.disableLighting = true; // Ignore scene lighting
       titleLine.material = titleLineMaterial;
 
       return box;
