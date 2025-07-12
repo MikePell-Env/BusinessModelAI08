@@ -75,22 +75,27 @@ export const BusinessModelCanvas: React.FC = () => {
       {/* Header Controls */}
       <div className="absolute top-4 left-4 z-40 flex space-x-2">
         <Button
-          onClick={handleToggleView}
-          disabled={isTransitioning}
-          className="bg-white text-gray-800 border border-gray-300 hover:bg-gray-50 shadow-md"
+          onClick={() => !is3D || handleToggleView()}
+          disabled={isTransitioning || !is3D}
+          className={`text-gray-800 border border-gray-300 hover:bg-gray-50 shadow-md ${
+            !is3D ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-white'
+          }`}
           size="sm"
         >
-          {is3D ? (
-            <>
-              <Eye className="w-4 h-4 mr-2" />
-              2D View
-            </>
-          ) : (
-            <>
-              <Box className="w-4 h-4 mr-2" />
-              3D View
-            </>
-          )}
+          <Eye className="w-4 h-4 mr-2" />
+          2D View
+        </Button>
+
+        <Button
+          onClick={() => is3D || handleToggleView()}
+          disabled={isTransitioning || is3D}
+          className={`text-gray-800 border border-gray-300 hover:bg-gray-50 shadow-md ${
+            is3D ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-white'
+          }`}
+          size="sm"
+        >
+          <Box className="w-4 h-4 mr-2" />
+          3D View
         </Button>
 
         <Button
