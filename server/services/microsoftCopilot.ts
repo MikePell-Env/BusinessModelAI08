@@ -1,6 +1,5 @@
 import { BusinessModelCanvas } from '@/types/canvas';
 import { microsoftAuth } from './microsoftAuth';
-import { processAIChat } from './openai';
 
 // Microsoft Copilot API Integration
 // Note: This will require Microsoft 365 Copilot license and proper authentication
@@ -37,9 +36,41 @@ const COPILOT_API_BASE = 'https://graph.microsoft.com/v1.0/copilot';
  * Requires Microsoft 365 Copilot license and proper authentication
  */
 export async function processCopilotChat(request: CopilotChatRequest): Promise<CopilotChatResponse> {
-  // Skip Microsoft Graph calls for now and go directly to OpenAI to avoid infinite loops
-  console.log('Processing chat request with OpenAI fallback for:', request.message);
-  return await processAIChat(request);
+  try {
+    // Try Microsoft Graph API first
+    const accessToken = await microsoftAuth.getAccessToken();
+    
+    const response = await fetch(`${COPILOT_API_BASE}/chat`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: request.message,
+        context: {
+          canvas: request.canvas,
+          history: request.chatHistory
+        }
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Microsoft Copilot API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      response: data.response,
+      canvasUpdates: data.canvasUpdates
+    };
+
+  } catch (error) {
+    console.log('Microsoft Copilot not available, using fallback analysis:', error.message);
+    
+    // Direct fallback without calling OpenAI to avoid circular dependency
+    return await fallbackBusinessModelAnalysis(request);
+  }
 }
 
 /**
@@ -97,16 +128,26 @@ async function generateBusinessModelResponse(
   canvas: BusinessModelCanvas, 
   context: string
 ): Promise<{ content: string; canvasUpdates?: Partial<BusinessModelCanvas> }> {
-  // Use OpenAI to generate dynamic responses with context
-  const result = await processAIChat({
-    message: message,
-    canvas: canvas,
-    chatHistory: []
-  });
+  // Simple rule-based response generation as fallback
+  const lowerMessage = message.toLowerCase();
+  
+  let response = "Thank you for your question about the business model canvas. ";
+  
+  if (lowerMessage.includes('value proposition') || lowerMessage.includes('value')) {
+    response += `Your value propositions focus on: ${canvas.valuePropositions.content.join(', ')}. Consider how these create unique value for your customers.`;
+  } else if (lowerMessage.includes('customer') || lowerMessage.includes('segment')) {
+    response += `Your customer segments include: ${canvas.customerSegments.content.join(', ')}. Think about how to better serve these specific groups.`;
+  } else if (lowerMessage.includes('revenue') || lowerMessage.includes('money')) {
+    response += `Your revenue streams are: ${canvas.revenueStreams.content.join(', ')}. Consider diversifying or optimizing these income sources.`;
+  } else if (lowerMessage.includes('cost') || lowerMessage.includes('expense')) {
+    response += `Your cost structure includes: ${canvas.costStructure.content.join(', ')}. Look for ways to optimize and reduce unnecessary expenses.`;
+  } else {
+    response += `I can help you analyze different aspects of your ${canvas.name} business model. Feel free to ask about value propositions, customer segments, revenue streams, or any other canvas element.`;
+  }
   
   return {
-    content: result.response,
-    canvasUpdates: result.canvasUpdates
+    content: response,
+    canvasUpdates: undefined
   };
 }
 
@@ -114,9 +155,19 @@ async function generateBusinessModelResponse(
  * Fallback business model analysis when Microsoft APIs are unavailable
  */
 async function fallbackBusinessModelAnalysis(request: CopilotChatRequest): Promise<CopilotChatResponse> {
-  // Use OpenAI as fallback to ensure dynamic responses
-  console.log('Falling back to OpenAI for:', request.message);
-  return await processAIChat(request);
+  console.log('Using local fallback analysis for:', request.message);
+  
+  // Simple rule-based response generation as fallback
+  const response = await generateBusinessModelResponse(
+    request.message, 
+    request.canvas, 
+    'Local analysis context'
+  );
+  
+  return {
+    response: response.content,
+    canvasUpdates: response.canvasUpdates
+  };
 }
 
 /**
