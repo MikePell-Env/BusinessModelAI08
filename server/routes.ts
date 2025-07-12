@@ -76,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           success: true,
           message: 'Microsoft Graph connection successful',
-          userInfo: connectionResult.userInfo,
+          appInfo: connectionResult.appInfo,
           configured: true
         });
       } else {
