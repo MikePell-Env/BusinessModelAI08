@@ -1,4 +1,6 @@
 import { BusinessModelCanvas } from '@/types/canvas';
+import { microsoftAuth } from './microsoftAuth';
+import { processAIChat } from './openai';
 
 // Microsoft Copilot API Integration
 // Note: This will require Microsoft 365 Copilot license and proper authentication
@@ -36,11 +38,14 @@ const COPILOT_API_BASE = 'https://graph.microsoft.com/v1.0/copilot';
  */
 export async function processCopilotChat(request: CopilotChatRequest): Promise<CopilotChatResponse> {
   try {
-    // Check if we have the required Microsoft Graph access token
-    const accessToken = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN;
-    if (!accessToken) {
-      throw new Error('Microsoft Graph access token not configured. Please set MICROSOFT_GRAPH_ACCESS_TOKEN environment variable.');
+    // Test Microsoft Graph authentication
+    const authTest = await microsoftAuth.testConnection();
+    if (!authTest.success) {
+      console.log('Microsoft Graph authentication failed, falling back to OpenAI');
+      return await fallbackBusinessModelAnalysis(request);
     }
+
+    console.log('Microsoft Graph authenticated successfully:', authTest.userInfo?.displayName);
 
     // Prepare the context for Copilot
     const systemPrompt = `You are a business model analysis expert. Help analyze and improve this business model canvas.
@@ -60,24 +65,21 @@ Current Business Model Canvas:
 
 Please provide specific, actionable insights and suggestions for improvement.`;
 
-    // Use Microsoft 365 Copilot Retrieval API to get relevant organizational context
-    const retrievalResponse = await fetch(`${COPILOT_API_BASE}/retrieval`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: `business model canvas analysis ${request.message}`,
-        // Additional parameters for retrieval
-      }),
-    });
+    // Use Microsoft Search API to get relevant organizational context
+    const organizationalResults = await microsoftAuth.searchOrganizationalContent(
+      `business model ${request.message} ${request.canvas.name}`
+    );
 
-    if (!retrievalResponse.ok) {
-      throw new Error(`Microsoft Copilot Retrieval API error: ${retrievalResponse.status}`);
-    }
-
-    const retrievalData = await retrievalResponse.json();
+    const orgContext = await microsoftAuth.getOrganizationalContext();
+    
+    // Format organizational search results
+    const retrievalData = {
+      results: organizationalResults.map(hit => ({
+        content: hit.summary || hit.resource?.name || 'Organizational document',
+        source: hit.resource?.webUrl || 'Microsoft 365',
+        relevance: hit.score || 0.5
+      }))
+    };
     
     // Format conversation history for Copilot
     const conversationHistory = [
