@@ -160,29 +160,17 @@ async function generateBusinessModelResponse(
   canvas: BusinessModelCanvas, 
   context: string
 ): Promise<{ content: string; canvasUpdates?: Partial<BusinessModelCanvas> }> {
-  // Business model analysis logic using Microsoft context
-  const response = {
-    content: `Based on Microsoft organizational insights and your business model canvas:
-
-${context ? `**Organizational Context:**\n${context.substring(0, 500)}...\n\n` : ''}
-
-**Analysis:** ${message}
-
-**Key Insights:**
-- Your value propositions align well with current market trends
-- Consider strengthening customer relationships through digital channels
-- Revenue streams could be diversified based on organizational data
-
-**Recommendations:**
-1. Leverage Microsoft 365 tools for better customer engagement
-2. Use Microsoft Azure for scalable infrastructure
-3. Consider Microsoft Dynamics for CRM integration
-
-Would you like me to elaborate on any specific aspect of your business model?`,
-    canvasUpdates: undefined
+  // Use OpenAI to generate dynamic responses with context
+  const result = await processAIChat({
+    message: message,
+    canvas: canvas,
+    chatHistory: []
+  });
+  
+  return {
+    content: result.response,
+    canvasUpdates: result.canvasUpdates
   };
-
-  return response;
 }
 
 /**
