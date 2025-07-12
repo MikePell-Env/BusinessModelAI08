@@ -98,6 +98,10 @@ export const BusinessModelCanvas: React.FC = () => {
           3D View
         </Button>
 
+      </div>
+
+      {/* Reset Button */}
+      <div className="absolute top-4 right-4 z-40">
         <Button
           onClick={handleReset}
           variant="outline"
@@ -107,15 +111,6 @@ export const BusinessModelCanvas: React.FC = () => {
           <RotateCcw className="w-4 h-4 mr-2" />
           Reset
         </Button>
-      </div>
-
-      {/* Status Indicator */}
-      <div className="absolute top-4 right-4 z-40">
-        <div className="bg-white border border-gray-300 rounded-lg px-3 py-1 shadow-md">
-          <span className="text-sm font-medium text-gray-700">
-            {isTransitioning ? 'Transitioning...' : is3D ? '3D Mode' : '2D Mode'}
-          </span>
-        </div>
       </div>
 
       {/* Canvas Views */}
