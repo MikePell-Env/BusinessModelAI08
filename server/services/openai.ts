@@ -121,10 +121,10 @@ Always be helpful, insightful, and provide actionable advice. Focus on practical
     ];
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-3.5-turbo",
       messages: messages as any,
       temperature: 0.7,
-      max_tokens: 1000,
+      max_tokens: 500,
     });
 
     const aiResponse = response.choices[0].message.content || "I'm sorry, I couldn't generate a response.";
@@ -214,7 +214,7 @@ Please respond with a JSON object containing:
 }`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
