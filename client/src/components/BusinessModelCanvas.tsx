@@ -1,0 +1,129 @@
+import React, { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { useCanvas } from '@/lib/stores/useCanvas';
+import { Canvas2D } from './Canvas2D';
+import { Canvas3D } from './Canvas3D';
+import { AIChat } from './AIChat';
+import sampleCanvasData from '@/data/sampleCanvas.json';
+import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
+import { Eye, Box, RotateCcw } from 'lucide-react';
+
+export const BusinessModelCanvas: React.FC = () => {
+  const {
+    canvas,
+    is3D,
+    isTransitioning,
+    error,
+    loadCanvas,
+    toggleView,
+    setError
+  } = useCanvas();
+
+  useEffect(() => {
+    // Load sample canvas data on component mount
+    try {
+      loadCanvas(sampleCanvasData as CanvasType);
+    } catch (err) {
+      console.error('Error loading canvas data:', err);
+      setError('Failed to load canvas data');
+    }
+  }, [loadCanvas, setError]);
+
+  const handleToggleView = () => {
+    console.log(`Switching to ${is3D ? '2D' : '3D'} view`);
+    toggleView();
+  };
+
+  const handleReset = () => {
+    try {
+      loadCanvas(sampleCanvasData as CanvasType);
+      setError(null);
+    } catch (err) {
+      console.error('Error resetting canvas:', err);
+      setError('Failed to reset canvas');
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-red-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-800 mb-2">Error</h2>
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={handleReset} variant="outline">
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!canvas) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading business model canvas...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full bg-white">
+      {/* Header Controls */}
+      <div className="absolute top-4 left-4 z-40 flex space-x-2">
+        <Button
+          onClick={handleToggleView}
+          disabled={isTransitioning}
+          className="bg-white text-gray-800 border border-gray-300 hover:bg-gray-50 shadow-md"
+          size="sm"
+        >
+          {is3D ? (
+            <>
+              <Eye className="w-4 h-4 mr-2" />
+              2D View
+            </>
+          ) : (
+            <>
+              <Box className="w-4 h-4 mr-2" />
+              3D View
+            </>
+          )}
+        </Button>
+
+        <Button
+          onClick={handleReset}
+          variant="outline"
+          size="sm"
+          className="bg-white border-gray-300 hover:bg-gray-50 shadow-md"
+        >
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Reset
+        </Button>
+      </div>
+
+      {/* Status Indicator */}
+      <div className="absolute top-4 right-4 z-40">
+        <div className="bg-white border border-gray-300 rounded-lg px-3 py-1 shadow-md">
+          <span className="text-sm font-medium text-gray-700">
+            {isTransitioning ? 'Transitioning...' : is3D ? '3D Mode' : '2D Mode'}
+          </span>
+        </div>
+      </div>
+
+      {/* Canvas Views */}
+      <div className="w-full h-full relative">
+        {is3D ? (
+          <Canvas3D canvas={canvas} isTransitioning={isTransitioning} />
+        ) : (
+          <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
+        )}
+      </div>
+
+      {/* AI Chat Component */}
+      <AIChat />
+    </div>
+  );
+};

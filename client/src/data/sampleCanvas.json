@@ -1,0 +1,113 @@
+{
+  "id": "startup-canvas-001",
+  "name": "Tech Startup Business Model",
+  "description": "A technology startup focused on AI-powered business solutions",
+  "keyPartners": {
+    "id": "key-partners",
+    "title": "Key Partners",
+    "content": [
+      "Cloud service providers (AWS, Azure)",
+      "Technology integration partners",
+      "Strategic investors and VCs",
+      "Academic research institutions"
+    ],
+    "color": "#FFE5E5"
+  },
+  "keyActivities": {
+    "id": "key-activities",
+    "title": "Key Activities",
+    "content": [
+      "AI model development and training",
+      "Software development and testing",
+      "Customer support and success",
+      "Research and development",
+      "Marketing and sales activities"
+    ],
+    "color": "#E5F3FF"
+  },
+  "keyResources": {
+    "id": "key-resources",
+    "title": "Key Resources",
+    "content": [
+      "AI and machine learning expertise",
+      "Proprietary algorithms and data",
+      "Development team and infrastructure",
+      "Brand and intellectual property",
+      "Customer data and insights"
+    ],
+    "color": "#E5FFE5"
+  },
+  "valuePropositions": {
+    "id": "value-propositions",
+    "title": "Value Propositions",
+    "content": [
+      "AI-powered business optimization",
+      "Automated decision-making tools",
+      "Real-time analytics and insights",
+      "Cost reduction through automation",
+      "Scalable enterprise solutions"
+    ],
+    "color": "#FFF5E5"
+  },
+  "customerRelationships": {
+    "id": "customer-relationships",
+    "title": "Customer Relationships",
+    "content": [
+      "Dedicated account management",
+      "Self-service platform access",
+      "Community forums and support",
+      "Regular training and workshops",
+      "24/7 technical support"
+    ],
+    "color": "#F5E5FF"
+  },
+  "channels": {
+    "id": "channels",
+    "title": "Channels",
+    "content": [
+      "Direct sales team",
+      "Online platform and website",
+      "Partner channel programs",
+      "Industry conferences and events",
+      "Digital marketing campaigns"
+    ],
+    "color": "#E5FFFF"
+  },
+  "customerSegments": {
+    "id": "customer-segments",
+    "title": "Customer Segments",
+    "content": [
+      "Enterprise corporations (500+ employees)",
+      "Mid-market companies (50-500 employees)",
+      "Technology-forward startups",
+      "Government and public sector",
+      "Healthcare and financial services"
+    ],
+    "color": "#FFE5F5"
+  },
+  "costStructure": {
+    "id": "cost-structure",
+    "title": "Cost Structure",
+    "content": [
+      "Cloud infrastructure and hosting",
+      "Research and development costs",
+      "Sales and marketing expenses",
+      "Employee salaries and benefits",
+      "Legal and compliance costs"
+    ],
+    "color": "#F0F0F0"
+  },
+  "revenueStreams": {
+    "id": "revenue-streams",
+    "title": "Revenue Streams",
+    "content": [
+      "SaaS subscription fees",
+      "Enterprise licensing deals",
+      "Professional services and consulting",
+      "Training and certification programs",
+      "API usage and transaction fees"
+    ],
+    "color": "#E5F5E5"
+  },
+  "lastModified": "2025-01-15T10:30:00Z"
+}
