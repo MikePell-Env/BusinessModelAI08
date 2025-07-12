@@ -272,10 +272,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       billboard.position = new Vector3(position.x, position.y + 0.9, position.z);
       billboard.billboardMode = Mesh.BILLBOARDMODE_ALL;
       
-      // Create billboard material
+      // Create transparent billboard material (no visible plane)
       const billboardMaterial = new StandardMaterial(`billboardMaterial_${elementId}`, scene);
       billboardMaterial.diffuseColor = new Color3(1, 1, 1);
-      billboardMaterial.alpha = 0.9;
+      billboardMaterial.alpha = 0; // Make completely transparent
       billboard.material = billboardMaterial;
 
       // Create GUI for billboard
@@ -289,6 +289,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
       titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
       billboardTexture.addControl(titleText);
+
+      // Create vertical white line from title to box surface
+      const lineStartPoint = new Vector3(position.x, position.y + 0.9, position.z); // Billboard position
+      const lineEndPoint = new Vector3(position.x, position.y + 0.5, position.z);   // Box top surface
+      const titleLine = MeshBuilder.CreateLines(`titleLine_${elementId}`, { 
+        points: [lineStartPoint, lineEndPoint],
+        width: 3
+      }, scene);
+      
+      // Create white material for the title line
+      const titleLineMaterial = new StandardMaterial(`titleLineMaterial_${elementId}`, scene);
+      titleLineMaterial.diffuseColor = new Color3(1, 1, 1); // White color
+      titleLineMaterial.emissiveColor = new Color3(0.3, 0.3, 0.3); // Slight glow
+      titleLine.material = titleLineMaterial;
 
       return box;
     };
