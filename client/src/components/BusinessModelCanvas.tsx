@@ -102,15 +102,7 @@ export const BusinessModelCanvas: React.FC = () => {
           3D View
         </Button>
 
-        {/* 3D Render Mode Selector */}
-        {is3D && (
-          <Button
-            className="text-xs border border-gray-300 hover:bg-gray-50 shadow-md bg-green-500 text-white hover:bg-green-600"
-            size="sm"
-          >
-            Babylon.js
-          </Button>
-        )}
+
 
       </div>
 
