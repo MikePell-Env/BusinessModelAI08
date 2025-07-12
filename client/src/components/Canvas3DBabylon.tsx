@@ -267,25 +267,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
       titleRect.addControl(titleText);
 
-      // Link to position above the box
-      const labelPosition = new Vector3(position.x, position.y + 0.9, position.z);
+      // Link to center of the box, slightly higher
       titleRect.linkWithMesh(box);
-      titleRect.linkOffsetY = -60;
-
-      // Create vertical white line from title to box surface
-      const lineStartPoint = new Vector3(position.x, position.y + 0.9, position.z); // Label position
-      const lineEndPoint = new Vector3(position.x, position.y + 0.5, position.z);   // Box top surface
-      const titleLine = MeshBuilder.CreateLines(`titleLine_${elementId}`, { 
-        points: [lineStartPoint, lineEndPoint],
-        width: 4
-      }, scene);
-      
-      // Create white material for the title line with no lighting effects
-      const titleLineMaterial = new StandardMaterial(`titleLineMaterial_${elementId}`, scene);
-      titleLineMaterial.diffuseColor = new Color3(1, 1, 1); // Pure white
-      titleLineMaterial.emissiveColor = new Color3(1, 1, 1); // Always emit white light
-      titleLineMaterial.disableLighting = true; // Ignore scene lighting
-      titleLine.material = titleLineMaterial;
+      titleRect.linkOffsetY = -80; // Higher above the box
 
       return box;
     };
