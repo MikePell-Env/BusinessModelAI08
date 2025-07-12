@@ -84,9 +84,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       panelMaterial.alpha = 0.9;
       panel.material = panelMaterial;
 
-      // Create connecting line in red
+      // Create connecting line in red (thicker)
       const linePoints = [boxPosition, panelPosition];
-      const line = MeshBuilder.CreateLines(`line_${elementId}`, { points: linePoints }, scene);
+      const line = MeshBuilder.CreateLines(`line_${elementId}`, { 
+        points: linePoints,
+        width: 8  // Make lines thicker
+      }, scene);
       
       // Create red material for the line
       const lineMaterial = new StandardMaterial(`lineMaterial_${elementId}`, scene);
@@ -129,17 +132,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       panelContent.textWrapping = true;
       panelRect.addControl(panelContent);
 
-      // Close button
+      // Close button in upper right corner
       const closeButton = new TextBlock(`closeBtn_${elementId}`, "✕");
-      closeButton.color = "#E53E3E";
-      closeButton.fontSize = 18;
+      closeButton.color = "#718096"; // Grey color
+      closeButton.fontSize = 20;
       closeButton.fontWeight = "bold";
-      closeButton.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-      closeButton.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-      closeButton.paddingTop = "10px";
-      closeButton.paddingRight = "15px";
+      closeButton.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      closeButton.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+      closeButton.top = "8px";
+      closeButton.left = "-8px";
       closeButton.widthInPixels = 30;
       closeButton.heightInPixels = 30;
+      closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
       closeButton.isPointerBlocker = true;
       panelRect.addControl(closeButton);
 
