@@ -18,23 +18,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Try Microsoft Copilot first, fallback to OpenAI
-      try {
-        const response = await processCopilotChat({
-          message,
-          canvas,
-          chatHistory: chatHistory || []
-        });
-        res.json(response);
-      } catch (copilotError) {
-        console.log("Microsoft Copilot failed, falling back to OpenAI:", copilotError instanceof Error ? copilotError.message : 'Unknown error');
-        const response = await processAIChat({
-          message,
-          canvas,
-          chatHistory: chatHistory || []
-        });
-        res.json(response);
-      }
+      // Use the OpenAI service which handles fallbacks properly
+      const response = await processAIChat({
+        message,
+        canvas,
+        chatHistory: chatHistory || []
+      });
+      res.json(response);
     } catch (error) {
       console.error("Error in AI chat:", error);
       res.status(500).json({ 
