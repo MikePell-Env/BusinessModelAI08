@@ -311,7 +311,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.keyPartners,
         new Vector3(-4, 0.5, 0),
         new Vector3(1.8, 1, 2.5),
-        Color3.FromHexString(canvas.keyPartners.color || '#FFE5E5'),
+        new Color3(1, 1, 1), // White
         canvas.keyPartners.id
       ),
 
@@ -320,7 +320,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.keyActivities,
         new Vector3(-2, 0.5, 1),
         new Vector3(1.8, 1, 1.2),
-        Color3.FromHexString(canvas.keyActivities.color || '#E5F3FF'),
+        new Color3(1, 1, 1), // White
         canvas.keyActivities.id
       ),
 
@@ -329,7 +329,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.keyResources,
         new Vector3(-2, 0.5, -1),
         new Vector3(1.8, 1, 1.2),
-        Color3.FromHexString(canvas.keyResources.color || '#E5FFE5'),
+        new Color3(1, 1, 1), // White
         canvas.keyResources.id
       ),
 
@@ -338,7 +338,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.valuePropositions,
         new Vector3(0, 0.5, 0),
         new Vector3(1.8, 1, 2.5),
-        Color3.FromHexString(canvas.valuePropositions.color || '#FFF5E5'),
+        new Color3(1, 1, 1), // White
         canvas.valuePropositions.id
       ),
 
@@ -347,7 +347,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.customerRelationships,
         new Vector3(2, 0.5, 1),
         new Vector3(1.8, 1, 1.2),
-        Color3.FromHexString(canvas.customerRelationships.color || '#F5E5FF'),
+        new Color3(1, 1, 1), // White
         canvas.customerRelationships.id
       ),
 
@@ -356,7 +356,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.channels,
         new Vector3(2, 0.5, -1),
         new Vector3(1.8, 1, 1.2),
-        Color3.FromHexString(canvas.channels.color || '#E5FFFF'),
+        new Color3(1, 1, 1), // White
         canvas.channels.id
       ),
 
@@ -365,7 +365,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.customerSegments,
         new Vector3(4, 0.5, 0),
         new Vector3(1.8, 1, 2.5),
-        Color3.FromHexString(canvas.customerSegments.color || '#FFE5F5'),
+        new Color3(1, 1, 1), // White
         canvas.customerSegments.id
       ),
 
@@ -374,7 +374,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.costStructure,
         new Vector3(-2, 0.5, -2.5),
         new Vector3(3.8, 1, 1),
-        Color3.FromHexString(canvas.costStructure.color || '#F0F0F0'),
+        new Color3(1, 1, 1), // White
         canvas.costStructure.id
       ),
 
@@ -383,7 +383,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.revenueStreams,
         new Vector3(2, 0.5, -2.5),
         new Vector3(3.8, 1, 1),
-        Color3.FromHexString(canvas.revenueStreams.color || '#E5F5E5'),
+        new Color3(1, 1, 1), // White
         canvas.revenueStreams.id
       )
     ];
