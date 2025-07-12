@@ -249,10 +249,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       box.position = position;
       
-      // Create material
+      // Create material with white appearance
       const material = new StandardMaterial(`material_${elementId}`, scene);
-      material.diffuseColor = color;
-      material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Subtle self-illumination
+      material.diffuseColor = new Color3(1, 1, 1); // Pure white diffuse
+      material.emissiveColor = new Color3(0.2, 0.2, 0.2); // White self-illumination
+      material.specularColor = new Color3(0.1, 0.1, 0.1); // Minimal specular reflection
       material.alpha = 1.0; // Fully opaque
       box.material = material;
 
