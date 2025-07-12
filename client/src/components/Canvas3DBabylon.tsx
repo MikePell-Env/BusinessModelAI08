@@ -91,10 +91,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       panel.position = panelPosition;
       
-      // Create panel material
+      // Create transparent panel material (invisible 3D mesh)
       const panelMaterial = new StandardMaterial(`panelMaterial_${elementId}`, scene);
-      panelMaterial.diffuseColor = new Color3(0.95, 0.95, 0.95);
-      panelMaterial.alpha = 0.9;
+      panelMaterial.diffuseColor = new Color3(1, 1, 1);
+      panelMaterial.alpha = 0; // Completely transparent
       panel.material = panelMaterial;
 
       // No connecting line for floating panels
