@@ -1,16 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { Canvas2D } from './Canvas2D';
-import { Canvas3D } from './Canvas3D';
-import { Canvas3DSimple } from './Canvas3DSimple';
 import { Canvas3DBabylon } from './Canvas3DBabylon';
 import { AIChat } from './AIChat';
 import { MicrosoftStackStatus } from './MicrosoftStackStatus';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
-import { Eye, Box, RotateCcw, Layers, Settings } from 'lucide-react';
+import { Eye, Box, RotateCcw, Settings } from 'lucide-react';
 
 export const BusinessModelCanvas: React.FC = () => {
   const {
@@ -23,7 +21,7 @@ export const BusinessModelCanvas: React.FC = () => {
     setError
   } = useCanvas();
   
-  const [renderMode, setRenderMode] = useState<'complex' | 'simple' | 'babylon'>('simple');
+
 
   useEffect(() => {
     // Load sample canvas data on component mount
@@ -106,35 +104,12 @@ export const BusinessModelCanvas: React.FC = () => {
 
         {/* 3D Render Mode Selector */}
         {is3D && (
-          <div className="flex space-x-1">
-            <Button
-              onClick={() => setRenderMode('simple')}
-              className={`text-xs border border-gray-300 hover:bg-gray-50 shadow-md ${
-                renderMode === 'simple' ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-white text-gray-800'
-              }`}
-              size="sm"
-            >
-              Simple
-            </Button>
-            <Button
-              onClick={() => setRenderMode('complex')}
-              className={`text-xs border border-gray-300 hover:bg-gray-50 shadow-md ${
-                renderMode === 'complex' ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-white text-gray-800'
-              }`}
-              size="sm"
-            >
-              Complex
-            </Button>
-            <Button
-              onClick={() => setRenderMode('babylon')}
-              className={`text-xs border border-gray-300 hover:bg-gray-50 shadow-md ${
-                renderMode === 'babylon' ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-white text-gray-800'
-              }`}
-              size="sm"
-            >
-              Babylon.js
-            </Button>
-          </div>
+          <Button
+            className="text-xs border border-gray-300 hover:bg-gray-50 shadow-md bg-green-500 text-white hover:bg-green-600"
+            size="sm"
+          >
+            Babylon.js
+          </Button>
         )}
 
       </div>
@@ -174,13 +149,7 @@ export const BusinessModelCanvas: React.FC = () => {
       {/* Canvas Views */}
       <div className="w-full h-full relative">
         {is3D ? (
-          renderMode === 'simple' ? (
-            <Canvas3DSimple canvas={canvas} isTransitioning={isTransitioning} />
-          ) : renderMode === 'babylon' ? (
-            <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} />
-          ) : (
-            <Canvas3D canvas={canvas} isTransitioning={isTransitioning} />
-          )
+          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} />
         ) : (
           <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
         )}
