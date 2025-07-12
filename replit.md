@@ -40,6 +40,8 @@ The application follows a full-stack monorepo architecture with clear separation
 ### Data Management
 - **Schema Definition**: Shared TypeScript types for consistent data structures
 - **Canvas Elements**: Nine core business model canvas sections (Key Partners, Activities, Resources, etc.)
+- **Sample Data**: Initial business model canvas stored in `client/src/data/sampleCanvas.json`
+- **Data Structure**: JSON format with canvas metadata (id, name, description, lastModified) and nine canvas elements
 - **Version Control**: Timestamps for canvas modifications
 
 ## Data Flow
