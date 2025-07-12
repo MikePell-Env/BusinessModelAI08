@@ -20,6 +20,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const engine = new Engine(canvasRef.current, true);
     const scene = new Scene(engine);
     
+    // Set light grey background
+    scene.clearColor = new Color3(0.95, 0.95, 0.95);
+    
     engineRef.current = engine;
     sceneRef.current = scene;
 
@@ -266,7 +269,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         height: 0.6
       }, scene);
       
-      billboard.position = new Vector3(position.x, position.y + 1.2, position.z);
+      billboard.position = new Vector3(position.x, position.y + 0.9, position.z);
       billboard.billboardMode = Mesh.BILLBOARDMODE_ALL;
       
       // Create billboard material
