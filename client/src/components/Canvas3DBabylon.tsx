@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, PointLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
@@ -52,40 +52,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     hemisphericLight.diffuse = new Color3(1, 1, 1);
     hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Reduced specular
     
-    // Add multiple directional lights for metallic box illumination
-    const keyLight = new DirectionalLight("keyLight", new Vector3(-0.5, -1, -0.5), scene);
-    keyLight.intensity = 1.2;
-    keyLight.diffuse = new Color3(1, 1, 1);
-    keyLight.specular = new Color3(1, 1, 1);
-    
-    const fillLight = new DirectionalLight("fillLight", new Vector3(0.5, -0.8, 0.3), scene);
-    fillLight.intensity = 0.8;
-    fillLight.diffuse = new Color3(0.9, 0.95, 1);
-    fillLight.specular = new Color3(0.8, 0.8, 0.9);
-    
-    const rimLight = new DirectionalLight("rimLight", new Vector3(0, -0.3, 1), scene);
-    rimLight.intensity = 0.6;
-    rimLight.diffuse = new Color3(1, 0.95, 0.9);
-    rimLight.specular = new Color3(1, 1, 1);
+    // Add enhanced lighting for metallic box reflections using available light types
+    const additionalLight = new HemisphericLight("additionalLight", new Vector3(0.5, -1, 0.5), scene);
+    additionalLight.intensity = 1.0; // Increased for metallic reflections
+    additionalLight.diffuse = new Color3(0.95, 0.95, 1);
+    additionalLight.specular = new Color3(0.8, 0.8, 0.9); // High specular for metallic shine
     
     // Add point lights around the canvas for additional metallic reflections
     const pointLight1 = new PointLight("pointLight1", new Vector3(-6, 3, 3), scene);
-    pointLight1.intensity = 2.0;
+    pointLight1.intensity = 1.5;
     pointLight1.diffuse = new Color3(1, 1, 1);
     pointLight1.specular = new Color3(1, 1, 1);
     pointLight1.range = 15;
     
     const pointLight2 = new PointLight("pointLight2", new Vector3(6, 3, 3), scene);
-    pointLight2.intensity = 2.0;
+    pointLight2.intensity = 1.5;
     pointLight2.diffuse = new Color3(1, 1, 1);
     pointLight2.specular = new Color3(1, 1, 1);
     pointLight2.range = 15;
-    
-    const pointLight3 = new PointLight("pointLight3", new Vector3(0, 4, -4), scene);
-    pointLight3.intensity = 1.5;
-    pointLight3.diffuse = new Color3(0.95, 0.95, 1);
-    pointLight3.specular = new Color3(1, 1, 1);
-    pointLight3.range = 12;
     
     // Reduce ambient lighting to show floor texture
     scene.ambientColor = new Color3(0.4, 0.4, 0.4);
@@ -496,10 +480,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     titleText.fontFamily = "Inter, system-ui, sans-serif";
     titleText.textWrapping = true;
     titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-    titleText.heightInPixels = 40; // Space for title
+    titleText.heightInPixels = 50; // Space for title
     headerRect.addControl(titleText);
 
-    // Subtitle/description
+    // Subtitle/description - positioned separately below title
     const subtitleText = new TextBlock("canvasSubtitle", canvas.description);
     subtitleText.color = "#4B5563"; // Match 2D view's text-gray-600
     subtitleText.fontSize = 16; // Smaller than title
@@ -507,8 +491,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     subtitleText.fontFamily = "Inter, system-ui, sans-serif";
     subtitleText.textWrapping = true;
     subtitleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-    subtitleText.heightInPixels = 40; // Space for subtitle
-    subtitleText.paddingBottom = "10px"; // Small gap between title and subtitle
+    subtitleText.heightInPixels = 30; // Space for subtitle
+    subtitleText.paddingTop = "10px"; // Gap from title above
     headerRect.addControl(subtitleText);
 
     // Render loop
