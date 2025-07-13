@@ -156,6 +156,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test PowerPoint import with sample data
+  app.post("/api/import/powerpoint/test", async (req, res) => {
+    try {
+      const { powerpointImporter } = await import('./services/powerpointImporter');
+      
+      // Simulate sample PowerPoint content for testing
+      const sampleContent = `TechCorp AI Platform - Business Model Canvas
+      
+Key Partners
+• Microsoft Azure (Cloud infrastructure)
+• OpenAI (AI model licensing)
+• Salesforce (CRM integration)
+• Stripe (Payment processing)
+• Industry consultants
+
+Key Activities
+• AI algorithm development
+• Software engineering
+• Customer onboarding
+• Data analytics
+• Technical support
+
+Key Resources
+• Proprietary AI algorithms
+• Development team
+• Customer data
+• Cloud infrastructure
+• Intellectual property
+
+Value Propositions
+• Automated business insights
+• 50% faster decision making
+• Cost reduction through AI
+• Real-time analytics
+• Scalable enterprise solution
+
+Customer Relationships
+• Dedicated account managers
+• 24/7 technical support
+• Online self-service portal
+• Monthly business reviews
+• Training programs
+
+Channels
+• Direct enterprise sales
+• Partner reseller network
+• Online SaaS platform
+• Industry conferences
+• Digital marketing
+
+Customer Segments
+• Fortune 500 companies
+• Mid-market enterprises
+• Healthcare organizations
+• Financial services
+• Manufacturing companies
+
+Cost Structure
+• Cloud hosting costs
+• Engineering salaries
+• Sales team expenses
+• Marketing campaigns
+• Legal and compliance
+
+Revenue Streams
+• Monthly SaaS subscriptions
+• Enterprise licensing fees
+• Professional services
+• Training and certification
+• API usage fees`;
+
+      // Parse the sample content directly
+      const canvas = powerpointImporter.parseTestContent(sampleContent);
+      res.json({ success: true, canvas });
+    } catch (error) {
+      console.error('Test import error:', error);
+      res.status(500).json({ 
+        error: 'Failed to test PowerPoint import',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Health check endpoint
   app.get("/api/health", (_req, res) => {
     res.json({ 

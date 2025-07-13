@@ -1,0 +1,114 @@
+{
+  "id": "powerpoint-sample-001",
+  "name": "TechCorp AI Platform - Business Model Canvas",
+  "description": "Sample business model canvas imported from PowerPoint format demonstrating the import functionality",
+  "keyPartners": {
+    "id": "key-partners",
+    "title": "Key Partners",
+    "content": [
+      "Microsoft Azure (Cloud infrastructure)",
+      "OpenAI (AI model licensing)",
+      "Salesforce (CRM integration)",
+      "Stripe (Payment processing)",
+      "Industry consultants"
+    ],
+    "color": "#FFE5E5"
+  },
+  "keyActivities": {
+    "id": "key-activities",
+    "title": "Key Activities",
+    "content": [
+      "AI algorithm development",
+      "Software engineering",
+      "Customer onboarding",
+      "Data analytics",
+      "Technical support"
+    ],
+    "color": "#E5F3FF"
+  },
+  "keyResources": {
+    "id": "key-resources",
+    "title": "Key Resources",
+    "content": [
+      "Proprietary AI algorithms",
+      "Development team",
+      "Customer data",
+      "Cloud infrastructure",
+      "Intellectual property"
+    ],
+    "color": "#E5FFE5"
+  },
+  "valuePropositions": {
+    "id": "value-propositions",
+    "title": "Value Propositions",
+    "content": [
+      "Automated business insights",
+      "50% faster decision making",
+      "Cost reduction through AI",
+      "Real-time analytics",
+      "Scalable enterprise solution"
+    ],
+    "color": "#FFF5E5"
+  },
+  "customerRelationships": {
+    "id": "customer-relationships",
+    "title": "Customer Relationships",
+    "content": [
+      "Dedicated account managers",
+      "24/7 technical support",
+      "Online self-service portal",
+      "Monthly business reviews",
+      "Training programs"
+    ],
+    "color": "#F5E5FF"
+  },
+  "channels": {
+    "id": "channels",
+    "title": "Channels",
+    "content": [
+      "Direct enterprise sales",
+      "Partner reseller network",
+      "Online SaaS platform",
+      "Industry conferences",
+      "Digital marketing"
+    ],
+    "color": "#E5FFFF"
+  },
+  "customerSegments": {
+    "id": "customer-segments",
+    "title": "Customer Segments",
+    "content": [
+      "Fortune 500 companies",
+      "Mid-market enterprises",
+      "Healthcare organizations",
+      "Financial services",
+      "Manufacturing companies"
+    ],
+    "color": "#FFE5F5"
+  },
+  "costStructure": {
+    "id": "cost-structure",
+    "title": "Cost Structure",
+    "content": [
+      "Cloud hosting costs",
+      "Engineering salaries",
+      "Sales team expenses",
+      "Marketing campaigns",
+      "Legal and compliance"
+    ],
+    "color": "#F0F0F0"
+  },
+  "revenueStreams": {
+    "id": "revenue-streams",
+    "title": "Revenue Streams",
+    "content": [
+      "Monthly SaaS subscriptions",
+      "Enterprise licensing fees",
+      "Professional services",
+      "Training and certification",
+      "API usage fees"
+    ],
+    "color": "#E5F5E5"
+  },
+  "lastModified": "2025-01-13T04:15:00Z"
+}
