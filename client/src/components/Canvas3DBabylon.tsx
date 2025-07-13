@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, PointLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, PointLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
@@ -426,7 +426,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.costStructure.id
       ),
 
-      // Row 3: Revenue Streams (right side)
+      // Row 3: Revenue Streams (right side) - with animation
       createBusinessBlock(
         canvas.revenueStreams,
         new Vector3(2, 0.5, -2.5),
@@ -435,6 +435,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.revenueStreams.id
       )
     ];
+
+    // Find the revenue streams box and add height animation
+    const revenueStreamsBox = scene.getMeshByName(`box_${canvas.revenueStreams.id}`);
+    if (revenueStreamsBox) {
+      // Create height animation
+      const animationHeight = new Animation(
+        "revenueHeightAnimation",
+        "scaling.y",
+        30, // 30 FPS
+        Animation.ANIMATIONTYPE_FLOAT,
+        Animation.ANIMATIONLOOPMODE_CYCLE
+      );
+
+      // Define animation keys (3 seconds per cycle = 90 frames at 30 FPS)
+      const keys = [];
+      keys.push({
+        frame: 0,
+        value: 1.0 // Full height
+      });
+      keys.push({
+        frame: 45, // 1.5 seconds
+        value: 0.5 // Half height
+      });
+      keys.push({
+        frame: 90, // 3 seconds - complete cycle
+        value: 1.0 // Back to full height
+      });
+
+      animationHeight.setKeys(keys);
+      revenueStreamsBox.animations = [animationHeight];
+      
+      // Start the animation
+      scene.beginAnimation(revenueStreamsBox, 0, 90, true);
+    }
 
     // Add title text
     const titleRect = new Rectangle("titleRect");
