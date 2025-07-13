@@ -331,8 +331,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const titleRect = new Rectangle(`titleRect_${elementId}`);
       titleRect.widthInPixels = 200;
       titleRect.heightInPixels = 40;
-      titleRect.color = "transparent";
-      titleRect.thickness = 0;
+      titleRect.color = "rgba(255, 255, 255, 0.9)"; // White translucent background
+      titleRect.background = "rgba(255, 255, 255, 0.8)"; // White semi-transparent background
+      titleRect.thickness = 1;
+      titleRect.cornerRadius = 8; // Rounded corners for better appearance
       advancedTexture.addControl(titleRect);
 
       // Title text with billboard behavior
