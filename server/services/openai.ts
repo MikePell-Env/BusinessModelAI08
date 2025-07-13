@@ -19,8 +19,9 @@ interface ChatResponse {
 }
 
 export async function processAIChat(request: ChatRequest): Promise<ChatResponse> {
-  // Skip Microsoft Copilot for now and go directly to OpenAI for reliable responses
   console.log('Processing chat request with OpenAI for:', request.message);
+  console.log('API key configured:', !!process.env.OPENAI_API_KEY);
+  console.log('API key format check:', process.env.OPENAI_API_KEY?.startsWith('sk-'));
   
   // Check if OpenAI API key is available
   if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your-openai-api-key-here") {
@@ -29,9 +30,14 @@ export async function processAIChat(request: ChatRequest): Promise<ChatResponse>
   }
   
   try {
-    return await processOpenAIChat(request);
+    console.log('Attempting OpenAI API call...');
+    const result = await processOpenAIChat(request);
+    console.log('OpenAI API call successful!');
+    return result;
   } catch (error) {
-    console.log('OpenAI request failed, using fallback response:', error.message);
+    console.log('OpenAI request failed with error:', error.message);
+    console.log('Error type:', error.constructor.name);
+    console.log('Using fallback response...');
     return generateFallbackResponse(request);
   }
 }
