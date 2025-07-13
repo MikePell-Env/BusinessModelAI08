@@ -145,9 +145,9 @@ export const AIChat: React.FC = () => {
       {!isMinimized && (
         <CardContent className="flex flex-col h-80">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-3 mb-4 p-2 bg-gray-50 rounded">
+          <div className="flex-1 overflow-y-auto space-y-3 mb-4 p-2 bg-gray-50 rounded border border-gray-300">
             {chatMessages.length === 0 ? (
-              <div className="text-center text-gray-500 text-sm mt-2 py-2 border border-gray-300 rounded-lg mx-2">
+              <div className="text-center text-gray-500 text-sm mt-2 py-2">
                 Ask me anything about your business model canvas!
                 <br />
                 <span className="text-xs">
