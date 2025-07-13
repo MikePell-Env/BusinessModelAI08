@@ -24,14 +24,14 @@ const CanvasBlock: React.FC<{
     }}
   >
     <CardHeader className="pb-2">
-      <CardTitle className="text-sm font-semibold text-gray-800">
+      <CardTitle className={`text-sm font-semibold ${hasImportedFromPowerPoint ? 'text-gray-800' : 'text-gray-500'}`}>
         {element.title}
       </CardTitle>
     </CardHeader>
     <CardContent className="pt-0">
       <ul className="space-y-1">
         {element.content.map((item, index) => (
-          <li key={index} className="text-xs text-gray-700 leading-relaxed">
+          <li key={index} className={`text-xs leading-relaxed ${hasImportedFromPowerPoint ? 'text-gray-700' : 'text-gray-500'}`}>
             • {item}
           </li>
         ))}
