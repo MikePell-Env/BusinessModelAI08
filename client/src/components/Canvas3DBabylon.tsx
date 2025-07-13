@@ -540,6 +540,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         revenueLabel.animations = [labelAnimation];
         scene.beginAnimation(revenueLabel, 0, 90, true);
       }
+      
+      // Create numeric counter under the Revenue Streams label
+      const counterRect = new Rectangle(`counterRect_${canvas.revenueStreams.id}`);
+      counterRect.widthInPixels = 120;
+      counterRect.heightInPixels = 30;
+      counterRect.color = "rgba(76, 175, 80, 0.8)"; // Green border
+      counterRect.background = "rgba(76, 175, 80, 0.2)"; // Light green background
+      counterRect.thickness = 2;
+      advancedTexture.addControl(counterRect);
+
+      const counterText = new TextBlock(`counter_${canvas.revenueStreams.id}`, "$100");
+      counterText.color = "#1B5E20"; // Dark green
+      counterText.fontSize = 14;
+      counterText.fontWeight = "bold";
+      counterText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      counterText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+      counterRect.addControl(counterText);
+
+      // Link counter to Revenue Streams box, positioned below the main label
+      counterRect.linkWithMesh(revenueStreamsBox);
+      counterRect.linkOffsetY = -20; // Position below the main label
+      
+      // Update counter text based on animation frame
+      scene.onBeforeRenderObservable.add(() => {
+        if (revenueStreamsBox) {
+          const currentScale = revenueStreamsBox.scaling.y;
+          const heightValue = Math.round(currentScale * 100);
+          counterText.text = `$${heightValue}`;
+          
+          // Adjust counter position to follow the label
+          const currentLabelOffset = revenueLabel ? (revenueLabel as any).linkOffsetY || -50 : -50;
+          counterRect.linkOffsetY = currentLabelOffset + 50; // Position below the moving label
+        }
+      });
     }
 
     // Find the cost structure box and add faster height animation  
