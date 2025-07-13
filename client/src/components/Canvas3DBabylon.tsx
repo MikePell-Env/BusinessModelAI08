@@ -353,10 +353,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       titleRect.linkWithMesh(box);
       titleRect.linkOffsetY = -50; // Higher above the box for better visibility
       
-      // Create a thin connecting line from box to title
+      // Create a thin connecting line from box center top to title center
       const linePoints = [
-        new Vector3(position.x, position.y + size.y / 2, position.z), // Top of box
-        new Vector3(position.x, position.y + size.y / 2 + 1.5, position.z) // Title position
+        new Vector3(position.x, position.y + size.y / 2, position.z), // Top center of box
+        new Vector3(position.x, position.y + size.y / 2 + 1.2, position.z) // Title center position
       ];
       const connectingLine = MeshBuilder.CreateLines(`titleLine_${elementId}`, { points: linePoints }, scene);
       const lineMaterial = new StandardMaterial(`titleLineMaterial_${elementId}`, scene);
