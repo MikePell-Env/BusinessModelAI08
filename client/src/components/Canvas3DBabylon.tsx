@@ -349,9 +349,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
       titleRect.addControl(titleText);
 
-      // Link to center of the box, much closer
+      // Link to center of the box, positioned higher
       titleRect.linkWithMesh(box);
-      titleRect.linkOffsetY = -30; // Much closer to the box
+      titleRect.linkOffsetY = -50; // Higher above the box for better visibility
+      
+      // Create a thin connecting line from box to title
+      const linePoints = [
+        new Vector3(position.x, position.y + size.y / 2, position.z), // Top of box
+        new Vector3(position.x, position.y + size.y / 2 + 1.5, position.z) // Title position
+      ];
+      const connectingLine = MeshBuilder.CreateLines(`titleLine_${elementId}`, { points: linePoints }, scene);
+      const lineMaterial = new StandardMaterial(`titleLineMaterial_${elementId}`, scene);
+      lineMaterial.emissiveColor = new Color3(0.6, 0.6, 0.6); // Gray line
+      lineMaterial.diffuseColor = new Color3(0, 0, 0);
+      lineMaterial.disableLighting = true;
+      connectingLine.material = lineMaterial;
 
       return box;
     };
