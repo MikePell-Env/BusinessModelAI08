@@ -148,11 +148,14 @@ Business Model Analysis Context:
 - Key Resources: ${canvas.keyResources.content.join(', ')}
 
 Microsoft Integration Opportunities:
-- Azure cloud services for scalability
-- Microsoft 365 for productivity
-- Power Platform for automation
-- Teams for collaboration
-- Dynamics 365 for CRM/ERP
+- Azure cloud services for scalability and global reach
+- Microsoft 365 for productivity and collaboration
+- Power Platform for low-code automation and workflows
+- Teams for customer engagement and internal collaboration  
+- Dynamics 365 for comprehensive CRM/ERP solutions
+- Azure AI services for enhanced customer insights
+- Microsoft Viva for employee experience optimization
+- Azure DevOps for development lifecycle management
   `;
 }
 
