@@ -102,8 +102,6 @@ export const BusinessModelCanvas: React.FC = () => {
           <Box className="w-4 h-4 mr-2" />
           3D View
         </Button>
-
-        <PowerPointImporter />
       </div>
 
       {/* Reset Button & Microsoft Stack Status */}
@@ -149,6 +147,11 @@ export const BusinessModelCanvas: React.FC = () => {
 
       {/* AI Chat Component */}
       <AIChat />
+
+      {/* PowerPoint Import Button - Bottom Center */}
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-40">
+        <PowerPointImporter />
+      </div>
     </div>
   );
 };
