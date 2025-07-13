@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { ChatMessage } from '@/types/canvas';
-import { MessageCircle, Send, X, Minimize2 } from 'lucide-react';
+import { Send, X, Minimize2 } from 'lucide-react';
+import { MicrosoftCopilotIcon } from '@/components/ui/MicrosoftCopilotIcon';
 
 export const AIChat: React.FC = () => {
   const {
@@ -108,7 +109,7 @@ export const AIChat: React.FC = () => {
         className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-50"
         size="icon"
       >
-        <MessageCircle className="h-6 w-6" />
+        <MicrosoftCopilotIcon size={24} />
       </Button>
     );
   }
