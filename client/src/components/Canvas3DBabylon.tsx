@@ -60,12 +60,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Reduce ambient lighting to show floor texture
     scene.ambientColor = new Color3(0.4, 0.4, 0.4);
 
-    // Create ground with grid pattern
+    // Create ground with photorealistic wood shader
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
-    const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseColor = new Color3(1, 1, 1); // Pure white
-    groundMaterial.emissiveColor = new Color3(0.2, 0.2, 0.2); // Self-illumination to ensure white appearance
-    groundMaterial.disableLighting = false; // Keep lighting but boost brightness
+    const groundMaterial = new PBRMaterial("groundMaterial", scene);
+    
+    // Wood color properties
+    groundMaterial.baseColor = new Color3(0.7, 0.5, 0.3); // Warm wood brown
+    groundMaterial.metallicFactor = 0.0; // Non-metallic
+    groundMaterial.roughnessFactor = 0.8; // Slightly rough for wood texture
+    
+    // Add subtle wood grain pattern using emissive color variation
+    groundMaterial.emissiveColor = new Color3(0.05, 0.03, 0.02); // Subtle warm glow
+    
+    // Wood-like reflectance
+    groundMaterial.indexOfRefraction = 1.5;
+    groundMaterial.microSurface = 0.7;
+    
+    // Apply UV scaling for wood grain effect
     ground.material = groundMaterial;
 
     // Create grid lines within floor bounds (20x14)
@@ -77,9 +88,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const points = [new Vector3(-10, 0.01, i), new Vector3(10, 0.01, i)];
       const line = MeshBuilder.CreateLines(`hLine_${i}`, { points: points }, scene);
       const lineMaterial = new StandardMaterial(`hLineMaterial_${i}`, scene);
-      lineMaterial.emissiveColor = new Color3(1, 1, 1); // Pure white
+      lineMaterial.emissiveColor = new Color3(0.9, 0.9, 0.9); // Light gray for visibility on wood
       lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
       lineMaterial.disableLighting = true; // Ignore lighting
+      lineMaterial.alpha = 0.7; // Slightly transparent for subtlety
       line.material = lineMaterial;
       gridLines.push(line);
     }
@@ -89,9 +101,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const points = [new Vector3(i, 0.01, -7), new Vector3(i, 0.01, 7)];
       const line = MeshBuilder.CreateLines(`vLine_${i}`, { points: points }, scene);
       const lineMaterial = new StandardMaterial(`vLineMaterial_${i}`, scene);
-      lineMaterial.emissiveColor = new Color3(1, 1, 1); // Pure white
+      lineMaterial.emissiveColor = new Color3(0.9, 0.9, 0.9); // Light gray for visibility on wood
       lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
       lineMaterial.disableLighting = true; // Ignore lighting
+      lineMaterial.alpha = 0.7; // Slightly transparent for subtlety
       line.material = lineMaterial;
       gridLines.push(line);
     }
