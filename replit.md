@@ -88,6 +88,15 @@ The application follows a full-stack monorepo architecture with clear separation
 
 ## Recent Changes
 
+### July 13, 2025 - GitHub Repository Documentation
+- **Comprehensive README.md**: Created detailed documentation for GitHub repository
+- **Project Overview**: Complete feature list, technology stack, and architecture description
+- **Installation Guide**: Step-by-step setup instructions with prerequisites and configuration
+- **Usage Documentation**: User guide for 2D/3D visualization, AI chat, and interactive features
+- **Deployment Instructions**: Both Replit and manual deployment options with configuration details
+- **API Documentation**: Endpoint descriptions for canvas, chat, and status APIs
+- **Contributing Guidelines**: Standard open-source contribution workflow and standards
+
 ### July 13, 2025 - Microsoft Copilot UI Integration
 - **Authentic Copilot Branding**: Replaced chat icon with official Microsoft Copilot logo (64x64 PNG)
 - **Professional Button Design**: Added 48x48 pixel chat button with gray border and white background
