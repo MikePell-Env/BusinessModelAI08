@@ -323,13 +323,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       let material: StandardMaterial | PBRMaterial;
       
       if (elementId === canvas.keyResources.id) {
-        // Simple brown material for Key Resources
-        const keyResourcesMaterial = new StandardMaterial(`material_${elementId}`, scene);
-        keyResourcesMaterial.diffuseColor = new Color3(0.4, 0.25, 0.15); // Brown color
-        material = keyResourcesMaterial;
-        
-        // No additional special lighting - use scene lighting
-        
+        // Same white material as other boxes
+        const standardMaterial = new StandardMaterial(`material_${elementId}`, scene);
+        standardMaterial.diffuseColor = color;
+        standardMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+        standardMaterial.emissiveColor = new Color3(0.05, 0.05, 0.05);
+        material = standardMaterial;
       } else {
         // Standard material for other elements with enhanced properties
         const standardMaterial = new StandardMaterial(`material_${elementId}`, scene);
@@ -373,19 +372,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       }));
 
-      // Add hover effects based on material type
-      if (elementId === canvas.keyResources.id) {
-        // Simple hover for brown material
-        box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-          const brownMat = material as StandardMaterial;
-          brownMat.diffuseColor = new Color3(0.5, 0.35, 0.25); // Lighter brown on hover
-        }));
-
-        box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-          const brownMat = material as StandardMaterial;
-          brownMat.diffuseColor = new Color3(0.4, 0.25, 0.15); // Return to original brown
-        }));
-      } else {
+      // Add hover effects - same for all boxes
+      {
         // Standard hover effects for other materials
         const stdMaterial = material as StandardMaterial;
         const keepOriginalColor = elementId === canvas.costStructure.id || 
