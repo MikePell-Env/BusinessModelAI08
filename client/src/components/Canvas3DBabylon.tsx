@@ -46,30 +46,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;
     camera.upperBetaLimit = Math.PI / 2.2;
 
-    // Create balanced lighting for floor and overall scene
+    // Create moderate lighting for scene
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 0.4; // Reduced to prevent floor washout
+    hemisphericLight.intensity = 0.6;
     hemisphericLight.diffuse = new Color3(1, 1, 1);
-    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Reduced specular
-    
-    // Add enhanced lighting for metallic box reflections using available light types
-    const additionalLight = new HemisphericLight("additionalLight", new Vector3(0.5, -1, 0.5), scene);
-    additionalLight.intensity = 1.0; // Increased for metallic reflections
-    additionalLight.diffuse = new Color3(0.95, 0.95, 1);
-    additionalLight.specular = new Color3(0.8, 0.8, 0.9); // High specular for metallic shine
-    
-    // Add point lights around the canvas for additional metallic reflections
-    const pointLight1 = new PointLight("pointLight1", new Vector3(-6, 3, 3), scene);
-    pointLight1.intensity = 1.5;
-    pointLight1.diffuse = new Color3(1, 1, 1);
-    pointLight1.specular = new Color3(1, 1, 1);
-    pointLight1.range = 15;
-    
-    const pointLight2 = new PointLight("pointLight2", new Vector3(6, 3, 3), scene);
-    pointLight2.intensity = 1.5;
-    pointLight2.diffuse = new Color3(1, 1, 1);
-    pointLight2.specular = new Color3(1, 1, 1);
-    pointLight2.range = 15;
+    hemisphericLight.specular = new Color3(0.3, 0.3, 0.3);
     
     // Reduce ambient lighting to show floor texture
     scene.ambientColor = new Color3(0.4, 0.4, 0.4);
@@ -312,19 +293,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       box.position = position;
       
-      // Create photorealistic metallic material
-      const material = new PBRMaterial(`material_${elementId}`, scene);
-      material.baseColor = new Color3(0.95, 0.95, 0.95); // Near white metallic base
-      material.metallicFactor = 0.9; // High metallic factor for shiny appearance
-      material.roughnessFactor = 0.1; // Low roughness for high reflectivity
-      material.indexOfRefraction = 2.5; // High IOR for metallic look
-      material.microSurface = 0.95; // Very smooth surface
-      
-      // Add subtle environmental reflection
-      material.environmentIntensity = 1.0;
-      material.clearCoat.isEnabled = true;
-      material.clearCoat.intensity = 0.3;
-      material.clearCoat.roughness = 0.05;
+      // Create green colored material
+      const material = new StandardMaterial(`material_${elementId}`, scene);
+      material.diffuseColor = new Color3(0.2, 0.8, 0.3); // Bright green color
+      material.specularColor = new Color3(0.3, 0.3, 0.3); // Moderate specular reflection
+      material.emissiveColor = new Color3(0.05, 0.1, 0.05); // Slight green glow
       
       box.material = material;
 
@@ -344,13 +317,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       }));
 
-      // Add hover effect for PBR material
+      // Add hover effect for standard material
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-        material.baseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
+        material.diffuseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
       }));
 
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        material.baseColor = new Color3(0.95, 0.95, 0.95); // White metallic color
+        material.diffuseColor = new Color3(0.2, 0.8, 0.3); // Green color
       }));
 
       // Create billboard text using GUI directly on screen (no mesh plane)
