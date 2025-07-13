@@ -26,12 +26,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create camera with user controls
+    // Create camera with three-quarter view angle (like the pasted image)
     const camera = new ArcRotateCamera(
       "camera",
-      -Math.PI / 2,
-      Math.PI / 2.5,
-      12,
+      -Math.PI / 4,        // 45-degree horizontal angle for three-quarter view
+      Math.PI / 3,         // 60-degree vertical angle for better perspective
+      14,                  // Slightly farther distance to see more of the scene
       Vector3.Zero(),
       scene
     );
