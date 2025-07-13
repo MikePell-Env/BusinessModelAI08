@@ -167,19 +167,19 @@ export const PowerPointImporter: React.FC = () => {
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border shadow-lg">
+        <DialogHeader className="pb-4 border-b">
+          <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
+            <FileText className="w-6 h-6" />
             Import Business Model Canvas from PowerPoint
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 pt-4">
           {/* File Upload Option */}
-          <Card>
+          <Card className="border-2 border-blue-200 bg-blue-50">
             <CardHeader>
-              <CardTitle className="text-lg">Upload PowerPoint File</CardTitle>
+              <CardTitle className="text-lg text-blue-800">Upload PowerPoint File</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -221,9 +221,9 @@ export const PowerPointImporter: React.FC = () => {
           </Card>
 
           {/* Microsoft Graph Import */}
-          <Card>
+          <Card className="border-2 border-green-200 bg-green-50">
             <CardHeader>
-              <CardTitle className="text-lg">Microsoft Graph Import</CardTitle>
+              <CardTitle className="text-lg text-green-800">Microsoft Graph Import</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -294,9 +294,9 @@ export const PowerPointImporter: React.FC = () => {
           </Card>
 
           {/* Template Instructions */}
-          <Card>
+          <Card className="border-2 border-gray-200 bg-gray-50">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
                 <Info className="w-5 h-5" />
                 PowerPoint Template Format
               </CardTitle>
@@ -315,9 +315,9 @@ export const PowerPointImporter: React.FC = () => {
           </Card>
 
           {/* Quick Guide */}
-          <Card>
+          <Card className="border-2 border-purple-200 bg-purple-50">
             <CardHeader>
-              <CardTitle className="text-lg">Quick Start Guide</CardTitle>
+              <CardTitle className="text-lg text-purple-800">Quick Start Guide</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div>
