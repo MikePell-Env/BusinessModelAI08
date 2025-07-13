@@ -96,6 +96,54 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       gridLines.push(line);
     }
 
+    // Create frame around the floor plane (extruded appearance)
+    const frameHeight = 0.2; // 20px equivalent in 3D units
+    const frameThickness = 0.1;
+    
+    // Front frame (positive Z)
+    const frontFrame = MeshBuilder.CreateBox("frontFrame", { 
+      width: 20 + (frameThickness * 2), 
+      height: frameHeight, 
+      depth: frameThickness 
+    }, scene);
+    frontFrame.position = new Vector3(0, frameHeight / 2, 7 + frameThickness / 2);
+    
+    // Back frame (negative Z)
+    const backFrame = MeshBuilder.CreateBox("backFrame", { 
+      width: 20 + (frameThickness * 2), 
+      height: frameHeight, 
+      depth: frameThickness 
+    }, scene);
+    backFrame.position = new Vector3(0, frameHeight / 2, -7 - frameThickness / 2);
+    
+    // Left frame (negative X)
+    const leftFrame = MeshBuilder.CreateBox("leftFrame", { 
+      width: frameThickness, 
+      height: frameHeight, 
+      depth: 14 
+    }, scene);
+    leftFrame.position = new Vector3(-10 - frameThickness / 2, frameHeight / 2, 0);
+    
+    // Right frame (positive X)
+    const rightFrame = MeshBuilder.CreateBox("rightFrame", { 
+      width: frameThickness, 
+      height: frameHeight, 
+      depth: 14 
+    }, scene);
+    rightFrame.position = new Vector3(10 + frameThickness / 2, frameHeight / 2, 0);
+    
+    // Create frame material (slightly darker than the floor)
+    const frameMaterial = new StandardMaterial("frameMaterial", scene);
+    frameMaterial.diffuseColor = new Color3(0.85, 0.85, 0.85); // Light gray
+    frameMaterial.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight self-illumination
+    frameMaterial.disableLighting = false;
+    
+    // Apply material to all frame pieces
+    frontFrame.material = frameMaterial;
+    backFrame.material = frameMaterial;
+    leftFrame.material = frameMaterial;
+    rightFrame.material = frameMaterial;
+
     // Create GUI
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
     
