@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { ChatMessage } from '@/types/canvas';
 import { Send, X, Minimize2 } from 'lucide-react';
-import { MicrosoftCopilotIcon } from '@/components/ui/MicrosoftCopilotIcon';
 
 export const AIChat: React.FC = () => {
   const {
@@ -104,13 +103,16 @@ export const AIChat: React.FC = () => {
 
   if (!isChatOpen) {
     return (
-      <Button
+      <button
         onClick={toggleChat}
-        className="fixed bottom-6 right-6 rounded-lg w-14 h-14 shadow-lg z-50 p-2"
-        size="icon"
+        className="fixed bottom-6 right-6 w-16 h-16 shadow-lg z-50 bg-transparent border-0 p-0 cursor-pointer hover:scale-105 transition-transform"
       >
-        <MicrosoftCopilotIcon size={40} />
-      </Button>
+        <img 
+          src="/copilot-logo.png" 
+          alt="Microsoft Copilot" 
+          className="w-full h-full object-contain"
+        />
+      </button>
     );
   }
 
