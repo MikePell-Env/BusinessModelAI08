@@ -394,7 +394,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Add title text
     const titleRect = new Rectangle("titleRect");
-    titleRect.widthInPixels = 400;
+    titleRect.widthInPixels = 800; // Increased from 400 to 800 for longer titles
     titleRect.heightInPixels = 60;
     titleRect.color = "transparent";
     titleRect.thickness = 0;
@@ -407,6 +407,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     titleText.color = "#1A202C";
     titleText.fontSize = 28;
     titleText.fontWeight = "bold";
+    titleText.textWrapping = true; // Enable text wrapping for very long titles
     titleRect.addControl(titleText);
 
     // Render loop
