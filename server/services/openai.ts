@@ -19,26 +19,35 @@ interface ChatResponse {
 }
 
 export async function processAIChat(request: ChatRequest): Promise<ChatResponse> {
-  console.log('Processing chat request with OpenAI for:', request.message);
-  console.log('API key configured:', !!process.env.OPENAI_API_KEY);
-  console.log('API key format check:', process.env.OPENAI_API_KEY?.startsWith('sk-'));
+  console.log('Processing chat request - trying Microsoft Copilot first for:', request.message);
   
-  // Check if OpenAI API key is available
-  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your-openai-api-key-here") {
-    console.log('OpenAI API key not configured, using simple fallback');
-    return generateFallbackResponse(request);
-  }
-  
+  // Try Microsoft Copilot first
   try {
-    console.log('Attempting OpenAI API call...');
-    const result = await processOpenAIChat(request);
-    console.log('OpenAI API call successful!');
-    return result;
-  } catch (error) {
-    console.log('OpenAI request failed with error:', error.message);
-    console.log('Error type:', error.constructor.name);
-    console.log('Using fallback response...');
-    return generateFallbackResponse(request);
+    const copilotResponse = await processCopilotChat(request);
+    console.log('Microsoft Copilot responded successfully!');
+    return copilotResponse;
+  } catch (copilotError) {
+    console.log('Microsoft Copilot failed, falling back to OpenAI:', copilotError.message);
+    
+    // Fallback to OpenAI
+    console.log('API key configured:', !!process.env.OPENAI_API_KEY);
+    console.log('API key format check:', process.env.OPENAI_API_KEY?.startsWith('sk-'));
+    
+    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your-openai-api-key-here") {
+      console.log('OpenAI API key not configured, using simple fallback');
+      return generateFallbackResponse(request);
+    }
+    
+    try {
+      console.log('Attempting OpenAI API call...');
+      const result = await processOpenAIChat(request);
+      console.log('OpenAI API call successful!');
+      return result;
+    } catch (error) {
+      console.log('OpenAI request failed with error:', error.message);
+      console.log('Using fallback response...');
+      return generateFallbackResponse(request);
+    }
   }
 }
 
