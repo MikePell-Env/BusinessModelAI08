@@ -348,7 +348,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       // Link to center of the box, positioned higher
       titleRect.linkWithMesh(box);
-      titleRect.linkOffsetY = -50; // Higher above the box for better visibility
+      // Special positioning for Value Propositions (taller box) - place label at the top
+      const isValuePropositions = elementId === canvas.valuePropositions.id;
+      titleRect.linkOffsetY = isValuePropositions ? -100 : -50; // Much higher for Value Propositions
 
       return box;
     };
