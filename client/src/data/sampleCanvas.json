@@ -1,15 +1,12 @@
 {
   "id": "startup-canvas-001",
-  "name": "Startup - Business Model Canvas",
-  "description": "A technology startup focused on AI-powered business simulation",
+  "name": "Business Model Canvas",
+  "description": "Import a PowerPoint slide to begin",
   "keyPartners": {
     "id": "key-partners",
     "title": "Key Partners",
     "content": [
-      "Cloud service providers (AWS, Azure)",
-      "Technology integration partners",
-      "Strategic investors and VCs",
-      "Academic research institutions"
+      "go here"
     ],
     "color": "#FFE5E5"
   },
@@ -17,11 +14,7 @@
     "id": "key-activities",
     "title": "Key Activities",
     "content": [
-      "AI model development and training",
-      "Software development and testing",
-      "Customer support and success",
-      "Research and development",
-      "Marketing and sales activities"
+      "go here"
     ],
     "color": "#E5F3FF"
   },
@@ -29,11 +22,7 @@
     "id": "key-resources",
     "title": "Key Resources",
     "content": [
-      "AI and machine learning expertise",
-      "Proprietary algorithms and data",
-      "Development team and infrastructure",
-      "Brand and intellectual property",
-      "Customer data and insights"
+      "go here"
     ],
     "color": "#E5FFE5"
   },
@@ -41,11 +30,7 @@
     "id": "value-propositions",
     "title": "Value Propositions",
     "content": [
-      "AI-powered business optimization",
-      "Automated decision-making tools",
-      "Real-time analytics and insights",
-      "Cost reduction through automation",
-      "Scalable enterprise solutions"
+      "go here"
     ],
     "color": "#FFF5E5"
   },
@@ -53,11 +38,7 @@
     "id": "customer-relationships",
     "title": "Customer Relationships",
     "content": [
-      "Dedicated account management",
-      "Self-service platform access",
-      "Community forums and support",
-      "Regular training and workshops",
-      "24/7 technical support"
+      "go here"
     ],
     "color": "#F5E5FF"
   },
@@ -65,11 +46,7 @@
     "id": "channels",
     "title": "Channels",
     "content": [
-      "Direct sales team",
-      "Online platform and website",
-      "Partner channel programs",
-      "Industry conferences and events",
-      "Digital marketing campaigns"
+      "go here"
     ],
     "color": "#E5FFFF"
   },
@@ -77,11 +54,7 @@
     "id": "customer-segments",
     "title": "Customer Segments",
     "content": [
-      "Enterprise corporations (500+ employees)",
-      "Mid-market companies (50-500 employees)",
-      "Technology-forward startups",
-      "Government and public sector",
-      "Healthcare and financial services"
+      "go here"
     ],
     "color": "#FFE5F5"
   },
@@ -89,11 +62,7 @@
     "id": "cost-structure",
     "title": "Cost Structure",
     "content": [
-      "Cloud infrastructure and hosting",
-      "Research and development costs",
-      "Sales and marketing expenses",
-      "Employee salaries and benefits",
-      "Legal and compliance costs"
+      "go here"
     ],
     "color": "#F0F0F0"
   },
@@ -101,11 +70,7 @@
     "id": "revenue-streams",
     "title": "Revenue Streams",
     "content": [
-      "SaaS subscription fees",
-      "Enterprise licensing deals",
-      "Professional services and consulting",
-      "Training and certification programs",
-      "API usage and transaction fees"
+      "go here"
     ],
     "color": "#E5F5E5"
   },

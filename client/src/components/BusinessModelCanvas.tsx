@@ -82,8 +82,8 @@ export const BusinessModelCanvas: React.FC = () => {
         <Button
           onClick={() => !is3D || handleToggleView()}
           disabled={isTransitioning || !is3D}
-          className={`text-gray-800 border border-gray-300 hover:bg-gray-50 shadow-md ${
-            !is3D ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-white'
+          className={`border border-gray-300 shadow-md ${
+            !is3D ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
@@ -94,8 +94,8 @@ export const BusinessModelCanvas: React.FC = () => {
         <Button
           onClick={() => is3D || handleToggleView()}
           disabled={isTransitioning || is3D}
-          className={`text-gray-800 border border-gray-300 hover:bg-gray-50 shadow-md ${
-            is3D ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-white'
+          className={`border border-gray-300 shadow-md ${
+            is3D ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
