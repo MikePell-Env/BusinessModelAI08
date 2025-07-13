@@ -15,12 +15,53 @@ interface ImportResult {
 }
 
 export const PowerPointImporter: React.FC = () => {
-  const { loadCanvas, setLoading, setError } = useCanvas();
+  const { loadCanvas } = useCanvas();
+  const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [fileId, setFileId] = useState('');
   const [siteId, setSiteId] = useState('');
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [templateInstructions, setTemplateInstructions] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.includes('presentation')) {
+      setSelectedFile(file);
+    } else {
+      alert('Please select a PowerPoint file (.pptx)');
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+
+    setLoading(true);
+    setImportResult(null);
+
+    try {
+      // For now, show that file upload is not implemented
+      // In a real implementation, we'd process the file client-side
+      // or send it to the server for processing
+      setImportResult({ 
+        success: false, 
+        error: 'File upload processing is not yet implemented. Please use Microsoft Graph import or test with sample data.' 
+      });
+    } catch (error) {
+      console.error('File upload error:', error);
+      setImportResult({ 
+        success: false, 
+        error: 'Failed to upload PowerPoint file.' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTestImport = async () => {
     setLoading(true);
@@ -123,7 +164,51 @@ export const PowerPointImporter: React.FC = () => {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Import Form */}
+          {/* File Upload Option */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Upload PowerPoint File</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Select PowerPoint File (.pptx)
+                </label>
+                <div className="flex items-center gap-3">
+                  <Button 
+                    onClick={handleFileSelect}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Choose File
+                  </Button>
+                  {selectedFile && (
+                    <span className="text-sm text-gray-600">
+                      {selectedFile.name}
+                    </span>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pptx,.ppt"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
+
+              <Button 
+                onClick={handleFileUpload}
+                disabled={!selectedFile || loading}
+                className="w-full"
+              >
+                {loading ? 'Processing...' : 'Upload and Process PowerPoint'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Microsoft Graph Import */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Microsoft Graph Import</CardTitle>
@@ -243,11 +328,11 @@ export const PowerPointImporter: React.FC = () => {
               </div>
               
               <div>
-                <strong>3. Test First:</strong>
+                <strong>3. Import Options:</strong>
                 <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-                  <li>Click "Test Import with Sample Data" to see how it works</li>
-                  <li>This loads a sample TechCorp AI Platform business model</li>
-                  <li>Shows exactly what imported PowerPoint canvas looks like</li>
+                  <li><strong>File Upload:</strong> Use "Choose File" to select PowerPoint from your computer</li>
+                  <li><strong>Microsoft Graph:</strong> Enter File ID from OneDrive/SharePoint</li>
+                  <li><strong>Test Sample:</strong> Click "Test Import" to see demo with TechCorp AI Platform</li>
                 </ul>
               </div>
             </CardContent>
