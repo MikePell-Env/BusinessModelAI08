@@ -293,11 +293,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       box.position = position;
       
-      // Create white transparent material
+      // Create material with custom color and transparency
       const material = new StandardMaterial(`material_${elementId}`, scene);
-      material.diffuseColor = new Color3(1, 1, 1); // Pure white
+      material.diffuseColor = color; // Use the provided color
       material.specularColor = new Color3(0.5, 0.5, 0.5); // Moderate specular reflection
-      material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight white glow
+      material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight glow
       material.alpha = 0.8; // Semi-transparent
       
       box.material = material;
@@ -324,7 +324,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }));
 
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        material.diffuseColor = new Color3(1, 1, 1); // White color
+        material.diffuseColor = color; // Return to original color
       }));
 
       // Create billboard text using GUI directly on screen (no mesh plane)
@@ -417,12 +417,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.customerSegments.id
       ),
 
-      // Row 3: Cost Structure (left aligned with Key Partners)
+      // Row 3: Cost Structure (left aligned with Key Partners) - with red color and animation
       createBusinessBlock(
         canvas.costStructure,
         new Vector3(-2, 0.5, -2.5),
         new Vector3(3.8, 1, 1),
-        new Color3(1, 1, 1), // White
+        new Color3(1, 0.8, 0.8), // Slightly red color
         canvas.costStructure.id
       ),
 
@@ -495,6 +495,67 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Start both animations
       scene.beginAnimation(revenueStreamsBox, 0, 90, true);
+    }
+
+    // Find the cost structure box and add faster height animation  
+    const costStructureBox = scene.getMeshByName(`box_${canvas.costStructure.id}`);
+    if (costStructureBox) {
+      const originalY = costStructureBox.position.y; // Store original Y position (0.5)
+      
+      // Create height scaling animation (faster - 2 seconds per cycle)
+      const animationHeight = new Animation(
+        "costHeightAnimation",
+        "scaling.y",
+        30, // 30 FPS
+        Animation.ANIMATIONTYPE_FLOAT,
+        Animation.ANIMATIONLOOPMODE_CYCLE
+      );
+
+      // Create position animation to keep bottom aligned to floor
+      const animationPosition = new Animation(
+        "costPositionAnimation",
+        "position.y",
+        30, // 30 FPS
+        Animation.ANIMATIONTYPE_FLOAT,
+        Animation.ANIMATIONLOOPMODE_CYCLE
+      );
+
+      // Define height scaling keys (2 seconds per cycle = 60 frames at 30 FPS)
+      const heightKeys = [];
+      heightKeys.push({
+        frame: 0,
+        value: 1.0 // Full height
+      });
+      heightKeys.push({
+        frame: 30, // 1 second
+        value: 0.33 // One third height
+      });
+      heightKeys.push({
+        frame: 60, // 2 seconds - complete cycle
+        value: 1.0 // Back to full height
+      });
+
+      // Define position keys to keep bottom aligned (when height is 0.33, move down by 0.335)
+      const positionKeys = [];
+      positionKeys.push({
+        frame: 0,
+        value: originalY // Original position (0.5)
+      });
+      positionKeys.push({
+        frame: 30, // 1 second
+        value: originalY - 0.335 // Move down to keep bottom on floor
+      });
+      positionKeys.push({
+        frame: 60, // 2 seconds - complete cycle
+        value: originalY // Back to original position
+      });
+
+      animationHeight.setKeys(heightKeys);
+      animationPosition.setKeys(positionKeys);
+      costStructureBox.animations = [animationHeight, animationPosition];
+      
+      // Start both animations
+      scene.beginAnimation(costStructureBox, 0, 60, true);
     }
 
     // Add title text
