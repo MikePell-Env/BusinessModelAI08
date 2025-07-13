@@ -88,6 +88,13 @@ The application follows a full-stack monorepo architecture with clear separation
 
 ## Recent Changes
 
+### July 13, 2025 - Microsoft Copilot Enhancement & Azure Deployment Setup
+- **Azure OpenAI Integration**: Enhanced Microsoft Copilot service with Azure OpenAI fallback for more reliable AI responses
+- **Business Context Analysis**: Added intelligent business context generation for Microsoft ecosystem integration recommendations
+- **Azure Deployment Pipeline**: Created comprehensive Azure deployment configuration with GitHub Actions workflow
+- **Production-Ready Setup**: Added Azure App Service, PostgreSQL, OpenAI Service, and Key Vault configuration scripts
+- **Microsoft Graph Enhancement**: Improved authentication flow and API integration for enterprise features
+
 ### July 13, 2025 - Real PowerPoint Processing Implementation & GitHub Publication
 - **Actual File Parsing**: Replaced sample data loading with real PowerPoint file processing using JSZip and XML parsing
 - **Company Name Extraction**: Extracts canvas title from "Company:" field in PowerPoint slides
