@@ -303,14 +303,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       if (keepOriginalColor) {
         material.diffuseColor = color; // Keep original color
+      } else if (elementId === canvas.valuePropositions.id) {
+        material.diffuseColor = new Color3(1.0, 1.0, 1.0); // White for Value Propositions
       } else {
         material.diffuseColor = new Color3(0.7, 0.85, 1.0); // Light blue
       }
       
       material.specularColor = new Color3(0.5, 0.5, 0.5); // Moderate specular reflection
       material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight glow
-      // Make Value Propositions opaque, others semi-transparent
-      material.alpha = elementId === canvas.valuePropositions.id ? 1.0 : 0.6;
+      // Make Value Propositions slightly translucent, others more translucent
+      material.alpha = elementId === canvas.valuePropositions.id ? 0.8 : 0.6;
       
       box.material = material;
 
@@ -336,9 +338,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }));
 
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        // Return to the correct color based on whether it keeps original or uses light blue
+        // Return to the correct color based on element type
         if (keepOriginalColor) {
           material.diffuseColor = color; // Return to original color
+        } else if (elementId === canvas.valuePropositions.id) {
+          material.diffuseColor = new Color3(1.0, 1.0, 1.0); // Return to white
         } else {
           material.diffuseColor = new Color3(0.7, 0.85, 1.0); // Return to light blue
         }
