@@ -349,9 +349,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
       titleRect.addControl(titleText);
 
-      // Link to center of the box, slightly higher
+      // Link to center of the box, much closer
       titleRect.linkWithMesh(box);
-      titleRect.linkOffsetY = -80; // Higher above the box
+      titleRect.linkOffsetY = -30; // Much closer to the box
 
       return box;
     };
