@@ -792,9 +792,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         isTransitioning ? 'opacity-0' : 'opacity-100'
       }`}
       style={{
-        transform: isTransitioning ? 'perspective(1000px) rotateX(-75deg) rotateY(-20deg) scale(0.8)' : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)',
-        transformOrigin: 'center top',
-        transition: 'transform 1400ms ease-in-out, opacity 700ms ease-in-out'
+        transform: isTransitioning ? 'perspective(1000px) rotateX(-75deg) rotateY(-35deg) scale(0.8)' : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)',
+        transformOrigin: 'right top',
+        transition: 'transform 2000ms ease-in-out, opacity 1000ms ease-in-out'
       }}
     >
       <canvas
