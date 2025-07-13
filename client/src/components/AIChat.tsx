@@ -106,10 +106,10 @@ export const AIChat: React.FC = () => {
     return (
       <Button
         onClick={toggleChat}
-        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-50"
+        className="fixed bottom-6 right-6 rounded-lg w-14 h-14 shadow-lg z-50 p-2"
         size="icon"
       >
-        <MicrosoftCopilotIcon size={24} />
+        <MicrosoftCopilotIcon size={40} />
       </Button>
     );
   }
