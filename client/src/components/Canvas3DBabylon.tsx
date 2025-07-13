@@ -788,9 +788,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   return (
     <div 
-      className={`w-full h-full transition-all duration-500 ${
-        isTransitioning ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
+      className={`w-full h-full transition-all duration-1000 ${
+        isTransitioning ? 'opacity-0' : 'opacity-100'
       }`}
+      style={{
+        transform: isTransitioning ? 'perspective(1000px) rotateX(-75deg) scale(0.8)' : 'perspective(1000px) rotateX(0deg) scale(1)',
+        transformOrigin: 'center top',
+        transition: 'transform 1000ms ease-in-out, opacity 500ms ease-in-out'
+      }}
     >
       <canvas
         ref={canvasRef}
