@@ -1,19 +1,27 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
+import { useCanvas } from '@/lib/stores/useCanvas';
 
 interface Canvas2DProps {
   canvas: BusinessModelCanvas;
   isTransitioning: boolean;
 }
 
-const CanvasBlock: React.FC<{ element: CanvasElement; className?: string }> = ({ 
+const CanvasBlock: React.FC<{ 
+  element: CanvasElement; 
+  className?: string;
+  hasImportedFromPowerPoint: boolean;
+}> = ({ 
   element, 
-  className = "" 
+  className = "",
+  hasImportedFromPowerPoint
 }) => (
   <Card 
     className={`h-full transition-all duration-300 hover:shadow-lg ${className}`}
-    style={{ backgroundColor: 'white' }}
+    style={{ 
+      backgroundColor: hasImportedFromPowerPoint ? 'white' : '#d1d5db' // gray-300 when no import, white after import
+    }}
   >
     <CardHeader className="pb-2">
       <CardTitle className="text-sm font-semibold text-gray-800">
@@ -33,6 +41,8 @@ const CanvasBlock: React.FC<{ element: CanvasElement; className?: string }> = ({
 );
 
 export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) => {
+  const { hasImportedFromPowerPoint } = useCanvas();
+  
   if (!canvas) return null;
 
   return (
@@ -49,19 +59,19 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
       {/* Business Model Canvas Grid */}
       <div className="grid grid-cols-10 grid-rows-3 gap-4 h-5/6 max-w-7xl mx-auto">
         {/* Row 1 */}
-        <CanvasBlock element={canvas.keyPartners} className="row-span-2 col-span-2" />
-        <CanvasBlock element={canvas.keyActivities} className="col-span-2" />
-        <CanvasBlock element={canvas.valuePropositions} className="row-span-2 col-span-2" />
-        <CanvasBlock element={canvas.customerRelationships} className="col-span-2" />
-        <CanvasBlock element={canvas.customerSegments} className="row-span-2 col-span-2" />
+        <CanvasBlock element={canvas.keyPartners} className="row-span-2 col-span-2" hasImportedFromPowerPoint={hasImportedFromPowerPoint} />
+        <CanvasBlock element={canvas.keyActivities} className="col-span-2" hasImportedFromPowerPoint={hasImportedFromPowerPoint} />
+        <CanvasBlock element={canvas.valuePropositions} className="row-span-2 col-span-2" hasImportedFromPowerPoint={hasImportedFromPowerPoint} />
+        <CanvasBlock element={canvas.customerRelationships} className="col-span-2" hasImportedFromPowerPoint={hasImportedFromPowerPoint} />
+        <CanvasBlock element={canvas.customerSegments} className="row-span-2 col-span-2" hasImportedFromPowerPoint={hasImportedFromPowerPoint} />
         
         {/* Row 2 */}
-        <CanvasBlock element={canvas.keyResources} className="col-span-2" />
-        <CanvasBlock element={canvas.channels} className="col-span-2" />
+        <CanvasBlock element={canvas.keyResources} className="col-span-2" hasImportedFromPowerPoint={hasImportedFromPowerPoint} />
+        <CanvasBlock element={canvas.channels} className="col-span-2" hasImportedFromPowerPoint={hasImportedFromPowerPoint} />
         
         {/* Row 3 - Bottom boxes with cost structure 20% wider */}
-        <CanvasBlock element={canvas.costStructure} className="col-span-5" />
-        <CanvasBlock element={canvas.revenueStreams} className="col-span-5" />
+        <CanvasBlock element={canvas.costStructure} className="col-span-5" hasImportedFromPowerPoint={hasImportedFromPowerPoint} />
+        <CanvasBlock element={canvas.revenueStreams} className="col-span-5" hasImportedFromPowerPoint={hasImportedFromPowerPoint} />
       </div>
     </div>
   );

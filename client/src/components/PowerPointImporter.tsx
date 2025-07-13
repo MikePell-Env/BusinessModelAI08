@@ -30,7 +30,7 @@ export const PowerPointImporter: React.FC = () => {
         try {
           // Parse the actual PowerPoint file
           const canvas = await powerpointParser.parseFile(file);
-          loadCanvas(canvas);
+          loadCanvas(canvas, true);
         } catch (error) {
           console.error('File processing error:', error);
           alert('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');

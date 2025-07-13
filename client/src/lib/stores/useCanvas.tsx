@@ -10,9 +10,10 @@ interface CanvasState {
   isTransitioning: boolean;
   chatMessages: ChatMessage[];
   isChatOpen: boolean;
+  hasImportedFromPowerPoint: boolean;
   
   // Actions
-  loadCanvas: (canvas: BusinessModelCanvas) => void;
+  loadCanvas: (canvas: BusinessModelCanvas, isFromPowerPoint?: boolean) => void;
   toggleView: () => void;
   updateCanvas: (updates: Partial<BusinessModelCanvas>) => void;
   addChatMessage: (message: ChatMessage) => void;
@@ -31,9 +32,14 @@ export const useCanvas = create<CanvasState>()(
     isTransitioning: false,
     chatMessages: [],
     isChatOpen: false,
+    hasImportedFromPowerPoint: false,
     
-    loadCanvas: (canvas) => {
-      set({ canvas, error: null });
+    loadCanvas: (canvas, isFromPowerPoint = false) => {
+      set({ 
+        canvas, 
+        error: null,
+        hasImportedFromPowerPoint: isFromPowerPoint || get().hasImportedFromPowerPoint
+      });
     },
     
     toggleView: () => {
