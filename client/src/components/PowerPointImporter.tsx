@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Upload, FileText, Info, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BusinessModelCanvas } from '@/types/canvas';
 import samplePowerPointCanvas from '@/data/samplePowerPointCanvas.json';
@@ -18,10 +17,7 @@ export const PowerPointImporter: React.FC = () => {
   const { loadCanvas } = useCanvas();
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [fileId, setFileId] = useState('');
-  const [siteId, setSiteId] = useState('');
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
-  const [templateInstructions, setTemplateInstructions] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -75,89 +71,6 @@ export const PowerPointImporter: React.FC = () => {
     }
   };
 
-  const handleTestImport = async () => {
-    setLoading(true);
-    setImportResult(null);
-
-    try {
-      // Load sample PowerPoint canvas data directly
-      const canvas = samplePowerPointCanvas as BusinessModelCanvas;
-      loadCanvas(canvas);
-      setImportResult({ success: true, canvas });
-      setIsDialogOpen(false);
-    } catch (error) {
-      console.error('Test import error:', error);
-      setImportResult({ 
-        success: false, 
-        error: 'Failed to load sample PowerPoint canvas data.' 
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleImportFromGraph = async () => {
-    if (!fileId.trim()) {
-      setError('Please enter a valid file ID');
-      return;
-    }
-
-    setLoading(true);
-    setImportResult(null);
-
-    try {
-      const response = await fetch('/api/import/powerpoint', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          method: 'graph',
-          fileId: fileId.trim(),
-          siteId: siteId.trim() || undefined
-        }),
-      });
-
-      const result: ImportResult = await response.json();
-
-      if (result.success && result.canvas) {
-        loadCanvas(result.canvas);
-        setImportResult({ success: true, canvas: result.canvas });
-        setIsDialogOpen(false);
-        setFileId('');
-        setSiteId('');
-      } else {
-        setImportResult({ success: false, error: result.error || 'Import failed' });
-      }
-    } catch (error) {
-      console.error('Import error:', error);
-      setImportResult({ 
-        success: false, 
-        error: 'Failed to import PowerPoint file. Please check your connection and try again.' 
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadTemplateInstructions = async () => {
-    try {
-      const response = await fetch('/api/import/powerpoint/template');
-      const data = await response.json();
-      if (data.success) {
-        setTemplateInstructions(data.instructions);
-      }
-    } catch (error) {
-      console.error('Failed to load template instructions:', error);
-    }
-  };
-
-  React.useEffect(() => {
-    if (isDialogOpen && !templateInstructions) {
-      loadTemplateInstructions();
-    }
-  }, [isDialogOpen, templateInstructions]);
-
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
@@ -167,19 +80,18 @@ export const PowerPointImporter: React.FC = () => {
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border shadow-lg">
-        <DialogHeader className="pb-4 border-b">
-          <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-            <FileText className="w-6 h-6" />
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5" />
             Import Business Model Canvas from PowerPoint
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 pt-4">
-          {/* File Upload Option */}
-          <Card className="border-2 border-blue-200 bg-blue-50">
+        <div className="pt-4">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-lg text-blue-800">Upload PowerPoint File</CardTitle>
+              <CardTitle className="text-lg">Upload PowerPoint File</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -217,54 +129,6 @@ export const PowerPointImporter: React.FC = () => {
               >
                 {loading ? 'Processing...' : 'Upload and Process PowerPoint'}
               </Button>
-            </CardContent>
-          </Card>
-
-          {/* Microsoft Graph Import */}
-          <Card className="border-2 border-green-200 bg-green-50">
-            <CardHeader>
-              <CardTitle className="text-lg text-green-800">Microsoft Graph Import</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  File ID (OneDrive/SharePoint) *
-                </label>
-                <Input
-                  placeholder="Enter the PowerPoint file ID from Microsoft Graph"
-                  value={fileId}
-                  onChange={(e) => setFileId(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Site ID (Optional - for SharePoint files)
-                </label>
-                <Input
-                  placeholder="Enter SharePoint site ID if applicable"
-                  value={siteId}
-                  onChange={(e) => setSiteId(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
-              <Button 
-                onClick={handleImportFromGraph}
-                disabled={!fileId.trim()}
-                className="w-full"
-              >
-                Import from Microsoft Graph
-              </Button>
-
-              <Button 
-                onClick={handleTestImport}
-                variant="outline"
-                className="w-full"
-              >
-                Test Import with Sample Data
-              </Button>
 
               {/* Import Result */}
               {importResult && (
@@ -290,63 +154,6 @@ export const PowerPointImporter: React.FC = () => {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Template Instructions */}
-          <Card className="border-2 border-gray-200 bg-gray-50">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
-                <Info className="w-5 h-5" />
-                PowerPoint Template Format
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {templateInstructions ? (
-                <pre className="text-xs whitespace-pre-wrap bg-gray-50 p-4 rounded-md overflow-x-auto">
-                  {templateInstructions}
-                </pre>
-              ) : (
-                <div className="text-sm text-gray-600">
-                  Loading template instructions...
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Quick Guide */}
-          <Card className="border-2 border-purple-200 bg-purple-50">
-            <CardHeader>
-              <CardTitle className="text-lg text-purple-800">Quick Start Guide</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div>
-                <strong>1. Create Business Model Canvas:</strong>
-                <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-                  <li>Create ONE PowerPoint slide that looks like a business model canvas</li>
-                  <li>Add 9 text boxes arranged in the traditional canvas layout</li>
-                  <li>Start each text box with section name (Key Partners, Value Propositions, etc.)</li>
-                  <li>Use bullet points for business elements in each section</li>
-                </ul>
-              </div>
-              
-              <div>
-                <strong>2. Save and Get File ID:</strong>
-                <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-                  <li>Save PowerPoint to OneDrive or SharePoint</li>
-                  <li>Copy the File ID from the URL</li>
-                  <li>For SharePoint files, also get the Site ID</li>
-                </ul>
-              </div>
-              
-              <div>
-                <strong>3. Import Options:</strong>
-                <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-                  <li><strong>File Upload:</strong> Use "Choose File" to select PowerPoint from your computer</li>
-                  <li><strong>Microsoft Graph:</strong> Enter File ID from OneDrive/SharePoint</li>
-                  <li><strong>Test Sample:</strong> Click "Test Import" to see demo with TechCorp AI Platform</li>
-                </ul>
-              </div>
             </CardContent>
           </Card>
         </div>
