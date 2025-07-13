@@ -436,16 +436,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       )
     ];
 
-    // Add title and subtitle text (matching 2D layout)
-    const headerRect = new Rectangle("headerRect");
-    headerRect.widthInPixels = 800;
-    headerRect.heightInPixels = 100; // Reverted to original size
-    headerRect.color = "transparent";
-    headerRect.thickness = 0;
-    headerRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-    headerRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-    headerRect.paddingTop = "24px";
-    advancedTexture.addControl(headerRect);
+    // Add title text
+    const titleRect = new Rectangle("titleRect");
+    titleRect.widthInPixels = 800;
+    titleRect.heightInPixels = 50;
+    titleRect.color = "transparent";
+    titleRect.thickness = 0;
+    titleRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+    titleRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+    titleRect.paddingTop = "24px";
+    advancedTexture.addControl(titleRect);
 
     // Main title
     const titleText = new TextBlock("canvasTitle", canvas.name);
@@ -454,21 +454,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     titleText.fontWeight = "900"; // Match 2D view's font-bold weight
     titleText.fontFamily = "Inter, system-ui, sans-serif";
     titleText.textWrapping = true;
-    titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-    titleText.heightInPixels = 50; // Space for title
-    headerRect.addControl(titleText);
+    titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+    titleRect.addControl(titleText);
 
-    // Subtitle/description - positioned separately below title
+    // Subtitle in separate container positioned below title
+    const subtitleRect = new Rectangle("subtitleRect");
+    subtitleRect.widthInPixels = 800;
+    subtitleRect.heightInPixels = 30;
+    subtitleRect.color = "transparent";
+    subtitleRect.thickness = 0;
+    subtitleRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+    subtitleRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+    subtitleRect.paddingTop = "120px"; // Position further below title
+    advancedTexture.addControl(subtitleRect);
+
     const subtitleText = new TextBlock("canvasSubtitle", canvas.description);
     subtitleText.color = "#4B5563"; // Match 2D view's text-gray-600
     subtitleText.fontSize = 16; // Smaller than title
     subtitleText.fontWeight = "normal";
     subtitleText.fontFamily = "Inter, system-ui, sans-serif";
     subtitleText.textWrapping = true;
-    subtitleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-    subtitleText.heightInPixels = 40; // Space for subtitle
-    subtitleText.paddingBottom = "10px"; // Small gap between title and subtitle
-    headerRect.addControl(subtitleText);
+    subtitleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+    subtitleRect.addControl(subtitleText);
 
     // Render loop
     engine.runRenderLoop(() => {
