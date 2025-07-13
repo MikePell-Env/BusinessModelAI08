@@ -7,6 +7,7 @@ import { Canvas3DBabylon } from './Canvas3DBabylon';
 import { AIChat } from './AIChat';
 import { MicrosoftStackStatus } from './MicrosoftStackStatus';
 import { PowerPointImporter } from './PowerPointImporter';
+import { MicrosoftRecommendations } from './MicrosoftRecommendations';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
 import { Eye, Box, RotateCcw, Settings } from 'lucide-react';
@@ -117,11 +118,20 @@ export const BusinessModelCanvas: React.FC = () => {
               Microsoft Stack
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-5xl">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Microsoft Technology Stack Migration</DialogTitle>
             </DialogHeader>
-            <MicrosoftStackStatus />
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Technology Stack Status</h3>
+                <MicrosoftStackStatus />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Business Recommendations</h3>
+                <MicrosoftRecommendations canvas={canvas} />
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
         
