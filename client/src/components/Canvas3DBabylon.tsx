@@ -506,6 +506,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Start both animations
       scene.beginAnimation(revenueStreamsBox, 0, 90, true);
+      
+      // Animate the label to follow the box height
+      const revenueLabel = advancedTexture.getControlByName(`titleRect_${canvas.revenueStreams.id}`);
+      if (revenueLabel) {
+        const labelAnimation = new Animation(
+          "revenueLabelAnimation",
+          "linkOffsetY",
+          30,
+          Animation.ANIMATIONTYPE_FLOAT,
+          Animation.ANIMATIONLOOPMODE_CYCLE
+        );
+        
+        const labelKeys = [];
+        labelKeys.push({
+          frame: 0,
+          value: -50 // Original label position
+        });
+        labelKeys.push({
+          frame: 30, // 1 second - box at 130% height
+          value: -65 // Move label higher with taller box
+        });
+        labelKeys.push({
+          frame: 60, // 2 seconds - box at 50% height
+          value: -25 // Move label lower with shorter box
+        });
+        labelKeys.push({
+          frame: 90, // 3 seconds - back to original
+          value: -50 // Back to original position
+        });
+        
+        labelAnimation.setKeys(labelKeys);
+        revenueLabel.animations = [labelAnimation];
+        scene.beginAnimation(revenueLabel, 0, 90, true);
+      }
     }
 
     // Find the cost structure box and add faster height animation  
@@ -567,6 +601,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Start both animations
       scene.beginAnimation(costStructureBox, 0, 60, true);
+      
+      // Animate the label to follow the box height
+      const costLabel = advancedTexture.getControlByName(`titleRect_${canvas.costStructure.id}`);
+      if (costLabel) {
+        const labelAnimation = new Animation(
+          "costLabelAnimation",
+          "linkOffsetY",
+          30,
+          Animation.ANIMATIONTYPE_FLOAT,
+          Animation.ANIMATIONLOOPMODE_CYCLE
+        );
+        
+        const labelKeys = [];
+        labelKeys.push({
+          frame: 0,
+          value: -50 // Original label position
+        });
+        labelKeys.push({
+          frame: 30, // 1 second - box at 33% height
+          value: -35 // Move label much lower with shorter box
+        });
+        labelKeys.push({
+          frame: 60, // 2 seconds - back to full height
+          value: -50 // Back to original position
+        });
+        
+        labelAnimation.setKeys(labelKeys);
+        costLabel.animations = [labelAnimation];
+        scene.beginAnimation(costLabel, 0, 60, true);
+      }
     }
 
     // Add title text
