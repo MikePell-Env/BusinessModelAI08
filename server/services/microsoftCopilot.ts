@@ -28,8 +28,10 @@ interface CopilotRetrievalResponse {
   }>;
 }
 
-// Microsoft Graph API endpoints for Copilot
+// Microsoft Graph API endpoints for Copilot and Azure OpenAI
 const COPILOT_API_BASE = 'https://graph.microsoft.com/v1.0/copilot';
+const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT || 'https://your-resource.openai.azure.com';
+const AZURE_OPENAI_API_VERSION = '2024-02-15-preview';
 
 /**
  * Process AI chat using Microsoft Copilot API
@@ -37,7 +39,13 @@ const COPILOT_API_BASE = 'https://graph.microsoft.com/v1.0/copilot';
  */
 export async function processCopilotChat(request: CopilotChatRequest): Promise<CopilotChatResponse> {
   try {
-    // Try Microsoft Graph API first
+    // First try Azure OpenAI Service (more reliable)
+    const azureResponse = await tryAzureOpenAI(request);
+    if (azureResponse) {
+      return azureResponse;
+    }
+
+    // Fallback to Microsoft Graph Copilot API
     const accessToken = await microsoftAuth.getAccessToken();
     
     const response = await fetch(`${COPILOT_API_BASE}/chat`, {
@@ -50,7 +58,8 @@ export async function processCopilotChat(request: CopilotChatRequest): Promise<C
         message: request.message,
         context: {
           canvas: request.canvas,
-          history: request.chatHistory
+          history: request.chatHistory,
+          businessContext: generateBusinessContext(request.canvas)
         }
       }),
     });
@@ -66,11 +75,85 @@ export async function processCopilotChat(request: CopilotChatRequest): Promise<C
     };
 
   } catch (error) {
-    console.log('Microsoft Copilot not available:', error.message);
-    
-    // Throw error to let the main flow handle OpenAI fallback
+    console.log('Microsoft Copilot services not available:', error.message);
     throw error;
   }
+}
+
+/**
+ * Try Azure OpenAI Service for business model analysis
+ */
+async function tryAzureOpenAI(request: CopilotChatRequest): Promise<CopilotChatResponse | null> {
+  try {
+    const apiKey = process.env.AZURE_OPENAI_API_KEY;
+    if (!apiKey || !AZURE_OPENAI_ENDPOINT.includes('azure.com')) {
+      return null;
+    }
+
+    const response = await fetch(`${AZURE_OPENAI_ENDPOINT}/openai/deployments/gpt-4/chat/completions?api-version=${AZURE_OPENAI_API_VERSION}`, {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: `You are Microsoft Copilot, an expert business strategist analyzing Business Model Canvases. 
+            Current canvas: ${JSON.stringify(request.canvas, null, 2)}
+            
+            Provide strategic insights, competitive analysis, and actionable recommendations. 
+            Focus on Microsoft ecosystem integration opportunities and enterprise solutions.`
+          },
+          ...request.chatHistory.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          {
+            role: 'user',
+            content: request.message
+          }
+        ],
+        max_tokens: 1000,
+        temperature: 0.7
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return {
+      response: data.choices[0].message.content
+    };
+
+  } catch (error) {
+    console.log('Azure OpenAI not available:', error.message);
+    return null;
+  }
+}
+
+/**
+ * Generate business context for enhanced Copilot responses
+ */
+function generateBusinessContext(canvas: BusinessModelCanvas): string {
+  return `
+Business Model Analysis Context:
+- Company: ${canvas.name}
+- Key Value Props: ${canvas.valuePropositions.content.join(', ')}
+- Target Segments: ${canvas.customerSegments.content.join(', ')}
+- Revenue Model: ${canvas.revenueStreams.content.join(', ')}
+- Key Resources: ${canvas.keyResources.content.join(', ')}
+
+Microsoft Integration Opportunities:
+- Azure cloud services for scalability
+- Microsoft 365 for productivity
+- Power Platform for automation
+- Teams for collaboration
+- Dynamics 365 for CRM/ERP
+  `;
 }
 
 /**
