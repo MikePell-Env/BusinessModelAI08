@@ -56,7 +56,7 @@ export const PowerPointImporter: React.FC = () => {
     <>
       <Button 
         variant="outline" 
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 shadow-md"
         onClick={handleImportClick}
         disabled={loading}
       >
