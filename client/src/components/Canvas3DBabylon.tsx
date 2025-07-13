@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, PointLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
@@ -46,14 +46,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;
     camera.upperBetaLimit = Math.PI / 2.2;
 
-    // Create moderate lighting for scene
+    // Enhanced photorealistic lighting setup
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 0.6;
-    hemisphericLight.diffuse = new Color3(1, 1, 1);
-    hemisphericLight.specular = new Color3(0.3, 0.3, 0.3);
+    hemisphericLight.intensity = 0.3; // Reduced for more dramatic lighting
+    hemisphericLight.diffuse = new Color3(0.9, 0.95, 1); // Slightly cool ambient
+    hemisphericLight.specular = new Color3(0.1, 0.1, 0.1);
     
-    // Reduce ambient lighting to show floor texture
-    scene.ambientColor = new Color3(0.4, 0.4, 0.4);
+    // Main directional light (key light)
+    const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -0.5), scene);
+    directionalLight.intensity = 1.2;
+    directionalLight.diffuse = new Color3(1, 0.98, 0.95); // Warm sunlight
+    directionalLight.specular = new Color3(1, 1, 1);
+    
+    // Fill light for softer shadows
+    const fillLight = new DirectionalLight("fillLight", new Vector3(1, -0.5, 1), scene);
+    fillLight.intensity = 0.4;
+    fillLight.diffuse = new Color3(0.8, 0.9, 1); // Cool fill light
+    
+    // Enhanced ambient lighting for photorealism
+    scene.ambientColor = new Color3(0.15, 0.15, 0.15);
 
     // Create ground with grid pattern
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -293,26 +304,83 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       box.position = position;
       
-      // Create material with custom color and transparency
-      const material = new StandardMaterial(`material_${elementId}`, scene);
+      // Create photorealistic materials based on element type
+      let material: StandardMaterial | PBRMaterial;
       
-      // Use light blue for most boxes, keep original colors for specific ones
-      const keepOriginalColor = elementId === canvas.costStructure.id || 
-                                elementId === canvas.revenueStreams.id || 
-                                elementId === canvas.customerRelationships.id;
-      
-      if (keepOriginalColor) {
-        material.diffuseColor = color; // Keep original color
-      } else if (elementId === canvas.valuePropositions.id) {
-        material.diffuseColor = new Color3(1.0, 1.0, 1.0); // White for Value Propositions
+      if (elementId === canvas.keyResources.id) {
+        // Create expensive wood material for Key Resources with dedicated lighting
+        const woodMaterial = new PBRMaterial(`woodMaterial_${elementId}`, scene);
+        
+        // Expensive walnut wood properties
+        woodMaterial.baseColor = new Color3(0.35, 0.22, 0.12); // Rich walnut brown
+        woodMaterial.metallic = 0.0; // Wood is not metallic
+        woodMaterial.roughness = 0.3; // Polished but natural texture
+        woodMaterial.specularColor = new Color3(0.9, 0.8, 0.7); // Warm wood specular
+        
+        // Enhanced material properties for photorealism
+        woodMaterial.directIntensity = 1.0;
+        woodMaterial.environmentIntensity = 0.8;
+        woodMaterial.specularIntensity = 0.8;
+        woodMaterial.clearCoat.isEnabled = true;
+        woodMaterial.clearCoat.intensity = 0.3; // Subtle lacquer finish
+        woodMaterial.clearCoat.roughness = 0.1; // Smooth finish
+        
+        // Add subtle subsurface scattering effect
+        woodMaterial.subSurface.isScatteringEnabled = true;
+        woodMaterial.subSurface.scatteringColor = new Color3(0.4, 0.25, 0.15);
+        woodMaterial.subSurface.translucencyIntensity = 0.1;
+        
+        material = woodMaterial;
+        
+        // Create dedicated warm spotlight for Key Resources
+        const keyResourcesSpotlight = new SpotLight(
+          `keyResourcesLight_${elementId}`,
+          new Vector3(-1, 3, -0.5), // Position above and to the side
+          new Vector3(0.2, -1, -0.2), // Point towards the wood box
+          Math.PI / 6, // 30-degree cone
+          2, // Sharp falloff
+          scene
+        );
+        keyResourcesSpotlight.intensity = 2.5;
+        keyResourcesSpotlight.diffuse = new Color3(1, 0.95, 0.85); // Warm gallery lighting
+        keyResourcesSpotlight.specular = new Color3(1, 1, 0.9);
+        
+        // Add rim light for dramatic effect
+        const rimLight = new SpotLight(
+          `rimLight_${elementId}`,
+          new Vector3(-3, 2, -1.5), // Behind and to the side
+          new Vector3(1, -0.5, 0.5), // Angled towards the box
+          Math.PI / 4, // 45-degree cone
+          1.5,
+          scene
+        );
+        rimLight.intensity = 1.8;
+        rimLight.diffuse = new Color3(0.9, 0.85, 0.7); // Cooler rim light
+        
       } else {
-        material.diffuseColor = new Color3(0.7, 0.85, 1.0); // Light blue
+        // Standard material for other elements with enhanced properties
+        const standardMaterial = new StandardMaterial(`material_${elementId}`, scene);
+        
+        // Use light blue for most boxes, keep original colors for specific ones
+        const keepOriginalColor = elementId === canvas.costStructure.id || 
+                                  elementId === canvas.revenueStreams.id || 
+                                  elementId === canvas.customerRelationships.id;
+        
+        if (keepOriginalColor) {
+          standardMaterial.diffuseColor = color; // Keep original color
+        } else if (elementId === canvas.valuePropositions.id) {
+          standardMaterial.diffuseColor = new Color3(1.0, 1.0, 1.0); // White for Value Propositions
+        } else {
+          standardMaterial.diffuseColor = new Color3(0.7, 0.85, 1.0); // Light blue
+        }
+        
+        standardMaterial.specularColor = new Color3(0.5, 0.5, 0.5); // Moderate specular reflection
+        standardMaterial.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight glow
+        // Make Value Propositions slightly translucent, others more translucent
+        standardMaterial.alpha = elementId === canvas.valuePropositions.id ? 0.8 : 0.6;
+        
+        material = standardMaterial;
       }
-      
-      material.specularColor = new Color3(0.5, 0.5, 0.5); // Moderate specular reflection
-      material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight glow
-      // Make Value Propositions slightly translucent, others more translucent
-      material.alpha = elementId === canvas.valuePropositions.id ? 0.8 : 0.6;
       
       box.material = material;
 
@@ -332,21 +400,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       }));
 
-      // Add hover effect for standard material
-      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-        material.diffuseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
-      }));
+      // Add hover effects based on material type
+      if (elementId === canvas.keyResources.id) {
+        // Special hover for wood material
+        box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+          const woodMat = material as PBRMaterial;
+          woodMat.clearCoat.intensity = 0.6; // Increase shine on hover
+          woodMat.environmentIntensity = 1.0; // Brighten environment reflection
+        }));
 
-      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        // Return to the correct color based on element type
-        if (keepOriginalColor) {
-          material.diffuseColor = color; // Return to original color
-        } else if (elementId === canvas.valuePropositions.id) {
-          material.diffuseColor = new Color3(1.0, 1.0, 1.0); // Return to white
-        } else {
-          material.diffuseColor = new Color3(0.7, 0.85, 1.0); // Return to light blue
-        }
-      }));
+        box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+          const woodMat = material as PBRMaterial;
+          woodMat.clearCoat.intensity = 0.3; // Return to original shine
+          woodMat.environmentIntensity = 0.8; // Return to original environment
+        }));
+      } else {
+        // Standard hover effects for other materials
+        const stdMaterial = material as StandardMaterial;
+        const keepOriginalColor = elementId === canvas.costStructure.id || 
+                                  elementId === canvas.revenueStreams.id || 
+                                  elementId === canvas.customerRelationships.id;
+        
+        box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+          stdMaterial.diffuseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
+        }));
+
+        box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+          // Return to the correct color based on element type
+          if (keepOriginalColor) {
+            stdMaterial.diffuseColor = color; // Return to original color
+          } else if (elementId === canvas.valuePropositions.id) {
+            stdMaterial.diffuseColor = new Color3(1.0, 1.0, 1.0); // Return to white
+          } else {
+            stdMaterial.diffuseColor = new Color3(0.7, 0.85, 1.0); // Return to light blue
+          }
+        }));
+      }
 
       // Create billboard text using GUI directly on screen (no mesh plane)
       const titleRect = new Rectangle(`titleRect_${elementId}`);

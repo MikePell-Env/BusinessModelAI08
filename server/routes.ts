@@ -5,8 +5,11 @@ import { processAIChat, analyzeCanvas } from "./services/openai";
 import { processCopilotChat, analyzeCopilotCanvas } from "./services/microsoftCopilot";
 import { microsoftAuth } from "./services/microsoftAuth";
 import { BusinessModelCanvas } from "../client/src/types/canvas";
+import copilotRoutes from "./routes/copilot";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Mount Microsoft Copilot routes
+  app.use('/api/copilot', copilotRoutes);
   // AI Chat endpoint (Microsoft Copilot with OpenAI fallback)
   app.post("/api/ai/chat", async (req, res) => {
     try {
