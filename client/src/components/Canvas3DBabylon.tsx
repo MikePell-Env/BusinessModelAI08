@@ -439,7 +439,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Add title and subtitle text (matching 2D layout)
     const headerRect = new Rectangle("headerRect");
     headerRect.widthInPixels = 800;
-    headerRect.heightInPixels = 100; // Increased to accommodate both title and subtitle
+    headerRect.heightInPixels = 150; // Increased to accommodate spacing
     headerRect.color = "transparent";
     headerRect.thickness = 0;
     headerRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
@@ -467,7 +467,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     subtitleText.textWrapping = true;
     subtitleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
     subtitleText.heightInPixels = 30; // Space for subtitle
-    subtitleText.paddingTop = "10px"; // Gap from title above
+    subtitleText.paddingTop = "60px"; // Increased gap by 50px
     headerRect.addControl(subtitleText);
 
     // Render loop
