@@ -6,6 +6,7 @@ import { Canvas2D } from './Canvas2D';
 import { Canvas3DBabylon } from './Canvas3DBabylon';
 import { AIChat } from './AIChat';
 import { MicrosoftStackStatus } from './MicrosoftStackStatus';
+import { PowerPointImporter } from './PowerPointImporter';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
 import { Eye, Box, RotateCcw, Settings } from 'lucide-react';
@@ -102,8 +103,7 @@ export const BusinessModelCanvas: React.FC = () => {
           3D View
         </Button>
 
-
-
+        <PowerPointImporter />
       </div>
 
       {/* Reset Button & Microsoft Stack Status */}
