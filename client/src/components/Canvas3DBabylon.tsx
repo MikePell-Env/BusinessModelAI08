@@ -46,16 +46,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;
     camera.upperBetaLimit = Math.PI / 2.2;
 
-    // Create balanced lighting to show floor contrast
+    // Create balanced lighting for floor and overall scene
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 0.5;
+    hemisphericLight.intensity = 0.4; // Reduced to prevent floor washout
     hemisphericLight.diffuse = new Color3(1, 1, 1);
-    hemisphericLight.specular = new Color3(0.3, 0.3, 0.3);
+    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Reduced specular
     
-    // Add directional light for better definition
+    // Add directional light specifically for metallic box reflections
     const directionalLight = new HemisphericLight("directionalLight", new Vector3(0.5, -1, 0.5), scene);
-    directionalLight.intensity = 0.3;
-    directionalLight.diffuse = new Color3(0.9, 0.9, 1);
+    directionalLight.intensity = 0.6; // Increased for metallic reflections
+    directionalLight.diffuse = new Color3(0.95, 0.95, 1);
+    directionalLight.specular = new Color3(0.8, 0.8, 0.9); // High specular for metallic shine
     
     // Reduce ambient lighting to show floor texture
     scene.ambientColor = new Color3(0.4, 0.4, 0.4);
@@ -298,13 +299,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       box.position = position;
       
-      // Create bright white material
-      const material = new StandardMaterial(`material_${elementId}`, scene);
-      material.diffuseColor = new Color3(1, 1, 1); // Pure white
-      material.emissiveColor = new Color3(0.5, 0.5, 0.5); // Strong white self-illumination
-      material.specularColor = new Color3(0, 0, 0); // No specular reflection
-      material.disableLighting = false; // Keep lighting for depth
-      material.alpha = 1.0; // Fully opaque
+      // Create photorealistic metallic material
+      const material = new PBRMaterial(`material_${elementId}`, scene);
+      material.baseColor = new Color3(0.95, 0.95, 0.95); // Near white metallic base
+      material.metallicFactor = 0.9; // High metallic factor for shiny appearance
+      material.roughnessFactor = 0.1; // Low roughness for high reflectivity
+      material.indexOfRefraction = 2.5; // High IOR for metallic look
+      material.microSurface = 0.95; // Very smooth surface
+      
+      // Add subtle environmental reflection
+      material.environmentIntensity = 1.0;
+      material.clearCoat.isEnabled = true;
+      material.clearCoat.intensity = 0.3;
+      material.clearCoat.roughness = 0.05;
+      
       box.material = material;
 
       // Add interaction
@@ -323,13 +331,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       }));
 
-      // Add hover effect
+      // Add hover effect for PBR material
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-        material.diffuseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
+        material.baseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
       }));
 
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        material.diffuseColor = new Color3(1, 1, 1); // White color
+        material.baseColor = new Color3(0.95, 0.95, 0.95); // White metallic color
       }));
 
       // Create billboard text using GUI directly on screen (no mesh plane)
@@ -440,24 +448,39 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       )
     ];
 
-    // Add title text
-    const titleRect = new Rectangle("titleRect");
-    titleRect.widthInPixels = 800; // Increased from 400 to 800 for longer titles
-    titleRect.heightInPixels = 60;
-    titleRect.color = "transparent";
-    titleRect.thickness = 0;
-    titleRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-    titleRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-    titleRect.paddingTop = "24px"; // Match 2D view's mb-6 spacing (24px)
-    advancedTexture.addControl(titleRect);
+    // Add title and subtitle text (matching 2D layout)
+    const headerRect = new Rectangle("headerRect");
+    headerRect.widthInPixels = 800;
+    headerRect.heightInPixels = 100; // Increased to accommodate both title and subtitle
+    headerRect.color = "transparent";
+    headerRect.thickness = 0;
+    headerRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+    headerRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+    headerRect.paddingTop = "24px";
+    advancedTexture.addControl(headerRect);
 
+    // Main title
     const titleText = new TextBlock("canvasTitle", canvas.name);
     titleText.color = "#111827"; // Match 2D view's text-gray-900
     titleText.fontSize = 30; // Match 2D view's text-3xl (30px)
     titleText.fontWeight = "900"; // Match 2D view's font-bold weight
-    titleText.fontFamily = "Inter, system-ui, sans-serif"; // Match system font
-    titleText.textWrapping = true; // Enable text wrapping for very long titles
-    titleRect.addControl(titleText);
+    titleText.fontFamily = "Inter, system-ui, sans-serif";
+    titleText.textWrapping = true;
+    titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+    titleText.heightInPixels = 40; // Space for title
+    headerRect.addControl(titleText);
+
+    // Subtitle/description
+    const subtitleText = new TextBlock("canvasSubtitle", canvas.description);
+    subtitleText.color = "#4B5563"; // Match 2D view's text-gray-600
+    subtitleText.fontSize = 16; // Smaller than title
+    subtitleText.fontWeight = "normal";
+    subtitleText.fontFamily = "Inter, system-ui, sans-serif";
+    subtitleText.textWrapping = true;
+    subtitleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+    subtitleText.heightInPixels = 40; // Space for subtitle
+    subtitleText.paddingBottom = "10px"; // Small gap between title and subtitle
+    headerRect.addControl(subtitleText);
 
     // Render loop
     engine.runRenderLoop(() => {
