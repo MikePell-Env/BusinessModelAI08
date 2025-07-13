@@ -293,11 +293,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       box.position = position;
       
-      // Create green colored material
+      // Create white transparent material
       const material = new StandardMaterial(`material_${elementId}`, scene);
-      material.diffuseColor = new Color3(0.2, 0.8, 0.3); // Bright green color
-      material.specularColor = new Color3(0.3, 0.3, 0.3); // Moderate specular reflection
-      material.emissiveColor = new Color3(0.05, 0.1, 0.05); // Slight green glow
+      material.diffuseColor = new Color3(1, 1, 1); // Pure white
+      material.specularColor = new Color3(0.5, 0.5, 0.5); // Moderate specular reflection
+      material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight white glow
+      material.alpha = 0.8; // Semi-transparent
       
       box.material = material;
 
@@ -323,7 +324,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }));
 
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        material.diffuseColor = new Color3(0.2, 0.8, 0.3); // Green color
+        material.diffuseColor = new Color3(1, 1, 1); // White color
       }));
 
       // Create billboard text using GUI directly on screen (no mesh plane)
