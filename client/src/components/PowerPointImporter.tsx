@@ -26,15 +26,27 @@ export const PowerPointImporter: React.FC = () => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileSelect = () => {
-    fileInputRef.current?.click();
+    console.log('File select clicked, fileInputRef:', fileInputRef.current);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+      console.log('File input clicked');
+    } else {
+      console.error('File input ref is null');
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File change event:', event.target.files);
     const file = event.target.files?.[0];
-    if (file && file.type.includes('presentation')) {
-      setSelectedFile(file);
-    } else {
-      alert('Please select a PowerPoint file (.pptx)');
+    if (file) {
+      console.log('Selected file:', file.name, 'Type:', file.type);
+      if (file.type.includes('presentation') || file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
+        setSelectedFile(file);
+        console.log('File accepted:', file.name);
+      } else {
+        console.log('File rejected, type:', file.type);
+        alert('Please select a PowerPoint file (.pptx or .ppt)');
+      }
     }
   };
 
