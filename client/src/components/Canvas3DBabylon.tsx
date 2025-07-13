@@ -439,7 +439,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Find the revenue streams box and add height animation
     const revenueStreamsBox = scene.getMeshByName(`box_${canvas.revenueStreams.id}`);
     if (revenueStreamsBox) {
-      // Create height animation
+      const originalY = revenueStreamsBox.position.y; // Store original Y position (0.5)
+      
+      // Create height scaling animation
       const animationHeight = new Animation(
         "revenueHeightAnimation",
         "scaling.y",
@@ -448,25 +450,50 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         Animation.ANIMATIONLOOPMODE_CYCLE
       );
 
-      // Define animation keys (3 seconds per cycle = 90 frames at 30 FPS)
-      const keys = [];
-      keys.push({
+      // Create position animation to keep bottom aligned to floor
+      const animationPosition = new Animation(
+        "revenuePositionAnimation",
+        "position.y",
+        30, // 30 FPS
+        Animation.ANIMATIONTYPE_FLOAT,
+        Animation.ANIMATIONLOOPMODE_CYCLE
+      );
+
+      // Define height scaling keys
+      const heightKeys = [];
+      heightKeys.push({
         frame: 0,
         value: 1.0 // Full height
       });
-      keys.push({
+      heightKeys.push({
         frame: 45, // 1.5 seconds
         value: 0.5 // Half height
       });
-      keys.push({
+      heightKeys.push({
         frame: 90, // 3 seconds - complete cycle
         value: 1.0 // Back to full height
       });
 
-      animationHeight.setKeys(keys);
-      revenueStreamsBox.animations = [animationHeight];
+      // Define position keys to keep bottom aligned (when height is 0.5, move down by 0.25)
+      const positionKeys = [];
+      positionKeys.push({
+        frame: 0,
+        value: originalY // Original position (0.5)
+      });
+      positionKeys.push({
+        frame: 45, // 1.5 seconds
+        value: originalY - 0.25 // Move down to keep bottom on floor
+      });
+      positionKeys.push({
+        frame: 90, // 3 seconds - complete cycle
+        value: originalY // Back to original position
+      });
+
+      animationHeight.setKeys(heightKeys);
+      animationPosition.setKeys(positionKeys);
+      revenueStreamsBox.animations = [animationHeight, animationPosition];
       
-      // Start the animation
+      // Start both animations
       scene.beginAnimation(revenueStreamsBox, 0, 90, true);
     }
 
