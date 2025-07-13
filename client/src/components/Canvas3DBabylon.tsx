@@ -550,9 +550,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       counterText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
       advancedTexture.addControl(counterText);
 
-      // Link counter to Revenue Streams box, positioned well below the main label
+      // Link counter to Revenue Streams box, positioned much lower below the main label
       counterText.linkWithMesh(revenueStreamsBox);
-      counterText.linkOffsetY = 10; // Position well below the main label
+      counterText.linkOffsetY = 50; // Position much lower below the main label
       
       // Update counter text based on animation frame
       scene.onBeforeRenderObservable.add(() => {
@@ -563,7 +563,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           
           // Adjust counter position to follow the label
           const currentLabelOffset = revenueLabel ? (revenueLabel as any).linkOffsetY || -50 : -50;
-          counterText.linkOffsetY = currentLabelOffset + 70; // Position well below the moving label
+          counterText.linkOffsetY = currentLabelOffset + 100; // Position much further below the moving label
         }
       });
     }
