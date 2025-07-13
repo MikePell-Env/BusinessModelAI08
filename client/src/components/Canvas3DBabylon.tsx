@@ -298,7 +298,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       material.diffuseColor = color; // Use the provided color
       material.specularColor = new Color3(0.5, 0.5, 0.5); // Moderate specular reflection
       material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight glow
-      material.alpha = 0.8; // Semi-transparent
+      // Make Value Propositions less translucent, others semi-transparent
+      material.alpha = elementId === canvas.valuePropositions.id ? 0.95 : 0.8;
       
       box.material = material;
 
@@ -381,11 +382,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.keyResources.id
       ),
 
-      // Column 5-6: Value Propositions (center, spans 2 rows)
+      // Column 5-6: Value Propositions (center, spans 2 rows) - double height
       createBusinessBlock(
         canvas.valuePropositions,
-        new Vector3(0, 0.5, 0),
-        new Vector3(1.8, 1, 2.5),
+        new Vector3(0, 1, 0), // Moved up to center the taller box
+        new Vector3(1.8, 2, 2.5), // Double height (2 instead of 1)
         new Color3(1, 1, 1), // White
         canvas.valuePropositions.id
       ),
