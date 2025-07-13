@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
@@ -16,9 +16,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
 
-    // Initialize Babylon.js engine and scene
-    const engine = new Engine(canvasRef.current, true);
+    // Initialize Babylon.js engine and scene with enhanced features
+    const engine = new Engine(canvasRef.current, true, {
+      antialias: true,
+      stencil: true,
+      preserveDrawingBuffer: false,
+      powerPreference: "high-performance"
+    });
     const scene = new Scene(engine);
+    
+    // Enable image processing for photorealistic rendering
+    scene.imageProcessingConfiguration.exposure = 1.0;
+    scene.imageProcessingConfiguration.contrast = 1.1;
+    scene.imageProcessingConfiguration.toneMappingEnabled = true;
+    scene.imageProcessingConfiguration.toneMappingType = 1; // ACES tone mapping
+    
+    // Enable PBR environment
+    scene.environmentIntensity = 0.8;
     
     // Set white background
     scene.clearColor = new Color3(1, 1, 1);
@@ -66,13 +80,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Lower ambient lighting for better contrast
     scene.ambientColor = new Color3(0.1, 0.1, 0.1);
 
-    // Create ground with grid pattern
+    // Create ground with grid pattern that can receive shadows
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
     groundMaterial.diffuseColor = new Color3(1, 1, 1); // Pure white
     groundMaterial.emissiveColor = new Color3(0.2, 0.2, 0.2); // Self-illumination to ensure white appearance
     groundMaterial.disableLighting = false; // Keep lighting but boost brightness
     ground.material = groundMaterial;
+    ground.receiveShadows = true; // Enable shadow receiving
 
     // Create grid lines within floor bounds (20x14)
     const gridSpacing = 0.5;
@@ -308,54 +323,58 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       let material: StandardMaterial | PBRMaterial;
       
       if (elementId === canvas.keyResources.id) {
-        // Create expensive wood material for Key Resources with dedicated lighting
+        // Create expensive wood material for Key Resources using PBR
         const woodMaterial = new PBRMaterial(`woodMaterial_${elementId}`, scene);
         
-        // Expensive walnut wood properties
-        woodMaterial.baseColor = new Color3(0.35, 0.22, 0.12); // Rich walnut brown
-        woodMaterial.metallic = 0.0; // Wood is not metallic
-        woodMaterial.roughness = 0.3; // Polished but natural texture
-        woodMaterial.specularColor = new Color3(0.9, 0.8, 0.7); // Warm wood specular
+        // Rich walnut wood base color
+        woodMaterial.baseColor = new Color3(0.35, 0.22, 0.12);
         
-        // Balanced material properties for photorealism
-        woodMaterial.directIntensity = 0.7; // Reduced to prevent washout
-        woodMaterial.environmentIntensity = 0.5; // Lower environment reflection
-        woodMaterial.specularIntensity = 0.6; // Softer specular highlights
+        // PBR properties for expensive wood
+        woodMaterial.metallicFactor = 0.0; // Wood is not metallic
+        woodMaterial.roughnessFactor = 0.35; // Polished but natural
+        
+        // Enhanced material properties for photorealism
+        woodMaterial.directIntensity = 1.0;
+        woodMaterial.environmentIntensity = 0.8;
+        woodMaterial.specularIntensity = 0.9;
+        
+        // Clear coat for lacquer finish
         woodMaterial.clearCoat.isEnabled = true;
-        woodMaterial.clearCoat.intensity = 0.3; // Subtle lacquer finish
-        woodMaterial.clearCoat.roughness = 0.1; // Smooth finish
+        woodMaterial.clearCoat.intensity = 0.5;
+        woodMaterial.clearCoat.roughness = 0.05; // Very smooth lacquer
         
-        // Add subtle subsurface scattering effect
+        // Subtle subsurface scattering for wood translucency
         woodMaterial.subSurface.isScatteringEnabled = true;
-        woodMaterial.subSurface.scatteringColor = new Color3(0.4, 0.25, 0.15);
-        woodMaterial.subSurface.translucencyIntensity = 0.1;
+        woodMaterial.subSurface.scatteringColor = new Color3(0.45, 0.28, 0.16);
+        woodMaterial.subSurface.translucencyIntensity = 0.2;
+        
+        // Add subtle bump texture without complex procedural generation
+        woodMaterial.bumpTexture = null; // Keep it simple for now
         
         material = woodMaterial;
         
-        // Create dedicated warm spotlight for Key Resources - reduced intensity
+        // Create dedicated warm spotlight for Key Resources
         const keyResourcesSpotlight = new SpotLight(
           `keyResourcesLight_${elementId}`,
-          new Vector3(-1, 3, -0.5), // Position above and to the side
-          new Vector3(0.2, -1, -0.2), // Point towards the wood box
-          Math.PI / 6, // 30-degree cone
-          2, // Sharp falloff
+          new Vector3(-1, 3, -0.5),
+          new Vector3(0.2, -1, -0.2),
+          Math.PI / 6,
+          2,
           scene
         );
-        keyResourcesSpotlight.intensity = 1.2; // Reduced from 2.5
-        keyResourcesSpotlight.diffuse = new Color3(0.9, 0.85, 0.75); // Softer warm gallery lighting
-        keyResourcesSpotlight.specular = new Color3(0.8, 0.8, 0.7);
+        keyResourcesSpotlight.intensity = 1.2;
+        keyResourcesSpotlight.diffuse = new Color3(1, 0.95, 0.85);
+        keyResourcesSpotlight.specular = new Color3(1, 1, 0.9);
         
-        // Add subtle rim light for definition
-        const rimLight = new SpotLight(
-          `rimLight_${elementId}`,
-          new Vector3(-3, 2, -1.5), // Behind and to the side
-          new Vector3(1, -0.5, 0.5), // Angled towards the box
-          Math.PI / 4, // 45-degree cone
-          1.5,
+        // Add point light for ambient wood illumination
+        const woodAmbientLight = new PointLight(
+          `woodAmbient_${elementId}`,
+          new Vector3(-1.5, 1.5, -0.8),
           scene
         );
-        rimLight.intensity = 0.8; // Reduced from 1.8
-        rimLight.diffuse = new Color3(0.8, 0.75, 0.6); // Subtler rim light
+        woodAmbientLight.intensity = 0.8;
+        woodAmbientLight.diffuse = new Color3(0.95, 0.85, 0.75);
+        woodAmbientLight.range = 4;
         
       } else {
         // Standard material for other elements with enhanced properties
