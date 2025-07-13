@@ -648,7 +648,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         Animation.ANIMATIONLOOPMODE_CYCLE
       );
       
-      // Define flashing pattern: 3 flashes every 10 seconds (300 frames at 30 FPS)
+      // Define flashing pattern: red and gold flashes every 10 seconds (300 frames at 30 FPS)
       const flashKeys = [];
       
       // Start with original color (frames 0-89: 3 seconds normal)
@@ -661,7 +661,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         value: originalColor.clone()
       });
       
-      // First flash (frames 90-105: 0.5 seconds)
+      // First red flash (frames 90-105)
       flashKeys.push({
         frame: 95, // Flash red
         value: new Color3(1, 0, 0) // Bright red
@@ -671,27 +671,57 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         value: originalColor.clone()
       });
       
-      // Second flash (frames 120-135: 0.5 seconds)
+      // First gold flash (frames 110-120)
       flashKeys.push({
-        frame: 125, // Flash red
-        value: new Color3(1, 0, 0) // Bright red
+        frame: 115, // Flash gold
+        value: new Color3(1, 0.84, 0) // Golden yellow
       });
       flashKeys.push({
-        frame: 135, // Back to normal
+        frame: 125, // Back to normal
         value: originalColor.clone()
       });
       
-      // Third flash (frames 150-165: 0.5 seconds)
+      // Second red flash (frames 130-140)
       flashKeys.push({
-        frame: 155, // Flash red
+        frame: 135, // Flash red
         value: new Color3(1, 0, 0) // Bright red
+      });
+      flashKeys.push({
+        frame: 145, // Back to normal
+        value: originalColor.clone()
+      });
+      
+      // Second gold flash (frames 150-160)
+      flashKeys.push({
+        frame: 155, // Flash gold
+        value: new Color3(1, 0.84, 0) // Golden yellow
       });
       flashKeys.push({
         frame: 165, // Back to normal
         value: originalColor.clone()
       });
       
-      // Stay normal until end of cycle (frames 165-300: rest of 10 seconds)
+      // Third red flash (frames 170-180)
+      flashKeys.push({
+        frame: 175, // Flash red
+        value: new Color3(1, 0, 0) // Bright red
+      });
+      flashKeys.push({
+        frame: 185, // Back to normal
+        value: originalColor.clone()
+      });
+      
+      // Third gold flash (frames 190-200)
+      flashKeys.push({
+        frame: 195, // Flash gold
+        value: new Color3(1, 0.84, 0) // Golden yellow
+      });
+      flashKeys.push({
+        frame: 205, // Back to normal
+        value: originalColor.clone()
+      });
+      
+      // Stay normal until end of cycle (frames 205-300: rest of 10 seconds)
       flashKeys.push({
         frame: 300, // 10 seconds - complete cycle
         value: originalColor.clone()
