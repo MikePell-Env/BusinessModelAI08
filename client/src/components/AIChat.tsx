@@ -105,7 +105,7 @@ export const AIChat: React.FC = () => {
     return (
       <button
         onClick={toggleChat}
-        className="fixed bottom-6 right-6 w-8 h-8 shadow-lg z-50 bg-transparent border-0 p-0 cursor-pointer hover:scale-105 transition-transform"
+        className="fixed bottom-6 right-6 w-12 h-12 shadow-lg z-50 bg-white border-2 border-gray-300 rounded-lg p-1 cursor-pointer hover:scale-105 hover:border-gray-400 transition-all"
       >
         <img 
           src="/copilot-logo.png" 
