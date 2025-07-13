@@ -19,68 +19,57 @@ The Business Model Canvas application supports importing business model data dir
 
 ## PowerPoint Template Format
 
-### Option 1: Multi-Slide Format (Recommended)
+### Single Slide Business Model Canvas Format (Recommended)
 
-Create **10 slides** with the following exact structure:
+Create **ONE PowerPoint slide** that visually replicates the traditional Business Model Canvas layout:
 
-#### Slide 1: Cover Slide
-- **Title**: Your Business Model Canvas Name
-- **Content**: Brief description of your business
+```
+┌─────────────────┬─────────────────┬─────────────────┬─────────────────┬─────────────────┐
+│  Key Partners   │ Key Activities  │ Value Props.    │ Customer Relat. │ Customer Segm.  │
+│                 │                 │                 │                 │                 │
+│ • Partner 1     │ • Activity 1    │ • Value 1       │ • Relationship 1│ • Segment 1     │
+│ • Partner 2     │ • Activity 2    │ • Value 2       │ • Relationship 2│ • Segment 2     │
+│ • Partner 3     │ • Activity 3    │ • Value 3       │ • Relationship 3│ • Segment 3     │
+├─────────────────┼─────────────────┤                 ├─────────────────┼─────────────────┤
+│ Key Resources   │                 │                 │    Channels     │
+│                 │                 │                 │                 │
+│ • Resource 1    │                 │                 │ • Channel 1     │
+│ • Resource 2    │                 │                 │ • Channel 2     │
+│ • Resource 3    │                 │                 │ • Channel 3     │
+├─────────────────┴─────────────────┴─────────────────┼─────────────────┤
+│              Cost Structure                         │   Revenue Streams              │
+│                                                     │                                │
+│ • Cost 1        • Cost 3         • Cost 5          │ • Revenue 1    • Revenue 3     │
+│ • Cost 2        • Cost 4         • Cost 6          │ • Revenue 2    • Revenue 4     │
+└─────────────────────────────────────────────────────┴────────────────────────────────┘
+```
 
-#### Slide 2: Key Partners
-- **Title**: "Key Partners" (exact text)
-- **Content**: Bullet points with each partner/supplier
-- Example:
-  ```
-  • Cloud infrastructure providers (AWS, Azure)
-  • Technology vendors and software suppliers
-  • Strategic investment partners and VCs
-  ```
+#### Step-by-Step Creation:
 
-#### Slide 3: Key Activities
-- **Title**: "Key Activities" (exact text)
-- **Content**: Bullet points with each key activity
-- Example:
-  ```
-  • Software development and engineering
-  • Product research and innovation
-  • Customer acquisition and marketing
-  ```
+1. **Insert 9 Text Boxes** - One for each section of the business model canvas
+2. **Position Precisely** - Arrange them to match the canvas layout above
+3. **Add Headers** - Start each text box with the section name
+4. **Add Content** - Use bullet points for each business element
+5. **Align Visually** - Make it look like a real business model canvas
 
-#### Slide 4: Key Resources
-- **Title**: "Key Resources" (exact text)
-- **Content**: Bullet points with each key resource
+#### Text Box Content Format:
 
-#### Slide 5: Value Propositions
-- **Title**: "Value Propositions" (exact text)
-- **Content**: Bullet points with each value proposition
+**Key Partners**
+• Cloud infrastructure providers
+• Technology integration partners
+• Strategic investors and VCs
 
-#### Slide 6: Customer Relationships
-- **Title**: "Customer Relationships" (exact text)
-- **Content**: Bullet points with each relationship type
+**Value Propositions**  
+• AI-powered business optimization
+• Automated decision-making tools
+• Real-time analytics and insights
 
-#### Slide 7: Channels
-- **Title**: "Channels" (exact text)
-- **Content**: Bullet points with each channel
+**Customer Segments**
+• Enterprise corporations (500+ employees)
+• Mid-market companies (50-500 employees)
+• Technology-forward startups
 
-#### Slide 8: Customer Segments
-- **Title**: "Customer Segments" (exact text)
-- **Content**: Bullet points with each customer segment
-
-#### Slide 9: Cost Structure
-- **Title**: "Cost Structure" (exact text)
-- **Content**: Bullet points with each cost category
-
-#### Slide 10: Revenue Streams
-- **Title**: "Revenue Streams" (exact text)
-- **Content**: Bullet points with each revenue source
-
-### Option 2: Single Slide Format
-
-Create **one slide** with 9 labeled text boxes:
-- Each text box should have a clear title (e.g., "Key Partners:")
-- Follow with bullet points for content
-- Arrange text boxes to match the business model canvas layout
+*(Continue for all 9 sections...)*
 
 ## Formatting Guidelines
 
