@@ -121,6 +121,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PowerPoint import endpoint
+  app.post("/api/import/powerpoint", async (req, res) => {
+    try {
+      const { fileId, siteId, method } = req.body;
+      
+      if (method === 'graph' && fileId) {
+        const { powerpointImporter } = await import('./services/powerpointImporter');
+        const canvas = await powerpointImporter.importFromGraphAPI(fileId, siteId);
+        res.json({ success: true, canvas });
+      } else if (method === 'upload') {
+        // Handle file upload (would need multipart parsing)
+        res.status(400).json({ error: 'File upload method not implemented yet' });
+      } else {
+        res.status(400).json({ error: 'Invalid import method or missing fileId' });
+      }
+    } catch (error) {
+      console.error('PowerPoint import error:', error);
+      res.status(500).json({ 
+        error: 'Failed to import PowerPoint file',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Get PowerPoint template instructions
+  app.get("/api/import/powerpoint/template", async (_req, res) => {
+    try {
+      const { PowerPointImporter } = await import('./services/powerpointImporter');
+      const instructions = PowerPointImporter.getTemplateInstructions();
+      res.json({ success: true, instructions });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get template instructions' });
+    }
+  });
+
   // Health check endpoint
   app.get("/api/health", (_req, res) => {
     res.json({ 
