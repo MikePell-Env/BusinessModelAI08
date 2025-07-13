@@ -426,12 +426,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.costStructure.id
       ),
 
-      // Row 3: Revenue Streams (right side) - with animation
+      // Row 3: Revenue Streams (right side) - with green color and animation
       createBusinessBlock(
         canvas.revenueStreams,
         new Vector3(2, 0.5, -2.5),
         new Vector3(3.8, 1, 1),
-        new Color3(1, 1, 1), // White
+        new Color3(0.8, 1, 0.8), // Slightly green color
         canvas.revenueStreams.id
       )
     ];
@@ -459,14 +459,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         Animation.ANIMATIONLOOPMODE_CYCLE
       );
 
-      // Define height scaling keys
+      // Define height scaling keys (now goes above original height)
       const heightKeys = [];
       heightKeys.push({
         frame: 0,
         value: 1.0 // Full height
       });
       heightKeys.push({
-        frame: 45, // 1.5 seconds
+        frame: 30, // 1 second - grow above original
+        value: 1.3 // 130% of original height
+      });
+      heightKeys.push({
+        frame: 60, // 2 seconds - shrink to minimum
         value: 0.5 // Half height
       });
       heightKeys.push({
@@ -474,14 +478,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         value: 1.0 // Back to full height
       });
 
-      // Define position keys to keep bottom aligned (when height is 0.5, move down by 0.25)
+      // Define position keys to keep bottom aligned
       const positionKeys = [];
       positionKeys.push({
         frame: 0,
         value: originalY // Original position (0.5)
       });
       positionKeys.push({
-        frame: 45, // 1.5 seconds
+        frame: 30, // 1 second - move up for taller height
+        value: originalY + 0.15 // Move up when growing taller
+      });
+      positionKeys.push({
+        frame: 60, // 2 seconds - move down for shorter height
         value: originalY - 0.25 // Move down to keep bottom on floor
       });
       positionKeys.push({
