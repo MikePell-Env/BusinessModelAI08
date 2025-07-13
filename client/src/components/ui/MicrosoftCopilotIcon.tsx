@@ -18,54 +18,76 @@ export const MicrosoftCopilotIcon: React.FC<MicrosoftCopilotIconProps> = ({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Microsoft Copilot Logo - Simplified hexagonal segments */}
-      <g transform="translate(4, 4)">
-        {/* Create 6 segments forming a flower-like pattern */}
+      <defs>
+        {/* Main background gradient - blue to purple */}
+        <linearGradient id="copilot-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#0078D4" />
+          <stop offset="50%" stopColor="#6B46C1" />
+          <stop offset="100%" stopColor="#EC4899" />
+        </linearGradient>
         
-        {/* Top segment - Blue */}
-        <path
-          d="M8 2L10 4L8 6L6 4z"
-          fill="#0078D4"
+        {/* Inner shape gradients */}
+        <linearGradient id="shape1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FFE135" />
+          <stop offset="100%" stopColor="#FFA500" />
+        </linearGradient>
+        
+        <linearGradient id="shape2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#00D4AA" />
+          <stop offset="100%" stopColor="#00A86B" />
+        </linearGradient>
+        
+        <linearGradient id="shape3" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FF6B6B" />
+          <stop offset="100%" stopColor="#EE5A24" />
+        </linearGradient>
+      </defs>
+      
+      {/* Main rounded square background */}
+      <rect
+        x="2"
+        y="2"
+        width="20"
+        height="20"
+        rx="4"
+        ry="4"
+        fill="url(#copilot-bg)"
+      />
+      
+      {/* Colorful geometric shapes inside */}
+      <g transform="translate(6, 6)">
+        {/* Yellow/Orange rounded rectangle */}
+        <rect
+          x="0"
+          y="2"
+          width="4"
+          height="8"
+          rx="2"
+          fill="url(#shape1)"
+          opacity="0.9"
         />
         
-        {/* Top-right segment - Cyan */}
+        {/* Green rounded triangle-like shape */}
         <path
-          d="M10 4L12 6L10 8L8 6z"
-          fill="#00BCF2"
+          d="M5 1L11 4L8 10L5 7z"
+          fill="url(#shape2)"
+          opacity="0.9"
         />
         
-        {/* Bottom-right segment - Green */}
+        {/* Red/Pink curved shape */}
         <path
-          d="M10 8L12 10L10 12L8 10z"
-          fill="#00CC6A"
+          d="M8 6L12 3L12 9L8 12z"
+          fill="url(#shape3)"
+          opacity="0.8"
         />
         
-        {/* Bottom segment - Orange */}
-        <path
-          d="M8 10L10 12L8 14L6 12z"
-          fill="#FF8C00"
-        />
-        
-        {/* Bottom-left segment - Purple */}
-        <path
-          d="M6 8L8 10L6 12L4 10z"
-          fill="#8661C5"
-        />
-        
-        {/* Top-left segment - Red */}
-        <path
-          d="M6 4L8 6L6 8L4 6z"
-          fill="#E74856"
-        />
-        
-        {/* Central white circle */}
+        {/* Small white accent */}
         <circle
-          cx="8"
-          cy="8"
-          r="2"
+          cx="3"
+          cy="6"
+          r="1"
           fill="#FFFFFF"
-          stroke="#E5E5E5"
-          strokeWidth="0.5"
+          opacity="0.8"
         />
       </g>
     </svg>
