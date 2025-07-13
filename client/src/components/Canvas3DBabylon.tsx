@@ -404,9 +404,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     advancedTexture.addControl(titleRect);
 
     const titleText = new TextBlock("canvasTitle", canvas.name);
-    titleText.color = "#1A202C";
+    titleText.color = "#111827"; // Match 2D view's text-gray-900
     titleText.fontSize = 30; // Match 2D view's text-3xl (30px)
-    titleText.fontWeight = "bold";
+    titleText.fontWeight = "900"; // Match 2D view's font-bold weight
+    titleText.fontFamily = "Inter, system-ui, sans-serif"; // Match system font
     titleText.textWrapping = true; // Enable text wrapping for very long titles
     titleRect.addControl(titleText);
 
