@@ -323,15 +323,98 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       let material: StandardMaterial | PBRMaterial;
       
       if (elementId === canvas.keyResources.id) {
-        // Create wood-style material for Key Resources using enhanced standard material
-        const woodMaterial = new StandardMaterial(`woodMaterial_${elementId}`, scene);
+        // Create photorealistic PBR wood material for Key Resources
+        const woodMaterial = new PBRMaterial(`woodPBR_${elementId}`, scene);
         
-        // Rich walnut wood base color
-        woodMaterial.diffuseColor = new Color3(0.35, 0.22, 0.12);
-        woodMaterial.specularColor = new Color3(0.4, 0.3, 0.2); // Warm wood specular
-        woodMaterial.emissiveColor = new Color3(0.05, 0.03, 0.02); // Subtle glow
+        // Create procedural wood texture using dynamic texture
+        const woodTexture = new DynamicTexture(`woodTexture_${elementId}`, {width: 512, height: 512}, scene);
+        const ctx = woodTexture.getContext();
         
-        // Enhanced material properties for wood appearance
+        // Generate wood grain pattern
+        const createWoodPattern = () => {
+          const imageData = ctx.createImageData(512, 512);
+          const data = imageData.data;
+          
+          for (let y = 0; y < 512; y++) {
+            for (let x = 0; x < 512; x++) {
+              const index = (y * 512 + x) * 4;
+              
+              // Create wood rings based on distance from center
+              const centerX = 256 + Math.sin(y * 0.02) * 30;
+              const centerY = 256;
+              const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+              const rings = Math.sin(dist * 0.05) * 0.5 + 0.5;
+              
+              // Add wood grain noise
+              const grain = Math.sin(x * 0.1 + y * 0.05) * Math.sin(x * 0.05 + y * 0.1) * 0.3 + 0.7;
+              
+              // Combine patterns
+              const pattern = rings * 0.6 + grain * 0.4;
+              
+              // Wood color variations (walnut tones)
+              const darkWood = [45, 25, 15];
+              const lightWood = [120, 75, 45];
+              
+              // Interpolate colors
+              const r = Math.floor(darkWood[0] + (lightWood[0] - darkWood[0]) * pattern);
+              const g = Math.floor(darkWood[1] + (lightWood[1] - darkWood[1]) * pattern);
+              const b = Math.floor(darkWood[2] + (lightWood[2] - darkWood[2]) * pattern);
+              
+              data[index] = r;     // Red
+              data[index + 1] = g; // Green
+              data[index + 2] = b; // Blue
+              data[index + 3] = 255; // Alpha
+            }
+          }
+          
+          ctx.putImageData(imageData, 0, 0);
+          woodTexture.update();
+        };
+        
+        createWoodPattern();
+        
+        // Apply PBR properties for photorealistic wood
+        woodMaterial.baseTexture = woodTexture;
+        woodMaterial.metallicFactor = 0.0; // Wood is non-metallic
+        woodMaterial.roughnessFactor = 0.7; // Semi-rough for natural wood
+        
+        // Create normal map for wood texture depth
+        const normalTexture = new DynamicTexture(`woodNormal_${elementId}`, {width: 512, height: 512}, scene);
+        const normalCtx = normalTexture.getContext();
+        const normalImageData = normalCtx.createImageData(512, 512);
+        const normalData = normalImageData.data;
+        
+        // Generate normal map from height differences
+        for (let y = 1; y < 511; y++) {
+          for (let x = 1; x < 511; x++) {
+            const index = (y * 512 + x) * 4;
+            
+            // Sample height at neighboring pixels (simplified wood grain)
+            const centerHeight = Math.sin((x + y) * 0.1) * 0.5 + 0.5;
+            const rightHeight = Math.sin((x + 1 + y) * 0.1) * 0.5 + 0.5;
+            const topHeight = Math.sin((x + y + 1) * 0.1) * 0.5 + 0.5;
+            
+            // Calculate normal vector
+            const dx = (rightHeight - centerHeight) * 2;
+            const dy = (topHeight - centerHeight) * 2;
+            
+            // Convert to normal map colors
+            normalData[index] = Math.floor((dx + 1) * 127.5);     // Red (X)
+            normalData[index + 1] = Math.floor((dy + 1) * 127.5); // Green (Y)
+            normalData[index + 2] = 255;                          // Blue (Z)
+            normalData[index + 3] = 255;                          // Alpha
+          }
+        }
+        
+        normalCtx.putImageData(normalImageData, 0, 0);
+        normalTexture.update();
+        woodMaterial.bumpTexture = normalTexture;
+        woodMaterial.bumpTexture.level = 0.5;
+        
+        // Enhanced wood appearance
+        woodMaterial.emissiveColor = new Color3(0.02, 0.01, 0.005); // Subtle warm glow
+        woodMaterial.environmentIntensity = 0.3; // Subtle reflections
+        
         material = woodMaterial;
         
         // No additional special lighting - use scene lighting
@@ -381,15 +464,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       // Add hover effects based on material type
       if (elementId === canvas.keyResources.id) {
-        // Special hover for wood material
+        // Special hover for PBR wood material
         box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-          const woodMat = material as StandardMaterial;
-          woodMat.diffuseColor = new Color3(0.45, 0.32, 0.22); // Lighter wood on hover
+          const woodMat = material as PBRMaterial;
+          woodMat.emissiveColor = new Color3(0.05, 0.03, 0.02); // Brighter warm glow on hover
+          woodMat.environmentIntensity = 0.5; // More reflections on hover
         }));
 
         box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-          const woodMat = material as StandardMaterial;
-          woodMat.diffuseColor = new Color3(0.35, 0.22, 0.12); // Return to original wood color
+          const woodMat = material as PBRMaterial;
+          woodMat.emissiveColor = new Color3(0.02, 0.01, 0.005); // Return to original glow
+          woodMat.environmentIntensity = 0.3; // Return to original reflections
         }));
       } else {
         // Standard hover effects for other materials
