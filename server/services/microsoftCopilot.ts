@@ -66,10 +66,10 @@ export async function processCopilotChat(request: CopilotChatRequest): Promise<C
     };
 
   } catch (error) {
-    console.log('Microsoft Copilot not available, using fallback analysis:', error.message);
+    console.log('Microsoft Copilot not available:', error.message);
     
-    // Direct fallback without calling OpenAI to avoid circular dependency
-    return await fallbackBusinessModelAnalysis(request);
+    // Throw error to let the main flow handle OpenAI fallback
+    throw error;
   }
 }
 
