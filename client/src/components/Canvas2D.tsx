@@ -37,10 +37,15 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
 
   return (
     <div 
-      className={`w-full h-full p-6 transition-all duration-500 ${
-        isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+      className={`w-full h-full p-6 transition-all duration-1000 ${
+        isTransitioning ? 'opacity-0' : 'opacity-100'
       }`}
-      style={{ backgroundColor: '#e9ecef' }}
+      style={{ 
+        backgroundColor: '#e9ecef',
+        transform: isTransitioning ? 'perspective(1000px) rotateX(75deg) scale(0.8)' : 'perspective(1000px) rotateX(0deg) scale(1)',
+        transformOrigin: 'center bottom',
+        transition: 'transform 1000ms ease-in-out, opacity 500ms ease-in-out'
+      }}
     >
       {/* Header */}
       <div className="mb-6 text-center">
