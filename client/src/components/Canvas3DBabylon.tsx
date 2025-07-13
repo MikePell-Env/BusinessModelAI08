@@ -542,25 +542,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
       
       // Create numeric counter under the Revenue Streams label
-      const counterRect = new Rectangle(`counterRect_${canvas.revenueStreams.id}`);
-      counterRect.widthInPixels = 120;
-      counterRect.heightInPixels = 30;
-      counterRect.color = "rgba(76, 175, 80, 0.8)"; // Green border
-      counterRect.background = "rgba(76, 175, 80, 0.2)"; // Light green background
-      counterRect.thickness = 2;
-      advancedTexture.addControl(counterRect);
-
       const counterText = new TextBlock(`counter_${canvas.revenueStreams.id}`, "$100");
       counterText.color = "#1B5E20"; // Dark green
       counterText.fontSize = 14;
       counterText.fontWeight = "bold";
       counterText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
       counterText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-      counterRect.addControl(counterText);
+      advancedTexture.addControl(counterText);
 
-      // Link counter to Revenue Streams box, positioned below the main label
-      counterRect.linkWithMesh(revenueStreamsBox);
-      counterRect.linkOffsetY = -20; // Position below the main label
+      // Link counter to Revenue Streams box, positioned well below the main label
+      counterText.linkWithMesh(revenueStreamsBox);
+      counterText.linkOffsetY = 10; // Position well below the main label
       
       // Update counter text based on animation frame
       scene.onBeforeRenderObservable.add(() => {
@@ -571,7 +563,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           
           // Adjust counter position to follow the label
           const currentLabelOffset = revenueLabel ? (revenueLabel as any).linkOffsetY || -50 : -50;
-          counterRect.linkOffsetY = currentLabelOffset + 50; // Position below the moving label
+          counterText.linkOffsetY = currentLabelOffset + 70; // Position well below the moving label
         }
       });
     }
