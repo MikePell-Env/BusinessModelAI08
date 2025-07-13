@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator, ShaderMaterial, Effect } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
@@ -320,196 +320,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       box.position = position;
       
       // Create photorealistic materials based on element type
-      let material: StandardMaterial | PBRMaterial | ShaderMaterial;
+      let material: StandardMaterial | PBRMaterial;
       
       if (elementId === canvas.keyResources.id) {
-        // Define custom wood shader for procedural wood grain
-        const woodVertexShader = `
-          precision highp float;
-          
-          attribute vec3 position;
-          attribute vec3 normal;
-          attribute vec2 uv;
-          
-          uniform mat4 worldViewProjection;
-          uniform mat4 world;
-          uniform mat4 view;
-          uniform vec3 cameraPosition;
-          
-          varying vec3 vPosition;
-          varying vec3 vNormal;
-          varying vec2 vUV;
-          varying vec3 vWorldPosition;
-          varying vec3 vViewDirection;
-          
-          void main(void) {
-            vec4 worldPos = world * vec4(position, 1.0);
-            vWorldPosition = worldPos.xyz;
-            vPosition = position;
-            vNormal = normalize((world * vec4(normal, 0.0)).xyz);
-            vUV = uv;
-            vViewDirection = normalize(cameraPosition - worldPos.xyz);
-            
-            gl_Position = worldViewProjection * vec4(position, 1.0);
-          }
-        `;
+        // Create wood-style material for Key Resources using enhanced standard material
+        const woodMaterial = new StandardMaterial(`woodMaterial_${elementId}`, scene);
         
-        const woodFragmentShader = `
-          precision highp float;
-          
-          uniform vec3 lightPosition;
-          uniform vec3 lightColor;
-          uniform vec3 cameraPosition;
-          uniform float time;
-          
-          varying vec3 vPosition;
-          varying vec3 vNormal;
-          varying vec2 vUV;
-          varying vec3 vWorldPosition;
-          varying vec3 vViewDirection;
-          
-          // Noise functions for wood grain
-          float random(vec2 st) {
-            return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-          }
-          
-          float noise(vec2 st) {
-            vec2 i = floor(st);
-            vec2 f = fract(st);
-            
-            float a = random(i);
-            float b = random(i + vec2(1.0, 0.0));
-            float c = random(i + vec2(0.0, 1.0));
-            float d = random(i + vec2(1.0, 1.0));
-            
-            vec2 u = f * f * (3.0 - 2.0 * f);
-            
-            return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-          }
-          
-          float fbm(vec2 st) {
-            float value = 0.0;
-            float amplitude = 0.5;
-            float frequency = 0.0;
-            
-            for (int i = 0; i < 5; i++) {
-              value += amplitude * noise(st);
-              st *= 2.0;
-              amplitude *= 0.5;
-            }
-            return value;
-          }
-          
-          vec3 getWoodColor(vec2 uv) {
-            // Scale UV for wood grain pattern
-            vec2 woodUV = uv * 12.0;
-            
-            // Create concentric wood rings with variations
-            vec2 center = vec2(6.0, 6.0);
-            float dist = length(woodUV - center);
-            float rings = sin(dist * 2.5 + time * 0.5) * 0.4 + 0.6;
-            
-            // Add multiple layers of noise for complex grain
-            float grain1 = fbm(woodUV * 1.5 + vec2(time * 0.1, 0.0));
-            float grain2 = fbm(woodUV * 3.0 + vec2(0.0, time * 0.05));
-            float grain3 = noise(woodUV * 8.0) * 0.3;
-            
-            // Create wood knots
-            float knot1 = 1.0 - smoothstep(0.0, 2.0, length(woodUV - vec2(3.0, 4.0)));
-            float knot2 = 1.0 - smoothstep(0.0, 1.5, length(woodUV - vec2(8.0, 7.0)));
-            float knots = knot1 * 0.6 + knot2 * 0.4;
-            
-            // Combine all patterns
-            float pattern = rings * 0.5 + grain1 * 0.3 + grain2 * 0.15 + grain3 * 0.05;
-            pattern = mix(pattern, pattern * 0.3, knots);
-            
-            // Rich walnut wood colors with more variation
-            vec3 darkWood = vec3(0.18, 0.10, 0.06);
-            vec3 mediumWood = vec3(0.32, 0.20, 0.12);
-            vec3 lightWood = vec3(0.52, 0.35, 0.22);
-            
-            // Three-way color blending for more realistic wood
-            vec3 woodColor = mix(darkWood, mediumWood, smoothstep(0.3, 0.7, pattern));
-            woodColor = mix(woodColor, lightWood, smoothstep(0.6, 0.9, pattern));
-            
-            return woodColor;
-          }
-          
-          void main(void) {
-            vec3 woodColor = getWoodColor(vUV);
-            
-            // Advanced lighting calculation
-            vec3 lightDir = normalize(lightPosition - vWorldPosition);
-            float NdotL = max(dot(vNormal, lightDir), 0.0);
-            
-            // Multiple specular highlights for lacquer finish
-            vec3 reflectDir = reflect(-lightDir, vNormal);
-            float spec1 = pow(max(dot(vViewDirection, reflectDir), 0.0), 64.0); // Sharp highlight
-            float spec2 = pow(max(dot(vViewDirection, reflectDir), 0.0), 16.0); // Broader highlight
-            
-            // Fresnel effect for realistic reflections
-            float fresnel = pow(1.0 - max(dot(vNormal, vViewDirection), 0.0), 2.0);
-            
-            // Subsurface scattering approximation
-            vec3 scatterDir = lightDir + vNormal * 0.3;
-            float scatter = max(0.0, dot(-vViewDirection, scatterDir));
-            scatter = pow(scatter, 4.0) * 0.5;
-            
-            // Combine all lighting components
-            vec3 diffuse = woodColor * lightColor * NdotL;
-            vec3 specular = vec3(0.4) * spec1 + vec3(0.2) * spec2;
-            vec3 ambient = woodColor * 0.25;
-            vec3 subsurface = woodColor * scatter * vec3(0.8, 0.4, 0.2);
-            vec3 rim = vec3(0.3, 0.2, 0.1) * fresnel * 0.5;
-            
-            vec3 finalColor = ambient + diffuse + specular + subsurface + rim;
-            
-            gl_FragColor = vec4(finalColor, 1.0);
-          }
-        `;
+        // Rich walnut wood base color
+        woodMaterial.diffuseColor = new Color3(0.35, 0.22, 0.12);
+        woodMaterial.specularColor = new Color3(0.4, 0.3, 0.2); // Warm wood specular
+        woodMaterial.emissiveColor = new Color3(0.05, 0.03, 0.02); // Subtle glow
         
-        // Register the shader effect
-        Effect.ShadersStore["woodVertexShader"] = woodVertexShader;
-        Effect.ShadersStore["woodFragmentShader"] = woodFragmentShader;
-        
-        // Create the shader material
-        const woodMaterial = new ShaderMaterial(`woodShader_${elementId}`, scene, {
-          vertex: "wood",
-          fragment: "wood",
-        }, {
-          attributes: ["position", "normal", "uv"],
-          uniforms: ["world", "worldView", "worldViewProjection", "view", "projection", "cameraPosition", "lightPosition", "lightColor", "time"]
-        });
-        
-        // Set shader uniforms
-        woodMaterial.setVector3("lightPosition", new Vector3(2, 4, 2));
-        woodMaterial.setVector3("lightColor", new Color3(1, 0.95, 0.85));
-        woodMaterial.setFloat("time", 0);
-        
+        // Enhanced material properties for wood appearance
         material = woodMaterial;
         
-        // Create dedicated warm spotlight for Key Resources
-        const keyResourcesSpotlight = new SpotLight(
-          `keyResourcesLight_${elementId}`,
-          new Vector3(-1, 3, -0.5),
-          new Vector3(0.2, -1, -0.2),
-          Math.PI / 6,
-          2,
-          scene
-        );
-        keyResourcesSpotlight.intensity = 1.2;
-        keyResourcesSpotlight.diffuse = new Color3(1, 0.95, 0.85);
-        keyResourcesSpotlight.specular = new Color3(1, 1, 0.9);
-        
-        // Add point light for ambient wood illumination
-        const woodAmbientLight = new PointLight(
-          `woodAmbient_${elementId}`,
-          new Vector3(-1.5, 1.5, -0.8),
-          scene
-        );
-        woodAmbientLight.intensity = 0.8;
-        woodAmbientLight.diffuse = new Color3(0.95, 0.85, 0.75);
-        woodAmbientLight.range = 4;
+        // No additional special lighting - use scene lighting
         
       } else {
         // Standard material for other elements with enhanced properties
@@ -556,15 +381,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       // Add hover effects based on material type
       if (elementId === canvas.keyResources.id) {
-        // Special hover for wood shader material
+        // Special hover for wood material
         box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-          const woodMat = material as ShaderMaterial;
-          woodMat.setVector3("lightColor", new Color3(1.2, 1.1, 1.0)); // Brighter light on hover
+          const woodMat = material as StandardMaterial;
+          woodMat.diffuseColor = new Color3(0.45, 0.32, 0.22); // Lighter wood on hover
         }));
 
         box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-          const woodMat = material as ShaderMaterial;
-          woodMat.setVector3("lightColor", new Color3(1, 0.95, 0.85)); // Return to original light
+          const woodMat = material as StandardMaterial;
+          woodMat.diffuseColor = new Color3(0.35, 0.22, 0.12); // Return to original wood color
         }));
       } else {
         // Standard hover effects for other materials
@@ -1077,17 +902,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     subtitleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
     subtitleRect.addControl(subtitleText);
 
-    // Render loop with shader animation
-    let time = 0;
+    // Render loop
     engine.runRenderLoop(() => {
-      time += 0.01;
-      
-      // Update wood shader time uniform if it exists
-      const woodShaderMaterial = scene.getMaterialByName(`woodShader_${canvas.keyResources.id}`) as ShaderMaterial;
-      if (woodShaderMaterial && woodShaderMaterial.setFloat) {
-        woodShaderMaterial.setFloat("time", time);
-      }
-      
       scene.render();
     });
 
