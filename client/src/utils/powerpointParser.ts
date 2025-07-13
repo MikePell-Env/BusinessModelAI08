@@ -116,11 +116,14 @@ export class PowerPointParser {
     // Combine all slide text
     const allText = slideTexts.join('\n');
     
+    // Extract company name from "Company:" field
+    const companyName = this.extractCompanyName(allText);
+    
     // Parse the combined text for business model canvas sections
     this.parseSingleSlideContent(allText, canvasData);
     
-    // Generate canvas name from filename
-    const canvasName = filename.replace(/\.(pptx?|ppt)$/i, '') || 'Imported Business Model Canvas';
+    // Use company name as canvas title, fallback to filename
+    const canvasName = companyName || filename.replace(/\.(pptx?|ppt)$/i, '') || 'Imported Business Model Canvas';
     
     return this.createCanvasFromMapping(
       canvasData,
@@ -188,6 +191,36 @@ export class PowerPointParser {
 
   private cleanBulletPoint(line: string): string {
     return line.replace(/^[\s]*[•·▪▫‣⁃∗\-\*\+]\s*/, '').trim();
+  }
+
+  private extractCompanyName(content: string): string | null {
+    try {
+      // Look for "Company:" followed by the company name
+      const companyMatch = content.match(/Company:\s*([^\n\r]+)/i);
+      if (companyMatch && companyMatch[1]) {
+        return companyMatch[1].trim();
+      }
+      
+      // Also try variations like "Company Name:", "Business:", etc.
+      const alternativeMatches = [
+        /Company\s+Name:\s*([^\n\r]+)/i,
+        /Business:\s*([^\n\r]+)/i,
+        /Organization:\s*([^\n\r]+)/i,
+        /Empresa:\s*([^\n\r]+)/i // Spanish
+      ];
+      
+      for (const pattern of alternativeMatches) {
+        const match = content.match(pattern);
+        if (match && match[1]) {
+          return match[1].trim();
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error extracting company name:', error);
+      return null;
+    }
   }
 
   private findSectionKey(normalizedTitle: string): string | undefined {
