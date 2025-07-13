@@ -31,9 +31,6 @@ export const PowerPointImporter: React.FC = () => {
           // For demonstration, load the sample canvas
           const canvas = samplePowerPointCanvas as BusinessModelCanvas;
           loadCanvas(canvas);
-          
-          // Show success message briefly
-          alert(`PowerPoint file "${file.name}" processed successfully! Sample business model canvas loaded.`);
         } catch (error) {
           console.error('File processing error:', error);
           alert('Failed to process PowerPoint file.');
