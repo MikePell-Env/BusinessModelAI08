@@ -331,8 +331,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Create billboard text using GUI directly on screen (no mesh plane)
       const titleRect = new Rectangle(`titleRect_${elementId}`);
       titleRect.widthInPixels = 200;
-      // Increase height for Revenue Streams to accommodate title and counter (reduced by 20%)
-      titleRect.heightInPixels = elementId === canvas.revenueStreams.id ? 64 : 40;
+      // Increase height for Revenue Streams and Cost Structure to accommodate title and counter
+      const needsCounter = elementId === canvas.revenueStreams.id || elementId === canvas.costStructure.id;
+      titleRect.heightInPixels = needsCounter ? 45 : 40; // 64 * 0.7 = 44.8, rounded to 45
       titleRect.color = "rgba(255, 255, 255, 0.5)"; // White translucent border
       titleRect.background = "rgba(255, 255, 255, 0.5)"; // 50% transparent white background
       titleRect.thickness = 1;
@@ -344,10 +345,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       titleText.fontSize = 16;
       titleText.fontWeight = "bold";
       titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-      // For Revenue Streams, position title at top of the larger panel
-      titleText.textVerticalAlignment = elementId === canvas.revenueStreams.id ? 
+      // For Revenue Streams and Cost Structure, position title at top of the larger panel
+      titleText.textVerticalAlignment = needsCounter ? 
         Control.VERTICAL_ALIGNMENT_TOP : Control.VERTICAL_ALIGNMENT_CENTER;
-      if (elementId === canvas.revenueStreams.id) {
+      if (needsCounter) {
         titleText.paddingTopInPixels = 5;
       }
       titleRect.addControl(titleText);
@@ -358,10 +359,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const isValuePropositions = elementId === canvas.valuePropositions.id;
       titleRect.linkOffsetY = isValuePropositions ? -140 : -50; // Even higher for Value Propositions
 
-      // Add counter inside the Revenue Streams label panel
+      // Add counter inside the Revenue Streams and Cost Structure label panels
       if (elementId === canvas.revenueStreams.id) {
         const counterText = new TextBlock(`counter_${elementId}`, "$100");
         counterText.color = "#1B5E20"; // Dark green
+        counterText.fontSize = 14;
+        counterText.fontWeight = "bold";
+        counterText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+        counterText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+        counterText.paddingBottomInPixels = 5;
+        titleRect.addControl(counterText);
+        
+        // Store reference for animation updates
+        (titleRect as any).counterText = counterText;
+      } else if (elementId === canvas.costStructure.id) {
+        const counterText = new TextBlock(`counter_${elementId}`, "$100");
+        counterText.color = "#B71C1C"; // Dark red
         counterText.fontSize = 14;
         counterText.fontWeight = "bold";
         counterText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
@@ -562,14 +575,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         scene.beginAnimation(revenueLabel, 0, 90, true);
       }
       
-      // Update counter text based on animation frame for Revenue Streams
+      // Update counter text based on animation frame for Revenue Streams and Cost Structure
       scene.onBeforeRenderObservable.add(() => {
+        // Revenue Streams counter
         const revenueBox = scene.getMeshByName(`box_${canvas.revenueStreams.id}`);
         const revenueLabel = advancedTexture.getControlByName(`titleRect_${canvas.revenueStreams.id}`);
         if (revenueBox && revenueLabel && (revenueLabel as any).counterText) {
           const currentScale = revenueBox.scaling.y;
           const heightValue = Math.round(currentScale * 100);
           (revenueLabel as any).counterText.text = `$${heightValue}`;
+        }
+        
+        // Cost Structure counter
+        const costBox = scene.getMeshByName(`box_${canvas.costStructure.id}`);
+        const costLabel = advancedTexture.getControlByName(`titleRect_${canvas.costStructure.id}`);
+        if (costBox && costLabel && (costLabel as any).counterText) {
+          const currentScale = costBox.scaling.y;
+          const heightValue = Math.round(currentScale * 100);
+          (costLabel as any).counterText.text = `$${heightValue}`;
         }
       });
     }
