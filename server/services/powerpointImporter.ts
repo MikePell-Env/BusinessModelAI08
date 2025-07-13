@@ -105,6 +105,32 @@ export class PowerPointImporter {
   }
 
   /**
+   * Parse test content for demonstration purposes
+   */
+  parseTestContent(content: string): BusinessModelCanvas {
+    const canvasData: PowerPointCanvasMapping = {
+      keyPartners: [],
+      keyActivities: [],
+      keyResources: [],
+      valuePropositions: [],
+      customerRelationships: [],
+      channels: [],
+      customerSegments: [],
+      costStructure: [],
+      revenueStreams: []
+    };
+
+    // Extract canvas name from first line
+    const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const canvasName = lines[0] || 'Test Business Model Canvas';
+    
+    // Parse content using existing single slide parser
+    this.parseSingleSlideContent(content, canvasData);
+    
+    return this.createCanvasFromMapping(canvasData, canvasName, 'Sample business model canvas for testing PowerPoint import functionality');
+  }
+
+  /**
    * Extract slide content from Microsoft Graph API
    */
   private async extractSlidesFromGraph(graphClient: any, fileUrl: string): Promise<PowerPointSlideContent[]> {

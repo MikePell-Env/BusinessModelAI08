@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Upload, FileText, Info, CheckCircle, AlertCircle } from 'lucide-react';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BusinessModelCanvas } from '@/types/canvas';
+import samplePowerPointCanvas from '@/data/samplePowerPointCanvas.json';
 
 interface ImportResult {
   success: boolean;
@@ -20,6 +21,27 @@ export const PowerPointImporter: React.FC = () => {
   const [siteId, setSiteId] = useState('');
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [templateInstructions, setTemplateInstructions] = useState<string>('');
+
+  const handleTestImport = async () => {
+    setLoading(true);
+    setImportResult(null);
+
+    try {
+      // Load sample PowerPoint canvas data directly
+      const canvas = samplePowerPointCanvas as BusinessModelCanvas;
+      loadCanvas(canvas);
+      setImportResult({ success: true, canvas });
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Test import error:', error);
+      setImportResult({ 
+        success: false, 
+        error: 'Failed to load sample PowerPoint canvas data.' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleImportFromGraph = async () => {
     if (!fileId.trim()) {
@@ -139,6 +161,14 @@ export const PowerPointImporter: React.FC = () => {
                 Import from Microsoft Graph
               </Button>
 
+              <Button 
+                onClick={handleTestImport}
+                variant="outline"
+                className="w-full"
+              >
+                Test Import with Sample Data
+              </Button>
+
               {/* Import Result */}
               {importResult && (
                 <div className={`p-3 rounded-md border ${
@@ -213,11 +243,11 @@ export const PowerPointImporter: React.FC = () => {
               </div>
               
               <div>
-                <strong>3. Import Canvas:</strong>
+                <strong>3. Test First:</strong>
                 <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-                  <li>Enter File ID above</li>
-                  <li>Add Site ID if using SharePoint</li>
-                  <li>App automatically converts canvas layout to interactive 2D/3D view</li>
+                  <li>Click "Test Import with Sample Data" to see how it works</li>
+                  <li>This loads a sample TechCorp AI Platform business model</li>
+                  <li>Shows exactly what imported PowerPoint canvas looks like</li>
                 </ul>
               </div>
             </CardContent>
