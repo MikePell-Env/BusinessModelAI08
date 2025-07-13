@@ -336,7 +336,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }));
 
       box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        material.diffuseColor = color; // Return to original color
+        // Return to the correct color based on whether it keeps original or uses light blue
+        if (keepOriginalColor) {
+          material.diffuseColor = color; // Return to original color
+        } else {
+          material.diffuseColor = new Color3(0.7, 0.85, 1.0); // Return to light blue
+        }
       }));
 
       // Create billboard text using GUI directly on screen (no mesh plane)
