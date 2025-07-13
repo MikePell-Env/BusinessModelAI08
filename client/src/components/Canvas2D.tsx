@@ -42,9 +42,9 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
       }`}
       style={{ 
         backgroundColor: '#e9ecef',
-        transform: isTransitioning ? 'perspective(1000px) rotateX(75deg) rotateY(20deg) scale(0.8)' : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)',
-        transformOrigin: 'center bottom',
-        transition: 'transform 1400ms ease-in-out, opacity 700ms ease-in-out'
+        transform: isTransitioning ? 'perspective(1000px) rotateX(75deg) rotateY(35deg) scale(0.8)' : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)',
+        transformOrigin: 'left bottom',
+        transition: 'transform 2000ms ease-in-out, opacity 1000ms ease-in-out'
       }}
     >
       {/* Header */}
