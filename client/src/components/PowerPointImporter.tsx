@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BusinessModelCanvas } from '@/types/canvas';
-import samplePowerPointCanvas from '@/data/samplePowerPointCanvas.json';
+import { powerpointParser } from '@/utils/powerpointParser';
 
 export const PowerPointImporter: React.FC = () => {
   const { loadCanvas } = useCanvas();
@@ -28,12 +28,12 @@ export const PowerPointImporter: React.FC = () => {
         // Automatically process the file when selected
         setLoading(true);
         try {
-          // For demonstration, load the sample canvas
-          const canvas = samplePowerPointCanvas as BusinessModelCanvas;
+          // Parse the actual PowerPoint file
+          const canvas = await powerpointParser.parseFile(file);
           loadCanvas(canvas);
         } catch (error) {
           console.error('File processing error:', error);
-          alert('Failed to process PowerPoint file.');
+          alert('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');
         } finally {
           setLoading(false);
           // Reset file input for next use
