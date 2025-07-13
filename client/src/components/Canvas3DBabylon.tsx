@@ -69,7 +69,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     ground.material = groundMaterial;
 
     // Create grid lines within floor bounds (20x14)
-    const gridSpacing = 1;
+    const gridSpacing = 0.5;
     const gridLines = [];
     
     // Horizontal grid lines (within floor height of 14)
