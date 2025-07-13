@@ -46,25 +46,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;
     camera.upperBetaLimit = Math.PI / 2.2;
 
-    // Enhanced photorealistic lighting setup
+    // Balanced photorealistic lighting setup
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 0.3; // Reduced for more dramatic lighting
-    hemisphericLight.diffuse = new Color3(0.9, 0.95, 1); // Slightly cool ambient
-    hemisphericLight.specular = new Color3(0.1, 0.1, 0.1);
+    hemisphericLight.intensity = 0.2; // Much lower ambient
+    hemisphericLight.diffuse = new Color3(0.85, 0.9, 0.95); // Subtle cool ambient
+    hemisphericLight.specular = new Color3(0.05, 0.05, 0.05);
     
-    // Main directional light (key light)
+    // Main directional light (key light) - reduced intensity
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -0.5), scene);
-    directionalLight.intensity = 1.2;
-    directionalLight.diffuse = new Color3(1, 0.98, 0.95); // Warm sunlight
-    directionalLight.specular = new Color3(1, 1, 1);
+    directionalLight.intensity = 0.6; // Significantly reduced from 1.2
+    directionalLight.diffuse = new Color3(0.95, 0.93, 0.9); // Softer warm light
+    directionalLight.specular = new Color3(0.8, 0.8, 0.8);
     
-    // Fill light for softer shadows
+    // Fill light for softer shadows - reduced
     const fillLight = new DirectionalLight("fillLight", new Vector3(1, -0.5, 1), scene);
-    fillLight.intensity = 0.4;
-    fillLight.diffuse = new Color3(0.8, 0.9, 1); // Cool fill light
+    fillLight.intensity = 0.2; // Reduced from 0.4
+    fillLight.diffuse = new Color3(0.7, 0.8, 0.9); // Subtle cool fill light
     
-    // Enhanced ambient lighting for photorealism
-    scene.ambientColor = new Color3(0.15, 0.15, 0.15);
+    // Lower ambient lighting for better contrast
+    scene.ambientColor = new Color3(0.1, 0.1, 0.1);
 
     // Create ground with grid pattern
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -317,10 +317,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         woodMaterial.roughness = 0.3; // Polished but natural texture
         woodMaterial.specularColor = new Color3(0.9, 0.8, 0.7); // Warm wood specular
         
-        // Enhanced material properties for photorealism
-        woodMaterial.directIntensity = 1.0;
-        woodMaterial.environmentIntensity = 0.8;
-        woodMaterial.specularIntensity = 0.8;
+        // Balanced material properties for photorealism
+        woodMaterial.directIntensity = 0.7; // Reduced to prevent washout
+        woodMaterial.environmentIntensity = 0.5; // Lower environment reflection
+        woodMaterial.specularIntensity = 0.6; // Softer specular highlights
         woodMaterial.clearCoat.isEnabled = true;
         woodMaterial.clearCoat.intensity = 0.3; // Subtle lacquer finish
         woodMaterial.clearCoat.roughness = 0.1; // Smooth finish
@@ -332,7 +332,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         material = woodMaterial;
         
-        // Create dedicated warm spotlight for Key Resources
+        // Create dedicated warm spotlight for Key Resources - reduced intensity
         const keyResourcesSpotlight = new SpotLight(
           `keyResourcesLight_${elementId}`,
           new Vector3(-1, 3, -0.5), // Position above and to the side
@@ -341,11 +341,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           2, // Sharp falloff
           scene
         );
-        keyResourcesSpotlight.intensity = 2.5;
-        keyResourcesSpotlight.diffuse = new Color3(1, 0.95, 0.85); // Warm gallery lighting
-        keyResourcesSpotlight.specular = new Color3(1, 1, 0.9);
+        keyResourcesSpotlight.intensity = 1.2; // Reduced from 2.5
+        keyResourcesSpotlight.diffuse = new Color3(0.9, 0.85, 0.75); // Softer warm gallery lighting
+        keyResourcesSpotlight.specular = new Color3(0.8, 0.8, 0.7);
         
-        // Add rim light for dramatic effect
+        // Add subtle rim light for definition
         const rimLight = new SpotLight(
           `rimLight_${elementId}`,
           new Vector3(-3, 2, -1.5), // Behind and to the side
@@ -354,8 +354,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           1.5,
           scene
         );
-        rimLight.intensity = 1.8;
-        rimLight.diffuse = new Color3(0.9, 0.85, 0.7); // Cooler rim light
+        rimLight.intensity = 0.8; // Reduced from 1.8
+        rimLight.diffuse = new Color3(0.8, 0.75, 0.6); // Subtler rim light
         
       } else {
         // Standard material for other elements with enhanced properties
