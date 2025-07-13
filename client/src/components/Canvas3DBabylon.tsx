@@ -295,11 +295,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Create material with custom color and transparency
       const material = new StandardMaterial(`material_${elementId}`, scene);
-      material.diffuseColor = color; // Use the provided color
+      
+      // Use light blue for most boxes, keep original colors for specific ones
+      const keepOriginalColor = elementId === canvas.costStructure.id || 
+                                elementId === canvas.revenueStreams.id || 
+                                elementId === canvas.customerRelationships.id;
+      
+      if (keepOriginalColor) {
+        material.diffuseColor = color; // Keep original color
+      } else {
+        material.diffuseColor = new Color3(0.7, 0.85, 1.0); // Light blue
+      }
+      
       material.specularColor = new Color3(0.5, 0.5, 0.5); // Moderate specular reflection
       material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight glow
       // Make Value Propositions opaque, others semi-transparent
-      material.alpha = elementId === canvas.valuePropositions.id ? 1.0 : 0.8;
+      material.alpha = elementId === canvas.valuePropositions.id ? 1.0 : 0.6;
       
       box.material = material;
 
