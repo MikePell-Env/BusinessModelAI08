@@ -400,12 +400,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     titleRect.thickness = 0;
     titleRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
     titleRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-    titleRect.paddingTop = "20px";
+    titleRect.paddingTop = "24px"; // Match 2D view's mb-6 spacing (24px)
     advancedTexture.addControl(titleRect);
 
     const titleText = new TextBlock("canvasTitle", canvas.name);
     titleText.color = "#1A202C";
-    titleText.fontSize = 28;
+    titleText.fontSize = 30; // Match 2D view's text-3xl (30px)
     titleText.fontWeight = "bold";
     titleText.textWrapping = true; // Enable text wrapping for very long titles
     titleRect.addControl(titleText);
