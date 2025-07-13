@@ -633,6 +633,77 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     }
 
+    // Add flashing red animation to Customer Relationships box
+    const customerRelationshipsBox = scene.getMeshByName(`box_${canvas.customerRelationships.id}`);
+    if (customerRelationshipsBox) {
+      const originalMaterial = customerRelationshipsBox.material as StandardMaterial;
+      const originalColor = originalMaterial.diffuseColor.clone();
+      
+      // Create color animation for flashing effect
+      const flashAnimation = new Animation(
+        "customerRelationshipsFlash",
+        "material.diffuseColor",
+        30, // 30 FPS
+        Animation.ANIMATIONTYPE_COLOR3,
+        Animation.ANIMATIONLOOPMODE_CYCLE
+      );
+      
+      // Define flashing pattern: 3 flashes every 10 seconds (300 frames at 30 FPS)
+      const flashKeys = [];
+      
+      // Start with original color (frames 0-89: 3 seconds normal)
+      flashKeys.push({
+        frame: 0,
+        value: originalColor.clone()
+      });
+      flashKeys.push({
+        frame: 90, // 3 seconds
+        value: originalColor.clone()
+      });
+      
+      // First flash (frames 90-105: 0.5 seconds)
+      flashKeys.push({
+        frame: 95, // Flash red
+        value: new Color3(1, 0, 0) // Bright red
+      });
+      flashKeys.push({
+        frame: 105, // Back to normal
+        value: originalColor.clone()
+      });
+      
+      // Second flash (frames 120-135: 0.5 seconds)
+      flashKeys.push({
+        frame: 125, // Flash red
+        value: new Color3(1, 0, 0) // Bright red
+      });
+      flashKeys.push({
+        frame: 135, // Back to normal
+        value: originalColor.clone()
+      });
+      
+      // Third flash (frames 150-165: 0.5 seconds)
+      flashKeys.push({
+        frame: 155, // Flash red
+        value: new Color3(1, 0, 0) // Bright red
+      });
+      flashKeys.push({
+        frame: 165, // Back to normal
+        value: originalColor.clone()
+      });
+      
+      // Stay normal until end of cycle (frames 165-300: rest of 10 seconds)
+      flashKeys.push({
+        frame: 300, // 10 seconds - complete cycle
+        value: originalColor.clone()
+      });
+      
+      flashAnimation.setKeys(flashKeys);
+      customerRelationshipsBox.animations = [flashAnimation];
+      
+      // Start the flashing animation
+      scene.beginAnimation(customerRelationshipsBox, 0, 300, true);
+    }
+
     // Add title text
     const titleRect = new Rectangle("titleRect");
     titleRect.widthInPixels = 800;
