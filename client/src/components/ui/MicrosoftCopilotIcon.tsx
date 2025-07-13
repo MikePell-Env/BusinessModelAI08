@@ -18,49 +18,54 @@ export const MicrosoftCopilotIcon: React.FC<MicrosoftCopilotIconProps> = ({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Microsoft Copilot Logo - Simplified version */}
-      <g transform="translate(2, 2)">
-        {/* Main circular background */}
-        <circle
-          cx="10"
-          cy="10"
-          r="9"
-          fill="currentColor"
-          fillOpacity="0.1"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        />
+      {/* Microsoft Copilot Logo - Simplified hexagonal segments */}
+      <g transform="translate(4, 4)">
+        {/* Create 6 segments forming a flower-like pattern */}
         
-        {/* Copilot symbol - stylized "C" with pilot wing elements */}
+        {/* Top segment - Blue */}
         <path
-          d="M6 7c0-2.2 1.8-4 4-4s4 1.8 4 4v2c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V7z"
-          fill="currentColor"
-          fillOpacity="0.2"
+          d="M8 2L10 4L8 6L6 4z"
+          fill="#0078D4"
         />
         
-        {/* Central "pilot" element */}
+        {/* Top-right segment - Cyan */}
+        <path
+          d="M10 4L12 6L10 8L8 6z"
+          fill="#00BCF2"
+        />
+        
+        {/* Bottom-right segment - Green */}
+        <path
+          d="M10 8L12 10L10 12L8 10z"
+          fill="#00CC6A"
+        />
+        
+        {/* Bottom segment - Orange */}
+        <path
+          d="M8 10L10 12L8 14L6 12z"
+          fill="#FF8C00"
+        />
+        
+        {/* Bottom-left segment - Purple */}
+        <path
+          d="M6 8L8 10L6 12L4 10z"
+          fill="#8661C5"
+        />
+        
+        {/* Top-left segment - Red */}
+        <path
+          d="M6 4L8 6L6 8L4 6z"
+          fill="#E74856"
+        />
+        
+        {/* Central white circle */}
         <circle
-          cx="10"
+          cx="8"
           cy="8"
-          r="1.5"
-          fill="currentColor"
-        />
-        
-        {/* Wing-like elements */}
-        <path
-          d="M6 10l-2 1 2 1M14 10l2 1-2 1"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        
-        {/* Bottom indicator */}
-        <path
-          d="M8 14h4M9 16h2"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
+          r="2"
+          fill="#FFFFFF"
+          stroke="#E5E5E5"
+          strokeWidth="0.5"
         />
       </g>
     </svg>
