@@ -194,29 +194,30 @@ export const PowerPointImporter: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div>
-                <strong>1. Prepare your PowerPoint:</strong>
+                <strong>1. Create Business Model Canvas:</strong>
                 <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-                  <li>Create slides with exact titles: "Key Partners", "Key Activities", etc.</li>
-                  <li>Use bullet points for content in each section</li>
-                  <li>Save to OneDrive or SharePoint</li>
+                  <li>Create ONE PowerPoint slide that looks like a business model canvas</li>
+                  <li>Add 9 text boxes arranged in the traditional canvas layout</li>
+                  <li>Start each text box with section name (Key Partners, Value Propositions, etc.)</li>
+                  <li>Use bullet points for business elements in each section</li>
                 </ul>
               </div>
               
               <div>
-                <strong>2. Get the File ID:</strong>
+                <strong>2. Save and Get File ID:</strong>
                 <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-                  <li>Open your file in OneDrive/SharePoint</li>
-                  <li>Copy the file ID from the URL or use Microsoft Graph Explorer</li>
+                  <li>Save PowerPoint to OneDrive or SharePoint</li>
+                  <li>Copy the File ID from the URL</li>
                   <li>For SharePoint files, also get the Site ID</li>
                 </ul>
               </div>
               
               <div>
-                <strong>3. Import:</strong>
+                <strong>3. Import Canvas:</strong>
                 <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-                  <li>Paste the File ID above</li>
+                  <li>Enter File ID above</li>
                   <li>Add Site ID if using SharePoint</li>
-                  <li>Click "Import from Microsoft Graph"</li>
+                  <li>App automatically converts canvas layout to interactive 2D/3D view</li>
                 </ul>
               </div>
             </CardContent>

@@ -22,20 +22,33 @@ interface PowerPointCanvasMapping {
 /**
  * Expected PowerPoint slide format for Business Model Canvas:
  * 
- * Slide Structure:
- * - Slide 1: Cover slide with canvas name and description
- * - Slide 2: "Key Partners" with bullet points
- * - Slide 3: "Key Activities" with bullet points
- * - Slide 4: "Key Resources" with bullet points
- * - Slide 5: "Value Propositions" with bullet points
- * - Slide 6: "Customer Relationships" with bullet points
- * - Slide 7: "Channels" with bullet points
- * - Slide 8: "Customer Segments" with bullet points
- * - Slide 9: "Cost Structure" with bullet points
- * - Slide 10: "Revenue Streams" with bullet points
+ * SINGLE SLIDE BUSINESS MODEL CANVAS LAYOUT:
  * 
- * OR Alternative single slide format:
- * - Single slide with 9 text boxes, each labeled with section name
+ * +------------------+------------------+------------------+------------------+------------------+
+ * |   Key Partners   |  Key Activities  |  Value Props.    | Customer Relat.  | Customer Segm.   |
+ * |                  |                  |                  |                  |                  |
+ * | • Partner 1      | • Activity 1     | • Value 1        | • Relationship 1 | • Segment 1      |
+ * | • Partner 2      | • Activity 2     | • Value 2        | • Relationship 2 | • Segment 2      |
+ * | • Partner 3      | • Activity 3     | • Value 3        | • Relationship 3 | • Segment 3      |
+ * |                  |                  |                  |                  |                  |
+ * +------------------+------------------+                  +------------------+------------------+
+ * |  Key Resources   |                                     |     Channels     |
+ * |                  |                                     |                  |
+ * | • Resource 1     |                                     | • Channel 1      |
+ * | • Resource 2     |                                     | • Channel 2      |
+ * | • Resource 3     |                                     | • Channel 3      |
+ * |                  |                                     |                  |
+ * +------------------+-------------------------------------+------------------+
+ * |              Cost Structure                            |          Revenue Streams            |
+ * |                                                        |                                     |
+ * | • Cost 1        • Cost 3         • Cost 5             | • Revenue 1    • Revenue 3         |
+ * | • Cost 2        • Cost 4         • Cost 6             | • Revenue 2    • Revenue 4         |
+ * |                                                        |                                     |
+ * +--------------------------------------------------------+-------------------------------------+
+ * 
+ * Each section should be a separate text box with:
+ * - Section title as header
+ * - Bullet points for content items
  */
 
 export class PowerPointImporter {
@@ -112,7 +125,7 @@ export class PowerPointImporter {
   }
 
   /**
-   * Parse extracted slides into Business Model Canvas format
+   * Parse single slide Business Model Canvas format
    */
   private parseSlides(slides: PowerPointSlideContent[]): BusinessModelCanvas {
     const canvasData: PowerPointCanvasMapping = {
@@ -130,26 +143,148 @@ export class PowerPointImporter {
     let canvasName = 'Imported Business Model Canvas';
     let canvasDescription = 'Business model canvas imported from PowerPoint';
 
-    // Process each slide
-    slides.forEach((slide, index) => {
-      if (index === 0) {
-        // First slide: extract name and description
-        canvasName = slide.title || canvasName;
-        canvasDescription = slide.content.join(' ') || canvasDescription;
-        return;
-      }
+    // For single slide format, we expect one slide with multiple text boxes
+    if (slides.length === 1) {
+      // Parse canvas name from slide title
+      canvasName = slides[0].title || canvasName;
+      
+      // Parse all content and map to sections based on keywords
+      const allContent = slides[0].content.join('\n');
+      this.parseSingleSlideContent(allContent, canvasData);
+    } else {
+      // Fallback: multi-slide format (legacy support)
+      slides.forEach((slide, index) => {
+        if (index === 0) {
+          canvasName = slide.title || canvasName;
+          canvasDescription = slide.content.join(' ') || canvasDescription;
+          return;
+        }
 
-      // Map slide title to canvas section
-      const normalizedTitle = slide.title.toLowerCase().trim();
-      const sectionKey = this.sectionTitleMap.get(normalizedTitle);
+        const normalizedTitle = slide.title.toLowerCase().trim();
+        const sectionKey = this.sectionTitleMap.get(normalizedTitle);
+        
+        if (sectionKey && canvasData[sectionKey as keyof PowerPointCanvasMapping]) {
+          canvasData[sectionKey as keyof PowerPointCanvasMapping] = slide.content.filter(item => item.trim().length > 0);
+        }
+      });
+    }
+
+    return this.createCanvasFromMapping(canvasData, canvasName, canvasDescription);
+  }
+
+  /**
+   * Parse single slide with Business Model Canvas layout
+   */
+  private parseSingleSlideContent(content: string, canvasData: PowerPointCanvasMapping): void {
+    // Split content into sections based on headers and bullet points
+    const sections = this.extractSectionsFromText(content);
+    
+    sections.forEach(section => {
+      const normalizedTitle = section.title.toLowerCase().trim();
+      const sectionKey = this.findSectionKey(normalizedTitle);
       
       if (sectionKey && canvasData[sectionKey as keyof PowerPointCanvasMapping]) {
-        canvasData[sectionKey as keyof PowerPointCanvasMapping] = slide.content.filter(item => item.trim().length > 0);
+        canvasData[sectionKey as keyof PowerPointCanvasMapping] = section.items;
       }
     });
+  }
 
-    // Create Business Model Canvas object
-    return this.createCanvasFromMapping(canvasData, canvasName, canvasDescription);
+  /**
+   * Extract sections from text content
+   */
+  private extractSectionsFromText(content: string): Array<{title: string, items: string[]}> {
+    const sections: Array<{title: string, items: string[]}> = [];
+    const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    let currentSection: {title: string, items: string[]} | null = null;
+    
+    for (const line of lines) {
+      // Check if line is a section header (contains keywords and ends with colon or is standalone)
+      if (this.isSectionHeader(line)) {
+        // Save previous section
+        if (currentSection && currentSection.items.length > 0) {
+          sections.push(currentSection);
+        }
+        
+        // Start new section
+        currentSection = {
+          title: line.replace(':', '').trim(),
+          items: []
+        };
+      } else if (currentSection && this.isBulletPoint(line)) {
+        // Add bullet point to current section
+        const cleanedItem = this.cleanBulletPoint(line);
+        if (cleanedItem.length > 0) {
+          currentSection.items.push(cleanedItem);
+        }
+      }
+    }
+    
+    // Add final section
+    if (currentSection && currentSection.items.length > 0) {
+      sections.push(currentSection);
+    }
+    
+    return sections;
+  }
+
+  /**
+   * Check if line is a section header
+   */
+  private isSectionHeader(line: string): boolean {
+    const normalizedLine = line.toLowerCase().replace(/[:\-\s]/g, '');
+    const keywords = [
+      'keypartners', 'partners',
+      'keyactivities', 'activities', 
+      'keyresources', 'resources',
+      'valuepropositions', 'valueproposition', 'value',
+      'customerrelationships', 'relationships',
+      'channels',
+      'customersegments', 'segments', 'customers',
+      'coststructure', 'costs',
+      'revenuestreams', 'revenue'
+    ];
+    
+    return keywords.some(keyword => normalizedLine.includes(keyword));
+  }
+
+  /**
+   * Check if line is a bullet point
+   */
+  private isBulletPoint(line: string): boolean {
+    const bulletPatterns = /^[\s]*[•\-\*\+\d+\.]\s+/;
+    return bulletPatterns.test(line);
+  }
+
+  /**
+   * Clean bullet point text
+   */
+  private cleanBulletPoint(line: string): string {
+    return line.replace(/^[\s]*[•\-\*\+\d+\.]\s*/, '').trim();
+  }
+
+  /**
+   * Find section key from normalized title
+   */
+  private findSectionKey(normalizedTitle: string): string | undefined {
+    // Direct mapping first
+    const directMatch = this.sectionTitleMap.get(normalizedTitle);
+    if (directMatch) return directMatch;
+    
+    // Fuzzy matching for keywords
+    const titleWords = normalizedTitle.toLowerCase().replace(/[:\-\s]/g, '');
+    
+    if (titleWords.includes('partner')) return 'keyPartners';
+    if (titleWords.includes('activit')) return 'keyActivities';
+    if (titleWords.includes('resource')) return 'keyResources';
+    if (titleWords.includes('value') || titleWords.includes('proposition')) return 'valuePropositions';
+    if (titleWords.includes('relationship')) return 'customerRelationships';
+    if (titleWords.includes('channel')) return 'channels';
+    if (titleWords.includes('segment') || titleWords.includes('customer')) return 'customerSegments';
+    if (titleWords.includes('cost')) return 'costStructure';
+    if (titleWords.includes('revenue')) return 'revenueStreams';
+    
+    return undefined;
   }
 
   /**
@@ -189,71 +324,79 @@ export class PowerPointImporter {
    */
   static getTemplateInstructions(): string {
     return `
-# PowerPoint Business Model Canvas Template Format
+# Business Model Canvas PowerPoint Template
 
-## Option 1: Multi-Slide Format (Recommended)
+## SINGLE SLIDE FORMAT (Recommended)
 
-Create 10 slides with the following structure:
+Create ONE PowerPoint slide that looks exactly like a Business Model Canvas:
 
-**Slide 1: Cover Slide**
-- Title: Your Business Model Canvas Name
-- Subtitle/Content: Brief description of your business
+### Layout Structure:
+┌─────────────────┬─────────────────┬─────────────────┬─────────────────┬─────────────────┐
+│  Key Partners   │ Key Activities  │ Value Props.    │ Customer Relat. │ Customer Segm.  │
+│                 │                 │                 │                 │                 │
+│ • Partner 1     │ • Activity 1    │ • Value 1       │ • Relationship 1│ • Segment 1     │
+│ • Partner 2     │ • Activity 2    │ • Value 2       │ • Relationship 2│ • Segment 2     │
+│ • Partner 3     │ • Activity 3    │ • Value 3       │ • Relationship 3│ • Segment 3     │
+├─────────────────┼─────────────────┤                 ├─────────────────┼─────────────────┤
+│ Key Resources   │                 │                 │    Channels     │
+│                 │                 │                 │                 │
+│ • Resource 1    │                 │                 │ • Channel 1     │
+│ • Resource 2    │                 │                 │ • Channel 2     │
+│ • Resource 3    │                 │                 │ • Channel 3     │
+├─────────────────┴─────────────────┴─────────────────┼─────────────────┤
+│              Cost Structure                         │   Revenue Streams              │
+│                                                     │                                │
+│ • Cost 1        • Cost 3         • Cost 5          │ • Revenue 1    • Revenue 3     │
+│ • Cost 2        • Cost 4         • Cost 6          │ • Revenue 2    • Revenue 4     │
+└─────────────────────────────────────────────────────┴────────────────────────────────┘
 
-**Slide 2: Key Partners**
-- Title: "Key Partners"
-- Bullet points with each partner/supplier
+### How to Create:
 
-**Slide 3: Key Activities**
-- Title: "Key Activities"
-- Bullet points with each key activity
+1. **Insert Text Boxes**: Create 9 separate text boxes for each section
+2. **Position Like Canvas**: Arrange them exactly like the layout above
+3. **Add Section Headers**: Start each text box with the section name
+4. **Use Bullet Points**: List items with • or - bullets
+5. **Keep It Simple**: One line per business model element
 
-**Slide 4: Key Resources**
-- Title: "Key Resources"
-- Bullet points with each key resource
+### Section Headers (use exactly):
+- Key Partners
+- Key Activities  
+- Key Resources
+- Value Propositions (or "Value Props")
+- Customer Relationships (or "Customer Relat.")
+- Channels
+- Customer Segments (or "Customer Segm.")
+- Cost Structure
+- Revenue Streams
 
-**Slide 5: Value Propositions**
-- Title: "Value Propositions"
-- Bullet points with each value proposition
+### Example Text Box Content:
 
-**Slide 6: Customer Relationships**
-- Title: "Customer Relationships"
-- Bullet points with each relationship type
+**Key Partners:**
+• Cloud infrastructure providers
+• Technology integration partners
+• Strategic investors and VCs
+• Academic research institutions
 
-**Slide 7: Channels**
-- Title: "Channels"
-- Bullet points with each channel
+**Value Propositions:**
+• AI-powered business optimization
+• Automated decision-making tools
+• Real-time analytics and insights
+• Cost reduction through automation
 
-**Slide 8: Customer Segments**
-- Title: "Customer Segments"
-- Bullet points with each customer segment
+### Formatting Tips:
+- Use consistent bullet points (• or -)
+- One business element per line
+- Keep descriptions concise
+- Empty sections are okay
+- Slide title becomes canvas name
 
-**Slide 9: Cost Structure**
-- Title: "Cost Structure"
-- Bullet points with each cost category
+### Import Process:
+1. Save PowerPoint to OneDrive/SharePoint
+2. Get File ID from the URL
+3. Click "Import from PowerPoint" in app
+4. Enter File ID and import
 
-**Slide 10: Revenue Streams**
-- Title: "Revenue Streams"
-- Bullet points with each revenue source
-
-## Option 2: Single Slide Format
-
-Create one slide with 9 labeled text boxes:
-- Each text box should have a clear title (e.g., "Key Partners:")
-- Follow with bullet points for content
-
-## Formatting Tips
-
-- Use consistent bullet points (•, -, or numbers)
-- Keep titles exactly as shown above for automatic recognition
-- Avoid special characters in titles
-- Each bullet point becomes one item in the canvas
-- Empty sections will show "(No content provided)"
-
-## Import Process
-
-1. Save your PowerPoint file to OneDrive/SharePoint
-2. Use the import feature in the business model canvas app
-3. The app will automatically parse and convert your content
+The app will automatically detect the Business Model Canvas layout and convert each text box into the corresponding canvas section.
     `;
   }
 }
