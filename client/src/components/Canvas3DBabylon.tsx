@@ -331,7 +331,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Create billboard text using GUI directly on screen (no mesh plane)
       const titleRect = new Rectangle(`titleRect_${elementId}`);
       titleRect.widthInPixels = 200;
-      titleRect.heightInPixels = 40;
+      // Increase height for Revenue Streams to accommodate title and counter (reduced by 20%)
+      titleRect.heightInPixels = elementId === canvas.revenueStreams.id ? 64 : 40;
       titleRect.color = "rgba(255, 255, 255, 0.5)"; // White translucent border
       titleRect.background = "rgba(255, 255, 255, 0.5)"; // 50% transparent white background
       titleRect.thickness = 1;
@@ -343,7 +344,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       titleText.fontSize = 16;
       titleText.fontWeight = "bold";
       titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-      titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+      // For Revenue Streams, position title at top of the larger panel
+      titleText.textVerticalAlignment = elementId === canvas.revenueStreams.id ? 
+        Control.VERTICAL_ALIGNMENT_TOP : Control.VERTICAL_ALIGNMENT_CENTER;
+      if (elementId === canvas.revenueStreams.id) {
+        titleText.paddingTopInPixels = 5;
+      }
       titleRect.addControl(titleText);
 
       // Link to center of the box, positioned higher
@@ -351,6 +357,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Special positioning for Value Propositions (taller box) - place label at the top
       const isValuePropositions = elementId === canvas.valuePropositions.id;
       titleRect.linkOffsetY = isValuePropositions ? -140 : -50; // Even higher for Value Propositions
+
+      // Add counter inside the Revenue Streams label panel
+      if (elementId === canvas.revenueStreams.id) {
+        const counterText = new TextBlock(`counter_${elementId}`, "$100");
+        counterText.color = "#1B5E20"; // Dark green
+        counterText.fontSize = 14;
+        counterText.fontWeight = "bold";
+        counterText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+        counterText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+        counterText.paddingBottomInPixels = 5;
+        titleRect.addControl(counterText);
+        
+        // Store reference for animation updates
+        (titleRect as any).counterText = counterText;
+      }
 
       return box;
     };
@@ -541,29 +562,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         scene.beginAnimation(revenueLabel, 0, 90, true);
       }
       
-      // Create numeric counter under the Revenue Streams label
-      const counterText = new TextBlock(`counter_${canvas.revenueStreams.id}`, "$100");
-      counterText.color = "#1B5E20"; // Dark green
-      counterText.fontSize = 14;
-      counterText.fontWeight = "bold";
-      counterText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-      counterText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-      advancedTexture.addControl(counterText);
-
-      // Link counter to Revenue Streams box, positioned very low below the main label
-      counterText.linkWithMesh(revenueStreamsBox);
-      counterText.linkOffsetY = 100; // Position very low below the main label
-      
-      // Update counter text based on animation frame
+      // Update counter text based on animation frame for Revenue Streams
       scene.onBeforeRenderObservable.add(() => {
-        if (revenueStreamsBox) {
-          const currentScale = revenueStreamsBox.scaling.y;
+        const revenueBox = scene.getMeshByName(`box_${canvas.revenueStreams.id}`);
+        const revenueLabel = advancedTexture.getControlByName(`titleRect_${canvas.revenueStreams.id}`);
+        if (revenueBox && revenueLabel && (revenueLabel as any).counterText) {
+          const currentScale = revenueBox.scaling.y;
           const heightValue = Math.round(currentScale * 100);
-          counterText.text = `$${heightValue}`;
-          
-          // Adjust counter position to follow the label but stay much lower
-          const currentLabelOffset = revenueLabel ? (revenueLabel as any).linkOffsetY || -50 : -50;
-          counterText.linkOffsetY = currentLabelOffset + 150; // Position far below the moving label
+          (revenueLabel as any).counterText.text = `$${heightValue}`;
         }
       });
     }
