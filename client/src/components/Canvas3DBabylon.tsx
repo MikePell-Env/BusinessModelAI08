@@ -298,8 +298,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       material.diffuseColor = color; // Use the provided color
       material.specularColor = new Color3(0.5, 0.5, 0.5); // Moderate specular reflection
       material.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight glow
-      // Make Value Propositions less translucent, others semi-transparent
-      material.alpha = elementId === canvas.valuePropositions.id ? 0.95 : 0.8;
+      // Make Value Propositions opaque, others semi-transparent
+      material.alpha = elementId === canvas.valuePropositions.id ? 1.0 : 0.8;
       
       box.material = material;
 
@@ -350,7 +350,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       titleRect.linkWithMesh(box);
       // Special positioning for Value Propositions (taller box) - place label at the top
       const isValuePropositions = elementId === canvas.valuePropositions.id;
-      titleRect.linkOffsetY = isValuePropositions ? -100 : -50; // Much higher for Value Propositions
+      titleRect.linkOffsetY = isValuePropositions ? -140 : -50; // Even higher for Value Propositions
 
       return box;
     };
