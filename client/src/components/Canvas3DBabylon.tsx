@@ -40,55 +40,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create orthographic camera for top-down view (like 2D)
+    // Create camera with three-quarter view angle (rotated 20 degrees clockwise)
     const camera = new ArcRotateCamera(
       "camera",
-      -Math.PI / 2,        // 90-degree rotation for straight-on view
-      0,                   // 0-degree vertical angle for top-down view
-      12,                  // Distance from target
+      -Math.PI / 4 - Math.PI / 9,  // 45-degree + 20-degree clockwise rotation
+      Math.PI / 3,         // 60-degree vertical angle for better perspective
+      14,                  // Slightly farther distance to see more of the scene
       Vector3.Zero(),
       scene
     );
     camera.setTarget(Vector3.Zero());
     
-    // Start with orthographic projection to match 2D exactly
-    camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
-    camera.orthoLeft = -8;
-    camera.orthoRight = 8;
-    camera.orthoTop = 6;
-    camera.orthoBottom = -6;
-    
     // Enable camera controls on the canvas
     camera.attachControl(canvasRef.current, true);
     
-    // Lock camera to top view initially (no rotation allowed)
-    camera.lowerRadiusLimit = 12;
-    camera.upperRadiusLimit = 12;
-    camera.lowerBetaLimit = 0;
-    camera.upperBetaLimit = 0;
-    
-    // Track first click to switch to perspective
-    let hasClicked = false;
-    const switchToPerspective = () => {
-      if (!hasClicked) {
-        hasClicked = true;
-        console.log("Switching to perspective view");
-        
-        // Switch to perspective camera
-        camera.mode = Camera.PERSPECTIVE_CAMERA;
-        
-        // Restore original three-quarter view angle
-        camera.alpha = -Math.PI / 4 - Math.PI / 9;  // 45-degree + 20-degree clockwise rotation
-        camera.beta = Math.PI / 3;                  // 60-degree vertical angle
-        camera.radius = 14;                         // Distance
-        
-        // Enable full camera controls
-        camera.lowerRadiusLimit = 5;
-        camera.upperRadiusLimit = 25;
-        camera.lowerBetaLimit = 0.1;
-        camera.upperBetaLimit = Math.PI / 2.2;
-      }
-    };
+    // Set camera limits for better user experience
+    camera.lowerRadiusLimit = 5;
+    camera.upperRadiusLimit = 25;
+    camera.lowerBetaLimit = 0.1;
+    camera.upperBetaLimit = Math.PI / 2.2;
 
     // Balanced photorealistic lighting setup
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
@@ -392,9 +362,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.log(`Clicked on ${element.title}`);
         // Prevent camera movement when clicking on the box
         evt.sourceEvent?.stopPropagation();
-        
-        // Switch to perspective view on first click
-        switchToPerspective();
         
         if (currentSelectedElement === elementId) {
           // If already selected, hide panel
