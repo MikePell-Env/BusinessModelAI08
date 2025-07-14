@@ -457,31 +457,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return box;
     };
 
-    // Create business model canvas blocks in uniform 5x2 grid layout
+    // Create business model canvas blocks in uniform grid layout
     const blocks = [
-      // Top Row: Key Partners | Key Activities | Value Propositions | Customer Relationships | Customer Segments
+      // Tall boxes spanning both rows: Key Partners, Value Propositions, Customer Segments
       createBusinessBlock(
         canvas.keyPartners,
-        new Vector3(-4, 0.5, 1), // Column 1, Top row
-        new Vector3(1.6, 1, 1.8),
+        new Vector3(-4, 0.5, 0), // Column 1, centered between top and bottom rows
+        new Vector3(1.6, 1, 3.8), // Double height to span both rows
         new Color3(1, 1, 1), // White
         canvas.keyPartners.id
       ),
 
+      createBusinessBlock(
+        canvas.valuePropositions,
+        new Vector3(0, 0.5, 0), // Column 3, centered between top and bottom rows
+        new Vector3(1.6, 1, 3.8), // Double height to span both rows
+        new Color3(1, 1, 1), // White
+        canvas.valuePropositions.id
+      ),
+
+      createBusinessBlock(
+        canvas.customerSegments,
+        new Vector3(4, 0.5, 0), // Column 5, centered between top and bottom rows
+        new Vector3(1.6, 1, 3.8), // Double height to span both rows
+        new Color3(1, 1, 1), // White
+        canvas.customerSegments.id
+      ),
+
+      // Top row single boxes: Key Activities, Customer Relationships
       createBusinessBlock(
         canvas.keyActivities,
         new Vector3(-2, 0.5, 1), // Column 2, Top row
         new Vector3(1.6, 1, 1.8),
         new Color3(1, 1, 1), // White
         canvas.keyActivities.id
-      ),
-
-      createBusinessBlock(
-        canvas.valuePropositions,
-        new Vector3(0, 0.5, 1), // Column 3, Top row
-        new Vector3(1.6, 1, 1.8),
-        new Color3(1, 1, 1), // White
-        canvas.valuePropositions.id
       ),
 
       createBusinessBlock(
@@ -492,15 +501,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.customerRelationships.id
       ),
 
-      createBusinessBlock(
-        canvas.customerSegments,
-        new Vector3(4, 0.5, 1), // Column 5, Top row
-        new Vector3(1.6, 1, 1.8),
-        new Color3(1, 1, 1), // White
-        canvas.customerSegments.id
-      ),
-
-      // Bottom Row: [Empty] | Key Resources | [Empty] | Channels | [Empty]
+      // Bottom row single boxes: Key Resources, Channels
       createBusinessBlock(
         canvas.keyResources,
         new Vector3(-2, 0.5, -1), // Column 2, Bottom row
