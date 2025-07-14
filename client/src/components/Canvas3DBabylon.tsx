@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, Camera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
