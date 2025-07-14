@@ -429,7 +429,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       // Add counter inside the Revenue Streams and Cost Structure label panels
       if (elementId === canvas.revenueStreams.id) {
-        const counterText = new TextBlock(`counter_${elementId}`, "$100");
+        const counterText = new TextBlock(`counter_${elementId}`, "$100M");
         counterText.color = "#1B5E20"; // Dark green
         counterText.fontSize = 14;
         counterText.fontWeight = "bold";
@@ -441,7 +441,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Store reference for animation updates
         (titleRect as any).counterText = counterText;
       } else if (elementId === canvas.costStructure.id) {
-        const counterText = new TextBlock(`counter_${elementId}`, "$100");
+        const counterText = new TextBlock(`counter_${elementId}`, "$100M");
         counterText.color = "#B71C1C"; // Dark red
         counterText.fontSize = 14;
         counterText.fontWeight = "bold";
@@ -646,7 +646,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (revenueBox && revenueLabel && (revenueLabel as any).counterText) {
           const currentScale = revenueBox.scaling.y;
           const heightValue = Math.round(currentScale * 100);
-          (revenueLabel as any).counterText.text = `$${heightValue}`;
+          (revenueLabel as any).counterText.text = `$${heightValue}M`;
         }
         
         // Cost Structure counter
@@ -655,7 +655,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (costBox && costLabel && (costLabel as any).counterText) {
           const currentScale = costBox.scaling.y;
           const heightValue = Math.round(currentScale * 100);
-          (costLabel as any).counterText.text = `$${heightValue}`;
+          (costLabel as any).counterText.text = `$${heightValue}M`;
         }
       });
     }
