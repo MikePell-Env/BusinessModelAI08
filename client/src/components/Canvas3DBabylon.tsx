@@ -470,8 +470,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       createBusinessBlock(
         canvas.valuePropositions,
-        new Vector3(0, 0.5, 0), // Column 3, centered between top and bottom rows
-        new Vector3(1.6, 1, 3.8), // Double height to span both rows
+        new Vector3(0, 1, 0), // Column 3, moved up to center the taller box
+        new Vector3(1.6, 2, 3.8), // Double height (2 instead of 1)
         new Color3(1, 1, 1), // White
         canvas.valuePropositions.id
       ),
