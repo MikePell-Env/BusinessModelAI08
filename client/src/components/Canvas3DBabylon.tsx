@@ -457,85 +457,79 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return box;
     };
 
-    // Create business model canvas blocks matching 2D grid layout
+    // Create business model canvas blocks in uniform 5x2 grid layout
     const blocks = [
-      // Column 1-2: Key Partners (left, spans 2 rows)
+      // Top Row: Key Partners | Key Activities | Value Propositions | Customer Relationships | Customer Segments
       createBusinessBlock(
         canvas.keyPartners,
-        new Vector3(-4, 0.5, 0),
-        new Vector3(1.8, 1, 2.5),
+        new Vector3(-4, 0.5, 1), // Column 1, Top row
+        new Vector3(1.6, 1, 1.8),
         new Color3(1, 1, 1), // White
         canvas.keyPartners.id
       ),
 
-      // Column 3-4: Key Activities (top)
       createBusinessBlock(
         canvas.keyActivities,
-        new Vector3(-2, 0.5, 1),
-        new Vector3(1.8, 1, 1.2),
+        new Vector3(-2, 0.5, 1), // Column 2, Top row
+        new Vector3(1.6, 1, 1.8),
         new Color3(1, 1, 1), // White
         canvas.keyActivities.id
       ),
 
-      // Column 3-4: Key Resources (bottom)
-      createBusinessBlock(
-        canvas.keyResources,
-        new Vector3(-2, 0.5, -1),
-        new Vector3(1.8, 1, 1.2),
-        new Color3(1, 1, 1), // White
-        canvas.keyResources.id
-      ),
-
-      // Column 5-6: Value Propositions (center, spans 2 rows) - double height
       createBusinessBlock(
         canvas.valuePropositions,
-        new Vector3(0, 1, 0), // Moved up to center the taller box
-        new Vector3(1.8, 2, 2.5), // Double height (2 instead of 1)
+        new Vector3(0, 0.5, 1), // Column 3, Top row
+        new Vector3(1.6, 1, 1.8),
         new Color3(1, 1, 1), // White
         canvas.valuePropositions.id
       ),
 
-      // Column 7-8: Customer Relationships (top)
       createBusinessBlock(
         canvas.customerRelationships,
-        new Vector3(2, 0.5, 1),
-        new Vector3(1.8, 1, 1.2),
+        new Vector3(2, 0.5, 1), // Column 4, Top row
+        new Vector3(1.6, 1, 1.8),
         new Color3(1, 1, 1), // White
         canvas.customerRelationships.id
       ),
 
-      // Column 7-8: Channels (bottom)
-      createBusinessBlock(
-        canvas.channels,
-        new Vector3(2, 0.5, -1),
-        new Vector3(1.8, 1, 1.2),
-        new Color3(1, 1, 1), // White
-        canvas.channels.id
-      ),
-
-      // Column 9-10: Customer Segments (right, spans 2 rows)
       createBusinessBlock(
         canvas.customerSegments,
-        new Vector3(4, 0.5, 0),
-        new Vector3(1.8, 1, 2.5),
+        new Vector3(4, 0.5, 1), // Column 5, Top row
+        new Vector3(1.6, 1, 1.8),
         new Color3(1, 1, 1), // White
         canvas.customerSegments.id
       ),
 
-      // Row 3: Cost Structure (left aligned with Key Partners) - with red color and animation
+      // Bottom Row: [Empty] | Key Resources | [Empty] | Channels | [Empty]
+      createBusinessBlock(
+        canvas.keyResources,
+        new Vector3(-2, 0.5, -1), // Column 2, Bottom row
+        new Vector3(1.6, 1, 1.8),
+        new Color3(1, 1, 1), // White
+        canvas.keyResources.id
+      ),
+
+      createBusinessBlock(
+        canvas.channels,
+        new Vector3(2, 0.5, -1), // Column 4, Bottom row
+        new Vector3(1.6, 1, 1.8),
+        new Color3(1, 1, 1), // White
+        canvas.channels.id
+      ),
+
+      // Bottom Wide Row: Cost Structure spans columns 1-2.5 | Revenue Streams spans columns 3.5-5
       createBusinessBlock(
         canvas.costStructure,
-        new Vector3(-2, 0.5, -2.5),
-        new Vector3(3.8, 1, 1),
+        new Vector3(-2.5, 0.5, -3.5), // Left side, bottom wide row
+        new Vector3(3.5, 1, 1.6),
         new Color3(1, 0.8, 0.8), // Slightly red color
         canvas.costStructure.id
       ),
 
-      // Row 3: Revenue Streams (right side) - with green color and animation
       createBusinessBlock(
         canvas.revenueStreams,
-        new Vector3(2, 0.5, -2.5),
-        new Vector3(3.8, 1, 1),
+        new Vector3(2.5, 0.5, -3.5), // Right side, bottom wide row
+        new Vector3(3.5, 1, 1.6),
         new Color3(0.8, 1, 0.8), // Slightly green color
         canvas.revenueStreams.id
       )
