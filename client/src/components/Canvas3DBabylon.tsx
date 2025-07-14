@@ -518,19 +518,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.channels.id
       ),
 
-      // Bottom Wide Row: Cost Structure spans columns 1-2.5 | Revenue Streams spans columns 3.5-5
+      // Bottom Wide Row: Cost Structure and Revenue Streams aligned to grid edges
       createBusinessBlock(
         canvas.costStructure,
-        new Vector3(-2.5, 0.5, -3.5), // Left side, bottom wide row
-        new Vector3(3.5, 1, 1.6),
+        new Vector3(-2, 0.5, -2.8), // Left side, closer to main grid
+        new Vector3(4, 1, 1.6), // Spans from left edge to center
         new Color3(1, 0.8, 0.8), // Slightly red color
         canvas.costStructure.id
       ),
 
       createBusinessBlock(
         canvas.revenueStreams,
-        new Vector3(2.5, 0.5, -3.5), // Right side, bottom wide row
-        new Vector3(3.5, 1, 1.6),
+        new Vector3(2, 0.5, -2.8), // Right side, closer to main grid
+        new Vector3(4, 1, 1.6), // Spans from center to right edge
         new Color3(0.8, 1, 0.8), // Slightly green color
         canvas.revenueStreams.id
       )
