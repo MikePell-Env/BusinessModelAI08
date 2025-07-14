@@ -51,7 +51,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     );
     camera.setTarget(Vector3.Zero());
     
-    // Set to orthographic projection to match 2D exactly
+    // Start with orthographic projection to match 2D exactly
     camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
     camera.orthoLeft = -8;
     camera.orthoRight = 8;
@@ -61,11 +61,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Enable camera controls on the canvas
     camera.attachControl(canvasRef.current, true);
     
-    // Lock camera to top view only (no rotation allowed)
+    // Lock camera to top view initially (no rotation allowed)
     camera.lowerRadiusLimit = 12;
     camera.upperRadiusLimit = 12;
     camera.lowerBetaLimit = 0;
     camera.upperBetaLimit = 0;
+    
+    // Track first click to switch to perspective
+    let hasClicked = false;
+    const switchToPerspective = () => {
+      if (!hasClicked) {
+        hasClicked = true;
+        console.log("Switching to perspective view");
+        
+        // Switch to perspective camera
+        camera.mode = Camera.PERSPECTIVE_CAMERA;
+        
+        // Restore original three-quarter view angle
+        camera.alpha = -Math.PI / 4 - Math.PI / 9;  // 45-degree + 20-degree clockwise rotation
+        camera.beta = Math.PI / 3;                  // 60-degree vertical angle
+        camera.radius = 14;                         // Distance
+        
+        // Enable full camera controls
+        camera.lowerRadiusLimit = 5;
+        camera.upperRadiusLimit = 25;
+        camera.lowerBetaLimit = 0.1;
+        camera.upperBetaLimit = Math.PI / 2.2;
+      }
+    };
 
     // Balanced photorealistic lighting setup
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
@@ -369,6 +392,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.log(`Clicked on ${element.title}`);
         // Prevent camera movement when clicking on the box
         evt.sourceEvent?.stopPropagation();
+        
+        // Switch to perspective view on first click
+        switchToPerspective();
         
         if (currentSelectedElement === elementId) {
           // If already selected, hide panel
