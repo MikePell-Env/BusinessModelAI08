@@ -1,54 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Babylon.js Working Wood Texture</title>
+  <meta charset="utf-8">
+  <title>Wood Cube on Metallic Ground - Bright Scene</title>
   <style>
-    html, body { margin: 0; height: 100%; overflow: hidden; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
     canvas { width: 100%; height: 100%; display: block; }
   </style>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
 </head>
 <body>
-<canvas id="renderCanvas"></canvas>
-<script>
-  const canvas = document.getElementById("renderCanvas");
-  const engine = new BABYLON.Engine(canvas, true);
+  <canvas id="renderCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById("renderCanvas");
+    const engine = new BABYLON.Engine(canvas, true);
 
-  const createScene = () => {
-    const scene = new BABYLON.Scene(engine);
+    const createScene = () => {
+      const scene = new BABYLON.Scene(engine);
+      scene.clearColor = new BABYLON.Color3(0.05, 0.05, 0.07); // slightly brighter background
 
-    // Camera
-    const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 4, Math.PI / 4, 10, BABYLON.Vector3.Zero(), scene);
-    camera.attachControl(canvas, true);
+      // Camera
+      const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 4, Math.PI / 3.5, 6, new BABYLON.Vector3(0, 0.5, 0), scene);
+      camera.attachControl(canvas, true);
 
-    // Light
-    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
-    light.intensity = 1.2;
+      // Main dramatic spotlight
+      const spotlight = new BABYLON.SpotLight("spotLight",
+        new BABYLON.Vector3(4, 10, -4),
+        new BABYLON.Vector3(-1, -2, 1),
+        Math.PI / 2,
+        20,
+        scene);
+      spotlight.intensity = 120;
 
-    // Ground
-    const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
+      // Soft ambient hemispheric light
+      const hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+      hemiLight.intensity = 0.4;
 
-    // Cube
-    const box = BABYLON.MeshBuilder.CreateBox("box", { size: 2 }, scene);
-    box.position.y = 1;
+      const shadowGenerator = new BABYLON.ShadowGenerator(2048, spotlight);
+      shadowGenerator.useExponentialShadowMap = true;
 
-    // Material with working textures
-    const woodMat = new BABYLON.PBRMaterial("woodMat", scene);
-    woodMat.albedoTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/wood.jpg", scene);
-    woodMat.bumpTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/woodbump.jpg", scene);
-    woodMat.bumpTexture.level = 0.5;
-    woodMat.metallic = 0.1;
-    woodMat.roughness = 0.6;
+      // Ground - metallic silver
+      const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
+      const groundMat = new BABYLON.PBRMetallicRoughnessMaterial("groundMat", scene);
+      groundMat.baseColor = new BABYLON.Color3(0.95, 0.95, 1);
+      groundMat.metallic = 1.0;
+      groundMat.roughness = 0.15;
+      ground.material = groundMat;
+      ground.receiveShadows = true;
 
-    box.material = woodMat;
+      // Cube - wood
+      const cube = BABYLON.MeshBuilder.CreateBox("box", { size: 1 }, scene);
+      cube.position.y = 0.5;
 
-    return scene;
-  };
+      const woodMat = new BABYLON.PBRMaterial("woodMat", scene);
+      woodMat.albedoTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/wood.jpg", scene);
+      woodMat.bumpTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/woodNormal.jpg", scene);
+      woodMat.roughness = 0.5;
+      woodMat.metallic = 0.1;
+      cube.material = woodMat;
 
-  const scene = createScene();
-  engine.runRenderLoop(() => scene.render());
-  window.addEventListener("resize", () => engine.resize());
-</script>
+      shadowGenerator.addShadowCaster(cube);
+
+      return scene;
+    };
+
+    const scene = createScene();
+    engine.runRenderLoop(() => {
+      scene.render();
+    });
+
+    window.addEventListener("resize", () => {
+      engine.resize();
+    });
+  </script>
 </body>
 </html>
