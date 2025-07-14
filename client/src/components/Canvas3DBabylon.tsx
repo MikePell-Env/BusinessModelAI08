@@ -518,19 +518,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.channels.id
       ),
 
-      // Bottom Wide Row: Cost Structure and Revenue Streams matching image layout
+      // Bottom Wide Row: Cost Structure and Revenue Streams with proper gap
       createBusinessBlock(
         canvas.costStructure,
-        new Vector3(-2, 0.5, -2.8), // Centered between Key Partners and Value Propositions
-        new Vector3(4, 1, 1.6), // Width spans from left edge to just before Value Propositions
+        new Vector3(-2.5, 0.5, -2.8), // Left side, positioned to create gap
+        new Vector3(3, 1, 1.6), // Narrower width to allow for center gap
         new Color3(1, 0.8, 0.8), // Slightly red color
         canvas.costStructure.id
       ),
 
       createBusinessBlock(
         canvas.revenueStreams,
-        new Vector3(2, 0.5, -2.8), // Centered between Value Propositions and Customer Segments
-        new Vector3(4, 1, 1.6), // Width spans from just after Value Propositions to right edge
+        new Vector3(2.5, 0.5, -2.8), // Right side, positioned to create gap
+        new Vector3(3, 1, 1.6), // Narrower width to allow for center gap
         new Color3(0.8, 1, 0.8), // Slightly green color
         canvas.revenueStreams.id
       )
