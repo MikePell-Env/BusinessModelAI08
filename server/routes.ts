@@ -257,48 +257,62 @@ Revenue Streams
         });
       }
 
-      // Validate endpoint format (supports both Azure OpenAI and Cognitive Services endpoints)
-      if (!endpoint.includes('openai.azure.com') && !endpoint.includes('cognitiveservices.azure.com')) {
+      // Validate endpoint format (supports Azure OpenAI, Cognitive Services, and AI Foundry endpoints)
+      if (!endpoint.includes('openai.azure.com') && 
+          !endpoint.includes('cognitiveservices.azure.com') && 
+          !endpoint.includes('inference.ai.azure.com')) {
         return res.status(400).json({ 
-          error: 'Invalid Azure endpoint. Should contain "openai.azure.com" or "cognitiveservices.azure.com"' 
+          error: 'Invalid Azure endpoint. Should contain "openai.azure.com", "cognitiveservices.azure.com", or "inference.ai.azure.com"' 
         });
       }
 
       // Ensure endpoint ends with /
       const normalizedEndpoint = endpoint.endsWith('/') ? endpoint : endpoint + '/';
 
-      // First, try to get list of deployments to find the correct model name
+      // Determine API format based on endpoint type
+      let testUrl;
       let deploymentName = 'gpt-4';
-      const apiVersion = '2024-10-21'; // Use more recent API version
-      
-      try {
-        const deploymentsResponse = await fetch(`${normalizedEndpoint}openai/deployments?api-version=${apiVersion}`, {
-          method: 'GET',
-          headers: {
-            'api-key': apiKey,
-          },
-        });
+      const apiVersion = '2024-10-21';
 
-        if (deploymentsResponse.ok) {
-          const deployments = await deploymentsResponse.json();
-          console.log('Available deployments:', deployments);
-          
-          // Look for GPT-4 deployment (could be named differently)
-          const gpt4Deployment = deployments.data?.find((d: any) => 
-            d.model?.includes('gpt-4') || d.id?.includes('gpt-4')
-          );
-          
-          if (gpt4Deployment) {
-            deploymentName = gpt4Deployment.id;
-            console.log('Found GPT-4 deployment:', deploymentName);
+      if (normalizedEndpoint.includes('inference.ai.azure.com')) {
+        // Azure AI Foundry format - direct inference endpoint
+        testUrl = `${normalizedEndpoint}v1/chat/completions`;
+        console.log('Using Azure AI Foundry format');
+      } else {
+        // Traditional Azure OpenAI format
+        try {
+          const deploymentsResponse = await fetch(`${normalizedEndpoint}openai/deployments?api-version=${apiVersion}`, {
+            method: 'GET',
+            headers: {
+              'api-key': apiKey,
+            },
+          });
+
+          if (deploymentsResponse.ok) {
+            const deployments = await deploymentsResponse.json();
+            console.log('Available deployments:', deployments);
+            
+            const gpt4Deployment = deployments.data?.find((d: any) => 
+              d.model?.includes('gpt-4') || d.id?.includes('gpt-4')
+            );
+            
+            if (gpt4Deployment) {
+              deploymentName = gpt4Deployment.id;
+              console.log('Found GPT-4 deployment:', deploymentName);
+            }
           }
+        } catch (deploymentError) {
+          console.log('Could not fetch deployments, using default name:', deploymentError);
         }
-      } catch (deploymentError) {
-        console.log('Could not fetch deployments, using default name:', deploymentError);
+        
+        testUrl = `${normalizedEndpoint}openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
+        console.log('Using Azure OpenAI format');
       }
 
+      console.log('Testing with URL:', testUrl);
+
       // Test the credentials by making a simple API call
-      const testResponse = await fetch(`${normalizedEndpoint}openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`, {
+      const testResponse = await fetch(testUrl, {
         method: 'POST',
         headers: {
           'api-key': apiKey,
