@@ -150,40 +150,42 @@ export const AIChat: React.FC = () => {
       </CardHeader>
       
       {!isMinimized && (
-        <div className="flex flex-col flex-1 overflow-hidden">
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-3 p-4 bg-gray-50 m-4 mb-0 rounded-t border border-b-0 border-gray-300">
+        <div className="flex flex-col flex-1 overflow-hidden bg-white">
+          {/* Messages Area - Clean white space */}
+          <div className="flex-1 overflow-y-auto p-4 bg-white">
             {chatMessages.length === 0 ? (
-              <div className="text-center text-gray-500 text-sm mt-2 py-2">
+              <div className="text-center text-gray-500 text-sm mt-8">
                 Ask me anything about your business model canvas!
                 <br />
-                <span className="text-xs">
+                <span className="text-xs mt-2 block">
                   Try: "Explain my value proposition" or "Suggest improvements"
                 </span>
               </div>
             ) : (
-              chatMessages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
+              <div className="space-y-3">
+                {chatMessages.map((message) => (
                   <div
-                    className={`max-w-[80%] p-2 rounded-lg text-sm ${
-                      message.role === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-white text-gray-800 border'
-                    }`}
+                    key={message.id}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    {message.content}
+                    <div
+                      className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                        message.role === 'user'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {message.content}
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
             )}
-            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input - Fixed at bottom */}
-          <div className="p-4 border-t border-gray-200 bg-white">
+          {/* Input - Anchored at very bottom */}
+          <div className="border-t border-gray-200 p-4 bg-white">
             <div className="flex space-x-2">
               <Input
                 value={inputValue}
