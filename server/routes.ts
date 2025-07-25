@@ -253,18 +253,19 @@ Revenue Streams
         });
       }
 
-      // Validate endpoint format
-      if (!endpoint.includes('openai.azure.com')) {
+      // Validate endpoint format (supports both Azure OpenAI and Cognitive Services endpoints)
+      if (!endpoint.includes('openai.azure.com') && !endpoint.includes('cognitiveservices.azure.com')) {
         return res.status(400).json({ 
-          error: 'Invalid Azure OpenAI endpoint. Should contain "openai.azure.com"' 
+          error: 'Invalid Azure endpoint. Should contain "openai.azure.com" or "cognitiveservices.azure.com"' 
         });
       }
 
       // First, try to get list of deployments to find the correct model name
       let deploymentName = 'gpt-4';
+      const apiVersion = '2024-10-21'; // Use more recent API version
       
       try {
-        const deploymentsResponse = await fetch(`${endpoint}/openai/deployments?api-version=2024-06-01`, {
+        const deploymentsResponse = await fetch(`${endpoint}/openai/deployments?api-version=${apiVersion}`, {
           method: 'GET',
           headers: {
             'api-key': apiKey,
@@ -290,7 +291,7 @@ Revenue Streams
       }
 
       // Test the credentials by making a simple API call
-      const testResponse = await fetch(`${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2024-06-01`, {
+      const testResponse = await fetch(`${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`, {
         method: 'POST',
         headers: {
           'api-key': apiKey,
@@ -343,7 +344,7 @@ Revenue Streams
       }
 
       // Test connection
-      const testResponse = await fetch(`${endpoint}/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01`, {
+      const testResponse = await fetch(`${endpoint}/openai/deployments/gpt-4/chat/completions?api-version=2024-10-21`, {
         method: 'POST',
         headers: {
           'api-key': apiKey,
