@@ -272,7 +272,7 @@ Revenue Streams
       // Determine API format based on endpoint type
       let testUrl;
       let deploymentName = 'gpt-4';
-      const apiVersion = '2024-10-21';
+      const apiVersion = '2025-01-01-preview'; // Use the API version from user's working URL
 
       if (normalizedEndpoint.includes('inference.ai.azure.com')) {
         // Azure AI Foundry format - direct inference endpoint
@@ -377,7 +377,7 @@ Revenue Streams
       }
 
       // Test connection
-      const testResponse = await fetch(`${endpoint}/openai/deployments/gpt-4/chat/completions?api-version=2024-10-21`, {
+      const testResponse = await fetch(`${endpoint}/openai/deployments/gpt-4/chat/completions?api-version=2025-01-01-preview`, {
         method: 'POST',
         headers: {
           'api-key': apiKey,
