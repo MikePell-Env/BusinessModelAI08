@@ -117,17 +117,18 @@ export const AIChat: React.FC = () => {
   }
 
   return (
-    <Card className={`fixed top-6 bottom-6 right-6 w-96 bg-white shadow-xl z-50 transition-all duration-300 ${
+    <div className={`fixed top-6 bottom-6 right-6 w-96 bg-white shadow-xl z-50 transition-all duration-300 rounded-lg border flex flex-col ${
       isMinimized ? 'h-14 top-auto' : ''
     }`}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white">
+      {/* Header */}
+      <div className="flex flex-row items-center justify-between space-y-0 p-4 pb-2 bg-white border-b">
         <div className="flex items-center space-x-2">
           <img 
             src="/copilot-logo.png" 
             alt="Microsoft Copilot" 
             className="w-6 h-6"
           />
-          <CardTitle className="text-lg">Microsoft Copilot</CardTitle>
+          <h3 className="text-lg font-semibold">Microsoft Copilot</h3>
         </div>
         <div className="flex space-x-2">
           <Button
@@ -147,11 +148,11 @@ export const AIChat: React.FC = () => {
             <X className="h-4 w-4" />
           </Button>
         </div>
-      </CardHeader>
+      </div>
       
       {!isMinimized && (
-        <div className="flex flex-col flex-1 overflow-hidden bg-white">
-          {/* Messages Area - Clean white space */}
+        <>
+          {/* Messages Area - Takes up all available space */}
           <div className="flex-1 overflow-y-auto p-4 bg-white">
             {chatMessages.length === 0 ? (
               <div className="text-center text-gray-500 text-sm mt-8">
@@ -184,8 +185,8 @@ export const AIChat: React.FC = () => {
             )}
           </div>
 
-          {/* Input - Anchored at very bottom */}
-          <div className="border-t border-gray-200 p-4 bg-white">
+          {/* Input - Fixed at absolute bottom */}
+          <div className="border-t border-gray-200 p-4 bg-white rounded-b-lg">
             <div className="flex space-x-2">
               <Input
                 value={inputValue}
@@ -199,8 +200,8 @@ export const AIChat: React.FC = () => {
               </Button>
             </div>
           </div>
-        </div>
+        </>
       )}
-    </Card>
+    </div>
   );
 };
