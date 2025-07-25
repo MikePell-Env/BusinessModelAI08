@@ -31,7 +31,7 @@ interface CopilotRetrievalResponse {
 // Microsoft Graph API endpoints for Copilot and Azure OpenAI
 const COPILOT_API_BASE = 'https://graph.microsoft.com/v1.0/copilot';
 const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT || 'https://your-resource.openai.azure.com';
-const AZURE_OPENAI_API_VERSION = '2024-02-15-preview';
+const AZURE_OPENAI_API_VERSION = '2024-06-01';
 
 /**
  * Process AI chat using Microsoft Copilot API
