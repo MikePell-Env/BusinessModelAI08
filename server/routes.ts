@@ -308,9 +308,21 @@ Revenue Streams
 
       if (!testResponse.ok) {
         const errorText = await testResponse.text();
-        console.log('Test response error:', errorText);
+        console.log('Full error response:', errorText);
+        
+        // Parse specific error details
+        let errorMessage = `Connection failed (${testResponse.status})`;
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error?.message) {
+            errorMessage += `: ${errorData.error.message}`;
+          }
+        } catch {
+          errorMessage += `: ${errorText.substring(0, 100)}`;
+        }
+        
         return res.status(400).json({ 
-          error: `Connection failed (${testResponse.status}): ${errorText.substring(0, 200)}. Check your deployment name and API version.`
+          error: errorMessage + '\n\nTroubleshooting:\n1. Verify API key from Azure Portal → Your Resource → "Keys and Endpoint"\n2. Ensure GPT-4 model is deployed\n3. Check endpoint URL format'
         });
       }
 
