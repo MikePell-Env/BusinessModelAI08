@@ -75,7 +75,7 @@ export async function processCopilotChat(request: CopilotChatRequest): Promise<C
     };
 
   } catch (error) {
-    console.log('Microsoft Copilot services not available:', error.message);
+    console.log('Microsoft Copilot services not available:', (error as Error).message);
     throw error;
   }
 }
@@ -130,7 +130,7 @@ async function tryAzureOpenAI(request: CopilotChatRequest): Promise<CopilotChatR
     };
 
   } catch (error) {
-    console.log('Azure OpenAI not available:', error.message);
+    console.log('Azure OpenAI not available:', (error as Error).message);
     return null;
   }
 }
