@@ -759,13 +759,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Add flashing red animation to Customer Relationships box
     const customerRelationshipsBox = scene.getMeshByName(`box_${canvas.customerRelationships.id}`);
     if (customerRelationshipsBox) {
-      const originalMaterial = customerRelationshipsBox.material as StandardMaterial;
-      const originalColor = originalMaterial.diffuseColor.clone();
+      const originalMaterial = customerRelationshipsBox.material as PBRMetallicRoughnessMaterial;
+      const originalColor = originalMaterial.baseColor.clone();
       
       // Create color animation for flashing effect
       const flashAnimation = new Animation(
         "customerRelationshipsFlash",
-        "material.diffuseColor",
+        "material.baseColor",
         30, // 30 FPS
         Animation.ANIMATIONTYPE_COLOR3,
         Animation.ANIMATIONLOOPMODE_CYCLE
