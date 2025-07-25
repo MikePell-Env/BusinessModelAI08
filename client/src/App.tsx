@@ -68,6 +68,17 @@ function App() {
         <AzureCredentialSetup onCredentialsSubmit={handleCredentialsSubmit} />
       )}
 
+      {azureConfigured === true && (
+        <div className="fixed bottom-4 right-4 bg-green-100 border border-green-300 rounded-lg p-3 max-w-sm">
+          <p className="text-sm text-green-800 mb-1">
+            <strong>Microsoft Copilot Active</strong>
+          </p>
+          <p className="text-xs text-green-600">
+            Azure OpenAI connected and credentials saved
+          </p>
+        </div>
+      )}
+
       {azureConfigured === false && (
         <div className="fixed bottom-4 right-4 bg-blue-100 border border-blue-300 rounded-lg p-3 max-w-sm">
           <p className="text-sm text-blue-800 mb-2">
