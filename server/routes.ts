@@ -21,13 +21,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Use the OpenAI service which handles fallbacks properly
-      const response = await processAIChat({
+      console.log('🤖 Processing chat request with Microsoft Copilot...');
+      // Use Microsoft Copilot service with Azure OpenAI fallback
+      const response = await processCopilotChat({
         message,
         canvas,
         chatHistory: chatHistory || []
       });
-      res.json(response);
+      
+      // Add service identification info to response
+      const responseWithServiceInfo = {
+        ...response,
+        serviceInfo: {
+          provider: 'Microsoft Copilot',
+          route: 'Azure OpenAI → Microsoft Graph → OpenAI Fallback',
+          timestamp: new Date().toISOString()
+        }
+      };
+      
+      console.log('✅ Chat response generated via Microsoft technology stack');
+      res.json(responseWithServiceInfo);
     } catch (error) {
       console.error("Error in AI chat:", error);
       res.status(500).json({ 
