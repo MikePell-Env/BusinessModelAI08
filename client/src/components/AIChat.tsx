@@ -117,10 +117,10 @@ export const AIChat: React.FC = () => {
   }
 
   return (
-    <Card className={`fixed bottom-6 right-6 w-96 shadow-xl z-50 transition-all duration-300 ${
+    <Card className={`fixed bottom-6 right-6 w-96 bg-white shadow-xl z-50 transition-all duration-300 ${
       isMinimized ? 'h-14' : 'h-96'
     }`}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white">
         <CardTitle className="text-lg">AI Assistant</CardTitle>
         <div className="flex space-x-2">
           <Button
@@ -143,7 +143,7 @@ export const AIChat: React.FC = () => {
       </CardHeader>
       
       {!isMinimized && (
-        <CardContent className="flex flex-col h-80">
+        <CardContent className="flex flex-col h-80 bg-white">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto space-y-3 mb-4 p-2 bg-gray-50 rounded border border-gray-300">
             {chatMessages.length === 0 ? (
