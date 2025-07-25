@@ -89,7 +89,8 @@ The application follows a full-stack monorepo architecture with clear separation
 ## Recent Changes
 
 ### July 25, 2025 - Microsoft Copilot Successfully Activated
-- **✅ Azure OpenAI Integration Complete**: Successfully connected Microsoft Copilot with Azure OpenAI Service using Cognitive Services endpoint
+- **✅ Azure OpenAI Integration Complete**: Successfully connected Microsoft Copilot using Azure AI Foundry deployed model credentials
+- **✅ Credential Source Discovery**: API key must come from Azure AI Foundry (where model is deployed), not Azure Portal Cognitive Services
 - **✅ Enterprise-Grade AI Chat**: Microsoft Copilot now active with enhanced business model canvas analysis capabilities
 - **✅ Comprehensive Setup Interface**: Built complete credential management system with validation, testing, and troubleshooting
 - **✅ API Version Compatibility**: Resolved Azure API version conflicts (2025-01-01-preview) for seamless connectivity
