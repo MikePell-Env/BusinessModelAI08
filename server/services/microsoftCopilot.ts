@@ -79,12 +79,8 @@ export async function processCopilotChat(request: CopilotChatRequest): Promise<C
 
   } catch (error) {
     console.log('⚠️ Microsoft Copilot services not available, falling back to OpenAI...');
-    // Fallback to regular OpenAI service
-    const { processAIChat } = await import('./openai');
-    const fallbackResponse = await processAIChat(request);
-    return {
-      response: `🤖 **Microsoft Copilot (OpenAI Fallback)**\n\n${fallbackResponse.response}\n\n---\n*Note: Using OpenAI fallback - Microsoft services temporarily unavailable*`
-    };
+    // Direct OpenAI fallback without routing through Microsoft Copilot
+    return await fallbackToOpenAI(request);
   }
 }
 
@@ -169,6 +165,52 @@ Provide strategic insights, identify risks and opportunities, suggest improvemen
   } catch (error) {
     console.log('Azure OpenAI not available:', (error as Error).message);
     return null;
+  }
+}
+
+/**
+ * Direct OpenAI fallback function to avoid routing loops
+ */
+async function fallbackToOpenAI(request: CopilotChatRequest): Promise<CopilotChatResponse> {
+  try {
+    const OpenAI = (await import('openai')).default;
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: 'system',
+          content: `You are Microsoft Copilot, an expert business strategist specializing in Business Model Canvas analysis and evaluation.
+
+CURRENT BUSINESS MODEL CANVAS:
+${JSON.stringify(request.canvas, null, 2)}
+
+Provide strategic insights, identify risks and opportunities, suggest improvements, and recommend Microsoft technologies that align with the business model. Focus on actionable recommendations with clear implementation paths.`
+        },
+        ...request.chatHistory.map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content
+        })),
+        {
+          role: 'user',
+          content: request.message
+        }
+      ],
+      max_tokens: 1000,
+      temperature: 0.7
+    });
+
+    console.log('✅ Microsoft Copilot via OpenAI Fallback: Response generated successfully');
+    return {
+      response: `🤖 **Microsoft Copilot (OpenAI Fallback)**\n\n${response.choices[0].message.content}\n\n---\n*Note: Using OpenAI fallback - Microsoft services temporarily unavailable*`
+    };
+
+  } catch (error) {
+    console.error('OpenAI fallback failed:', error);
+    return {
+      response: `❌ **Service Unavailable**\n\nI'm having trouble connecting to AI services right now. Please try again in a moment.`
+    };
   }
 }
 
