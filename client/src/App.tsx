@@ -71,10 +71,10 @@ function App() {
       {azureConfigured === true && (
         <div className="fixed bottom-4 right-4 bg-green-100 border border-green-300 rounded-lg p-3 max-w-sm">
           <p className="text-sm text-green-800 mb-1">
-            <strong>Microsoft Copilot Active</strong>
+            <strong>🔒 Microsoft Copilot Active</strong>
           </p>
           <p className="text-xs text-green-600">
-            Azure OpenAI connected and credentials saved
+            Azure OpenAI connected with encrypted credential storage
           </p>
         </div>
       )}

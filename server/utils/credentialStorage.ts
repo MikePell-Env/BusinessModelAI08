@@ -1,11 +1,12 @@
 import { writeFile, readFile, existsSync } from 'fs';
 import { promisify } from 'util';
 import path from 'path';
+import crypto from 'crypto';
 
 const writeFileAsync = promisify(writeFile);
 const readFileAsync = promisify(readFile);
 
-const CREDENTIALS_FILE = path.join(process.cwd(), '.azure-credentials.json');
+const CREDENTIALS_FILE = path.join(process.cwd(), '.azure-credentials.enc');
 
 interface AzureCredentials {
   apiKey: string;
@@ -13,8 +14,54 @@ interface AzureCredentials {
   configuredAt: string;
 }
 
+interface EncryptedData {
+  iv: string;
+  encryptedData: string;
+  salt: string;
+}
+
+// Generate a key from machine-specific information
+function generateEncryptionKey(): string {
+  const machineInfo = `${process.platform}-${process.arch}-${process.env.HOME || process.env.USERPROFILE || 'default'}`;
+  return crypto.createHash('sha256').update(machineInfo).digest('hex');
+}
+
+function encrypt(text: string): EncryptedData {
+  const key = generateEncryptionKey();
+  const salt = crypto.randomBytes(16);
+  const iv = crypto.randomBytes(16);
+  
+  // Derive key using PBKDF2
+  const derivedKey = crypto.pbkdf2Sync(key, salt, 10000, 32, 'sha256');
+  
+  const cipher = crypto.createCipheriv('aes-256-gcm', derivedKey, iv);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  
+  return {
+    iv: iv.toString('hex'),
+    encryptedData: encrypted,
+    salt: salt.toString('hex')
+  };
+}
+
+function decrypt(encryptedData: EncryptedData): string {
+  const key = generateEncryptionKey();
+  const salt = Buffer.from(encryptedData.salt, 'hex');
+  const iv = Buffer.from(encryptedData.iv, 'hex');
+  
+  // Derive key using PBKDF2
+  const derivedKey = crypto.pbkdf2Sync(key, salt, 10000, 32, 'sha256');
+  
+  const decipher = crypto.createDecipheriv('aes-256-gcm', derivedKey, iv);
+  let decrypted = decipher.update(encryptedData.encryptedData, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  
+  return decrypted;
+}
+
 /**
- * Save Azure OpenAI credentials to secure local storage
+ * Save Azure OpenAI credentials to encrypted local storage
  */
 export async function saveCredentials(apiKey: string, endpoint: string): Promise<void> {
   const credentials: AzureCredentials = {
@@ -24,13 +71,16 @@ export async function saveCredentials(apiKey: string, endpoint: string): Promise
   };
 
   try {
-    await writeFileAsync(CREDENTIALS_FILE, JSON.stringify(credentials, null, 2));
+    const credentialsJson = JSON.stringify(credentials);
+    const encrypted = encrypt(credentialsJson);
+    
+    await writeFileAsync(CREDENTIALS_FILE, JSON.stringify(encrypted, null, 2));
     
     // Also set in environment for immediate use
     process.env.AZURE_OPENAI_API_KEY = apiKey;
     process.env.AZURE_OPENAI_ENDPOINT = endpoint;
     
-    console.log('Azure credentials saved successfully');
+    console.log('Azure credentials encrypted and saved successfully');
   } catch (error) {
     console.error('Failed to save credentials:', error);
     throw new Error('Failed to save credentials');
@@ -38,7 +88,7 @@ export async function saveCredentials(apiKey: string, endpoint: string): Promise
 }
 
 /**
- * Load Azure OpenAI credentials from secure local storage
+ * Load Azure OpenAI credentials from encrypted local storage
  */
 export async function loadCredentials(): Promise<AzureCredentials | null> {
   try {
@@ -47,16 +97,19 @@ export async function loadCredentials(): Promise<AzureCredentials | null> {
     }
 
     const data = await readFileAsync(CREDENTIALS_FILE, 'utf8');
-    const credentials: AzureCredentials = JSON.parse(data);
+    const encryptedData: EncryptedData = JSON.parse(data);
+    
+    const decryptedJson = decrypt(encryptedData);
+    const credentials: AzureCredentials = JSON.parse(decryptedJson);
     
     // Set in environment variables
     process.env.AZURE_OPENAI_API_KEY = credentials.apiKey;
     process.env.AZURE_OPENAI_ENDPOINT = credentials.endpoint;
     
-    console.log('Azure credentials loaded successfully');
+    console.log('Azure credentials decrypted and loaded successfully');
     return credentials;
   } catch (error) {
-    console.error('Failed to load credentials:', error);
+    console.error('Failed to load or decrypt credentials:', error);
     return null;
   }
 }

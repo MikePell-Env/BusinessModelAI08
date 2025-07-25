@@ -16,8 +16,9 @@ server/public/
 .env.test.local
 .env.production.local
 
-# Azure credentials
+# Azure credentials (encrypted and plain)
 .azure-credentials.json
+.azure-credentials.enc
 
 # OS generated files
 .DS_Store
