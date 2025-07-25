@@ -132,19 +132,13 @@ export const AIChat: React.FC = () => {
     }`}>
       {/* Header */}
       <div className="flex flex-row items-center justify-between space-y-0 p-4 pb-2 bg-white border-b">
-        <div className="flex flex-col space-y-1">
-          <div className="flex items-center space-x-2">
-            <img 
-              src="/copilot-logo.png" 
-              alt="Microsoft Copilot" 
-              className="w-6 h-6"
-            />
-            <h3 className="text-lg font-semibold">Microsoft Copilot</h3>
-          </div>
-          <AIServiceIndicator 
-            serviceInfo={lastServiceInfo} 
-            isLoading={isProcessing}
+        <div className="flex items-center space-x-2">
+          <img 
+            src="/copilot-logo.png" 
+            alt="Microsoft Copilot" 
+            className="w-6 h-6"
           />
+          <h3 className="text-lg font-semibold">Microsoft Copilot</h3>
         </div>
         <div className="flex space-x-2">
           <Button

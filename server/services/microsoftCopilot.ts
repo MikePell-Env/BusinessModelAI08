@@ -73,7 +73,7 @@ export async function processCopilotChat(request: CopilotChatRequest): Promise<C
     const data = await response.json();
     console.log('✅ Microsoft Copilot via Graph API: Response generated successfully');
     return {
-      response: `🤖 **Microsoft Copilot (Graph API)**\n\n${data.response}\n\n---\n*Powered by Microsoft Graph API*`,
+      response: data.response,
       canvasUpdates: data.canvasUpdates
     };
 
@@ -159,7 +159,7 @@ Provide strategic insights, identify risks and opportunities, suggest improvemen
     const data = await response.json();
     console.log('✅ Microsoft Copilot via Azure OpenAI: Response generated successfully');
     return {
-      response: `🤖 **Microsoft Copilot (Azure OpenAI)**\n\n${data.choices[0].message.content}\n\n---\n*Powered by Azure OpenAI Service*`
+      response: data.choices[0].message.content
     };
 
   } catch (error) {
@@ -203,7 +203,7 @@ Provide strategic insights, identify risks and opportunities, suggest improvemen
 
     console.log('✅ Microsoft Copilot via OpenAI Fallback: Response generated successfully');
     return {
-      response: `🤖 **Microsoft Copilot (OpenAI Fallback)**\n\n${response.choices[0].message.content}\n\n---\n*Note: Using OpenAI fallback - Microsoft services temporarily unavailable*`
+      response: response.choices[0].message.content
     };
 
   } catch (error) {
