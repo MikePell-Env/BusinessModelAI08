@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, Camera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, Camera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Color4, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
@@ -31,11 +31,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     scene.imageProcessingConfiguration.toneMappingEnabled = true;
     scene.imageProcessingConfiguration.toneMappingType = 1; // ACES tone mapping
     
-    // Enable PBR environment
-    scene.environmentIntensity = 0.8;
+    // Enable PBR environment for enhanced metallic reflections
+    scene.environmentIntensity = 1.5; // Boost environment for better metallic reflections
     
     // Set white background
-    scene.clearColor = new Color3(1, 1, 1);
+    scene.clearColor = new Color4(1, 1, 1, 1);
     
     engineRef.current = engine;
     sceneRef.current = scene;
@@ -319,40 +319,38 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       box.position = position;
       
-      // Create photorealistic materials based on element type
-      let material: StandardMaterial | PBRMaterial;
+      // Create enhanced Standard materials with metallic appearance
+      const material = new StandardMaterial(`material_${elementId}`, scene);
       
-      if (elementId === canvas.keyResources.id) {
-        // Same white material as other boxes
-        const standardMaterial = new StandardMaterial(`material_${elementId}`, scene);
-        standardMaterial.diffuseColor = color;
-        standardMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
-        standardMaterial.emissiveColor = new Color3(0.05, 0.05, 0.05);
-        material = standardMaterial;
+      // Use light blue for most boxes, keep original colors for specific ones
+      const keepOriginalColor = elementId === canvas.costStructure.id || 
+                                elementId === canvas.revenueStreams.id || 
+                                elementId === canvas.customerRelationships.id;
+      
+      if (keepOriginalColor) {
+        material.diffuseColor = color; // Keep original color
+      } else if (elementId === canvas.valuePropositions.id) {
+        material.diffuseColor = new Color3(0.95, 0.95, 0.98); // Slightly off-white with blue tint
       } else {
-        // Standard material for other elements with enhanced properties
-        const standardMaterial = new StandardMaterial(`material_${elementId}`, scene);
-        
-        // Use light blue for most boxes, keep original colors for specific ones
-        const keepOriginalColor = elementId === canvas.costStructure.id || 
-                                  elementId === canvas.revenueStreams.id || 
-                                  elementId === canvas.customerRelationships.id;
-        
-        if (keepOriginalColor) {
-          standardMaterial.diffuseColor = color; // Keep original color
-        } else if (elementId === canvas.valuePropositions.id) {
-          standardMaterial.diffuseColor = new Color3(1.0, 1.0, 1.0); // White for Value Propositions
-        } else {
-          standardMaterial.diffuseColor = new Color3(0.7, 0.85, 1.0); // Light blue
-        }
-        
-        standardMaterial.specularColor = new Color3(0.5, 0.5, 0.5); // Moderate specular reflection
-        standardMaterial.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight glow
-        // Make Value Propositions slightly translucent, others more translucent
-        standardMaterial.alpha = elementId === canvas.valuePropositions.id ? 0.8 : 0.6;
-        
-        material = standardMaterial;
+        material.diffuseColor = new Color3(0.8, 0.9, 1.0); // Light blue metallic base
       }
+      
+      // Enhanced metallic appearance with high specular reflection
+      material.specularColor = new Color3(0.9, 0.9, 0.9); // High specular for metallic shine
+      material.specularPower = 128; // Sharp, concentrated reflections
+      
+      // Add subtle emissive glow for depth
+      material.emissiveColor = new Color3(0.05, 0.08, 0.12); // Subtle blue glow
+      
+      // Subtle transparency for depth and light interaction
+      if (elementId === canvas.valuePropositions.id) {
+        material.alpha = 0.9; // Slightly less transparent for central element
+      } else {
+        material.alpha = 0.85; // Subtle transparency to show depth
+      }
+      
+      // Enable back face culling for better performance
+      material.backFaceCulling = true;
       
       box.material = material;
 
