@@ -260,8 +260,37 @@ Revenue Streams
         });
       }
 
+      // First, try to get list of deployments to find the correct model name
+      let deploymentName = 'gpt-4';
+      
+      try {
+        const deploymentsResponse = await fetch(`${endpoint}/openai/deployments?api-version=2024-06-01`, {
+          method: 'GET',
+          headers: {
+            'api-key': apiKey,
+          },
+        });
+
+        if (deploymentsResponse.ok) {
+          const deployments = await deploymentsResponse.json();
+          console.log('Available deployments:', deployments);
+          
+          // Look for GPT-4 deployment (could be named differently)
+          const gpt4Deployment = deployments.data?.find((d: any) => 
+            d.model?.includes('gpt-4') || d.id?.includes('gpt-4')
+          );
+          
+          if (gpt4Deployment) {
+            deploymentName = gpt4Deployment.id;
+            console.log('Found GPT-4 deployment:', deploymentName);
+          }
+        }
+      } catch (deploymentError) {
+        console.log('Could not fetch deployments, using default name:', deploymentError);
+      }
+
       // Test the credentials by making a simple API call
-      const testResponse = await fetch(`${endpoint}/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01`, {
+      const testResponse = await fetch(`${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2024-06-01`, {
         method: 'POST',
         headers: {
           'api-key': apiKey,
@@ -273,9 +302,14 @@ Revenue Streams
         }),
       });
 
+      console.log('Test response status:', testResponse.status);
+      console.log('Test response headers:', Object.fromEntries(testResponse.headers.entries()));
+
       if (!testResponse.ok) {
+        const errorText = await testResponse.text();
+        console.log('Test response error:', errorText);
         return res.status(400).json({ 
-          error: 'Invalid credentials or GPT-4 model not deployed. Please check your Azure OpenAI setup.' 
+          error: `Connection failed (${testResponse.status}): ${errorText.substring(0, 200)}. Check your deployment name and API version.`
         });
       }
 
