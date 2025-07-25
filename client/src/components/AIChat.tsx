@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { ChatMessage } from '@/types/canvas';
 import { Send, X, Minimize2 } from 'lucide-react';
+import { AIServiceIndicator } from './AIServiceIndicator';
 
 export const AIChat: React.FC = () => {
   const {
@@ -20,6 +21,8 @@ export const AIChat: React.FC = () => {
   
   const [inputValue, setInputValue] = useState('');
   const [isMinimized, setIsMinimized] = useState(false);
+  const [lastServiceInfo, setLastServiceInfo] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -43,6 +46,7 @@ export const AIChat: React.FC = () => {
     addChatMessage(userMessage);
     setInputValue('');
     setLoading(true);
+    setIsProcessing(true);
 
     try {
       const response = await fetch('/api/ai/chat', {
@@ -62,6 +66,11 @@ export const AIChat: React.FC = () => {
       }
 
       const data = await response.json();
+
+      // Capture service information for display
+      if (data.serviceInfo) {
+        setLastServiceInfo(data.serviceInfo);
+      }
 
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
@@ -91,6 +100,7 @@ export const AIChat: React.FC = () => {
       addChatMessage(errorMessage);
     } finally {
       setLoading(false);
+      setIsProcessing(false);
     }
   };
 
@@ -122,13 +132,19 @@ export const AIChat: React.FC = () => {
     }`}>
       {/* Header */}
       <div className="flex flex-row items-center justify-between space-y-0 p-4 pb-2 bg-white border-b">
-        <div className="flex items-center space-x-2">
-          <img 
-            src="/copilot-logo.png" 
-            alt="Microsoft Copilot" 
-            className="w-6 h-6"
+        <div className="flex flex-col space-y-1">
+          <div className="flex items-center space-x-2">
+            <img 
+              src="/copilot-logo.png" 
+              alt="Microsoft Copilot" 
+              className="w-6 h-6"
+            />
+            <h3 className="text-lg font-semibold">Microsoft Copilot</h3>
+          </div>
+          <AIServiceIndicator 
+            serviceInfo={lastServiceInfo} 
+            isLoading={isProcessing}
           />
-          <h3 className="text-lg font-semibold">Microsoft Copilot</h3>
         </div>
         <div className="flex space-x-2">
           <Button

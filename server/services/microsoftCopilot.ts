@@ -39,12 +39,14 @@ const AZURE_OPENAI_API_VERSION = '2025-01-01-preview';
  */
 export async function processCopilotChat(request: CopilotChatRequest): Promise<CopilotChatResponse> {
   try {
+    console.log('🔄 Attempting Microsoft Copilot via Azure OpenAI...');
     // First try Azure OpenAI Service (more reliable)
     const azureResponse = await tryAzureOpenAI(request);
     if (azureResponse) {
       return azureResponse;
     }
 
+    console.log('🔄 Azure OpenAI unavailable, trying Microsoft Graph Copilot API...');
     // Fallback to Microsoft Graph Copilot API
     const accessToken = await microsoftAuth.getAccessToken();
     
@@ -69,14 +71,20 @@ export async function processCopilotChat(request: CopilotChatRequest): Promise<C
     }
 
     const data = await response.json();
+    console.log('✅ Microsoft Copilot via Graph API: Response generated successfully');
     return {
-      response: data.response,
+      response: `🤖 **Microsoft Copilot (Graph API)**\n\n${data.response}\n\n---\n*Powered by Microsoft Graph API*`,
       canvasUpdates: data.canvasUpdates
     };
 
   } catch (error) {
-    console.log('Microsoft Copilot services not available:', (error as Error).message);
-    throw error;
+    console.log('⚠️ Microsoft Copilot services not available, falling back to OpenAI...');
+    // Fallback to regular OpenAI service
+    const { processAIChat } = await import('./openai');
+    const fallbackResponse = await processAIChat(request);
+    return {
+      response: `🤖 **Microsoft Copilot (OpenAI Fallback)**\n\n${fallbackResponse.response}\n\n---\n*Note: Using OpenAI fallback - Microsoft services temporarily unavailable*`
+    };
   }
 }
 
@@ -153,8 +161,9 @@ Provide strategic insights, identify risks and opportunities, suggest improvemen
     }
 
     const data = await response.json();
+    console.log('✅ Microsoft Copilot via Azure OpenAI: Response generated successfully');
     return {
-      response: data.choices[0].message.content
+      response: `🤖 **Microsoft Copilot (Azure OpenAI)**\n\n${data.choices[0].message.content}\n\n---\n*Powered by Azure OpenAI Service*`
     };
 
   } catch (error) {
