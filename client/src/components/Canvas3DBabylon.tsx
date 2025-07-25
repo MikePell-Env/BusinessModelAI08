@@ -34,16 +34,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Enable PBR environment for enhanced metallic reflections
     scene.environmentIntensity = 1.5; // Boost environment for better metallic reflections
     
-    // Create default environment for PBR reflections
+    // Create default environment for PBR reflections with white background
     const defaultEnvironment = scene.createDefaultEnvironment({
-      enableGroundShadow: true,
-      groundYBias: 1,
+      enableGroundShadow: false,
       enableGroundMirror: false,
-      groundShadowLevel: 0.5
+      skyboxColor: new Color3(1, 1, 1), // White skybox
+      groundColor: new Color3(1, 1, 1), // White ground
+      skyboxSize: 100
     });
     
     // Set white background
     scene.clearColor = new Color4(1, 1, 1, 1);
+    
+    // Remove the default skybox if it exists and create white environment
+    if (defaultEnvironment && defaultEnvironment.skybox) {
+      defaultEnvironment.skybox.dispose();
+    }
     
     engineRef.current = engine;
     sceneRef.current = scene;
