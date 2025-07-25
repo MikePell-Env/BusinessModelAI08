@@ -42,7 +42,8 @@ export const AzureCredentialSetup: React.FC<AzureCredentialSetupProps> = ({ onCr
             Enable Microsoft Copilot
           </h2>
           <p className="text-gray-600">
-            Connect your Azure OpenAI Service to enable enterprise-grade Microsoft Copilot integration
+            Connect your Azure OpenAI Service to enable enterprise-grade Microsoft Copilot integration.
+            <br /><strong>Credentials will be saved securely</strong> - you only need to do this once.
           </p>
         </div>
 

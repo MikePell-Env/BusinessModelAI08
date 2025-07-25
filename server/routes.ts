@@ -347,9 +347,9 @@ Revenue Streams
         });
       }
 
-      // Store credentials in environment (in production, use secure storage)
-      process.env.AZURE_OPENAI_API_KEY = apiKey;
-      process.env.AZURE_OPENAI_ENDPOINT = endpoint;
+      // Store credentials persistently
+      const { saveCredentials } = await import('./utils/credentialStorage');
+      await saveCredentials(apiKey, normalizedEndpoint);
 
       res.json({ 
         success: true, 
@@ -400,6 +400,23 @@ Revenue Streams
         configured: true,
         connected: false,
         message: 'Connection test failed'
+      });
+    }
+  });
+
+  app.delete("/api/azure/credentials", async (_req, res) => {
+    try {
+      const { clearCredentials } = await import('./utils/credentialStorage');
+      await clearCredentials();
+      
+      res.json({ 
+        success: true, 
+        message: 'Azure credentials cleared successfully' 
+      });
+    } catch (error) {
+      console.error('Failed to clear credentials:', error);
+      res.status(500).json({ 
+        error: 'Failed to clear credentials' 
       });
     }
   });

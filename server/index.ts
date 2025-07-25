@@ -37,6 +37,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Load Azure credentials on startup
+  try {
+    const { loadCredentials } = await import('./utils/credentialStorage');
+    await loadCredentials();
+  } catch (error) {
+    console.log('No saved Azure credentials found');
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
