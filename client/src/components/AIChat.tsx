@@ -143,9 +143,9 @@ export const AIChat: React.FC = () => {
       </CardHeader>
       
       {!isMinimized && (
-        <CardContent className="flex flex-col flex-1 bg-white">
+        <CardContent className="flex flex-col flex-1 bg-white p-4">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-3 mb-4 p-2 bg-gray-50 rounded border border-gray-300">
+          <div className="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-50 rounded border border-gray-300 mb-4">
             {chatMessages.length === 0 ? (
               <div className="text-center text-gray-500 text-sm mt-2 py-2">
                 Ask me anything about your business model canvas!
@@ -175,8 +175,8 @@ export const AIChat: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <div className="flex space-x-2">
+          {/* Input - Anchored to bottom */}
+          <div className="flex space-x-2 mt-auto pt-4 border-t border-gray-200">
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
