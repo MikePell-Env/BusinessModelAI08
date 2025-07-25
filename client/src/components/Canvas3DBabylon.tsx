@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, Camera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, Color3, Color4, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, Camera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, PBRMetallicRoughnessMaterial, Color3, Color4, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
@@ -33,6 +33,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Enable PBR environment for enhanced metallic reflections
     scene.environmentIntensity = 1.5; // Boost environment for better metallic reflections
+    
+    // Create default environment for PBR reflections
+    const defaultEnvironment = scene.createDefaultEnvironment({
+      enableGroundShadow: true,
+      groundYBias: 1,
+      enableGroundMirror: false,
+      groundShadowLevel: 0.5
+    });
     
     // Set white background
     scene.clearColor = new Color4(1, 1, 1, 1);
@@ -319,8 +327,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       box.position = position;
       
-      // Create enhanced Standard materials with metallic appearance
-      const material = new StandardMaterial(`material_${elementId}`, scene);
+      // Create proper PBR metallic material for realistic metallic appearance
+      const material = new PBRMetallicRoughnessMaterial(`material_${elementId}`, scene);
       
       // Use light blue for most boxes, keep original colors for specific ones
       const keepOriginalColor = elementId === canvas.costStructure.id || 
@@ -328,26 +336,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                                 elementId === canvas.customerRelationships.id;
       
       if (keepOriginalColor) {
-        material.diffuseColor = color; // Keep original color
+        material.baseColor = color; // Keep original color
       } else if (elementId === canvas.valuePropositions.id) {
-        material.diffuseColor = new Color3(0.95, 0.95, 0.98); // Slightly off-white with blue tint
+        material.baseColor = new Color3(0.9, 0.9, 0.95); // Slightly off-white with subtle blue tint
       } else {
-        material.diffuseColor = new Color3(0.8, 0.9, 1.0); // Light blue metallic base
+        material.baseColor = new Color3(0.75, 0.85, 1.0); // Light blue metallic base
       }
       
-      // Enhanced metallic appearance with high specular reflection
-      material.specularColor = new Color3(0.9, 0.9, 0.9); // High specular for metallic shine
-      material.specularPower = 128; // Sharp, concentrated reflections
+      // Key metallic properties for shiny, reflective appearance
+      material.metallic = 0.9; // High metallic value (0.0 = dielectric, 1.0 = full metal)
+      material.roughness = 0.1; // Low roughness for high shine (0.0 = mirror, 1.0 = rough)
       
-      // Add subtle emissive glow for depth
-      material.emissiveColor = new Color3(0.05, 0.08, 0.12); // Subtle blue glow
+      // Use the scene's environment texture for reflections
+      if (scene.environmentTexture) {
+        material.environmentTexture = scene.environmentTexture;
+      }
       
-      // Subtle transparency for depth and light interaction
+      // Subtle transparency for depth and sophistication
       if (elementId === canvas.valuePropositions.id) {
-        material.alpha = 0.9; // Slightly less transparent for central element
+        material.alpha = 0.95; // Central element less transparent
       } else {
-        material.alpha = 0.85; // Subtle transparency to show depth
+        material.alpha = 0.9; // Subtle transparency
       }
+      
+      // Enable alpha blending for transparency
+      material.transparencyMode = PBRMetallicRoughnessMaterial.PBRMATERIAL_ALPHABLEND;
       
       // Enable back face culling for better performance
       material.backFaceCulling = true;
@@ -370,29 +383,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       }));
 
-      // Add hover effects - same for all boxes
-      {
-        // Standard hover effects for other materials
-        const stdMaterial = material as StandardMaterial;
-        const keepOriginalColor = elementId === canvas.costStructure.id || 
-                                  elementId === canvas.revenueStreams.id || 
-                                  elementId === canvas.customerRelationships.id;
-        
-        box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-          stdMaterial.diffuseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
-        }));
+      // Add hover effects for PBR materials
+      
+      // Store original base color for hover restoration
+      const originalBaseColor = material.baseColor.clone();
+      
+      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+        material.baseColor = new Color3(0.4, 0.7, 1.0); // Bright blue hover for PBR
+        material.metallic = 0.95; // Increase metallic on hover
+        material.roughness = 0.05; // Decrease roughness for extra shine
+      }));
 
-        box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-          // Return to the correct color based on element type
-          if (keepOriginalColor) {
-            stdMaterial.diffuseColor = color; // Return to original color
-          } else if (elementId === canvas.valuePropositions.id) {
-            stdMaterial.diffuseColor = new Color3(1.0, 1.0, 1.0); // Return to white
-          } else {
-            stdMaterial.diffuseColor = new Color3(0.7, 0.85, 1.0); // Return to light blue
-          }
-        }));
-      }
+      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+        // Return to original values
+        material.baseColor = originalBaseColor;
+        material.metallic = 0.9; // Reset to original metallic
+        material.roughness = 0.1; // Reset to original roughness
+      }));
 
       // Create billboard text using GUI directly on screen (no mesh plane)
       const titleRect = new Rectangle(`titleRect_${elementId}`);
