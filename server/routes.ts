@@ -261,7 +261,7 @@ Revenue Streams
       }
 
       // Test the credentials by making a simple API call
-      const testResponse = await fetch(`${endpoint}/openai/deployments/gpt-4/chat/completions?api-version=2024-02-15-preview`, {
+      const testResponse = await fetch(`${endpoint}/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01`, {
         method: 'POST',
         headers: {
           'api-key': apiKey,
@@ -309,7 +309,7 @@ Revenue Streams
       }
 
       // Test connection
-      const testResponse = await fetch(`${endpoint}/openai/deployments/gpt-4/chat/completions?api-version=2024-02-15-preview`, {
+      const testResponse = await fetch(`${endpoint}/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01`, {
         method: 'POST',
         headers: {
           'api-key': apiKey,
