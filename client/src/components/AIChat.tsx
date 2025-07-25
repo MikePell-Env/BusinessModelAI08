@@ -121,7 +121,14 @@ export const AIChat: React.FC = () => {
       isMinimized ? 'h-14 top-auto' : ''
     }`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white">
-        <CardTitle className="text-lg">Microsoft Copilot</CardTitle>
+        <div className="flex items-center space-x-2">
+          <img 
+            src="/copilot-logo.png" 
+            alt="Microsoft Copilot" 
+            className="w-6 h-6"
+          />
+          <CardTitle className="text-lg">Microsoft Copilot</CardTitle>
+        </div>
         <div className="flex space-x-2">
           <Button
             variant="ghost"
@@ -143,9 +150,9 @@ export const AIChat: React.FC = () => {
       </CardHeader>
       
       {!isMinimized && (
-        <CardContent className="flex flex-col flex-1 bg-white p-4">
+        <div className="flex flex-col flex-1 overflow-hidden">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-50 rounded border border-gray-300 mb-4">
+          <div className="flex-1 overflow-y-auto space-y-3 p-4 bg-gray-50 m-4 mb-0 rounded-t border border-b-0 border-gray-300">
             {chatMessages.length === 0 ? (
               <div className="text-center text-gray-500 text-sm mt-2 py-2">
                 Ask me anything about your business model canvas!
@@ -175,20 +182,22 @@ export const AIChat: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input - Anchored to bottom */}
-          <div className="flex space-x-2 mt-auto pt-4 border-t border-gray-200">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask about your business model..."
-              className="flex-1"
-            />
-            <Button onClick={handleSendMessage} size="icon" disabled={!inputValue.trim()}>
-              <Send className="h-4 w-4" />
-            </Button>
+          {/* Input - Fixed at bottom */}
+          <div className="p-4 border-t border-gray-200 bg-white">
+            <div className="flex space-x-2">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask about your business model..."
+                className="flex-1"
+              />
+              <Button onClick={handleSendMessage} size="icon" disabled={!inputValue.trim()}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </CardContent>
+        </div>
       )}
     </Card>
   );
