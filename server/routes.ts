@@ -306,7 +306,7 @@ Revenue Streams
         }
         
         testUrl = `${normalizedEndpoint}openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
-        console.log('Using Azure OpenAI format');
+        console.log('Using Azure OpenAI format with API version:', apiVersion);
       }
 
       console.log('Testing with URL:', testUrl);
