@@ -4,6 +4,9 @@ import { microsoftAuth } from './microsoftAuth';
 // Microsoft Copilot API Integration
 // Note: This will require Microsoft 365 Copilot license and proper authentication
 
+// Debug configuration - set to true to show service indicators
+const DEBUG_SHOW_SERVICE_INFO = false;
+
 interface CopilotChatRequest {
   message: string;
   canvas: BusinessModelCanvas;
@@ -73,7 +76,9 @@ export async function processCopilotChat(request: CopilotChatRequest): Promise<C
     const data = await response.json();
     console.log('✅ Microsoft Copilot via Graph API: Response generated successfully');
     return {
-      response: data.response,
+      response: DEBUG_SHOW_SERVICE_INFO 
+        ? `🤖 **Microsoft Copilot (Graph API)**\n\n${data.response}\n\n---\n*Powered by Microsoft Graph API*`
+        : data.response,
       canvasUpdates: data.canvasUpdates
     };
 
@@ -159,7 +164,9 @@ Provide strategic insights, identify risks and opportunities, suggest improvemen
     const data = await response.json();
     console.log('✅ Microsoft Copilot via Azure OpenAI: Response generated successfully');
     return {
-      response: data.choices[0].message.content
+      response: DEBUG_SHOW_SERVICE_INFO 
+        ? `🤖 **Microsoft Copilot (Azure OpenAI)**\n\n${data.choices[0].message.content}\n\n---\n*Powered by Azure OpenAI Service*`
+        : data.choices[0].message.content
     };
 
   } catch (error) {
@@ -203,7 +210,9 @@ Provide strategic insights, identify risks and opportunities, suggest improvemen
 
     console.log('✅ Microsoft Copilot via OpenAI Fallback: Response generated successfully');
     return {
-      response: response.choices[0].message.content
+      response: DEBUG_SHOW_SERVICE_INFO 
+        ? `🤖 **Microsoft Copilot (OpenAI Fallback)**\n\n${response.choices[0].message.content}\n\n---\n*Note: Using OpenAI fallback - Microsoft services temporarily unavailable*`
+        : response.choices[0].message.content || 'No response generated'
     };
 
   } catch (error) {
