@@ -20,7 +20,7 @@ export const AzureCredentialSetup: React.FC<AzureCredentialSetupProps> = ({ onCr
     }
   };
 
-  const isValidEndpoint = endpoint.includes('openai.azure.com');
+  const isValidEndpoint = endpoint.includes('openai.azure.com') || endpoint.includes('cognitiveservices.azure.com') || endpoint.includes('inference.ai.azure.com');
   const isValidApiKey = apiKey.length > 30;
 
   return (
