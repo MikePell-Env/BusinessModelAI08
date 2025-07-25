@@ -80,7 +80,8 @@ export const AzureCredentialSetup: React.FC<AzureCredentialSetupProps> = ({ onCr
               required
             />
             <p className="text-xs text-gray-500 mt-1">
-              Copy Key 1 from Azure Portal → Your OpenAI Resource → Keys and Endpoint
+              Copy API key from Azure AI Foundry → Your deployed GPT-4 model → Credentials tab
+              <br />Or from Azure Portal → Your OpenAI Resource → Keys and Endpoint
             </p>
           </div>
 
