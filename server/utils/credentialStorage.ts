@@ -1,10 +1,11 @@
-import { writeFile, readFile, existsSync } from 'fs';
+import { writeFile, readFile, existsSync, unlink } from 'fs';
 import { promisify } from 'util';
 import path from 'path';
 import crypto from 'crypto';
 
 const writeFileAsync = promisify(writeFile);
 const readFileAsync = promisify(readFile);
+const unlinkAsync = promisify(unlink);
 
 const CREDENTIALS_FILE = path.join(process.cwd(), '.azure-credentials.enc');
 
@@ -18,6 +19,7 @@ interface EncryptedData {
   iv: string;
   encryptedData: string;
   salt: string;
+  authTag: string;
 }
 
 // Generate a key from machine-specific information
@@ -29,7 +31,7 @@ function generateEncryptionKey(): string {
 function encrypt(text: string): EncryptedData {
   const key = generateEncryptionKey();
   const salt = crypto.randomBytes(16);
-  const iv = crypto.randomBytes(16);
+  const iv = crypto.randomBytes(12); // GCM typically uses 12 bytes for IV
   
   // Derive key using PBKDF2
   const derivedKey = crypto.pbkdf2Sync(key, salt, 10000, 32, 'sha256');
@@ -38,10 +40,13 @@ function encrypt(text: string): EncryptedData {
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   
+  const authTag = cipher.getAuthTag();
+  
   return {
     iv: iv.toString('hex'),
     encryptedData: encrypted,
-    salt: salt.toString('hex')
+    salt: salt.toString('hex'),
+    authTag: authTag.toString('hex')
   };
 }
 
@@ -49,11 +54,14 @@ function decrypt(encryptedData: EncryptedData): string {
   const key = generateEncryptionKey();
   const salt = Buffer.from(encryptedData.salt, 'hex');
   const iv = Buffer.from(encryptedData.iv, 'hex');
+  const authTag = Buffer.from(encryptedData.authTag, 'hex');
   
   // Derive key using PBKDF2
   const derivedKey = crypto.pbkdf2Sync(key, salt, 10000, 32, 'sha256');
   
   const decipher = crypto.createDecipheriv('aes-256-gcm', derivedKey, iv);
+  decipher.setAuthTag(authTag);
+  
   let decrypted = decipher.update(encryptedData.encryptedData, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
   
@@ -97,9 +105,16 @@ export async function loadCredentials(): Promise<AzureCredentials | null> {
     }
 
     const data = await readFileAsync(CREDENTIALS_FILE, 'utf8');
-    const encryptedData: EncryptedData = JSON.parse(data);
+    const encryptedData = JSON.parse(data);
     
-    const decryptedJson = decrypt(encryptedData);
+    // Check if this is old format (missing authTag) and clear it
+    if (!encryptedData.authTag) {
+      console.log('Old credential format detected, clearing for re-entry');
+      await clearCredentials();
+      return null;
+    }
+    
+    const decryptedJson = decrypt(encryptedData as EncryptedData);
     const credentials: AzureCredentials = JSON.parse(decryptedJson);
     
     // Set in environment variables
@@ -109,7 +124,9 @@ export async function loadCredentials(): Promise<AzureCredentials | null> {
     console.log('Azure credentials decrypted and loaded successfully');
     return credentials;
   } catch (error) {
-    console.error('Failed to load or decrypt credentials:', error);
+    console.error('Failed to load or decrypt credentials, clearing for re-entry:', error);
+    // Clear corrupted credentials and let user re-enter
+    await clearCredentials();
     return null;
   }
 }
@@ -127,7 +144,7 @@ export function areCredentialsConfigured(): boolean {
 export async function clearCredentials(): Promise<void> {
   try {
     if (existsSync(CREDENTIALS_FILE)) {
-      await promisify(require('fs').unlink)(CREDENTIALS_FILE);
+      await unlinkAsync(CREDENTIALS_FILE);
     }
     
     delete process.env.AZURE_OPENAI_API_KEY;
