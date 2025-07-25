@@ -247,6 +247,10 @@ Revenue Streams
     try {
       const { apiKey, endpoint } = req.body;
 
+      console.log('Received credentials:');
+      console.log('- Endpoint:', endpoint);
+      console.log('- API Key length:', apiKey?.length);
+
       if (!apiKey || !endpoint) {
         return res.status(400).json({ 
           error: 'Both API key and endpoint are required' 
@@ -260,12 +264,15 @@ Revenue Streams
         });
       }
 
+      // Ensure endpoint ends with /
+      const normalizedEndpoint = endpoint.endsWith('/') ? endpoint : endpoint + '/';
+
       // First, try to get list of deployments to find the correct model name
       let deploymentName = 'gpt-4';
       const apiVersion = '2024-10-21'; // Use more recent API version
       
       try {
-        const deploymentsResponse = await fetch(`${endpoint}/openai/deployments?api-version=${apiVersion}`, {
+        const deploymentsResponse = await fetch(`${normalizedEndpoint}openai/deployments?api-version=${apiVersion}`, {
           method: 'GET',
           headers: {
             'api-key': apiKey,
@@ -291,7 +298,7 @@ Revenue Streams
       }
 
       // Test the credentials by making a simple API call
-      const testResponse = await fetch(`${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`, {
+      const testResponse = await fetch(`${normalizedEndpoint}openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`, {
         method: 'POST',
         headers: {
           'api-key': apiKey,
