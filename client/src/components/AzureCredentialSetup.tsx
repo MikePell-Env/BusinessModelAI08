@@ -14,7 +14,18 @@ export const AzureCredentialSetup: React.FC<AzureCredentialSetupProps> = ({ onCr
     setIsSubmitting(true);
     
     try {
-      await onCredentialsSubmit(apiKey, endpoint);
+      // Clean up endpoint - extract base URL only
+      let cleanEndpoint = endpoint.trim();
+      if (cleanEndpoint.includes('/openai/deployments/')) {
+        // Extract base URL before /openai/deployments/
+        cleanEndpoint = cleanEndpoint.split('/openai/deployments/')[0];
+      }
+      // Ensure it ends with /
+      if (!cleanEndpoint.endsWith('/')) {
+        cleanEndpoint += '/';
+      }
+      
+      await onCredentialsSubmit(apiKey, cleanEndpoint);
     } finally {
       setIsSubmitting(false);
     }
@@ -45,12 +56,13 @@ export const AzureCredentialSetup: React.FC<AzureCredentialSetupProps> = ({ onCr
               id="endpoint"
               value={endpoint}
               onChange={(e) => setEndpoint(e.target.value)}
-              placeholder="https://yourname.openai.azure.com/"
+              placeholder="https://yourname.cognitiveservices.azure.com/"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
             <p className="text-xs text-gray-500 mt-1">
-              Found in Azure Portal → Your OpenAI Resource → Keys and Endpoint
+              <strong>Base URL only:</strong> https://yourname.cognitiveservices.azure.com/ 
+              <br />Don't include /openai/deployments/... or API version
             </p>
           </div>
 
