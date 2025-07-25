@@ -329,7 +329,7 @@ Revenue Streams
         }
         
         return res.status(400).json({ 
-          error: errorMessage + '\n\nTroubleshooting:\n1. Verify API key from Azure Portal → Your Resource → "Keys and Endpoint"\n2. Ensure GPT-4 model is deployed\n3. Check endpoint URL format'
+          error: errorMessage + '\n\nYou need to deploy GPT-4 in Azure Portal (not Azure AI Foundry):\n1. Go to Azure Portal → Your Resource → "Model deployments"\n2. Click "Create new deployment"\n3. Select "gpt-4" model\n4. Name it "gpt-4"\n5. Then try connecting again'
         });
       }
 
