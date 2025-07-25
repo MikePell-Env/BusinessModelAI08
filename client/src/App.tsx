@@ -71,16 +71,16 @@ function App() {
       {azureConfigured === false && (
         <div className="fixed bottom-4 right-4 bg-blue-100 border border-blue-300 rounded-lg p-3 max-w-sm">
           <p className="text-sm text-blue-800 mb-2">
-            <strong>Microsoft Copilot Available</strong>
+            <strong>Microsoft Copilot Ready</strong>
           </p>
           <p className="text-xs text-blue-600 mb-2">
-            Connect Azure OpenAI to enable enterprise-grade AI assistance
+            AI chat active with OpenAI fallback. Azure setup optional for enterprise features.
           </p>
           <button
             onClick={() => setShowCredentialSetup(true)}
             className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
           >
-            Enable Copilot
+            Configure Azure (Optional)
           </button>
         </div>
       )}
