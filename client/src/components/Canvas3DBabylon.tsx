@@ -196,274 +196,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Store selected mesh reference
     let selectedMesh: AbstractMesh | null = null;
 
-    // GLB Model Loading Function with hover and selection lighting
-    const loadGLBModel = (filename: string, element: CanvasElement, position: Vector3, elementName: string) => {
-      loadGLBModelWithColor(filename, element, position, elementName, null);
-    };
-
-    // GLB Model Loading Function with custom color option
-    const loadGLBModelWithColor = (filename: string, element: CanvasElement, position: Vector3, elementName: string, customColor: Color3 | null) => {
-      SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
-        if (result.meshes.length > 0) {
-          const rootMesh = result.meshes[0];
-          rootMesh.position = position;
-          rootMesh.scaling = new Vector3(8, 8, 8); // Much larger scale to occupy 60% of floor plane
-          
-          // Apply custom color if specified (for Key Resources = red metallic)
-          if (customColor) {
-            const meshesToColor = [rootMesh, ...rootMesh.getChildMeshes()];
-            meshesToColor.forEach((mesh) => {
-              if (mesh.material) {
-                if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                  const material = mesh.material as PBRMetallicRoughnessMaterial;
-                  // Enhanced red metallic properties
-                  material.baseColor = customColor;
-                  material.metallic = 0.9; // High metallic value
-                  material.roughness = 0.1; // Low roughness for shiny surface
-                  material.emissiveColor = new Color3(0.1, 0, 0); // Subtle red glow
-                } else {
-                  // Create new PBR material for non-PBR materials to ensure metallic appearance
-                  const newMaterial = new PBRMetallicRoughnessMaterial(`red_metallic_${mesh.name}`, scene);
-                  newMaterial.baseColor = customColor;
-                  newMaterial.metallic = 0.9;
-                  newMaterial.roughness = 0.1;
-                  newMaterial.emissiveColor = new Color3(0.1, 0, 0);
-                  mesh.material = newMaterial;
-                }
-                console.log(`Applied red metallic material to ${mesh.name} with material: ${mesh.material.getClassName()}`);
-              }
-            });
-          }
-          
-          // Store original materials for lighting effects (not used but kept for future reference)
-          
-          // Add interactive lighting effects
-          rootMesh.actionManager = new ActionManager(scene);
-          
-          // Hover effect - light up with subtle glow
-          rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-            console.log(`Hovering over ${elementName}`);
-            // Apply glow to the root mesh and all child meshes
-            const meshesToProcess = [rootMesh, ...rootMesh.getChildMeshes()];
-            meshesToProcess.forEach((mesh) => {
-              if (mesh.material) {
-                console.log(`Material type for ${mesh.name}: ${mesh.material.getClassName()}`);
-                if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                  const material = mesh.material as PBRMetallicRoughnessMaterial;
-                  material.emissiveColor = new Color3(0.3, 0.3, 0.4); // Subtle glow on hover
-                } else if (mesh.material.hasOwnProperty('emissiveColor')) {
-                  // Handle other material types that support emissive color
-                  (mesh.material as any).emissiveColor = new Color3(0.3, 0.3, 0.4);
-                }
-              }
-            });
-          }));
-          
-          // Mouse out - restore normal lighting unless selected
-          rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-            if (selectedMesh !== rootMesh) {
-              console.log(`Mouse out of ${elementName}`);
-              const meshesToProcess = [rootMesh, ...rootMesh.getChildMeshes()];
-              meshesToProcess.forEach((mesh) => {
-                if (mesh.material) {
-                  if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                    const material = mesh.material as PBRMetallicRoughnessMaterial;
-                    material.emissiveColor = new Color3(0, 0, 0); // Remove glow
-                  } else if (mesh.material.hasOwnProperty('emissiveColor')) {
-                    (mesh.material as any).emissiveColor = new Color3(0, 0, 0);
-                  }
-                }
-              });
-            }
-          }));
-          
-          // Click/Selection effect - bright blue glow only
-          rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-            console.log(`${elementName} GLB clicked!`);
-            
-            // Clear previous selection
-            if (selectedMesh && selectedMesh !== rootMesh) {
-              const previousMeshes = [selectedMesh, ...selectedMesh.getChildMeshes()];
-              previousMeshes.forEach((mesh) => {
-                if (mesh.material) {
-                  if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                    const material = mesh.material as PBRMetallicRoughnessMaterial;
-                    material.emissiveColor = new Color3(0, 0, 0);
-                  } else if (mesh.material.hasOwnProperty('emissiveColor')) {
-                    (mesh.material as any).emissiveColor = new Color3(0, 0, 0);
-                  }
-                }
-              });
-            }
-            
-            // Apply bright blue selection glow
-            selectedMesh = rootMesh;
-            const selectedMeshes = [rootMesh, ...rootMesh.getChildMeshes()];
-            selectedMeshes.forEach((mesh) => {
-              if (mesh.material) {
-                console.log(`Applying blue glow to ${mesh.name} with material: ${mesh.material.getClassName()}`);
-                if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                  const material = mesh.material as PBRMetallicRoughnessMaterial;
-                  material.emissiveColor = new Color3(0.3, 0.5, 1.0); // Bright blue glow
-                } else if (mesh.material.hasOwnProperty('emissiveColor')) {
-                  (mesh.material as any).emissiveColor = new Color3(0.3, 0.5, 1.0);
-                }
-              }
-            });
-          }));
-          
-          // Labels removed as requested
-        }
-      }).catch((error) => {
-        console.error(`Failed to load ${elementName} GLB model:`, error);
-      });
-    };
-
-    // Scaled version of loadGLBModel with custom scaling
-    const loadGLBModelScaled = (filename: string, content: string[], position: Vector3, elementName: string, scale: number) => {
-
-      SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
-        if (result.meshes.length > 0) {
-          const rootMesh = result.meshes[0];
-          rootMesh.position = position;
-          rootMesh.scaling = new Vector3(scale, scale, scale);
-          
-          // Apply metallic materials and setup interactivity for all meshes
-          result.meshes.forEach(mesh => {
-            if (mesh.material) {
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.metallic = 0.9;
-                material.roughness = 0.1;
-              }
-            }
-            
-            // Add interactive hover and selection effects
-            mesh.actionManager = new ActionManager(scene);
-            
-            // Hover effect
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(0.3, 0.3, 0.4);
-              }
-            }));
-            
-            // Mouse out effect
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(0, 0, 0);
-              }
-            }));
-            
-            // Click selection effect
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`Clicked on ${elementName}`);
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(0.3, 0.5, 1.0); // Bright blue selection
-              }
-            }));
-          });
-
-          // Labels removed as requested
-          
-          // Click detection is handled by the existing ActionManager above
-          
-          console.log(`${elementName} GLB model loaded at ${scale}x scale at position:`, position);
-        }
-      }).catch((error) => {
-        console.error(`Failed to load ${elementName} GLB model:`, error);
-      });
-    };
-
-    // Scaled version with custom color for all business model elements
-    const loadGLBModelScaledWithColor = (filename: string, content: string[], position: Vector3, elementName: string, scale: number, color: Color3) => {
-
-      SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
-        if (result.meshes.length > 0) {
-          const rootMesh = result.meshes[0];
-          rootMesh.position = position;
-          rootMesh.scaling = new Vector3(scale, scale, scale);
-          
-          // Apply custom color with plastic material properties
-          result.meshes.forEach(mesh => {
-            // Create new PBR material with plastic appearance
-            const plasticMaterial = new PBRMetallicRoughnessMaterial(`${elementName}_plastic`, scene);
-            plasticMaterial.baseColor = color;
-            plasticMaterial.metallic = 0.0; // No metallic for plastic appearance
-            plasticMaterial.roughness = 0.8; // High roughness for matte plastic look
-            // Plastic material properties set (no additional environment needed)
-            
-            // Apply the material to the mesh
-            mesh.material = plasticMaterial;
-            // Add interactive hover and selection effects
-            mesh.actionManager = new ActionManager(scene);
-            
-            // Hover effect - subtle color brightening
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(color.r * 0.2, color.g * 0.2, color.b * 0.2);
-              }
-            }));
-            
-            // Mouse out effect - remove brightening
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(0, 0, 0);
-              }
-            }));
-            
-            // Click selection effect
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`Clicked on ${elementName}`);
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(0.3, 0.5, 1.0); // Bright blue selection
-              }
-            }));
-          });
-
-          // Labels removed as requested
-          
-          // Click detection is handled by the existing ActionManager above
-          
-          console.log(`${elementName} GLB model loaded at ${scale}x scale with custom color at position:`, position);
-        }
-      }).catch((error) => {
-        console.error(`Failed to load ${elementName} GLB model:`, error);
-      });
-    };
-
-    // Create a master transform node to group and rotate ALL BMC objects as one unit
+    // Create single master transform node for ALL BMC objects (matching your template positioning)
     const bmcMasterTransform = new TransformNode("bmcMasterGroup", scene);
-    bmcMasterTransform.rotation.x = Math.PI; // 180 degree rotation around Y-axis for entire BMC
-
-    // Define loadGLBModelWithParent function first before using it
-    const loadGLBModelWithParent = (fileName: string, content: string, position: Vector3, elementName: string, scale: number, color: Color3, parent?: TransformNode) => {
+    bmcMasterTransform.rotation.y = Math.PI; // 180 degree rotation to match template view
+    
+    // FINAL unified GLB loading function - all objects use this and parent to master transform
+    const loadGLBModel = (fileName: string, content: string, position: Vector3, elementName: string, scale: number, color: Color3) => {
       SceneLoader.ImportMeshAsync("", "/models/", fileName, scene).then((result) => {
         if (result.meshes.length > 0) {
           const rootMesh = result.meshes[0];
           rootMesh.position = position;
           rootMesh.scaling = new Vector3(scale, scale, scale);
+          rootMesh.parent = bmcMasterTransform; // ALL objects parented to single master transform
           
-          if (parent) {
-            rootMesh.parent = parent;
-          }
-          
-          // Apply materials and interactions (enhanced for parent objects)
+          // Apply plastic materials and interactions to all meshes
           result.meshes.forEach((mesh) => {
-            // Create new PBR material for proper color application
-            const newMaterial = new PBRMetallicRoughnessMaterial(`${elementName}_material`, scene);
-            newMaterial.baseColor = color;
-            newMaterial.metallic = 0.0;
-            newMaterial.roughness = 0.8;
-            mesh.material = newMaterial;
+            // Create new PBR material with plastic appearance (not metallic)
+            const plasticMaterial = new PBRMetallicRoughnessMaterial(`${elementName}_plastic`, scene);
+            plasticMaterial.baseColor = color;
+            plasticMaterial.metallic = 0.0; // Plastic = no metallic reflection
+            plasticMaterial.roughness = 0.8; // Matte plastic finish
+            mesh.material = plasticMaterial;
             
             mesh.actionManager = new ActionManager(scene);
+            
+            // Hover effect - subtle glow
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
               if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
                 const material = mesh.material as PBRMetallicRoughnessMaterial;
@@ -471,6 +228,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             }));
             
+            // Mouse out - remove glow
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
               if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
                 const material = mesh.material as PBRMetallicRoughnessMaterial;
@@ -478,6 +236,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             }));
             
+            // Click - bright blue selection
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
               console.log(`Clicked on ${elementName}`);
               if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
@@ -487,37 +246,35 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }));
           });
           
-          console.log(`${elementName} GLB model loaded at ${scale}x scale with custom color at position:`, position);
+          console.log(`${elementName} loaded successfully with ${color.toString()} color`);
         }
       }).catch((error) => {
-        console.error(`Failed to load ${elementName} GLB model:`, error);
+        console.error(`Failed to load ${elementName}: ${error}`);
       });
     };
     
-    // Load individual GLB models as separate interactive objects with exact diagram labels
-    // Each model has a distinct color for easy identification, ALL parented to master transform
+    // Load ALL BMC objects with exact template positioning to match your reference:
     
-    // Center: Value Proposition (circular element) - BLUE (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content || "", new Vector3(0, -2.0, 0), "Value Proposition", 45, new Color3(0, 0.4, 0.8), bmcMasterTransform);
+    // Center: Value Proposition (BLUE circle)
+    loadGLBModel("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content || "", new Vector3(0, -2.0, 0), "Value Proposition", 45, new Color3(0, 0.4, 0.8));
     
-    // Left side: Customer Segments (tall vertical rectangle) - PURPLE (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(-2.8, -2.0, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7), bmcMasterTransform);
+    // Left: Key Partners (GREEN tall rectangle)
+    loadGLBModel("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(-3.5, -2.0, 0), "Key Partners", 50, new Color3(0, 0.7, 0));
     
-    // Right side: Key Partners (tall vertical rectangle) - GREEN (parented to master transform)  
-    loadGLBModelWithParent("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(2.8, -2.0, 0), "Key Partners", 50, new Color3(0, 0.7, 0), bmcMasterTransform);
+    // Right: Customer Segments (PURPLE tall rectangle)  
+    loadGLBModel("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(3.5, -2.0, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7));
     
-    // Load inner circle objects with master transform parent - positioned to match exact layout:
-    // Key Activities (ORANGE) - TOP position (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content || "", new Vector3(-0.8, -2.0, -1.3), "Key Activities", 40, new Color3(1, 0.5, 0), bmcMasterTransform);
+    // Top-Left: Key Activities (ORANGE)
+    loadGLBModel("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content || "", new Vector3(-1.2, -2.0, -1.5), "Key Activities", 40, new Color3(1, 0.5, 0));
     
-    // Customer Relationships (YELLOW) - TOP-RIGHT position (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content || "", new Vector3(0.8, -2.0, -1.3), "Customer Relationships", 40, new Color3(1, 0.8, 0), bmcMasterTransform);
+    // Top-Right: Customer Relationships (YELLOW)
+    loadGLBModel("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content || "", new Vector3(1.2, -2.0, -1.5), "Customer Relationships", 40, new Color3(1, 0.8, 0));
     
-    // Key Resources (RED) - BOTTOM-LEFT position (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_KeyResources.glb", canvas.keyResources.content || "", new Vector3(-0.8, -2.0, 1.3), "Key Resources", 40, new Color3(1, 0, 0), bmcMasterTransform);
+    // Bottom-Left: Key Resources (RED)
+    loadGLBModel("BMC_blender_06_KeyResources.glb", canvas.keyResources.content || "", new Vector3(-1.2, -2.0, 1.5), "Key Resources", 40, new Color3(1, 0, 0));
     
-    // Customer Channels (CYAN) - BOTTOM-RIGHT position (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_CustomerChannels.glb", canvas.channels.content || "", new Vector3(0.8, -2.0, 1.3), "Customer Channels", 40, new Color3(0, 0.8, 0.8), bmcMasterTransform);
+    // Bottom-Right: Customer Channels (CYAN)
+    loadGLBModel("BMC_blender_06_CustomerChannels.glb", canvas.channels.content || "", new Vector3(1.2, -2.0, 1.5), "Customer Channels", 40, new Color3(0, 0.8, 0.8));
 
     // Start the render loop
     engine.runRenderLoop(() => {
