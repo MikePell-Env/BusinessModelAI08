@@ -355,7 +355,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         [canvas.keyPartners.id]: 'BMC_blender_04_KeyPartners_1753548050751.glb',
         [canvas.keyActivities.id]: 'BMC_blender_04_KeyActivities_1753548050750.glb',
         [canvas.keyResources.id]: 'BMC_blender_04_KeyResources_1753548050751.glb',
-        [canvas.valuePropositions.id]: 'BMC_blender_04_ValueProposition_1753548050751.glb',
+        [canvas.valuePropositions.id]: 'BMC_blender_04_ValueProposition_1753549754628.glb',
         [canvas.customerRelationships.id]: 'BMC_blender_04_CustomerRelationships_1753548050749.glb',
         [canvas.channels.id]: 'BMC_blender_04_CustomerChannels_1753548050749.glb',
         [canvas.customerSegments.id]: 'BMC_blender_04_CustomerSegments_1753548050750.glb',
@@ -375,26 +375,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (result.meshes.length > 0) {
           const rootMesh = result.meshes[0];
           
-          // First, apply scaling to get accurate bounding box
+          // Since origin is properly set in Blender, use direct positioning
+          rootMesh.position = position;
           rootMesh.scaling = scale;
           rootMesh.parent = sceneGroup;
           
-          // Force bounding box refresh after scaling
-          rootMesh.refreshBoundingInfo();
-          
-          // Calculate bounding box to center the model properly
-          const boundingInfo = rootMesh.getBoundingInfo();
-          const min = boundingInfo.boundingBox.minimumWorld;
-          const max = boundingInfo.boundingBox.maximumWorld;
-          const center = Vector3.Center(min, max);
-          
-          console.log(`Model ${element.title}: min=${min}, max=${max}, center=${center}, target position=${position}`);
-          
-          // Calculate offset to center the geometry at the target position
-          const offset = position.subtract(center);
-          rootMesh.position = offset;
-          
-          console.log(`Applied offset: ${offset} to center model at target position`);
+          console.log(`Model ${element.title} positioned at: ${position} with origin properly set in Blender`);
           
           // Apply materials and shadows to all child meshes
           result.meshes.forEach((mesh, index) => {
