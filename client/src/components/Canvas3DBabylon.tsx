@@ -350,15 +350,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       scale: Vector3,
       elementId: string
     ): Promise<AbstractMesh | null> => {
-      // Map element IDs to GLB file names
+      // Map element IDs to GLB file names (version 05 with properly centered origins)
       const modelFiles: { [key: string]: string } = {
-        [canvas.keyPartners.id]: 'BMC_blender_04_KeyPartners_1753548050751.glb',
-        [canvas.keyActivities.id]: 'BMC_blender_04_KeyActivities_1753548050750.glb',
-        [canvas.keyResources.id]: 'BMC_blender_04_KeyResources_1753548050751.glb',
-        [canvas.valuePropositions.id]: 'BMC_blender_04_ValueProposition_1753549754628.glb',
-        [canvas.customerRelationships.id]: 'BMC_blender_04_CustomerRelationships_1753548050749.glb',
-        [canvas.channels.id]: 'BMC_blender_04_CustomerChannels_1753548050749.glb',
-        [canvas.customerSegments.id]: 'BMC_blender_04_CustomerSegments_1753548050750.glb',
+        [canvas.keyPartners.id]: 'BMC_blender_05_KeyPartners_1753550875216.glb',
+        [canvas.keyActivities.id]: 'BMC_blender_05_KeyActivities_1753550875214.glb',
+        [canvas.keyResources.id]: 'BMC_blender_05_KeyResources_1753550875216.glb',
+        [canvas.valuePropositions.id]: 'BMC_blender_05_ValueProposition_1753550875216.glb',
+        [canvas.customerRelationships.id]: 'BMC_blender_05_CustomerRelationships_1753550875215.glb',
+        [canvas.channels.id]: 'BMC_blender_05_CustomerChannels_1753550875215.glb',
+        [canvas.customerSegments.id]: 'BMC_blender_05_CustomerSegments_1753550875215.glb',
         // Cost Structure and Revenue Streams will use fallback boxes since no GLB provided
       };
 
