@@ -19,6 +19,7 @@ import {
 } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
+import { useCanvas } from '@/lib/stores/useCanvas';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -29,6 +30,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
+  const cameraRef = useRef<ArcRotateCamera | null>(null);
+  const { saveCamera3DState, getCamera3DState, is3D } = useCanvas();
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -43,16 +46,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create camera with perspective matching the screenshot
+    // Create camera with perspective matching the screenshot or restore saved state
+    const savedCameraState = getCamera3DState();
     const camera = new ArcRotateCamera(
       "camera",
-      -Math.PI / 4,    // Alpha (horizontal rotation) - front-right angle
-      Math.PI / 3.5,   // Beta (vertical rotation) - higher angle looking down
-      18,              // Radius (distance from target) - further back for full view
+      savedCameraState?.alpha ?? -Math.PI / 4,    // Alpha - restore or default front-right angle
+      savedCameraState?.beta ?? Math.PI / 3.5,    // Beta - restore or default higher angle looking down
+      savedCameraState?.radius ?? 18,             // Radius - restore or default further back for full view
       Vector3.Zero(),  // Target position
       scene
     );
     camera.setTarget(Vector3.Zero());
+    cameraRef.current = camera;
     
     // Enable camera controls on the canvas
     camera.attachControl(canvasRef.current, true);
@@ -412,6 +417,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Clean up on unmount
     return () => {
+      // Save camera state before disposing
+      if (cameraRef.current) {
+        saveCamera3DState(
+          cameraRef.current.alpha,
+          cameraRef.current.beta,
+          cameraRef.current.radius
+        );
+      }
+      
       if (engineRef.current) {
         engineRef.current.dispose();
       }
@@ -419,7 +433,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         sceneRef.current.dispose();
       }
     };
-  }, [canvas]);
+  }, [canvas, saveCamera3DState]);
+
+  // Save camera state when switching away from 3D view
+  useEffect(() => {
+    return () => {
+      if (cameraRef.current && !is3D) {
+        saveCamera3DState(
+          cameraRef.current.alpha,
+          cameraRef.current.beta,
+          cameraRef.current.radius
+        );
+      }
+    };
+  }, [is3D, saveCamera3DState]);
 
   return (
     <div className={`w-full h-full ${isTransitioning ? 'opacity-50' : ''}`}>
