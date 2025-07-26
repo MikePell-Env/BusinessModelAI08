@@ -342,13 +342,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Scaled version of loadGLBModel with custom scaling
     const loadGLBModelScaled = (filename: string, content: string[], position: Vector3, elementName: string, scale: number) => {
+      const element = canvas.elements.find(el => el.title === elementName);
+      if (!element) return;
+
       SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
         if (result.meshes.length > 0) {
           const rootMesh = result.meshes[0];
           rootMesh.position = position;
           rootMesh.scaling = new Vector3(scale, scale, scale);
           
-          // Apply metallic materials to all meshes
+          // Apply metallic materials and setup interactivity for all meshes
           result.meshes.forEach(mesh => {
             if (mesh.material) {
               if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
@@ -359,6 +362,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }
             setupGLBInteractivity(mesh, elementName, content);
           });
+
+          // Create floating title label
+          const titleLabel = new Rectangle(`title_label_${elementName.toLowerCase().replace(' ', '_')}_glb`);
+          titleLabel.widthInPixels = 180;
+          titleLabel.heightInPixels = 40;
+          titleLabel.cornerRadius = 8;
+          titleLabel.color = "transparent";
+          titleLabel.thickness = 0;
+          titleLabel.background = "rgba(255, 255, 255, 0.9)";
+          advancedTexture.addControl(titleLabel);
+
+          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, element.title);
+          titleText.color = "#2D3748";
+          titleText.fontSize = 16;
+          titleText.fontWeight = "bold";
+          titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+          titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+          titleLabel.addControl(titleText);
+
+          titleLabel.linkWithMesh(rootMesh);
+          titleLabel.linkOffsetY = -120;
           
           console.log(`${elementName} GLB model loaded at ${scale}x scale at position:`, position);
         }
@@ -369,6 +393,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Scaled version with custom color for Key Resources
     const loadGLBModelScaledWithColor = (filename: string, content: string[], position: Vector3, elementName: string, scale: number, color: Color3) => {
+      const element = canvas.elements.find(el => el.title === elementName);
+      if (!element) return;
+
       SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
         if (result.meshes.length > 0) {
           const rootMesh = result.meshes[0];
@@ -388,6 +415,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }
             setupGLBInteractivity(mesh, elementName, content);
           });
+
+          // Create floating title label
+          const titleLabel = new Rectangle(`title_label_${elementName.toLowerCase().replace(' ', '_')}_glb`);
+          titleLabel.widthInPixels = 180;
+          titleLabel.heightInPixels = 40;
+          titleLabel.cornerRadius = 8;
+          titleLabel.color = "transparent";
+          titleLabel.thickness = 0;
+          titleLabel.background = "rgba(255, 255, 255, 0.9)";
+          advancedTexture.addControl(titleLabel);
+
+          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, element.title);
+          titleText.color = "#2D3748";
+          titleText.fontSize = 16;
+          titleText.fontWeight = "bold";
+          titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+          titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+          titleLabel.addControl(titleText);
+
+          titleLabel.linkWithMesh(rootMesh);
+          titleLabel.linkOffsetY = -120;
           
           console.log(`${elementName} GLB model loaded at ${scale}x scale with custom color at position:`, position);
         }
