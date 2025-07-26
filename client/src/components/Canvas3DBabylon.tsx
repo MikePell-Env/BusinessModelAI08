@@ -316,130 +316,90 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             });
             
-            // Create panel using currentPopup approach that already works
-            console.log(`Creating panel for ${elementName}`);
+            // Create simple working panel
+            console.log(`${elementName} clicked - creating panel`);
             
-            // Close existing popup if any
+            // Close existing panel
             if (currentPopup) {
               advancedTexture.removeControl(currentPopup);
               currentPopup = null;
             }
             
-            // Get canvas data
-            let content = ['No content available'];
-            let title = elementName;
+            // Create simple working panel
+            const panel = new Rectangle("simplePanel");
+            panel.widthInPixels = 250;
+            panel.heightInPixels = 200;
+            panel.color = "#000000";
+            panel.thickness = 2;
+            panel.background = "#ffffff";
+            panel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            panel.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+            panel.leftInPixels = -30;
             
-            if (elementName === 'Value Proposition' && canvas.valuePropositions) {
-              content = canvas.valuePropositions.content || content;
-              title = canvas.valuePropositions.title || title;
-            } else if (elementName === 'Key Partners' && canvas.keyPartners) {
-              content = canvas.keyPartners.content || content;
-              title = canvas.keyPartners.title || title;
-            } else if (elementName === 'Key Activities' && canvas.keyActivities) {
-              content = canvas.keyActivities.content || content;
-              title = canvas.keyActivities.title || title;
-            } else if (elementName === 'Key Resources' && canvas.keyResources) {
-              content = canvas.keyResources.content || content;
-              title = canvas.keyResources.title || title;
-            } else if (elementName === 'Customer Relationships' && canvas.customerRelationships) {
-              content = canvas.customerRelationships.content || content;
-              title = canvas.customerRelationships.title || title;
-            } else if (elementName === 'Customer Channels' && canvas.channels) {
-              content = canvas.channels.content || content;
-              title = canvas.channels.title || title;
-            } else if (elementName === 'Customer Segments' && canvas.customerSegments) {
-              content = canvas.customerSegments.content || content;
-              title = canvas.customerSegments.title || title;
-            }
+            // Add panel title
+            const panelTitle = new TextBlock("panelTitle", elementName);
+            panelTitle.color = "#000000";
+            panelTitle.fontSize = "16px";
+            panelTitle.fontWeight = "bold";
+            panelTitle.topInPixels = -70;
+            panel.addControl(panelTitle);
             
-            // Create popup rectangle using same style as existing hover popups
-            const popup = new Rectangle(`popup_${elementName.replace(' ', '_')}`);
-            popup.widthInPixels = 280;
-            popup.heightInPixels = Math.max(150, content.length * 25 + 80);
-            popup.cornerRadius = 8;
-            popup.color = "#2D3748";
-            popup.thickness = 2;
-            popup.background = "rgba(255, 255, 255, 0.95)";
-            
-            // Position popup at fixed screen position (right side)
-            popup.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-            popup.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-            popup.leftInPixels = -20;
-            
-            // Add title
-            const titleLabel = new TextBlock(`popup_title_${elementName.replace(' ', '_')}`, title);
-            titleLabel.color = "#2D3748";
-            titleLabel.fontSize = "18px";
-            titleLabel.fontWeight = "bold";
-            titleLabel.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-            titleLabel.topInPixels = -popup.heightInPixels / 2 + 25;
-            titleLabel.heightInPixels = 30;
-            
-            // Add content with bullet points
-            const contentStr = content.map(item => `• ${item}`).join('\n');
-            const contentLabel = new TextBlock(`popup_content_${elementName.replace(' ', '_')}`, contentStr);
-            contentLabel.color = "#4A5568";
-            contentLabel.fontSize = "14px";
-            contentLabel.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-            contentLabel.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-            contentLabel.paddingLeftInPixels = 15;
-            contentLabel.paddingRightInPixels = 15;
-            contentLabel.topInPixels = 10;
-            contentLabel.heightInPixels = popup.heightInPixels - 60;
-            contentLabel.textWrapping = true;
+            // Add panel content
+            const panelContent = new TextBlock("panelContent", "Panel works!\nThis is clickable content.");
+            panelContent.color = "#333333";
+            panelContent.fontSize = "12px";
+            panelContent.topInPixels = -20;
+            panel.addControl(panelContent);
             
             // Add close button
-            const closeButton = new Rectangle(`close_${elementName.replace(' ', '_')}`);
-            closeButton.widthInPixels = 25;
-            closeButton.heightInPixels = 25;
-            closeButton.cornerRadius = 12;
-            closeButton.color = "#E53E3E";
-            closeButton.thickness = 1;
-            closeButton.background = "#FC8181";
-            closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-            closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-            closeButton.leftInPixels = -10;
-            closeButton.topInPixels = 10;
+            const closeBtn = new Rectangle("closeBtn");
+            closeBtn.widthInPixels = 20;
+            closeBtn.heightInPixels = 20;
+            closeBtn.color = "#ff0000";
+            closeBtn.background = "#ff0000";
+            closeBtn.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            closeBtn.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+            closeBtn.leftInPixels = -5;
+            closeBtn.topInPixels = 5;
             
-            const closeX = new TextBlock(`close_x_${elementName.replace(' ', '_')}`, "×");
-            closeX.color = "#FFFFFF";
-            closeX.fontSize = "16px";
-            closeX.fontWeight = "bold";
-            closeButton.addControl(closeX);
+            const closeText = new TextBlock("closeText", "X");
+            closeText.color = "#ffffff";
+            closeText.fontSize = "12px";
+            closeBtn.addControl(closeText);
             
-            // Add click handler for close
-            closeButton.onPointerClickObservable.add(() => {
-              advancedTexture.removeControl(popup);
+            closeBtn.onPointerClickObservable.add(() => {
+              advancedTexture.removeControl(panel);
               currentPopup = null;
             });
             
-            // Add all controls to popup
-            popup.addControl(titleLabel);
-            popup.addControl(contentLabel);
-            popup.addControl(closeButton);
+            panel.addControl(closeBtn);
+            advancedTexture.addControl(panel);
+            currentPopup = panel;
             
-            // Add popup to GUI
-            advancedTexture.addControl(popup);
-            currentPopup = popup;
-            
-            console.log(`Panel created for ${elementName} with ${content.length} content items`);
+            console.log(`Working panel created for ${elementName}`);
           }));
           
-          // Create simple label with white text and black outline
-          const labelId = elementName.toLowerCase().replace(/\s+/g, '_') + '_label';
-          const titleLabel = new TextBlock(labelId, elementName);
-          titleLabel.color = "#FFFFFF";
-          titleLabel.fontSize = "16px";
-          titleLabel.fontWeight = "bold";
-          titleLabel.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-          titleLabel.outlineWidth = 2;
-          titleLabel.outlineColor = "#000000";
+          // Create floating label that actually positions correctly
+          const labelId = `label_${elementName.replace(/\s+/g, '_')}_${Date.now()}`;
+          const floatingLabel = new Rectangle(labelId);
+          floatingLabel.widthInPixels = 150;
+          floatingLabel.heightInPixels = 30;
+          floatingLabel.cornerRadius = 5;
+          floatingLabel.color = "#000000";
+          floatingLabel.thickness = 1;
+          floatingLabel.background = "rgba(255, 255, 255, 0.9)";
           
-          // Link to mesh with proper offset
-          titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetYInPixels = -100;
+          const labelText = new TextBlock(labelId + "_text", elementName);
+          labelText.color = "#000000";
+          labelText.fontSize = "14px";
+          labelText.fontWeight = "bold";
+          floatingLabel.addControl(labelText);
           
-          advancedTexture.addControl(titleLabel);
+          // Link to actual mesh position with vertical offset
+          floatingLabel.linkWithMesh(rootMesh);
+          floatingLabel.linkOffsetYInPixels = -60;
+          
+          advancedTexture.addControl(floatingLabel);
         }
       }).catch((error) => {
         console.error(`Failed to load ${elementName} GLB model:`, error);
