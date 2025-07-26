@@ -149,7 +149,7 @@ export const BusinessModelCanvas: React.FC = () => {
       {/* Canvas Views */}
       <div className="w-full h-full relative">
         {is3D ? (
-          <Canvas3DBabylon canvas={canvas} />
+          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} />
         ) : (
           <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
         )}

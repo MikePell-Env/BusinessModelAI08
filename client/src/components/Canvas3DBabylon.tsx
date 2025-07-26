@@ -1,13 +1,29 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, FreeCamera, Tools } from '@babylonjs/core';
+import { 
+  Engine, 
+  Scene, 
+  ArcRotateCamera, 
+  HemisphericLight, 
+  DirectionalLight,
+  MeshBuilder, 
+  PBRMetallicRoughnessMaterial, 
+  Color3, 
+  Vector3, 
+  Mesh, 
+  ActionManager, 
+  ExecuteCodeAction,
+  CubeTexture,
+  Texture
+} from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
+  isTransitioning?: boolean;
 }
 
-export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
+export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
@@ -19,15 +35,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
     const engine = new Engine(canvasRef.current, true);
     const scene = new Scene(engine);
     
+    // Set pure white background
+    scene.clearColor = new Color3(1, 1, 1).toColor4();
+    
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create camera with user controls
+    // Create camera with proper positioning for circular layout
     const camera = new ArcRotateCamera(
       "camera",
       -Math.PI / 2,    // Alpha (horizontal rotation)
-      Math.PI / 2.5,   // Beta (vertical rotation)
-      12,              // Radius (distance from target)
+      Math.PI / 3,     // Beta (vertical rotation) - better angle for circular view
+      16,              // Radius (distance from target) - optimized for circular layout
       Vector3.Zero(),  // Target position
       scene
     );
@@ -36,26 +55,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
     // Enable camera controls on the canvas
     camera.attachControl(canvasRef.current, true);
     
-    // Set camera limits for better user experience
-    camera.lowerRadiusLimit = 5;      // Minimum zoom distance
-    camera.upperRadiusLimit = 25;     // Maximum zoom distance
+    // Set camera limits optimized for circular layout navigation
+    camera.lowerRadiusLimit = 8;      // Minimum zoom distance
+    camera.upperRadiusLimit = 30;     // Maximum zoom distance
     camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
     camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
 
-    // Create lighting
-    const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
-    light.intensity = 0.8;
+    // Enhanced lighting setup
+    const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
+    hemisphericLight.intensity = 0.6;
+    
+    const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
+    directionalLight.intensity = 0.8;
 
-    // Create ground
-    const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
-    const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseColor = new Color3(0.97, 0.98, 0.99);
+    // Create white ground with professional appearance
+    const ground = MeshBuilder.CreateGround("ground", { width: 24, height: 24 }, scene);
+    const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", scene);
+    groundMaterial.baseColor = new Color3(1, 1, 1);
+    groundMaterial.metallic = 0.0;
+    groundMaterial.roughness = 0.8;
     ground.material = groundMaterial;
+
+    // Add default environment for proper PBR reflections
+    scene.createDefaultSkybox(scene.environmentTexture, true, 100, 0.3);
 
     // Create GUI
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-    // Helper function to create a business model block
+    // Helper function to create a business model block with PBR materials
     const createBusinessBlock = (
       element: CanvasElement,
       position: Vector3,
@@ -63,34 +90,51 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
       color: Color3,
       elementId: string
     ) => {
-      // Create the main box
-      const box = MeshBuilder.CreateBox(`box_${elementId}`, {
-        width: size.x,
-        height: size.y,
-        depth: size.z
-      }, scene);
+      // Create geometry based on element type
+      let geometry;
+      if (elementId === 'value-propositions') {
+        // Central cylinder for Value Propositions
+        geometry = MeshBuilder.CreateCylinder(`cylinder_${elementId}`, {
+          height: size.y,
+          diameter: size.x
+        }, scene);
+      } else {
+        // Rectangular boxes for other elements
+        geometry = MeshBuilder.CreateBox(`box_${elementId}`, {
+          width: size.x,
+          height: size.y,
+          depth: size.z
+        }, scene);
+      }
       
-      box.position = position;
+      geometry.position = position;
       
-      // Create material
-      const material = new StandardMaterial(`material_${elementId}`, scene);
-      material.diffuseColor = color;
-      material.alpha = 0.8;
-      box.material = material;
+      // Create PBR metallic material
+      const material = new PBRMetallicRoughnessMaterial(`material_${elementId}`, scene);
+      material.baseColor = color;
+      material.metallic = 0.9;  // High metallic for professional shine
+      material.roughness = 0.1; // Low roughness for reflective surface
+      geometry.material = material;
+
+      // Store original material properties for hover effect
+      const originalMetallic = material.metallic;
+      const originalRoughness = material.roughness;
 
       // Add interaction
-      box.actionManager = new ActionManager(scene);
-      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+      geometry.actionManager = new ActionManager(scene);
+      geometry.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
         console.log(`Clicked on ${element.title}`);
       }));
 
-      // Add hover effect
-      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-        material.diffuseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
+      // Enhanced hover effect with metallic properties
+      geometry.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+        material.metallic = 1.0;  // Maximum metallic shine on hover
+        material.roughness = 0.05; // Even more reflective
       }));
 
-      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        material.diffuseColor = color; // Original color
+      geometry.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+        material.metallic = originalMetallic;   // Restore original metallic
+        material.roughness = originalRoughness; // Restore original roughness
       }));
 
       // Create GUI elements for text
@@ -124,99 +168,95 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
       rect.addControl(contentText);
 
       // Link GUI to 3D position
-      rect.linkWithMesh(box);
+      rect.linkWithMesh(geometry);
       rect.linkOffsetY = -50;
 
-      return box;
+      return geometry;
     };
 
-    // POSITIONING: Matches 2D grid layout exactly
-    // 2D Layout: 10-column grid with 3 rows
-    // Col 1-2: Key Partners (spans 2 cols, 2 rows)
-    // Col 3-4: Key Activities (top), Key Resources (bottom)
-    // Col 5-6: Value Propositions (spans 2 cols, 2 rows)
-    // Col 7-8: Customer Relationships (top), Channels (bottom)
-    // Col 9-10: Customer Segments (spans 2 cols, 2 rows)
-    // Row 3: Cost Structure (5 cols), Revenue Streams (5 cols)
+    // CIRCULAR LAYOUT: Transform from grid-based to circular arrangement
+    // Central Value Proposition with 7 elements around perimeter
+    // Positioning optimized for circular viewing with 16-unit camera distance
     
     const blocks = [
-      // Column 1-2: Key Partners (left, spans 2 rows)
+      // Central Value Proposition (prominent cylinder)
+      createBusinessBlock(
+        canvas.valuePropositions,
+        new Vector3(0, 1, 0),       // Position: center, elevated
+        new Vector3(3, 2, 3),       // Size: large cylinder diameter and height  
+        Color3.FromHexString(canvas.valuePropositions.color || '#FFF5E5'),
+        'value-propositions'
+      ),
+
+      // Perimeter Elements - Circular arrangement around center
+      // Key Partners (left side)
       createBusinessBlock(
         canvas.keyPartners,
-        new Vector3(-4, 0.5, 0),    // Position: far left, centered vertically
-        new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
+        new Vector3(-6, 0.5, 0),    // Position: far left
+        new Vector3(2, 1, 2),       // Size: rectangular box
         Color3.FromHexString(canvas.keyPartners.color || '#FFE5E5'),
         canvas.keyPartners.id
       ),
 
-      // Column 3-4: Key Activities (top)
+      // Key Activities (top-left)
       createBusinessBlock(
         canvas.keyActivities,
-        new Vector3(-2, 0.5, 1),    // Position: left-center, forward
-        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
+        new Vector3(-4, 0.5, -4),   // Position: top-left of circle
+        new Vector3(2, 1, 2),       // Size: rectangular box
         Color3.FromHexString(canvas.keyActivities.color || '#E5F3FF'),
         canvas.keyActivities.id
       ),
 
-      // Column 3-4: Key Resources (bottom)
+      // Key Resources (bottom-left)
       createBusinessBlock(
         canvas.keyResources,
-        new Vector3(-2, 0.5, -1),   // Position: left-center, back
-        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
+        new Vector3(-4, 0.5, 4),    // Position: bottom-left of circle
+        new Vector3(2, 1, 2),       // Size: rectangular box
         Color3.FromHexString(canvas.keyResources.color || '#E5FFE5'),
         canvas.keyResources.id
       ),
 
-      // Column 5-6: Value Propositions (center, spans 2 rows)
-      createBusinessBlock(
-        canvas.valuePropositions,
-        new Vector3(0, 0.5, 0),     // Position: center, centered vertically
-        new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
-        Color3.FromHexString(canvas.valuePropositions.color || '#FFF5E5'),
-        canvas.valuePropositions.id
-      ),
-
-      // Column 7-8: Customer Relationships (top)
+      // Customer Relationships (top-right)
       createBusinessBlock(
         canvas.customerRelationships,
-        new Vector3(2, 0.5, 1),     // Position: right-center, forward
-        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
+        new Vector3(4, 0.5, -4),    // Position: top-right of circle
+        new Vector3(2, 1, 2),       // Size: rectangular box
         Color3.FromHexString(canvas.customerRelationships.color || '#F5E5FF'),
         canvas.customerRelationships.id
       ),
 
-      // Column 7-8: Channels (bottom)
+      // Channels (bottom-right)
       createBusinessBlock(
         canvas.channels,
-        new Vector3(2, 0.5, -1),    // Position: right-center, back
-        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
+        new Vector3(4, 0.5, 4),     // Position: bottom-right of circle
+        new Vector3(2, 1, 2),       // Size: rectangular box
         Color3.FromHexString(canvas.channels.color || '#E5FFFF'),
         canvas.channels.id
       ),
 
-      // Column 9-10: Customer Segments (right, spans 2 rows)
+      // Customer Segments (right side)
       createBusinessBlock(
         canvas.customerSegments,
-        new Vector3(4, 0.5, 0),     // Position: far right, centered vertically
-        new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
+        new Vector3(6, 0.5, 0),     // Position: far right
+        new Vector3(2, 1, 2),       // Size: rectangular box
         Color3.FromHexString(canvas.customerSegments.color || '#FFE5F5'),
         canvas.customerSegments.id
       ),
 
-      // Row 3: Cost Structure (spans 5 columns)
+      // Cost Structure (back row, left)
       createBusinessBlock(
         canvas.costStructure,
-        new Vector3(-1, 0.5, -2.5), // Position: left side, back
-        new Vector3(4.5, 1, 1),     // Size: wide width, short height
+        new Vector3(-2, 0.5, -7),   // Position: back-left
+        new Vector3(3, 1, 1.5),     // Size: wide, shallow
         Color3.FromHexString(canvas.costStructure.color || '#F0F0F0'),
         canvas.costStructure.id
       ),
 
-      // Row 3: Revenue Streams (spans 5 columns)
+      // Revenue Streams (back row, right)
       createBusinessBlock(
         canvas.revenueStreams,
-        new Vector3(1, 0.5, -2.5),  // Position: right side, back
-        new Vector3(4.5, 1, 1),     // Size: wide width, short height
+        new Vector3(2, 0.5, -7),    // Position: back-right
+        new Vector3(3, 1, 1.5),     // Size: wide, shallow
         Color3.FromHexString(canvas.revenueStreams.color || '#E5F5E5'),
         canvas.revenueStreams.id
       )
@@ -241,10 +281,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
   }, [canvas]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="w-full h-full"
-      style={{ outline: 'none' }}
-    />
+    <div className={`w-full h-full ${isTransitioning ? 'opacity-50' : ''}`}>
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full"
+        style={{ outline: 'none' }}
+      />
+    </div>
   );
 };
+
+export default Canvas3DBabylon;
