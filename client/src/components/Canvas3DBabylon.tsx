@@ -9,23 +9,26 @@ import {
   MeshBuilder,
   StandardMaterial,
   Color3,
+  Color4,
   SceneLoader,
   ShadowGenerator,
   Mesh,
-  TransformNode,
+  TransformNode
+} from '@babylonjs/core';
+import {
   AdvancedDynamicTexture,
   Rectangle,
   TextBlock,
   Control
-} from '@babylonjs/core';
+} from '@babylonjs/gui';
 import '@babylonjs/loaders';
-import { BusinessModelCanvas } from '../../../shared/types';
+import { BusinessModelCanvas } from '@/types/canvas';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
 }
 
-const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
+export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -34,12 +37,12 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
     // Create engine and scene
     const engine = new Engine(canvasRef.current, true);
     const scene = new Scene(engine);
-    scene.clearColor = new Color3(1, 1, 1); // White background
+    scene.clearColor = new Color4(1, 1, 1, 1); // White background
 
     // Camera setup
     const camera = new FreeCamera('camera', new Vector3(0, 8, -12), scene);
     camera.setTarget(Vector3.Zero());
-    camera.attachControls(canvasRef.current, true);
+    camera.attachControl(canvasRef.current, true);
 
     // Lighting
     const hemisphericLight = new HemisphericLight('hemisphericLight', new Vector3(0, 1, 0), scene);
@@ -78,40 +81,40 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
           scale: new Vector3(1, 1, 1),
           title: canvas.valuePropositions.title
         },
-        // Circular arrangement around center
+        // Layout matching your top view diagram
         {
           file: 'BMC_blender_05_KeyPartners_1753550875216.glb',
-          position: new Vector3(-4, 0, -3),
+          position: new Vector3(-6, 0, 0), // Far left
           scale: new Vector3(1, 1, 1),
           title: canvas.keyPartners.title
         },
         {
           file: 'BMC_blender_05_KeyActivities_1753550875214.glb',
-          position: new Vector3(0, 0, -4),
+          position: new Vector3(-2, 0, -3), // Top left of circle
           scale: new Vector3(1, 1, 1),
           title: canvas.keyActivities.title
         },
         {
           file: 'BMC_blender_05_KeyResources_1753550875216.glb',
-          position: new Vector3(4, 0, -3),
+          position: new Vector3(-2, 0, 3), // Bottom left of circle
           scale: new Vector3(1, 1, 1),
           title: canvas.keyResources.title
         },
         {
           file: 'BMC_blender_05_CustomerRelationships_1753550875215.glb',
-          position: new Vector3(5, 0, 0),
+          position: new Vector3(2, 0, -3), // Top right of circle
           scale: new Vector3(1, 1, 1),
           title: canvas.customerRelationships.title
         },
         {
           file: 'BMC_blender_05_CustomerChannels_1753550875215.glb',
-          position: new Vector3(4, 0, 3),
+          position: new Vector3(2, 0, 3), // Bottom right of circle
           scale: new Vector3(1, 1, 1),
           title: canvas.channels.title
         },
         {
           file: 'BMC_blender_05_CustomerSegments_1753550875215.glb',
-          position: new Vector3(-4, 0, 3),
+          position: new Vector3(6, 0, 0), // Far right
           scale: new Vector3(1, 1, 1),
           title: canvas.customerSegments.title
         }
