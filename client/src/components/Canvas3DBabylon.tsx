@@ -83,8 +83,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Apply grey plastic material to ground
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseColor = new Color3(0.6, 0.6, 0.6); // Medium grey color
-    groundMaterial.specularColor = new Color3(0.3, 0.3, 0.3); // Moderate specular reflection for plastic look
+    groundMaterial.diffuseColor = new Color3(0.8, 0.8, 0.8); // Light grey color
+    groundMaterial.specularColor = new Color3(0.15, 0.15, 0.15); // Reduced specular reflection for lighter plastic look
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
     ground.material = groundMaterial;
 
