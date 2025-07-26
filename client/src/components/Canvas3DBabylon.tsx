@@ -282,7 +282,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }
           }));
           
-          // Click/Selection effect - bright blue glow and show detail panel
+          // Store reference to label for color inversion
+          let labelBackground: Rectangle | null = null;
+          let labelText: TextBlock | null = null;
+
+          // Click/Selection effect - bright blue glow and invert label colors
           rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
             console.log(`${elementName} GLB clicked!`);
             
@@ -315,6 +319,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 }
               }
             });
+
+            // Invert label colors temporarily
+            if (labelBackground && labelText) {
+              // Invert: white background to black, black text to white
+              labelBackground.background = "rgba(0, 0, 0, 0.9)";
+              labelText.color = "#FFFFFF";
+              
+              // Revert after 1 second
+              setTimeout(() => {
+                if (labelBackground && labelText) {
+                  labelBackground.background = "rgba(255, 255, 255, 0.9)";
+                  labelText.color = "#000000";
+                }
+              }, 1000);
+            }
             
             // Create simple working panel
             console.log(`${elementName} clicked - creating panel`);
@@ -389,17 +408,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           floatingLabel.thickness = 1;
           floatingLabel.background = "rgba(255, 255, 255, 0.9)";
           
-          const labelText = new TextBlock(labelId + "_text", elementName);
-          labelText.color = "#000000";
-          labelText.fontSize = "14px";
-          labelText.fontWeight = "bold";
-          floatingLabel.addControl(labelText);
+          const labelTextElement = new TextBlock(labelId + "_text", elementName);
+          labelTextElement.color = "#000000";
+          labelTextElement.fontSize = "14px";
+          labelTextElement.fontWeight = "bold";
+          floatingLabel.addControl(labelTextElement);
           
           // Link to actual mesh position with vertical offset
           floatingLabel.linkWithMesh(rootMesh);
           floatingLabel.linkOffsetYInPixels = -60;
           
           advancedTexture.addControl(floatingLabel);
+          
+          // Set references for color inversion
+          labelBackground = floatingLabel;
+          labelText = labelTextElement;
         }
       }).catch((error) => {
         console.error(`Failed to load ${elementName} GLB model:`, error);
