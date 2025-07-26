@@ -440,8 +440,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Create a master transform node to group and rotate ALL BMC objects as one unit
     const bmcMasterTransform = new TransformNode("bmcMasterGroup", scene);
-    bmcMasterTransform.rotation.y = Math.PI; // 180 degree rotation around Y-axis for entire BMC
-    
+    bmcMasterTransform.rotation.x = Math.PI; // 180 degree rotation around Y-axis for entire BMC
+
     // Define loadGLBModelWithParent function first before using it
     const loadGLBModelWithParent = (fileName: string, content: string, position: Vector3, elementName: string, scale: number, color: Color3, parent?: TransformNode) => {
       SceneLoader.ImportMeshAsync("", "/models/", fileName, scene).then((result) => {
@@ -498,26 +498,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Each model has a distinct color for easy identification, ALL parented to master transform
     
     // Center: Value Proposition (circular element) - BLUE (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content || "", new Vector3(0, 0.5, 0), "Value Proposition", 45, new Color3(0, 0.4, 0.8), bmcMasterTransform);
+    loadGLBModelWithParent("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content || "", new Vector3(0, 1.5, 0), "Value Proposition", 45, new Color3(0, 0.4, 0.8), bmcMasterTransform);
     
     // Left side: Customer Segments (tall vertical rectangle) - PURPLE (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(-2.8, 0.5, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7), bmcMasterTransform);
+    loadGLBModelWithParent("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(-2.8, 1.5, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7), bmcMasterTransform);
     
     // Right side: Key Partners (tall vertical rectangle) - GREEN (parented to master transform)  
-    loadGLBModelWithParent("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(2.8, 0.5, 0), "Key Partners", 50, new Color3(0, 0.7, 0), bmcMasterTransform);
+    loadGLBModelWithParent("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(2.8, 1.5, 0), "Key Partners", 50, new Color3(0, 0.7, 0), bmcMasterTransform);
     
     // Load inner circle objects with master transform parent - positioned to match exact layout:
     // Key Activities (ORANGE) - TOP position (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content || "", new Vector3(-0.8, 0.5, -1.3), "Key Activities", 40, new Color3(1, 0.5, 0), bmcMasterTransform);
+    loadGLBModelWithParent("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content || "", new Vector3(-0.8, 1.5, -1.3), "Key Activities", 40, new Color3(1, 0.5, 0), bmcMasterTransform);
     
     // Customer Relationships (YELLOW) - TOP-RIGHT position (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content || "", new Vector3(0.8, 0.5, -1.3), "Customer Relationships", 40, new Color3(1, 0.8, 0), bmcMasterTransform);
+    loadGLBModelWithParent("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content || "", new Vector3(0.8, 1.5, -1.3), "Customer Relationships", 40, new Color3(1, 0.8, 0), bmcMasterTransform);
     
     // Key Resources (RED) - BOTTOM-LEFT position (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_KeyResources.glb", canvas.keyResources.content || "", new Vector3(-0.8, 0.5, 1.3), "Key Resources", 40, new Color3(1, 0, 0), bmcMasterTransform);
+    loadGLBModelWithParent("BMC_blender_06_KeyResources.glb", canvas.keyResources.content || "", new Vector3(-0.8, 1.5, 1.3), "Key Resources", 40, new Color3(1, 0, 0), bmcMasterTransform);
     
     // Customer Channels (CYAN) - BOTTOM-RIGHT position (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_CustomerChannels.glb", canvas.channels.content || "", new Vector3(0.8, 0.5, 1.3), "Customer Channels", 40, new Color3(0, 0.8, 0.8), bmcMasterTransform);
+    loadGLBModelWithParent("BMC_blender_06_CustomerChannels.glb", canvas.channels.content || "", new Vector3(0.8, 1.5, 1.3), "Customer Channels", 40, new Color3(0, 0.8, 0.8), bmcMasterTransform);
 
     // Start the render loop
     engine.runRenderLoop(() => {
