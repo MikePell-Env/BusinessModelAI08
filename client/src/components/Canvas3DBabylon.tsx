@@ -5,6 +5,7 @@ import {
   ArcRotateCamera, 
   HemisphericLight, 
   DirectionalLight,
+  PointLight,
   MeshBuilder, 
   PBRMetallicRoughnessMaterial, 
   StandardMaterial,
