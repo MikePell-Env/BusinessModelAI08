@@ -18,7 +18,8 @@ import {
   Texture,
   DynamicTexture,
   SceneLoader,
-  AbstractMesh
+  AbstractMesh,
+  Matrix
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
@@ -411,6 +412,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleLabel.transformCenterX = 0.5;
           titleLabel.transformCenterY = 0.5;
           
+          // Position label above this specific mesh using its world position
+          titleLabel.linkWithMesh(rootMesh);
+          titleLabel.linkOffsetYInPixels = -150; // Higher above mesh
+          titleLabel.linkOffsetXInPixels = 0; // Centered horizontally
+          
+          // Ensure the label is visible and attached to this specific mesh
+          titleLabel.isVisible = true;
+          
           console.log(`${elementName} GLB model loaded at ${scale}x scale at position:`, position);
         }
       }).catch((error) => {
@@ -497,6 +506,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           // Perfect billboard behavior - always face camera
           titleLabel.transformCenterX = 0.5;
           titleLabel.transformCenterY = 0.5;
+          
+          // Position label above this specific mesh using its world position
+          titleLabel.linkWithMesh(rootMesh);
+          titleLabel.linkOffsetYInPixels = -150; // Higher above mesh
+          titleLabel.linkOffsetXInPixels = 0; // Centered horizontally
+          
+          // Ensure the label is visible and attached to this specific mesh
+          titleLabel.isVisible = true;
           
           console.log(`${elementName} GLB model loaded at ${scale}x scale with custom color at position:`, position);
         }
