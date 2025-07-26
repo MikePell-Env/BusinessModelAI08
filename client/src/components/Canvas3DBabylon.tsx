@@ -182,46 +182,59 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Only GLB models are used now - no more box geometry functions needed
 
-    // All BMC elements are now loaded as GLB models - no more primitive boxes
+    // All BMC elements are now loaded as GLB models - circular layout matching top view
 
-    // Load GLB model for Value Proposition (replace the box)
-    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_05_ValueProposition.glb", scene).then((result) => {
-      if (result.meshes.length > 0) {
-        const rootMesh = result.meshes[0];
-        rootMesh.position = new Vector3(0, 0.5, 0); // Center position matching other blocks (y=0.5)
-        rootMesh.scaling = new Vector3(2.5, 2.5, 2.5); // Scale up from small Blender size
-        
-        // Add basic interactivity
-        rootMesh.actionManager = new ActionManager(scene);
-        rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-          console.log("Value Proposition GLB clicked!");
-        }));
-        
-        // Create title label for GLB model
-        const titleLabel = new Rectangle(`title_label_valueprop_glb`);
-        titleLabel.widthInPixels = 180;
-        titleLabel.heightInPixels = 40;
-        titleLabel.cornerRadius = 8;
-        titleLabel.color = "transparent";
-        titleLabel.thickness = 0;
-        titleLabel.background = "rgba(255, 255, 255, 0.9)";
-        advancedTexture.addControl(titleLabel);
+    // GLB Model Loading Function
+    const loadGLBModel = (filename: string, element: CanvasElement, position: Vector3, elementName: string) => {
+      SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
+        if (result.meshes.length > 0) {
+          const rootMesh = result.meshes[0];
+          rootMesh.position = position;
+          rootMesh.scaling = new Vector3(2.5, 2.5, 2.5); // Scale up from small Blender size
+          
+          // Add basic interactivity
+          rootMesh.actionManager = new ActionManager(scene);
+          rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+            console.log(`${elementName} GLB clicked!`);
+          }));
+          
+          // Create title label for GLB model
+          const titleLabel = new Rectangle(`title_label_${elementName.toLowerCase().replace(' ', '_')}_glb`);
+          titleLabel.widthInPixels = 180;
+          titleLabel.heightInPixels = 40;
+          titleLabel.cornerRadius = 8;
+          titleLabel.color = "transparent";
+          titleLabel.thickness = 0;
+          titleLabel.background = "rgba(255, 255, 255, 0.9)";
+          advancedTexture.addControl(titleLabel);
 
-        const titleText = new TextBlock(`title_valueprop_glb`, canvas.valuePropositions.title);
-        titleText.color = "#2D3748";
-        titleText.fontSize = 16;
-        titleText.fontWeight = "bold";
-        titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-        titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-        titleLabel.addControl(titleText);
+          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, element.title);
+          titleText.color = "#2D3748";
+          titleText.fontSize = 16;
+          titleText.fontWeight = "bold";
+          titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+          titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+          titleLabel.addControl(titleText);
 
-        titleLabel.linkWithMesh(rootMesh);
-        titleLabel.linkOffsetY = -60;
-      }
-    }).catch((error) => {
-      console.error("Failed to load Value Proposition GLB model:", error);
-      // The original box will remain visible as fallback
-    });
+          titleLabel.linkWithMesh(rootMesh);
+          titleLabel.linkOffsetY = -60;
+        }
+      }).catch((error) => {
+        console.error(`Failed to load ${elementName} GLB model:`, error);
+      });
+    };
+
+    // Load all GLB models in circular arrangement (matching top view design)
+    // Center: Value Proposition
+    loadGLBModel("BMC_blender_05_ValueProposition.glb", canvas.valuePropositions, new Vector3(0, 0.5, 0), "Value Proposition");
+    
+    // Circular arrangement around center (7 elements)
+    loadGLBModel("BMC_blender_05_KeyPartners.glb", canvas.keyPartners, new Vector3(-4, 0.5, 0), "Key Partners");
+    loadGLBModel("BMC_blender_05_KeyActivities.glb", canvas.keyActivities, new Vector3(-2, 0.5, 1), "Key Activities");
+    loadGLBModel("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-2, 0.5, -1), "Key Resources");
+    loadGLBModel("BMC_blender_05_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(2, 0.5, 1), "Customer Relationships");
+    loadGLBModel("BMC_blender_05_CustomerChannels.glb", canvas.channels, new Vector3(2, 0.5, -1), "Customer Channels");
+    loadGLBModel("BMC_blender_05_CustomerSegments.glb", canvas.customerSegments, new Vector3(4, 0.5, 0), "Customer Segments");
 
     // Start the render loop
     engine.runRenderLoop(() => {
