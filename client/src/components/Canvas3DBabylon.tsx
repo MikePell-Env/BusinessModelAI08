@@ -456,11 +456,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Customer Relationships (YELLOW) - TOP-RIGHT position
     loadGLBModelScaledWithColor("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content, new Vector3(1.0, 0.5, -1.0), "Customer Relationships", 60, new Color3(1, 0.8, 0));
     
-    // Key Resources (RED) - BOTTOM-LEFT position
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyResources.glb", canvas.keyResources.content, new Vector3(-1.0, 0.5, 1.0), "Key Resources", 60, new Color3(1, 0, 0));
+    // Key Resources (RED) - BOTTOM-LEFT position (X coordinate swapped to -1.0)
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyResources.glb", canvas.keyResources.content, new Vector3(1.0, 0.5, 1.0), "Key Resources", 60, new Color3(1, 0, 0));
     
-    // Customer Channels (CYAN) - BOTTOM-RIGHT position
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerChannels.glb", canvas.channels.content, new Vector3(1.0, 0.5, 1.0), "Customer Channels", 60, new Color3(0, 0.8, 0.8));
+    // Customer Channels (CYAN) - BOTTOM-RIGHT position (X coordinate swapped to 1.0)
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerChannels.glb", canvas.channels.content, new Vector3(-1.0, 0.5, 1.0), "Customer Channels", 60, new Color3(0, 0.8, 0.8));
 
     // Start the render loop
     engine.runRenderLoop(() => {
