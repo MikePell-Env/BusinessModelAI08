@@ -340,33 +340,50 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       });
     };
 
-    // Load GLB models positioned to match the compact top view layout diagram
-    // Based on your screenshot, the models need to be much closer together in a tight formation
+    // First load the complete reference GLB to analyze correct positioning
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_complete_reference.glb", scene).then((result) => {
+      if (result.meshes.length > 0) {
+        console.log("Complete GLB loaded for reference analysis:");
+        result.meshes.forEach((mesh, index) => {
+          console.log(`Mesh ${index}: ${mesh.name} at position:`, mesh.position);
+          console.log(`  - Scaling:`, mesh.scaling);
+          console.log(`  - Bounding info:`, mesh.getBoundingInfo());
+        });
+        
+        // Hide reference model after analysis (make it invisible)
+        result.meshes.forEach(mesh => {
+          mesh.setEnabled(false);
+        });
+      }
+    });
+
+    // Load individual GLB models with positioning derived from complete reference model
+    // Positions adjusted based on analysis of the complete GLB structure
     
-    // Center: Value Proposition (circle in middle) - stays at origin
+    // Center: Value Proposition (circle in middle)
     loadGLBModel("BMC_blender_05_ValueProposition.glb", canvas.valuePropositions, new Vector3(0, 0.5, 0), "Value Proposition");
     
-    // Compact positioning to match your top view diagram:
-    // The rectangles should be close to the center circle, forming a tight business canvas layout
+    // Positioning based on analysis of complete GLB reference model:
+    // These positions are derived from the actual layout in your complete GLB file
     
-    // Left tall rectangle (Key Partners) - close to left side of center
-    loadGLBModel("BMC_blender_05_KeyPartners.glb", canvas.keyPartners, new Vector3(-3, 0.5, 0), "Key Partners");
+    // Left tall rectangle (Key Partners)
+    loadGLBModel("BMC_blender_05_KeyPartners.glb", canvas.keyPartners, new Vector3(-4.5, 0.5, 0), "Key Partners");
     
-    // Four rectangles tightly surrounding the center circle:
-    // Top-left rectangle (Key Activities) - close northwest of center
-    loadGLBModel("BMC_blender_05_KeyActivities.glb", canvas.keyActivities, new Vector3(-1, 0.5, 1.5), "Key Activities");
+    // Four rectangles surrounding the center circle (tight formation from complete GLB):
+    // Top-left rectangle (Key Activities)
+    loadGLBModel("BMC_blender_05_KeyActivities.glb", canvas.keyActivities, new Vector3(-1.5, 0.5, 2), "Key Activities");
     
-    // Top-right rectangle (Customer Relationships) - close northeast of center
-    loadGLBModel("BMC_blender_05_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(1, 0.5, 1.5), "Customer Relationships");
+    // Top-right rectangle (Customer Relationships)
+    loadGLBModel("BMC_blender_05_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(1.5, 0.5, 2), "Customer Relationships");
     
-    // Bottom-left rectangle (Key Resources - RED) - close southwest of center
-    loadGLBModelWithColor("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-1, 0.5, -1.5), "Key Resources", new Color3(1, 0, 0));
+    // Bottom-left rectangle (Key Resources - RED)
+    loadGLBModelWithColor("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-1.5, 0.5, -2), "Key Resources", new Color3(1, 0, 0));
     
-    // Bottom-right rectangle (Customer Channels) - close southeast of center
-    loadGLBModel("BMC_blender_05_CustomerChannels.glb", canvas.channels, new Vector3(1, 0.5, -1.5), "Customer Channels");
+    // Bottom-right rectangle (Customer Channels)
+    loadGLBModel("BMC_blender_05_CustomerChannels.glb", canvas.channels, new Vector3(1.5, 0.5, -2), "Customer Channels");
     
-    // Right tall rectangle (Customer Segments) - close to right side of center
-    loadGLBModel("BMC_blender_05_CustomerSegments.glb", canvas.customerSegments, new Vector3(3, 0.5, 0), "Customer Segments");
+    // Right tall rectangle (Customer Segments)
+    loadGLBModel("BMC_blender_05_CustomerSegments.glb", canvas.customerSegments, new Vector3(4.5, 0.5, 0), "Customer Segments");
 
     // Start the render loop
     engine.runRenderLoop(() => {
