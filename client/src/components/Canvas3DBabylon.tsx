@@ -70,41 +70,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
     directionalLight.intensity = 0.8;
 
-    // Create ground with grid lines matching screenshots
+    // Create ground with tighter grid lines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     
-    // Create dynamic texture for grid pattern matching yesterday's screenshots
+    // Create dynamic texture for tighter grid pattern
     const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
     const gridContext = gridTexture.getContext();
     
-    // Fill with light background (matching screenshot appearance)
+    // Fill with light background
     gridContext.fillStyle = "#f8f9fa";
     gridContext.fillRect(0, 0, 1024, 1024);
     
-    // Draw light purple/lavender grid lines (matching screenshot)
+    // Draw tighter light purple/lavender grid lines
     gridContext.strokeStyle = "#d6d8e5";
-    gridContext.lineWidth = 2;
+    gridContext.lineWidth = 1;
     
-    // Draw vertical lines
-    for (let i = 0; i <= 1024; i += 64) {
+    // Draw vertical lines (tighter spacing - every 32 pixels instead of 64)
+    for (let i = 0; i <= 1024; i += 32) {
       gridContext.beginPath();
       gridContext.moveTo(i, 0);
       gridContext.lineTo(i, 1024);
       gridContext.stroke();
     }
     
-    // Draw horizontal lines
-    for (let i = 0; i <= 1024; i += 64) {
+    // Draw horizontal lines (tighter spacing - every 32 pixels instead of 64)
+    for (let i = 0; i <= 1024; i += 32) {
       gridContext.beginPath();
       gridContext.moveTo(0, i);
       gridContext.lineTo(1024, i);
       gridContext.stroke();
     }
-    
-    // Draw dark border around entire texture
-    gridContext.strokeStyle = "#2c3e50";
-    gridContext.lineWidth = 8;
-    gridContext.strokeRect(4, 4, 1016, 1016);
     
     gridTexture.update();
     
@@ -113,6 +108,52 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     groundMaterial.diffuseTexture = gridTexture;
     groundMaterial.specularColor = new Color3(0, 0, 0); // No specular reflection
     ground.material = groundMaterial;
+
+    // Create extruded border rails on all sides
+    const railHeight = 0.3;
+    const railWidth = 0.2;
+    const railColor = new Color3(0.17, 0.24, 0.31); // Dark rail color #2c3e50
+    
+    // Create rail material
+    const railMaterial = new StandardMaterial("railMaterial", scene);
+    railMaterial.diffuseColor = railColor;
+    railMaterial.specularColor = new Color3(0, 0, 0);
+    
+    // North rail (back)
+    const northRail = MeshBuilder.CreateBox("northRail", {
+      width: 20.4, // Slightly wider to cover corners
+      height: railHeight,
+      depth: railWidth
+    }, scene);
+    northRail.position = new Vector3(0, railHeight/2, -7 - railWidth/2);
+    northRail.material = railMaterial;
+    
+    // South rail (front)
+    const southRail = MeshBuilder.CreateBox("southRail", {
+      width: 20.4,
+      height: railHeight,
+      depth: railWidth
+    }, scene);
+    southRail.position = new Vector3(0, railHeight/2, 7 + railWidth/2);
+    southRail.material = railMaterial;
+    
+    // East rail (right)
+    const eastRail = MeshBuilder.CreateBox("eastRail", {
+      width: railWidth,
+      height: railHeight,
+      depth: 14
+    }, scene);
+    eastRail.position = new Vector3(10 + railWidth/2, railHeight/2, 0);
+    eastRail.material = railMaterial;
+    
+    // West rail (left)
+    const westRail = MeshBuilder.CreateBox("westRail", {
+      width: railWidth,
+      height: railHeight,
+      depth: 14
+    }, scene);
+    westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0);
+    westRail.material = railMaterial;
 
     // Add default environment for proper PBR reflections
     if (scene.environmentTexture) {
