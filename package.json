@@ -13,7 +13,7 @@
   "dependencies": {
     "@azure/identity": "^4.10.2",
     "@babylonjs/core": "^8.16.1",
-    "@babylonjs/gui": "^8.16.1",
+    "@babylonjs/gui": "^8.18.0",
     "@babylonjs/loaders": "^8.16.1",
     "@fontsource/inter": "^5.2.5",
     "@jridgewell/trace-mapping": "^0.3.25",
