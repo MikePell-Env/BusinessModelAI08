@@ -162,6 +162,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Create GUI
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    
+    // Store reference to currently visible popup
+    let currentPopup: Rectangle | null = null;
 
     // Helper function to create a business model block with PBR materials
     const createBusinessBlock = (
@@ -191,11 +194,86 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const originalMetallic = material.metallic;
       const originalRoughness = material.roughness;
 
+      // Create detailed popup panel (initially hidden)
+      const popupPanel = new Rectangle(`popup_${elementId}`);
+      popupPanel.widthInPixels = 300;
+      popupPanel.heightInPixels = 250;
+      popupPanel.cornerRadius = 10;
+      popupPanel.color = "#2D3748";
+      popupPanel.thickness = 2;
+      popupPanel.background = "#FFFFFF";
+      popupPanel.isVisible = false;
+      advancedTexture.addControl(popupPanel);
+
+      // Popup title
+      const popupTitle = new TextBlock(`popup_title_${elementId}`, element.title);
+      popupTitle.color = "#2D3748";
+      popupTitle.fontSize = 20;
+      popupTitle.fontWeight = "bold";
+      popupTitle.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      popupTitle.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      popupTitle.paddingTop = "15px";
+      popupPanel.addControl(popupTitle);
+
+      // Popup content
+      const popupContent = new TextBlock(`popup_content_${elementId}`, 
+        element.content.length > 0 
+          ? element.content.map((item, index) => `• ${item}`).join('\n\n')
+          : 'No content available'
+      );
+      popupContent.color = "#4A5568";
+      popupContent.fontSize = 14;
+      popupContent.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+      popupContent.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      popupContent.paddingTop = "60px";
+      popupContent.paddingLeft = "20px";
+      popupContent.paddingRight = "20px";
+      popupContent.textWrapping = true;
+      popupPanel.addControl(popupContent);
+
+      // Close button
+      const closeButton = new Rectangle(`close_${elementId}`);
+      closeButton.widthInPixels = 25;
+      closeButton.heightInPixels = 25;
+      closeButton.cornerRadius = 15;
+      closeButton.color = "#E53E3E";
+      closeButton.thickness = 0;
+      closeButton.background = "#E53E3E";
+      closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      closeButton.paddingTop = "10px";
+      closeButton.paddingRight = "10px";
+      popupPanel.addControl(closeButton);
+
+      const closeText = new TextBlock(`close_text_${elementId}`, "×");
+      closeText.color = "#FFFFFF";
+      closeText.fontSize = 16;
+      closeText.fontWeight = "bold";
+      closeButton.addControl(closeText);
+
       // Add interaction
       geometry.actionManager = new ActionManager(scene);
       geometry.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-        console.log(`Clicked on ${element.title}`);
+        // Hide current popup if any
+        if (currentPopup && currentPopup !== popupPanel) {
+          currentPopup.isVisible = false;
+        }
+        
+        // Toggle this popup
+        popupPanel.isVisible = !popupPanel.isVisible;
+        currentPopup = popupPanel.isVisible ? popupPanel : null;
+        
+        // Position popup near the clicked element
+        popupPanel.linkWithMesh(geometry);
+        popupPanel.linkOffsetX = 150; // Offset to the right
+        popupPanel.linkOffsetY = -100; // Offset upward
       }));
+
+      // Close button interaction
+      closeButton.onPointerUpObservable.add(() => {
+        popupPanel.isVisible = false;
+        currentPopup = null;
+      });
 
       // Enhanced hover effect with metallic properties
       geometry.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
