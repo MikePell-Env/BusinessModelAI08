@@ -178,38 +178,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Store reference to currently visible popup
     let currentPopup: Rectangle | null = null;
 
-    // Helper function to load GLB model and create business block
-    const createGLBBusinessBlock = async (
-      element: CanvasElement,
-      position: Vector3,
-      glbPath: string,
-      elementId: string
-    ) => {
-      try {
-        const result = await SceneLoader.ImportMeshAsync("", "/models/", glbPath, scene);
-        const meshes = result.meshes;
-        
-        if (meshes.length > 0) {
-          // Get the root mesh or create a parent
-          const rootMesh = meshes[0];
-          
-          // Position the model at the specified location
-          rootMesh.position = position;
-          
-          // Scale the model if needed (adjust based on your GLB model size)
-          rootMesh.scaling = new Vector3(2.5, 2.5, 2.5);
-          
-          // Setup interactivity and GUI for GLB model
-          return setupGLBInteractivity(rootMesh, element, elementId);
-        }
-      } catch (error) {
-        console.error(`Failed to load GLB model ${glbPath}:`, error);
-        // Fallback to box geometry if GLB fails
-        return createBusinessBlock(element, position, new Vector3(1.8, 1, 2.5), Color3.FromHexString(element.color || '#FFF5E5'), elementId);
-      }
-    };
-
-    // Helper function to create a business model block with PBR materials (fallback)
+    // Helper function to create a business model block with PBR materials
     const createBusinessBlock = (
       element: CanvasElement,
       position: Vector3,
@@ -236,12 +205,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Store original material properties for hover effect
       const originalMetallic = material.metallic;
       const originalRoughness = material.roughness;
-      
-      return setupBoxInteractivity(geometry, material, originalMetallic, originalRoughness, element, elementId);
-    };
-
-    // Helper function to setup interactivity for GLB models
-    const setupGLBInteractivity = (mesh: AbstractMesh, element: CanvasElement, elementId: string) => {
       // Create billboard panel for detailed content (initially hidden)
       const billboardPanel = new Rectangle(`billboard_${elementId}`);
       billboardPanel.widthInPixels = 350;
@@ -475,31 +438,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Col 9-10: Customer Segments (spans 2 cols, 2 rows)
     // Row 3: Cost Structure (5 cols), Revenue Streams (5 cols)
     
-    // Load Value Proposition GLB model asynchronously
-    const loadValuePropGLB = async () => {
-      try {
-        const result = await SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_05_ValueProposition.glb", scene);
-        if (result.meshes.length > 0) {
-          const rootMesh = result.meshes[0];
-          rootMesh.position = new Vector3(0, 0.5, 0);
-          rootMesh.scaling = new Vector3(2.5, 2.5, 2.5);
-          setupGLBInteractivity(rootMesh, canvas.valuePropositions, canvas.valuePropositions.id);
-        }
-      } catch (error) {
-        console.error("Failed to load Value Proposition GLB:", error);
-        // Fallback to box geometry
-        const fallbackBlock = createBusinessBlock(
-          canvas.valuePropositions,
-          new Vector3(0, 0.5, 0),
-          new Vector3(1.8, 1, 2.5),
-          Color3.FromHexString(canvas.valuePropositions.color || '#FFF5E5'),
-          canvas.valuePropositions.id
-        );
-      }
-    };
-    
-    // Load GLB model
-    loadValuePropGLB();
+
 
     const blocks = [
       // Column 1-2: Key Partners (left, spans 2 rows)
@@ -581,7 +520,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_05_ValueProposition.glb", scene).then((result) => {
       if (result.meshes.length > 0) {
         const rootMesh = result.meshes[0];
-        rootMesh.position = new Vector3(0, 0, 0); // Center position like the original box
+        rootMesh.position = new Vector3(0, 0.5, 0); // Center position matching other blocks (y=0.5)
         rootMesh.scaling = new Vector3(2.5, 2.5, 2.5); // Scale up from small Blender size
         
         // Add basic interactivity
