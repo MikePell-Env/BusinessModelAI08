@@ -186,163 +186,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Store reference to currently visible popup
     let currentPopup: Rectangle | null = null;
     
-    // Test: Create a simple test panel to verify GUI system works
-    setTimeout(() => {
-      console.log('Creating test panel to verify GUI system');
-      const testPanel = new Rectangle("testPanel");
-      testPanel.widthInPixels = 200;
-      testPanel.heightInPixels = 100;
-      testPanel.color = "#ff0000";
-      testPanel.thickness = 2;
-      testPanel.background = "#ffffff";
-      testPanel.leftInPixels = 100;
-      testPanel.topInPixels = 100;
-      
-      const testText = new TextBlock("testText", "Test Panel - GUI Works!");
-      testText.color = "#000000";
-      testText.fontSize = "14px";
-      testPanel.addControl(testText);
-      
-      advancedTexture.addControl(testPanel);
-      
-      // Remove after 3 seconds
-      setTimeout(() => {
-        advancedTexture.removeControl(testPanel);
-        console.log('Test panel removed');
-      }, 3000);
-    }, 2000);
+
     
-    // Function to get canvas data for specific element
-    const getElementData = (elementName: string) => {
-      const elementMap: { [key: string]: CanvasElement } = {
-        'Value Proposition': canvas.valuePropositions,
-        'Key Partners': canvas.keyPartners,
-        'Key Activities': canvas.keyActivities,
-        'Key Resources': canvas.keyResources,
-        'Customer Relationships': canvas.customerRelationships,
-        'Customer Channels': canvas.channels,
-        'Customer Segments': canvas.customerSegments
-      };
-      return elementMap[elementName];
-    };
+
     
-    // Function to create vertical billboard panel with content
-    const createDetailPanel = (elementName: string, clickedMesh: AbstractMesh) => {
-      console.log(`createDetailPanel called for: ${elementName}`);
-      
-      // Close any existing panel
-      if (selectedPanelRef.current) {
-        advancedTexture.removeControl(selectedPanelRef.current);
-        selectedPanelRef.current = null;
-        console.log('Closed existing panel');
-      }
-      
-      // Get data for this element
-      const elementData = getElementData(elementName);
-      console.log(`Element data for ${elementName}:`, elementData);
-      if (!elementData) {
-        console.error(`No element data found for ${elementName}`);
-        return;
-      }
-      
-      const content = elementData.content || ['No content available'];
-      
-      // Create main panel container
-      const panel = new Rectangle("detailPanel");
-      panel.widthInPixels = 350;
-      panel.heightInPixels = Math.max(250, content.length * 40 + 120); // Dynamic height based on content
-      panel.cornerRadius = 15;
-      panel.color = "#2c3e50";
-      panel.thickness = 3;
-      panel.background = "#ffffff";
-      panel.alpha = 0.95;
-      
-      // Position panel linked to the clicked mesh
-      panel.linkWithMesh(clickedMesh);
-      panel.linkOffsetXInPixels = 200; // Position to the right of the object
-      panel.linkOffsetYInPixels = 0; // Center vertically
-      
-      // Create title for the panel
-      const titleText = new TextBlock("panelTitle", elementData.title);
-      titleText.color = "#2c3e50";
-      titleText.fontSize = "20px";
-      titleText.fontWeight = "bold";
-      titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-      titleText.topInPixels = -panel.heightInPixels / 2 + 30;
-      titleText.heightInPixels = 35;
-      
-      // Create content container with bullet points
-      const contentContainer = new Rectangle("contentContainer");
-      contentContainer.widthInPixels = panel.widthInPixels - 40;
-      contentContainer.heightInPixels = panel.heightInPixels - 100;
-      contentContainer.topInPixels = 25;
-      contentContainer.thickness = 0;
-      contentContainer.background = "transparent";
-      
-      // Create content text with proper bullet formatting
-      const bulletContent = content.map(item => `• ${item}`).join('\\n\\n');
-      const contentText = new TextBlock("panelContent", bulletContent);
-      contentText.color = "#34495e";
-      contentText.fontSize = "16px";
-      contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-      contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-      contentText.paddingLeftInPixels = 25;
-      contentText.paddingRightInPixels = 25;
-      contentText.paddingTopInPixels = 15;
-      contentText.textWrapping = true;
-      contentText.lineSpacing = "8px";
-      
-      // Create close button in upper right corner
-      const closeButton = new Rectangle("closeButton");
-      closeButton.widthInPixels = 30;
-      closeButton.heightInPixels = 30;
-      closeButton.cornerRadius = 15;
-      closeButton.color = "#e74c3c";
-      closeButton.thickness = 2;
-      closeButton.background = "#c0392b";
-      closeButton.leftInPixels = panel.widthInPixels / 2 - 20;
-      closeButton.topInPixels = -panel.heightInPixels / 2 + 20;
-      
-      const closeText = new TextBlock("closeText", "×");
-      closeText.color = "#ffffff";
-      closeText.fontSize = "20px";
-      closeText.fontWeight = "bold";
-      
-      closeButton.addControl(closeText);
-      
-      // Add hover effects to close button
-      closeButton.onPointerEnterObservable.add(() => {
-        closeButton.background = "#e74c3c";
-        closeButton.scaleX = 1.1;
-        closeButton.scaleY = 1.1;
-      });
-      
-      closeButton.onPointerOutObservable.add(() => {
-        closeButton.background = "#c0392b";
-        closeButton.scaleX = 1.0;
-        closeButton.scaleY = 1.0;
-      });
-      
-      // Add click handler to close button
-      closeButton.onPointerClickObservable.add(() => {
-        advancedTexture.removeControl(panel);
-        selectedPanelRef.current = null;
-        selectedElementRef.current = null;
-      });
-      
-      // Add all controls to panel
-      contentContainer.addControl(contentText);
-      panel.addControl(titleText);
-      panel.addControl(contentContainer);
-      panel.addControl(closeButton);
-      
-      // Add panel to texture
-      advancedTexture.addControl(panel);
-      
-      // Store reference
-      selectedPanelRef.current = panel;
-      selectedElementRef.current = elementName;
-    };
+
 
 
 
@@ -470,11 +318,108 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Show detail panel with content from 2D canvas data
             console.log(`Attempting to create detail panel for ${elementName}`);
-            console.log('Canvas data:', canvas);
-            try {
-              createDetailPanel(elementName, rootMesh);
-            } catch (error) {
-              console.error('Error creating detail panel:', error);
+            
+            // Create panel directly inline to avoid scope issues
+            // Close any existing panel
+            if (selectedPanelRef.current) {
+              advancedTexture.removeControl(selectedPanelRef.current);
+              selectedPanelRef.current = null;
+            }
+            
+            // Get data for this element
+            const elementMap: { [key: string]: any } = {
+              'Value Proposition': canvas.valuePropositions,
+              'Key Partners': canvas.keyPartners,
+              'Key Activities': canvas.keyActivities,
+              'Key Resources': canvas.keyResources,
+              'Customer Relationships': canvas.customerRelationships,
+              'Customer Channels': canvas.channels,
+              'Customer Segments': canvas.customerSegments
+            };
+            
+            const elementData = elementMap[elementName];
+            console.log(`Element data for ${elementName}:`, elementData);
+            
+            if (elementData) {
+              const content = elementData.content || ['No content available'];
+              
+              // Create main panel container
+              const panel = new Rectangle("detailPanel");
+              panel.widthInPixels = 350;
+              panel.heightInPixels = Math.max(250, content.length * 40 + 120);
+              panel.cornerRadius = 15;
+              panel.color = "#2c3e50";
+              panel.thickness = 3;
+              panel.background = "#ffffff";
+              panel.alpha = 0.95;
+              
+              // Position panel linked to the clicked mesh
+              panel.linkWithMesh(rootMesh);
+              panel.linkOffsetXInPixels = 200;
+              panel.linkOffsetYInPixels = 0;
+              
+              // Create title
+              const titleText = new TextBlock("panelTitle", elementData.title);
+              titleText.color = "#2c3e50";
+              titleText.fontSize = "20px";
+              titleText.fontWeight = "bold";
+              titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+              titleText.topInPixels = -panel.heightInPixels / 2 + 30;
+              titleText.heightInPixels = 35;
+              
+              // Create content text with bullet points
+              const bulletContent = content.map((item: string) => `• ${item}`).join('\\n\\n');
+              const contentText = new TextBlock("panelContent", bulletContent);
+              contentText.color = "#34495e";
+              contentText.fontSize = "16px";
+              contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+              contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+              contentText.paddingLeftInPixels = 25;
+              contentText.paddingRightInPixels = 25;
+              contentText.paddingTopInPixels = 15;
+              contentText.textWrapping = true;
+              contentText.topInPixels = 25;
+              contentText.heightInPixels = panel.heightInPixels - 100;
+              
+              // Create close button
+              const closeButton = new Rectangle("closeButton");
+              closeButton.widthInPixels = 30;
+              closeButton.heightInPixels = 30;
+              closeButton.cornerRadius = 15;
+              closeButton.color = "#e74c3c";
+              closeButton.thickness = 2;
+              closeButton.background = "#c0392b";
+              closeButton.leftInPixels = panel.widthInPixels / 2 - 20;
+              closeButton.topInPixels = -panel.heightInPixels / 2 + 20;
+              
+              const closeText = new TextBlock("closeText", "×");
+              closeText.color = "#ffffff";
+              closeText.fontSize = "20px";
+              closeText.fontWeight = "bold";
+              closeButton.addControl(closeText);
+              
+              // Add click handler to close button
+              closeButton.onPointerClickObservable.add(() => {
+                advancedTexture.removeControl(panel);
+                selectedPanelRef.current = null;
+                selectedElementRef.current = null;
+              });
+              
+              // Add controls to panel
+              panel.addControl(titleText);
+              panel.addControl(contentText);
+              panel.addControl(closeButton);
+              
+              // Add panel to texture
+              advancedTexture.addControl(panel);
+              
+              // Store reference
+              selectedPanelRef.current = panel;
+              selectedElementRef.current = elementName;
+              
+              console.log(`Panel created successfully for ${elementName}`);
+            } else {
+              console.error(`No element data found for ${elementName}`);
             }
           }));
           
