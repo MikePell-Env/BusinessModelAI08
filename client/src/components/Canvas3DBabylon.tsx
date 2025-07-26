@@ -7,13 +7,15 @@ import {
   DirectionalLight,
   MeshBuilder, 
   PBRMetallicRoughnessMaterial, 
+  StandardMaterial,
   Color3, 
   Vector3, 
   Mesh, 
   ActionManager, 
   ExecuteCodeAction,
   CubeTexture,
-  Texture
+  Texture,
+  DynamicTexture
 } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
@@ -68,12 +70,43 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
     directionalLight.intensity = 0.8;
 
-    // Create white ground with original working dimensions
+    // Create ground with grid lines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
-    const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", scene);
-    groundMaterial.baseColor = new Color3(0.97, 0.98, 0.99); // Original light gray color
-    groundMaterial.metallic = 0.0;
-    groundMaterial.roughness = 0.8;
+    
+    // Create dynamic texture for grid pattern
+    const gridTexture = new DynamicTexture("gridTexture", {width: 512, height: 512}, scene, false);
+    const gridContext = gridTexture.getContext();
+    
+    // Fill with light grey background
+    gridContext.fillStyle = "#e9ecef";
+    gridContext.fillRect(0, 0, 512, 512);
+    
+    // Draw white grid lines
+    gridContext.strokeStyle = "#ffffff";
+    gridContext.lineWidth = 1;
+    
+    // Draw vertical lines
+    for (let i = 0; i <= 512; i += 32) {
+      gridContext.beginPath();
+      gridContext.moveTo(i, 0);
+      gridContext.lineTo(i, 512);
+      gridContext.stroke();
+    }
+    
+    // Draw horizontal lines
+    for (let i = 0; i <= 512; i += 32) {
+      gridContext.beginPath();
+      gridContext.moveTo(0, i);
+      gridContext.lineTo(512, i);
+      gridContext.stroke();
+    }
+    
+    gridTexture.update();
+    
+    // Apply grid texture to ground
+    const groundMaterial = new StandardMaterial("groundMaterial", scene);
+    groundMaterial.diffuseTexture = gridTexture;
+    groundMaterial.specularColor = new Color3(0, 0, 0); // No specular reflection
     ground.material = groundMaterial;
 
     // Add default environment for proper PBR reflections
