@@ -204,6 +204,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       billboardPanel.background = "#FFFFFF";
       billboardPanel.shadowColor = "rgba(0, 0, 0, 0.3)";
       billboardPanel.shadowBlur = 10;
+      billboardPanel.zIndex = 1000; // High z-index to float above all other elements
       billboardPanel.isVisible = false;
       advancedTexture.addControl(billboardPanel);
 
