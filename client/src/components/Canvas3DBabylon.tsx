@@ -441,30 +441,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
 
     // Load individual GLB models as separate interactive objects with exact diagram labels
-    // Scaled to 60x for optimal visibility, positioned according to BMC layout
+    // Each model has a distinct color for easy identification, scaled to 60x for optimal visibility
     
-    // Center: Value Proposition (circular element)
-    loadGLBModelScaled("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions, new Vector3(0, 0.5, 0), "Value Proposition", 60);
+    // Center: Value Proposition (circular element) - BLUE
+    loadGLBModelScaledWithColor("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions, new Vector3(0, 0.5, 0), "Value Proposition", 60, new Color3(0, 0.4, 0.8));
     
-    // Left side: Key Partners (tall vertical rectangle)
-    loadGLBModelScaled("BMC_blender_06_KeyPartners.glb", canvas.keyPartners, new Vector3(-2.5, 0.5, 0), "Key Partners", 60);
+    // Left side: Key Partners (tall vertical rectangle) - GREEN
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyPartners.glb", canvas.keyPartners, new Vector3(-2.5, 0.5, 0), "Key Partners", 60, new Color3(0, 0.7, 0));
     
-    // Right side: Customer Segments (tall vertical rectangle)  
-    loadGLBModelScaled("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments, new Vector3(2.5, 0.5, 0), "Customer Segments", 60);
+    // Right side: Customer Segments (tall vertical rectangle) - PURPLE  
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments, new Vector3(2.5, 0.5, 0), "Customer Segments", 60, new Color3(0.7, 0, 0.7));
     
     // Top row surrounding center circle:
-    // Top-left: Key Activities
-    loadGLBModelScaled("BMC_blender_06_KeyActivities.glb", canvas.keyActivities, new Vector3(-0.8, 0.5, 1.2), "Key Activities", 60);
+    // Top-left: Key Activities - ORANGE
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyActivities.glb", canvas.keyActivities, new Vector3(-0.8, 0.5, 1.2), "Key Activities", 60, new Color3(1, 0.5, 0));
     
-    // Top-right: Customer Relationships  
-    loadGLBModelScaled("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(0.8, 0.5, 1.2), "Customer Relationships", 60);
+    // Top-right: Customer Relationships - YELLOW  
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(0.8, 0.5, 1.2), "Customer Relationships", 60, new Color3(1, 0.8, 0));
     
     // Bottom row surrounding center circle:
-    // Bottom-left: Key Resources (RED METALLIC)
+    // Bottom-left: Key Resources - RED (kept as originally specified)
     loadGLBModelScaledWithColor("BMC_blender_06_KeyResources.glb", canvas.keyResources, new Vector3(-0.8, 0.5, -1.2), "Key Resources", 60, new Color3(1, 0, 0));
     
-    // Bottom-right: Customer Channels
-    loadGLBModelScaled("BMC_blender_06_CustomerChannels.glb", canvas.channels, new Vector3(0.8, 0.5, -1.2), "Customer Channels", 60);
+    // Bottom-right: Customer Channels - CYAN
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerChannels.glb", canvas.channels, new Vector3(0.8, 0.5, -1.2), "Customer Channels", 60, new Color3(0, 0.8, 0.8));
 
     // Start the render loop
     engine.runRenderLoop(() => {
