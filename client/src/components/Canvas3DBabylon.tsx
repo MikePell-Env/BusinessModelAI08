@@ -412,9 +412,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleLabel.transformCenterX = 0.5;
           titleLabel.transformCenterY = 0.5;
           
-          // Position label above this specific mesh using its world position
+          // Calculate the actual mesh height with scaling applied
+          const meshBounds = rootMesh.getBoundingInfo();
+          const scaledHeight = (meshBounds.boundingBox.maximum.y - meshBounds.boundingBox.minimum.y) * scale;
+          
+          // Position label above this specific mesh accounting for its scaled size
           titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetYInPixels = -150; // Higher above mesh
+          titleLabel.linkOffsetYInPixels = -(scaledHeight * 0.8 + 100); // Above scaled mesh top
           titleLabel.linkOffsetXInPixels = 0; // Centered horizontally
           
           // Ensure the label is visible and attached to this specific mesh
@@ -507,9 +511,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleLabel.transformCenterX = 0.5;
           titleLabel.transformCenterY = 0.5;
           
-          // Position label above this specific mesh using its world position
+          // Calculate the actual mesh height with scaling applied
+          const meshBounds2 = rootMesh.getBoundingInfo();
+          const scaledHeight2 = (meshBounds2.boundingBox.maximum.y - meshBounds2.boundingBox.minimum.y) * scale;
+          
+          // Position label above this specific mesh accounting for its scaled size
           titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetYInPixels = -150; // Higher above mesh
+          titleLabel.linkOffsetYInPixels = -(scaledHeight2 * 0.8 + 100); // Above scaled mesh top
           titleLabel.linkOffsetXInPixels = 0; // Centered horizontally
           
           // Ensure the label is visible and attached to this specific mesh
