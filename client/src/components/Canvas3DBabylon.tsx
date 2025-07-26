@@ -74,12 +74,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
     camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
 
-    // Enhanced lighting setup
+    // Enhanced lighting setup for metallic materials
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 0.6;
+    hemisphericLight.intensity = 0.8;
+    hemisphericLight.diffuse = new Color3(1, 1, 1);
+    hemisphericLight.specular = new Color3(1, 1, 1);
     
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 0.8;
+    directionalLight.intensity = 0.7;
+    directionalLight.diffuse = new Color3(1, 1, 1);
+    directionalLight.specular = new Color3(1, 1, 1);
+    
+    // Add additional point light for metallic highlights
+    const pointLight = new PointLight("pointLight", new Vector3(2, 8, 2), scene);
+    pointLight.intensity = 0.5;
+    pointLight.diffuse = new Color3(1, 1, 1);
+    pointLight.specular = new Color3(1, 1, 1);
 
     // Create ground with grey plastic material and light grey gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -200,20 +210,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           rootMesh.position = position;
           rootMesh.scaling = new Vector3(8, 8, 8); // Much larger scale to occupy 60% of floor plane
           
-          // Apply custom color if specified (for Key Resources = red)
+          // Apply custom color if specified (for Key Resources = red metallic)
           if (customColor) {
             const meshesToColor = [rootMesh, ...rootMesh.getChildMeshes()];
             meshesToColor.forEach((mesh) => {
               if (mesh.material) {
                 if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
                   const material = mesh.material as PBRMetallicRoughnessMaterial;
+                  // Enhanced red metallic properties
                   material.baseColor = customColor;
-                } else if (mesh.material.hasOwnProperty('diffuseColor')) {
-                  (mesh.material as any).diffuseColor = customColor;
-                } else if (mesh.material.hasOwnProperty('albedoColor')) {
-                  (mesh.material as any).albedoColor = customColor;
+                  material.metallic = 0.9; // High metallic value
+                  material.roughness = 0.1; // Low roughness for shiny surface
+                  material.emissiveColor = new Color3(0.1, 0, 0); // Subtle red glow
+                } else {
+                  // Create new PBR material for non-PBR materials to ensure metallic appearance
+                  const newMaterial = new PBRMetallicRoughnessMaterial(`red_metallic_${mesh.name}`, scene);
+                  newMaterial.baseColor = customColor;
+                  newMaterial.metallic = 0.9;
+                  newMaterial.roughness = 0.1;
+                  newMaterial.emissiveColor = new Color3(0.1, 0, 0);
+                  mesh.material = newMaterial;
                 }
-                console.log(`Applied red color to ${mesh.name} with material: ${mesh.material.getClassName()}`);
+                console.log(`Applied red metallic material to ${mesh.name} with material: ${mesh.material.getClassName()}`);
               }
             });
           }
