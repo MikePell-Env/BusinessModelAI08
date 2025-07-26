@@ -324,7 +324,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleLabel.background = "rgba(255, 255, 255, 0.9)";
           advancedTexture.addControl(titleLabel);
 
-          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, element.title);
+          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, elementName);
           titleText.color = "#2D3748";
           titleText.fontSize = 16;
           titleText.fontWeight = "bold";
@@ -342,8 +342,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Scaled version of loadGLBModel with custom scaling
     const loadGLBModelScaled = (filename: string, content: string[], position: Vector3, elementName: string, scale: number) => {
-      const element = canvas.elements.find(el => el.title === elementName);
-      if (!element) return;
 
       SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
         if (result.meshes.length > 0) {
@@ -373,7 +371,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleLabel.background = "rgba(255, 255, 255, 0.9)";
           advancedTexture.addControl(titleLabel);
 
-          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, element.title);
+          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, elementName);
           titleText.color = "#2D3748";
           titleText.fontSize = 16;
           titleText.fontWeight = "bold";
@@ -393,8 +391,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Scaled version with custom color for Key Resources
     const loadGLBModelScaledWithColor = (filename: string, content: string[], position: Vector3, elementName: string, scale: number, color: Color3) => {
-      const element = canvas.elements.find(el => el.title === elementName);
-      if (!element) return;
 
       SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
         if (result.meshes.length > 0) {
@@ -426,7 +422,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleLabel.background = "rgba(255, 255, 255, 0.9)";
           advancedTexture.addControl(titleLabel);
 
-          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, element.title);
+          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, elementName);
           titleText.color = "#2D3748";
           titleText.fontSize = 16;
           titleText.fontWeight = "bold";
