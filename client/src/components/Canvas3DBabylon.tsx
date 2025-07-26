@@ -637,57 +637,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const loadAllModels = async () => {
       console.log('Loading custom GLB models for business model canvas...');
       
-      // Define positions and scales matching the exact top view layout (3x bigger, positioned adjacent)
+      // Start with only Value Proposition at exact center (0,0) - positioning one at a time
       const modelConfigs = [
-        // Central Value Proposition (circular, center position)
+        // Central Value Proposition (circular, exact center at ground level)
         {
           element: canvas.valuePropositions,
-          position: new Vector3(0, 0.5, 0),
-          scale: new Vector3(75, 30, 75), // 3x bigger circle at center
+          position: new Vector3(0, 0, 0), // Exact center at ground level
+          scale: new Vector3(50, 20, 50), // Moderately sized circle
           id: canvas.valuePropositions.id
-        },
-        // Far Left: Key Partners (tall left rectangle, adjacent to circle)
-        {
-          element: canvas.keyPartners,
-          position: new Vector3(-4, 0.5, 0),
-          scale: new Vector3(54, 30, 120), // 3x bigger, positioned closer to circle
-          id: canvas.keyPartners.id
-        },
-        // Far Right: Customer Segments (tall right rectangle, adjacent to circle)  
-        {
-          element: canvas.customerSegments,
-          position: new Vector3(4, 0.5, 0),
-          scale: new Vector3(54, 30, 120), // 3x bigger, positioned closer to circle
-          id: canvas.customerSegments.id
-        },
-        // Top Left: Key Activities (adjacent to circle from top-left)
-        {
-          element: canvas.keyActivities,
-          position: new Vector3(-2, 0.5, 2),
-          scale: new Vector3(75, 30, 45), // 3x bigger, closer to circle
-          id: canvas.keyActivities.id
-        },
-        // Top Right: Customer Relationships (adjacent to circle from top-right)
-        {
-          element: canvas.customerRelationships,
-          position: new Vector3(2, 0.5, 2),
-          scale: new Vector3(75, 30, 45), // 3x bigger, closer to circle
-          id: canvas.customerRelationships.id
-        },
-        // Bottom Left: Key Resources (adjacent to circle from bottom-left)
-        {
-          element: canvas.keyResources,
-          position: new Vector3(-2, 0.5, -2),
-          scale: new Vector3(75, 30, 45), // 3x bigger, closer to circle
-          id: canvas.keyResources.id
-        },
-        // Bottom Right: Channels (adjacent to circle from bottom-right)
-        {
-          element: canvas.channels,
-          position: new Vector3(2, 0.5, -2),
-          scale: new Vector3(75, 30, 45), // 3x bigger, closer to circle
-          id: canvas.channels.id
         }
+        // Temporarily removing all other models to position Value Proposition correctly first
       ];
 
       // Load all GLB models
