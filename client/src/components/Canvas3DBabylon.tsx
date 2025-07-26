@@ -189,11 +189,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // GLB Model Loading Function with hover and selection lighting
     const loadGLBModel = (filename: string, element: CanvasElement, position: Vector3, elementName: string) => {
+      loadGLBModelWithColor(filename, element, position, elementName, null);
+    };
+
+    // GLB Model Loading Function with custom color option
+    const loadGLBModelWithColor = (filename: string, element: CanvasElement, position: Vector3, elementName: string, customColor: Color3 | null) => {
       SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
         if (result.meshes.length > 0) {
           const rootMesh = result.meshes[0];
           rootMesh.position = position;
           rootMesh.scaling = new Vector3(8, 8, 8); // Much larger scale to occupy 60% of floor plane
+          
+          // Apply custom color if specified (for Key Resources = red)
+          if (customColor) {
+            const meshesToColor = [rootMesh, ...rootMesh.getChildMeshes()];
+            meshesToColor.forEach((mesh) => {
+              if (mesh.material) {
+                if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                  const material = mesh.material as PBRMetallicRoughnessMaterial;
+                  material.baseColor = customColor;
+                } else if (mesh.material.hasOwnProperty('diffuseColor')) {
+                  (mesh.material as any).diffuseColor = customColor;
+                } else if (mesh.material.hasOwnProperty('albedoColor')) {
+                  (mesh.material as any).albedoColor = customColor;
+                }
+                console.log(`Applied red color to ${mesh.name} with material: ${mesh.material.getClassName()}`);
+              }
+            });
+          }
           
           // Store original materials for lighting effects (not used but kept for future reference)
           
@@ -305,7 +328,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Position models exactly as shown in top view diagram:
     loadGLBModel("BMC_blender_05_KeyPartners.glb", canvas.keyPartners, new Vector3(-4, 0.5, 0), "Key Partners");               // Left tall rectangle
     loadGLBModel("BMC_blender_05_KeyActivities.glb", canvas.keyActivities, new Vector3(-1, 0.5, 2), "Key Activities");        // Top-left rectangle (above circle)
-    loadGLBModel("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-1, 0.5, -2), "Key Resources");         // Bottom-left rectangle (below circle)
+    loadGLBModelWithColor("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-1, 0.5, -2), "Key Resources", new Color3(1, 0, 0)); // Bottom-left rectangle (below circle) - RED
     loadGLBModel("BMC_blender_05_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(1, 0.5, 2), "Customer Relationships"); // Top-right rectangle (above circle)
     loadGLBModel("BMC_blender_05_CustomerChannels.glb", canvas.channels, new Vector3(1, 0.5, -2), "Customer Channels");     // Bottom-right rectangle (below circle)
     loadGLBModel("BMC_blender_05_CustomerSegments.glb", canvas.customerSegments, new Vector3(4, 0.5, 0), "Customer Segments"); // Right tall rectangle
