@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, Camera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, PBRMetallicRoughnessMaterial, Color3, Color4, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator, SceneLoader, AbstractMesh } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, Camera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, PBRMetallicRoughnessMaterial, Color3, Color4, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator, SceneLoader, AbstractMesh, TransformNode } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
@@ -100,8 +100,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Lower ambient lighting for better contrast
     scene.ambientColor = new Color3(0.1, 0.1, 0.1);
 
+    // Create a parent group for all scene geometry
+    const sceneGroup = new TransformNode("sceneGroup", scene);
+
     // Create ground with plastic-like material that can receive shadows
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
+    ground.parent = sceneGroup;
     const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", scene);
     
     // Plastic-like properties
@@ -128,6 +132,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     for (let i = -7; i <= 7; i += gridSpacing) {
       const points = [new Vector3(-10, 0.01, i), new Vector3(10, 0.01, i)];
       const line = MeshBuilder.CreateLines(`hLine_${i}`, { points: points }, scene);
+      line.parent = sceneGroup; // Add to scene group
       const lineMaterial = new StandardMaterial(`hLineMaterial_${i}`, scene);
       lineMaterial.emissiveColor = new Color3(0.85, 0.85, 0.85); // Much lighter gray (30% opacity effect)
       lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
@@ -140,6 +145,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     for (let i = -10; i <= 10; i += gridSpacing) {
       const points = [new Vector3(i, 0.01, -7), new Vector3(i, 0.01, 7)];
       const line = MeshBuilder.CreateLines(`vLine_${i}`, { points: points }, scene);
+      line.parent = sceneGroup; // Add to scene group
       const lineMaterial = new StandardMaterial(`vLineMaterial_${i}`, scene);
       lineMaterial.emissiveColor = new Color3(0.85, 0.85, 0.85); // Much lighter gray (30% opacity effect)
       lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
@@ -190,11 +196,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     frameMaterial.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight self-illumination
     frameMaterial.disableLighting = false;
     
-    // Apply material to all frame pieces
+    // Apply material to all frame pieces and add to scene group
     frontFrame.material = frameMaterial;
+    frontFrame.parent = sceneGroup;
     backFrame.material = frameMaterial;
+    backFrame.parent = sceneGroup;
     leftFrame.material = frameMaterial;
+    leftFrame.parent = sceneGroup;
     rightFrame.material = frameMaterial;
+    rightFrame.parent = sceneGroup;
 
     // Create GUI
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -365,9 +375,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (result.meshes.length > 0) {
           const rootMesh = result.meshes[0];
           
-          // Set position and scale
+          // Set position and scale, and add to scene group
           rootMesh.position = position;
           rootMesh.scaling = scale;
+          rootMesh.parent = sceneGroup;
           
           // Apply materials and shadows to all child meshes
           result.meshes.forEach((mesh, index) => {
@@ -630,6 +641,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         (titleRect as any).counterText = counterText;
       }
 
+      box.parent = sceneGroup; // Add fallback blocks to scene group
       return box;
     };
 
@@ -687,6 +699,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     loadAllModels().catch(error => {
       console.error('Error loading GLB models:', error);
     });
+
+    // Position the entire scene group to center the layout visually
+    // The ground plane extends from -10 to +10 in X and -7 to +7 in Z
+    // Move the entire group so the center of the visible layout is at (0,0)
+    sceneGroup.position = new Vector3(5, 0, 3.5); // Offset to center the layout
 
     // Find the revenue streams box and add height animation
     const revenueStreamsBox = scene.getMeshByName(`box_${canvas.revenueStreams.id}`);
