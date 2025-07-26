@@ -112,7 +112,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Create extruded border rails on all sides
     const railHeight = 0.3;
     const railWidth = 0.2;
-    const railColor = new Color3(0.17, 0.24, 0.31); // Dark rail color #2c3e50
+    const railColor = new Color3(0.5, 0.5, 0.5); // Medium grey rail color
     
     // Create rail material
     const railMaterial = new StandardMaterial("railMaterial", scene);
