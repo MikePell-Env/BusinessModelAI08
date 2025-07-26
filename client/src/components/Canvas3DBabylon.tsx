@@ -34,17 +34,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Enable PBR environment for enhanced metallic reflections
     scene.environmentIntensity = 1.5; // Boost environment for better metallic reflections
     
-    // Create default environment for PBR reflections with white background
+    // Create default environment for PBR reflections with matching 2D background
     const defaultEnvironment = scene.createDefaultEnvironment({
       enableGroundShadow: false,
       enableGroundMirror: false,
-      skyboxColor: new Color3(1, 1, 1), // White skybox
-      groundColor: new Color3(1, 1, 1), // White ground
+      skyboxColor: new Color3(0.914, 0.925, 0.937), // Match 2D background #e9ecef
+      groundColor: new Color3(0.914, 0.925, 0.937), // Match 2D background
       skyboxSize: 100
     });
     
-    // Set white background
-    scene.clearColor = new Color4(1, 1, 1, 1);
+    // Set background to match 2D view (#e9ecef = rgb(233, 236, 239))
+    scene.clearColor = new Color4(0.914, 0.925, 0.937, 1);
     
     // Remove the default skybox if it exists and create white environment
     if (defaultEnvironment && defaultEnvironment.skybox) {
@@ -128,7 +128,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const points = [new Vector3(-10, 0.01, i), new Vector3(10, 0.01, i)];
       const line = MeshBuilder.CreateLines(`hLine_${i}`, { points: points }, scene);
       const lineMaterial = new StandardMaterial(`hLineMaterial_${i}`, scene);
-      lineMaterial.emissiveColor = new Color3(1, 1, 1); // Pure white
+      lineMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // Darker gray for better visibility
       lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
       lineMaterial.disableLighting = true; // Ignore lighting
       line.material = lineMaterial;
@@ -140,7 +140,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const points = [new Vector3(i, 0.01, -7), new Vector3(i, 0.01, 7)];
       const line = MeshBuilder.CreateLines(`vLine_${i}`, { points: points }, scene);
       const lineMaterial = new StandardMaterial(`vLineMaterial_${i}`, scene);
-      lineMaterial.emissiveColor = new Color3(1, 1, 1); // Pure white
+      lineMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // Darker gray for better visibility
       lineMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse reflection
       lineMaterial.disableLighting = true; // Ignore lighting
       line.material = lineMaterial;
