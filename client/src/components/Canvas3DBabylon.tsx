@@ -62,6 +62,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Enable camera controls on the canvas
     camera.attachControl(canvasRef.current, true);
     
+    // Reduce mouse wheel sensitivity for smoother zooming
+    camera.wheelPrecision = 50;        // Default is 3, higher values = less sensitive
+    
     // Set camera limits for grid layout navigation (original working values)
     camera.lowerRadiusLimit = 5;      // Minimum zoom distance
     camera.upperRadiusLimit = 25;     // Maximum zoom distance
