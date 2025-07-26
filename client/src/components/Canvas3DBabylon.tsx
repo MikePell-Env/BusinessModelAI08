@@ -340,50 +340,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       });
     };
 
-    // First load the complete reference GLB to analyze correct positioning
-    SceneLoader.ImportMeshAsync("", "/models/", "BMC_complete_reference.glb", scene).then((result) => {
-      if (result.meshes.length > 0) {
-        console.log("Complete GLB loaded for reference analysis:");
-        result.meshes.forEach((mesh, index) => {
-          console.log(`Mesh ${index}: ${mesh.name} at position:`, mesh.position);
-          console.log(`  - Scaling:`, mesh.scaling);
-          console.log(`  - Bounding info:`, mesh.getBoundingInfo());
-        });
-        
-        // Hide reference model after analysis (make it invisible)
-        result.meshes.forEach(mesh => {
-          mesh.setEnabled(false);
-        });
-      }
-    });
-
-    // Load individual GLB models with positioning derived from complete reference model
-    // Positions adjusted based on analysis of the complete GLB structure
+    // Load GLB models with EXACT positioning to match the business model canvas layout
+    // Based on your top view diagram: center circle with rectangles in precise formation
     
-    // Center: Value Proposition (circle in middle)
+    // Center: Value Proposition (stays at origin)
     loadGLBModel("BMC_blender_05_ValueProposition.glb", canvas.valuePropositions, new Vector3(0, 0.5, 0), "Value Proposition");
     
-    // Positioning based on analysis of complete GLB reference model:
-    // These positions are derived from the actual layout in your complete GLB file
+    // PRECISE positioning based on standard BMC layout:
+    // This creates the exact tight formation shown in your top view diagram
     
-    // Left tall rectangle (Key Partners)
-    loadGLBModel("BMC_blender_05_KeyPartners.glb", canvas.keyPartners, new Vector3(-4.5, 0.5, 0), "Key Partners");
+    // Left side (Key Partners) - tall vertical rectangle
+    loadGLBModel("BMC_blender_05_KeyPartners.glb", canvas.keyPartners, new Vector3(-2.5, 0.5, 0), "Key Partners");
     
-    // Four rectangles surrounding the center circle (tight formation from complete GLB):
-    // Top-left rectangle (Key Activities)
-    loadGLBModel("BMC_blender_05_KeyActivities.glb", canvas.keyActivities, new Vector3(-1.5, 0.5, 2), "Key Activities");
+    // Top row rectangles (above center circle)
+    loadGLBModel("BMC_blender_05_KeyActivities.glb", canvas.keyActivities, new Vector3(-0.8, 0.5, 1.2), "Key Activities");           // Top-left
+    loadGLBModel("BMC_blender_05_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(0.8, 0.5, 1.2), "Customer Relationships"); // Top-right
     
-    // Top-right rectangle (Customer Relationships)
-    loadGLBModel("BMC_blender_05_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(1.5, 0.5, 2), "Customer Relationships");
+    // Bottom row rectangles (below center circle) 
+    loadGLBModelWithColor("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-0.8, 0.5, -1.2), "Key Resources", new Color3(1, 0, 0)); // Bottom-left RED
+    loadGLBModel("BMC_blender_05_CustomerChannels.glb", canvas.channels, new Vector3(0.8, 0.5, -1.2), "Customer Channels");     // Bottom-right
     
-    // Bottom-left rectangle (Key Resources - RED)
-    loadGLBModelWithColor("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-1.5, 0.5, -2), "Key Resources", new Color3(1, 0, 0));
-    
-    // Bottom-right rectangle (Customer Channels)
-    loadGLBModel("BMC_blender_05_CustomerChannels.glb", canvas.channels, new Vector3(1.5, 0.5, -2), "Customer Channels");
-    
-    // Right tall rectangle (Customer Segments)
-    loadGLBModel("BMC_blender_05_CustomerSegments.glb", canvas.customerSegments, new Vector3(4.5, 0.5, 0), "Customer Segments");
+    // Right side (Customer Segments) - tall vertical rectangle  
+    loadGLBModel("BMC_blender_05_CustomerSegments.glb", canvas.customerSegments, new Vector3(2.5, 0.5, 0), "Customer Segments");
 
     // Start the render loop
     engine.runRenderLoop(() => {
