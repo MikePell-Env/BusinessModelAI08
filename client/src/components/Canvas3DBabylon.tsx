@@ -390,25 +390,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
         Color3.FromHexString(canvas.customerSegments.color || '#FFE5F5'),
         canvas.customerSegments.id
-      ),
-
-      // Row 3: Cost Structure (spans 5 columns)
-      createBusinessBlock(
-        canvas.costStructure,
-        new Vector3(-1, 0.5, -2.5), // Position: left side, back
-        new Vector3(4.5, 1, 1),     // Size: wide width, short height
-        Color3.FromHexString(canvas.costStructure.color || '#F0F0F0'),
-        canvas.costStructure.id
-      ),
-
-      // Row 3: Revenue Streams (spans 5 columns)
-      createBusinessBlock(
-        canvas.revenueStreams,
-        new Vector3(1, 0.5, -2.5),  // Position: right side, back
-        new Vector3(4.5, 1, 1),     // Size: wide width, short height
-        Color3.FromHexString(canvas.revenueStreams.color || '#E5F5E5'),
-        canvas.revenueStreams.id
       )
+
+      // Row 3: Cost Structure and Revenue Streams - HIDDEN per user request
+      // createBusinessBlock(
+      //   canvas.costStructure,
+      //   new Vector3(-1, 0.5, -2.5), // Position: left side, back
+      //   new Vector3(4.5, 1, 1),     // Size: wide width, short height
+      //   Color3.FromHexString(canvas.costStructure.color || '#F0F0F0'),
+      //   canvas.costStructure.id
+      // ),
+
+      // createBusinessBlock(
+      //   canvas.revenueStreams,
+      //   new Vector3(1, 0.5, -2.5),  // Position: right side, back
+      //   new Vector3(4.5, 1, 1),     // Size: wide width, short height
+      //   Color3.FromHexString(canvas.revenueStreams.color || '#E5F5E5'),
+      //   canvas.revenueStreams.id
+      // )
     ];
 
     // Start the render loop
