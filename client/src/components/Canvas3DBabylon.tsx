@@ -235,25 +235,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       billboardContent.textWrapping = true;
       billboardPanel.addControl(billboardContent);
 
-      // Close button for billboard
-      const closeButton = new Rectangle(`close_${elementId}`);
-      closeButton.widthInPixels = 30;
-      closeButton.heightInPixels = 30;
-      closeButton.cornerRadius = 20;
-      closeButton.color = "#E53E3E";
-      closeButton.thickness = 0;
-      closeButton.background = "#E53E3E";
-      closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-      closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-      closeButton.paddingTop = "12px";
-      closeButton.paddingRight = "12px";
-      billboardPanel.addControl(closeButton);
-
+      // Close button for billboard - simple grey X
       const closeText = new TextBlock(`close_text_${elementId}`, "×");
-      closeText.color = "#FFFFFF";
-      closeText.fontSize = 18;
+      closeText.color = "#666666";
+      closeText.fontSize = 20;
       closeText.fontWeight = "bold";
-      closeButton.addControl(closeText);
+      closeText.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      closeText.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      closeText.paddingTop = "15px";
+      closeText.paddingRight = "15px";
+      billboardPanel.addControl(closeText);
 
       // Add interaction
       geometry.actionManager = new ActionManager(scene);
@@ -276,7 +267,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }));
 
       // Close button interaction
-      closeButton.onPointerUpObservable.add(() => {
+      closeText.onPointerUpObservable.add(() => {
         billboardPanel.isVisible = false;
         currentPopup = null;
       });
