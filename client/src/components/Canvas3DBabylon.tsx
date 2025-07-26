@@ -54,12 +54,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create camera with three-quarter view angle (rotated 20 degrees clockwise)
+    // Create camera with three-quarter view angle optimized for circular layout
     const camera = new ArcRotateCamera(
       "camera",
       -Math.PI / 4 - Math.PI / 9,  // 45-degree + 20-degree clockwise rotation
       Math.PI / 3,         // 60-degree vertical angle for better perspective
-      14,                  // Slightly farther distance to see more of the scene
+      16,                  // Farther distance to see the expanded circular layout
       Vector3.Zero(),
       scene
     );
@@ -68,9 +68,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Enable camera controls on the canvas
     camera.attachControl(canvasRef.current, true);
     
-    // Set camera limits for better user experience
-    camera.lowerRadiusLimit = 5;
-    camera.upperRadiusLimit = 25;
+    // Set camera limits for better user experience with circular layout
+    camera.lowerRadiusLimit = 8;
+    camera.upperRadiusLimit = 30;
     camera.lowerBetaLimit = 0.1;
     camera.upperBetaLimit = Math.PI / 2.2;
 
@@ -537,80 +537,111 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return box;
     };
 
-    // Create business model canvas blocks in uniform grid layout
+    // Create central circular Value Proposition using a cylinder
+    const centralRadius = 1.5;
+    const valuePropositionCylinder = MeshBuilder.CreateCylinder(`cylinder_${canvas.valuePropositions.id}`, {
+      height: 1,
+      diameter: centralRadius * 2
+    }, scene);
+    valuePropositionCylinder.position = new Vector3(0, 0.5, 0);
+    
+    // Central Value Proposition material - special treatment
+    const centralMaterial = new PBRMetallicRoughnessMaterial(`centralMaterial_${canvas.valuePropositions.id}`, scene);
+    centralMaterial.baseColor = new Color3(0.9, 0.9, 0.95); // Slightly off-white with subtle blue tint
+    centralMaterial.metallic = 0.9;
+    centralMaterial.roughness = 0.1;
+    centralMaterial.alpha = 0.95;
+    centralMaterial.transparencyMode = PBRMetallicRoughnessMaterial.PBRMATERIAL_ALPHABLEND;
+    
+    if (scene.environmentTexture) {
+      centralMaterial.environmentTexture = scene.environmentTexture;
+    }
+    
+    valuePropositionCylinder.material = centralMaterial;
+    shadowGenerator.addShadowCaster(valuePropositionCylinder);
+    
+    // Add interaction to central cylinder
+    valuePropositionCylinder.actionManager = new ActionManager(scene);
+    valuePropositionCylinder.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, (evt) => {
+      console.log(`Clicked on ${canvas.valuePropositions.title}`);
+      evt.sourceEvent?.stopPropagation();
+      
+      if (currentSelectedElement === canvas.valuePropositions.id) {
+        hideFloatingPanel(canvas.valuePropositions.id);
+      } else {
+        showFloatingPanel(canvas.valuePropositions, new Vector3(0, 0.5, 0), canvas.valuePropositions.id);
+      }
+    }));
+
+    // Create rectangular perimeter boxes positioned around the central circle
     const blocks = [
-      // Tall boxes spanning both rows: Key Partners, Value Propositions, Customer Segments
+      // Left side: Key Partners (tall rectangle)
       createBusinessBlock(
         canvas.keyPartners,
-        new Vector3(-4, 0.5, 0), // Column 1, centered between top and bottom rows
-        new Vector3(1.6, 1, 3.8), // Double height to span both rows
+        new Vector3(-4.5, 0.5, 0), // Far left
+        new Vector3(1.5, 1, 4), // Tall rectangle
         new Color3(1, 1, 1), // White
         canvas.keyPartners.id
       ),
 
-      createBusinessBlock(
-        canvas.valuePropositions,
-        new Vector3(0, 1, 0), // Column 3, moved up to center the taller box
-        new Vector3(1.6, 2, 3.8), // Double height (2 instead of 1)
-        new Color3(1, 1, 1), // White
-        canvas.valuePropositions.id
-      ),
-
+      // Right side: Customer Segments (tall rectangle with wood texture)
       createBusinessBlock(
         canvas.customerSegments,
-        new Vector3(4, 0.5, 0), // Column 5, centered between top and bottom rows
-        new Vector3(1.6, 1, 3.8), // Double height to span both rows
-        new Color3(1, 1, 1), // White
+        new Vector3(4.5, 0.5, 0), // Far right
+        new Vector3(1.5, 1, 4), // Tall rectangle
+        new Color3(1, 1, 1), // White (will be overridden by wood texture)
         canvas.customerSegments.id
       ),
 
-      // Top row single boxes: Key Activities, Customer Relationships
+      // Top left: Key Activities
       createBusinessBlock(
         canvas.keyActivities,
-        new Vector3(-2, 0.5, 1), // Column 2, Top row
-        new Vector3(1.6, 1, 1.8),
+        new Vector3(-2.5, 0.5, 2.5), // Top left quadrant
+        new Vector3(2.5, 1, 1.5), // Rectangular
         new Color3(1, 1, 1), // White
         canvas.keyActivities.id
       ),
 
+      // Top right: Customer Relationships
       createBusinessBlock(
         canvas.customerRelationships,
-        new Vector3(2, 0.5, 1), // Column 4, Top row
-        new Vector3(1.6, 1, 1.8),
+        new Vector3(2.5, 0.5, 2.5), // Top right quadrant
+        new Vector3(2.5, 1, 1.5), // Rectangular
         new Color3(1, 1, 1), // White
         canvas.customerRelationships.id
       ),
 
-      // Bottom row single boxes: Key Resources, Channels
+      // Bottom left: Key Resources
       createBusinessBlock(
         canvas.keyResources,
-        new Vector3(-2, 0.5, -1), // Column 2, Bottom row
-        new Vector3(1.6, 1, 1.8),
+        new Vector3(-2.5, 0.5, -2.5), // Bottom left quadrant
+        new Vector3(2.5, 1, 1.5), // Rectangular
         new Color3(1, 1, 1), // White
         canvas.keyResources.id
       ),
 
+      // Bottom right: Channels
       createBusinessBlock(
         canvas.channels,
-        new Vector3(2, 0.5, -1), // Column 4, Bottom row
-        new Vector3(1.6, 1, 1.8),
+        new Vector3(2.5, 0.5, -2.5), // Bottom right quadrant
+        new Vector3(2.5, 1, 1.5), // Rectangular
         new Color3(1, 1, 1), // White
         canvas.channels.id
       ),
 
-      // Bottom Wide Row: Cost Structure and Revenue Streams with small gap
+      // Bottom row: Cost Structure and Revenue Streams (wide rectangles)
       createBusinessBlock(
         canvas.costStructure,
-        new Vector3(-2.125, 0.5, -2.8), // Left side, positioned for small gap
-        new Vector3(3.75, 1, 1.6), // Width allowing for 0.5 unit gap
+        new Vector3(-2.25, 0.5, -4.5), // Bottom left wide
+        new Vector3(4, 1, 1.5), // Wide rectangle
         new Color3(1, 0.8, 0.8), // Slightly red color
         canvas.costStructure.id
       ),
 
       createBusinessBlock(
         canvas.revenueStreams,
-        new Vector3(2.125, 0.5, -2.8), // Right side, positioned for small gap
-        new Vector3(3.75, 1, 1.6), // Width allowing for 0.5 unit gap
+        new Vector3(2.25, 0.5, -4.5), // Bottom right wide
+        new Vector3(4, 1, 1.5), // Wide rectangle
         new Color3(0.8, 1, 0.8), // Slightly green color
         canvas.revenueStreams.id
       )
