@@ -235,15 +235,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       billboardContent.textWrapping = true;
       billboardPanel.addControl(billboardContent);
 
-      // Close button for billboard - simple grey X
+      // Close button for billboard - simple grey X in upper-right corner
       const closeText = new TextBlock(`close_text_${elementId}`, "×");
       closeText.color = "#666666";
       closeText.fontSize = 20;
       closeText.fontWeight = "bold";
       closeText.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
       closeText.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-      closeText.paddingTop = "15px";
-      closeText.paddingRight = "15px";
+      closeText.top = "10px";
+      closeText.left = "-10px";
       billboardPanel.addControl(closeText);
 
       // Add interaction
