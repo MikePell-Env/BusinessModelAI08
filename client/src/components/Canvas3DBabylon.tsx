@@ -70,36 +70,41 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
     directionalLight.intensity = 0.8;
 
-    // Create ground with grid lines
+    // Create ground with grid lines matching screenshots
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     
-    // Create dynamic texture for grid pattern
-    const gridTexture = new DynamicTexture("gridTexture", {width: 512, height: 512}, scene, false);
+    // Create dynamic texture for grid pattern matching yesterday's screenshots
+    const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
     const gridContext = gridTexture.getContext();
     
-    // Fill with light grey background
-    gridContext.fillStyle = "#e9ecef";
-    gridContext.fillRect(0, 0, 512, 512);
+    // Fill with light background (matching screenshot appearance)
+    gridContext.fillStyle = "#f8f9fa";
+    gridContext.fillRect(0, 0, 1024, 1024);
     
-    // Draw white grid lines
-    gridContext.strokeStyle = "#ffffff";
-    gridContext.lineWidth = 1;
+    // Draw light purple/lavender grid lines (matching screenshot)
+    gridContext.strokeStyle = "#d6d8e5";
+    gridContext.lineWidth = 2;
     
     // Draw vertical lines
-    for (let i = 0; i <= 512; i += 32) {
+    for (let i = 0; i <= 1024; i += 64) {
       gridContext.beginPath();
       gridContext.moveTo(i, 0);
-      gridContext.lineTo(i, 512);
+      gridContext.lineTo(i, 1024);
       gridContext.stroke();
     }
     
     // Draw horizontal lines
-    for (let i = 0; i <= 512; i += 32) {
+    for (let i = 0; i <= 1024; i += 64) {
       gridContext.beginPath();
       gridContext.moveTo(0, i);
-      gridContext.lineTo(512, i);
+      gridContext.lineTo(1024, i);
       gridContext.stroke();
     }
+    
+    // Draw dark border around entire texture
+    gridContext.strokeStyle = "#2c3e50";
+    gridContext.lineWidth = 8;
+    gridContext.strokeRect(4, 4, 1016, 1016);
     
     gridTexture.update();
     
