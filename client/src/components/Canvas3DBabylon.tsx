@@ -43,12 +43,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create camera with proper positioning for grid layout (pre-GLB state)
+    // Create camera with perspective matching the screenshot
     const camera = new ArcRotateCamera(
       "camera",
-      -Math.PI / 2,    // Alpha (horizontal rotation)
-      Math.PI / 2.5,   // Beta (vertical rotation) - original working angle
-      12,              // Radius (distance from target) - original working distance
+      -Math.PI / 4,    // Alpha (horizontal rotation) - front-right angle
+      Math.PI / 3.5,   // Beta (vertical rotation) - higher angle looking down
+      18,              // Radius (distance from target) - further back for full view
       Vector3.Zero(),  // Target position
       scene
     );
