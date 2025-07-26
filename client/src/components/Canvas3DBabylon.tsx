@@ -442,20 +442,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const bmcMasterTransform = new TransformNode("bmcMasterGroup", scene);
     bmcMasterTransform.rotation.y = Math.PI; // 180 degree rotation around Y-axis for entire BMC
     
-    // Load individual GLB models as separate interactive objects with exact diagram labels
-    // Each model has a distinct color for easy identification, ALL parented to master transform
-    
-    // Center: Value Proposition (circular element) - BLUE (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content || "", new Vector3(0, 0.5, 0), "Value Proposition", 45, new Color3(0, 0.4, 0.8), bmcMasterTransform);
-    
-    // Left side: Customer Segments (tall vertical rectangle) - PURPLE (parented to master transform)
-    loadGLBModelWithParent("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(-2.8, 0.5, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7), bmcMasterTransform);
-    
-    // Right side: Key Partners (tall vertical rectangle) - GREEN (parented to master transform)  
-    loadGLBModelWithParent("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(2.8, 0.5, 0), "Key Partners", 50, new Color3(0, 0.7, 0), bmcMasterTransform);
-    
-    // Inner circle objects (will be parented to transform node for rotation):
-    // Modified loadGLBModelScaledWithColor function to accept parent parameter
+    // Define loadGLBModelWithParent function first before using it
     const loadGLBModelWithParent = (fileName: string, content: string, position: Vector3, elementName: string, scale: number, color: Color3, parent?: TransformNode) => {
       SceneLoader.ImportMeshAsync("", "/models/", fileName, scene).then((result) => {
         if (result.meshes.length > 0) {
@@ -506,6 +493,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.error(`Failed to load ${elementName} GLB model:`, error);
       });
     };
+    
+    // Load individual GLB models as separate interactive objects with exact diagram labels
+    // Each model has a distinct color for easy identification, ALL parented to master transform
+    
+    // Center: Value Proposition (circular element) - BLUE (parented to master transform)
+    loadGLBModelWithParent("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content || "", new Vector3(0, 0.5, 0), "Value Proposition", 45, new Color3(0, 0.4, 0.8), bmcMasterTransform);
+    
+    // Left side: Customer Segments (tall vertical rectangle) - PURPLE (parented to master transform)
+    loadGLBModelWithParent("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(-2.8, 0.5, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7), bmcMasterTransform);
+    
+    // Right side: Key Partners (tall vertical rectangle) - GREEN (parented to master transform)  
+    loadGLBModelWithParent("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(2.8, 0.5, 0), "Key Partners", 50, new Color3(0, 0.7, 0), bmcMasterTransform);
     
     // Load inner circle objects with master transform parent - positioned to match exact layout:
     // Key Activities (ORANGE) - TOP position (parented to master transform)
