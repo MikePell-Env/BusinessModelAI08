@@ -352,22 +352,70 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Create proper PBR metallic material for realistic metallic appearance
       const material = new PBRMetallicRoughnessMaterial(`material_${elementId}`, scene);
       
-      // Use light blue for most boxes, keep original colors for specific ones
+      // Special materials for specific boxes
       const keepOriginalColor = elementId === canvas.costStructure.id || 
                                 elementId === canvas.revenueStreams.id || 
                                 elementId === canvas.customerRelationships.id;
       
-      if (keepOriginalColor) {
+      if (elementId === canvas.customerSegments.id) {
+        // Photorealistic wood finish for Customer Segments
+        material.baseColor = new Color3(0.6, 0.4, 0.2); // Rich wood brown base
+        material.metallic = 0.0; // Wood is non-metallic
+        material.roughness = 0.7; // Natural wood texture roughness
+        
+        // Create procedural wood grain pattern using noise
+        const woodTexture = new DynamicTexture("woodTexture", { width: 512, height: 512 }, scene);
+        const context = woodTexture.getContext();
+        
+        // Generate wood grain pattern
+        const canvas2d = document.createElement('canvas');
+        canvas2d.width = 512;
+        canvas2d.height = 512;
+        const ctx = canvas2d.getContext('2d')!;
+        const imageData = ctx.createImageData(512, 512);
+        
+        for (let y = 0; y < 512; y++) {
+          for (let x = 0; x < 512; x++) {
+            const index = (y * 512 + x) * 4;
+            
+            // Create wood grain using sine waves and noise
+            const grain = Math.sin(x * 0.1) * 0.3 + Math.sin(x * 0.05 + y * 0.02) * 0.2;
+            const noise = (Math.random() - 0.5) * 0.1;
+            const woodValue = 0.3 + grain + noise;
+            
+            // Wood color variations (browns and tans)
+            imageData.data[index] = Math.floor(153 * (1 + woodValue)); // Red
+            imageData.data[index + 1] = Math.floor(102 * (1 + woodValue * 0.8)); // Green
+            imageData.data[index + 2] = Math.floor(51 * (1 + woodValue * 0.6)); // Blue
+            imageData.data[index + 3] = 255; // Alpha
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Copy to Babylon.js texture
+        context.drawImage(canvas2d, 0, 0);
+        woodTexture.update();
+        
+        material.baseTexture = woodTexture;
+        
+        // Wood finish properties
+        material.clearCoat.isEnabled = true;
+        material.clearCoat.intensity = 0.3; // Subtle wood varnish
+        material.clearCoat.roughness = 0.6; // Satin finish
+        
+      } else if (keepOriginalColor) {
         material.baseColor = color; // Keep original color
+        material.metallic = 0.9; // High metallic value
+        material.roughness = 0.1; // Low roughness for high shine
       } else if (elementId === canvas.valuePropositions.id) {
         material.baseColor = new Color3(0.9, 0.9, 0.95); // Slightly off-white with subtle blue tint
+        material.metallic = 0.9; // High metallic value
+        material.roughness = 0.1; // Low roughness for high shine
       } else {
         material.baseColor = new Color3(0.75, 0.85, 1.0); // Light blue metallic base
+        material.metallic = 0.9; // High metallic value
+        material.roughness = 0.1; // Low roughness for high shine
       }
-      
-      // Key metallic properties for shiny, reflective appearance
-      material.metallic = 0.9; // High metallic value (0.0 = dielectric, 1.0 = full metal)
-      material.roughness = 0.1; // Low roughness for high shine (0.0 = mirror, 1.0 = rough)
       
       // Use the scene's environment texture for reflections
       if (scene.environmentTexture) {
@@ -377,7 +425,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Transparency settings - Cost Structure is completely opaque
       if (elementId === canvas.costStructure.id) {
         material.alpha = 1.0; // Completely opaque
-        material.transparencyMode = undefined; // No transparency mode
+        // No transparency mode for opaque materials
       } else if (elementId === canvas.valuePropositions.id) {
         material.alpha = 0.95; // Central element less transparent
         material.transparencyMode = PBRMetallicRoughnessMaterial.PBRMATERIAL_ALPHABLEND;
