@@ -118,7 +118,7 @@ export const BusinessModelCanvas: React.FC = () => {
               Microsoft Stack
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-gray-100">
             <DialogHeader>
               <DialogTitle>Microsoft Technology Stack Migration</DialogTitle>
             </DialogHeader>
