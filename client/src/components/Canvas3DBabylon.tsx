@@ -78,12 +78,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
     directionalLight.intensity = 0.8;
 
-    // Create ground with grey plastic material
+    // Create ground with grey plastic material and light grey gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     
-    // Apply grey plastic material to ground
+    // Create dynamic texture for light grey grid pattern on grey plastic
+    const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
+    const gridContext = gridTexture.getContext();
+    
+    // Fill with light grey plastic background
+    gridContext.fillStyle = "#cccccc"; // Light grey background (0.8 * 255 = 204)
+    gridContext.fillRect(0, 0, 1024, 1024);
+    
+    // Draw light grey grid lines
+    gridContext.strokeStyle = "#b8b8b8"; // Slightly darker grey for grid lines
+    gridContext.lineWidth = 1;
+    
+    // Draw vertical lines (spacing every 32 pixels)
+    for (let i = 0; i <= 1024; i += 32) {
+      gridContext.beginPath();
+      gridContext.moveTo(i, 0);
+      gridContext.lineTo(i, 1024);
+      gridContext.stroke();
+    }
+    
+    // Draw horizontal lines (spacing every 32 pixels)
+    for (let i = 0; i <= 1024; i += 32) {
+      gridContext.beginPath();
+      gridContext.moveTo(0, i);
+      gridContext.lineTo(1024, i);
+      gridContext.stroke();
+    }
+    
+    gridTexture.update();
+    
+    // Apply grey plastic material with grid texture to ground
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseColor = new Color3(0.8, 0.8, 0.8); // Light grey color
+    groundMaterial.diffuseTexture = gridTexture;
     groundMaterial.specularColor = new Color3(0.15, 0.15, 0.15); // Reduced specular reflection for lighter plastic look
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
     ground.material = groundMaterial;
