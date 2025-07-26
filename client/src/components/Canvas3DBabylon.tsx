@@ -637,55 +637,55 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const loadAllModels = async () => {
       console.log('Loading custom GLB models for business model canvas...');
       
-      // Define positions and scales matching the exact top view layout (dramatically increased scaling)
+      // Define positions and scales matching the exact top view layout (3x bigger, positioned adjacent)
       const modelConfigs = [
         // Central Value Proposition (circular, center position)
         {
           element: canvas.valuePropositions,
           position: new Vector3(0, 0.5, 0),
-          scale: new Vector3(25, 10, 25), // Much larger circle at center
+          scale: new Vector3(75, 30, 75), // 3x bigger circle at center
           id: canvas.valuePropositions.id
         },
-        // Far Left: Key Partners (tall left rectangle)
+        // Far Left: Key Partners (tall left rectangle, adjacent to circle)
         {
           element: canvas.keyPartners,
-          position: new Vector3(-6, 0.5, 0),
-          scale: new Vector3(18, 10, 40), // Much larger tall rectangle, far left
+          position: new Vector3(-4, 0.5, 0),
+          scale: new Vector3(54, 30, 120), // 3x bigger, positioned closer to circle
           id: canvas.keyPartners.id
         },
-        // Far Right: Customer Segments (tall right rectangle)  
+        // Far Right: Customer Segments (tall right rectangle, adjacent to circle)  
         {
           element: canvas.customerSegments,
-          position: new Vector3(6, 0.5, 0),
-          scale: new Vector3(18, 10, 40), // Much larger tall rectangle, far right
+          position: new Vector3(4, 0.5, 0),
+          scale: new Vector3(54, 30, 120), // 3x bigger, positioned closer to circle
           id: canvas.customerSegments.id
         },
-        // Top Left: Key Activities (connecting to circle from top-left)
+        // Top Left: Key Activities (adjacent to circle from top-left)
         {
           element: canvas.keyActivities,
-          position: new Vector3(-3, 0.5, 2.8),
-          scale: new Vector3(25, 10, 15), // Much larger rectangle above circle, left side
+          position: new Vector3(-2, 0.5, 2),
+          scale: new Vector3(75, 30, 45), // 3x bigger, closer to circle
           id: canvas.keyActivities.id
         },
-        // Top Right: Customer Relationships (connecting to circle from top-right)
+        // Top Right: Customer Relationships (adjacent to circle from top-right)
         {
           element: canvas.customerRelationships,
-          position: new Vector3(3, 0.5, 2.8),
-          scale: new Vector3(25, 10, 15), // Much larger rectangle above circle, right side
+          position: new Vector3(2, 0.5, 2),
+          scale: new Vector3(75, 30, 45), // 3x bigger, closer to circle
           id: canvas.customerRelationships.id
         },
-        // Bottom Left: Key Resources (connecting to circle from bottom-left)
+        // Bottom Left: Key Resources (adjacent to circle from bottom-left)
         {
           element: canvas.keyResources,
-          position: new Vector3(-3, 0.5, -2.8),
-          scale: new Vector3(25, 10, 15), // Much larger rectangle below circle, left side
+          position: new Vector3(-2, 0.5, -2),
+          scale: new Vector3(75, 30, 45), // 3x bigger, closer to circle
           id: canvas.keyResources.id
         },
-        // Bottom Right: Channels (connecting to circle from bottom-right)
+        // Bottom Right: Channels (adjacent to circle from bottom-right)
         {
           element: canvas.channels,
-          position: new Vector3(3, 0.5, -2.8),
-          scale: new Vector3(25, 10, 15), // Much larger rectangle below circle, right side
+          position: new Vector3(2, 0.5, -2),
+          scale: new Vector3(75, 30, 45), // 3x bigger, closer to circle
           id: canvas.channels.id
         }
       ];
