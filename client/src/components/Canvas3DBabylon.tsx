@@ -75,22 +75,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
     camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
 
-    // Enhanced lighting setup for metallic materials
+    // Enhanced lighting setup for colored materials visibility
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 0.8;
+    hemisphericLight.intensity = 1.2; // Increased for better color visibility
     hemisphericLight.diffuse = new Color3(1, 1, 1);
     hemisphericLight.specular = new Color3(1, 1, 1);
+    hemisphericLight.groundColor = new Color3(0.3, 0.3, 0.3); // Ambient ground lighting
     
-    const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 0.7;
+    const directionalLight = new DirectionalLight("directionalLight", new Vector3(-0.5, -1, -0.5), scene);
+    directionalLight.intensity = 1.0; // Increased intensity
     directionalLight.diffuse = new Color3(1, 1, 1);
     directionalLight.specular = new Color3(1, 1, 1);
     
-    // Add additional point light for metallic highlights
-    const pointLight = new PointLight("pointLight", new Vector3(2, 8, 2), scene);
-    pointLight.intensity = 0.5;
-    pointLight.diffuse = new Color3(1, 1, 1);
-    pointLight.specular = new Color3(1, 1, 1);
+    // Add multiple point lights for better color illumination
+    const pointLight1 = new PointLight("pointLight1", new Vector3(3, 5, 3), scene);
+    pointLight1.intensity = 0.8;
+    pointLight1.diffuse = new Color3(1, 1, 1);
+    
+    const pointLight2 = new PointLight("pointLight2", new Vector3(-3, 5, -3), scene);
+    pointLight2.intensity = 0.8;
+    pointLight2.diffuse = new Color3(1, 1, 1);
+    
+    // Create simple environment for reflections
+    scene.createDefaultEnvironment({
+      createSkybox: false,
+      createGround: false
+    });
 
     // Create ground with grey plastic material and light grey gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -358,7 +368,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 material.roughness = 0.1;
               }
             }
-            setupGLBInteractivity(mesh, elementName, content);
+            
+            // Add interactive hover and selection effects
+            mesh.actionManager = new ActionManager(scene);
+            
+            // Hover effect
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = mesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(0.3, 0.3, 0.4);
+              }
+            }));
+            
+            // Mouse out effect
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = mesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(0, 0, 0);
+              }
+            }));
+            
+            // Click selection effect
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`Clicked on ${elementName}`);
+              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = mesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(0.3, 0.5, 1.0); // Bright blue selection
+              }
+            }));
           });
 
           // Create floating title label
@@ -398,17 +435,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           rootMesh.position = position;
           rootMesh.scaling = new Vector3(scale, scale, scale);
           
-          // Apply custom color and metallic materials
+          // Apply custom color with enhanced material properties for visibility
           result.meshes.forEach(mesh => {
-            if (mesh.material) {
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.baseColor = color;
-                material.metallic = 0.9;
-                material.roughness = 0.1;
-                material.emissiveColor = new Color3(color.r * 0.1, color.g * 0.1, color.b * 0.1);
-              }
-            }
+            // Create new PBR material with proper color application
+            const coloredMaterial = new PBRMetallicRoughnessMaterial(`${elementName}_material`, scene);
+            coloredMaterial.baseColor = color;
+            coloredMaterial.metallic = 0.7; // Slightly less metallic for better color visibility
+            coloredMaterial.roughness = 0.3; // More roughness for better diffuse lighting
+            coloredMaterial.emissiveColor = new Color3(color.r * 0.05, color.g * 0.05, color.b * 0.05); // Subtle glow
+            coloredMaterial.environmentIntensity = 1.0; // Use environment lighting
+            coloredMaterial.directIntensity = 1.0; // Use direct lighting
+            
+            // Apply the material to the mesh
+            mesh.material = coloredMaterial;
             setupGLBInteractivity(mesh, elementName, content);
           });
 
@@ -444,27 +483,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Each model has a distinct color for easy identification, scaled to 60x for optimal visibility
     
     // Center: Value Proposition (circular element) - BLUE
-    loadGLBModelScaledWithColor("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions, new Vector3(0, 0.5, 0), "Value Proposition", 60, new Color3(0, 0.4, 0.8));
+    loadGLBModelScaledWithColor("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content, new Vector3(0, 0.5, 0), "Value Proposition", 60, new Color3(0, 0.4, 0.8));
     
     // Left side: Key Partners (tall vertical rectangle) - GREEN
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyPartners.glb", canvas.keyPartners, new Vector3(-2.5, 0.5, 0), "Key Partners", 60, new Color3(0, 0.7, 0));
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content, new Vector3(-2.5, 0.5, 0), "Key Partners", 60, new Color3(0, 0.7, 0));
     
     // Right side: Customer Segments (tall vertical rectangle) - PURPLE  
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments, new Vector3(2.5, 0.5, 0), "Customer Segments", 60, new Color3(0.7, 0, 0.7));
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content, new Vector3(2.5, 0.5, 0), "Customer Segments", 60, new Color3(0.7, 0, 0.7));
     
     // Top row surrounding center circle:
     // Top-left: Key Activities - ORANGE
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyActivities.glb", canvas.keyActivities, new Vector3(-0.8, 0.5, 1.2), "Key Activities", 60, new Color3(1, 0.5, 0));
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content, new Vector3(-0.8, 0.5, 1.2), "Key Activities", 60, new Color3(1, 0.5, 0));
     
     // Top-right: Customer Relationships - YELLOW  
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(0.8, 0.5, 1.2), "Customer Relationships", 60, new Color3(1, 0.8, 0));
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content, new Vector3(0.8, 0.5, 1.2), "Customer Relationships", 60, new Color3(1, 0.8, 0));
     
     // Bottom row surrounding center circle:
     // Bottom-left: Key Resources - RED (kept as originally specified)
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyResources.glb", canvas.keyResources, new Vector3(-0.8, 0.5, -1.2), "Key Resources", 60, new Color3(1, 0, 0));
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyResources.glb", canvas.keyResources.content, new Vector3(-0.8, 0.5, -1.2), "Key Resources", 60, new Color3(1, 0, 0));
     
     // Bottom-right: Customer Channels - CYAN
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerChannels.glb", canvas.channels, new Vector3(0.8, 0.5, -1.2), "Customer Channels", 60, new Color3(0, 0.8, 0.8));
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerChannels.glb", canvas.channels.content, new Vector3(0.8, 0.5, -1.2), "Customer Channels", 60, new Color3(0, 0.8, 0.8));
 
     // Start the render loop
     engine.runRenderLoop(() => {
