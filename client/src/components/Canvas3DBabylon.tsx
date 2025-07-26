@@ -705,6 +705,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Move the entire group so the center of the visible layout is at (0,0)
     sceneGroup.position = new Vector3(5, 0, 3.5); // Offset to center the layout
 
+    // Add a small red sphere at the true origin (0,0,0) to show where it is
+    const originMarker = MeshBuilder.CreateSphere("originMarker", { diameter: 0.5 }, scene);
+    originMarker.position = new Vector3(0, 0.25, 0); // At true origin, slightly above ground
+    const originMaterial = new StandardMaterial("originMaterial", scene);
+    originMaterial.diffuseColor = new Color3(1, 0, 0); // Bright red
+    originMaterial.emissiveColor = new Color3(0.3, 0, 0); // Self-illuminating
+    originMarker.material = originMaterial;
+
     // Find the revenue streams box and add height animation
     const revenueStreamsBox = scene.getMeshByName(`box_${canvas.revenueStreams.id}`);
     if (revenueStreamsBox) {
