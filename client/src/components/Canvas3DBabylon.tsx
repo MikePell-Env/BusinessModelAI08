@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import { Engine, Scene, ArcRotateCamera, Camera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, PBRMetallicRoughnessMaterial, Color3, Color4, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, Camera, HemisphericLight, PointLight, DirectionalLight, MeshBuilder, StandardMaterial, PBRMaterial, PBRMetallicRoughnessMaterial, Color3, Color4, Vector3, Mesh, ActionManager, ExecuteCodeAction, LinesMesh, Animation, CubeTexture, Texture, FreeCamera, SpotLight, DynamicTexture, ShadowGenerator, SceneLoader, AbstractMesh } from '@babylonjs/core';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
+import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
 interface Canvas3DBabylonProps {
@@ -332,7 +333,102 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       currentSelectedElement = null;
     };
 
-    // Helper function to create a business model block (simplified - title only)
+    // Helper function to load custom GLB model for business blocks
+    const loadBusinessBlock = async (
+      element: CanvasElement,
+      position: Vector3,
+      scale: Vector3,
+      elementId: string
+    ): Promise<AbstractMesh | null> => {
+      // Map element IDs to GLB file names
+      const modelFiles: { [key: string]: string } = {
+        [canvas.keyPartners.id]: 'BMC_blender_04_KeyPartners_1753548050751.glb',
+        [canvas.keyActivities.id]: 'BMC_blender_04_KeyActivities_1753548050750.glb',
+        [canvas.keyResources.id]: 'BMC_blender_04_KeyResources_1753548050751.glb',
+        [canvas.valuePropositions.id]: 'BMC_blender_04_ValueProposition_1753548050751.glb',
+        [canvas.customerRelationships.id]: 'BMC_blender_04_CustomerRelationships_1753548050749.glb',
+        [canvas.channels.id]: 'BMC_blender_04_CustomerChannels_1753548050749.glb',
+        [canvas.customerSegments.id]: 'BMC_blender_04_CustomerSegments_1753548050750.glb',
+        // Cost Structure and Revenue Streams will use fallback boxes since no GLB provided
+      };
+
+      const modelFile = modelFiles[elementId];
+      if (!modelFile) {
+        console.log(`No GLB model found for ${elementId}, using fallback geometry`);
+        return null;
+      }
+
+      try {
+        console.log(`Loading GLB model: ${modelFile} for ${element.title}`);
+        const result = await SceneLoader.ImportMeshAsync("", "/models/", modelFile, scene);
+        
+        if (result.meshes.length > 0) {
+          const rootMesh = result.meshes[0];
+          
+          // Set position and scale
+          rootMesh.position = position;
+          rootMesh.scaling = scale;
+          
+          // Apply materials and shadows to all child meshes
+          result.meshes.forEach((mesh, index) => {
+            if (mesh instanceof Mesh) {
+              // Add to shadow generator
+              shadowGenerator.addShadowCaster(mesh);
+              
+              // Apply special materials for specific elements
+              if (elementId === canvas.customerSegments.id && mesh.material) {
+                // Keep the original material for customer segments wood texture
+                // But ensure it receives shadows properly
+                mesh.receiveShadows = true;
+              }
+            }
+          });
+          
+          // Add interaction to the root mesh
+          rootMesh.actionManager = new ActionManager(scene);
+          rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, (evt) => {
+            console.log(`Clicked on ${element.title}`);
+            evt.sourceEvent?.stopPropagation();
+            
+            if (currentSelectedElement === elementId) {
+              hideFloatingPanel(elementId);
+            } else {
+              showFloatingPanel(element, position, elementId);
+            }
+          }));
+
+          // Add floating text label for the custom model
+          const titleRect = new Rectangle(`titleRect_${elementId}`);
+          titleRect.widthInPixels = 200;
+          titleRect.heightInPixels = 60;
+          titleRect.cornerRadius = 8;
+          titleRect.color = "#333333";
+          titleRect.thickness = 2;
+          titleRect.background = "rgba(255, 255, 255, 0.9)";
+          advancedTexture.addControl(titleRect);
+
+          const titleText = new TextBlock(`titleText_${elementId}`, element.title);
+          titleText.color = "#333333";
+          titleText.fontSize = 16;
+          titleText.fontWeight = "bold";
+          titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+          titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+          titleRect.addControl(titleText);
+
+          titleRect.linkWithMesh(rootMesh);
+          titleRect.linkOffsetY = -80;
+          
+          return rootMesh;
+        }
+        
+      } catch (error) {
+        console.error(`Failed to load GLB model ${modelFile}:`, error);
+      }
+      
+      return null;
+    };
+
+    // Helper function to create fallback business model block (for elements without GLB)
     const createBusinessBlock = (
       element: CanvasElement,
       position: Vector3,
@@ -537,99 +633,79 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return box;
     };
 
-    // Create central circular Value Proposition using a cylinder
-    const centralRadius = 1.5;
-    const valuePropositionCylinder = MeshBuilder.CreateCylinder(`cylinder_${canvas.valuePropositions.id}`, {
-      height: 1,
-      diameter: centralRadius * 2
-    }, scene);
-    valuePropositionCylinder.position = new Vector3(0, 0.5, 0);
-    
-    // Central Value Proposition material - special treatment
-    const centralMaterial = new PBRMetallicRoughnessMaterial(`centralMaterial_${canvas.valuePropositions.id}`, scene);
-    centralMaterial.baseColor = new Color3(0.9, 0.9, 0.95); // Slightly off-white with subtle blue tint
-    centralMaterial.metallic = 0.9;
-    centralMaterial.roughness = 0.1;
-    centralMaterial.alpha = 0.95;
-    centralMaterial.transparencyMode = PBRMetallicRoughnessMaterial.PBRMATERIAL_ALPHABLEND;
-    
-    if (scene.environmentTexture) {
-      centralMaterial.environmentTexture = scene.environmentTexture;
-    }
-    
-    valuePropositionCylinder.material = centralMaterial;
-    shadowGenerator.addShadowCaster(valuePropositionCylinder);
-    
-    // Add interaction to central cylinder
-    valuePropositionCylinder.actionManager = new ActionManager(scene);
-    valuePropositionCylinder.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, (evt) => {
-      console.log(`Clicked on ${canvas.valuePropositions.title}`);
-      evt.sourceEvent?.stopPropagation();
+    // Load custom GLB models for business model elements
+    const loadAllModels = async () => {
+      console.log('Loading custom GLB models for business model canvas...');
       
-      if (currentSelectedElement === canvas.valuePropositions.id) {
-        hideFloatingPanel(canvas.valuePropositions.id);
-      } else {
-        showFloatingPanel(canvas.valuePropositions, new Vector3(0, 0.5, 0), canvas.valuePropositions.id);
+      // Define positions and scales for each element
+      const modelConfigs = [
+        // Central Value Proposition
+        {
+          element: canvas.valuePropositions,
+          position: new Vector3(0, 0.5, 0),
+          scale: new Vector3(1, 1, 1),
+          id: canvas.valuePropositions.id
+        },
+        // Left side: Key Partners
+        {
+          element: canvas.keyPartners,
+          position: new Vector3(-4.5, 0.5, 0),
+          scale: new Vector3(1, 1, 1),
+          id: canvas.keyPartners.id
+        },
+        // Right side: Customer Segments
+        {
+          element: canvas.customerSegments,
+          position: new Vector3(4.5, 0.5, 0),
+          scale: new Vector3(1, 1, 1),
+          id: canvas.customerSegments.id
+        },
+        // Top left: Key Activities
+        {
+          element: canvas.keyActivities,
+          position: new Vector3(-2.5, 0.5, 2.5),
+          scale: new Vector3(1, 1, 1),
+          id: canvas.keyActivities.id
+        },
+        // Top right: Customer Relationships
+        {
+          element: canvas.customerRelationships,
+          position: new Vector3(2.5, 0.5, 2.5),
+          scale: new Vector3(1, 1, 1),
+          id: canvas.customerRelationships.id
+        },
+        // Bottom left: Key Resources
+        {
+          element: canvas.keyResources,
+          position: new Vector3(-2.5, 0.5, -2.5),
+          scale: new Vector3(1, 1, 1),
+          id: canvas.keyResources.id
+        },
+        // Bottom right: Channels
+        {
+          element: canvas.channels,
+          position: new Vector3(2.5, 0.5, -2.5),
+          scale: new Vector3(1, 1, 1),
+          id: canvas.channels.id
+        }
+      ];
+
+      // Load all GLB models
+      const loadedModels = [];
+      for (const config of modelConfigs) {
+        const model = await loadBusinessBlock(config.element, config.position, config.scale, config.id);
+        if (model) {
+          loadedModels.push(model);
+        }
       }
-    }));
 
-    // Create rectangular perimeter boxes positioned around the central circle
+      console.log(`Successfully loaded ${loadedModels.length} GLB models`);
+      return loadedModels;
+    };
+
+    // Create fallback blocks for Cost Structure and Revenue Streams (no GLB models provided)
     const blocks = [
-      // Left side: Key Partners (tall rectangle)
-      createBusinessBlock(
-        canvas.keyPartners,
-        new Vector3(-4.5, 0.5, 0), // Far left
-        new Vector3(1.5, 1, 4), // Tall rectangle
-        new Color3(1, 1, 1), // White
-        canvas.keyPartners.id
-      ),
-
-      // Right side: Customer Segments (tall rectangle with wood texture)
-      createBusinessBlock(
-        canvas.customerSegments,
-        new Vector3(4.5, 0.5, 0), // Far right
-        new Vector3(1.5, 1, 4), // Tall rectangle
-        new Color3(1, 1, 1), // White (will be overridden by wood texture)
-        canvas.customerSegments.id
-      ),
-
-      // Top left: Key Activities
-      createBusinessBlock(
-        canvas.keyActivities,
-        new Vector3(-2.5, 0.5, 2.5), // Top left quadrant
-        new Vector3(2.5, 1, 1.5), // Rectangular
-        new Color3(1, 1, 1), // White
-        canvas.keyActivities.id
-      ),
-
-      // Top right: Customer Relationships
-      createBusinessBlock(
-        canvas.customerRelationships,
-        new Vector3(2.5, 0.5, 2.5), // Top right quadrant
-        new Vector3(2.5, 1, 1.5), // Rectangular
-        new Color3(1, 1, 1), // White
-        canvas.customerRelationships.id
-      ),
-
-      // Bottom left: Key Resources
-      createBusinessBlock(
-        canvas.keyResources,
-        new Vector3(-2.5, 0.5, -2.5), // Bottom left quadrant
-        new Vector3(2.5, 1, 1.5), // Rectangular
-        new Color3(1, 1, 1), // White
-        canvas.keyResources.id
-      ),
-
-      // Bottom right: Channels
-      createBusinessBlock(
-        canvas.channels,
-        new Vector3(2.5, 0.5, -2.5), // Bottom right quadrant
-        new Vector3(2.5, 1, 1.5), // Rectangular
-        new Color3(1, 1, 1), // White
-        canvas.channels.id
-      ),
-
-      // Bottom row: Cost Structure and Revenue Streams (wide rectangles)
+      // Bottom row: Cost Structure and Revenue Streams (wide rectangles - fallback geometry)
       createBusinessBlock(
         canvas.costStructure,
         new Vector3(-2.25, 0.5, -4.5), // Bottom left wide
@@ -646,6 +722,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.revenueStreams.id
       )
     ];
+
+    // Load custom models asynchronously
+    loadAllModels().catch(error => {
+      console.error('Error loading GLB models:', error);
+    });
 
     // Find the revenue streams box and add height animation
     const revenueStreamsBox = scene.getMeshByName(`box_${canvas.revenueStreams.id}`);
