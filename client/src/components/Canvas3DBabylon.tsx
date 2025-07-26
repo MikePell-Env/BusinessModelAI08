@@ -22,7 +22,7 @@ import {
   Matrix
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
-import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
+// GUI imports removed since labels are no longer used
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 
@@ -38,9 +38,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const { saveCamera3DState, getCamera3DState, is3D } = useCanvas();
   
-  // State for managing the open detail panel
-  const selectedPanelRef = useRef<Rectangle | null>(null);
-  const selectedElementRef = useRef<string | null>(null);
+  // GUI state removed since labels are no longer used
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -180,11 +178,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       scene.createDefaultSkybox(scene.environmentTexture, true, 100, 0.3);
     }
 
-    // Create GUI
-    const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
-    
-    // Store reference to currently visible popup
-    let currentPopup: Rectangle | null = null;
+    // GUI setup removed since labels are no longer used
     
 
     
@@ -282,11 +276,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }
           }));
           
-          // Store reference to label for color inversion
-          let labelBackground: Rectangle | null = null;
-          let labelText: TextBlock | null = null;
-
-          // Click/Selection effect - bright blue glow and invert label colors
+          // Click/Selection effect - bright blue glow only
           rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
             console.log(`${elementName} GLB clicked!`);
             
@@ -319,110 +309,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 }
               }
             });
-
-            // Invert label colors temporarily
-            if (labelBackground && labelText) {
-              // Invert: white background to black, black text to white
-              labelBackground.background = "rgba(0, 0, 0, 0.9)";
-              labelText.color = "#FFFFFF";
-              
-              // Revert after 1 second
-              setTimeout(() => {
-                if (labelBackground && labelText) {
-                  labelBackground.background = "rgba(255, 255, 255, 0.9)";
-                  labelText.color = "#000000";
-                }
-              }, 1000);
-            }
-            
-            // Create simple working panel
-            console.log(`${elementName} clicked - creating panel`);
-            
-            // Close existing panel
-            if (currentPopup) {
-              advancedTexture.removeControl(currentPopup);
-              currentPopup = null;
-            }
-            
-            // Create simple working panel
-            const panel = new Rectangle("simplePanel");
-            panel.widthInPixels = 250;
-            panel.heightInPixels = 200;
-            panel.color = "#000000";
-            panel.thickness = 2;
-            panel.background = "#ffffff";
-            panel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-            panel.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-            panel.leftInPixels = -30;
-            
-            // Add panel title
-            const panelTitle = new TextBlock("panelTitle", elementName);
-            panelTitle.color = "#000000";
-            panelTitle.fontSize = "16px";
-            panelTitle.fontWeight = "bold";
-            panelTitle.topInPixels = -70;
-            panel.addControl(panelTitle);
-            
-            // Add panel content
-            const panelContent = new TextBlock("panelContent", "Panel works!\nThis is clickable content.");
-            panelContent.color = "#333333";
-            panelContent.fontSize = "12px";
-            panelContent.topInPixels = -20;
-            panel.addControl(panelContent);
-            
-            // Add close button
-            const closeBtn = new Rectangle("closeBtn");
-            closeBtn.widthInPixels = 20;
-            closeBtn.heightInPixels = 20;
-            closeBtn.color = "#ff0000";
-            closeBtn.background = "#ff0000";
-            closeBtn.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-            closeBtn.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-            closeBtn.leftInPixels = -5;
-            closeBtn.topInPixels = 5;
-            
-            const closeText = new TextBlock("closeText", "X");
-            closeText.color = "#ffffff";
-            closeText.fontSize = "12px";
-            closeBtn.addControl(closeText);
-            
-            closeBtn.onPointerClickObservable.add(() => {
-              advancedTexture.removeControl(panel);
-              currentPopup = null;
-            });
-            
-            panel.addControl(closeBtn);
-            advancedTexture.addControl(panel);
-            currentPopup = panel;
-            
-            console.log(`Working panel created for ${elementName}`);
           }));
           
-          // Create floating label that actually positions correctly
-          const labelId = `label_${elementName.replace(/\s+/g, '_')}_${Date.now()}`;
-          const floatingLabel = new Rectangle(labelId);
-          floatingLabel.widthInPixels = 150;
-          floatingLabel.heightInPixels = 30;
-          floatingLabel.cornerRadius = 5;
-          floatingLabel.color = "#000000";
-          floatingLabel.thickness = 1;
-          floatingLabel.background = "rgba(255, 255, 255, 0.9)";
-          
-          const labelTextElement = new TextBlock(labelId + "_text", elementName);
-          labelTextElement.color = "#000000";
-          labelTextElement.fontSize = "14px";
-          labelTextElement.fontWeight = "bold";
-          floatingLabel.addControl(labelTextElement);
-          
-          // Link to actual mesh position with vertical offset
-          floatingLabel.linkWithMesh(rootMesh);
-          floatingLabel.linkOffsetYInPixels = -60;
-          
-          advancedTexture.addControl(floatingLabel);
-          
-          // Set references for color inversion
-          labelBackground = floatingLabel;
-          labelText = labelTextElement;
+          // Labels removed as requested
         }
       }).catch((error) => {
         console.error(`Failed to load ${elementName} GLB model:`, error);
@@ -477,48 +366,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }));
           });
 
-          // Create floating title label
-          const titleLabel = new Rectangle(`title_label_${elementName.toLowerCase().replace(' ', '_')}_glb`);
-          titleLabel.widthInPixels = 180;
-          titleLabel.heightInPixels = 40;
-          titleLabel.cornerRadius = 8;
-          titleLabel.color = "transparent";
-          titleLabel.thickness = 0;
-          titleLabel.background = "rgba(255, 255, 255, 0.9)";
-          advancedTexture.addControl(titleLabel);
-
-          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, elementName);
-          titleText.color = "#2D3748";
-          titleText.fontSize = 16;
-          titleText.fontWeight = "bold";
-          titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-          titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-          titleLabel.addControl(titleText);
-
-          // Calculate mesh dimensions for accurate label placement
-          const boundingInfo = rootMesh.getBoundingInfo();
-          const meshHeight = (boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y) * rootMesh.scaling.y;
-          
-          // Position label above the specific mesh location
-          titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetYInPixels = -(meshHeight * 0.6 + 80); // Above mesh top
-          titleLabel.linkOffsetXInPixels = 0; // Center horizontally
-          
-          // Perfect billboard behavior - always face camera
-          titleLabel.transformCenterX = 0.5;
-          titleLabel.transformCenterY = 0.5;
-          
-          // Calculate the actual mesh height with scaling applied
-          const meshBounds = rootMesh.getBoundingInfo();
-          const scaledHeight = (meshBounds.boundingBox.maximum.y - meshBounds.boundingBox.minimum.y) * scale;
-          
-          // Position label above this specific mesh accounting for its scaled size
-          titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetYInPixels = -(scaledHeight * 0.8 + 100); // Above scaled mesh top
-          titleLabel.linkOffsetXInPixels = 0; // Centered horizontally
-          
-          // Ensure the label is visible and attached to this specific mesh
-          titleLabel.isVisible = true;
+          // Labels removed as requested
           
           // Click detection is handled by the existing ActionManager above
           
@@ -578,48 +426,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }));
           });
 
-          // Create floating title label
-          const titleLabel = new Rectangle(`title_label_${elementName.toLowerCase().replace(' ', '_')}_glb`);
-          titleLabel.widthInPixels = 180;
-          titleLabel.heightInPixels = 40;
-          titleLabel.cornerRadius = 8;
-          titleLabel.color = "transparent";
-          titleLabel.thickness = 0;
-          titleLabel.background = "rgba(255, 255, 255, 0.9)";
-          advancedTexture.addControl(titleLabel);
-
-          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, elementName);
-          titleText.color = "#2D3748";
-          titleText.fontSize = 16;
-          titleText.fontWeight = "bold";
-          titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-          titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-          titleLabel.addControl(titleText);
-
-          // Calculate mesh dimensions for accurate label placement
-          const boundingInfo = rootMesh.getBoundingInfo();
-          const meshHeight = (boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y) * rootMesh.scaling.y;
-          
-          // Position label above the specific mesh location
-          titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetYInPixels = -(meshHeight * 0.6 + 80); // Above mesh top
-          titleLabel.linkOffsetXInPixels = 0; // Center horizontally
-          
-          // Perfect billboard behavior - always face camera
-          titleLabel.transformCenterX = 0.5;
-          titleLabel.transformCenterY = 0.5;
-          
-          // Calculate the actual mesh height with scaling applied
-          const meshBounds2 = rootMesh.getBoundingInfo();
-          const scaledHeight2 = (meshBounds2.boundingBox.maximum.y - meshBounds2.boundingBox.minimum.y) * scale;
-          
-          // Position label above this specific mesh accounting for its scaled size
-          titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetYInPixels = -(scaledHeight2 * 0.8 + 100); // Above scaled mesh top
-          titleLabel.linkOffsetXInPixels = 0; // Centered horizontally
-          
-          // Ensure the label is visible and attached to this specific mesh
-          titleLabel.isVisible = true;
+          // Labels removed as requested
           
           // Click detection is handled by the existing ActionManager above
           
