@@ -26,10 +26,9 @@ import { BusinessModelCanvas } from '@/types/canvas';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
-  isTransitioning?: boolean;
 }
 
-export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
+export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -211,4 +210,4 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   );
 };
 
-// Remove default export to avoid confusion
+export default Canvas3DBabylon;
