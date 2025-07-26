@@ -340,28 +340,69 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       });
     };
 
-    // Load GLB models with EXACT positioning to match the business model canvas layout
-    // Based on your top view diagram: center circle with rectangles in precise formation
-    
-    // Center: Value Proposition (stays at origin)
-    loadGLBModel("BMC_blender_05_ValueProposition.glb", canvas.valuePropositions, new Vector3(0, 0.5, 0), "Value Proposition");
-    
-    // PRECISE positioning based on standard BMC layout:
-    // This creates the exact tight formation shown in your top view diagram
-    
-    // Left side (Key Partners) - tall vertical rectangle
-    loadGLBModel("BMC_blender_05_KeyPartners.glb", canvas.keyPartners, new Vector3(-2.5, 0.5, 0), "Key Partners");
-    
-    // Top row rectangles (above center circle)
-    loadGLBModel("BMC_blender_05_KeyActivities.glb", canvas.keyActivities, new Vector3(-0.8, 0.5, 1.2), "Key Activities");           // Top-left
-    loadGLBModel("BMC_blender_05_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(0.8, 0.5, 1.2), "Customer Relationships"); // Top-right
-    
-    // Bottom row rectangles (below center circle) 
-    loadGLBModelWithColor("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-0.8, 0.5, -1.2), "Key Resources", new Color3(1, 0, 0)); // Bottom-left RED
-    loadGLBModel("BMC_blender_05_CustomerChannels.glb", canvas.channels, new Vector3(0.8, 0.5, -1.2), "Customer Channels");     // Bottom-right
-    
-    // Right side (Customer Segments) - tall vertical rectangle  
-    loadGLBModel("BMC_blender_05_CustomerSegments.glb", canvas.customerSegments, new Vector3(2.5, 0.5, 0), "Customer Segments");
+    // TEMPORARY EXPERIMENT: Load the complete GLB file scaled up 6x instead of individual models
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_complete_experiment.glb", scene).then((result) => {
+      if (result.meshes.length > 0) {
+        const rootMesh = result.meshes[0];
+        rootMesh.position = new Vector3(0, 0.5, 0);
+        rootMesh.scaling = new Vector3(6, 6, 6); // Scale up to 6x size
+        
+        console.log("Complete BMC GLB loaded at 6x scale:");
+        result.meshes.forEach((mesh, index) => {
+          console.log(`Mesh ${index}: ${mesh.name} at position:`, mesh.position);
+          console.log(`  - Scaling:`, mesh.scaling);
+          
+          // Apply red metallic material to Key Resources if we can identify it
+          if (mesh.name.toLowerCase().includes('keyresources') || mesh.name.toLowerCase().includes('key_resources')) {
+            if (mesh.material) {
+              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = mesh.material as PBRMetallicRoughnessMaterial;
+                material.baseColor = new Color3(1, 0, 0);
+                material.metallic = 0.9;
+                material.roughness = 0.1;
+                material.emissiveColor = new Color3(0.1, 0, 0);
+                console.log("Applied red metallic material to Key Resources mesh");
+              }
+            }
+          }
+          
+          // Add interactive hover and selection effects to all meshes
+          mesh.actionManager = new ActionManager(scene);
+          
+          // Hover effect
+          mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+            if (mesh.material && mesh.material instanceof PBRMetallicRoughnessMaterial) {
+              const material = mesh.material as PBRMetallicRoughnessMaterial;
+              material.emissiveColor = new Color3(0.3, 0.3, 0.4);
+            }
+          }));
+          
+          // Mouse out effect
+          mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+            if (mesh.material && mesh.material instanceof PBRMetallicRoughnessMaterial) {
+              const material = mesh.material as PBRMetallicRoughnessMaterial;
+              // Restore original emissive color (red for Key Resources, none for others)
+              if (mesh.name.toLowerCase().includes('keyresources') || mesh.name.toLowerCase().includes('key_resources')) {
+                material.emissiveColor = new Color3(0.1, 0, 0);
+              } else {
+                material.emissiveColor = new Color3(0, 0, 0);
+              }
+            }
+          }));
+          
+          // Click selection effect
+          mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+            console.log(`Clicked on ${mesh.name}`);
+            if (mesh.material && mesh.material instanceof PBRMetallicRoughnessMaterial) {
+              const material = mesh.material as PBRMetallicRoughnessMaterial;
+              material.emissiveColor = new Color3(0.3, 0.5, 1.0); // Bright blue selection
+            }
+          }));
+        });
+      }
+    }).catch((error) => {
+      console.error("Failed to load complete BMC GLB model:", error);
+    });
 
     // Start the render loop
     engine.runRenderLoop(() => {
