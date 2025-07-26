@@ -190,7 +190,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (result.meshes.length > 0) {
           const rootMesh = result.meshes[0];
           rootMesh.position = position;
-          rootMesh.scaling = new Vector3(2.5, 2.5, 2.5); // Scale up from small Blender size
+          rootMesh.scaling = new Vector3(8, 8, 8); // Much larger scale to occupy 60% of floor plane
           
           // Add basic interactivity
           rootMesh.actionManager = new ActionManager(scene);
@@ -217,7 +217,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleLabel.addControl(titleText);
 
           titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetY = -60;
+          titleLabel.linkOffsetY = -120; // Adjust label position for larger models
         }
       }).catch((error) => {
         console.error(`Failed to load ${elementName} GLB model:`, error);
