@@ -15,8 +15,11 @@ import {
   ExecuteCodeAction,
   CubeTexture,
   Texture,
-  DynamicTexture
+  DynamicTexture,
+  SceneLoader,
+  AbstractMesh
 } from '@babylonjs/core';
+import '@babylonjs/loaders/glTF';
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
@@ -175,7 +178,38 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Store reference to currently visible popup
     let currentPopup: Rectangle | null = null;
 
-    // Helper function to create a business model block with PBR materials
+    // Helper function to load GLB model and create business block
+    const createGLBBusinessBlock = async (
+      element: CanvasElement,
+      position: Vector3,
+      glbPath: string,
+      elementId: string
+    ) => {
+      try {
+        const result = await SceneLoader.ImportMeshAsync("", "/models/", glbPath, scene);
+        const meshes = result.meshes;
+        
+        if (meshes.length > 0) {
+          // Get the root mesh or create a parent
+          const rootMesh = meshes[0];
+          
+          // Position the model at the specified location
+          rootMesh.position = position;
+          
+          // Scale the model if needed (adjust based on your GLB model size)
+          rootMesh.scaling = new Vector3(2.5, 2.5, 2.5);
+          
+          // Setup interactivity and GUI for GLB model
+          return setupGLBInteractivity(rootMesh, element, elementId);
+        }
+      } catch (error) {
+        console.error(`Failed to load GLB model ${glbPath}:`, error);
+        // Fallback to box geometry if GLB fails
+        return createBusinessBlock(element, position, new Vector3(1.8, 1, 2.5), Color3.FromHexString(element.color || '#FFF5E5'), elementId);
+      }
+    };
+
+    // Helper function to create a business model block with PBR materials (fallback)
     const createBusinessBlock = (
       element: CanvasElement,
       position: Vector3,
@@ -202,6 +236,118 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Store original material properties for hover effect
       const originalMetallic = material.metallic;
       const originalRoughness = material.roughness;
+      
+      return setupBoxInteractivity(geometry, material, originalMetallic, originalRoughness, element, elementId);
+    };
+
+    // Helper function to setup interactivity for GLB models
+    const setupGLBInteractivity = (mesh: AbstractMesh, element: CanvasElement, elementId: string) => {
+      // Create billboard panel for detailed content (initially hidden)
+      const billboardPanel = new Rectangle(`billboard_${elementId}`);
+      billboardPanel.widthInPixels = 350;
+      billboardPanel.heightInPixels = 300;
+      billboardPanel.cornerRadius = 12;
+      billboardPanel.color = "#2D3748";
+      billboardPanel.thickness = 2;
+      billboardPanel.background = "#FFFFFF";
+      billboardPanel.shadowColor = "rgba(0, 0, 0, 0.3)";
+      billboardPanel.shadowBlur = 10;
+      billboardPanel.zIndex = 1000;
+      billboardPanel.isVisible = false;
+      advancedTexture.addControl(billboardPanel);
+
+      // Billboard panel title
+      const billboardTitle = new TextBlock(`billboard_title_${elementId}`, element.title);
+      billboardTitle.color = "#2D3748";
+      billboardTitle.fontSize = 22;
+      billboardTitle.fontWeight = "bold";
+      billboardTitle.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      billboardTitle.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      billboardTitle.paddingTopInPixels = 15;
+      billboardPanel.addControl(billboardTitle);
+
+      // Billboard panel content
+      const billboardContent = new TextBlock(`billboard_content_${elementId}`, 
+        element.content.length > 0 
+          ? element.content.map((item, index) => `• ${item}`).join('\n\n')
+          : 'No content available'
+      );
+      billboardContent.color = "#4A5568";
+      billboardContent.fontSize = 14;
+      billboardContent.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+      billboardContent.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      billboardContent.paddingTopInPixels = 50;
+      billboardContent.paddingLeftInPixels = 20;
+      billboardContent.paddingRightInPixels = 20;
+      billboardContent.textWrapping = true;
+      billboardPanel.addControl(billboardContent);
+
+      // Close button
+      const closeText = new TextBlock(`close_${elementId}`, "✕");
+      closeText.color = "#718096";
+      closeText.fontSize = 18;
+      closeText.fontWeight = "bold";
+      closeText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      closeText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      closeText.paddingTopInPixels = 8;
+      closeText.paddingRightInPixels = 8;
+      billboardPanel.addControl(closeText);
+
+      // Add interaction
+      mesh.actionManager = new ActionManager(scene);
+      mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+        if (currentPopup && currentPopup !== billboardPanel) {
+          currentPopup.isVisible = false;
+        }
+        billboardPanel.isVisible = !billboardPanel.isVisible;
+        currentPopup = billboardPanel.isVisible ? billboardPanel : null;
+        
+        if (billboardPanel.isVisible) {
+          billboardPanel.linkWithMesh(mesh);
+          billboardPanel.linkOffsetX = 200;
+          billboardPanel.linkOffsetY = -180;
+        }
+      }));
+
+      // Close button interaction
+      closeText.onPointerUpObservable.add(() => {
+        billboardPanel.isVisible = false;
+        currentPopup = null;
+      });
+
+      // Create simple title label
+      const titleLabel = new Rectangle(`title_label_${elementId}`);
+      titleLabel.widthInPixels = 180;
+      titleLabel.heightInPixels = 40;
+      titleLabel.cornerRadius = 8;
+      titleLabel.color = "transparent";
+      titleLabel.thickness = 0;
+      titleLabel.background = "rgba(255, 255, 255, 0.9)";
+      advancedTexture.addControl(titleLabel);
+
+      const titleText = new TextBlock(`title_${elementId}`, element.title);
+      titleText.color = "#2D3748";
+      titleText.fontSize = 16;
+      titleText.fontWeight = "bold";
+      titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+      titleLabel.addControl(titleText);
+
+      titleLabel.linkWithMesh(mesh);
+      titleLabel.linkOffsetY = -60;
+
+      return mesh;
+    };
+
+    // Helper function to setup interactivity for box geometry (fallback)
+    const setupBoxInteractivity = (
+      geometry: Mesh, 
+      material: PBRMetallicRoughnessMaterial, 
+      originalMetallic: number, 
+      originalRoughness: number, 
+      element: CanvasElement, 
+      elementId: string
+    ) => {
 
       // Create billboard panel for detailed content (initially hidden)
       const billboardPanel = new Rectangle(`billboard_${elementId}`);
@@ -329,6 +475,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Col 9-10: Customer Segments (spans 2 cols, 2 rows)
     // Row 3: Cost Structure (5 cols), Revenue Streams (5 cols)
     
+    // Load Value Proposition GLB model asynchronously
+    const loadValuePropGLB = async () => {
+      try {
+        const result = await SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_05_ValueProposition.glb", scene);
+        if (result.meshes.length > 0) {
+          const rootMesh = result.meshes[0];
+          rootMesh.position = new Vector3(0, 0.5, 0);
+          rootMesh.scaling = new Vector3(2.5, 2.5, 2.5);
+          setupGLBInteractivity(rootMesh, canvas.valuePropositions, canvas.valuePropositions.id);
+        }
+      } catch (error) {
+        console.error("Failed to load Value Proposition GLB:", error);
+        // Fallback to box geometry
+        const fallbackBlock = createBusinessBlock(
+          canvas.valuePropositions,
+          new Vector3(0, 0.5, 0),
+          new Vector3(1.8, 1, 2.5),
+          Color3.FromHexString(canvas.valuePropositions.color || '#FFF5E5'),
+          canvas.valuePropositions.id
+        );
+      }
+    };
+    
+    // Load GLB model
+    loadValuePropGLB();
+
     const blocks = [
       // Column 1-2: Key Partners (left, spans 2 rows)
       createBusinessBlock(
@@ -357,14 +529,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.keyResources.id
       ),
 
-      // Column 5-6: Value Propositions (center, spans 2 rows)
-      createBusinessBlock(
-        canvas.valuePropositions,
-        new Vector3(0, 0.5, 0),     // Position: center, centered vertically
-        new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
-        Color3.FromHexString(canvas.valuePropositions.color || '#FFF5E5'),
-        canvas.valuePropositions.id
-      ),
+      // Column 5-6: Value Propositions - LOADED AS GLB MODEL ABOVE
+      // GLB model loaded asynchronously, no block created here
 
       // Column 7-8: Customer Relationships (top)
       createBusinessBlock(
@@ -410,6 +576,45 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       //   canvas.revenueStreams.id
       // )
     ];
+
+    // Load GLB model for Value Proposition (replace the box)
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_05_ValueProposition.glb", scene).then((result) => {
+      if (result.meshes.length > 0) {
+        const rootMesh = result.meshes[0];
+        rootMesh.position = new Vector3(0, 0, 0); // Center position like the original box
+        rootMesh.scaling = new Vector3(2.5, 2.5, 2.5); // Scale up from small Blender size
+        
+        // Add basic interactivity
+        rootMesh.actionManager = new ActionManager(scene);
+        rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+          console.log("Value Proposition GLB clicked!");
+        }));
+        
+        // Create title label for GLB model
+        const titleLabel = new Rectangle(`title_label_valueprop_glb`);
+        titleLabel.widthInPixels = 180;
+        titleLabel.heightInPixels = 40;
+        titleLabel.cornerRadius = 8;
+        titleLabel.color = "transparent";
+        titleLabel.thickness = 0;
+        titleLabel.background = "rgba(255, 255, 255, 0.9)";
+        advancedTexture.addControl(titleLabel);
+
+        const titleText = new TextBlock(`title_valueprop_glb`, canvas.valuePropositions.title);
+        titleText.color = "#2D3748";
+        titleText.fontSize = 16;
+        titleText.fontWeight = "bold";
+        titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+        titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+        titleLabel.addControl(titleText);
+
+        titleLabel.linkWithMesh(rootMesh);
+        titleLabel.linkOffsetY = -60;
+      }
+    }).catch((error) => {
+      console.error("Failed to load Value Proposition GLB model:", error);
+      // The original box will remain visible as fallback
+    });
 
     // Start the render loop
     engine.runRenderLoop(() => {
