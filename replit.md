@@ -88,6 +88,14 @@ The application follows a full-stack monorepo architecture with clear separation
 
 ## Recent Changes
 
+### July 26, 2025 - Billboard Label Centering & Plastic Material Enhancement
+- **✅ Perfect Billboard Label Positioning**: Fixed title labels to stay perfectly centered above each 3D object regardless of viewing angle
+- **✅ Dynamic Label Positioning**: Labels now use linkOffsetYInPixels and linkOffsetXInPixels for precise positioning
+- **✅ Enhanced Billboard Behavior**: Added transformCenterX/Y properties for perfect camera-facing orientation
+- **✅ Plastic Material System**: Converted all materials from metallic to plastic appearance (metallic: 0.0, roughness: 0.8)
+- **✅ Distinct Color Scheme**: Each business model section has unique colors (Blue Value Proposition, Green Key Partners, Purple Customer Segments, Orange Key Activities, Yellow Customer Relationships, Red Key Resources, Cyan Customer Channels)
+- **✅ Optimized Lighting**: Simplified lighting system for better plastic material visibility with reduced reflections
+
 ### July 26, 2025 - Camera Position Memory & Navigation Improvements
 - **✅ 3D Camera Position Memory**: Implemented persistent camera state that remembers viewing angle, rotation, and zoom level when switching between 2D and 3D views
 - **✅ Smooth Navigation Controls**: Reduced mouse wheel sensitivity (wheelPrecision = 50) for more controlled and precise zooming

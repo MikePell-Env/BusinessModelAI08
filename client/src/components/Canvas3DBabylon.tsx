@@ -398,15 +398,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
           titleLabel.addControl(titleText);
 
-          // Calculate proper center position for billboard behavior
-          const boundingInfo = rootMesh.getBoundingInfo();
-          const meshHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
-          
-          // Link with mesh and position above the center with dynamic offset
+          // Position label directly above the mesh center
           titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetYInPixels = -Math.max(100, meshHeight * 15); // Dynamic offset based on mesh size
+          titleLabel.linkOffsetYInPixels = -100; // Fixed offset above mesh
           
-          // Ensure billboard behavior - always face camera and stay centered
+          // Use linkOffsetX to ensure horizontal centering
+          titleLabel.linkOffsetXInPixels = 0;
+          
+          // Perfect billboard behavior - always face camera
           titleLabel.transformCenterX = 0.5;
           titleLabel.transformCenterY = 0.5;
           
@@ -433,8 +432,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             plasticMaterial.baseColor = color;
             plasticMaterial.metallic = 0.0; // No metallic for plastic appearance
             plasticMaterial.roughness = 0.8; // High roughness for matte plastic look
-            plasticMaterial.environmentIntensity = 0.1; // Minimal reflections
-            plasticMaterial.directIntensity = 1.0; // Full direct lighting
+            plasticMaterial.environmentBRDFTexture = null; // Minimal reflections for plastic
             
             // Apply the material to the mesh
             mesh.material = plasticMaterial;
@@ -485,15 +483,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
           titleLabel.addControl(titleText);
 
-          // Calculate proper center position for billboard behavior
-          const boundingInfo = rootMesh.getBoundingInfo();
-          const meshHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
-          
-          // Link with mesh and position above the center with dynamic offset
+          // Position label directly above the mesh center
           titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetYInPixels = -Math.max(100, meshHeight * 15); // Dynamic offset based on mesh size
+          titleLabel.linkOffsetYInPixels = -100; // Fixed offset above mesh
           
-          // Ensure billboard behavior - always face camera and stay centered
+          // Use linkOffsetX to ensure horizontal centering
+          titleLabel.linkOffsetXInPixels = 0;
+          
+          // Perfect billboard behavior - always face camera
           titleLabel.transformCenterX = 0.5;
           titleLabel.transformCenterY = 0.5;
           
