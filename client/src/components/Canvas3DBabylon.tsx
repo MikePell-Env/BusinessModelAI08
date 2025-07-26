@@ -651,10 +651,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Start with only Value Proposition at exact center (0,0) - positioning one at a time
       const modelConfigs = [
-        // Central Value Proposition (circular, center aligned with red sphere at origin)
+        // Central Value Proposition (circular, manually adjusted to center on red sphere)
         {
           element: canvas.valuePropositions,
-          position: new Vector3(0, 0, 0), // Center of shape exactly at origin (red sphere)
+          position: new Vector3(-1.5, 0, -1), // Manually adjusted to center the GLB shape on red sphere
           scale: new Vector3(50, 20, 50), // Moderately sized circle
           id: canvas.valuePropositions.id
         }
