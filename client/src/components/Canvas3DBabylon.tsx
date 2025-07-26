@@ -651,10 +651,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Start with only Value Proposition at exact center (0,0) - positioning one at a time
       const modelConfigs = [
-        // Central Value Proposition (circular, exactly at center (0,0))
+        // Central Value Proposition (circular, exactly at center (0,0) aligned with red sphere)
         {
           element: canvas.valuePropositions,
-          position: new Vector3(0, 0.5, 0), // Exact center of coordinate system
+          position: new Vector3(0, 0.5, 0), // Exact center, aligned with red sphere origin
           scale: new Vector3(50, 20, 50), // Moderately sized circle
           id: canvas.valuePropositions.id
         }
@@ -700,10 +700,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.error('Error loading GLB models:', error);
     });
 
-    // Position the entire scene group to center the layout visually
-    // The ground plane extends from -10 to +10 in X and -7 to +7 in Z
-    // Move the entire group so the center of the visible layout is at (0,0)
-    sceneGroup.position = new Vector3(5, 0, 3.5); // Offset to center the layout
+    // Position the entire scene group to center the layout around the red sphere (origin)
+    // The ground plane extends from -10 to +10 in X and -7 to +7 in Z, so center is at (0,0) relative to ground
+    // Move the entire group so the center of the ground plane aligns with the origin (red sphere)
+    sceneGroup.position = new Vector3(0, 0, 0); // Center the entire layout at origin
 
     // Add a small red sphere at the true origin (0,0,0) to show where it is
     const originMarker = MeshBuilder.CreateSphere("originMarker", { diameter: 0.5 }, scene);
