@@ -202,10 +202,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           
           // Hover effect - light up with subtle glow
           rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-            rootMesh.getChildMeshes().forEach((childMesh) => {
-              if (childMesh.material && childMesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = childMesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(0.2, 0.2, 0.3); // Subtle glow on hover
+            console.log(`Hovering over ${elementName}`);
+            // Apply glow to the root mesh and all child meshes
+            const meshesToProcess = [rootMesh, ...rootMesh.getChildMeshes()];
+            meshesToProcess.forEach((mesh) => {
+              if (mesh.material) {
+                console.log(`Material type for ${mesh.name}: ${mesh.material.getClassName()}`);
+                if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                  const material = mesh.material as PBRMetallicRoughnessMaterial;
+                  material.emissiveColor = new Color3(0.3, 0.3, 0.4); // Subtle glow on hover
+                } else if (mesh.material.hasOwnProperty('emissiveColor')) {
+                  // Handle other material types that support emissive color
+                  (mesh.material as any).emissiveColor = new Color3(0.3, 0.3, 0.4);
+                }
               }
             });
           }));
@@ -213,10 +222,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           // Mouse out - restore normal lighting unless selected
           rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
             if (selectedMesh !== rootMesh) {
-              rootMesh.getChildMeshes().forEach((childMesh) => {
-                if (childMesh.material && childMesh.material instanceof PBRMetallicRoughnessMaterial) {
-                  const material = childMesh.material as PBRMetallicRoughnessMaterial;
-                  material.emissiveColor = new Color3(0, 0, 0); // Remove glow
+              console.log(`Mouse out of ${elementName}`);
+              const meshesToProcess = [rootMesh, ...rootMesh.getChildMeshes()];
+              meshesToProcess.forEach((mesh) => {
+                if (mesh.material) {
+                  if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                    const material = mesh.material as PBRMetallicRoughnessMaterial;
+                    material.emissiveColor = new Color3(0, 0, 0); // Remove glow
+                  } else if (mesh.material.hasOwnProperty('emissiveColor')) {
+                    (mesh.material as any).emissiveColor = new Color3(0, 0, 0);
+                  }
                 }
               });
             }
@@ -228,20 +243,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Clear previous selection
             if (selectedMesh && selectedMesh !== rootMesh) {
-              selectedMesh.getChildMeshes().forEach((childMesh) => {
-                if (childMesh.material && childMesh.material instanceof PBRMetallicRoughnessMaterial) {
-                  const material = childMesh.material as PBRMetallicRoughnessMaterial;
-                  material.emissiveColor = new Color3(0, 0, 0);
+              const previousMeshes = [selectedMesh, ...selectedMesh.getChildMeshes()];
+              previousMeshes.forEach((mesh) => {
+                if (mesh.material) {
+                  if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                    const material = mesh.material as PBRMetallicRoughnessMaterial;
+                    material.emissiveColor = new Color3(0, 0, 0);
+                  } else if (mesh.material.hasOwnProperty('emissiveColor')) {
+                    (mesh.material as any).emissiveColor = new Color3(0, 0, 0);
+                  }
                 }
               });
             }
             
             // Apply bright blue selection glow
             selectedMesh = rootMesh;
-            rootMesh.getChildMeshes().forEach((childMesh) => {
-              if (childMesh.material && childMesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = childMesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(0.2, 0.4, 1.0); // Bright blue glow
+            const selectedMeshes = [rootMesh, ...rootMesh.getChildMeshes()];
+            selectedMeshes.forEach((mesh) => {
+              if (mesh.material) {
+                console.log(`Applying blue glow to ${mesh.name} with material: ${mesh.material.getClassName()}`);
+                if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                  const material = mesh.material as PBRMetallicRoughnessMaterial;
+                  material.emissiveColor = new Color3(0.3, 0.5, 1.0); // Bright blue glow
+                } else if (mesh.material.hasOwnProperty('emissiveColor')) {
+                  (mesh.material as any).emissiveColor = new Color3(0.3, 0.5, 1.0);
+                }
               }
             });
           }));
