@@ -186,6 +186,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Store reference to currently visible popup
     let currentPopup: Rectangle | null = null;
     
+    // Test: Create a simple test panel to verify GUI system works
+    setTimeout(() => {
+      console.log('Creating test panel to verify GUI system');
+      const testPanel = new Rectangle("testPanel");
+      testPanel.widthInPixels = 200;
+      testPanel.heightInPixels = 100;
+      testPanel.color = "#ff0000";
+      testPanel.thickness = 2;
+      testPanel.background = "#ffffff";
+      testPanel.leftInPixels = 100;
+      testPanel.topInPixels = 100;
+      
+      const testText = new TextBlock("testText", "Test Panel - GUI Works!");
+      testText.color = "#000000";
+      testText.fontSize = "14px";
+      testPanel.addControl(testText);
+      
+      advancedTexture.addControl(testPanel);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        advancedTexture.removeControl(testPanel);
+        console.log('Test panel removed');
+      }, 3000);
+    }, 2000);
+    
     // Function to get canvas data for specific element
     const getElementData = (elementName: string) => {
       const elementMap: { [key: string]: CanvasElement } = {
@@ -202,15 +228,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Function to create vertical billboard panel with content
     const createDetailPanel = (elementName: string, clickedMesh: AbstractMesh) => {
+      console.log(`createDetailPanel called for: ${elementName}`);
+      
       // Close any existing panel
       if (selectedPanelRef.current) {
         advancedTexture.removeControl(selectedPanelRef.current);
         selectedPanelRef.current = null;
+        console.log('Closed existing panel');
       }
       
       // Get data for this element
       const elementData = getElementData(elementName);
-      if (!elementData) return;
+      console.log(`Element data for ${elementName}:`, elementData);
+      if (!elementData) {
+        console.error(`No element data found for ${elementName}`);
+        return;
+      }
       
       const content = elementData.content || ['No content available'];
       
@@ -436,7 +469,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             });
             
             // Show detail panel with content from 2D canvas data
-            createDetailPanel(elementName, rootMesh);
+            console.log(`Attempting to create detail panel for ${elementName}`);
+            console.log('Canvas data:', canvas);
+            try {
+              createDetailPanel(elementName, rootMesh);
+            } catch (error) {
+              console.error('Error creating detail panel:', error);
+            }
           }));
           
           // Create title label for GLB model
