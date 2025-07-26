@@ -345,9 +345,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       if (result.meshes.length > 0) {
         const rootMesh = result.meshes[0];
         rootMesh.position = new Vector3(0, 0.5, 0);
-        rootMesh.scaling = new Vector3(100, 100, 100); // Scale up to 100x size to completely fill the ground plane
+        rootMesh.scaling = new Vector3(60, 60, 60); // Scale up to 60x size for optimal visibility
         
-        console.log("Complete BMC GLB loaded at 100x scale:");
+        console.log("Complete BMC GLB loaded at 60x scale:");
         result.meshes.forEach((mesh, index) => {
           console.log(`Mesh ${index}: ${mesh.name} at position:`, mesh.position);
           console.log(`  - Scaling:`, mesh.scaling);
