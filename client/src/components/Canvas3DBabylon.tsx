@@ -257,8 +257,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       billboardPanel.addControl(closeText);
 
       // Add interaction
-      mesh.actionManager = new ActionManager(scene);
-      mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+      geometry.actionManager = new ActionManager(scene);
+      geometry.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
         if (currentPopup && currentPopup !== billboardPanel) {
           currentPopup.isVisible = false;
         }
@@ -266,7 +266,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         currentPopup = billboardPanel.isVisible ? billboardPanel : null;
         
         if (billboardPanel.isVisible) {
-          billboardPanel.linkWithMesh(mesh);
+          billboardPanel.linkWithMesh(geometry);
           billboardPanel.linkOffsetX = 200;
           billboardPanel.linkOffsetY = -180;
         }
@@ -278,7 +278,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         currentPopup = null;
       });
 
-      // Create simple title label
+      // Enhanced hover effect with metallic properties
+      geometry.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+        material.metallic = 1.0;  // Maximum metallic shine on hover
+        material.roughness = 0.05; // Even more reflective
+      }));
+
+      geometry.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+        material.metallic = originalMetallic;   // Restore original metallic
+        material.roughness = originalRoughness; // Restore original roughness
+      }));
+
+      // Create simple title label (always visible)
       const titleLabel = new Rectangle(`title_label_${elementId}`);
       titleLabel.widthInPixels = 180;
       titleLabel.heightInPixels = 40;
@@ -288,6 +299,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       titleLabel.background = "rgba(255, 255, 255, 0.9)";
       advancedTexture.addControl(titleLabel);
 
+      // Title text only
       const titleText = new TextBlock(`title_${elementId}`, element.title);
       titleText.color = "#2D3748";
       titleText.fontSize = 16;
@@ -296,10 +308,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
       titleLabel.addControl(titleText);
 
-      titleLabel.linkWithMesh(mesh);
+      // Link title label to 3D position
+      titleLabel.linkWithMesh(geometry);
       titleLabel.linkOffsetY = -60;
 
-      return mesh;
+      return geometry;
     };
 
     // Helper function to setup interactivity for box geometry (fallback)
