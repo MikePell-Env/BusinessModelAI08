@@ -346,7 +346,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Position models exactly as shown in top view diagram:
     loadGLBModel("BMC_blender_05_KeyPartners.glb", canvas.keyPartners, new Vector3(-4, 0.5, 0), "Key Partners");               // Left tall rectangle
     loadGLBModel("BMC_blender_05_KeyActivities.glb", canvas.keyActivities, new Vector3(-1, 0.5, 2), "Key Activities");        // Top-left rectangle (above circle)
-    loadGLBModelWithColor("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-1, 0.5, -2), "Key Resources", new Color3(1, 0, 0)); // Bottom-left rectangle (below circle) - RED
+    loadGLBModelWithColor("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(0, 0.5, -2.5), "Key Resources", new Color3(1, 0, 0)); // Bottom center rectangle (directly below circle) - RED
     loadGLBModel("BMC_blender_05_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(1, 0.5, 2), "Customer Relationships"); // Top-right rectangle (above circle)
     loadGLBModel("BMC_blender_05_CustomerChannels.glb", canvas.channels, new Vector3(1, 0.5, -2), "Customer Channels");     // Bottom-right rectangle (below circle)
     loadGLBModel("BMC_blender_05_CustomerSegments.glb", canvas.customerSegments, new Vector3(4, 0.5, 0), "Customer Segments"); // Right tall rectangle
