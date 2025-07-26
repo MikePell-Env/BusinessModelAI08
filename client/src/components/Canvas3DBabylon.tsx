@@ -240,10 +240,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       closeText.color = "#666666";
       closeText.fontSize = 20;
       closeText.fontWeight = "bold";
+      closeText.widthInPixels = 20;
+      closeText.heightInPixels = 20;
       closeText.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
       closeText.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-      closeText.top = "10px";
-      closeText.left = "-10px";
+      closeText.paddingTopInPixels = 8;
+      closeText.paddingRightInPixels = 8;
       billboardPanel.addControl(closeText);
 
       // Add interaction
