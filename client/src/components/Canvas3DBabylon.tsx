@@ -316,111 +316,50 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             });
             
-            // Show detail panel with content from 2D canvas data
-            console.log(`Attempting to create detail panel for ${elementName}`);
+            // Create simple test panel
+            console.log(`Creating simple panel for ${elementName}`);
             
-            // Create panel directly inline to avoid scope issues
             // Close any existing panel
             if (selectedPanelRef.current) {
               advancedTexture.removeControl(selectedPanelRef.current);
               selectedPanelRef.current = null;
             }
             
-            // Get data for this element
-            const elementMap: { [key: string]: any } = {
-              'Value Proposition': canvas.valuePropositions,
-              'Key Partners': canvas.keyPartners,
-              'Key Activities': canvas.keyActivities,
-              'Key Resources': canvas.keyResources,
-              'Customer Relationships': canvas.customerRelationships,
-              'Customer Channels': canvas.channels,
-              'Customer Segments': canvas.customerSegments
-            };
+            // Create simple panel
+            const panel = new Rectangle("simplePanel");
+            panel.widthInPixels = 300;
+            panel.heightInPixels = 200;
+            panel.color = "#000000";
+            panel.thickness = 2;
+            panel.background = "#ffffff";
+            panel.leftInPixels = 150;
+            panel.topInPixels = 0;
             
-            const elementData = elementMap[elementName];
-            console.log(`Element data for ${elementName}:`, elementData);
+            // Add simple text
+            const text = new TextBlock("panelText", `${elementName}\\n\\nContent goes here`);
+            text.color = "#000000";
+            text.fontSize = "16px";
+            panel.addControl(text);
             
-            if (elementData) {
-              const content = elementData.content || ['No content available'];
-              
-              // Create main panel container
-              const panel = new Rectangle("detailPanel");
-              panel.widthInPixels = 350;
-              panel.heightInPixels = Math.max(250, content.length * 40 + 120);
-              panel.cornerRadius = 15;
-              panel.color = "#2c3e50";
-              panel.thickness = 3;
-              panel.background = "#ffffff";
-              panel.alpha = 0.95;
-              
-              // Position panel linked to the clicked mesh
-              panel.linkWithMesh(rootMesh);
-              panel.linkOffsetXInPixels = 200;
-              panel.linkOffsetYInPixels = 0;
-              
-              // Create title
-              const titleText = new TextBlock("panelTitle", elementData.title);
-              titleText.color = "#2c3e50";
-              titleText.fontSize = "20px";
-              titleText.fontWeight = "bold";
-              titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-              titleText.topInPixels = -panel.heightInPixels / 2 + 30;
-              titleText.heightInPixels = 35;
-              
-              // Create content text with bullet points
-              const bulletContent = content.map((item: string) => `• ${item}`).join('\\n\\n');
-              const contentText = new TextBlock("panelContent", bulletContent);
-              contentText.color = "#34495e";
-              contentText.fontSize = "16px";
-              contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-              contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-              contentText.paddingLeftInPixels = 25;
-              contentText.paddingRightInPixels = 25;
-              contentText.paddingTopInPixels = 15;
-              contentText.textWrapping = true;
-              contentText.topInPixels = 25;
-              contentText.heightInPixels = panel.heightInPixels - 100;
-              
-              // Create close button
-              const closeButton = new Rectangle("closeButton");
-              closeButton.widthInPixels = 30;
-              closeButton.heightInPixels = 30;
-              closeButton.cornerRadius = 15;
-              closeButton.color = "#e74c3c";
-              closeButton.thickness = 2;
-              closeButton.background = "#c0392b";
-              closeButton.leftInPixels = panel.widthInPixels / 2 - 20;
-              closeButton.topInPixels = -panel.heightInPixels / 2 + 20;
-              
-              const closeText = new TextBlock("closeText", "×");
-              closeText.color = "#ffffff";
-              closeText.fontSize = "20px";
-              closeText.fontWeight = "bold";
-              closeButton.addControl(closeText);
-              
-              // Add click handler to close button
-              closeButton.onPointerClickObservable.add(() => {
-                advancedTexture.removeControl(panel);
-                selectedPanelRef.current = null;
-                selectedElementRef.current = null;
-              });
-              
-              // Add controls to panel
-              panel.addControl(titleText);
-              panel.addControl(contentText);
-              panel.addControl(closeButton);
-              
-              // Add panel to texture
-              advancedTexture.addControl(panel);
-              
-              // Store reference
-              selectedPanelRef.current = panel;
-              selectedElementRef.current = elementName;
-              
-              console.log(`Panel created successfully for ${elementName}`);
-            } else {
-              console.error(`No element data found for ${elementName}`);
-            }
+            // Add close button
+            const closeBtn = new Rectangle("closeBtn");
+            closeBtn.widthInPixels = 20;
+            closeBtn.heightInPixels = 20;
+            closeBtn.color = "#ff0000";
+            closeBtn.background = "#ff0000";
+            closeBtn.leftInPixels = 140;
+            closeBtn.topInPixels = -90;
+            
+            closeBtn.onPointerClickObservable.add(() => {
+              advancedTexture.removeControl(panel);
+              selectedPanelRef.current = null;
+            });
+            
+            panel.addControl(closeBtn);
+            advancedTexture.addControl(panel);
+            selectedPanelRef.current = panel;
+            
+            console.log("Simple panel created and added to GUI");
           }));
           
           // Create title label for GLB model
