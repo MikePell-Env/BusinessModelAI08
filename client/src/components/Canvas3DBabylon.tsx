@@ -50,9 +50,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const savedCameraState = getCamera3DState();
     const camera = new ArcRotateCamera(
       "camera",
-      savedCameraState?.alpha ?? -Math.PI / 4,    // Alpha - restore or default front-right angle
-      savedCameraState?.beta ?? Math.PI / 3.5,    // Beta - restore or default higher angle looking down
-      savedCameraState?.radius ?? 18,             // Radius - restore or default further back for full view
+      savedCameraState?.alpha ?? -Math.PI / 6,    // Alpha - more frontal angle for better view of the layout
+      savedCameraState?.beta ?? Math.PI / 4,      // Beta - lower angle for the perspective shown in screenshot
+      savedCameraState?.radius ?? 20,             // Radius - further back to see the full canvas layout
       Vector3.Zero(),  // Target position
       scene
     );
