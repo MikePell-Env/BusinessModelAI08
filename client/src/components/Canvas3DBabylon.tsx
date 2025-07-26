@@ -224,17 +224,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       });
     };
 
-    // Load all GLB models in circular arrangement (matching top view design)
+    // Load all GLB models in tight circular arrangement (matching simplified top view design)
     // Center: Value Proposition
     loadGLBModel("BMC_blender_05_ValueProposition.glb", canvas.valuePropositions, new Vector3(0, 0.5, 0), "Value Proposition");
     
-    // Circular arrangement around center (7 elements)
-    loadGLBModel("BMC_blender_05_KeyPartners.glb", canvas.keyPartners, new Vector3(-4, 0.5, 0), "Key Partners");
-    loadGLBModel("BMC_blender_05_KeyActivities.glb", canvas.keyActivities, new Vector3(-2, 0.5, 1), "Key Activities");
-    loadGLBModel("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-2, 0.5, -1), "Key Resources");
-    loadGLBModel("BMC_blender_05_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(2, 0.5, 1), "Customer Relationships");
-    loadGLBModel("BMC_blender_05_CustomerChannels.glb", canvas.channels, new Vector3(2, 0.5, -1), "Customer Channels");
-    loadGLBModel("BMC_blender_05_CustomerSegments.glb", canvas.customerSegments, new Vector3(4, 0.5, 0), "Customer Segments");
+    // Tight circular arrangement around center - positioned adjacently like in the diagram
+    loadGLBModel("BMC_blender_05_KeyPartners.glb", canvas.keyPartners, new Vector3(-2.2, 0.5, 0), "Key Partners");           // Left
+    loadGLBModel("BMC_blender_05_KeyActivities.glb", canvas.keyActivities, new Vector3(-1.1, 0.5, 1.1), "Key Activities");    // Top-left
+    loadGLBModel("BMC_blender_05_KeyResources.glb", canvas.keyResources, new Vector3(-1.1, 0.5, -1.1), "Key Resources");     // Bottom-left
+    loadGLBModel("BMC_blender_05_CustomerRelationships.glb", canvas.customerRelationships, new Vector3(1.1, 0.5, 1.1), "Customer Relationships"); // Top-right
+    loadGLBModel("BMC_blender_05_CustomerChannels.glb", canvas.channels, new Vector3(1.1, 0.5, -1.1), "Customer Channels");  // Bottom-right
+    loadGLBModel("BMC_blender_05_CustomerSegments.glb", canvas.customerSegments, new Vector3(2.2, 0.5, 0), "Customer Segments"); // Right
 
     // Start the render loop
     engine.runRenderLoop(() => {
