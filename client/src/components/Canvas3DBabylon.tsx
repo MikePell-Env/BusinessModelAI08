@@ -375,14 +375,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (result.meshes.length > 0) {
           const rootMesh = result.meshes[0];
           
-          // Calculate bounding box to center the model properly
-          const boundingInfo = rootMesh.getBoundingInfo();
-          const center = boundingInfo.boundingBox.center;
-          
-          // Set position and scale, and add to scene group
-          rootMesh.position = position.subtract(center.multiply(scale)); // Offset by scaled center to truly center the model
+          // First, apply scaling to get accurate bounding box
           rootMesh.scaling = scale;
           rootMesh.parent = sceneGroup;
+          
+          // Force bounding box refresh after scaling
+          rootMesh.refreshBoundingInfo();
+          
+          // Calculate bounding box to center the model properly
+          const boundingInfo = rootMesh.getBoundingInfo();
+          const min = boundingInfo.boundingBox.minimumWorld;
+          const max = boundingInfo.boundingBox.maximumWorld;
+          const center = Vector3.Center(min, max);
+          
+          console.log(`Model ${element.title}: min=${min}, max=${max}, center=${center}, target position=${position}`);
+          
+          // Calculate offset to center the geometry at the target position
+          const offset = position.subtract(center);
+          rootMesh.position = offset;
+          
+          console.log(`Applied offset: ${offset} to center model at target position`);
           
           // Apply materials and shadows to all child meshes
           result.meshes.forEach((mesh, index) => {
