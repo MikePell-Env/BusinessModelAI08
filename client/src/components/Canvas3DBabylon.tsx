@@ -449,18 +449,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Right side: Customer Segments (tall vertical rectangle) - PURPLE  
     loadGLBModelScaledWithColor("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content, new Vector3(2.5, 0.5, 0), "Customer Segments", 60, new Color3(0.7, 0, 0.7));
     
-    // Inner circle elements - testing reversed Z coordinates to match diagram:
-    // Key Activities should be at TOP-LEFT in diagram = NORTH-WEST
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content, new Vector3(-0.6, 0.5, -1.4), "Key Activities", 60, new Color3(1, 0.5, 0));
+    // Testing coordinate system understanding - placing objects at cardinal positions:
+    // Key Activities (ORANGE) - testing TOP position from viewer perspective
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content, new Vector3(0, 0.5, -1.5), "Key Activities", 60, new Color3(1, 0.5, 0));
     
-    // Customer Relationships should be at TOP-RIGHT in diagram = NORTH-EAST  
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content, new Vector3(0.6, 0.5, -1.4), "Customer Relationships", 60, new Color3(1, 0.8, 0));
+    // Customer Relationships (YELLOW) - testing RIGHT position from viewer perspective
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content, new Vector3(1.5, 0.5, 0), "Customer Relationships", 60, new Color3(1, 0.8, 0));
     
-    // Key Resources should be at BOTTOM-LEFT in diagram = SOUTH-WEST
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyResources.glb", canvas.keyResources.content, new Vector3(-0.6, 0.5, 1.4), "Key Resources", 60, new Color3(1, 0, 0));
+    // Key Resources (RED) - testing BOTTOM position from viewer perspective  
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyResources.glb", canvas.keyResources.content, new Vector3(0, 0.5, 1.5), "Key Resources", 60, new Color3(1, 0, 0));
     
-    // Customer Channels should be at BOTTOM-RIGHT in diagram = SOUTH-EAST
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerChannels.glb", canvas.channels.content, new Vector3(0.6, 0.5, 1.4), "Customer Channels", 60, new Color3(0, 0.8, 0.8));
+    // Customer Channels (CYAN) - testing LEFT position from viewer perspective
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerChannels.glb", canvas.channels.content, new Vector3(-1.5, 0.5, 0), "Customer Channels", 60, new Color3(0, 0.8, 0.8));
 
     // Start the render loop
     engine.runRenderLoop(() => {
