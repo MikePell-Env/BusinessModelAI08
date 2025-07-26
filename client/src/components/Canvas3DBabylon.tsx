@@ -637,55 +637,55 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const loadAllModels = async () => {
       console.log('Loading custom GLB models for business model canvas...');
       
-      // Define positions and scales for each element (scaled up significantly)
+      // Define positions and scales matching the exact top view layout
       const modelConfigs = [
-        // Central Value Proposition (circular, larger scale)
+        // Central Value Proposition (circular, center position)
         {
           element: canvas.valuePropositions,
           position: new Vector3(0, 0.5, 0),
-          scale: new Vector3(4, 4, 4), // Much larger for central importance
+          scale: new Vector3(2.5, 1, 2.5), // Circle diameter roughly 2.5 units
           id: canvas.valuePropositions.id
         },
-        // Left side: Key Partners (tall rectangle)
+        // Far Left: Key Partners (tall left rectangle)
         {
           element: canvas.keyPartners,
-          position: new Vector3(-4.5, 0.5, 0),
-          scale: new Vector3(3.5, 3.5, 3.5), // Large scale for tall perimeter box
+          position: new Vector3(-6, 0.5, 0),
+          scale: new Vector3(1.8, 1, 4), // Tall rectangle, far left
           id: canvas.keyPartners.id
         },
-        // Right side: Customer Segments (tall rectangle)
+        // Far Right: Customer Segments (tall right rectangle)  
         {
           element: canvas.customerSegments,
-          position: new Vector3(4.5, 0.5, 0),
-          scale: new Vector3(3.5, 3.5, 3.5), // Large scale for tall perimeter box
+          position: new Vector3(6, 0.5, 0),
+          scale: new Vector3(1.8, 1, 4), // Tall rectangle, far right
           id: canvas.customerSegments.id
         },
-        // Top left: Key Activities (medium rectangle)
+        // Top Left: Key Activities (connecting to circle from top-left)
         {
           element: canvas.keyActivities,
-          position: new Vector3(-2.5, 0.5, 2.5),
-          scale: new Vector3(3, 3, 3), // Medium scale for quadrant boxes
+          position: new Vector3(-3, 0.5, 2.8),
+          scale: new Vector3(2.5, 1, 1.5), // Rectangle above circle, left side
           id: canvas.keyActivities.id
         },
-        // Top right: Customer Relationships (medium rectangle)
+        // Top Right: Customer Relationships (connecting to circle from top-right)
         {
           element: canvas.customerRelationships,
-          position: new Vector3(2.5, 0.5, 2.5),
-          scale: new Vector3(3, 3, 3), // Medium scale for quadrant boxes
+          position: new Vector3(3, 0.5, 2.8),
+          scale: new Vector3(2.5, 1, 1.5), // Rectangle above circle, right side
           id: canvas.customerRelationships.id
         },
-        // Bottom left: Key Resources (medium rectangle)
+        // Bottom Left: Key Resources (connecting to circle from bottom-left)
         {
           element: canvas.keyResources,
-          position: new Vector3(-2.5, 0.5, -2.5),
-          scale: new Vector3(3, 3, 3), // Medium scale for quadrant boxes
+          position: new Vector3(-3, 0.5, -2.8),
+          scale: new Vector3(2.5, 1, 1.5), // Rectangle below circle, left side
           id: canvas.keyResources.id
         },
-        // Bottom right: Channels (medium rectangle)
+        // Bottom Right: Channels (connecting to circle from bottom-right)
         {
           element: canvas.channels,
-          position: new Vector3(2.5, 0.5, -2.5),
-          scale: new Vector3(3, 3, 3), // Medium scale for quadrant boxes
+          position: new Vector3(3, 0.5, -2.8),
+          scale: new Vector3(2.5, 1, 1.5), // Rectangle below circle, right side
           id: canvas.channels.id
         }
       ];
@@ -705,19 +705,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Create fallback blocks for Cost Structure and Revenue Streams (no GLB models provided)
     const blocks = [
-      // Bottom row: Cost Structure and Revenue Streams (wide rectangles - fallback geometry)
+      // Bottom row: Cost Structure and Revenue Streams (positioned below the main layout)
       createBusinessBlock(
         canvas.costStructure,
-        new Vector3(-2.25, 0.5, -4.5), // Bottom left wide
-        new Vector3(4, 1, 1.5), // Wide rectangle
+        new Vector3(-3, 0.5, -5.5), // Bottom left, below main layout
+        new Vector3(5, 1, 1.5), // Wide rectangle
         new Color3(1, 0.8, 0.8), // Slightly red color
         canvas.costStructure.id
       ),
 
       createBusinessBlock(
         canvas.revenueStreams,
-        new Vector3(2.25, 0.5, -4.5), // Bottom right wide
-        new Vector3(4, 1, 1.5), // Wide rectangle
+        new Vector3(3, 0.5, -5.5), // Bottom right, below main layout
+        new Vector3(5, 1, 1.5), // Wide rectangle
         new Color3(0.8, 1, 0.8), // Slightly green color
         canvas.revenueStreams.id
       )
