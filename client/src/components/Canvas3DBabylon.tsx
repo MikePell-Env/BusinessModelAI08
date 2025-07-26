@@ -194,84 +194,91 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const originalMetallic = material.metallic;
       const originalRoughness = material.roughness;
 
-      // Create detailed popup panel (initially hidden)
-      const popupPanel = new Rectangle(`popup_${elementId}`);
-      popupPanel.widthInPixels = 300;
-      popupPanel.heightInPixels = 250;
-      popupPanel.cornerRadius = 10;
-      popupPanel.color = "#2D3748";
-      popupPanel.thickness = 2;
-      popupPanel.background = "#FFFFFF";
-      popupPanel.isVisible = false;
-      advancedTexture.addControl(popupPanel);
+      // Create billboard panel for detailed content (initially hidden)
+      const billboardPanel = new Rectangle(`billboard_${elementId}`);
+      billboardPanel.widthInPixels = 350;
+      billboardPanel.heightInPixels = 300;
+      billboardPanel.cornerRadius = 12;
+      billboardPanel.color = "#2D3748";
+      billboardPanel.thickness = 2;
+      billboardPanel.background = "#FFFFFF";
+      billboardPanel.shadowColor = "rgba(0, 0, 0, 0.3)";
+      billboardPanel.shadowBlur = 10;
+      billboardPanel.isVisible = false;
+      advancedTexture.addControl(billboardPanel);
 
-      // Popup title
-      const popupTitle = new TextBlock(`popup_title_${elementId}`, element.title);
-      popupTitle.color = "#2D3748";
-      popupTitle.fontSize = 20;
-      popupTitle.fontWeight = "bold";
-      popupTitle.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-      popupTitle.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-      popupTitle.paddingTop = "15px";
-      popupPanel.addControl(popupTitle);
+      // Billboard panel title
+      const billboardTitle = new TextBlock(`billboard_title_${elementId}`, element.title);
+      billboardTitle.color = "#2D3748";
+      billboardTitle.fontSize = 22;
+      billboardTitle.fontWeight = "bold";
+      billboardTitle.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      billboardTitle.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      billboardTitle.paddingTop = "20px";
+      billboardPanel.addControl(billboardTitle);
 
-      // Popup content
-      const popupContent = new TextBlock(`popup_content_${elementId}`, 
+      // Billboard panel content
+      const billboardContent = new TextBlock(`billboard_content_${elementId}`, 
         element.content.length > 0 
           ? element.content.map((item, index) => `• ${item}`).join('\n\n')
           : 'No content available'
       );
-      popupContent.color = "#4A5568";
-      popupContent.fontSize = 14;
-      popupContent.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-      popupContent.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-      popupContent.paddingTop = "60px";
-      popupContent.paddingLeft = "20px";
-      popupContent.paddingRight = "20px";
-      popupContent.textWrapping = true;
-      popupPanel.addControl(popupContent);
+      billboardContent.color = "#4A5568";
+      billboardContent.fontSize = 15;
+      billboardContent.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+      billboardContent.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      billboardContent.paddingTop = "70px";
+      billboardContent.paddingLeft = "25px";
+      billboardContent.paddingRight = "25px";
+      billboardContent.paddingBottom = "20px";
+      billboardContent.textWrapping = true;
+      billboardPanel.addControl(billboardContent);
 
-      // Close button
+      // Close button for billboard
       const closeButton = new Rectangle(`close_${elementId}`);
-      closeButton.widthInPixels = 25;
-      closeButton.heightInPixels = 25;
-      closeButton.cornerRadius = 15;
+      closeButton.widthInPixels = 30;
+      closeButton.heightInPixels = 30;
+      closeButton.cornerRadius = 20;
       closeButton.color = "#E53E3E";
       closeButton.thickness = 0;
       closeButton.background = "#E53E3E";
       closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
       closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-      closeButton.paddingTop = "10px";
-      closeButton.paddingRight = "10px";
-      popupPanel.addControl(closeButton);
+      closeButton.paddingTop = "12px";
+      closeButton.paddingRight = "12px";
+      billboardPanel.addControl(closeButton);
 
       const closeText = new TextBlock(`close_text_${elementId}`, "×");
       closeText.color = "#FFFFFF";
-      closeText.fontSize = 16;
+      closeText.fontSize = 18;
       closeText.fontWeight = "bold";
       closeButton.addControl(closeText);
 
       // Add interaction
       geometry.actionManager = new ActionManager(scene);
       geometry.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-        // Hide current popup if any
-        if (currentPopup && currentPopup !== popupPanel) {
+        // Hide current billboard if any
+        if (currentPopup && currentPopup !== billboardPanel) {
           currentPopup.isVisible = false;
         }
         
-        // Toggle this popup
-        popupPanel.isVisible = !popupPanel.isVisible;
-        currentPopup = popupPanel.isVisible ? popupPanel : null;
+        // Toggle this billboard panel
+        billboardPanel.isVisible = !billboardPanel.isVisible;
+        currentPopup = billboardPanel.isVisible ? billboardPanel : null;
         
-        // Position popup near the clicked element
-        popupPanel.linkWithMesh(geometry);
-        popupPanel.linkOffsetX = 150; // Offset to the right
-        popupPanel.linkOffsetY = -100; // Offset upward
+        // Position billboard as floating panel (not linked to mesh for true billboard effect)
+        if (billboardPanel.isVisible) {
+          billboardPanel.linkWithMesh(null); // Unlink from mesh
+          billboardPanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+          billboardPanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+          billboardPanel.leftInPixels = 0;
+          billboardPanel.topInPixels = 0;
+        }
       }));
 
       // Close button interaction
       closeButton.onPointerUpObservable.add(() => {
-        popupPanel.isVisible = false;
+        billboardPanel.isVisible = false;
         currentPopup = null;
       });
 
@@ -286,39 +293,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         material.roughness = originalRoughness; // Restore original roughness
       }));
 
-      // Create GUI elements for text
-      const rect = new Rectangle(`rect_${elementId}`);
-      rect.widthInPixels = 200;
-      rect.heightInPixels = 100;
-      rect.cornerRadius = 10;
-      rect.color = "transparent";
-      rect.thickness = 0;
-      advancedTexture.addControl(rect);
+      // Create simple title label (always visible)
+      const titleLabel = new Rectangle(`title_label_${elementId}`);
+      titleLabel.widthInPixels = 180;
+      titleLabel.heightInPixels = 40;
+      titleLabel.cornerRadius = 8;
+      titleLabel.color = "transparent";
+      titleLabel.thickness = 0;
+      titleLabel.background = "rgba(255, 255, 255, 0.9)";
+      advancedTexture.addControl(titleLabel);
 
-      // Title text
+      // Title text only
       const titleText = new TextBlock(`title_${elementId}`, element.title);
       titleText.color = "#2D3748";
-      titleText.fontSize = 18;
+      titleText.fontSize = 16;
       titleText.fontWeight = "bold";
       titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-      titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-      titleText.paddingTop = "10px";
-      rect.addControl(titleText);
+      titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+      titleLabel.addControl(titleText);
 
-      // Content text
-      const contentText = new TextBlock(`content_${elementId}`, 
-        element.content.slice(0, 2).join(' • ') + (element.content.length > 2 ? '...' : '')
-      );
-      contentText.color = "#4A5568";
-      contentText.fontSize = 12;
-      contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-      contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-      contentText.paddingBottom = "10px";
-      rect.addControl(contentText);
-
-      // Link GUI to 3D position
-      rect.linkWithMesh(geometry);
-      rect.linkOffsetY = -50;
+      // Link title label to 3D position
+      titleLabel.linkWithMesh(geometry);
+      titleLabel.linkOffsetY = -60;
 
       return geometry;
     };
