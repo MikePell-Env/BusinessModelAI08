@@ -375,8 +375,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (result.meshes.length > 0) {
           const rootMesh = result.meshes[0];
           
+          // Calculate bounding box to center the model properly
+          const boundingInfo = rootMesh.getBoundingInfo();
+          const center = boundingInfo.boundingBox.center;
+          
           // Set position and scale, and add to scene group
-          rootMesh.position = position;
+          rootMesh.position = position.subtract(center.multiply(scale)); // Offset by scaled center to truly center the model
           rootMesh.scaling = scale;
           rootMesh.parent = sceneGroup;
           
@@ -651,10 +655,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Start with only Value Proposition at exact center (0,0) - positioning one at a time
       const modelConfigs = [
-        // Central Value Proposition (circular, manually adjusted to center on red sphere)
+        // Central Value Proposition (circular, will be auto-centered using bounding box)
         {
           element: canvas.valuePropositions,
-          position: new Vector3(-1.5, 0, -1), // Manually adjusted to center the GLB shape on red sphere
+          position: new Vector3(0, 0, 0), // Target position - bounding box calculation will center it
           scale: new Vector3(50, 20, 50), // Moderately sized circle
           id: canvas.valuePropositions.id
         }
