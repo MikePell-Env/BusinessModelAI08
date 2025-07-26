@@ -449,18 +449,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Right side: Customer Segments (tall vertical rectangle) - PURPLE  
     loadGLBModelScaledWithColor("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content, new Vector3(2.5, 0.5, 0), "Customer Segments", 60, new Color3(0.7, 0, 0.7));
     
-    // Flipped 180 degrees - Z coordinates reversed to match your expected top view:
-    // Key Activities (ORANGE) - now at BOTTOM position (flipped from top)
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content, new Vector3(0, 0.5, 1.5), "Key Activities", 60, new Color3(1, 0.5, 0));
+    // Corrected flip - reversing X coordinates to match diagram layout:
+    // Key Activities (ORANGE) - should be at TOP-LEFT: negative X, negative Z
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content, new Vector3(-1.0, 0.5, -1.0), "Key Activities", 60, new Color3(1, 0.5, 0));
     
-    // Customer Relationships (YELLOW) - still at RIGHT position  
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content, new Vector3(1.5, 0.5, 0), "Customer Relationships", 60, new Color3(1, 0.8, 0));
+    // Customer Relationships (YELLOW) - should be at TOP-RIGHT: positive X, negative Z
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content, new Vector3(1.0, 0.5, -1.0), "Customer Relationships", 60, new Color3(1, 0.8, 0));
     
-    // Key Resources (RED) - now at TOP position (flipped from bottom)
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyResources.glb", canvas.keyResources.content, new Vector3(0, 0.5, -1.5), "Key Resources", 60, new Color3(1, 0, 0));
+    // Key Resources (RED) - should be at BOTTOM-LEFT: negative X, positive Z  
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyResources.glb", canvas.keyResources.content, new Vector3(-1.0, 0.5, 1.0), "Key Resources", 60, new Color3(1, 0, 0));
     
-    // Customer Channels (CYAN) - still at LEFT position
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerChannels.glb", canvas.channels.content, new Vector3(-1.5, 0.5, 0), "Customer Channels", 60, new Color3(0, 0.8, 0.8));
+    // Customer Channels (CYAN) - should be at BOTTOM-RIGHT: positive X, positive Z
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerChannels.glb", canvas.channels.content, new Vector3(1.0, 0.5, 1.0), "Customer Channels", 60, new Color3(0, 0.8, 0.8));
 
     // Start the render loop
     engine.runRenderLoop(() => {
