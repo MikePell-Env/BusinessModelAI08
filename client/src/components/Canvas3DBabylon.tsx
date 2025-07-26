@@ -398,8 +398,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
           titleLabel.addControl(titleText);
 
+          // Calculate proper center position for billboard behavior
+          const boundingInfo = rootMesh.getBoundingInfo();
+          const meshHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
+          
+          // Link with mesh and position above the center with dynamic offset
           titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetY = -120;
+          titleLabel.linkOffsetYInPixels = -Math.max(100, meshHeight * 15); // Dynamic offset based on mesh size
+          
+          // Ensure billboard behavior - always face camera and stay centered
+          titleLabel.transformCenterX = 0.5;
+          titleLabel.transformCenterY = 0.5;
           
           console.log(`${elementName} GLB model loaded at ${scale}x scale at position:`, position);
         }
@@ -408,7 +417,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       });
     };
 
-    // Scaled version with custom color for Key Resources
+    // Scaled version with custom color for all business model elements
     const loadGLBModelScaledWithColor = (filename: string, content: string[], position: Vector3, elementName: string, scale: number, color: Color3) => {
 
       SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
@@ -476,8 +485,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
           titleLabel.addControl(titleText);
 
+          // Calculate proper center position for billboard behavior
+          const boundingInfo = rootMesh.getBoundingInfo();
+          const meshHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
+          
+          // Link with mesh and position above the center with dynamic offset
           titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetY = -120;
+          titleLabel.linkOffsetYInPixels = -Math.max(100, meshHeight * 15); // Dynamic offset based on mesh size
+          
+          // Ensure billboard behavior - always face camera and stay centered
+          titleLabel.transformCenterX = 0.5;
+          titleLabel.transformCenterY = 0.5;
           
           console.log(`${elementName} GLB model loaded at ${scale}x scale with custom color at position:`, position);
         }
