@@ -637,55 +637,55 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const loadAllModels = async () => {
       console.log('Loading custom GLB models for business model canvas...');
       
-      // Define positions and scales for each element
+      // Define positions and scales for each element (scaled up significantly)
       const modelConfigs = [
-        // Central Value Proposition
+        // Central Value Proposition (circular, larger scale)
         {
           element: canvas.valuePropositions,
           position: new Vector3(0, 0.5, 0),
-          scale: new Vector3(1, 1, 1),
+          scale: new Vector3(4, 4, 4), // Much larger for central importance
           id: canvas.valuePropositions.id
         },
-        // Left side: Key Partners
+        // Left side: Key Partners (tall rectangle)
         {
           element: canvas.keyPartners,
           position: new Vector3(-4.5, 0.5, 0),
-          scale: new Vector3(1, 1, 1),
+          scale: new Vector3(3.5, 3.5, 3.5), // Large scale for tall perimeter box
           id: canvas.keyPartners.id
         },
-        // Right side: Customer Segments
+        // Right side: Customer Segments (tall rectangle)
         {
           element: canvas.customerSegments,
           position: new Vector3(4.5, 0.5, 0),
-          scale: new Vector3(1, 1, 1),
+          scale: new Vector3(3.5, 3.5, 3.5), // Large scale for tall perimeter box
           id: canvas.customerSegments.id
         },
-        // Top left: Key Activities
+        // Top left: Key Activities (medium rectangle)
         {
           element: canvas.keyActivities,
           position: new Vector3(-2.5, 0.5, 2.5),
-          scale: new Vector3(1, 1, 1),
+          scale: new Vector3(3, 3, 3), // Medium scale for quadrant boxes
           id: canvas.keyActivities.id
         },
-        // Top right: Customer Relationships
+        // Top right: Customer Relationships (medium rectangle)
         {
           element: canvas.customerRelationships,
           position: new Vector3(2.5, 0.5, 2.5),
-          scale: new Vector3(1, 1, 1),
+          scale: new Vector3(3, 3, 3), // Medium scale for quadrant boxes
           id: canvas.customerRelationships.id
         },
-        // Bottom left: Key Resources
+        // Bottom left: Key Resources (medium rectangle)
         {
           element: canvas.keyResources,
           position: new Vector3(-2.5, 0.5, -2.5),
-          scale: new Vector3(1, 1, 1),
+          scale: new Vector3(3, 3, 3), // Medium scale for quadrant boxes
           id: canvas.keyResources.id
         },
-        // Bottom right: Channels
+        // Bottom right: Channels (medium rectangle)
         {
           element: canvas.channels,
           position: new Vector3(2.5, 0.5, -2.5),
-          scale: new Vector3(1, 1, 1),
+          scale: new Vector3(3, 3, 3), // Medium scale for quadrant boxes
           id: canvas.channels.id
         }
       ];
