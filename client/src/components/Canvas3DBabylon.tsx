@@ -78,43 +78,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
     directionalLight.intensity = 0.8;
 
-    // Create ground with tighter grid lines
+    // Create ground with grey plastic material
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     
-    // Create dynamic texture for tighter grid pattern
-    const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
-    const gridContext = gridTexture.getContext();
-    
-    // Fill with light background
-    gridContext.fillStyle = "#f8f9fa";
-    gridContext.fillRect(0, 0, 1024, 1024);
-    
-    // Draw tighter light purple/lavender grid lines
-    gridContext.strokeStyle = "#d6d8e5";
-    gridContext.lineWidth = 1;
-    
-    // Draw vertical lines (tighter spacing - every 32 pixels instead of 64)
-    for (let i = 0; i <= 1024; i += 32) {
-      gridContext.beginPath();
-      gridContext.moveTo(i, 0);
-      gridContext.lineTo(i, 1024);
-      gridContext.stroke();
-    }
-    
-    // Draw horizontal lines (tighter spacing - every 32 pixels instead of 64)
-    for (let i = 0; i <= 1024; i += 32) {
-      gridContext.beginPath();
-      gridContext.moveTo(0, i);
-      gridContext.lineTo(1024, i);
-      gridContext.stroke();
-    }
-    
-    gridTexture.update();
-    
-    // Apply grid texture to ground
+    // Apply grey plastic material to ground
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseTexture = gridTexture;
-    groundMaterial.specularColor = new Color3(0, 0, 0); // No specular reflection
+    groundMaterial.diffuseColor = new Color3(0.6, 0.6, 0.6); // Medium grey color
+    groundMaterial.specularColor = new Color3(0.3, 0.3, 0.3); // Moderate specular reflection for plastic look
+    groundMaterial.specularPower = 64; // Higher value for sharper reflections
     ground.material = groundMaterial;
 
     // Create extruded border rails on all sides
