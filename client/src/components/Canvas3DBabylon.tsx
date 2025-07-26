@@ -80,26 +80,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     hemisphericLight.diffuse = new Color3(0.85, 0.9, 0.95); // Subtle cool ambient
     hemisphericLight.specular = new Color3(0.05, 0.05, 0.05);
     
-    // Main directional light (key light) - reduced intensity
+    // Main directional light (key light) - enhanced for better shadows
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -0.5), scene);
-    directionalLight.intensity = 0.6; // Significantly reduced from 1.2
+    directionalLight.intensity = 0.8; // Increased for better shadow definition
     directionalLight.diffuse = new Color3(0.95, 0.93, 0.9); // Softer warm light
-    directionalLight.specular = new Color3(0.8, 0.8, 0.8);
+    directionalLight.specular = new Color3(0.9, 0.9, 0.9); // Enhanced specular for plastic shine
     
-    // Fill light for softer shadows - reduced
+    // Create shadow generator for better shadow casting
+    const shadowGenerator = new ShadowGenerator(2048, directionalLight); // High resolution shadows
+    shadowGenerator.useExponentialShadowMap = true; // Softer shadow edges
+    shadowGenerator.darkness = 0.3; // Moderate shadow darkness for visibility
+    
+    // Fill light for softer shadows - adjusted
     const fillLight = new DirectionalLight("fillLight", new Vector3(1, -0.5, 1), scene);
-    fillLight.intensity = 0.2; // Reduced from 0.4
+    fillLight.intensity = 0.3; // Slightly increased for better illumination
     fillLight.diffuse = new Color3(0.7, 0.8, 0.9); // Subtle cool fill light
     
     // Lower ambient lighting for better contrast
     scene.ambientColor = new Color3(0.1, 0.1, 0.1);
 
-    // Create ground with grid pattern that can receive shadows
+    // Create ground with plastic-like material that can receive shadows
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
-    const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseColor = new Color3(1, 1, 1); // Pure white
-    groundMaterial.emissiveColor = new Color3(0.2, 0.2, 0.2); // Self-illumination to ensure white appearance
-    groundMaterial.disableLighting = false; // Keep lighting but boost brightness
+    const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", scene);
+    
+    // Plastic-like properties
+    groundMaterial.baseColor = new Color3(0.98, 0.98, 0.98); // Slightly off-white for more realistic plastic
+    groundMaterial.metallic = 0.0; // No metallic reflection
+    groundMaterial.roughness = 0.3; // Semi-glossy plastic finish
+    groundMaterial.clearCoat.isEnabled = true; // Add clear coat for plastic shine
+    groundMaterial.clearCoat.intensity = 0.4; // Moderate clear coat intensity
+    groundMaterial.clearCoat.roughness = 0.1; // Smooth clear coat
+    
+    // Enhanced lighting interaction for better shadows
+    groundMaterial._directIntensity = 1.0; // Full direct lighting
+    groundMaterial._environmentIntensity = 0.8; // Moderate environment reflection
+    groundMaterial._specularIntensity = 0.6; // Plastic-like specular highlights
+    
     ground.material = groundMaterial;
     ground.receiveShadows = true; // Enable shadow receiving
 
@@ -358,20 +374,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         material.environmentTexture = scene.environmentTexture;
       }
       
-      // Subtle transparency for depth and sophistication
-      if (elementId === canvas.valuePropositions.id) {
+      // Transparency settings - Cost Structure is completely opaque
+      if (elementId === canvas.costStructure.id) {
+        material.alpha = 1.0; // Completely opaque
+        material.transparencyMode = undefined; // No transparency mode
+      } else if (elementId === canvas.valuePropositions.id) {
         material.alpha = 0.95; // Central element less transparent
+        material.transparencyMode = PBRMetallicRoughnessMaterial.PBRMATERIAL_ALPHABLEND;
       } else {
         material.alpha = 0.9; // Subtle transparency
+        material.transparencyMode = PBRMetallicRoughnessMaterial.PBRMATERIAL_ALPHABLEND;
       }
-      
-      // Enable alpha blending for transparency
-      material.transparencyMode = PBRMetallicRoughnessMaterial.PBRMATERIAL_ALPHABLEND;
       
       // Enable back face culling for better performance
       material.backFaceCulling = true;
       
       box.material = material;
+      
+      // Add to shadow generator for casting shadows
+      shadowGenerator.addShadowCaster(box);
 
       // Add interaction
       box.actionManager = new ActionManager(scene);
