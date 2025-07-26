@@ -651,14 +651,63 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const loadAllModels = async () => {
       console.log('Loading custom GLB models for business model canvas...');
       
-      // Start with only Value Proposition at exact center (0,0) - positioning one at a time
+      // Complete circular layout with all 7 GLB models positioned around Value Proposition center
       const modelConfigs = [
-        // Central Value Proposition (circular, will be auto-centered using bounding box)
+        // Central Value Proposition (circular, perfectly centered at origin)
         {
           element: canvas.valuePropositions,
-          position: new Vector3(0, 0, 0), // Target position - bounding box calculation will center it
+          position: new Vector3(0, 0, 0), // Centered at origin with red sphere
           scale: new Vector3(50, 20, 50), // Moderately sized circle
           id: canvas.valuePropositions.id
+        },
+        
+        // Perimeter elements arranged in circular pattern around center
+        // Key Partners (top-left)
+        {
+          element: canvas.keyPartners,
+          position: new Vector3(-4, 0, -3), // Top-left quadrant
+          scale: new Vector3(30, 15, 20), // Rectangular box
+          id: canvas.keyPartners.id
+        },
+        
+        // Key Activities (top-center)
+        {
+          element: canvas.keyActivities,
+          position: new Vector3(0, 0, -4), // Top center
+          scale: new Vector3(30, 15, 20), // Rectangular box
+          id: canvas.keyActivities.id
+        },
+        
+        // Key Resources (top-right)
+        {
+          element: canvas.keyResources,
+          position: new Vector3(4, 0, -3), // Top-right quadrant
+          scale: new Vector3(30, 15, 20), // Rectangular box
+          id: canvas.keyResources.id
+        },
+        
+        // Customer Relationships (right)
+        {
+          element: canvas.customerRelationships,
+          position: new Vector3(5, 0, 0), // Right side
+          scale: new Vector3(30, 15, 20), // Rectangular box
+          id: canvas.customerRelationships.id
+        },
+        
+        // Customer Channels (bottom-right)
+        {
+          element: canvas.channels,
+          position: new Vector3(4, 0, 3), // Bottom-right quadrant
+          scale: new Vector3(30, 15, 20), // Rectangular box
+          id: canvas.channels.id
+        },
+        
+        // Customer Segments (bottom-left)
+        {
+          element: canvas.customerSegments,
+          position: new Vector3(-4, 0, 3), // Bottom-left quadrant
+          scale: new Vector3(30, 15, 20), // Rectangular box
+          id: canvas.customerSegments.id
         }
         // Temporarily removing all other models to position Value Proposition correctly first
       ];
