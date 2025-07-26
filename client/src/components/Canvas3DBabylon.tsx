@@ -448,11 +448,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Center: Value Proposition (circular element) - BLUE (not rotated, stays at center)
     loadGLBModelScaledWithColor("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content, new Vector3(0, 0.5, 0), "Value Proposition", 60, new Color3(0, 0.4, 0.8));
     
-    // Left side: Key Partners (tall vertical rectangle) - GREEN (correct position for template)
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content, new Vector3(-2.5, 0.5, 0), "Key Partners", 60, new Color3(0, 0.7, 0));
+    // Left side: Customer Segments (tall vertical rectangle) - PURPLE (swapped back to correct)
+    loadGLBModelScaledWithColor("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content, new Vector3(-2.5, 0.5, 0), "Customer Segments", 60, new Color3(0.7, 0, 0.7));
     
-    // Right side: Customer Segments (tall vertical rectangle) - PURPLE (correct position for template)
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content, new Vector3(2.5, 0.5, 0), "Customer Segments", 60, new Color3(0.7, 0, 0.7));
+    // Right side: Key Partners (tall vertical rectangle) - GREEN (swapped back to correct)
+    loadGLBModelScaledWithColor("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content, new Vector3(2.5, 0.5, 0), "Key Partners", 60, new Color3(0, 0.7, 0));
     
     // Inner circle objects (will be parented to transform node for rotation):
     // Modified loadGLBModelScaledWithColor function to accept parent parameter
