@@ -75,32 +75,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
     camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
 
-    // Enhanced lighting setup for colored materials visibility
+    // Simple lighting setup for plastic materials
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 1.2; // Increased for better color visibility
+    hemisphericLight.intensity = 0.7;
     hemisphericLight.diffuse = new Color3(1, 1, 1);
-    hemisphericLight.specular = new Color3(1, 1, 1);
-    hemisphericLight.groundColor = new Color3(0.3, 0.3, 0.3); // Ambient ground lighting
     
-    const directionalLight = new DirectionalLight("directionalLight", new Vector3(-0.5, -1, -0.5), scene);
-    directionalLight.intensity = 1.0; // Increased intensity
+    const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
+    directionalLight.intensity = 0.8;
     directionalLight.diffuse = new Color3(1, 1, 1);
-    directionalLight.specular = new Color3(1, 1, 1);
-    
-    // Add multiple point lights for better color illumination
-    const pointLight1 = new PointLight("pointLight1", new Vector3(3, 5, 3), scene);
-    pointLight1.intensity = 0.8;
-    pointLight1.diffuse = new Color3(1, 1, 1);
-    
-    const pointLight2 = new PointLight("pointLight2", new Vector3(-3, 5, -3), scene);
-    pointLight2.intensity = 0.8;
-    pointLight2.diffuse = new Color3(1, 1, 1);
-    
-    // Create simple environment for reflections
-    scene.createDefaultEnvironment({
-      createSkybox: false,
-      createGround: false
-    });
 
     // Create ground with grey plastic material and light grey gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -435,20 +417,45 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           rootMesh.position = position;
           rootMesh.scaling = new Vector3(scale, scale, scale);
           
-          // Apply custom color with enhanced material properties for visibility
+          // Apply custom color with plastic material properties
           result.meshes.forEach(mesh => {
-            // Create new PBR material with proper color application
-            const coloredMaterial = new PBRMetallicRoughnessMaterial(`${elementName}_material`, scene);
-            coloredMaterial.baseColor = color;
-            coloredMaterial.metallic = 0.7; // Slightly less metallic for better color visibility
-            coloredMaterial.roughness = 0.3; // More roughness for better diffuse lighting
-            coloredMaterial.emissiveColor = new Color3(color.r * 0.05, color.g * 0.05, color.b * 0.05); // Subtle glow
-            coloredMaterial.environmentIntensity = 1.0; // Use environment lighting
-            coloredMaterial.directIntensity = 1.0; // Use direct lighting
+            // Create new PBR material with plastic appearance
+            const plasticMaterial = new PBRMetallicRoughnessMaterial(`${elementName}_plastic`, scene);
+            plasticMaterial.baseColor = color;
+            plasticMaterial.metallic = 0.0; // No metallic for plastic appearance
+            plasticMaterial.roughness = 0.8; // High roughness for matte plastic look
+            plasticMaterial.environmentIntensity = 0.1; // Minimal reflections
+            plasticMaterial.directIntensity = 1.0; // Full direct lighting
             
             // Apply the material to the mesh
-            mesh.material = coloredMaterial;
-            setupGLBInteractivity(mesh, elementName, content);
+            mesh.material = plasticMaterial;
+            // Add interactive hover and selection effects
+            mesh.actionManager = new ActionManager(scene);
+            
+            // Hover effect - subtle color brightening
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = mesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(color.r * 0.2, color.g * 0.2, color.b * 0.2);
+              }
+            }));
+            
+            // Mouse out effect - remove brightening
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = mesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(0, 0, 0);
+              }
+            }));
+            
+            // Click selection effect
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`Clicked on ${elementName}`);
+              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = mesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(0.3, 0.5, 1.0); // Bright blue selection
+              }
+            }));
           });
 
           // Create floating title label
