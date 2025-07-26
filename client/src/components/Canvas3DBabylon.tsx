@@ -316,72 +316,130 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             });
             
-            // Create simple test panel
-            console.log(`Creating simple panel for ${elementName}`);
+            // Create panel using currentPopup approach that already works
+            console.log(`Creating panel for ${elementName}`);
             
-            // Close any existing panel
-            if (selectedPanelRef.current) {
-              advancedTexture.removeControl(selectedPanelRef.current);
-              selectedPanelRef.current = null;
+            // Close existing popup if any
+            if (currentPopup) {
+              advancedTexture.removeControl(currentPopup);
+              currentPopup = null;
             }
             
-            // Create simple panel
-            const panel = new Rectangle("simplePanel");
-            panel.widthInPixels = 300;
-            panel.heightInPixels = 200;
-            panel.color = "#000000";
-            panel.thickness = 2;
-            panel.background = "#ffffff";
-            panel.leftInPixels = 150;
-            panel.topInPixels = 0;
+            // Get canvas data
+            let content = ['No content available'];
+            let title = elementName;
             
-            // Add simple text
-            const text = new TextBlock("panelText", `${elementName}\\n\\nContent goes here`);
-            text.color = "#000000";
-            text.fontSize = "16px";
-            panel.addControl(text);
+            if (elementName === 'Value Proposition' && canvas.valuePropositions) {
+              content = canvas.valuePropositions.content || content;
+              title = canvas.valuePropositions.title || title;
+            } else if (elementName === 'Key Partners' && canvas.keyPartners) {
+              content = canvas.keyPartners.content || content;
+              title = canvas.keyPartners.title || title;
+            } else if (elementName === 'Key Activities' && canvas.keyActivities) {
+              content = canvas.keyActivities.content || content;
+              title = canvas.keyActivities.title || title;
+            } else if (elementName === 'Key Resources' && canvas.keyResources) {
+              content = canvas.keyResources.content || content;
+              title = canvas.keyResources.title || title;
+            } else if (elementName === 'Customer Relationships' && canvas.customerRelationships) {
+              content = canvas.customerRelationships.content || content;
+              title = canvas.customerRelationships.title || title;
+            } else if (elementName === 'Customer Channels' && canvas.channels) {
+              content = canvas.channels.content || content;
+              title = canvas.channels.title || title;
+            } else if (elementName === 'Customer Segments' && canvas.customerSegments) {
+              content = canvas.customerSegments.content || content;
+              title = canvas.customerSegments.title || title;
+            }
+            
+            // Create popup rectangle using same style as existing hover popups
+            const popup = new Rectangle(`popup_${elementName.replace(' ', '_')}`);
+            popup.widthInPixels = 280;
+            popup.heightInPixels = Math.max(150, content.length * 25 + 80);
+            popup.cornerRadius = 8;
+            popup.color = "#2D3748";
+            popup.thickness = 2;
+            popup.background = "rgba(255, 255, 255, 0.95)";
+            
+            // Position popup at fixed screen position (right side)
+            popup.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            popup.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+            popup.leftInPixels = -20;
+            
+            // Add title
+            const titleLabel = new TextBlock(`popup_title_${elementName.replace(' ', '_')}`, title);
+            titleLabel.color = "#2D3748";
+            titleLabel.fontSize = "18px";
+            titleLabel.fontWeight = "bold";
+            titleLabel.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+            titleLabel.topInPixels = -popup.heightInPixels / 2 + 25;
+            titleLabel.heightInPixels = 30;
+            
+            // Add content with bullet points
+            const contentStr = content.map(item => `• ${item}`).join('\n');
+            const contentLabel = new TextBlock(`popup_content_${elementName.replace(' ', '_')}`, contentStr);
+            contentLabel.color = "#4A5568";
+            contentLabel.fontSize = "14px";
+            contentLabel.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+            contentLabel.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+            contentLabel.paddingLeftInPixels = 15;
+            contentLabel.paddingRightInPixels = 15;
+            contentLabel.topInPixels = 10;
+            contentLabel.heightInPixels = popup.heightInPixels - 60;
+            contentLabel.textWrapping = true;
             
             // Add close button
-            const closeBtn = new Rectangle("closeBtn");
-            closeBtn.widthInPixels = 20;
-            closeBtn.heightInPixels = 20;
-            closeBtn.color = "#ff0000";
-            closeBtn.background = "#ff0000";
-            closeBtn.leftInPixels = 140;
-            closeBtn.topInPixels = -90;
+            const closeButton = new Rectangle(`close_${elementName.replace(' ', '_')}`);
+            closeButton.widthInPixels = 25;
+            closeButton.heightInPixels = 25;
+            closeButton.cornerRadius = 12;
+            closeButton.color = "#E53E3E";
+            closeButton.thickness = 1;
+            closeButton.background = "#FC8181";
+            closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+            closeButton.leftInPixels = -10;
+            closeButton.topInPixels = 10;
             
-            closeBtn.onPointerClickObservable.add(() => {
-              advancedTexture.removeControl(panel);
-              selectedPanelRef.current = null;
+            const closeX = new TextBlock(`close_x_${elementName.replace(' ', '_')}`, "×");
+            closeX.color = "#FFFFFF";
+            closeX.fontSize = "16px";
+            closeX.fontWeight = "bold";
+            closeButton.addControl(closeX);
+            
+            // Add click handler for close
+            closeButton.onPointerClickObservable.add(() => {
+              advancedTexture.removeControl(popup);
+              currentPopup = null;
             });
             
-            panel.addControl(closeBtn);
-            advancedTexture.addControl(panel);
-            selectedPanelRef.current = panel;
+            // Add all controls to popup
+            popup.addControl(titleLabel);
+            popup.addControl(contentLabel);
+            popup.addControl(closeButton);
             
-            console.log("Simple panel created and added to GUI");
+            // Add popup to GUI
+            advancedTexture.addControl(popup);
+            currentPopup = popup;
+            
+            console.log(`Panel created for ${elementName} with ${content.length} content items`);
           }));
           
-          // Create title label for GLB model
-          const titleLabel = new Rectangle(`title_label_${elementName.toLowerCase().replace(' ', '_')}_glb`);
-          titleLabel.widthInPixels = 180;
-          titleLabel.heightInPixels = 40;
-          titleLabel.cornerRadius = 8;
-          titleLabel.color = "transparent";
-          titleLabel.thickness = 0;
-          titleLabel.background = "rgba(255, 255, 255, 0.9)";
-          advancedTexture.addControl(titleLabel);
-
-          const titleText = new TextBlock(`title_${elementName.toLowerCase().replace(' ', '_')}_glb`, elementName);
-          titleText.color = "#2D3748";
-          titleText.fontSize = 16;
-          titleText.fontWeight = "bold";
-          titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-          titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-          titleLabel.addControl(titleText);
-
+          // Create simple label with white text and black outline
+          const labelId = elementName.toLowerCase().replace(/\s+/g, '_') + '_label';
+          const titleLabel = new TextBlock(labelId, elementName);
+          titleLabel.color = "#FFFFFF";
+          titleLabel.fontSize = "16px";
+          titleLabel.fontWeight = "bold";
+          titleLabel.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+          titleLabel.outlineWidth = 2;
+          titleLabel.outlineColor = "#000000";
+          
+          // Link to mesh with proper offset
           titleLabel.linkWithMesh(rootMesh);
-          titleLabel.linkOffsetY = -120; // Adjust label position for larger models
+          titleLabel.linkOffsetYInPixels = -100;
+          
+          advancedTexture.addControl(titleLabel);
         }
       }).catch((error) => {
         console.error(`Failed to load ${elementName} GLB model:`, error);
