@@ -19,7 +19,8 @@ import {
   DynamicTexture,
   SceneLoader,
   AbstractMesh,
-  Matrix
+  Matrix,
+  TransformNode
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 // GUI imports removed since labels are no longer used
@@ -437,30 +438,87 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       });
     };
 
+    // Create a transform node to group and rotate all inner circle objects
+    const innerGroupTransform = new TransformNode("innerGroup", scene);
+    innerGroupTransform.rotation.y = Math.PI; // 180 degree rotation around Y-axis
+    
     // Load individual GLB models as separate interactive objects with exact diagram labels
     // Each model has a distinct color for easy identification, scaled to 60x for optimal visibility
     
-    // Center: Value Proposition (circular element) - BLUE
+    // Center: Value Proposition (circular element) - BLUE (not rotated, stays at center)
     loadGLBModelScaledWithColor("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content, new Vector3(0, 0.5, 0), "Value Proposition", 60, new Color3(0, 0.4, 0.8));
     
-    // Left side: Key Partners (tall vertical rectangle) - GREEN
+    // Left side: Key Partners (tall vertical rectangle) - GREEN (not rotated)
     loadGLBModelScaledWithColor("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content, new Vector3(-2.5, 0.5, 0), "Key Partners", 60, new Color3(0, 0.7, 0));
     
-    // Right side: Customer Segments (tall vertical rectangle) - PURPLE  
+    // Right side: Customer Segments (tall vertical rectangle) - PURPLE (not rotated)
     loadGLBModelScaledWithColor("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content, new Vector3(2.5, 0.5, 0), "Customer Segments", 60, new Color3(0.7, 0, 0.7));
     
-    // Correct positioning: KEY elements on LEFT, CUSTOMER elements on RIGHT:
+    // Inner circle objects (will be parented to transform node for rotation):
+    // Modified loadGLBModelScaledWithColor function to accept parent parameter
+    const loadGLBModelWithParent = (fileName: string, content: string, position: Vector3, elementName: string, scale: number, color: Color3, parent?: TransformNode) => {
+      SceneLoader.ImportMeshAsync("", "/models/", fileName, scene).then((result) => {
+        if (result.meshes.length > 0) {
+          const rootMesh = result.meshes[0];
+          rootMesh.position = position;
+          rootMesh.scaling = new Vector3(scale, scale, scale);
+          
+          if (parent) {
+            rootMesh.parent = parent;
+          }
+          
+          // Apply materials and interactions (same as before)
+          result.meshes.forEach((mesh) => {
+            if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+              const material = mesh.material as PBRMetallicRoughnessMaterial;
+              material.baseColor = color;
+              material.metallic = 0.0;
+              material.roughness = 0.8;
+            }
+            
+            mesh.actionManager = new ActionManager(scene);
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = mesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(0.2, 0.2, 0.2);
+              }
+            }));
+            
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = mesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(0, 0, 0);
+              }
+            }));
+            
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`Clicked on ${elementName}`);
+              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = mesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(0.3, 0.5, 1.0);
+              }
+            }));
+          });
+          
+          console.log(`${elementName} GLB model loaded at ${scale}x scale with custom color at position:`, position);
+        }
+      }).catch((error) => {
+        console.error(`Failed to load ${elementName} GLB model:`, error);
+      });
+    };
+    
+    // Load inner circle objects with transform parent:
     // Key Activities (ORANGE) - TOP-LEFT position
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content, new Vector3(-1.0, 0.5, -1.0), "Key Activities", 60, new Color3(1, 0.5, 0));
+    loadGLBModelWithParent("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content || "", new Vector3(-1.0, 0.5, -1.0), "Key Activities", 60, new Color3(1, 0.5, 0), innerGroupTransform);
     
     // Customer Relationships (YELLOW) - TOP-RIGHT position
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content, new Vector3(1.0, 0.5, -1.0), "Customer Relationships", 60, new Color3(1, 0.8, 0));
+    loadGLBModelWithParent("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content || "", new Vector3(1.0, 0.5, -1.0), "Customer Relationships", 60, new Color3(1, 0.8, 0), innerGroupTransform);
     
-    // Key Resources (RED) - BOTTOM-LEFT position (corrected to match template)
-    loadGLBModelScaledWithColor("BMC_blender_06_KeyResources.glb", canvas.keyResources.content, new Vector3(-1.0, 0.5, 1.0), "Key Resources", 60, new Color3(1, 0, 0));
+    // Key Resources (RED) - BOTTOM-LEFT position
+    loadGLBModelWithParent("BMC_blender_06_KeyResources.glb", canvas.keyResources.content || "", new Vector3(-1.0, 0.5, 1.0), "Key Resources", 60, new Color3(1, 0, 0), innerGroupTransform);
     
-    // Customer Channels (CYAN) - BOTTOM-RIGHT position (corrected to match template)
-    loadGLBModelScaledWithColor("BMC_blender_06_CustomerChannels.glb", canvas.channels.content, new Vector3(1.0, 0.5, 1.0), "Customer Channels", 60, new Color3(0, 0.8, 0.8));
+    // Customer Channels (CYAN) - BOTTOM-RIGHT position
+    loadGLBModelWithParent("BMC_blender_06_CustomerChannels.glb", canvas.channels.content || "", new Vector3(1.0, 0.5, 1.0), "Customer Channels", 60, new Color3(0, 0.8, 0.8), innerGroupTransform);
 
     // Start the render loop
     engine.runRenderLoop(() => {
