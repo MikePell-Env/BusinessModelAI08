@@ -11,6 +11,11 @@ interface CanvasState {
   chatMessages: ChatMessage[];
   isChatOpen: boolean;
   hasImportedFromPowerPoint: boolean;
+  camera3DState: {
+    alpha: number;
+    beta: number;
+    radius: number;
+  } | null;
   
   // Actions
   loadCanvas: (canvas: BusinessModelCanvas, isFromPowerPoint?: boolean) => void;
@@ -21,6 +26,8 @@ interface CanvasState {
   toggleChat: () => void;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
+  saveCamera3DState: (alpha: number, beta: number, radius: number) => void;
+  getCamera3DState: () => { alpha: number; beta: number; radius: number; } | null;
 }
 
 export const useCanvas = create<CanvasState>()(
@@ -33,6 +40,7 @@ export const useCanvas = create<CanvasState>()(
     chatMessages: [],
     isChatOpen: false,
     hasImportedFromPowerPoint: false,
+    camera3DState: null,
     
     loadCanvas: (canvas, isFromPowerPoint = false) => {
       set({ 
@@ -86,6 +94,14 @@ export const useCanvas = create<CanvasState>()(
     
     setLoading: (loading) => {
       set({ isLoading: loading });
+    },
+    
+    saveCamera3DState: (alpha: number, beta: number, radius: number) => {
+      set({ camera3DState: { alpha, beta, radius } });
+    },
+    
+    getCamera3DState: () => {
+      return get().camera3DState;
     }
   }))
 );
