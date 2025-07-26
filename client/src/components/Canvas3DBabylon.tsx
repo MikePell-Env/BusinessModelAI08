@@ -639,10 +639,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Start with only Value Proposition at exact center (0,0) - positioning one at a time
       const modelConfigs = [
-        // Central Value Proposition (circular, centered on the visible ground plane)
+        // Central Value Proposition (circular, exactly at center (0,0))
         {
           element: canvas.valuePropositions,
-          position: new Vector3(2, 0.5, -2), // Center of the visible ground plane area
+          position: new Vector3(0, 0.5, 0), // Exact center of coordinate system
           scale: new Vector3(50, 20, 50), // Moderately sized circle
           id: canvas.valuePropositions.id
         }
@@ -663,11 +663,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
 
     // Create fallback blocks for Cost Structure and Revenue Streams (no GLB models provided)
+    // Positioned relative to centered coordinate system
     const blocks = [
-      // Bottom row: Cost Structure and Revenue Streams (positioned below the main layout)
+      // Bottom row: Cost Structure and Revenue Streams (positioned in bottom area of centered grid)
       createBusinessBlock(
         canvas.costStructure,
-        new Vector3(-3, 0.5, -5.5), // Bottom left, below main layout
+        new Vector3(-4, 0.5, -5), // Bottom left area of centered coordinate system
         new Vector3(5, 1, 1.5), // Wide rectangle
         new Color3(1, 0.8, 0.8), // Slightly red color
         canvas.costStructure.id
@@ -675,7 +676,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       createBusinessBlock(
         canvas.revenueStreams,
-        new Vector3(3, 0.5, -5.5), // Bottom right, below main layout
+        new Vector3(4, 0.5, -5), // Bottom right area of centered coordinate system
         new Vector3(5, 1, 1.5), // Wide rectangle
         new Color3(0.8, 1, 0.8), // Slightly green color
         canvas.revenueStreams.id
