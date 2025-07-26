@@ -184,7 +184,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
 
-    // GLB Model Loading Function
+    // Store selected mesh reference
+    let selectedMesh: AbstractMesh | null = null;
+
+    // GLB Model Loading Function with hover and selection lighting
     const loadGLBModel = (filename: string, element: CanvasElement, position: Vector3, elementName: string) => {
       SceneLoader.ImportMeshAsync("", "/models/", filename, scene).then((result) => {
         if (result.meshes.length > 0) {
@@ -192,10 +195,55 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           rootMesh.position = position;
           rootMesh.scaling = new Vector3(8, 8, 8); // Much larger scale to occupy 60% of floor plane
           
-          // Add basic interactivity
+          // Store original materials for lighting effects (not used but kept for future reference)
+          
+          // Add interactive lighting effects
           rootMesh.actionManager = new ActionManager(scene);
+          
+          // Hover effect - light up with subtle glow
+          rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+            rootMesh.getChildMeshes().forEach((childMesh) => {
+              if (childMesh.material && childMesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = childMesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(0.2, 0.2, 0.3); // Subtle glow on hover
+              }
+            });
+          }));
+          
+          // Mouse out - restore normal lighting unless selected
+          rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+            if (selectedMesh !== rootMesh) {
+              rootMesh.getChildMeshes().forEach((childMesh) => {
+                if (childMesh.material && childMesh.material instanceof PBRMetallicRoughnessMaterial) {
+                  const material = childMesh.material as PBRMetallicRoughnessMaterial;
+                  material.emissiveColor = new Color3(0, 0, 0); // Remove glow
+                }
+              });
+            }
+          }));
+          
+          // Click/Selection effect - bright blue glow
           rootMesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
             console.log(`${elementName} GLB clicked!`);
+            
+            // Clear previous selection
+            if (selectedMesh && selectedMesh !== rootMesh) {
+              selectedMesh.getChildMeshes().forEach((childMesh) => {
+                if (childMesh.material && childMesh.material instanceof PBRMetallicRoughnessMaterial) {
+                  const material = childMesh.material as PBRMetallicRoughnessMaterial;
+                  material.emissiveColor = new Color3(0, 0, 0);
+                }
+              });
+            }
+            
+            // Apply bright blue selection glow
+            selectedMesh = rootMesh;
+            rootMesh.getChildMeshes().forEach((childMesh) => {
+              if (childMesh.material && childMesh.material instanceof PBRMetallicRoughnessMaterial) {
+                const material = childMesh.material as PBRMetallicRoughnessMaterial;
+                material.emissiveColor = new Color3(0.2, 0.4, 1.0); // Bright blue glow
+              }
+            });
           }));
           
           // Create title label for GLB model
