@@ -267,13 +267,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         billboardPanel.isVisible = !billboardPanel.isVisible;
         currentPopup = billboardPanel.isVisible ? billboardPanel : null;
         
-        // Position billboard as floating panel (not linked to mesh for true billboard effect)
+        // Position billboard above and to the right of the label
         if (billboardPanel.isVisible) {
-          billboardPanel.linkWithMesh(null); // Unlink from mesh
-          billboardPanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-          billboardPanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-          billboardPanel.leftInPixels = 0;
-          billboardPanel.topInPixels = 0;
+          billboardPanel.linkWithMesh(geometry);
+          billboardPanel.linkOffsetX = 200; // Offset to the right
+          billboardPanel.linkOffsetY = -180; // Offset above
         }
       }));
 
