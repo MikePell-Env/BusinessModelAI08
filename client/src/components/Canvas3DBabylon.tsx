@@ -513,11 +513,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Store reference to label plane and material for hover effects
-              (mesh as any).labelPlane = labelPlane;
-              (mesh as any).labelMaterial = labelMaterial;
-              (mesh as any).originalEmissiveColor = new Color3(0.8, 0.8, 0.8);
-              
               console.log(`✅ Customer Segments label plane created`);
             }
             
@@ -557,11 +552,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.material = labelMaterial;
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
-              
-              // Store reference to label plane and material for hover effects
-              (mesh as any).labelPlane = labelPlane;
-              (mesh as any).labelMaterial = labelMaterial;
-              (mesh as any).originalEmissiveColor = new Color3(0.8, 0.8, 0.8);
               
               console.log(`✅ Key Partners label plane created`);
             }
@@ -692,13 +682,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log(`💡 Standard mesh hover: ${sectionName} - changing base color`);
               }
               
-              // Make label text darker on hover if it exists
-              const labelMaterial = (mesh as any).labelMaterial;
-              if (labelMaterial) {
-                labelMaterial.emissiveColor = new Color3(0.2, 0.2, 0.2); // Much darker text
-                console.log(`📝 Label hover: ${sectionName} - darkening text`);
-              }
-              
               // Keep all objects at 100% opacity during hover
               contentPanelsRef.current.forEach(({ material }) => {
                 material.alpha = 1.0; // 100% opacity
@@ -732,14 +715,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 // For non-textured mesh, restore base color
                 sectionMaterial.baseColor = (mesh as any).originalColor;
                 console.log(`🔄 Standard mesh hover exit: ${sectionName} - restoring base color`);
-              }
-              
-              // Restore label text to original brightness
-              const labelMaterial = (mesh as any).labelMaterial;
-              const originalEmissiveColor = (mesh as any).originalEmissiveColor;
-              if (labelMaterial && originalEmissiveColor) {
-                labelMaterial.emissiveColor = originalEmissiveColor; // Restore bright text
-                console.log(`📝 Label hover exit: ${sectionName} - restoring bright text`);
               }
               
               // Restore all other BMC objects to full opacity
