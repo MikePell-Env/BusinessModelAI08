@@ -86,7 +86,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Set background to match 2D view (#e9ecef - light gray)
     // #e9ecef = RGB(233, 236, 239) = normalized (0.914, 0.925, 0.937)
-    scene.clearColor = new Color4(0.914, 0.925, 0.937, 1.0);
+    scene.clearColor = new Color3(0.914, 0.925, 0.937).toColor4(1.0);
     
     engineRef.current = engine;
     sceneRef.current = scene;
@@ -329,10 +329,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelContainer.addControl(labelText);
             advancedTexture.addControl(labelContainer);
             
-            // Position label above mesh center with billboard behavior
+            // Position label closer to mesh top with billboard behavior
             const meshBounds = mesh.getBoundingInfo();
             const meshCenter = meshBounds.boundingBox.centerWorld;
-            const labelHeight = 2.0; // Height above mesh in world units
+            const labelHeight = 0.8; // Reduced height above mesh in world units
             const labelPosition = new Vector3(meshCenter.x, meshCenter.y + labelHeight, meshCenter.z);
             
             // Link label to 3D position with billboard behavior
@@ -395,7 +395,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Position content panel above the label
             contentPanel.linkWithMesh(mesh);
-            contentPanel.linkOffsetY = `-${(labelHeight + 3.0) * 50}px`; // Above the label
+            contentPanel.linkOffsetY = `-${(labelHeight + 2.0) * 50}px`; // Above the label, adjusted for closer spacing
             
             // Add close button functionality
             closeButton.onPointerClickObservable.add(() => {
