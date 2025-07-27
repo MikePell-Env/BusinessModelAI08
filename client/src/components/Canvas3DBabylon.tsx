@@ -54,12 +54,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create camera with overhead perspective matching the user's preferred viewpoint
+    // Create camera with angled perspective matching the user's preferred viewpoint
     const savedCameraState = getCamera3DState();
     const camera = new ArcRotateCamera(
       "camera",
-      savedCameraState?.alpha ?? -Math.PI / 4,    // Alpha - slight angle from front-left for better view
-      savedCameraState?.beta ?? Math.PI / 6,      // Beta - much higher angle for top-down perspective
+      savedCameraState?.alpha ?? -Math.PI / 2.5,  // Alpha - more angled from the side for better perspective
+      savedCameraState?.beta ?? Math.PI / 6,      // Beta - high angle for top-down perspective
       savedCameraState?.radius ?? 25,             // Radius - further back to see entire BMC layout clearly
       Vector3.Zero(),  // Target position
       scene
