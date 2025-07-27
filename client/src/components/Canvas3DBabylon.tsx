@@ -393,9 +393,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   console.log(`🔧 Updated plane scaling: ${calculatedWidth}x${baseHeight} (aspect: ${actualAspectRatio})`);
                 });
                 
-                // Simple experiment: create much larger plane to test cropping issue
+                // Create reasonably sized plane
                 const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
-                  width: 4.0, height: 1.0, sideOrientation: Mesh.DOUBLESIDE
+                  width: 2.5, height: 0.8, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
                 // Use TransformNode position for correct placement
@@ -423,11 +423,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textMaterial.backFaceCulling = false;
                 textMaterial.useAlphaFromDiffuseTexture = true;
                 
-                // Fix upside down texture using Babylon.js standard approach
-                labelTexture.vScale = -1; // Flip vertically (most common fix)
-                labelTexture.vOffset = 1; // Adjust offset for flipped V
-                labelTexture.uScale = 1;  // Keep horizontal normal
-                labelTexture.uOffset = 0;
+                // Fix upside down texture and scale down to prevent cropping
+                labelTexture.vScale = -0.6; // Flip vertically and scale down to 60%
+                labelTexture.vOffset = 0.8; // Adjust offset for scaled texture
+                labelTexture.uScale = 0.6;  // Scale horizontally to 60%
+                labelTexture.uOffset = 0.2; // Center the scaled texture
                 
                 textPlane.material = textMaterial;
                 
