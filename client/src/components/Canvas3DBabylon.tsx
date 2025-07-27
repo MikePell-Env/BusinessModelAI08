@@ -333,7 +333,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Position label higher above mesh top with billboard behavior
             const meshBounds = mesh.getBoundingInfo();
             const meshCenter = meshBounds.boundingBox.centerWorld;
-            const labelHeight = 1.2; // Increased height above mesh in world units
+            // Special higher positioning for Value Proposition label
+            const labelHeight = sectionName === "Value Propositions" ? 2.0 : 1.2; // Higher for Value Propositions
             const labelPosition = new Vector3(meshCenter.x, meshCenter.y + labelHeight, meshCenter.z);
             
             // Link label to 3D position with billboard behavior
