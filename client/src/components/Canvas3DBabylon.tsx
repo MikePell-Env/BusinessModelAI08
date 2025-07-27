@@ -310,7 +310,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
         result.meshes.forEach((mesh, index) => {
-          if (mesh.material && mesh.name !== "__root__") {
+          // Process ALL meshes that aren't the root, regardless of existing material
+          if (mesh && mesh.name !== "__root__") {
             const section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
             const baseColor = section.color;
             const sectionName = section.name;
@@ -357,7 +358,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               mesh.material.dispose(); // Dispose original material first  
             }
             
-            // Create completely new material instance to avoid inheritance issues
+            // Create completely new material instance for EVERY mesh
             const forcedMaterial = new StandardMaterial(`forcedBMC_${sectionName}_${index}`, scene);
             forcedMaterial.diffuseColor = new Color3(0.1, 0.1, 0.1); // Force exact same dark color
             forcedMaterial.specularColor = new Color3(0.3, 0.3, 0.3); // Force exact same specular
