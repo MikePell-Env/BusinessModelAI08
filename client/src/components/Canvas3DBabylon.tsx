@@ -361,9 +361,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Clear texture with transparent background
               textContext.clearRect(0, 0, 512, 512);
               
-              // Set text properties
-              textContext.fillStyle = "white";
-              textContext.font = "bold 28px Arial, sans-serif";
+              // Set text properties - make it very bright and bold
+              textContext.fillStyle = "#FFFFFF";
+              textContext.strokeStyle = "#000000";
+              textContext.lineWidth = 2;
+              textContext.font = "bold 36px Arial, sans-serif";
               textContext.textAlign = "center";
               textContext.textBaseline = "middle";
               
@@ -395,25 +397,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   break;
               }
               
-              // Split long text into multiple lines
+              // Split long text into multiple lines and draw with stroke + fill
               const words = sectionName.split(' ');
               if (words.length > 1) {
                 // Multi-line text for better fit
-                const lineHeight = 32;
+                const lineHeight = 40;
                 const startY = textY - (words.length - 1) * lineHeight / 2;
                 words.forEach((word, i) => {
-                  textContext.fillText(word, textX, startY + i * lineHeight);
+                  const y = startY + i * lineHeight;
+                  textContext.strokeText(word, textX, y); // Black outline
+                  textContext.fillText(word, textX, y);   // White fill
                 });
               } else {
                 // Single line text
-                textContext.fillText(sectionName, textX, textY);
+                textContext.strokeText(sectionName, textX, textY); // Black outline
+                textContext.fillText(sectionName, textX, textY);   // White fill
               }
               
               textTexture.update();
               
-              // Apply text texture to material with proper UV mapping
+              // Configure texture wrapping and apply to material
+              textTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
+              textTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
+              textTexture.hasAlpha = true;
+              
+              // Apply text texture as diffuse texture for better visibility
+              sectionMaterial.diffuseTexture = textTexture;
               sectionMaterial.emissiveTexture = textTexture;
-              sectionMaterial.emissiveIntensity = 0.4; // Subtle glow for text visibility
+              sectionMaterial.emissiveIntensity = 0.8; // Much brighter glow for text visibility
+              
+              console.log(`📝 Applied texture label to ${sectionName} at position (${textX}, ${textY})`);
             } else {
               // ORIGINAL: Create billboard label above this mesh
               const labelContainer = new Rectangle(`label_${index}`);
