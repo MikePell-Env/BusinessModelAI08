@@ -367,8 +367,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
-              // Test with ONE visible decal on Value Proposition only
-              if (sectionName === "Value Propositions" && textureFileName) {
+              // Create decal for Key Partners section
+              if (sectionName === "Key Partners" && textureFileName) {
                 console.log(`🎯 Creating test decal for ${sectionName}`);
                 
                 // Create bright test plane to find correct surface
@@ -376,9 +376,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   width: 1.0, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
-                // Use the TransformNode approach that was working before
+                // Position flush on Key Partners surface
                 testDecal.position.x = transformNode.position.x;
-                testDecal.position.y = transformNode.position.y + 0.8; // Same offset that worked for red test planes
+                testDecal.position.y = transformNode.position.y + 0.1; // Much closer to surface for decal effect
                 testDecal.position.z = transformNode.position.z;
                 
                 // Lay flat horizontally
@@ -401,8 +401,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     width: 1.0, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
                   }, scene);
                   
-                  textureDecal.position.x = transformNode.position.x + 1.5; // Offset to the right
-                  textureDecal.position.y = transformNode.position.y + 0.8; // Same working height
+                  textureDecal.position.x = transformNode.position.x; // Center on Key Partners shape
+                  textureDecal.position.y = transformNode.position.y + 0.05; // Even closer to surface for decal
                   textureDecal.position.z = transformNode.position.z;
                   textureDecal.rotation.x = -Math.PI / 2;
                   
