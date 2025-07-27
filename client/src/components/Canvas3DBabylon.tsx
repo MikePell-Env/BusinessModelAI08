@@ -303,8 +303,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const isTopFace = Math.abs(avgY - maxY) < 0.01 && avgNormalY > 0.5;
         
         if (isTopFace) {
-          // This is a top face - apply texture UV mapping with proper aspect ratio and size
-          // Get world positions to map UV coordinates proportionally
+          // This is a top face - create a small label in the center only
+          // Get world positions
           const v1X = positions[v1Index * 3];
           const v1Z = positions[v1Index * 3 + 2];
           const v2X = positions[v2Index * 3];
@@ -312,47 +312,62 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           const v3X = positions[v3Index * 3];
           const v3Z = positions[v3Index * 3 + 2];
           
-          // Find bounds of the entire top surface for this mesh
-          const minX = Math.min(v1X, v2X, v3X);
-          const maxX = Math.max(v1X, v2X, v3X);
-          const minZ = Math.min(v1Z, v2Z, v3Z);
-          const maxZ = Math.max(v1Z, v2Z, v3Z);
+          // Calculate triangle center
+          const triCenterX = (v1X + v2X + v3X) / 3;
+          const triCenterZ = (v1Z + v2Z + v3Z) / 3;
           
-          // Calculate surface center
-          const centerX = (minX + maxX) / 2;
-          const centerZ = (minZ + maxZ) / 2;
-          const surfaceWidth = maxX - minX;
-          const surfaceDepth = maxZ - minZ;
+          // Find overall mesh bounds for this face
+          let meshMinX = Infinity, meshMaxX = -Infinity;
+          let meshMinZ = Infinity, meshMaxZ = -Infinity;
           
-          // Define much smaller label size - only 8% of surface to match reference image
-          const labelScale = 0.08;
-          const labelWidth = surfaceWidth * labelScale;
-          const labelHeight = surfaceDepth * labelScale;
+          // Sample all vertices to find true bounds
+          for (let i = 0; i < positions.length; i += 3) {
+            const x = positions[i];
+            const z = positions[i + 2];
+            meshMinX = Math.min(meshMinX, x);
+            meshMaxX = Math.max(meshMaxX, x);
+            meshMinZ = Math.min(meshMinZ, z);
+            meshMaxZ = Math.max(meshMaxZ, z);
+          }
           
-          // Calculate texture area bounds (texture coordinates from 0.4 to 0.6 for small center area)
-          const uvCenter = 0.5;
-          const uvRange = 0.1; // Small texture area (10% of full texture)
+          const meshCenterX = (meshMinX + meshMaxX) / 2;
+          const meshCenterZ = (meshMinZ + meshMaxZ) / 2;
+          const meshWidth = meshMaxX - meshMinX;
+          const meshDepth = meshMaxZ - meshMinZ;
           
-          // Map each vertex to a small portion of texture centered at (0.5, 0.5)
-          const normalizedX1 = (v1X - centerX) / labelWidth;
-          const normalizedZ1 = (v1Z - centerZ) / labelHeight;
-          const normalizedX2 = (v2X - centerX) / labelWidth;
-          const normalizedZ2 = (v2Z - centerZ) / labelHeight;
-          const normalizedX3 = (v3X - centerX) / labelWidth;
-          const normalizedZ3 = (v3Z - centerZ) / labelHeight;
+          // Define tiny label area - only 5% of mesh size
+          const labelSize = Math.min(meshWidth, meshDepth) * 0.05;
           
-          // Clamp to small texture area and center it
-          newUvs[v1Index * 2] = uvCenter + (normalizedX1 * uvRange);
-          newUvs[v1Index * 2 + 1] = uvCenter + (normalizedZ1 * uvRange);
+          // Check if this triangle is in the small center label area
+          const distanceFromCenter = Math.sqrt(
+            Math.pow(triCenterX - meshCenterX, 2) + 
+            Math.pow(triCenterZ - meshCenterZ, 2)
+          );
           
-          newUvs[v2Index * 2] = uvCenter + (normalizedX2 * uvRange);
-          newUvs[v2Index * 2 + 1] = uvCenter + (normalizedZ2 * uvRange);
-          
-          newUvs[v3Index * 2] = uvCenter + (normalizedX3 * uvRange);
-          newUvs[v3Index * 2 + 1] = uvCenter + (normalizedZ3 * uvRange);
+          if (distanceFromCenter < labelSize) {
+            // This triangle is in the label area - map to texture
+            newUvs[v1Index * 2] = 0.2 + 0.6 * (v1X - meshCenterX + labelSize) / (2 * labelSize);
+            newUvs[v1Index * 2 + 1] = 0.2 + 0.6 * (v1Z - meshCenterZ + labelSize) / (2 * labelSize);
+            
+            newUvs[v2Index * 2] = 0.2 + 0.6 * (v2X - meshCenterX + labelSize) / (2 * labelSize);
+            newUvs[v2Index * 2 + 1] = 0.2 + 0.6 * (v2Z - meshCenterZ + labelSize) / (2 * labelSize);
+            
+            newUvs[v3Index * 2] = 0.2 + 0.6 * (v3X - meshCenterX + labelSize) / (2 * labelSize);
+            newUvs[v3Index * 2 + 1] = 0.2 + 0.6 * (v3Z - meshCenterZ + labelSize) / (2 * labelSize);
+            
+            console.log(`📝 Label triangle mapped at distance ${distanceFromCenter.toFixed(3)} from center`);
+          } else {
+            // This triangle is outside label area - map to edge (transparent/black area)
+            newUvs[v1Index * 2] = 0.95;
+            newUvs[v1Index * 2 + 1] = 0.95;
+            newUvs[v2Index * 2] = 0.95;
+            newUvs[v2Index * 2 + 1] = 0.95;
+            newUvs[v3Index * 2] = 0.95;
+            newUvs[v3Index * 2 + 1] = 0.95;
+          }
           
           topFacesFound++;
-          console.log(`✅ Top face ${topFacesFound} textured with small label at Y=${avgY.toFixed(3)}, normal Y=${avgNormalY.toFixed(3)}`);
+          console.log(`✅ Top face ${topFacesFound} processed at Y=${avgY.toFixed(3)}`);
         }
         // For non-top faces, don't modify UVs - keep original material appearance
       }
