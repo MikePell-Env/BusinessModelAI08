@@ -113,39 +113,33 @@ The application follows a full-stack monorepo architecture with clear separation
 - **✅ UI Polish**: Fixed billboard panel close button positioning in upper-right corner with proper padding
 - **✅ Enhanced User Experience**: Seamless transitions maintain user's preferred viewing perspective across sessions
 
-### July 27, 2025 - Texture Decal Development for Surface Placement
-- **🚧 Active Development**: Working on flush texture decal placement on BMC section surfaces
-- **🔍 Challenge Identified**: Complex GLB model geometry requires systematic surface identification approach
-- **⚙️ Coordinate System**: Confirmed reversed coordinate system affects decal positioning logic
-- **🎯 Goal**: Texture labels positioned flush on top surfaces like authentic decals (not floating)
-- **📐 PNG Assets**: Using native aspect ratio Label_ValueProposition_1753647389093.png and related files
-- **🧪 Testing Method**: Applied bright color materials to identify camera-visible surfaces for decal placement
-- **⚡ Next Steps**: Direct decal positioning using identified visible surface coordinates
-- **💡 Lighting Notes**: Current scene uses proper PBR lighting with semi-gloss black materials (roughness=0.7, metallic=0.0)
-
-### July 27, 2025 - Clean Static 3D BMC System with PNG Decal Support
+### July 27, 2025 - Complete Interactive 3D BMC System with Billboard Labels
 - **✅ Simplified Architecture**: Replaced 7 individual GLB objects with single complete BMC model (BMC_blender_09_complete_1753576063858.glb)
-- **✅ Uniform Dark Black Material System**: All BMC sections now use consistent dark black plastic appearance
-  - Material properties: StandardMaterial with Color3(0.005, 0.005, 0.005) for professional dark appearance
-  - Subtle specular reflection: Color3(0.1, 0.1, 0.1) for minimal shine
-  - No emissive color for clean professional look
-  - All shapes including Value Proposition use identical materials
-- **✅ Removed Interactive System**: Eliminated all hover and click actions for clean static presentation
-  - No more hover color changes or opacity effects
-  - No more click darkening or state management
-  - Focus on pure visualization without distracting interactions
+- **✅ Matte Black Plastic Material System**: All BMC sections now use uniform matte black plastic appearance
+  - Material properties: metallic=0.0, roughness=0.9 for authentic matte plastic finish
+  - Color3(0.1, 0.1, 0.1) for consistent dark black appearance across all sections
+  - Eliminated multi-color system in favor of professional monochrome aesthetic
+- **✅ Full Interactive System**: Added hover and click detection with dramatic visual feedback
+  - Hover changes object to turquoise blue (Color3(0.25, 0.8, 0.7)) and makes all other objects 10% opacity
+  - Click toggles between darkened (30% darker) and normal states
+  - Smart state management prevents hover effects when clicked
+  - Hover exit restores all objects to original dark black color and full opacity
 - **✅ Billboard Label System**: Added floating labels above each BMC section
   - Labels always face camera using linkWithMesh billboard behavior
   - Professional styling with dark backgrounds and white bold text
   - Positioned precisely above mesh centers using bounding box calculations
-- **✅ PNG Decal System**: Implemented texture decal placement for Key Partners as proof of concept
-  - Uses MeshBuilder.CreateDecal() with localMode=true and cullBackFaces=true
-  - Proper UV handling with vScale=-1 and vOffset=1 for correct orientation
-  - zOffset=-2 to prevent z-fighting with base mesh
-  - Ready to expand to all BMC sections
+- **✅ Optimal Camera Positioning**: Set default 3D camera to angled overhead perspective (alpha: -π/2.5, beta: π/6, radius: 25)
+- **✅ Perfect UI Consistency**: Added exact title/subtitle header overlay matching 2D view styling
+- **✅ Enhanced Logging**: Comprehensive console logging with proper BMC section names for all interactions
+- **✅ Fixed Label Positioning**: Resolved critical label misalignment issue where labels didn't correspond to correct shapes
+  - Implemented position-based mapping system using direct index-to-label assignment
+  - Corrected three specific label swaps: Customer Segments ↔ Customer Relationships ↔ Key Activities
+  - All labels now accurately match their corresponding 3D shapes and colors
 - **✅ Individual Shape Manipulation System**: Added TransformNode hierarchy for granular control
   - Created individual TransformNode parent for each of the 7 BMC shapes
   - Preserved root TransformNode for scaling entire collection
+  - Implemented manipulation functions for height, transparency, color, and scale adjustments
+  - Exposed global functions: adjustBMCSection(), adjustEntireBMC(), listBMCSections()
   - Maintained complete hierarchy: Root Transform → Individual TransformNodes → Meshes
   - **CRITICAL**: GLB model uses NORMAL Y-axis scaling (larger values = taller shapes)
   - Value Propositions automatically set to 3.0x height for prominence
