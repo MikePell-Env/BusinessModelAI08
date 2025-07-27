@@ -430,11 +430,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textMaterial.backFaceCulling = false;
                 textMaterial.useAlphaFromDiffuseTexture = true;
                 
-                // Apply texture at native aspect ratio without stretching
-                labelTexture.vScale = -1; // Only flip vertically, no scaling
-                labelTexture.vOffset = 1; // Standard offset for flip
-                labelTexture.uScale = 1;  // Native horizontal scale
-                labelTexture.uOffset = 0; // No horizontal offset
+                // Apply texture with proper UV mapping to show complete image
+                labelTexture.vScale = -0.8; // Flip and scale down slightly to fit in plane
+                labelTexture.vOffset = 0.9; // Adjust offset for scaled texture
+                labelTexture.uScale = 0.8;  // Scale down horizontally to fit completely
+                labelTexture.uOffset = 0.1; // Center the texture horizontally
                 
                 textPlane.material = textMaterial;
                 
