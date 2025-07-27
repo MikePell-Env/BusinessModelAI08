@@ -282,6 +282,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         console.log(`📦 BMC model positioned at origin with scale 8.0`);
         
+        // Debug mesh positions to understand GLB model layout
+        result.meshes.forEach((mesh, index) => {
+          if (mesh.material && mesh.name !== "__root__") {
+            const meshBounds = mesh.getBoundingInfo();
+            const meshCenter = meshBounds.boundingBox.centerWorld;
+            console.log(`🔍 Mesh ${index}: ${mesh.name || 'unnamed'} at position (${meshCenter.x.toFixed(2)}, ${meshCenter.y.toFixed(2)}, ${meshCenter.z.toFixed(2)})`);
+          }
+        });
+
         // Apply different colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
         result.meshes.forEach((mesh, index) => {
