@@ -494,8 +494,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 height: labelHeight  // 50% taller to prevent squishing
               }, scene);
               
-              // Position slightly above mesh center
-              labelPlane.position.x = center.x;
+              // Position slightly above mesh center, moved left from top view
+              labelPlane.position.x = center.x - size.x * 0.15; // Move left from top view perspective
               labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z;
               
@@ -538,8 +538,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 height: labelHeight  // 50% taller to prevent squishing
               }, scene);
               
-              // Position slightly above mesh center
-              labelPlane.position.x = center.x;
+              // Position slightly above mesh center, moved right from top view
+              labelPlane.position.x = center.x + size.x * 0.15; // Move right from top view perspective
               labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z;
               
