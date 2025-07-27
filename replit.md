@@ -113,6 +113,20 @@ The application follows a full-stack monorepo architecture with clear separation
 - **✅ UI Polish**: Fixed billboard panel close button positioning in upper-right corner with proper padding
 - **✅ Enhanced User Experience**: Seamless transitions maintain user's preferred viewing perspective across sessions
 
+### July 27, 2025 - Saved Working 3D BMC Positioning Configuration
+- **✅ Current Working Layout**: Documented stable positioning before user experiment
+- **✅ Object Coordinates Saved**: 
+  - Blue Value Proposition: (0, -2.0, 0) - center
+  - Green Key Partners: (-1.3, -2.0, 0) - left rectangle
+  - Purple Customer Segments: (1.3, -2.0, 0) - right rectangle
+  - Orange Key Activities: (-1.5, -2.0, -1.8) - top-left
+  - Red Key Resources: (-1.5, -2.0, 1.8) - bottom-left
+  - Yellow Customer Relationships: (2.0, -2.0, -2.5) - top-right
+  - Cyan Customer Channels: (2.0, -2.0, 2.5) - bottom-right
+- **✅ Master Transform Applied**: 180° Y-rotation + 4.0 Y-translation for coordinate correction
+- **✅ Plastic Materials**: All objects using metallic=0.0, roughness=0.8 for consistent appearance
+- **✅ Proper Scaling**: All objects scaled appropriately and visible above ground plane
+
 ### July 26, 2025 - Complete GLB Model Integration with Babylon.js
 - **✅ Exclusive GLB Model Loading**: Replaced all primitive Babylon.js boxes with custom GLB models from Blender
 - **✅ Clean Code Architecture**: Removed all old createBusinessBlock and setupBoxInteractivity functions
