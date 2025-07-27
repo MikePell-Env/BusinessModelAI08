@@ -308,26 +308,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
-            // Debug Value Propositions mesh properties to understand coordinate system
+            // Debug Value Propositions mesh properties and try vertical stretching via position manipulation
             if (sectionName === "Value Propositions") {
               const meshBounds = mesh.getBoundingInfo();
               console.log(`📐 Value Propositions Debug Info:`);
               console.log(`   Mesh name: ${mesh.name}`);
-              console.log(`   Bounding box min:`, meshBounds.boundingBox.minimumWorld);
-              console.log(`   Bounding box max:`, meshBounds.boundingBox.maximumWorld);
-              console.log(`   Bounding box center:`, meshBounds.boundingBox.centerWorld);
-              console.log(`   Current rotation:`, mesh.rotation);
-              console.log(`   Current scaling:`, mesh.scaling);
-              console.log(`   Current position:`, mesh.position);
-              console.log(`   Box dimensions (max-min):`, {
-                x: meshBounds.boundingBox.maximumWorld.x - meshBounds.boundingBox.minimumWorld.x,
-                y: meshBounds.boundingBox.maximumWorld.y - meshBounds.boundingBox.minimumWorld.y,
-                z: meshBounds.boundingBox.maximumWorld.z - meshBounds.boundingBox.minimumWorld.z
-              });
+              console.log(`   Mesh geometry type:`, mesh.getClassName());
+              console.log(`   Total vertices:`, mesh.getTotalVertices());
+              console.log(`   Has vertex data:`, mesh.getVerticesData ? true : false);
               
-              // Try uniform scaling to make the entire shape bigger while maintaining proportions
-              mesh.scaling = new Vector3(1.5, 1.5, 1.5); // Scale all dimensions equally
-              console.log(`📏 Value Propositions scaled 1.5x uniformly (all axes)`);
+              // Instead of scaling, try creating a "taller" effect by duplicating and offsetting
+              // Clone the mesh and position it slightly above to create height illusion
+              const clonedMesh = mesh.clone(`${mesh.name}_height_extension`);
+              if (clonedMesh) {
+                clonedMesh.position.y += 0.3; // Offset upward
+                clonedMesh.material = sectionMaterial.clone();
+                clonedMesh.material.alpha = 0.8; // Slightly transparent
+                console.log(`📏 Value Propositions height extended via cloned mesh offset`);
+              }
             }
             
             // Store original color for hover/click effects
