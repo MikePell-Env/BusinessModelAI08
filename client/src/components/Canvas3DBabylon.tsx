@@ -374,8 +374,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
                 labelTexture.hasAlpha = true;
                 
+                // Size plane appropriately - smaller for Value Proposition cylinder
+                const planeWidth = sectionName === "Value Propositions" ? 2.0 : 2.5;
+                const planeHeight = sectionName === "Value Propositions" ? 0.8 : 1.0;
+                
                 const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
-                  width: 4.0, height: 2.0, sideOrientation: Mesh.DOUBLESIDE
+                  width: planeWidth, height: planeHeight, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
                 // Use TransformNode position for correct placement
@@ -388,9 +392,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textPlane.position.y = meshTop + (meshHeight * 5.0); // Same height that worked
                 textPlane.position.z = transformNode.position.z;
                 
-                // Fix rotation to prevent backwards text
+                // Correct rotation - no Y flip to prevent horizontal mirroring
                 textPlane.rotation.x = -Math.PI / 2; // Lay flat
-                textPlane.rotation.y = Math.PI; // Flip to correct text orientation
+                textPlane.rotation.y = 0; // No horizontal flip
                 textPlane.rotation.z = 0;
                 
                 // Apply PNG texture with proper UV scaling
