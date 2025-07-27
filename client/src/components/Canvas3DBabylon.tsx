@@ -342,8 +342,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             closeButton.fontFamily = "Arial, sans-serif";
             closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
             closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-            closeButton.paddingTop = "8px";
-            closeButton.paddingRight = "12px";
+            closeButton.topInPixels = 8;
+            closeButton.rightInPixels = 12;
+            closeButton.widthInPixels = 20;
+            closeButton.heightInPixels = 20;
             closeButton.isPointerBlocker = true;
             
             // Create content text area (below title)
