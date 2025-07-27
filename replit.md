@@ -113,6 +113,15 @@ The application follows a full-stack monorepo architecture with clear separation
 - **✅ UI Polish**: Fixed billboard panel close button positioning in upper-right corner with proper padding
 - **✅ Enhanced User Experience**: Seamless transitions maintain user's preferred viewing perspective across sessions
 
+### July 27, 2025 - Texture Decal Development for Surface Placement
+- **🚧 Active Development**: Working on flush texture decal placement on BMC section surfaces
+- **🔍 Challenge Identified**: Complex GLB model geometry requires systematic surface identification approach
+- **⚙️ Coordinate System**: Confirmed reversed coordinate system affects decal positioning logic
+- **🎯 Goal**: Texture labels positioned flush on top surfaces like authentic decals (not floating)
+- **📐 PNG Assets**: Using native aspect ratio Label_ValueProposition_1753647389093.png and related files
+- **🧪 Testing Method**: Applied bright color materials to identify camera-visible surfaces for decal placement
+- **⚡ Next Steps**: Direct decal positioning using identified visible surface coordinates
+
 ### July 27, 2025 - Complete Interactive 3D BMC System with Billboard Labels
 - **✅ Simplified Architecture**: Replaced 7 individual GLB objects with single complete BMC model (BMC_blender_09_complete_1753576063858.glb)
 - **✅ Matte Black Plastic Material System**: All BMC sections now use uniform matte black plastic appearance

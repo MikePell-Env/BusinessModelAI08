@@ -367,42 +367,61 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
-              // Color the mesh surface to identify which faces are visible
-              console.log(`🎨 Coloring mesh surface for ${sectionName} to identify visible faces`);
-              
-              // Apply bright colored material to make the surface visible
-              const surfaceTestMaterial = new StandardMaterial(`surfaceTest_${index}`, scene);
-              
-              // Use different bright colors for each section to distinguish them
-              const testColors = [
-                Color3.Red(),     // Value Propositions
-                Color3.Green(),   // Key Partners  
-                Color3.Blue(),    // Key Activities
-                Color3.Yellow(),  // Key Resources
-                Color3.Magenta(), // Customer Relationships
-                Color3.Cyan(),    // Customer Segments
-                Color3.Orange()   // Customer Channels
-              ];
-              
-              const colorIndex = index % testColors.length;
-              surfaceTestMaterial.diffuseColor = testColors[colorIndex];
-              surfaceTestMaterial.emissiveColor = testColors[colorIndex].scale(0.3); // Slight glow
-              
-              // Override the dark material temporarily to see surfaces clearly
-              mesh.material = surfaceTestMaterial;
-              
-              console.log(`   🎨 Applied ${testColors[colorIndex].toString()} color to ${sectionName}`);
-              console.log(`   📍 Mesh position: (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
-              console.log(`   📦 Transform position: (${transformNode.position.x.toFixed(2)}, ${transformNode.position.y.toFixed(2)}, ${transformNode.position.z.toFixed(2)})`);
-              
-              // Also log mesh geometry info
-              const boundingInfo = mesh.getBoundingInfo();
-              console.log(`   📏 Bounding box: Min(${boundingInfo.boundingBox.minimumWorld.x.toFixed(2)}, ${boundingInfo.boundingBox.minimumWorld.y.toFixed(2)}, ${boundingInfo.boundingBox.minimumWorld.z.toFixed(2)}) Max(${boundingInfo.boundingBox.maximumWorld.x.toFixed(2)}, ${boundingInfo.boundingBox.maximumWorld.y.toFixed(2)}, ${boundingInfo.boundingBox.maximumWorld.z.toFixed(2)})`);
-              
-              if (textureFileName) {
-                console.log(`   🏷️ Would apply texture: ${textureFileName}`);
-              } else {
-                console.warn(`   ⚠️ No texture mapping for: ${sectionName}`);
+              // Test with ONE visible decal on Value Proposition only
+              if (sectionName === "Value Propositions" && textureFileName) {
+                console.log(`🎯 Creating test decal for ${sectionName}`);
+                
+                // Create bright test plane to find correct surface
+                const testDecal = MeshBuilder.CreatePlane(`testDecal_${index}`, {
+                  width: 1.0, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
+                }, scene);
+                
+                // Position at world origin first for visibility test
+                testDecal.position.x = 0;
+                testDecal.position.y = 2.0; // High above to ensure visibility
+                testDecal.position.z = 0;
+                
+                // Lay flat horizontally
+                testDecal.rotation.x = -Math.PI / 2;
+                
+                // Create super bright material that's impossible to miss
+                const testMaterial = new StandardMaterial(`testMaterial_${index}`, scene);
+                testMaterial.diffuseColor = Color3.Red();
+                testMaterial.emissiveColor = Color3.Red(); // Full red emission
+                testMaterial.disableLighting = true; // Ignore lighting completely
+                
+                testDecal.material = testMaterial;
+                
+                console.log(`🔴 Created bright red test decal at (0, 2, 0) - should be highly visible`);
+                console.log(`   📍 If visible, we'll move it to actual surface position`);
+                
+                // Also create texture version for comparison
+                if (textureFileName) {
+                  const textureDecal = MeshBuilder.CreatePlane(`textureDecal_${index}`, {
+                    width: 1.0, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
+                  }, scene);
+                  
+                  textureDecal.position.x = 1.5; // Offset to the right
+                  textureDecal.position.y = 2.0;
+                  textureDecal.position.z = 0;
+                  textureDecal.rotation.x = -Math.PI / 2;
+                  
+                  const textureMaterial = new StandardMaterial(`textureMaterial_${index}`, scene);
+                  const texture = new Texture(`/labels/${textureFileName}`, scene);
+                  texture.hasAlpha = true;
+                  texture.vScale = -1;
+                  texture.vOffset = 1;
+                  
+                  textureMaterial.diffuseTexture = texture;
+                  textureMaterial.emissiveTexture = texture;
+                  textureMaterial.emissiveColor = Color3.White();
+                  textureMaterial.useAlphaFromDiffuseTexture = true;
+                  textureMaterial.disableLighting = true;
+                  
+                  textureDecal.material = textureMaterial;
+                  
+                  console.log(`🏷️ Created texture decal at (1.5, 2, 0) with ${textureFileName}`);
+                }
               }
             } else {
               // Create billboard label above this mesh
