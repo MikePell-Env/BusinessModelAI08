@@ -303,19 +303,44 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const isTopFace = Math.abs(avgY - maxY) < 0.01 && avgNormalY > 0.5;
         
         if (isTopFace) {
-          // This is a top face - apply texture UV mapping
-          // Map UV coordinates to show the full texture on top faces
-          newUvs[v1Index * 2] = 0.0;     // u1 - left
-          newUvs[v1Index * 2 + 1] = 0.0; // v1 - bottom
+          // This is a top face - apply texture UV mapping with proper aspect ratio and size
+          // Get world positions to map UV coordinates proportionally
+          const v1X = positions[v1Index * 3];
+          const v1Z = positions[v1Index * 3 + 2];
+          const v2X = positions[v2Index * 3];
+          const v2Z = positions[v2Index * 3 + 2];
+          const v3X = positions[v3Index * 3];
+          const v3Z = positions[v3Index * 3 + 2];
           
-          newUvs[v2Index * 2] = 1.0;     // u2 - right
-          newUvs[v2Index * 2 + 1] = 0.0; // v2 - bottom
+          // Find bounds of the entire top surface for this mesh
+          const minX = Math.min(v1X, v2X, v3X);
+          const maxX = Math.max(v1X, v2X, v3X);
+          const minZ = Math.min(v1Z, v2Z, v3Z);
+          const maxZ = Math.max(v1Z, v2Z, v3Z);
           
-          newUvs[v3Index * 2] = 0.5;     // u3 - center
-          newUvs[v3Index * 2 + 1] = 1.0; // v3 - top
+          // Calculate surface center
+          const centerX = (minX + maxX) / 2;
+          const centerZ = (minZ + maxZ) / 2;
+          const surfaceWidth = maxX - minX;
+          const surfaceDepth = maxZ - minZ;
+          
+          // Define label size as 25% of surface size to make it much smaller
+          const labelScale = 0.25;
+          const labelWidth = surfaceWidth * labelScale;
+          const labelHeight = surfaceDepth * labelScale; // Preserve aspect ratio
+          
+          // Map each vertex UV coordinate relative to the label area centered on surface
+          newUvs[v1Index * 2] = 0.5 + (v1X - centerX) / labelWidth;
+          newUvs[v1Index * 2 + 1] = 0.5 + (v1Z - centerZ) / labelHeight;
+          
+          newUvs[v2Index * 2] = 0.5 + (v2X - centerX) / labelWidth;
+          newUvs[v2Index * 2 + 1] = 0.5 + (v2Z - centerZ) / labelHeight;
+          
+          newUvs[v3Index * 2] = 0.5 + (v3X - centerX) / labelWidth;
+          newUvs[v3Index * 2 + 1] = 0.5 + (v3Z - centerZ) / labelHeight;
           
           topFacesFound++;
-          console.log(`✅ Top face ${topFacesFound} textured at Y=${avgY.toFixed(3)}, normal Y=${avgNormalY.toFixed(3)}`);
+          console.log(`✅ Top face ${topFacesFound} textured with small label at Y=${avgY.toFixed(3)}, normal Y=${avgNormalY.toFixed(3)}`);
         }
         // For non-top faces, don't modify UVs - keep original material appearance
       }
@@ -433,8 +458,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelTexture.vOffset = 0;
               labelTexture.uScale = 1;
               labelTexture.vScale = 1;
-              labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
-              labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
+              labelTexture.wrapU = Texture.MIRROR_ADDRESSMODE; // Better edge handling
+              labelTexture.wrapV = Texture.MIRROR_ADDRESSMODE;
               
               // Apply texture to the material
               sectionMaterial.baseTexture = labelTexture;
