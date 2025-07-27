@@ -302,6 +302,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Store reference to all meshes for hover effects
         const allMeshes = result.meshes.filter(mesh => mesh.material && mesh.name !== "__root__");
         
+        console.log(`🔍 DEBUGGING: Total meshes found: ${result.meshes.length}`);
+        console.log(`🔍 DEBUGGING: Filtered meshes for processing: ${allMeshes.length}`);
+        result.meshes.forEach((mesh, i) => {
+          console.log(`🔍 DEBUGGING: Mesh ${i}: name="${mesh.name}", hasMaterial=${!!mesh.material}, isRoot=${mesh.name === "__root__"}`);
+        });
+        
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
         result.meshes.forEach((mesh, index) => {
