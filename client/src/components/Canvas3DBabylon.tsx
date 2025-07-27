@@ -368,42 +368,37 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
               if (textureFileName) {
-                // Simple decal approach - create plane positioned flush on surface
-                const boundingInfo = mesh.getBoundingInfo();
-                const meshCenter = boundingInfo.boundingBox.centerWorld;
-                const meshTop = boundingInfo.boundingBox.maximumWorld.y;
-                
-                // Create appropriately sized plane for decal
-                const decalPlane = MeshBuilder.CreatePlane(`decal_${index}`, {
-                  width: 1.5, height: 0.5, sideOrientation: Mesh.DOUBLESIDE
+                // Use TransformNode position (working approach) with simple texture
+                const labelPlane = MeshBuilder.CreatePlane(`label_${index}`, {
+                  width: 1.8, height: 0.6, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
-                // Position flush on top surface
-                decalPlane.position.x = meshCenter.x;
-                decalPlane.position.y = meshTop + 0.01; // Just above surface to prevent z-fighting
-                decalPlane.position.z = meshCenter.z;
+                // Position above the TransformNode (working coordinates)
+                labelPlane.position.x = transformNode.position.x;
+                labelPlane.position.y = transformNode.position.y + 0.8; // Fixed height above
+                labelPlane.position.z = transformNode.position.z;
                 
-                // Lay flat on surface
-                decalPlane.rotation.x = -Math.PI / 2;
+                // Lay flat
+                labelPlane.rotation.x = -Math.PI / 2;
                 
-                // Create simple texture material
-                const decalMaterial = new StandardMaterial(`decalMaterial_${index}`, scene);
-                const decalTexture = new Texture(`/labels/${textureFileName}`, scene);
+                // Create texture material with working settings
+                const labelMaterial = new StandardMaterial(`labelMaterial_${index}`, scene);
+                const labelTexture = new Texture(`/labels/${textureFileName}`, scene);
                 
-                // Simple texture settings - no complex UV manipulation
-                decalTexture.hasAlpha = true;
-                decalTexture.vScale = -1; // Only flip vertically
-                decalTexture.vOffset = 1;
+                // Only apply vertical flip - no scaling tricks
+                labelTexture.hasAlpha = true;
+                labelTexture.vScale = -1;
+                labelTexture.vOffset = 1;
                 
-                decalMaterial.diffuseTexture = decalTexture;
-                decalMaterial.emissiveTexture = decalTexture;
-                decalMaterial.emissiveColor = Color3.White();
-                decalMaterial.useAlphaFromDiffuseTexture = true;
-                decalMaterial.backFaceCulling = false;
+                labelMaterial.diffuseTexture = labelTexture;
+                labelMaterial.emissiveTexture = labelTexture;
+                labelMaterial.emissiveColor = Color3.White();
+                labelMaterial.useAlphaFromDiffuseTexture = true;
+                labelMaterial.backFaceCulling = false;
                 
-                decalPlane.material = decalMaterial;
+                labelPlane.material = labelMaterial;
                 
-                console.log(`🏷️ Simple decal for ${sectionName} at (${decalPlane.position.x}, ${decalPlane.position.y}, ${decalPlane.position.z})`);
+                console.log(`🏷️ Label for ${sectionName} at TransformNode position + 0.8Y`);
               } else {
                 console.warn(`⚠️ No texture mapping for: ${sectionName}`);
               }
