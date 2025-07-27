@@ -352,34 +352,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).originalMaterial = sectionMaterial;
             (mesh as any).isClicked = false;
             
-            // Billboard labels hidden - create dummy container for compatibility
-            const labelContainer = null; // Labels disabled
-            // const labelContainer = new Rectangle(`label_${index}`);
-            // labelContainer.widthInPixels = 200;
-            // labelContainer.heightInPixels = 40;
-            // labelContainer.cornerRadius = 8;
-            // labelContainer.color = "white";
-            // labelContainer.thickness = 2;
-            // labelContainer.background = "rgba(0, 0, 0, 0.7)";
-            // // Value Propositions label should always appear in front
-            // labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
-            // 
-            // const labelText = new TextBlock(`labelText_${index}`, sectionName);
-            // labelText.color = "white";
-            // labelText.fontSize = "14px";
-            // labelText.fontFamily = "Arial, sans-serif";
-            // labelText.fontWeight = "bold";
-            // 
-            // labelContainer.addControl(labelText);
-            // advancedTexture.addControl(labelContainer);
-            // 
-            // // Position label higher above mesh top with billboard behavior
-            // // Special much higher positioning for Value Proposition label
-            // const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
-            // 
-            // // Link label to 3D position with billboard behavior
-            // labelContainer.linkWithMesh(mesh);
-            // labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
+            // Create billboard label above this mesh but make it invisible
+            const labelContainer = new Rectangle(`label_${index}`);
+            labelContainer.widthInPixels = 200;
+            labelContainer.heightInPixels = 40;
+            labelContainer.cornerRadius = 8;
+            labelContainer.color = "white";
+            labelContainer.thickness = 2;
+            labelContainer.background = "rgba(0, 0, 0, 0.7)";
+            // Value Propositions label should always appear in front
+            labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
+            
+            const labelText = new TextBlock(`labelText_${index}`, sectionName);
+            labelText.color = "white";
+            labelText.fontSize = "14px";
+            labelText.fontFamily = "Arial, sans-serif";
+            labelText.fontWeight = "bold";
+            
+            labelContainer.addControl(labelText);
+            advancedTexture.addControl(labelContainer);
+            
+            // Position label higher above mesh top with billboard behavior
+            // Special much higher positioning for Value Proposition label
+            const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
+            
+            // Link label to 3D position with billboard behavior
+            labelContainer.linkWithMesh(mesh);
+            labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
+            
+            // Hide the label by making it invisible
+            labelContainer.isVisible = false;
             
             // Create content panel for click events (initially hidden)
             const contentPanel = new Rectangle(`contentPanel_${index}`);
