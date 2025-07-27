@@ -141,13 +141,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
     const gridContext = gridTexture.getContext();
     
-    // Fill with powder blue background
-    gridContext.fillStyle = "#87CEEB"; // Powder blue background (SkyBlue)
+    // Fill with lighter powder blue background
+    gridContext.fillStyle = "#ADD8E6"; // Lighter powder blue background (LightBlue)
     gridContext.fillRect(0, 0, 1024, 1024);
     
     // Draw white grid lines
     gridContext.strokeStyle = "#FFFFFF"; // White grid lines
-    gridContext.lineWidth = 2; // Slightly thicker for better visibility on blue
+    gridContext.lineWidth = 1; // Thin 1px grid lines
     
     // Draw vertical lines (spacing every 32 pixels)
     for (let i = 0; i <= 1024; i += 32) {
