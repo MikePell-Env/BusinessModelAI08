@@ -138,40 +138,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     railMaterial.diffuseColor = railColor;
     railMaterial.specularColor = new Color3(0, 0, 0);
     
-    // North rail (back) - hugs the back edge of 20x20 ground
+    // North rail (back) - hugs the back edge of 20x14 ground
     const northRail = MeshBuilder.CreateBox("northRail", {
       width: 20, // Exact ground width
       height: railHeight,
       depth: railWidth
     }, scene);
-    northRail.position = new Vector3(0, railHeight/2, -10 - railWidth/2);
+    northRail.position = new Vector3(0, railHeight/2, -7 - railWidth/2); // 14/2 = 7
     northRail.material = railMaterial;
     
-    // South rail (front) - hugs the front edge of 20x20 ground
+    // South rail (front) - hugs the front edge of 20x14 ground
     const southRail = MeshBuilder.CreateBox("southRail", {
       width: 20, // Exact ground width
       height: railHeight,
       depth: railWidth
     }, scene);
-    southRail.position = new Vector3(0, railHeight/2, 10 + railWidth/2);
+    southRail.position = new Vector3(0, railHeight/2, 7 + railWidth/2); // 14/2 = 7
     southRail.material = railMaterial;
     
-    // East rail (right) - hugs the right edge of 20x20 ground
+    // East rail (right) - hugs the right edge of 20x14 ground
     const eastRail = MeshBuilder.CreateBox("eastRail", {
       width: railWidth,
       height: railHeight,
-      depth: 20 // Exact ground depth
+      depth: 14 // Exact ground height/depth
     }, scene);
-    eastRail.position = new Vector3(10 + railWidth/2, railHeight/2, 0);
+    eastRail.position = new Vector3(10 + railWidth/2, railHeight/2, 0); // 20/2 = 10
     eastRail.material = railMaterial;
     
-    // West rail (left) - hugs the left edge of 20x20 ground
+    // West rail (left) - hugs the left edge of 20x14 ground
     const westRail = MeshBuilder.CreateBox("westRail", {
       width: railWidth,
       height: railHeight,
-      depth: 20 // Exact ground depth
+      depth: 14 // Exact ground height/depth
     }, scene);
-    westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0);
+    westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0); // 20/2 = 10
     westRail.material = railMaterial;
 
 
