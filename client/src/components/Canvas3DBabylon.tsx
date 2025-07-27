@@ -397,9 +397,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             contentPanel.addControl(contentText);
             advancedTexture.addControl(contentPanel);
             
-            // Position content panel much higher above the label
+            // Position content panel above the label at moderate height
             contentPanel.linkWithMesh(mesh);
-            contentPanel.linkOffsetY = `-${(labelHeight + 4.0) * 50}px`; // Much higher above the label for better visibility
+            contentPanel.linkOffsetY = `-${(labelHeight + 2.8) * 50}px`; // Moderately above the label for good visibility
             
             // Add close button functionality
             closeButton.onPointerClickObservable.add(() => {
