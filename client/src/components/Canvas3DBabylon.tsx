@@ -134,15 +134,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     directionalLight2.diffuse = new Color3(0.95, 0.95, 1); // Slightly cool fill
     directionalLight2.specular = new Color3(0.2, 0.2, 0.25); // Very subtle cool specular
 
-    // Create ground with power blue background and white gridlines
+    // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     
-    // Create dynamic texture for power blue grid pattern with white lines
+    // Create dynamic texture for powder blue grid pattern with white lines
     const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
     const gridContext = gridTexture.getContext();
     
-    // Fill with power blue background
-    gridContext.fillStyle = "#1E90FF"; // Power blue background (DodgerBlue)
+    // Fill with powder blue background
+    gridContext.fillStyle = "#B0E0E6"; // Powder blue background
     gridContext.fillRect(0, 0, 1024, 1024);
     
     // Draw white grid lines
@@ -167,7 +167,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     gridTexture.update();
     
-    // Apply power blue material with white grid texture to ground
+    // Apply powder blue material with white grid texture to ground
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
     groundMaterial.diffuseTexture = gridTexture;
     groundMaterial.specularColor = new Color3(0.1, 0.1, 0.2); // Subtle blue-tinted specular reflection
