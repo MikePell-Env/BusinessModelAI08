@@ -308,10 +308,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
-            // Scale Value Propositions height - using Y-axis for opposite coordinate system
+            // Scale Value Propositions height - using Z-axis for vertical thickness
             if (sectionName === "Value Propositions") {
-              mesh.scaling = new Vector3(1, 2, 1); // Scale Y-axis for height in this coordinate system
-              console.log(`📏 Value Propositions scaled 2x height on Y-axis (opposite coordinate system)`);
+              mesh.scaling = new Vector3(1, 1, 2); // Scale Z-axis for vertical thickness/height
+              console.log(`📏 Value Propositions scaled 2x height on Z-axis (vertical thickness)`);
             }
             
             // Store original color for hover/click effects
