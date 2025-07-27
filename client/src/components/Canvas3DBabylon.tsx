@@ -320,6 +320,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelContainer.color = "white";
             labelContainer.thickness = 2;
             labelContainer.background = "rgba(0, 0, 0, 0.7)";
+            // Value Propositions label should always appear in front
+            labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
             
             const labelText = new TextBlock(`labelText_${index}`, sectionName);
             labelText.color = "white";
