@@ -262,11 +262,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("Loading Value Proposition...");
     loadGLBModel("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content || "", new Vector3(0, -2.0, 0), "Value Proposition", 45, new Color3(0, 0.4, 0.8));
     
-    // Left: Key Partners (GREEN tall rectangle) - further apart means smaller absolute values due to 180° rotation
-    loadGLBModel("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(-2.5, -2.0, 0), "Key Partners", 50, new Color3(0, 0.7, 0));
+    // Left: Key Partners (GREEN tall rectangle) - moving further apart with smaller absolute values
+    loadGLBModel("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(-1.8, -2.0, 0), "Key Partners", 50, new Color3(0, 0.7, 0));
     
-    // Right: Customer Segments (PURPLE tall rectangle) - further apart means smaller absolute values due to 180° rotation  
-    loadGLBModel("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(2.5, -2.0, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7));
+    // Right: Customer Segments (PURPLE tall rectangle) - moving further apart with smaller absolute values
+    loadGLBModel("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(1.8, -2.0, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7));
     
     // Top-Left: Key Activities (ORANGE) - moved further from center for visibility
     console.log("Loading Key Activities...");
