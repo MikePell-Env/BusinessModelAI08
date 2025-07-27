@@ -76,7 +76,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     return section.content.map(item => `• ${item}`).join('\n');
   };
   
-  // GUI state removed since labels are no longer used
+  // Label system toggle - set to false to use billboard labels, true for texture labels
+  const useTextureLabels = true;
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -352,26 +353,59 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).originalMaterial = sectionMaterial;
             (mesh as any).isClicked = false;
             
-            // Create dynamic texture with just the text label for the mesh
-            const textTexture = new DynamicTexture(`textTexture_${index}`, {width: 512, height: 128}, scene, false);
-            const textContext = textTexture.getContext();
-            
-            // Clear texture with transparent background
-            textContext.clearRect(0, 0, 512, 128);
-            
-            // Set text properties
-            textContext.fillStyle = "white";
-            textContext.font = "bold 32px Arial, sans-serif";
-            textContext.textAlign = "center";
-            textContext.textBaseline = "middle";
-            
-            // Draw the section name text only
-            textContext.fillText(sectionName, 256, 64);
-            textTexture.update();
-            
-            // Apply text texture to material as decal/overlay
-            sectionMaterial.emissiveTexture = textTexture;
-            sectionMaterial.emissiveIntensity = 0.3; // Subtle glow for text visibility
+            if (useTextureLabels) {
+              // NEW: Create dynamic texture with just the text label for the mesh
+              const textTexture = new DynamicTexture(`textTexture_${index}`, {width: 512, height: 128}, scene, false);
+              const textContext = textTexture.getContext();
+              
+              // Clear texture with transparent background
+              textContext.clearRect(0, 0, 512, 128);
+              
+              // Set text properties
+              textContext.fillStyle = "white";
+              textContext.font = "bold 32px Arial, sans-serif";
+              textContext.textAlign = "center";
+              textContext.textBaseline = "middle";
+              
+              // Draw the section name text only
+              textContext.fillText(sectionName, 256, 64);
+              textTexture.update();
+              
+              // Apply text texture to material as decal/overlay
+              sectionMaterial.emissiveTexture = textTexture;
+              sectionMaterial.emissiveIntensity = 0.3; // Subtle glow for text visibility
+            } else {
+              // ORIGINAL: Create billboard label above this mesh
+              const labelContainer = new Rectangle(`label_${index}`);
+              labelContainer.widthInPixels = 200;
+              labelContainer.heightInPixels = 40;
+              labelContainer.cornerRadius = 8;
+              labelContainer.color = "white";
+              labelContainer.thickness = 2;
+              labelContainer.background = "rgba(0, 0, 0, 0.7)";
+              // Value Propositions label should always appear in front
+              labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
+              
+              const labelText = new TextBlock(`labelText_${index}`, sectionName);
+              labelText.color = "white";
+              labelText.fontSize = "14px";
+              labelText.fontFamily = "Arial, sans-serif";
+              labelText.fontWeight = "bold";
+              
+              labelContainer.addControl(labelText);
+              advancedTexture.addControl(labelContainer);
+              
+              // Position label higher above mesh top with billboard behavior
+              // Special much higher positioning for Value Proposition label
+              const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
+              
+              // Link label to 3D position with billboard behavior
+              labelContainer.linkWithMesh(mesh);
+              labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
+              
+              // Store reference for hover effects (billboard system only)
+              (mesh as any).labelContainer = labelContainer;
+            }
             
             // Create content panel for click events (initially hidden)
             const contentPanel = new Rectangle(`contentPanel_${index}`);
@@ -469,10 +503,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   material.alpha = 1.0; // 100% opacity
                 });
                 
-                // Make label bright blue background
-                const labelContainer = (mesh as any).labelContainer;
-                if (labelContainer) {
-                  labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
+                // Make label bright blue background (billboard system only)
+                if (!useTextureLabels) {
+                  const labelContainer = (mesh as any).labelContainer;
+                  if (labelContainer) {
+                    labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
+                  }
                 }
                 
                 console.log(`💡 Hover enter: ${sectionName} bright blue, all objects 100% opacity`);
@@ -490,10 +526,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   material.alpha = 1.0; // Full opacity
                 });
                 
-                // Restore label to semi-transparent
-                const labelContainer = (mesh as any).labelContainer;
-                if (labelContainer) {
-                  labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Semi-transparent
+                // Restore label to semi-transparent (billboard system only)
+                if (!useTextureLabels) {
+                  const labelContainer = (mesh as any).labelContainer;
+                  if (labelContainer) {
+                    labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Semi-transparent
+                  }
                 }
                 
                 console.log(`🔄 Hover exit: ${sectionName} restored, all objects full opacity`);
