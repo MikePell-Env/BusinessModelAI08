@@ -308,11 +308,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Create TransformNode parent for individual manipulation
             const transformNode = new TransformNode(`bmcTransform_${sectionName}_${index}`, scene);
-            transformNode.position = mesh.position.clone();
-            transformNode.rotation = mesh.rotation.clone();
-            transformNode.scaling = mesh.scaling.clone();
             
-            // Reset mesh transform and parent to TransformNode
+            // Store the mesh's current local transform relative to rootMesh
+            const localPosition = mesh.position.clone();
+            const localRotation = mesh.rotation.clone();
+            const localScaling = mesh.scaling.clone();
+            
+            // Set TransformNode as child of rootMesh to maintain hierarchy
+            transformNode.parent = rootMesh;
+            transformNode.position = localPosition;
+            transformNode.rotation = localRotation;
+            transformNode.scaling = localScaling;
+            
+            // Reset mesh transform and parent to individual TransformNode
             mesh.position = Vector3.Zero();
             mesh.rotation = Vector3.Zero();
             mesh.scaling = new Vector3(1, 1, 1);
@@ -588,6 +596,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
 
+    // Helper function to manipulate the entire BMC collection
+    const adjustEntireBMC = (options: {
+      position?: Vector3;
+      rotation?: Vector3;
+      scale?: Vector3;
+    }) => {
+      if (scene) {
+        const rootTransform = scene.getNodeByName("__root__");
+        if (rootTransform) {
+          if (options.position) {
+            rootTransform.position = options.position;
+            console.log(`🌍 Entire BMC position set to (${options.position.x}, ${options.position.y}, ${options.position.z})`);
+          }
+          if (options.rotation) {
+            rootTransform.rotation = options.rotation;
+            console.log(`🔄 Entire BMC rotation set to (${options.rotation.x}, ${options.rotation.y}, ${options.rotation.z})`);
+          }
+          if (options.scale) {
+            rootTransform.scaling = options.scale;
+            console.log(`📏 Entire BMC scale set to (${options.scale.x}, ${options.scale.y}, ${options.scale.z})`);
+          }
+        }
+      }
+    };
+
     // Helper function to list all available BMC sections
     const listBMCSections = () => {
       if (scene) {
@@ -598,6 +631,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           }
         });
         console.log("📋 Available BMC sections:", sections);
+        console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
         return sections;
       }
       return [];
@@ -605,11 +639,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Expose manipulation functions globally for development/testing
     (window as any).adjustBMCSection = adjustBMCSection;
+    (window as any).adjustEntireBMC = adjustEntireBMC;
     (window as any).listBMCSections = listBMCSections;
     
-    console.log("🔧 BMC section manipulation functions available:");
-    console.log("   window.adjustBMCSection(sectionName, {height, transparency, color, scale})");
+    console.log("🔧 BMC manipulation functions available:");
+    console.log("   window.adjustBMCSection(sectionName, {height, transparency, color, scale}) - individual sections");
+    console.log("   window.adjustEntireBMC({position, rotation, scale}) - entire collection");
     console.log("   window.listBMCSections() - shows all available section names");
+    console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
     // Start the render loop
     engine.runRenderLoop(() => {
