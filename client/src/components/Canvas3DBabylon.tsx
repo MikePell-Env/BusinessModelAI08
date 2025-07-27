@@ -367,11 +367,67 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
+              // Add hover and click interactivity to each mesh
+              mesh.actionManager = new ActionManager(scene);
+              
+              // Hover enter - change to turquoise blue and fade others
+              mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+                if (!(mesh as any).isClicked) {
+                  // Change hovered mesh to turquoise blue
+                  const hoverColor = Color3.FromHexString("#40E0D0"); // Turquoise blue
+                  (mesh.material as StandardMaterial).diffuseColor = hoverColor;
+                  
+                  // Reduce opacity of all other meshes to 10%
+                  meshes.forEach((otherMesh) => {
+                    if (otherMesh !== mesh && otherMesh.material) {
+                      (otherMesh.material as StandardMaterial).alpha = 0.1;
+                    }
+                  });
+                  
+                  console.log(`🟦 Hovering over ${sectionName}`);
+                }
+              }));
+              
+              // Hover exit - restore original colors and full opacity
+              mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+                if (!(mesh as any).isClicked) {
+                  // Restore original dark black color
+                  (mesh.material as StandardMaterial).diffuseColor = (mesh as any).originalColor;
+                  
+                  // Restore full opacity to all meshes
+                  meshes.forEach((otherMesh) => {
+                    if (otherMesh.material) {
+                      (otherMesh.material as StandardMaterial).alpha = 1.0;
+                    }
+                  });
+                  
+                  console.log(`⚫ Stopped hovering over ${sectionName}`);
+                }
+              }));
+              
+              // Click - toggle between darkened and normal states
+              mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+                const isCurrentlyClicked = (mesh as any).isClicked;
+                
+                if (isCurrentlyClicked) {
+                  // Unclick - restore to original state
+                  (mesh.material as StandardMaterial).diffuseColor = (mesh as any).originalColor;
+                  (mesh as any).isClicked = false;
+                  console.log(`🔓 Unclicked ${sectionName} - restored to normal`);
+                } else {
+                  // Click - darken by 30%
+                  const darkenedColor = (mesh as any).originalColor.scale(0.7);
+                  (mesh.material as StandardMaterial).diffuseColor = darkenedColor;
+                  (mesh as any).isClicked = true;
+                  console.log(`🔒 Clicked ${sectionName} - darkened`);
+                }
+              }));
+
               // TEST: Make Key Partners shape bright red to identify it
-              if (sectionName === "Key Partners" && mesh) {
+              if (sectionName === "Key Partners") {
                 console.log(`🎯 FOUND Key Partners shape - making it bright red for identification`);
                 
-                // Change mesh material to bright red for identification
+                // Override material for identification
                 const testMaterial = new StandardMaterial(`testMat_${sectionName}`, scene);
                 testMaterial.diffuseColor = Color3.Red();
                 testMaterial.emissiveColor = Color3.Red();
