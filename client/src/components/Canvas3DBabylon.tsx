@@ -484,10 +484,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Create small label plane
+              // Create label plane with proper aspect ratio (wider, less tall)
               const labelPlane = MeshBuilder.CreatePlane("customerSegmentsLabel", {
-                width: size.x * 0.4,
-                height: size.z * 0.25
+                width: size.x * 0.5,   // Wider
+                height: size.z * 0.15  // Much less tall to avoid vertical stretching
               }, scene);
               
               // Position slightly above mesh center
@@ -498,14 +498,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Rotate to be flat on top
               labelPlane.rotation.x = Math.PI / 2;
               
-              // Create label material
+              // Create white text material instead of using PNG texture
               const labelMaterial = new StandardMaterial("customerSegmentsLabelMat", scene);
-              const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
-              labelTexture.hasAlpha = true;
               
-              labelMaterial.diffuseTexture = labelTexture;
+              // Create dynamic texture for white text on transparent background
+              const dynamicTexture = new DynamicTexture("customerSegmentsText", {width: 512, height: 256}, scene, true);
+              const context = dynamicTexture.getContext();
+              
+              // Clear with transparent background
+              context.clearRect(0, 0, 512, 256);
+              
+              // Draw white text
+              context.fillStyle = "white";
+              context.font = "bold 36px Arial";
+              context.textAlign = "center";
+              context.textBaseline = "middle";
+              context.fillText("Customer", 256, 100);
+              context.fillText("Segments", 256, 156);
+              
+              dynamicTexture.update();
+              
+              labelMaterial.diffuseTexture = dynamicTexture;
               labelMaterial.useAlphaFromDiffuseTexture = true;
-              labelMaterial.disableLighting = true; // Make it always visible
+              labelMaterial.disableLighting = true;
               
               labelPlane.material = labelMaterial;
               labelPlane.parent = mesh; // Move with parent mesh
