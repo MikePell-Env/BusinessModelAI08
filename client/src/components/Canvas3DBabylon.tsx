@@ -282,13 +282,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
             
             // Create connecting line from label to shape top
+            const meshTop = meshBounds.boundingBox.maximumWorld.y;
             const linePoints = [
-              new Vector3(meshCenter.x, meshCenter.y + labelHeight - 0.3, meshCenter.z), // Bottom of label
-              new Vector3(meshCenter.x, meshBounds.boundingBox.maximumWorld.y, meshCenter.z)  // Top of mesh
+              new Vector3(meshCenter.x, meshCenter.y + labelHeight - 0.5, meshCenter.z), // Bottom of label area
+              new Vector3(meshCenter.x, meshTop + 0.1, meshCenter.z)  // Slightly above top of mesh
             ];
             const connectingLine = MeshBuilder.CreateLines(`line_${index}`, {points: linePoints}, scene);
-            connectingLine.color = new Color3(1, 1, 1); // White line
+            connectingLine.color = new Color3(0, 0, 0); // Black line
             connectingLine.visibility = 0; // Initially invisible
+            
+            // Make line thicker and more visible
+            const lineMaterial = new StandardMaterial(`lineMaterial_${index}`, scene);
+            lineMaterial.emissiveColor = new Color3(0, 0, 0); // Black emissive for visibility
+            connectingLine.material = lineMaterial;
             
             // Store references for hover effects
             (mesh as any).labelContainer = labelContainer;
@@ -303,10 +309,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const brightenedColor = baseColor.scale(1.3); // 30% brighter
                 sectionMaterial.diffuseColor = brightenedColor;
                 
-                // Make label opaque black background
+                // Make label bright blue background
                 const labelContainer = (mesh as any).labelContainer;
                 if (labelContainer) {
-                  labelContainer.background = "rgba(0, 0, 0, 1.0)"; // Fully opaque black
+                  labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
                 }
                 
                 // Show connecting line
@@ -315,7 +321,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   connectingLine.visibility = 1; // Make line visible
                 }
                 
-                console.log(`💡 Hover enter: ${sectionName} brightened with opaque label and line`);
+                console.log(`💡 Hover enter: ${sectionName} brightened with bright blue label and black line`);
               }
             }));
             
