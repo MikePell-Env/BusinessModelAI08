@@ -197,7 +197,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
 
-    // Load complete BMC GLB model - simplified approach
+    // Define BMC section colors matching traditional business model canvas
+    const bmcColors = [
+      new Color3(0.3, 0.6, 0.9),   // Blue - Value Propositions
+      new Color3(0.4, 0.8, 0.4),   // Green - Key Partners  
+      new Color3(0.9, 0.6, 0.3),   // Orange - Key Activities
+      new Color3(0.9, 0.3, 0.3),   // Red - Key Resources
+      new Color3(0.9, 0.9, 0.3),   // Yellow - Customer Relationships
+      new Color3(0.6, 0.9, 0.9),   // Cyan - Channels
+      new Color3(0.8, 0.4, 0.9),   // Purple - Customer Segments
+      new Color3(0.7, 0.7, 0.7),   // Gray - Cost Structure
+      new Color3(0.5, 0.9, 0.5),   // Light Green - Revenue Streams
+    ];
+
+    // Load complete BMC GLB model with individual section coloring
     SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", scene).then((result) => {
       if (result.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${result.meshes.length} meshes`);
@@ -213,11 +226,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         console.log(`📦 BMC model positioned at origin with scale 8.0`);
         
-        // Apply materials and shadows to all meshes
+        // Apply different colors to each BMC section mesh
+        let colorIndex = 0;
         result.meshes.forEach((mesh, index) => {
-          if (mesh.material) {
+          if (mesh.material && mesh.name !== "__root__") {
+            // Create new plastic material with unique color for each section
+            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
+            const sectionColor = bmcColors[colorIndex % bmcColors.length];
+            
+            sectionMaterial.diffuseColor = sectionColor;
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Low specular for plastic look
+            sectionMaterial.specularPower = 32; // Medium shine
+            
+            mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
-            console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'}`);
+            
+            console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - Color: ${sectionColor.r.toFixed(2)}, ${sectionColor.g.toFixed(2)}, ${sectionColor.b.toFixed(2)}`);
+            colorIndex++;
           }
         });
         
