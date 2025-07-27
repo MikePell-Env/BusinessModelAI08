@@ -367,51 +367,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
-              // Apply PNG decal using official Babylon.js CreateDecal method
+              // TEST: Make Key Partners shape bright red to identify it
               if (sectionName === "Key Partners" && mesh) {
-                console.log(`🎯 Creating official Babylon.js decal for ${sectionName}`);
+                console.log(`🎯 FOUND Key Partners shape - making it bright red for identification`);
                 
-                // Define decal position on the mesh surface
-                const decalPosition = new Vector3(
-                  transformNode.position.x, 
-                  transformNode.position.y + 0.5, // Top surface
-                  transformNode.position.z
-                );
+                // Change mesh material to bright red for identification
+                const testMaterial = new StandardMaterial(`testMat_${sectionName}`, scene);
+                testMaterial.diffuseColor = Color3.Red();
+                testMaterial.emissiveColor = Color3.Red();
+                testMaterial.disableLighting = true;
                 
-                // Define surface normal (pointing up for top surface)
-                const decalNormal = new Vector3(0, 1, 0);
+                mesh.material = testMaterial;
                 
-                // Define decal size
-                const decalSize = new Vector3(1.0, 1.0, 0.1);
-                
-                // Create the official decal mesh
-                const decal = MeshBuilder.CreateDecal(`decal_${sectionName}`, mesh, {
-                  position: decalPosition,
-                  normal: decalNormal,
-                  size: decalSize,
-                  angle: 0,
-                  localMode: true, // Use local coordinates for proper attachment
-                  cullBackFaces: true // Remove back faces to prevent leaking
-                }, scene);
-                
-                // Apply PNG texture to the decal
-                const decalMaterial = new StandardMaterial(`decalMat_${sectionName}`, scene);
-                const decalTexture = new Texture('/labels/Label_KeyPartners_1753647389095.png', scene);
-                
-                decalTexture.hasAlpha = true;
-                decalTexture.vScale = -1;
-                decalTexture.vOffset = 1;
-                
-                decalMaterial.diffuseTexture = decalTexture;
-                decalMaterial.emissiveTexture = decalTexture;
-                decalMaterial.emissiveColor = Color3.White();
-                decalMaterial.useAlphaFromDiffuseTexture = true;
-                decalMaterial.disableLighting = true;
-                decalMaterial.zOffset = -2; // Prevent z-fighting as per documentation
-                
-                decal.material = decalMaterial;
-                
-                console.log(`🏷️ Created official Babylon.js decal on ${sectionName} mesh at position:`, decalPosition);
+                console.log(`🔴 Key Partners shape should now be BRIGHT RED`);
+                console.log(`📍 Key Partners mesh position:`, mesh.position);
+                console.log(`📍 Key Partners transform position:`, transformNode.position);
               }
             } else {
               // Create billboard label above this mesh
