@@ -117,22 +117,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
     camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
 
-    // Enhanced lighting setup for metallic materials
+    // Enhanced lighting setup for matte black materials with good shading
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 1.0; // Increased for better metallic reflection
-    hemisphericLight.diffuse = new Color3(1, 1, 1);
-    hemisphericLight.specular = new Color3(1, 1, 1);
+    hemisphericLight.intensity = 1.4; // Increased ambient lighting for matte materials
+    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Slightly warm ambient
+    hemisphericLight.specular = new Color3(0, 0, 0); // No specular for matte
     
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 0.9; // Increased for metallic shine
+    directionalLight.intensity = 2.2; // Strong directional light for shape definition
     directionalLight.diffuse = new Color3(1, 1, 1);
-    directionalLight.specular = new Color3(1, 1, 1);
+    directionalLight.specular = new Color3(0, 0, 0); // No specular for matte
     
-    // Add additional directional light for enhanced metallic reflections
-    const directionalLight2 = new DirectionalLight("directionalLight2", new Vector3(1, -0.5, 1), scene);
-    directionalLight2.intensity = 0.5;
-    directionalLight2.diffuse = new Color3(0.9, 0.95, 1); // Slightly cool tint
-    directionalLight2.specular = new Color3(0.9, 0.95, 1);
+    // Add key light from opposite direction for better form definition
+    const directionalLight2 = new DirectionalLight("directionalLight2", new Vector3(1, -0.8, 0.5), scene);
+    directionalLight2.intensity = 1.5; // Strong fill light
+    directionalLight2.diffuse = new Color3(0.95, 0.95, 1); // Slightly cool fill
+    directionalLight2.specular = new Color3(0, 0, 0); // No specular for matte
 
     // Create ground with grey plastic material and light grey gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -287,15 +287,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Customer Relationships label is where Customer Segments should be  
         // Customer Segments label is where Key Activities should be
         const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
-          0: { color: new Color3(0.1, 0.1, 0.1), name: "Value Propositions" },      // Matte Black
-          1: { color: new Color3(0.1, 0.1, 0.1), name: "Key Partners" },           // Matte Black
-          2: { color: new Color3(0.1, 0.1, 0.1), name: "Customer Segments" },      // Matte Black
-          3: { color: new Color3(0.1, 0.1, 0.1), name: "Key Resources" },          // Matte Black
-          4: { color: new Color3(0.1, 0.1, 0.1), name: "Key Activities" },         // Matte Black
-          5: { color: new Color3(0.1, 0.1, 0.1), name: "Channels" },               // Matte Black
-          6: { color: new Color3(0.1, 0.1, 0.1), name: "Customer Relationships" }, // Matte Black
-          7: { color: new Color3(0.1, 0.1, 0.1), name: "Cost Structure" },         // Matte Black
-          8: { color: new Color3(0.1, 0.1, 0.1), name: "Revenue Streams" },        // Matte Black
+          0: { color: new Color3(0.02, 0.02, 0.02), name: "Value Propositions" },      // Deep Matte Black
+          1: { color: new Color3(0.02, 0.02, 0.02), name: "Key Partners" },           // Deep Matte Black
+          2: { color: new Color3(0.02, 0.02, 0.02), name: "Customer Segments" },      // Deep Matte Black
+          3: { color: new Color3(0.02, 0.02, 0.02), name: "Key Resources" },          // Deep Matte Black
+          4: { color: new Color3(0.02, 0.02, 0.02), name: "Key Activities" },         // Deep Matte Black
+          5: { color: new Color3(0.02, 0.02, 0.02), name: "Channels" },               // Deep Matte Black
+          6: { color: new Color3(0.02, 0.02, 0.02), name: "Customer Relationships" }, // Deep Matte Black
+          7: { color: new Color3(0.02, 0.02, 0.02), name: "Cost Structure" },         // Deep Matte Black
+          8: { color: new Color3(0.02, 0.02, 0.02), name: "Revenue Streams" },        // Deep Matte Black
         };
 
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
@@ -332,13 +332,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
             
-            // Create new matte black plastic material for each section
+            // Create new deep matte black plastic material for each section
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
             
-            // Use the black color directly without enhancement
+            // Use very dark black color for deep matte appearance
             sectionMaterial.baseColor = baseColor;
             sectionMaterial.metallic = 0.0; // No metallic reflection for plastic
-            sectionMaterial.roughness = 0.9; // High roughness for matte finish
+            sectionMaterial.roughness = 1.0; // Maximum roughness for completely matte finish
+            sectionMaterial.clearCoat.isEnabled = false; // Disable clear coat for pure matte
+            sectionMaterial.directIntensity = 0.8; // Reduce direct light reflection
+            sectionMaterial.environmentIntensity = 0.1; // Minimal environment reflection
             // Environment reflections handled by scene environment
             
             mesh.material = sectionMaterial;
