@@ -281,23 +281,62 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelContainer.linkWithMesh(mesh);
             labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
             
+            // Create connecting line from label to shape top
+            const linePoints = [
+              new Vector3(meshCenter.x, meshCenter.y + labelHeight - 0.3, meshCenter.z), // Bottom of label
+              new Vector3(meshCenter.x, meshBounds.boundingBox.maximumWorld.y, meshCenter.z)  // Top of mesh
+            ];
+            const connectingLine = MeshBuilder.CreateLines(`line_${index}`, {points: linePoints}, scene);
+            connectingLine.color = new Color3(1, 1, 1); // White line
+            connectingLine.visibility = 0; // Initially invisible
+            
+            // Store references for hover effects
+            (mesh as any).labelContainer = labelContainer;
+            (mesh as any).connectingLine = connectingLine;
+            
             // Enable pointer events for this mesh
             mesh.actionManager = new ActionManager(scene);
             
-            // Hover enter - brighten color
+            // Hover enter - brighten color, show label and line
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
               if (!(mesh as any).isClicked) {
                 const brightenedColor = baseColor.scale(1.3); // 30% brighter
                 sectionMaterial.diffuseColor = brightenedColor;
-                console.log(`💡 Hover enter: ${sectionName} brightened`);
+                
+                // Make label opaque black background
+                const labelContainer = (mesh as any).labelContainer;
+                if (labelContainer) {
+                  labelContainer.background = "rgba(0, 0, 0, 1.0)"; // Fully opaque black
+                }
+                
+                // Show connecting line
+                const connectingLine = (mesh as any).connectingLine;
+                if (connectingLine) {
+                  connectingLine.visibility = 1; // Make line visible
+                }
+                
+                console.log(`💡 Hover enter: ${sectionName} brightened with opaque label and line`);
               }
             }));
             
-            // Hover exit - restore original color
+            // Hover exit - restore original color, hide label effects and line
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
               if (!(mesh as any).isClicked) {
                 sectionMaterial.diffuseColor = (mesh as any).originalColor;
-                console.log(`🔄 Hover exit: ${sectionName} restored`);
+                
+                // Restore label to semi-transparent
+                const labelContainer = (mesh as any).labelContainer;
+                if (labelContainer) {
+                  labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Semi-transparent
+                }
+                
+                // Hide connecting line
+                const connectingLine = (mesh as any).connectingLine;
+                if (connectingLine) {
+                  connectingLine.visibility = 0; // Hide line
+                }
+                
+                console.log(`🔄 Hover exit: ${sectionName} restored with semi-transparent label and hidden line`);
               }
             }));
             
