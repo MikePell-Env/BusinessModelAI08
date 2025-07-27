@@ -76,8 +76,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     return section.content.map(item => `• ${item}`).join('\n');
   };
   
-  // Label system toggle - set to false to use billboard labels, true for texture labels  
-  const useTextureLabels = true; // Switch to 3D text approach
+  // Use only billboard labels - texture mapping removed
+  const useTextureLabels = false;
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -341,8 +341,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             sectionMaterial.metallic = 0.0; // No metallic reflection for plastic
             sectionMaterial.roughness = 0.7; // Medium-high roughness for semi-gloss finish
             sectionMaterial.clearCoat.isEnabled = false; // Disable clear coat
-            sectionMaterial.directIntensity = 1.0; // Allow some direct light reflection
-            sectionMaterial.environmentIntensity = 0.3; // Low environment reflection for subtle shine
+            // Use default lighting properties for PBR material
             // Environment reflections handled by scene environment
             
             mesh.material = sectionMaterial;
@@ -353,135 +352,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).originalMaterial = sectionMaterial;
             (mesh as any).isClicked = false;
             
-            if (useTextureLabels) {
-              // NEW: Create 3D text plane that sits on top of the mesh surface
-              const textTexture = new DynamicTexture(`textTexture_${index}`, {width: 512, height: 256}, scene, false);
-              const textContext = textTexture.getContext();
-              
-              // Fill with semi-transparent background
-              textContext.fillStyle = "rgba(0, 0, 0, 0.8)";
-              textContext.fillRect(0, 0, 512, 256);
-              
-              // Draw white text with black outline
-              textContext.fillStyle = "#FFFFFF";
-              textContext.strokeStyle = "#000000";
-              textContext.lineWidth = 2;
-              textContext.font = "bold 32px Arial, sans-serif";
-              textContext.textAlign = "center";
-              textContext.textBaseline = "middle";
-              
-              // Split text into lines
-              const words = sectionName.split(' ');
-              if (words.length > 1) {
-                const lineHeight = 35;
-                const startY = 128 - (words.length - 1) * lineHeight / 2;
-                words.forEach((word, i) => {
-                  const y = startY + i * lineHeight;
-                  textContext.strokeText(word, 256, y);
-                  textContext.fillText(word, 256, y);
-                });
-              } else {
-                textContext.strokeText(sectionName, 256, 128);
-                textContext.fillText(sectionName, 256, 128);
-              }
-              textTexture.update();
-              
-              // Create TWO text planes - one for "top" and one for "bottom" to test coordinate system
-              const boundingInfo = mesh.getBoundingInfo();
-              const meshTop = boundingInfo.boundingBox.maximumWorld.y;
-              const meshBottom = boundingInfo.boundingBox.minimumWorld.y;
-              const meshCenter = mesh.position;
-              
-              // TOP plane (what we think is top)
-              const topPlane = MeshBuilder.CreatePlane(`topPlane_${index}`, {
-                width: 3, height: 1.5, sideOrientation: Mesh.DOUBLESIDE
-              }, scene);
-              topPlane.position.x = meshCenter.x;
-              topPlane.position.y = meshTop + 0.02;
-              topPlane.position.z = meshCenter.z;
-              topPlane.rotation.x = -Math.PI / 2; // Lay flat
-              
-              // BOTTOM plane (what we think is bottom)
-              const bottomPlane = MeshBuilder.CreatePlane(`bottomPlane_${index}`, {
-                width: 3, height: 1.5, sideOrientation: Mesh.DOUBLESIDE
-              }, scene);
-              bottomPlane.position.x = meshCenter.x;
-              bottomPlane.position.y = meshBottom - 0.02;
-              bottomPlane.position.z = meshCenter.z;
-              bottomPlane.rotation.x = Math.PI / 2; // Lay flat (opposite rotation)
-              
-              // Create material with "TOP" text
-              const topMaterial = new StandardMaterial(`topMaterial_${index}`, scene);
-              const topTexture = textTexture.clone();
-              // Clear and redraw with "TOP" prefix
-              const topContext = topTexture.getContext();
-              topContext.fillStyle = "rgba(255, 0, 0, 0.8)"; // Red background
-              topContext.fillRect(0, 0, 512, 256);
-              topContext.fillStyle = "#FFFFFF";
-              topContext.strokeStyle = "#000000";
-              topContext.lineWidth = 2;
-              topContext.font = "bold 24px Arial";
-              topContext.textAlign = "center";
-              topContext.fillText("TOP: " + sectionName, 256, 128);
-              topTexture.update();
-              topMaterial.diffuseTexture = topTexture;
-              topMaterial.emissiveTexture = topTexture;
-              topMaterial.backFaceCulling = false;
-              topPlane.material = topMaterial;
-              
-              // Create material with "BOTTOM" text  
-              const bottomMaterial = new StandardMaterial(`bottomMaterial_${index}`, scene);
-              const bottomTexture = textTexture.clone();
-              const bottomContext = bottomTexture.getContext();
-              bottomContext.fillStyle = "rgba(0, 255, 0, 0.8)"; // Green background
-              bottomContext.fillRect(0, 0, 512, 256);
-              bottomContext.fillStyle = "#FFFFFF";
-              bottomContext.strokeStyle = "#000000"; 
-              bottomContext.lineWidth = 2;
-              bottomContext.font = "bold 24px Arial";
-              bottomContext.textAlign = "center";
-              bottomContext.fillText("BOTTOM: " + sectionName, 256, 128);
-              bottomTexture.update();
-              bottomMaterial.diffuseTexture = bottomTexture;
-              bottomMaterial.emissiveTexture = bottomTexture;
-              bottomMaterial.backFaceCulling = false;
-              bottomPlane.material = bottomMaterial;
-              
-              console.log(`🔍 ${sectionName} - MeshTop: ${meshTop}, MeshBottom: ${meshBottom}, MeshCenter: ${meshCenter.y}`);
-              console.log(`🔴 TOP plane at Y: ${topPlane.position.y} (RED background)`);
-              console.log(`🟢 BOTTOM plane at Y: ${bottomPlane.position.y} (GREEN background)`);
-            } else {
-              // ORIGINAL: Create billboard label above this mesh
-              const labelContainer = new Rectangle(`label_${index}`);
-              labelContainer.widthInPixels = 200;
-              labelContainer.heightInPixels = 40;
-              labelContainer.cornerRadius = 8;
-              labelContainer.color = "white";
-              labelContainer.thickness = 2;
-              labelContainer.background = "rgba(0, 0, 0, 0.7)";
-              // Value Propositions label should always appear in front
-              labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
-              
-              const labelText = new TextBlock(`labelText_${index}`, sectionName);
-              labelText.color = "white";
-              labelText.fontSize = "14px";
-              labelText.fontFamily = "Arial, sans-serif";
-              labelText.fontWeight = "bold";
-              
-              labelContainer.addControl(labelText);
-              advancedTexture.addControl(labelContainer);
-              
-              // Position label higher above mesh top with billboard behavior
-              // Special much higher positioning for Value Proposition label
-              const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
-              
-              // Link label to 3D position with billboard behavior
-              labelContainer.linkWithMesh(mesh);
-              labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
-              
-              // Store reference for hover effects (billboard system only)
-              (mesh as any).labelContainer = labelContainer;
-            }
+            // Create billboard label above this mesh
+            const labelContainer = new Rectangle(`label_${index}`);
+            labelContainer.widthInPixels = 200;
+            labelContainer.heightInPixels = 40;
+            labelContainer.cornerRadius = 8;
+            labelContainer.color = "white";
+            labelContainer.thickness = 2;
+            labelContainer.background = "rgba(0, 0, 0, 0.7)";
+            // Value Propositions label should always appear in front
+            labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
+            
+            const labelText = new TextBlock(`labelText_${index}`, sectionName);
+            labelText.color = "white";
+            labelText.fontSize = "14px";
+            labelText.fontFamily = "Arial, sans-serif";
+            labelText.fontWeight = "bold";
+            
+            labelContainer.addControl(labelText);
+            advancedTexture.addControl(labelContainer);
+            
+            // Position label higher above mesh top with billboard behavior
+            // Special much higher positioning for Value Proposition label
+            const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
+            
+            // Link label to 3D position with billboard behavior
+            labelContainer.linkWithMesh(mesh);
+            labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
+            
+            // Store reference for hover effects
+            (mesh as any).labelContainer = labelContainer;
             
             // Create content panel for click events (initially hidden)
             const contentPanel = new Rectangle(`contentPanel_${index}`);
@@ -742,7 +642,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       scale?: Vector3;
     }) => {
       if (scene) {
-        const rootTransform = scene.getNodeByName("__root__");
+        const rootTransform = scene.getNodeByName("__root__") as TransformNode;
         if (rootTransform) {
           if (options.position) {
             rootTransform.position = options.position;
