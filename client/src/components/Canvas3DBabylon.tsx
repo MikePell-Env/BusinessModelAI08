@@ -392,10 +392,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textPlane.position.y = meshTop + (meshHeight * 5.0); // Same height that worked
                 textPlane.position.z = transformNode.position.z;
                 
-                // Correct rotation - no Y flip to prevent horizontal mirroring
-                textPlane.rotation.x = -Math.PI / 2; // Lay flat
-                textPlane.rotation.y = 0; // No horizontal flip
-                textPlane.rotation.z = 0;
+                // Test different rotations systematically based on documentation
+                // Documentation says GLB model uses NORMAL Y-axis scaling (not inverted)
+                // For a plane to lay flat facing up with correct text orientation:
+                textPlane.rotation.x = -Math.PI / 2; // Lay flat (90 degrees down)
+                textPlane.rotation.y = Math.PI; // 180 degree Y rotation to correct text
+                textPlane.rotation.z = Math.PI; // 180 degree Z rotation to correct text
+                
+                console.log(`🔄 Rotation test for ${sectionName}: X=${textPlane.rotation.x}, Y=${textPlane.rotation.y}, Z=${textPlane.rotation.z}`);
                 
                 // Apply PNG texture with proper UV scaling
                 const textMaterial = new StandardMaterial(`textMaterial_${index}`, scene);
