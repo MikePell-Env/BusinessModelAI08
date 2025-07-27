@@ -564,13 +564,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Create label plane with 50% taller height than before
-              const labelWidth = size.x * 0.6;
+              // Create label plane with 50% taller height and slightly larger overall
+              const labelWidth = size.x * 0.65; // Slightly larger than 0.6
               const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger than the previous calculated height
               console.log(`Customer Relationships Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
               const labelPlane = MeshBuilder.CreatePlane("customerRelationshipsLabel", {
-                width: labelWidth,   // Smaller width to fit better within mesh
+                width: labelWidth,   // Slightly larger width to fit better within mesh
                 height: labelHeight  // 50% taller to reduce squishing
               }, scene);
               
@@ -608,16 +608,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Create label plane with correct aspect ratio matching the PNG file
+              // Create label plane with 50% taller height and slightly larger overall
+              const labelWidth = size.x * 0.65; // Slightly larger than 0.6
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger than calculated height
+              console.log(`Customer Channels Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
               const labelPlane = MeshBuilder.CreatePlane("customerChannelsLabel", {
-                width: size.x * 0.7,   // Wide to match PNG aspect ratio
-                height: size.z * 0.15  // Height based on PNG aspect ratio
+                width: labelWidth,   // Slightly larger width
+                height: labelHeight  // 50% taller to reduce squishing
               }, scene);
               
-              // Position slightly above mesh center
-              labelPlane.position.x = center.x;
+              // Position within the mesh boundaries, moved right with margin like Customer Relationships  
+              labelPlane.position.x = center.x + size.x * 0.15; // Move right but leave margin on right edge
               labelPlane.position.y = center.y + size.y * 0.6;
-              labelPlane.position.z = center.z;
+              labelPlane.position.z = center.z - size.z * 0.3; // Move down toward bottom of shape
               
               // Rotate to be flat on top
               labelPlane.rotation.x = Math.PI / 2;
