@@ -324,6 +324,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 y: meshBounds.boundingBox.maximumWorld.y - meshBounds.boundingBox.minimumWorld.y,
                 z: meshBounds.boundingBox.maximumWorld.z - meshBounds.boundingBox.minimumWorld.z
               });
+              
+              // Scale Y-axis to make Value Propositions taller
+              mesh.scaling = new Vector3(1, 2.0, 1); // Double the height (Y-axis)
+              console.log(`📏 Value Propositions scaled 2x on Y-axis (height)`);
             }
             
             // Store original color for hover/click effects
