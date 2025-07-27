@@ -475,29 +475,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Note: directIntensity and environmentIntensity properties handled by scene environment
             // Environment reflections handled by scene environment
             
-            // Special texture mapping for Customer Segments (index 2)
-            if (sectionName === "Customer Segments") {
-              console.log(`🎯 Applying texture to Customer Segments mesh (index ${index})`);
-              
-              // Load the original PNG texture with scaling to make it much smaller
-              const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
-              labelTexture.uOffset = 0.35;   // Center the texture
-              labelTexture.vOffset = 0.35;   // Center the texture
-              labelTexture.uScale = 0.3;     // Make texture much smaller (30% of original)
-              labelTexture.vScale = 0.3;     // Make texture much smaller (30% of original)
-              labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
-              labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
-              
-              // Apply texture to the material as base texture
-              sectionMaterial.baseTexture = labelTexture;
-              
-              // Apply simplified UV mapping to show texture only on top faces
-              applyTopFaceTexture(mesh as Mesh, scene);
-              
-              // Store the textured material for hover effects
-              (mesh as any).hasTexture = true;
-              (mesh as any).texturedMaterial = sectionMaterial;
-            }
+            // Customer Segments uses standard black material like other sections
+            // No special texture mapping applied
             
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
