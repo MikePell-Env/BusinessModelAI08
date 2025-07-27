@@ -85,7 +85,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const scene = new Scene(engine);
     
     // Set background to match 2D view (#e9ecef - light gray)
-    scene.clearColor = new Color3(0.914, 0.925, 0.937).toColor4();
+    // #e9ecef = RGB(233, 236, 239) = normalized (0.914, 0.925, 0.937)
+    scene.clearColor = new Color4(0.914, 0.925, 0.937, 1.0);
     
     engineRef.current = engine;
     sceneRef.current = scene;
