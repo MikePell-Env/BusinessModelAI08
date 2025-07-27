@@ -458,11 +458,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Enable pointer events for this mesh
             mesh.actionManager = new ActionManager(scene);
             
-            // Hover enter - brighten color, show label and line
+            // Hover enter - change to turquoise blue and make other objects 10% opacity
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
               if (!(mesh as any).isClicked) {
-                const brightenedColor = baseColor.scale(1.3); // 30% brighter
-                sectionMaterial.baseColor = brightenedColor;
+                // Change hovered object to turquoise blue
+                const turquoiseColor = new Color3(0.25, 0.8, 0.7); // Turquoise blue
+                sectionMaterial.baseColor = turquoiseColor;
+                
+                // Make all other BMC objects 10% opacity
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  if (otherMesh !== mesh) {
+                    material.alpha = 0.1; // 10% opacity
+                  }
+                });
                 
                 // Make label bright blue background
                 const labelContainer = (mesh as any).labelContainer;
@@ -470,14 +478,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
                 }
                 
-                console.log(`💡 Hover enter: ${sectionName} brightened with bright blue label`);
+                console.log(`💡 Hover enter: ${sectionName} turquoise blue, others 10% opacity`);
               }
             }));
             
-            // Hover exit - restore original color and label
+            // Hover exit - restore original color and full opacity to all objects
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
               if (!(mesh as any).isClicked) {
+                // Restore hovered object to original color
                 sectionMaterial.baseColor = (mesh as any).originalColor;
+                
+                // Restore all other BMC objects to full opacity
+                contentPanelsRef.current.forEach(({ material }) => {
+                  material.alpha = 1.0; // Full opacity
+                });
                 
                 // Restore label to semi-transparent
                 const labelContainer = (mesh as any).labelContainer;
@@ -485,7 +499,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Semi-transparent
                 }
                 
-                console.log(`🔄 Hover exit: ${sectionName} restored with semi-transparent label`);
+                console.log(`🔄 Hover exit: ${sectionName} restored, all objects full opacity`);
               }
             }));
             
