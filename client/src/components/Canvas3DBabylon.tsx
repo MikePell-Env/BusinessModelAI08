@@ -299,14 +299,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           8: { color: new Color3(0.005, 0.005, 0.005), name: "Revenue Streams" },        // Very Dark Black
         };
 
-        // Store reference to all meshes for hover effects
-        const allMeshes = result.meshes.filter(mesh => mesh.material && mesh.name !== "__root__");
-        
-        console.log(`🔍 DEBUGGING: Total meshes found: ${result.meshes.length}`);
-        console.log(`🔍 DEBUGGING: Filtered meshes for processing: ${allMeshes.length}`);
-        result.meshes.forEach((mesh, i) => {
-          console.log(`🔍 DEBUGGING: Mesh ${i}: name="${mesh.name}", hasMaterial=${!!mesh.material}, isRoot=${mesh.name === "__root__"}`);
-        });
+        // Apply materials and setup to each BMC section mesh
         
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
@@ -353,112 +346,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
-            // Store original color and material for hover/click effects
-            (mesh as any).originalColor = baseColor.clone();
-            (mesh as any).originalMaterial = sectionMaterial;
-            (mesh as any).isClicked = false;
-            
-            // Add hover and click interactivity to ALL meshes
-            mesh.actionManager = new ActionManager(scene);
-            console.log(`🎮 Adding action manager to ${sectionName} mesh`);
-            
-            // Hover enter - change to bright blue and fade others
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-                console.log(`🔍 HOVER ENTER triggered on ${sectionName}`);
-                if (!(mesh as any).isClicked) {
-                  // Change hovered mesh to bright blue
-                  const hoverColor = Color3.FromHexString("#0080FF"); // Bright blue
-                  (mesh.material as StandardMaterial).diffuseColor = hoverColor;
-                  (mesh.material as StandardMaterial).emissiveColor = hoverColor.scale(0.3); // Slight glow
-                  
-                  // Reduce opacity of all other meshes to 90%
-                  allMeshes.forEach((otherMesh) => {
-                    if (otherMesh !== mesh && otherMesh.material) {
-                      (otherMesh.material as StandardMaterial).alpha = 0.9;
-                    }
-                  });
-                  
-                  console.log(`🔵 Hovering over ${sectionName} - changed to bright blue`);
-                }
-              }));
-              
-              // Hover exit - restore original colors and full opacity
-              mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-                console.log(`🔍 HOVER EXIT triggered on ${sectionName}`);
-                if (!(mesh as any).isClicked) {
-                  // Restore original color and remove emissive
-                  if (sectionName === "Key Partners") {
-                    // Restore red color for Key Partners
-                    (mesh.material as StandardMaterial).diffuseColor = Color3.Red();
-                    (mesh.material as StandardMaterial).emissiveColor = Color3.Red();
-                  } else {
-                    // Restore original dark black color for others
-                    (mesh.material as StandardMaterial).diffuseColor = (mesh as any).originalColor;
-                    (mesh.material as StandardMaterial).emissiveColor = Color3.Black();
-                  }
-                  
-                  // Restore full opacity to all meshes
-                  allMeshes.forEach((otherMesh) => {
-                    if (otherMesh.material) {
-                      (otherMesh.material as StandardMaterial).alpha = 1.0;
-                    }
-                  });
-                  
-                  console.log(`⚫ Stopped hovering over ${sectionName} - restored colors`);
-                }
-              }));
-              
-              // Click - toggle between darkened and normal states
-              mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-                console.log(`🔍 CLICK triggered on ${sectionName}`);
-                const isCurrentlyClicked = (mesh as any).isClicked;
-                
-                if (isCurrentlyClicked) {
-                  // Unclick - restore to original state
-                  if (sectionName === "Key Partners") {
-                    (mesh.material as StandardMaterial).diffuseColor = Color3.Red();
-                    (mesh.material as StandardMaterial).emissiveColor = Color3.Red();
-                  } else {
-                    (mesh.material as StandardMaterial).diffuseColor = (mesh as any).originalColor;
-                    (mesh.material as StandardMaterial).emissiveColor = Color3.Black();
-                  }
-                  (mesh as any).isClicked = false;
-                  console.log(`🔓 Unclicked ${sectionName} - restored to normal`);
-                } else {
-                  // Click - darken by 30%
-                  if (sectionName === "Key Partners") {
-                    const darkenedRed = Color3.Red().scale(0.7);
-                    (mesh.material as StandardMaterial).diffuseColor = darkenedRed;
-                    (mesh.material as StandardMaterial).emissiveColor = darkenedRed;
-                  } else {
-                    const darkenedColor = (mesh as any).originalColor.scale(0.7);
-                    (mesh.material as StandardMaterial).diffuseColor = darkenedColor;
-                  }
-                  (mesh as any).isClicked = true;
-                  console.log(`🔒 Clicked ${sectionName} - darkened by 30%`);
-                }
-              }));
-
             if (useTextureLabels) {
-              // TEST: Make Key Partners shape bright red to identify it AND apply PNG decal
+              // Apply PNG decal system to Key Partners for testing
               if (sectionName === "Key Partners") {
-                console.log(`🎯 FOUND Key Partners shape - making it bright red for identification`);
-                
-                // Override material for identification but store original first
-                const testMaterial = new StandardMaterial(`testMat_${sectionName}`, scene);
-                testMaterial.diffuseColor = Color3.Red();
-                testMaterial.emissiveColor = Color3.Red();
-                testMaterial.disableLighting = true;
-                
-                // Store original material reference before overriding
-                (mesh as any).originalMaterial = mesh.material;
-                (mesh as any).originalColor = baseColor.clone(); // Keep original color for hover
-                
-                mesh.material = testMaterial;
-                
-                console.log(`🔴 Key Partners shape should now be BRIGHT RED`);
-                console.log(`📍 Key Partners mesh position:`, mesh.position);
-                console.log(`📍 Key Partners transform position:`, transformNode.position);
+                console.log(`🎯 FOUND Key Partners shape - applying PNG decal`);
                 
                 // Now apply PNG decal to this identified mesh
                 try {
