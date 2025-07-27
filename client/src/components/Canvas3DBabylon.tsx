@@ -367,61 +367,39 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
-              // Create decal for Key Partners section
-              if (sectionName === "Key Partners" && textureFileName) {
-                console.log(`🎯 Creating test decal for ${sectionName}`);
+              // Apply PNG decal directly to Key Partners surface
+              if (sectionName === "Key Partners") {
+                console.log(`🎯 Applying PNG decal to ${sectionName}`);
                 
-                // Create bright test plane to find correct surface
-                const testDecal = MeshBuilder.CreatePlane(`testDecal_${index}`, {
-                  width: 1.0, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
+                // Create a visible decal plane at world coordinates first
+                const decalPlane = MeshBuilder.CreatePlane(`decal_${sectionName}`, {
+                  width: 1.2, height: 0.5, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
-                // Position flush on Key Partners surface
-                testDecal.position.x = transformNode.position.x;
-                testDecal.position.y = transformNode.position.y + 0.1; // Much closer to surface for decal effect
-                testDecal.position.z = transformNode.position.z;
+                // Position at a clearly visible location for testing
+                decalPlane.position.x = 0;
+                decalPlane.position.y = 1.5; // Above the model
+                decalPlane.position.z = 0;
+                decalPlane.rotation.x = -Math.PI / 2; // Lay flat
                 
-                // Lay flat horizontally
-                testDecal.rotation.x = -Math.PI / 2;
+                // Use any available PNG as texture
+                const decalMaterial = new StandardMaterial(`decalMat_${sectionName}`, scene);
+                const decalTexture = new Texture('/labels/Label_KeyPartners_1753647389095.png', scene);
                 
-                // Create super bright material that's impossible to miss
-                const testMaterial = new StandardMaterial(`testMaterial_${index}`, scene);
-                testMaterial.diffuseColor = Color3.Red();
-                testMaterial.emissiveColor = Color3.Red(); // Full red emission
-                testMaterial.disableLighting = true; // Ignore lighting completely
+                decalTexture.hasAlpha = true;
+                decalTexture.vScale = -1;
+                decalTexture.vOffset = 1;
                 
-                testDecal.material = testMaterial;
+                decalMaterial.diffuseTexture = decalTexture;
+                decalMaterial.emissiveTexture = decalTexture;
+                decalMaterial.emissiveColor = Color3.White();
+                decalMaterial.useAlphaFromDiffuseTexture = true;
+                decalMaterial.disableLighting = true;
+                decalMaterial.backFaceCulling = false;
                 
-                console.log(`🔴 Created bright red test decal at (0, 2, 0) - should be highly visible`);
-                console.log(`   📍 If visible, we'll move it to actual surface position`);
+                decalPlane.material = decalMaterial;
                 
-                // Also create texture version for comparison
-                if (textureFileName) {
-                  const textureDecal = MeshBuilder.CreatePlane(`textureDecal_${index}`, {
-                    width: 1.0, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
-                  }, scene);
-                  
-                  textureDecal.position.x = transformNode.position.x; // Center on Key Partners shape
-                  textureDecal.position.y = transformNode.position.y + 0.05; // Even closer to surface for decal
-                  textureDecal.position.z = transformNode.position.z;
-                  textureDecal.rotation.x = -Math.PI / 2;
-                  
-                  const textureMaterial = new StandardMaterial(`textureMaterial_${index}`, scene);
-                  const texture = new Texture(`/labels/${textureFileName}`, scene);
-                  texture.hasAlpha = true;
-                  texture.vScale = -1;
-                  texture.vOffset = 1;
-                  
-                  textureMaterial.diffuseTexture = texture;
-                  textureMaterial.emissiveTexture = texture;
-                  textureMaterial.emissiveColor = Color3.White();
-                  textureMaterial.useAlphaFromDiffuseTexture = true;
-                  textureMaterial.disableLighting = true;
-                  
-                  textureDecal.material = textureMaterial;
-                  
-                  console.log(`🏷️ Created texture decal at (1.5, 2, 0) with ${textureFileName}`);
-                }
+                console.log(`🏷️ Created PNG decal at world position (0, 1.5, 0)`);
               }
             } else {
               // Create billboard label above this mesh
