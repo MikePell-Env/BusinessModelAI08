@@ -115,14 +115,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
     camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
 
-    // Simple lighting setup for plastic materials
+    // Enhanced lighting setup for metallic materials
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 0.7;
+    hemisphericLight.intensity = 1.0; // Increased for better metallic reflection
     hemisphericLight.diffuse = new Color3(1, 1, 1);
+    hemisphericLight.specular = new Color3(1, 1, 1);
     
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 0.8;
+    directionalLight.intensity = 0.9; // Increased for metallic shine
     directionalLight.diffuse = new Color3(1, 1, 1);
+    directionalLight.specular = new Color3(1, 1, 1);
+    
+    // Add additional directional light for enhanced metallic reflections
+    const directionalLight2 = new DirectionalLight("directionalLight2", new Vector3(1, -0.5, 1), scene);
+    directionalLight2.intensity = 0.5;
+    directionalLight2.diffuse = new Color3(0.9, 0.95, 1); // Slightly cool tint
+    directionalLight2.specular = new Color3(0.9, 0.95, 1);
 
     // Create ground with grey plastic material and light grey gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -214,9 +222,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
 
 
-    // Add default environment for proper PBR reflections
-    if (scene.environmentTexture) {
-      scene.createDefaultSkybox(scene.environmentTexture, true, 100, 0.3);
+    // Create default environment for PBR metallic reflections
+    const environmentHelper = scene.createDefaultEnvironment({
+      createGround: false, // We already have ground
+      createSkybox: true,
+      skyboxSize: 100,
+      skyboxColor: new Color3(0.9, 0.9, 0.9) // Light grey for better reflections
+    });
+    
+    // Boost environment intensity for metallic shine
+    if (environmentHelper && environmentHelper.mainLight) {
+      environmentHelper.mainLight.intensity = 1.2;
     }
 
     // Create GUI for 3D billboard labels
@@ -273,9 +289,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Create new shiny metallic material with unique color for each section
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
-            sectionMaterial.baseColor = baseColor;
-            sectionMaterial.metallic = 0.9; // High metallic reflection for shiny metal
-            sectionMaterial.roughness = 0.1; // Low roughness for polished metal finish
+            
+            // Make colors more vivid and saturated for metallic appearance
+            const vividColor = new Color3(
+              Math.pow(baseColor.r, 0.7), // Enhance color saturation
+              Math.pow(baseColor.g, 0.7), 
+              Math.pow(baseColor.b, 0.7)
+            );
+            
+            sectionMaterial.baseColor = vividColor;
+            sectionMaterial.metallic = 0.95; // Very high metallic reflection
+            sectionMaterial.roughness = 0.05; // Very low roughness for mirror-like finish
+            sectionMaterial.environmentIntensity = 1.5; // Boost environment reflections
             
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
