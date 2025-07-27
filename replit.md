@@ -88,6 +88,15 @@ The application follows a full-stack monorepo architecture with clear separation
 
 ## Recent Changes
 
+### July 26, 2025 - Complete 3D BMC Layout with Corrected Coordinate System
+- **✅ Master Transform Coordinate Fix**: Successfully resolved coordinate system issues using single master transform node approach
+- **✅ Perfect Object Positioning**: All 7 GLB objects now positioned correctly above ground plane with proper spacing
+- **✅ Coordinate System Understanding**: Learned that 180° Y-axis rotation flips coordinate logic (smaller absolute values = further apart)
+- **✅ Optimized Object Spacing**: Green/Purple rectangles properly spaced, inner 4 objects positioned for maximum visibility
+- **✅ Clean Architecture**: Single unified GLB loading function with master transform parent for all objects
+- **✅ Comprehensive Logging**: Added detailed console logging for debugging object loading and positioning
+- **✅ Plastic Material System**: All objects use PBR materials with plastic appearance (metallic=0.0, roughness=0.8)
+
 ### July 26, 2025 - Billboard Label Centering & Plastic Material Enhancement
 - **✅ Perfect Billboard Label Positioning**: Fixed title labels to stay perfectly centered above each 3D object regardless of viewing angle
 - **✅ Dynamic Label Positioning**: Labels now use linkOffsetYInPixels and linkOffsetXInPixels for precise positioning
