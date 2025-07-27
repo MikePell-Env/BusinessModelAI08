@@ -479,12 +479,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             if (sectionName === "Customer Segments") {
               console.log(`🎯 Applying texture to Customer Segments mesh (index ${index})`);
               
-              // Load the original PNG texture
+              // Load the original PNG texture with scaling to make it much smaller
               const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
-              labelTexture.uOffset = 0;
-              labelTexture.vOffset = 0;
-              labelTexture.uScale = 1;
-              labelTexture.vScale = 1;
+              labelTexture.uOffset = 0.35;   // Center the texture
+              labelTexture.vOffset = 0.35;   // Center the texture
+              labelTexture.uScale = 0.3;     // Make texture much smaller (30% of original)
+              labelTexture.vScale = 0.3;     // Make texture much smaller (30% of original)
               labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
               labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
               
