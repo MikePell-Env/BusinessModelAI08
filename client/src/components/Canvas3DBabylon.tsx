@@ -374,23 +374,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
                 labelTexture.hasAlpha = true;
                 
-                // Wait for texture to load and get actual dimensions
+                // Wait for texture to load and resize plane to match PNG aspect ratio
                 labelTexture.onLoadObservable.addOnce(() => {
                   const textureWidth = labelTexture.getBaseSize().width;
                   const textureHeight = labelTexture.getBaseSize().height;
                   const actualAspectRatio = textureWidth / textureHeight;
                   
-                  console.log(`📏 Actual PNG dimensions: ${textureWidth}x${textureHeight}, aspect ratio: ${actualAspectRatio}`);
+                  console.log(`📏 PNG dimensions: ${textureWidth}x${textureHeight}, aspect ratio: ${actualAspectRatio}`);
                   
-                  // Update plane size based on actual PNG dimensions
-                  const baseHeight = sectionName === "Value Propositions" ? 0.5 : 0.6;
-                  const calculatedWidth = baseHeight * actualAspectRatio;
+                  // Create plane with native PNG aspect ratio - no stretching
+                  const desiredHeight = 0.4; // Small height for cylinder surface
+                  const nativeWidth = desiredHeight * actualAspectRatio; // Maintain exact PNG proportions
                   
-                  textPlane.scaling.x = calculatedWidth / 1.0; // Scale from default 1x1 plane
-                  textPlane.scaling.y = baseHeight / 1.0;
-                  textPlane.scaling.z = 1.0;
+                  // Replace the plane with correctly sized one
+                  textPlane.dispose();
+                  const correctPlane = MeshBuilder.CreatePlane(`textPlane_${index}_corrected`, {
+                    width: nativeWidth, height: desiredHeight, sideOrientation: Mesh.DOUBLESIDE
+                  }, scene);
                   
-                  console.log(`🔧 Updated plane scaling: ${calculatedWidth}x${baseHeight} (aspect: ${actualAspectRatio})`);
+                  // Copy all properties from old plane
+                  correctPlane.position = textPlane.position.clone();
+                  correctPlane.rotation = textPlane.rotation.clone();
+                  correctPlane.material = textMaterial;
+                  
+                  console.log(`🔧 Recreated plane with native aspect: ${nativeWidth}x${desiredHeight}`);
                 });
                 
                 // Create smaller plane that fits within cylinder top
@@ -423,11 +430,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textMaterial.backFaceCulling = false;
                 textMaterial.useAlphaFromDiffuseTexture = true;
                 
-                // Fix upside down texture and scale up to fill smaller plane
-                labelTexture.vScale = -1.5; // Flip vertically and scale up to 150%
-                labelTexture.vOffset = 1.25; // Adjust offset for scaled texture
-                labelTexture.uScale = 1.5;  // Scale horizontally to 150%
-                labelTexture.uOffset = -0.25; // Center the scaled texture
+                // Apply texture at native aspect ratio without stretching
+                labelTexture.vScale = -1; // Only flip vertically, no scaling
+                labelTexture.vOffset = 1; // Standard offset for flip
+                labelTexture.uScale = 1;  // Native horizontal scale
+                labelTexture.uOffset = 0; // No horizontal offset
                 
                 textPlane.material = textMaterial;
                 
