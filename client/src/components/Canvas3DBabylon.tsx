@@ -288,15 +288,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Customer Relationships label is where Customer Segments should be  
         // Customer Segments label is where Key Activities should be
         const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
-          0: { color: new Color3(0.4, 0.4, 0.4), name: "Value Propositions" },      // Medium Gray to match others
-          1: { color: new Color3(0.4, 0.4, 0.4), name: "Key Partners" },           // Medium Gray 
-          2: { color: new Color3(0.4, 0.4, 0.4), name: "Customer Segments" },      // Medium Gray 
-          3: { color: new Color3(0.4, 0.4, 0.4), name: "Key Resources" },          // Medium Gray 
-          4: { color: new Color3(0.4, 0.4, 0.4), name: "Key Activities" },         // Medium Gray 
-          5: { color: new Color3(0.4, 0.4, 0.4), name: "Channels" },               // Medium Gray 
-          6: { color: new Color3(0.4, 0.4, 0.4), name: "Customer Relationships" }, // Medium Gray 
-          7: { color: new Color3(0.4, 0.4, 0.4), name: "Cost Structure" },         // Medium Gray 
-          8: { color: new Color3(0.4, 0.4, 0.4), name: "Revenue Streams" },        // Medium Gray 
+          0: { color: new Color3(0.1, 0.1, 0.1), name: "Value Propositions" },      // Semi-gloss black
+          1: { color: new Color3(0.1, 0.1, 0.1), name: "Key Partners" },           // Semi-gloss black
+          2: { color: new Color3(0.1, 0.1, 0.1), name: "Customer Segments" },      // Semi-gloss black
+          3: { color: new Color3(0.1, 0.1, 0.1), name: "Key Resources" },          // Semi-gloss black
+          4: { color: new Color3(0.1, 0.1, 0.1), name: "Key Activities" },         // Semi-gloss black
+          5: { color: new Color3(0.1, 0.1, 0.1), name: "Channels" },               // Semi-gloss black
+          6: { color: new Color3(0.1, 0.1, 0.1), name: "Customer Relationships" }, // Semi-gloss black
+          7: { color: new Color3(0.1, 0.1, 0.1), name: "Cost Structure" },         // Semi-gloss black
+          8: { color: new Color3(0.1, 0.1, 0.1), name: "Revenue Streams" },        // Semi-gloss black
         };
 
         // Apply materials and setup to each BMC section mesh
@@ -335,14 +335,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
             
-            // Create StandardMaterial with identical properties for all meshes
+            // Create StandardMaterial with semi-gloss black plastic properties
             const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
             
-            // Force identical material properties for ALL meshes
-            sectionMaterial.diffuseColor = baseColor.clone(); // Ensure consistent color
-            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Identical specular
+            // Semi-gloss black plastic material properties for ALL meshes
+            sectionMaterial.diffuseColor = baseColor.clone(); // Dark black base
+            sectionMaterial.specularColor = new Color3(0.3, 0.3, 0.3); // Higher specular for semi-gloss
+            sectionMaterial.specularPower = 32; // Medium shine for plastic appearance
             sectionMaterial.emissiveColor = Color3.Black(); // No emission 
-            sectionMaterial.disableLighting = false; // Keep consistent lighting
+            sectionMaterial.disableLighting = false; // Enable proper lighting
             sectionMaterial.backFaceCulling = true; // Standard culling
             
             // Force material replacement to override any GLB materials
