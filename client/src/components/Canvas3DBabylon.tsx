@@ -77,7 +77,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   };
   
   // Label system toggle - set to false to use billboard labels, true for texture labels
-  const useTextureLabels = false; // Temporarily switch back to test system
+  const useTextureLabels = true;
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -354,54 +354,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).isClicked = false;
             
             if (useTextureLabels) {
-              // NEW: Create dynamic texture with positioned text label based on section layout
+              // NEW: Create simple full-surface texture with centered text
               const textTexture = new DynamicTexture(`textTexture_${index}`, {width: 512, height: 512}, scene, false);
               const textContext = textTexture.getContext();
               
-              // Clear texture with transparent background
-              textContext.clearRect(0, 0, 512, 512);
+              // Fill entire texture with semi-transparent dark background
+              textContext.fillStyle = "rgba(0, 0, 0, 0.3)";
+              textContext.fillRect(0, 0, 512, 512);
               
-              // Set text properties - make it very bright and bold
+              // Set text properties for maximum visibility
               textContext.fillStyle = "#FFFFFF";
               textContext.strokeStyle = "#000000";
-              textContext.lineWidth = 2;
-              textContext.font = "bold 36px Arial, sans-serif";
+              textContext.lineWidth = 3;
+              textContext.font = "bold 48px Arial, sans-serif";
               textContext.textAlign = "center";
               textContext.textBaseline = "middle";
               
-              // Position text based on section layout from diagram
-              let textX = 256, textY = 256; // Default center
-              
-              switch (sectionName) {
-                case "Value Propositions":
-                  textX = 256; textY = 256; // Center circle
-                  break;
-                case "Key Partners":
-                  textX = 100; textY = 256; // Left side
-                  break;
-                case "Key Activities":
-                  textX = 200; textY = 150; // Top left area
-                  break;
-                case "Key Resources":
-                  textX = 200; textY = 350; // Bottom left area
-                  break;
-                case "Customer Relationships":
-                  textX = 350; textY = 150; // Top right area
-                  break;
-                case "Customer Channels":
-                case "Channels":
-                  textX = 350; textY = 350; // Bottom right area
-                  break;
-                case "Customer Segments":
-                  textX = 412; textY = 256; // Right side
-                  break;
-              }
+              // Always center text in texture (256, 256)
+              const textX = 256, textY = 256;
               
               // Split long text into multiple lines and draw with stroke + fill
               const words = sectionName.split(' ');
               if (words.length > 1) {
                 // Multi-line text for better fit
-                const lineHeight = 40;
+                const lineHeight = 50;
                 const startY = textY - (words.length - 1) * lineHeight / 2;
                 words.forEach((word, i) => {
                   const y = startY + i * lineHeight;
@@ -416,24 +392,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               textTexture.update();
               
-              // Configure texture wrapping and apply to material
+              // Configure texture - no flipping, just apply directly
               textTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
               textTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
               textTexture.hasAlpha = true;
               
-              // Apply text texture as diffuse texture for better visibility
-              // CRITICAL: GLB models may have inverted UV coordinates - flip V axis
-              textTexture.vScale = -1;
-              textTexture.vOffset = 1;
-              
+              // Apply texture as both diffuse and emissive for maximum visibility
               sectionMaterial.diffuseTexture = textTexture;
               sectionMaterial.emissiveTexture = textTexture;
-              sectionMaterial.emissiveIntensity = 0.8; // Much brighter glow for text visibility
+              sectionMaterial.emissiveIntensity = 1.0; // Full brightness
               
-              // Debug mesh orientation and UV mapping
-              console.log(`📝 Applied texture label to ${sectionName} at position (${textX}, ${textY})`);
-              console.log(`🔍 Mesh rotation: ${mesh.rotation.x}, ${mesh.rotation.y}, ${mesh.rotation.z}`);
-              console.log(`🔍 Texture vScale: ${textTexture.vScale}, vOffset: ${textTexture.vOffset}`);
+              console.log(`✨ Applied full-surface texture label to ${sectionName}`);
             } else {
               // ORIGINAL: Create billboard label above this mesh
               const labelContainer = new Rectangle(`label_${index}`);
