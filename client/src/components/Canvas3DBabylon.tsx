@@ -354,26 +354,66 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).isClicked = false;
             
             if (useTextureLabels) {
-              // NEW: Create dynamic texture with just the text label for the mesh
-              const textTexture = new DynamicTexture(`textTexture_${index}`, {width: 512, height: 128}, scene, false);
+              // NEW: Create dynamic texture with positioned text label based on section layout
+              const textTexture = new DynamicTexture(`textTexture_${index}`, {width: 512, height: 512}, scene, false);
               const textContext = textTexture.getContext();
               
               // Clear texture with transparent background
-              textContext.clearRect(0, 0, 512, 128);
+              textContext.clearRect(0, 0, 512, 512);
               
               // Set text properties
               textContext.fillStyle = "white";
-              textContext.font = "bold 32px Arial, sans-serif";
+              textContext.font = "bold 28px Arial, sans-serif";
               textContext.textAlign = "center";
               textContext.textBaseline = "middle";
               
-              // Draw the section name text only
-              textContext.fillText(sectionName, 256, 64);
+              // Position text based on section layout from diagram
+              let textX = 256, textY = 256; // Default center
+              
+              switch (sectionName) {
+                case "Value Propositions":
+                  textX = 256; textY = 256; // Center circle
+                  break;
+                case "Key Partners":
+                  textX = 100; textY = 256; // Left side
+                  break;
+                case "Key Activities":
+                  textX = 200; textY = 150; // Top left area
+                  break;
+                case "Key Resources":
+                  textX = 200; textY = 350; // Bottom left area
+                  break;
+                case "Customer Relationships":
+                  textX = 350; textY = 150; // Top right area
+                  break;
+                case "Customer Channels":
+                case "Channels":
+                  textX = 350; textY = 350; // Bottom right area
+                  break;
+                case "Customer Segments":
+                  textX = 412; textY = 256; // Right side
+                  break;
+              }
+              
+              // Split long text into multiple lines
+              const words = sectionName.split(' ');
+              if (words.length > 1) {
+                // Multi-line text for better fit
+                const lineHeight = 32;
+                const startY = textY - (words.length - 1) * lineHeight / 2;
+                words.forEach((word, i) => {
+                  textContext.fillText(word, textX, startY + i * lineHeight);
+                });
+              } else {
+                // Single line text
+                textContext.fillText(sectionName, textX, textY);
+              }
+              
               textTexture.update();
               
-              // Apply text texture to material as decal/overlay
+              // Apply text texture to material with proper UV mapping
               sectionMaterial.emissiveTexture = textTexture;
-              sectionMaterial.emissiveIntensity = 0.3; // Subtle glow for text visibility
+              sectionMaterial.emissiveIntensity = 0.4; // Subtle glow for text visibility
             } else {
               // ORIGINAL: Create billboard label above this mesh
               const labelContainer = new Rectangle(`label_${index}`);
