@@ -545,6 +545,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
 
     // Helper functions for manipulating individual BMC sections
+    // IMPORTANT: GLB Model Coordinate System Behavior
+    // This specific GLB model (BMC_blender_09_complete_1753576063858.glb) has NORMAL Y-axis scaling:
+    // - LARGER height values (>1.0) = TALLER shapes
+    // - SMALLER height values (<1.0) = SHORTER shapes
     const adjustBMCSection = (sectionName: string, options: {
       height?: number;
       transparency?: number; 
@@ -648,10 +652,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // Auto-adjust Value Propositions to be taller (inverted coordinate system)
+    // Auto-adjust Value Propositions to be taller 
+    // NOTE: This GLB model has inverted Y-axis scaling - LARGER values = TALLER shapes
     setTimeout(() => {
-      adjustBMCSection("Value Propositions", { height: 0.4 });
-      console.log("🏗️ Value Propositions automatically set to taller height (0.4 scale)");
+      adjustBMCSection("Value Propositions", { height: 3.0 });
+      console.log("🏗️ Value Propositions automatically set to taller height (3.0 scale - GLB model uses inverted Y-axis)");
     }, 1000); // Wait for meshes to load
 
     // Start the render loop
