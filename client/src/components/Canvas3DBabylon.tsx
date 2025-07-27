@@ -376,10 +376,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   width: 1.0, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
-                // Position at world origin first for visibility test
-                testDecal.position.x = 0;
-                testDecal.position.y = 2.0; // High above to ensure visibility
-                testDecal.position.z = 0;
+                // Position on actual mesh surface using bounding box
+                const boundingInfo = mesh.getBoundingInfo();
+                const meshCenter = boundingInfo.boundingBox.centerWorld;
+                const meshTop = boundingInfo.boundingBox.maximumWorld.y;
+                
+                testDecal.position.x = meshCenter.x;
+                testDecal.position.y = meshTop + 0.005; // Just above top surface
+                testDecal.position.z = meshCenter.z;
                 
                 // Lay flat horizontally
                 testDecal.rotation.x = -Math.PI / 2;
@@ -401,9 +405,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     width: 1.0, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
                   }, scene);
                   
-                  textureDecal.position.x = 1.5; // Offset to the right
-                  textureDecal.position.y = 2.0;
-                  textureDecal.position.z = 0;
+                  textureDecal.position.x = meshCenter.x + 1.5; // Offset to the right of mesh
+                  textureDecal.position.y = meshTop + 0.005; // Same height as red test
+                  textureDecal.position.z = meshCenter.z;
                   textureDecal.rotation.x = -Math.PI / 2;
                   
                   const textureMaterial = new StandardMaterial(`textureMaterial_${index}`, scene);

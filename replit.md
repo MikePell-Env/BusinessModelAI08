@@ -121,6 +121,7 @@ The application follows a full-stack monorepo architecture with clear separation
 - **📐 PNG Assets**: Using native aspect ratio Label_ValueProposition_1753647389093.png and related files
 - **🧪 Testing Method**: Applied bright color materials to identify camera-visible surfaces for decal placement
 - **⚡ Next Steps**: Direct decal positioning using identified visible surface coordinates
+- **💡 Lighting Notes**: Current scene uses proper PBR lighting with semi-gloss black materials (roughness=0.7, metallic=0.0)
 
 ### July 27, 2025 - Complete Interactive 3D BMC System with Billboard Labels
 - **✅ Simplified Architecture**: Replaced 7 individual GLB objects with single complete BMC model (BMC_blender_09_complete_1753576063858.glb)
