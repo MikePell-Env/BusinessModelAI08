@@ -301,6 +301,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
         // Apply materials and setup to each BMC section mesh
         
+        // DEBUG: Log all meshes to understand the structure
+        console.log(`🔍 TOTAL MESHES: ${result.meshes.length}`);
+        result.meshes.forEach((m, i) => {
+          console.log(`🔍 Mesh ${i}: name="${m.name}", material=${!!m.material}, materialType=${m.material?.getClassName()}`);
+        });
+
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
         result.meshes.forEach((mesh, index) => {
@@ -365,7 +371,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.receiveShadows = true;
             mesh.refreshBoundingInfo(); // Refresh to ensure material takes effect
             
-            console.log(`🎨 FORCED identical semi-gloss black material to ${sectionName} - mesh ${index}`);
+            // DEBUG: Verify material was applied
+            const appliedMaterial = mesh.material as StandardMaterial;
+            console.log(`🎨 APPLIED to ${sectionName}: diffuse=(${appliedMaterial.diffuseColor.r.toFixed(2)}, ${appliedMaterial.diffuseColor.g.toFixed(2)}, ${appliedMaterial.diffuseColor.b.toFixed(2)}), specular=(${appliedMaterial.specularColor.r.toFixed(2)}, ${appliedMaterial.specularColor.g.toFixed(2)}, ${appliedMaterial.specularColor.b.toFixed(2)}), power=${appliedMaterial.specularPower}`);
             
             if (useTextureLabels) {
               // Apply PNG decal system to Key Partners for testing
