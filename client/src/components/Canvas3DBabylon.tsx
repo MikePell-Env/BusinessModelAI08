@@ -366,6 +366,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               };
               
               const textureFileName = textureFileMap[sectionName];
+              console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
               if (textureFileName) {
                 // Create PNG texture plane at the working height
                 const labelTexture = new Texture(`/labels/${textureFileName}`, scene);
@@ -374,7 +375,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 labelTexture.hasAlpha = true;
                 
                 const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
-                  width: 2.5, height: 1.2, sideOrientation: Mesh.DOUBLESIDE
+                  width: 4.0, height: 2.0, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
                 // Use TransformNode position for correct placement
@@ -386,15 +387,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textPlane.position.x = transformNode.position.x;
                 textPlane.position.y = meshTop + (meshHeight * 5.0); // Same height that worked
                 textPlane.position.z = transformNode.position.z;
-                textPlane.rotation.x = -Math.PI / 2; // Lay flat
                 
-                // Apply PNG texture with enhanced visibility
+                // Fix rotation to prevent backwards text
+                textPlane.rotation.x = -Math.PI / 2; // Lay flat
+                textPlane.rotation.y = Math.PI; // Flip to correct text orientation
+                textPlane.rotation.z = 0;
+                
+                // Apply PNG texture with proper UV scaling
                 const textMaterial = new StandardMaterial(`textMaterial_${index}`, scene);
                 textMaterial.diffuseTexture = labelTexture;
                 textMaterial.emissiveTexture = labelTexture;
                 textMaterial.emissiveColor = Color3.White();
                 textMaterial.backFaceCulling = false;
                 textMaterial.useAlphaFromDiffuseTexture = true;
+                
+                // Ensure proper UV scaling to prevent cropping
+                labelTexture.uScale = 1;
+                labelTexture.vScale = 1;
+                labelTexture.uOffset = 0;
+                labelTexture.vOffset = 0;
+                
                 textPlane.material = textMaterial;
                 
                 console.log(`🏷️ PNG texture plane: ${sectionName} at (${textPlane.position.x}, ${textPlane.position.y}, ${textPlane.position.z}) using ${textureFileName}`);
