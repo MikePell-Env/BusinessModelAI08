@@ -393,9 +393,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   console.log(`🔧 Updated plane scaling: ${calculatedWidth}x${baseHeight} (aspect: ${actualAspectRatio})`);
                 });
                 
-                // Create plane with default 1x1 size, will be scaled after texture loads
+                // Simple experiment: create much larger plane to test cropping issue
                 const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
-                  width: 1.0, height: 1.0, sideOrientation: Mesh.DOUBLESIDE
+                  width: 4.0, height: 1.0, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
                 // Use TransformNode position for correct placement
