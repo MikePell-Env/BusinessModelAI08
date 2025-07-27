@@ -262,27 +262,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("Loading Value Proposition...");
     loadGLBModel("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content || "", new Vector3(0, -2.0, 0), "Value Proposition", 45, new Color3(0, 0.4, 0.8));
     
-    // Left: Key Partners (GREEN tall rectangle) - moved further left
-    loadGLBModel("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(-5.0, -2.0, 0), "Key Partners", 50, new Color3(0, 0.7, 0));
+    // Left: Key Partners (GREEN tall rectangle) - further apart means smaller absolute values due to 180° rotation
+    loadGLBModel("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(-2.5, -2.0, 0), "Key Partners", 50, new Color3(0, 0.7, 0));
     
-    // Right: Customer Segments (PURPLE tall rectangle) - moved further right
-    loadGLBModel("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(5.0, -2.0, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7));
+    // Right: Customer Segments (PURPLE tall rectangle) - further apart means smaller absolute values due to 180° rotation  
+    loadGLBModel("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(2.5, -2.0, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7));
     
-    // Top-Left: Key Activities (ORANGE)
+    // Top-Left: Key Activities (ORANGE) - moved further from center for visibility
     console.log("Loading Key Activities...");
-    loadGLBModel("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content || "", new Vector3(-1.2, -2.0, -1.5), "Key Activities", 40, new Color3(1, 0.5, 0));
+    loadGLBModel("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content || "", new Vector3(-2.0, -2.0, -2.5), "Key Activities", 40, new Color3(1, 0.5, 0));
     
-    // Top-Right: Customer Relationships (YELLOW)
+    // Top-Right: Customer Relationships (YELLOW) - moved further from center for visibility
     console.log("Loading Customer Relationships...");
-    loadGLBModel("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content || "", new Vector3(1.2, -2.0, -1.5), "Customer Relationships", 40, new Color3(1, 0.8, 0));
+    loadGLBModel("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content || "", new Vector3(2.0, -2.0, -2.5), "Customer Relationships", 40, new Color3(1, 0.8, 0));
     
-    // Bottom-Left: Key Resources (RED)
+    // Bottom-Left: Key Resources (RED) - moved further from center for visibility
     console.log("Loading Key Resources...");
-    loadGLBModel("BMC_blender_06_KeyResources.glb", canvas.keyResources.content || "", new Vector3(-1.2, -2.0, 1.5), "Key Resources", 40, new Color3(1, 0, 0));
+    loadGLBModel("BMC_blender_06_KeyResources.glb", canvas.keyResources.content || "", new Vector3(-2.0, -2.0, 2.5), "Key Resources", 40, new Color3(1, 0, 0));
     
-    // Bottom-Right: Customer Channels (CYAN)
+    // Bottom-Right: Customer Channels (CYAN) - moved further from center for visibility
     console.log("Loading Customer Channels...");
-    loadGLBModel("BMC_blender_06_CustomerChannels.glb", canvas.channels.content || "", new Vector3(1.2, -2.0, 1.5), "Customer Channels", 40, new Color3(0, 0.8, 0.8));
+    loadGLBModel("BMC_blender_06_CustomerChannels.glb", canvas.channels.content || "", new Vector3(2.0, -2.0, 2.5), "Customer Channels", 40, new Color3(0, 0.8, 0.8));
 
     // Start the render loop
     engine.runRenderLoop(() => {
