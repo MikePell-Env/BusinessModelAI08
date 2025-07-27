@@ -43,6 +43,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const engineRef = useRef<Engine | null>(null);
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const { saveCamera3DState, getCamera3DState, is3D } = useCanvas();
+  
+  // Store all content panels for closing functionality
+  const contentPanelsRef = useRef<any[]>([]);
 
   // Helper function to get section content from canvas data
   const getSectionContent = (sectionName: string): string => {
@@ -311,8 +314,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Create content panel for click events (initially hidden)
             const contentPanel = new Rectangle(`contentPanel_${index}`);
-            contentPanel.widthInPixels = 300;
-            contentPanel.heightInPixels = 200;
+            contentPanel.widthInPixels = 320;
+            contentPanel.heightInPixels = 240;
             contentPanel.cornerRadius = 12;
             contentPanel.color = "white";
             contentPanel.thickness = 2;
@@ -320,18 +323,52 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             contentPanel.isVisible = false; // Initially hidden
             contentPanel.zIndex = 1000; // High z-index to appear above everything
             
-            // Create scrollable content area
+            // Create title text at top of panel
+            const titleText = new TextBlock(`titleText_${index}`, sectionName);
+            titleText.color = "black";
+            titleText.fontSize = "14px";
+            titleText.fontWeight = "bold";
+            titleText.fontFamily = "Arial, sans-serif";
+            titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+            titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+            titleText.paddingTop = "15px";
+            titleText.height = "30px";
+            
+            // Create close button (grey X)
+            const closeButton = new Rectangle(`closeButton_${index}`);
+            closeButton.widthInPixels = 20;
+            closeButton.heightInPixels = 20;
+            closeButton.cornerRadius = 3;
+            closeButton.color = "grey";
+            closeButton.thickness = 1;
+            closeButton.background = "rgba(200, 200, 200, 0.8)";
+            closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+            closeButton.paddingTop = "8px";
+            closeButton.paddingRight = "8px";
+            closeButton.isPointerBlocker = true;
+            
+            const closeButtonText = new TextBlock(`closeButtonText_${index}`, "×");
+            closeButtonText.color = "white";
+            closeButtonText.fontSize = "16px";
+            closeButtonText.fontWeight = "bold";
+            closeButton.addControl(closeButtonText);
+            
+            // Create content text area (below title)
             const contentText = new TextBlock(`contentText_${index}`, "");
             contentText.color = "black";
             contentText.fontSize = "12px";
             contentText.fontFamily = "Arial, sans-serif";
             contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
             contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-            contentText.paddingTop = "10px";
+            contentText.paddingTop = "45px"; // Below title
             contentText.paddingLeft = "15px";
             contentText.paddingRight = "15px";
+            contentText.paddingBottom = "15px";
             contentText.textWrapping = true;
             
+            contentPanel.addControl(titleText);
+            contentPanel.addControl(closeButton);
             contentPanel.addControl(contentText);
             advancedTexture.addControl(contentPanel);
             
@@ -339,10 +376,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             contentPanel.linkWithMesh(mesh);
             contentPanel.linkOffsetY = `-${(labelHeight + 3.0) * 50}px`; // Above the label
             
+            // Add close button functionality
+            closeButton.onPointerUpObservable.add(() => {
+              contentPanel.isVisible = false;
+              // Reset mesh clicked state
+              sectionMaterial.diffuseColor = (mesh as any).originalColor;
+              (mesh as any).isClicked = false;
+              console.log(`❌ Close button: ${sectionName} panel closed and mesh restored`);
+            });
+            
             // Store references for hover and click effects
             (mesh as any).labelContainer = labelContainer;
             (mesh as any).contentPanel = contentPanel;
             (mesh as any).contentText = contentText;
+            
+            // Add to panels array for global closing
+            contentPanelsRef.current.push({ panel: contentPanel, mesh, material: sectionMaterial });
             
             // Enable pointer events for this mesh
             mesh.actionManager = new ActionManager(scene);
@@ -393,6 +442,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 }
                 console.log(`🔓 Click released: ${sectionName} restored and panel hidden`);
               } else {
+                // Close all other panels first
+                contentPanelsRef.current.forEach(({ panel, mesh: otherMesh, material }) => {
+                  if (otherMesh !== mesh && panel.isVisible) {
+                    panel.isVisible = false;
+                    material.diffuseColor = (otherMesh as any).originalColor;
+                    (otherMesh as any).isClicked = false;
+                  }
+                });
+                
                 // Click - darken color and show content panel
                 const darkenedColor = baseColor.scale(0.7); // 30% darker
                 sectionMaterial.diffuseColor = darkenedColor;
@@ -405,7 +463,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   contentPanel.isVisible = true;
                 }
                 
-                console.log(`🔒 Clicked: ${sectionName} darkened and panel shown`);
+                console.log(`🔒 Clicked: ${sectionName} darkened and panel shown (others closed)`);
               }
             }));
             
