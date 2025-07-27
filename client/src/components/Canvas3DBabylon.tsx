@@ -197,7 +197,57 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
 
-    // BMC model loading removed for experiment
+    // Load complete BMC GLB model and scale to fit ground plane with 10% margins
+    const loadCompleteBMCModel = async () => {
+      try {
+        console.log("Loading complete BMC model...");
+        
+        const result = await SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", scene);
+        
+        if (result.meshes && result.meshes.length > 0) {
+          const rootMesh = result.meshes[0];
+          
+          // Position at center of ground plane
+          rootMesh.position = new Vector3(0, 0, 0);
+          
+          // Calculate scaling to fit ground plane with 10% margins
+          // Ground plane: 20x14, with 10% margins: 18x12.6 effective area
+          const effectiveWidth = 20 * 0.8;  // 20 - 20% margins = 16
+          const effectiveDepth = 14 * 0.8;  // 14 - 20% margins = 11.2
+          
+          // Get model bounding box to determine scale factor
+          const boundingBox = result.meshes[0].getBoundingInfo();
+          const modelSize = boundingBox.maximum.subtract(boundingBox.minimum);
+          
+          // Calculate scale factors for both dimensions
+          const scaleX = effectiveWidth / Math.abs(modelSize.x);
+          const scaleZ = effectiveDepth / Math.abs(modelSize.z);
+          
+          // Use the smaller scale factor to ensure model fits within margins
+          const finalScale = Math.min(scaleX, scaleZ);
+          
+          rootMesh.scaling = new Vector3(finalScale, finalScale, finalScale);
+          
+          console.log(`✓ BMC model loaded and scaled by ${finalScale.toFixed(2)} to fit ${effectiveWidth}x${effectiveDepth} effective area`);
+          
+          // Apply material improvements if needed
+          result.meshes.forEach((mesh) => {
+            if (mesh.material) {
+              // Ensure shadows are enabled
+              mesh.receiveShadows = true;
+            }
+          });
+          
+        } else {
+          console.error("No meshes found in BMC complete model");
+        }
+      } catch (error) {
+        console.error("Error loading complete BMC model:", error);
+      }
+    };
+    
+    // Load the complete BMC model
+    loadCompleteBMCModel();
 
     // Start the render loop
     engine.runRenderLoop(() => {
