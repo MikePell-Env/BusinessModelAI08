@@ -653,10 +653,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
     // Auto-adjust Value Propositions to be taller 
-    // NOTE: This GLB model has inverted Y-axis scaling - LARGER values = TALLER shapes
+    // NOTE: This GLB model has normal Y-axis scaling - LARGER values = TALLER shapes
     setTimeout(() => {
-      adjustBMCSection("Value Propositions", { height: 3.0 });
-      console.log("🏗️ Value Propositions automatically set to taller height (3.0 scale - GLB model uses inverted Y-axis)");
+      adjustBMCSection("Value Propositions", { height: 4.5 });
+      console.log("🏗️ Value Propositions automatically set to taller height (4.5 scale - GLB model uses normal Y-axis)");
     }, 1000); // Wait for meshes to load
 
     // Start the render loop
