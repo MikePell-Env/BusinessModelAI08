@@ -352,7 +352,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             contentPanel.thickness = 2;
             contentPanel.background = "rgba(255, 255, 255, 0.95)";
             contentPanel.isVisible = false; // Initially hidden
-            contentPanel.zIndex = 1000; // High z-index to appear above everything
+            contentPanel.zIndex = 3000; // Very high z-index to appear above all labels and windows
             
             // Create title text at top of panel
             const titleText = new TextBlock(`titleText_${index}`, sectionName);
@@ -397,9 +397,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             contentPanel.addControl(contentText);
             advancedTexture.addControl(contentPanel);
             
-            // Position content panel above the label
+            // Position content panel much higher above the label
             contentPanel.linkWithMesh(mesh);
-            contentPanel.linkOffsetY = `-${(labelHeight + 2.2) * 50}px`; // Above the label, adjusted for higher spacing
+            contentPanel.linkOffsetY = `-${(labelHeight + 4.0) * 50}px`; // Much higher above the label for better visibility
             
             // Add close button functionality
             closeButton.onPointerClickObservable.add(() => {
