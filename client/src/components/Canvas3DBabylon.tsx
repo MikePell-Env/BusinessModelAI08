@@ -197,81 +197,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
 
-    // Load complete BMC GLB model and scale to fit ground plane with 10% margins
-    const loadCompleteBMCModel = async () => {
-      try {
-        console.log("🔄 Loading complete BMC model from attached assets...");
+    // Load complete BMC GLB model - simplified approach
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", scene).then((result) => {
+      if (result.meshes.length > 0) {
+        console.log(`✅ BMC model loaded with ${result.meshes.length} meshes`);
         
-        // Try loading from attached_assets folder where the file was uploaded
-        const result = await SceneLoader.ImportMeshAsync("", "/attached_assets/", "BMC_blender_09_complete_1753576063858.glb", scene);
+        const rootMesh = result.meshes[0];
         
-        if (result.meshes && result.meshes.length > 0) {
-          const rootMesh = result.meshes[0];
-          
-          console.log(`📦 Found ${result.meshes.length} meshes in BMC model`);
-          
-          // Force position at origin and reset any transforms
-          rootMesh.position = Vector3.Zero();
-          rootMesh.rotation = Vector3.Zero();
-          
-          // Start with a reasonable base scale first
-          const baseScale = 5.0; // Start larger to make it visible
-          rootMesh.scaling = new Vector3(baseScale, baseScale, baseScale);
-          
-          // Force bounding box computation
-          rootMesh.computeWorldMatrix(true);
-          const boundingBox = rootMesh.getBoundingInfo();
-          const modelSize = boundingBox.maximum.subtract(boundingBox.minimum);
-          
-          console.log(`📏 Model size after base scaling: X=${modelSize.x.toFixed(2)}, Y=${modelSize.y.toFixed(2)}, Z=${modelSize.z.toFixed(2)}`);
-          
-          // Calculate scaling to fit within 80% of ground plane (10% margins on all sides)
-          const targetWidth = 20 * 0.8;  // 16 units
-          const targetDepth = 14 * 0.8;  // 11.2 units
-          
-          // Calculate final scale factors
-          const scaleX = targetWidth / Math.abs(modelSize.x);
-          const scaleZ = targetDepth / Math.abs(modelSize.z);
-          const finalScaleFactor = Math.min(scaleX, scaleZ);
-          
-          // Apply final scaling
-          const finalScale = baseScale * finalScaleFactor;
-          rootMesh.scaling = new Vector3(finalScale, finalScale, finalScale);
-          
-          console.log(`✅ BMC model loaded and scaled to ${finalScale.toFixed(2)} (fits ${targetWidth}x${targetDepth} area with 10% margins)`);
-          
-          // Enable shadows and materials
-          result.meshes.forEach((mesh, index) => {
-            if (mesh.material) {
-              mesh.receiveShadows = true;
-              console.log(`🎨 Applied shadows to mesh ${index}: ${mesh.name}`);
-            }
-          });
-          
-        } else {
-          console.error("❌ No meshes found in BMC complete model");
-        }
-      } catch (error) {
-        console.error("❌ Error loading complete BMC model:", error);
-        console.log("🔄 Trying fallback path...");
+        // Position at center of ground plane, slightly above surface
+        rootMesh.position = new Vector3(0, 0.1, 0);
+        rootMesh.rotation = Vector3.Zero();
         
-        // Fallback: try models folder
-        try {
-          const fallbackResult = await SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", scene);
-          if (fallbackResult.meshes && fallbackResult.meshes.length > 0) {
-            console.log("✅ Fallback successful - loaded from /models/");
-            const rootMesh = fallbackResult.meshes[0];
-            rootMesh.position = Vector3.Zero();
-            rootMesh.scaling = new Vector3(5, 5, 5);
+        // Start with visible scale
+        rootMesh.scaling = new Vector3(8, 8, 8);
+        
+        console.log(`📦 BMC model positioned at origin with scale 8.0`);
+        
+        // Apply materials and shadows to all meshes
+        result.meshes.forEach((mesh, index) => {
+          if (mesh.material) {
+            mesh.receiveShadows = true;
+            console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'}`);
           }
-        } catch (fallbackError) {
-          console.error("❌ Fallback also failed:", fallbackError);
-        }
+        });
+        
+      } else {
+        console.error("❌ No meshes found in BMC model");
       }
-    };
-    
-    // Load the complete BMC model
-    loadCompleteBMCModel();
+    }).catch((error) => {
+      console.error("❌ Failed to load BMC model:", error);
+    });
 
     // Start the render loop
     engine.runRenderLoop(() => {
