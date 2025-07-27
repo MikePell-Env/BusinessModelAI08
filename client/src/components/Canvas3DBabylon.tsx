@@ -140,7 +140,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // North rail (back) - hugs the back edge of 20x20 ground
     const northRail = MeshBuilder.CreateBox("northRail", {
-      width: 20 + railWidth*2, // Ground width + rail thickness on both sides
+      width: 20, // Exact ground width
       height: railHeight,
       depth: railWidth
     }, scene);
@@ -149,7 +149,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // South rail (front) - hugs the front edge of 20x20 ground
     const southRail = MeshBuilder.CreateBox("southRail", {
-      width: 20 + railWidth*2,
+      width: 20, // Exact ground width
       height: railHeight,
       depth: railWidth
     }, scene);
