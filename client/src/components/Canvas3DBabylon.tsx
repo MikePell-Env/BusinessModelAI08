@@ -376,7 +376,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
               
               testPlane.position.x = mesh.position.x;
-              testPlane.position.y = meshTop + (meshHeight * 1.5); // Much higher - 150% of mesh height
+              testPlane.position.y = meshTop + (meshHeight * 5.0); // 5x higher as requested
               testPlane.position.z = mesh.position.z;
               testPlane.rotation.x = -Math.PI / 2;
               
