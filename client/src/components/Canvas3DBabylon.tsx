@@ -485,7 +485,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
               // Create label plane with larger size to match other labels
-              const labelWidth = size.x * 0.85; // Larger width to match font size of other labels
+              const labelWidth = size.x * 0.9; // Even larger width to better match font size of other labels
               const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like Key Activities
               console.log(`Customer Segments Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
@@ -529,7 +529,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
               // Create label plane with larger size to match other labels
-              const labelWidth = size.x * 0.85; // Larger width to match font size of other labels
+              const labelWidth = size.x * 0.9; // Even larger width to better match font size of other labels
               const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like Key Activities
               console.log(`Key Partners Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
