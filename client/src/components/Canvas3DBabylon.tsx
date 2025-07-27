@@ -43,6 +43,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const engineRef = useRef<Engine | null>(null);
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const { saveCamera3DState, getCamera3DState, is3D } = useCanvas();
+
+  // Helper function to get section content from canvas data
+  const getSectionContent = (sectionName: string): string => {
+    const sectionMap: { [key: string]: string } = {
+      "Value Propositions": "valuePropositions",
+      "Key Partners": "keyPartners",
+      "Key Activities": "keyActivities", 
+      "Key Resources": "keyResources",
+      "Customer Relationships": "customerRelationships",
+      "Channels": "channels",
+      "Customer Segments": "customerSegments",
+      "Cost Structure": "costStructure",
+      "Revenue Streams": "revenueStreams"
+    };
+    
+    const sectionKey = sectionMap[sectionName];
+    if (!sectionKey || !canvas[sectionKey as keyof typeof canvas]) {
+      return `No content available for ${sectionName}`;
+    }
+    
+    const section = canvas[sectionKey as keyof typeof canvas] as CanvasElement;
+    if (!section.content || section.content.length === 0) {
+      return `No bullet points available for ${sectionName}`;
+    }
+    
+    // Format content as bullet points
+    return section.content.map(item => `• ${item}`).join('\n');
+  };
   
   // GUI state removed since labels are no longer used
 
@@ -281,8 +309,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelContainer.linkWithMesh(mesh);
             labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
             
-            // Store references for hover effects
+            // Create content panel for click events (initially hidden)
+            const contentPanel = new Rectangle(`contentPanel_${index}`);
+            contentPanel.widthInPixels = 300;
+            contentPanel.heightInPixels = 200;
+            contentPanel.cornerRadius = 12;
+            contentPanel.color = "white";
+            contentPanel.thickness = 2;
+            contentPanel.background = "rgba(255, 255, 255, 0.95)";
+            contentPanel.isVisible = false; // Initially hidden
+            contentPanel.zIndex = 1000; // High z-index to appear above everything
+            
+            // Create scrollable content area
+            const contentText = new TextBlock(`contentText_${index}`, "");
+            contentText.color = "black";
+            contentText.fontSize = "12px";
+            contentText.fontFamily = "Arial, sans-serif";
+            contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+            contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+            contentText.paddingTop = "10px";
+            contentText.paddingLeft = "15px";
+            contentText.paddingRight = "15px";
+            contentText.textWrapping = true;
+            
+            contentPanel.addControl(contentText);
+            advancedTexture.addControl(contentPanel);
+            
+            // Position content panel above the label
+            contentPanel.linkWithMesh(mesh);
+            contentPanel.linkOffsetY = `-${(labelHeight + 3.0) * 50}px`; // Above the label
+            
+            // Store references for hover and click effects
             (mesh as any).labelContainer = labelContainer;
+            (mesh as any).contentPanel = contentPanel;
+            (mesh as any).contentText = contentText;
             
             // Enable pointer events for this mesh
             mesh.actionManager = new ActionManager(scene);
@@ -318,21 +378,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             }));
             
-            // Click - darken color and toggle state
+            // Click - darken color, toggle state, and show/hide content panel
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
               const isCurrentlyClicked = (mesh as any).isClicked;
+              const contentPanel = (mesh as any).contentPanel;
+              const contentText = (mesh as any).contentText;
               
               if (isCurrentlyClicked) {
-                // Unclick - restore original color
+                // Unclick - restore original color and hide content panel
                 sectionMaterial.diffuseColor = (mesh as any).originalColor;
                 (mesh as any).isClicked = false;
-                console.log(`🔓 Click released: ${sectionName} restored`);
+                if (contentPanel) {
+                  contentPanel.isVisible = false;
+                }
+                console.log(`🔓 Click released: ${sectionName} restored and panel hidden`);
               } else {
-                // Click - darken color
+                // Click - darken color and show content panel
                 const darkenedColor = baseColor.scale(0.7); // 30% darker
                 sectionMaterial.diffuseColor = darkenedColor;
                 (mesh as any).isClicked = true;
-                console.log(`🔒 Clicked: ${sectionName} darkened`);
+                
+                // Get content from canvas data and display in panel
+                const sectionContent = getSectionContent(sectionName);
+                if (contentText && contentPanel) {
+                  contentText.text = sectionContent;
+                  contentPanel.isVisible = true;
+                }
+                
+                console.log(`🔒 Clicked: ${sectionName} darkened and panel shown`);
               }
             }));
             
