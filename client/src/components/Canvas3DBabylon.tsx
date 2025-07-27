@@ -330,9 +330,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             titleText.fontWeight = "bold";
             titleText.fontFamily = "Arial, sans-serif";
             titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-            titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-            titleText.paddingTop = "15px";
-            titleText.height = "30px";
+            titleText.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+            titleText.paddingTop = "8px";
+            titleText.height = "25px";
             
             // Create close button (grey X)
             const closeButton = new Rectangle(`closeButton_${index}`);
@@ -348,10 +348,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             closeButton.paddingRight = "8px";
             closeButton.isPointerBlocker = true;
             
-            const closeButtonText = new TextBlock(`closeButtonText_${index}`, "×");
+            const closeButtonText = new TextBlock(`closeButtonText_${index}`, "X");
             closeButtonText.color = "white";
-            closeButtonText.fontSize = "16px";
+            closeButtonText.fontSize = "14px";
             closeButtonText.fontWeight = "bold";
+            closeButtonText.fontFamily = "Arial, sans-serif";
             closeButton.addControl(closeButtonText);
             
             // Create content text area (below title)
