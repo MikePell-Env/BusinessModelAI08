@@ -117,22 +117,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
     camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
 
-    // Enhanced lighting setup for matte black materials with good shading
+    // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 1.4; // Increased ambient lighting for matte materials
-    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Slightly warm ambient
-    hemisphericLight.specular = new Color3(0, 0, 0); // No specular for matte
+    hemisphericLight.intensity = 1.2; // Moderate ambient lighting
+    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Neutral ambient
+    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Low specular for subtle shine
     
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 2.2; // Strong directional light for shape definition
+    directionalLight.intensity = 1.8; // Strong directional light for shape definition
     directionalLight.diffuse = new Color3(1, 1, 1);
-    directionalLight.specular = new Color3(0, 0, 0); // No specular for matte
+    directionalLight.specular = new Color3(0.3, 0.3, 0.3); // Low specular for controlled shine
     
     // Add key light from opposite direction for better form definition
     const directionalLight2 = new DirectionalLight("directionalLight2", new Vector3(1, -0.8, 0.5), scene);
-    directionalLight2.intensity = 1.5; // Strong fill light
+    directionalLight2.intensity = 1.2; // Moderate fill light
     directionalLight2.diffuse = new Color3(0.95, 0.95, 1); // Slightly cool fill
-    directionalLight2.specular = new Color3(0, 0, 0); // No specular for matte
+    directionalLight2.specular = new Color3(0.2, 0.2, 0.25); // Very subtle cool specular
 
     // Create ground with grey plastic material and light grey gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -332,16 +332,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
             
-            // Create new deep matte black plastic material for each section
+            // Create new semi-gloss black plastic material for each section
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
             
-            // Use very dark black color for deep matte appearance
+            // Use very dark black color with subtle shine
             sectionMaterial.baseColor = baseColor;
             sectionMaterial.metallic = 0.0; // No metallic reflection for plastic
-            sectionMaterial.roughness = 1.0; // Maximum roughness for completely matte finish
-            sectionMaterial.clearCoat.isEnabled = false; // Disable clear coat for pure matte
-            sectionMaterial.directIntensity = 0.8; // Reduce direct light reflection
-            sectionMaterial.environmentIntensity = 0.1; // Minimal environment reflection
+            sectionMaterial.roughness = 0.7; // Medium-high roughness for semi-gloss finish
+            sectionMaterial.clearCoat.isEnabled = false; // Disable clear coat
+            sectionMaterial.directIntensity = 1.0; // Allow some direct light reflection
+            sectionMaterial.environmentIntensity = 0.3; // Low environment reflection for subtle shine
             // Environment reflections handled by scene environment
             
             mesh.material = sectionMaterial;
