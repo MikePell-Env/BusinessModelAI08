@@ -308,6 +308,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
+            // Make Value Proposition mesh twice as tall
+            if (sectionName === "Value Propositions") {
+              mesh.scaling = new Vector3(1, 2, 1); // Double the height (Y-axis)
+              console.log(`📏 Value Proposition mesh scaled to 2x height`);
+            }
+            
             // Store original color for hover/click effects
             (mesh as any).originalColor = baseColor.clone();
             (mesh as any).isClicked = false;
