@@ -324,20 +324,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           const surfaceWidth = maxX - minX;
           const surfaceDepth = maxZ - minZ;
           
-          // Define label size as 25% of surface size to make it much smaller
-          const labelScale = 0.25;
+          // Define much smaller label size - only 8% of surface to match reference image
+          const labelScale = 0.08;
           const labelWidth = surfaceWidth * labelScale;
-          const labelHeight = surfaceDepth * labelScale; // Preserve aspect ratio
+          const labelHeight = surfaceDepth * labelScale;
           
-          // Map each vertex UV coordinate relative to the label area centered on surface
-          newUvs[v1Index * 2] = 0.5 + (v1X - centerX) / labelWidth;
-          newUvs[v1Index * 2 + 1] = 0.5 + (v1Z - centerZ) / labelHeight;
+          // Calculate texture area bounds (texture coordinates from 0.4 to 0.6 for small center area)
+          const uvCenter = 0.5;
+          const uvRange = 0.1; // Small texture area (10% of full texture)
           
-          newUvs[v2Index * 2] = 0.5 + (v2X - centerX) / labelWidth;
-          newUvs[v2Index * 2 + 1] = 0.5 + (v2Z - centerZ) / labelHeight;
+          // Map each vertex to a small portion of texture centered at (0.5, 0.5)
+          const normalizedX1 = (v1X - centerX) / labelWidth;
+          const normalizedZ1 = (v1Z - centerZ) / labelHeight;
+          const normalizedX2 = (v2X - centerX) / labelWidth;
+          const normalizedZ2 = (v2Z - centerZ) / labelHeight;
+          const normalizedX3 = (v3X - centerX) / labelWidth;
+          const normalizedZ3 = (v3Z - centerZ) / labelHeight;
           
-          newUvs[v3Index * 2] = 0.5 + (v3X - centerX) / labelWidth;
-          newUvs[v3Index * 2 + 1] = 0.5 + (v3Z - centerZ) / labelHeight;
+          // Clamp to small texture area and center it
+          newUvs[v1Index * 2] = uvCenter + (normalizedX1 * uvRange);
+          newUvs[v1Index * 2 + 1] = uvCenter + (normalizedZ1 * uvRange);
+          
+          newUvs[v2Index * 2] = uvCenter + (normalizedX2 * uvRange);
+          newUvs[v2Index * 2 + 1] = uvCenter + (normalizedZ2 * uvRange);
+          
+          newUvs[v3Index * 2] = uvCenter + (normalizedX3 * uvRange);
+          newUvs[v3Index * 2 + 1] = uvCenter + (normalizedZ3 * uvRange);
           
           topFacesFound++;
           console.log(`✅ Top face ${topFacesFound} textured with small label at Y=${avgY.toFixed(3)}, normal Y=${avgNormalY.toFixed(3)}`);
