@@ -287,15 +287,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Customer Relationships label is where Customer Segments should be  
         // Customer Segments label is where Key Activities should be
         const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
-          0: { color: new Color3(0.3, 0.6, 0.9), name: "Value Propositions" },      // Blue - stays same
-          1: { color: new Color3(0.4, 0.8, 0.4), name: "Key Partners" },           // Green - stays same
-          2: { color: new Color3(0.8, 0.4, 0.9), name: "Customer Segments" },      // Purple - moved from position 4
-          3: { color: new Color3(0.9, 0.3, 0.3), name: "Key Resources" },          // Red - stays same
-          4: { color: new Color3(0.9, 0.6, 0.3), name: "Key Activities" },         // Orange - moved from position 6
-          5: { color: new Color3(0.6, 0.9, 0.9), name: "Channels" },               // Cyan - stays same
-          6: { color: new Color3(0.9, 0.9, 0.3), name: "Customer Relationships" }, // Yellow - moved from position 2
-          7: { color: new Color3(0.7, 0.7, 0.7), name: "Cost Structure" },         // Gray - stays same
-          8: { color: new Color3(0.5, 0.9, 0.5), name: "Revenue Streams" },        // Light Green - stays same
+          0: { color: new Color3(0.1, 0.1, 0.1), name: "Value Propositions" },      // Matte Black
+          1: { color: new Color3(0.1, 0.1, 0.1), name: "Key Partners" },           // Matte Black
+          2: { color: new Color3(0.1, 0.1, 0.1), name: "Customer Segments" },      // Matte Black
+          3: { color: new Color3(0.1, 0.1, 0.1), name: "Key Resources" },          // Matte Black
+          4: { color: new Color3(0.1, 0.1, 0.1), name: "Key Activities" },         // Matte Black
+          5: { color: new Color3(0.1, 0.1, 0.1), name: "Channels" },               // Matte Black
+          6: { color: new Color3(0.1, 0.1, 0.1), name: "Customer Relationships" }, // Matte Black
+          7: { color: new Color3(0.1, 0.1, 0.1), name: "Cost Structure" },         // Matte Black
+          8: { color: new Color3(0.1, 0.1, 0.1), name: "Revenue Streams" },        // Matte Black
         };
 
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
@@ -332,19 +332,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
             
-            // Create new shiny metallic material with unique color for each section
+            // Create new matte black plastic material for each section
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
             
-            // Make colors more vivid and saturated for metallic appearance
-            const vividColor = new Color3(
-              Math.pow(baseColor.r, 0.7), // Enhance color saturation
-              Math.pow(baseColor.g, 0.7), 
-              Math.pow(baseColor.b, 0.7)
-            );
-            
-            sectionMaterial.baseColor = vividColor;
-            sectionMaterial.metallic = 0.95; // Very high metallic reflection
-            sectionMaterial.roughness = 0.05; // Very low roughness for mirror-like finish
+            // Use the black color directly without enhancement
+            sectionMaterial.baseColor = baseColor;
+            sectionMaterial.metallic = 0.0; // No metallic reflection for plastic
+            sectionMaterial.roughness = 0.9; // High roughness for matte finish
             // Environment reflections handled by scene environment
             
             mesh.material = sectionMaterial;
