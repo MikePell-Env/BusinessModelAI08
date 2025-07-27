@@ -408,11 +408,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textMaterial.backFaceCulling = false;
                 textMaterial.useAlphaFromDiffuseTexture = true;
                 
-                // Fix backwards text by flipping U coordinate
-                labelTexture.uScale = -1; // Flip horizontally to fix backwards text
-                labelTexture.vScale = 1;  
-                labelTexture.uOffset = 1; // Adjust offset for flipped U
-                labelTexture.vOffset = 0;
+                // Fix upside down texture using Babylon.js standard approach
+                labelTexture.vScale = -1; // Flip vertically (most common fix)
+                labelTexture.vOffset = 1; // Adjust offset for flipped V
+                labelTexture.uScale = 1;  // Keep horizontal normal
+                labelTexture.uOffset = 0;
                 
                 textPlane.material = textMaterial;
                 
