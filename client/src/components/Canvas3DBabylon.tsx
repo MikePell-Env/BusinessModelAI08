@@ -224,26 +224,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
 
 
-    // Create monochromatic environment for clean metallic reflections
+    // Create bright environment for vivid metallic reflections WITHOUT skybox
     const environmentHelper = scene.createDefaultEnvironment({
       createGround: false, // We already have ground
-      createSkybox: true, // Enable skybox for reflections but make it monochromatic
+      createSkybox: false, // Disable skybox to show scene clearColor background
       skyboxSize: 100,
-      skyboxColor: new Color3(0.8, 0.8, 0.8), // Neutral grey for monochromatic reflections
-      groundColor: new Color3(0.8, 0.8, 0.8) // Matching neutral grey
+      skyboxColor: new Color3(0.95, 0.95, 0.97), // Not used since createSkybox is false
+      groundColor: new Color3(0.9, 0.9, 0.9)
     });
     
-    // Set environment to moderate intensity for clean reflections
+    // Set environment to bright intensity for vivid metallic reflections
     if (environmentHelper) {
-      scene.environmentIntensity = 0.7; // Reduced intensity for cleaner, less overwhelming reflections
-      
-      // Make the skybox more monochromatic by reducing color variation
-      if (environmentHelper.skybox && environmentHelper.skybox.material) {
-        const skyboxMaterial = environmentHelper.skybox.material as any;
-        if (skyboxMaterial.diffuseColor) {
-          skyboxMaterial.diffuseColor = new Color3(0.75, 0.75, 0.75); // Uniform grey
-        }
-      }
+      scene.environmentIntensity = 1.0; // Full reflection intensity
     }
 
     // Create GUI for 3D billboard labels
@@ -298,18 +290,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseColor = section.color;
             const sectionName = section.name;
             
-            // Create new shiny metallic material with gun metal grey or bright blue for Value Propositions
+            // Create new shiny metallic material with unique color for each section
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
             
-            // Set colors: gun metal grey for all sections, bright blue for Value Propositions
-            let materialColor: Color3;
-            if (sectionName === "Value Propositions") {
-              materialColor = new Color3(0.0, 0.5, 1.0); // Bright blue
-            } else {
-              materialColor = new Color3(0.35, 0.4, 0.45); // Gun metal grey
-            }
+            // Make colors more vivid and saturated for metallic appearance
+            const vividColor = new Color3(
+              Math.pow(baseColor.r, 0.7), // Enhance color saturation
+              Math.pow(baseColor.g, 0.7), 
+              Math.pow(baseColor.b, 0.7)
+            );
             
-            sectionMaterial.baseColor = materialColor;
+            sectionMaterial.baseColor = vividColor;
             sectionMaterial.metallic = 0.95; // Very high metallic reflection
             sectionMaterial.roughness = 0.05; // Very low roughness for mirror-like finish
             // Environment reflections handled by scene environment
