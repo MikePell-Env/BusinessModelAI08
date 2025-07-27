@@ -138,38 +138,38 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     railMaterial.diffuseColor = railColor;
     railMaterial.specularColor = new Color3(0, 0, 0);
     
-    // North rail (back)
+    // North rail (back) - hugs the back edge of 20x20 ground
     const northRail = MeshBuilder.CreateBox("northRail", {
-      width: 20.4, // Slightly wider to cover corners
+      width: 20 + railWidth*2, // Ground width + rail thickness on both sides
       height: railHeight,
       depth: railWidth
     }, scene);
     northRail.position = new Vector3(0, railHeight/2, -10 - railWidth/2);
     northRail.material = railMaterial;
     
-    // South rail (front)
+    // South rail (front) - hugs the front edge of 20x20 ground
     const southRail = MeshBuilder.CreateBox("southRail", {
-      width: 20.4,
+      width: 20 + railWidth*2,
       height: railHeight,
       depth: railWidth
     }, scene);
     southRail.position = new Vector3(0, railHeight/2, 10 + railWidth/2);
     southRail.material = railMaterial;
     
-    // East rail (right)
+    // East rail (right) - hugs the right edge of 20x20 ground
     const eastRail = MeshBuilder.CreateBox("eastRail", {
       width: railWidth,
       height: railHeight,
-      depth: 20
+      depth: 20 // Exact ground depth
     }, scene);
     eastRail.position = new Vector3(10 + railWidth/2, railHeight/2, 0);
     eastRail.material = railMaterial;
     
-    // West rail (left)
+    // West rail (left) - hugs the left edge of 20x20 ground
     const westRail = MeshBuilder.CreateBox("westRail", {
       width: railWidth,
       height: railHeight,
-      depth: 20
+      depth: 20 // Exact ground depth
     }, scene);
     westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0);
     westRail.material = railMaterial;
