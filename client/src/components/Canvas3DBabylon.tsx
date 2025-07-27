@@ -230,10 +230,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       skyboxColor: new Color3(0.9, 0.9, 0.9) // Light grey for better reflections
     });
     
-    // Boost environment intensity for metallic shine
-    if (environmentHelper && environmentHelper.mainLight) {
-      environmentHelper.mainLight.intensity = 1.2;
-    }
+    // Environment helper created for PBR reflections
 
     // Create GUI for 3D billboard labels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -300,7 +297,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             sectionMaterial.baseColor = vividColor;
             sectionMaterial.metallic = 0.95; // Very high metallic reflection
             sectionMaterial.roughness = 0.05; // Very low roughness for mirror-like finish
-            sectionMaterial.environmentIntensity = 1.5; // Boost environment reflections
+            // Environment reflections handled by scene environment
             
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
