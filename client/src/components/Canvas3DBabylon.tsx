@@ -742,6 +742,51 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`✅ Key Resources label plane created`);
             }
             
+            // Add floating label planes for Value Propositions section
+            if (sectionName === "Value Propositions") {
+              console.log(`🏷️ Creating floating label for Value Propositions mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with larger size like other main labels
+              const labelWidth = size.x * 0.85; // Good size for central circular area
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like other labels
+              console.log(`Value Propositions Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
+              const labelPlane = MeshBuilder.CreatePlane("valuePropositionsLabel", {
+                width: labelWidth,   // Size for central prominence
+                height: labelHeight  // 50% taller to prevent squishing
+              }, scene);
+              
+              // Position centered above the circular Value Propositions area
+              labelPlane.position.x = center.x; // Center position
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z; // Center in the circular area
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create bright material for white text
+              const labelMaterial = new StandardMaterial("valuePropositionsLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_ValueProposition.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              console.log(`✅ Value Propositions label plane created`);
+            }
+            
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
