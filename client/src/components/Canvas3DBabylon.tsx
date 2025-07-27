@@ -648,10 +648,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // Auto-adjust Value Propositions to be taller
+    // Auto-adjust Value Propositions to be taller (inverted coordinate system)
     setTimeout(() => {
-      adjustBMCSection("Value Propositions", { height: 2.5 });
-      console.log("🏗️ Value Propositions automatically set to 2.5x height");
+      adjustBMCSection("Value Propositions", { height: 0.4 });
+      console.log("🏗️ Value Propositions automatically set to taller height (0.4 scale)");
     }, 1000); // Wait for meshes to load
 
     // Start the render loop
