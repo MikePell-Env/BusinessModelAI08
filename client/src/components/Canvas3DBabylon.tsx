@@ -475,7 +475,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Note: directIntensity and environmentIntensity properties handled by scene environment
             // Environment reflections handled by scene environment
             
-            // Add a floating label plane for Customer Segments (index 6)
+            // Add floating label planes for specific sections
             if (sectionName === "Customer Segments") {
               console.log(`🏷️ Creating floating label for Customer Segments mesh (index ${index})`);
               
@@ -487,7 +487,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Create label plane with proper aspect ratio
               const labelPlane = MeshBuilder.CreatePlane("customerSegmentsLabel", {
                 width: size.x * 0.4,
-                height: size.z * 0.2  // Adjust height for better proportions
+                height: size.z * 0.2
               }, scene);
               
               // Position slightly above mesh center
@@ -498,25 +498,62 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Rotate to be flat on top
               labelPlane.rotation.x = Math.PI / 2;
               
-              // Bright material for white text - multiple approaches to ensure visibility
+              // Create bright material for white text
               const labelMaterial = new StandardMaterial("customerSegmentsLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
               labelTexture.hasAlpha = true;
               
-              // Method 1: Use emissive for self-illumination while keeping diffuse
               labelMaterial.diffuseTexture = labelTexture;
-              labelMaterial.emissiveTexture = labelTexture; // Add emissive for brightness
-              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Boost emissive intensity
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
               labelMaterial.useAlphaFromDiffuseTexture = true;
-              labelMaterial.disableLighting = false; // Enable lighting for proper color mixing
+              labelMaterial.disableLighting = false;
               
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh; // Move with parent mesh
-              
-              // Make label non-interactive so it doesn't interfere with hover/click
+              labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              console.log(`✅ Label plane created above Customer Segments`);
+              console.log(`✅ Customer Segments label plane created`);
+            }
+            
+            if (sectionName === "Key Partners") {
+              console.log(`🏷️ Creating floating label for Key Partners mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with proper aspect ratio
+              const labelPlane = MeshBuilder.CreatePlane("keyPartnersLabel", {
+                width: size.x * 0.4,
+                height: size.z * 0.2
+              }, scene);
+              
+              // Position slightly above mesh center
+              labelPlane.position.x = center.x;
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z;
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create bright material for white text
+              const labelMaterial = new StandardMaterial("keyPartnersLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_KeyPartners.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              console.log(`✅ Key Partners label plane created`);
             }
             
             mesh.material = sectionMaterial;
