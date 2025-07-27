@@ -172,6 +172,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     groundMaterial.diffuseTexture = gridTexture;
     groundMaterial.specularColor = new Color3(0.1, 0.1, 0.2); // Subtle blue-tinted specular reflection
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
+    groundMaterial.alpha = 0.5; // 50% opacity
     ground.material = groundMaterial;
 
     // Create extruded border rails on all sides
