@@ -374,8 +374,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
                 labelTexture.hasAlpha = true;
                 
-                // Calculate proper aspect ratio based on PNG dimensions (roughly 4:1)
-                const textAspectRatio = 4.0; // Width:Height ratio from PNG inspection
+                // Increase width to prevent text cropping - "Value Proposition" needs more space
+                const textAspectRatio = 6.0; // Increased width ratio to show full text
                 const planeHeight = sectionName === "Value Propositions" ? 0.5 : 0.6;
                 const planeWidth = planeHeight * textAspectRatio; // Maintain aspect ratio
                 
