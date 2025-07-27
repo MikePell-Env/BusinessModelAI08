@@ -575,7 +575,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }, scene);
               
               // Position within the mesh boundaries, moved right with margin like Customer Segments
-              labelPlane.position.x = center.x + size.x * 0.25; // Move right but leave margin on right edge
+              labelPlane.position.x = center.x + size.x * 0.15; // Move right but leave margin on right edge
               labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z + size.z * 0.2; // Move up in top view (positive Z)
               
