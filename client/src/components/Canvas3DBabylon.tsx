@@ -282,24 +282,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         console.log(`📦 BMC model positioned at origin with scale 8.0`);
         
-        // Fixed section order based on user feedback: rotate 3 specific labels clockwise
-        const fixedBmcSections = [
-          { color: new Color3(0.3, 0.6, 0.9), name: "Value Propositions" },      // Blue - index 0
-          { color: new Color3(0.4, 0.8, 0.4), name: "Key Partners" },           // Green - index 1
-          { color: new Color3(0.9, 0.6, 0.3), name: "Key Activities" },         // Orange - index 2 (was Customer Relationships position)
-          { color: new Color3(0.9, 0.3, 0.3), name: "Key Resources" },          // Red - index 3
-          { color: new Color3(0.8, 0.4, 0.9), name: "Customer Relationships" }, // Purple - index 4 (was Customer Segments position)
-          { color: new Color3(0.6, 0.9, 0.9), name: "Channels" },               // Cyan - index 5
-          { color: new Color3(0.9, 0.9, 0.3), name: "Customer Segments" },      // Yellow - index 6 (was Key Activities position)
-          { color: new Color3(0.7, 0.7, 0.7), name: "Cost Structure" },         // Gray - index 7
-          { color: new Color3(0.5, 0.9, 0.5), name: "Revenue Streams" },        // Light Green - index 8
-        ];
+        // Corrected BMC section mapping - based on user feedback that specific labels need to swap
+        // Current observation: Key Activities label is where Customer Relationships should be
+        // Customer Relationships label is where Customer Segments should be  
+        // Customer Segments label is where Key Activities should be
+        const correctLabelMapping = {
+          0: { color: new Color3(0.3, 0.6, 0.9), name: "Value Propositions" },      // Blue - stays same
+          1: { color: new Color3(0.4, 0.8, 0.4), name: "Key Partners" },           // Green - stays same
+          2: { color: new Color3(0.8, 0.4, 0.9), name: "Customer Segments" },      // Purple - moved from position 4
+          3: { color: new Color3(0.9, 0.3, 0.3), name: "Key Resources" },          // Red - stays same
+          4: { color: new Color3(0.9, 0.6, 0.3), name: "Key Activities" },         // Orange - moved from position 6
+          5: { color: new Color3(0.6, 0.9, 0.9), name: "Channels" },               // Cyan - stays same
+          6: { color: new Color3(0.9, 0.9, 0.3), name: "Customer Relationships" }, // Yellow - moved from position 2
+          7: { color: new Color3(0.7, 0.7, 0.7), name: "Cost Structure" },         // Gray - stays same
+          8: { color: new Color3(0.5, 0.9, 0.5), name: "Revenue Streams" },        // Light Green - stays same
+        };
 
-        // Apply different colors, interactivity, and labels to each BMC section mesh
+        // Apply corrected colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
         result.meshes.forEach((mesh, index) => {
           if (mesh.material && mesh.name !== "__root__") {
-            const section = fixedBmcSections[sectionIndex % fixedBmcSections.length];
+            const section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
             const baseColor = section.color;
             const sectionName = section.name;
             
@@ -346,8 +349,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             advancedTexture.addControl(labelContainer);
             
             // Position label higher above mesh top with billboard behavior
-            const bounds = mesh.getBoundingInfo();
-            const center = bounds.boundingBox.centerWorld;
             // Special much higher positioning for Value Proposition label
             const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
             
