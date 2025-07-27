@@ -303,69 +303,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const isTopFace = Math.abs(avgY - maxY) < 0.01 && avgNormalY > 0.5;
         
         if (isTopFace) {
-          // This is a top face - create a small label area in the center
-          // Get world positions to determine center region
-          const v1X = positions[v1Index * 3];
-          const v1Z = positions[v1Index * 3 + 2];
-          const v2X = positions[v2Index * 3];
-          const v2Z = positions[v2Index * 3 + 2];
-          const v3X = positions[v3Index * 3];
-          const v3Z = positions[v3Index * 3 + 2];
+          // This is a top face - apply texture UV mapping
+          // Map UV coordinates to show the full texture on top faces
+          newUvs[v1Index * 2] = 0.0;     // u1 - left
+          newUvs[v1Index * 2 + 1] = 0.0; // v1 - bottom
           
-          // Calculate center of the triangle
-          const centerX = (v1X + v2X + v3X) / 3;
-          const centerZ = (v1Z + v2Z + v3Z) / 3;
+          newUvs[v2Index * 2] = 1.0;     // u2 - right
+          newUvs[v2Index * 2 + 1] = 0.0; // v2 - bottom
           
-          // Find overall bounds of the face
-          const minX = Math.min(v1X, v2X, v3X);
-          const maxX = Math.max(v1X, v2X, v3X);
-          const minZ = Math.min(v1Z, v2Z, v3Z);
-          const maxZ = Math.max(v1Z, v2Z, v3Z);
-          
-          // Define label area as smaller region in center (30% of face size)
-          const faceWidth = maxX - minX;
-          const faceDepth = maxZ - minZ;
-          const labelWidth = faceWidth * 0.3;
-          const labelDepth = faceDepth * 0.3;
-          
-          // Check if triangle center is in the label area
-          const faceCenterX = (minX + maxX) / 2;
-          const faceCenterZ = (minZ + maxZ) / 2;
-          const distanceFromCenter = Math.sqrt(
-            Math.pow(centerX - faceCenterX, 2) + Math.pow(centerZ - faceCenterZ, 2)
-          );
-          const maxLabelDistance = Math.min(labelWidth, labelDepth) / 2;
-          
-          if (distanceFromCenter < maxLabelDistance) {
-            // This triangle is in the label area - map to texture
-            newUvs[v1Index * 2] = (v1X - faceCenterX + labelWidth/2) / labelWidth;
-            newUvs[v1Index * 2 + 1] = 1.0 - (v1Z - faceCenterZ + labelDepth/2) / labelDepth;
-            
-            newUvs[v2Index * 2] = (v2X - faceCenterX + labelWidth/2) / labelWidth;
-            newUvs[v2Index * 2 + 1] = 1.0 - (v2Z - faceCenterZ + labelDepth/2) / labelDepth;
-            
-            newUvs[v3Index * 2] = (v3X - faceCenterX + labelWidth/2) / labelWidth;
-            newUvs[v3Index * 2 + 1] = 1.0 - (v3Z - faceCenterZ + labelDepth/2) / labelDepth;
-            
-            console.log(`📝 Label triangle mapped for center region`);
-          } else {
-            // This triangle is outside label area - keep original dark appearance
-            // Don't modify UVs to preserve original black material
-          }
+          newUvs[v3Index * 2] = 0.5;     // u3 - center
+          newUvs[v3Index * 2 + 1] = 1.0; // v3 - top
           
           topFacesFound++;
-          console.log(`✅ Top face ${topFacesFound} found at Y=${avgY.toFixed(3)}, normal Y=${avgNormalY.toFixed(3)}`);
-        } else {
-          // This is not a top face - map to transparent area of texture
-          newUvs[v1Index * 2] = 0.9;     // Outside label area
-          newUvs[v1Index * 2 + 1] = 0.9;
-          
-          newUvs[v2Index * 2] = 0.9;
-          newUvs[v2Index * 2 + 1] = 0.9;
-          
-          newUvs[v3Index * 2] = 0.9;
-          newUvs[v3Index * 2 + 1] = 0.9;
+          console.log(`✅ Top face ${topFacesFound} textured at Y=${avgY.toFixed(3)}, normal Y=${avgNormalY.toFixed(3)}`);
         }
+        // For non-top faces, don't modify UVs - keep original material appearance
       }
       
       console.log(`🎯 Found and textured ${topFacesFound} top faces`);
@@ -468,53 +420,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             sectionMaterial.metallic = 0.0; // No metallic reflection for plastic
             sectionMaterial.roughness = 0.7; // Medium-high roughness for semi-gloss finish
             sectionMaterial.clearCoat.isEnabled = false; // Disable clear coat
-            sectionMaterial.directIntensity = 1.0; // Allow some direct light reflection
-            sectionMaterial.environmentIntensity = 0.3; // Low environment reflection for subtle shine
+            // Note: directIntensity and environmentIntensity properties handled by scene environment
             // Environment reflections handled by scene environment
             
             // Special texture mapping for Customer Segments (index 2)
             if (sectionName === "Customer Segments") {
               console.log(`🎯 Applying texture to Customer Segments mesh (index ${index})`);
               
-              // Create a custom label texture with transparent background
-              const labelTexture = new DynamicTexture("customerSegmentsLabel", {width: 512, height: 512}, scene, true);
-              
-              // Get the context and clear with transparent background
-              const context = labelTexture.getContext();
-              context.clearRect(0, 0, 512, 512);
-              
-              // Draw the label text in center with dark background
-              const labelSize = 200; // Size of the label area
-              const labelX = (512 - labelSize) / 2;
-              const labelY = (512 - labelSize) / 2;
-              
-              // Draw label background (dark rectangle)
-              context.fillStyle = "rgba(60, 60, 80, 1.0)"; // Dark blue-gray background
-              context.fillRect(labelX, labelY, labelSize, labelSize);
-              
-              // Draw text
-              context.fillStyle = "white";
-              context.font = "bold 24px Arial";
-              context.textAlign = "center";
-              context.textBaseline = "middle";
-              context.fillText("Customer", 256, 235);
-              context.fillText("Segments", 256, 277);
-              
-              // Update the texture
-              labelTexture.update();
-              
-              // Configure texture settings for proper mapping
+              // Load the original PNG texture
+              const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
               labelTexture.uOffset = 0;
               labelTexture.vOffset = 0;
-              labelTexture.uScale = 3.0; // Scale up to make label smaller on surface
-              labelTexture.vScale = 3.0;
+              labelTexture.uScale = 1;
+              labelTexture.vScale = 1;
               labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
               labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
               
-              // Apply texture to the material as base texture
+              // Apply texture to the material
               sectionMaterial.baseTexture = labelTexture;
               
-              // Apply custom UV mapping to show texture only on top face
+              // Apply simplified UV mapping to show texture only on top faces
               applyTopFaceTexture(mesh as Mesh, scene);
               
               // Store the textured material for hover effects
