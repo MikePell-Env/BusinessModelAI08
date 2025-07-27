@@ -255,34 +255,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       });
     };
     
-    // Load ALL BMC objects with original positions - transform handled by master node:
-    console.log("🔄 Starting to load all 7 BMC objects...");
+    // Load ALL BMC objects positioned to EXACTLY match your template layout:
+    console.log("🔄 Loading BMC objects with precise template positioning...");
     
-    // Center: Value Proposition (BLUE circle)
+    // Center: Value Proposition (BLUE circle) - center of the layout
     console.log("Loading Value Proposition...");
     loadGLBModel("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content || "", new Vector3(0, -2.0, 0), "Value Proposition", 45, new Color3(0, 0.4, 0.8));
     
-    // Left: Key Partners (GREEN tall rectangle) - further apart means smaller absolute values due to 180° rotation
-    loadGLBModel("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(-2.5, -2.0, 0), "Key Partners", 50, new Color3(0, 0.7, 0));
+    // Far Left: Key Partners (GREEN vertical rectangle) - leftmost column
+    loadGLBModel("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(-4.5, -2.0, 0), "Key Partners", 50, new Color3(0, 0.7, 0));
     
-    // Right: Customer Segments (PURPLE tall rectangle) - further apart means smaller absolute values due to 180° rotation  
-    loadGLBModel("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(2.5, -2.0, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7));
+    // Far Right: Customer Segments (PURPLE vertical rectangle) - rightmost column
+    loadGLBModel("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(4.5, -2.0, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7));
     
-    // Top-Left: Key Activities (ORANGE) - moved further from center for visibility
+    // Top-Left around circle: Key Activities (ORANGE square) - positioned like template
     console.log("Loading Key Activities...");
-    loadGLBModel("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content || "", new Vector3(-2.0, -2.0, -2.5), "Key Activities", 40, new Color3(1, 0.5, 0));
+    loadGLBModel("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content || "", new Vector3(-1.5, -2.0, -1.5), "Key Activities", 35, new Color3(1, 0.5, 0));
     
-    // Top-Right: Customer Relationships (YELLOW) - moved further from center for visibility
+    // Top-Right around circle: Customer Relationships (YELLOW square) - positioned like template
     console.log("Loading Customer Relationships...");
-    loadGLBModel("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content || "", new Vector3(2.0, -2.0, -2.5), "Customer Relationships", 40, new Color3(1, 0.8, 0));
+    loadGLBModel("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content || "", new Vector3(1.5, -2.0, -1.5), "Customer Relationships", 35, new Color3(1, 0.8, 0));
     
-    // Bottom-Left: Key Resources (RED) - moved further from center for visibility
+    // Bottom-Left around circle: Key Resources (RED square) - positioned like template
     console.log("Loading Key Resources...");
-    loadGLBModel("BMC_blender_06_KeyResources.glb", canvas.keyResources.content || "", new Vector3(-2.0, -2.0, 2.5), "Key Resources", 40, new Color3(1, 0, 0));
+    loadGLBModel("BMC_blender_06_KeyResources.glb", canvas.keyResources.content || "", new Vector3(-1.5, -2.0, 1.5), "Key Resources", 35, new Color3(1, 0, 0));
     
-    // Bottom-Right: Customer Channels (CYAN) - moved further from center for visibility
+    // Bottom-Right around circle: Customer Channels (CYAN square) - positioned like template
     console.log("Loading Customer Channels...");
-    loadGLBModel("BMC_blender_06_CustomerChannels.glb", canvas.channels.content || "", new Vector3(2.0, -2.0, 2.5), "Customer Channels", 40, new Color3(0, 0.8, 0.8));
+    loadGLBModel("BMC_blender_06_CustomerChannels.glb", canvas.channels.content || "", new Vector3(1.5, -2.0, 1.5), "Customer Channels", 35, new Color3(0, 0.8, 0.8));
 
     // Start the render loop
     engine.runRenderLoop(() => {
