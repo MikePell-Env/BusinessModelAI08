@@ -387,19 +387,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const meshTop = boundingInfo.boundingBox.maximumWorld.y;
                 const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
                 
-                // Use transformNode position instead of mesh position
+                // Position flush on surface instead of floating above
                 textPlane.position.x = transformNode.position.x;
-                textPlane.position.y = meshTop + (meshHeight * 5.0); // Same height that worked
+                textPlane.position.y = meshTop + 0.001; // Just barely above surface to avoid z-fighting
                 textPlane.position.z = transformNode.position.z;
                 
-                // Keep plane flat, fix mirroring with UV coordinates instead of rotation
+                // Deal with coordinate system - try Y rotation to flip for proper orientation
                 textPlane.rotation.x = -Math.PI / 2; // Lay flat (90 degrees down)
-                textPlane.rotation.y = 0; // No rotation
-                textPlane.rotation.z = 0; // No rotation
+                textPlane.rotation.y = Math.PI; // 180 degree flip for coordinate system
+                textPlane.rotation.z = 0; // No Z rotation
                 
-                console.log(`🔄 UV flip approach for ${sectionName}`);
+                console.log(`🔄 Flush positioning + Y flip for ${sectionName}`);
                 
-                // Apply PNG texture with UV flipping to correct mirroring
+                // Apply PNG texture with normal UV coordinates
                 const textMaterial = new StandardMaterial(`textMaterial_${index}`, scene);
                 textMaterial.diffuseTexture = labelTexture;
                 textMaterial.emissiveTexture = labelTexture;
@@ -407,10 +407,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textMaterial.backFaceCulling = false;
                 textMaterial.useAlphaFromDiffuseTexture = true;
                 
-                // Fix horizontal mirroring by flipping U coordinates
-                labelTexture.uScale = -1; // Flip horizontally
-                labelTexture.vScale = 1;  // Keep vertical normal
-                labelTexture.uOffset = 1; // Adjust offset for flipped U
+                // Use normal UV scaling
+                labelTexture.uScale = 1; 
+                labelTexture.vScale = 1;  
+                labelTexture.uOffset = 0; 
                 labelTexture.vOffset = 0;
                 
                 textPlane.material = textMaterial;
