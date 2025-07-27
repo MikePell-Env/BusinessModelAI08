@@ -271,11 +271,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseColor = section.color;
             const sectionName = section.name;
             
-            // Create new plastic material with unique color for each section
-            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
-            sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Low specular for plastic look
-            sectionMaterial.specularPower = 32; // Medium shine
+            // Create new shiny metallic material with unique color for each section
+            const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
+            sectionMaterial.baseColor = baseColor;
+            sectionMaterial.metallic = 0.9; // High metallic reflection for shiny metal
+            sectionMaterial.roughness = 0.1; // Low roughness for polished metal finish
             
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
@@ -343,7 +343,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
             closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
             closeButton.topInPixels = 8;
-            closeButton.rightInPixels = 12;
+            closeButton.leftInPixels = -12;
             closeButton.widthInPixels = 20;
             closeButton.heightInPixels = 20;
             closeButton.isPointerBlocker = true;
@@ -374,7 +374,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             closeButton.onPointerClickObservable.add(() => {
               contentPanel.isVisible = false;
               // Reset mesh clicked state
-              sectionMaterial.diffuseColor = (mesh as any).originalColor;
+              sectionMaterial.baseColor = (mesh as any).originalColor;
               (mesh as any).isClicked = false;
               console.log(`❌ Close button: ${sectionName} panel closed and mesh restored`);
             });
@@ -394,7 +394,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
               if (!(mesh as any).isClicked) {
                 const brightenedColor = baseColor.scale(1.3); // 30% brighter
-                sectionMaterial.diffuseColor = brightenedColor;
+                sectionMaterial.baseColor = brightenedColor;
                 
                 // Make label bright blue background
                 const labelContainer = (mesh as any).labelContainer;
@@ -409,7 +409,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Hover exit - restore original color and label
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
               if (!(mesh as any).isClicked) {
-                sectionMaterial.diffuseColor = (mesh as any).originalColor;
+                sectionMaterial.baseColor = (mesh as any).originalColor;
                 
                 // Restore label to semi-transparent
                 const labelContainer = (mesh as any).labelContainer;
@@ -429,7 +429,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               if (isCurrentlyClicked) {
                 // Unclick - restore original color and hide content panel
-                sectionMaterial.diffuseColor = (mesh as any).originalColor;
+                sectionMaterial.baseColor = (mesh as any).originalColor;
                 (mesh as any).isClicked = false;
                 if (contentPanel) {
                   contentPanel.isVisible = false;
@@ -440,14 +440,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 contentPanelsRef.current.forEach(({ panel, mesh: otherMesh, material }) => {
                   if (otherMesh !== mesh && panel.isVisible) {
                     panel.isVisible = false;
-                    material.diffuseColor = (otherMesh as any).originalColor;
+                    material.baseColor = (otherMesh as any).originalColor;
                     (otherMesh as any).isClicked = false;
                   }
                 });
                 
                 // Click - darken color and show content panel
                 const darkenedColor = baseColor.scale(0.7); // 30% darker
-                sectionMaterial.diffuseColor = darkenedColor;
+                sectionMaterial.baseColor = darkenedColor;
                 (mesh as any).isClicked = true;
                 
                 // Get content from canvas data and display in panel
