@@ -288,15 +288,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Customer Relationships label is where Customer Segments should be  
         // Customer Segments label is where Key Activities should be
         const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
-          0: { color: new Color3(0.005, 0.005, 0.005), name: "Value Propositions" },      // Very Dark Black
-          1: { color: new Color3(0.005, 0.005, 0.005), name: "Key Partners" },           // Very Dark Black
-          2: { color: new Color3(0.005, 0.005, 0.005), name: "Customer Segments" },      // Very Dark Black
-          3: { color: new Color3(0.005, 0.005, 0.005), name: "Key Resources" },          // Very Dark Black
-          4: { color: new Color3(0.005, 0.005, 0.005), name: "Key Activities" },         // Very Dark Black
-          5: { color: new Color3(0.005, 0.005, 0.005), name: "Channels" },               // Very Dark Black
-          6: { color: new Color3(0.005, 0.005, 0.005), name: "Customer Relationships" }, // Very Dark Black
-          7: { color: new Color3(0.005, 0.005, 0.005), name: "Cost Structure" },         // Very Dark Black
-          8: { color: new Color3(0.005, 0.005, 0.005), name: "Revenue Streams" },        // Very Dark Black
+          0: { color: new Color3(0.4, 0.4, 0.4), name: "Value Propositions" },      // Medium Gray to match others
+          1: { color: new Color3(0.4, 0.4, 0.4), name: "Key Partners" },           // Medium Gray 
+          2: { color: new Color3(0.4, 0.4, 0.4), name: "Customer Segments" },      // Medium Gray 
+          3: { color: new Color3(0.4, 0.4, 0.4), name: "Key Resources" },          // Medium Gray 
+          4: { color: new Color3(0.4, 0.4, 0.4), name: "Key Activities" },         // Medium Gray 
+          5: { color: new Color3(0.4, 0.4, 0.4), name: "Channels" },               // Medium Gray 
+          6: { color: new Color3(0.4, 0.4, 0.4), name: "Customer Relationships" }, // Medium Gray 
+          7: { color: new Color3(0.4, 0.4, 0.4), name: "Cost Structure" },         // Medium Gray 
+          8: { color: new Color3(0.4, 0.4, 0.4), name: "Revenue Streams" },        // Medium Gray 
         };
 
         // Apply materials and setup to each BMC section mesh
@@ -335,16 +335,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
             
-            // Create StandardMaterial for consistent hover/click behavior
+            // Create StandardMaterial with identical properties for all meshes
             const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
             
-            // Use very dark black color with subtle shine
-            sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Subtle specular reflection
-            sectionMaterial.emissiveColor = Color3.Black(); // No emission by default
+            // Force identical material properties for ALL meshes
+            sectionMaterial.diffuseColor = baseColor.clone(); // Ensure consistent color
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Identical specular
+            sectionMaterial.emissiveColor = Color3.Black(); // No emission 
+            sectionMaterial.disableLighting = false; // Keep consistent lighting
+            sectionMaterial.backFaceCulling = true; // Standard culling
             
+            // Force material replacement to override any GLB materials
+            mesh.material?.dispose(); // Dispose original material first
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
+            
+            console.log(`🎨 Applied identical material to ${sectionName} - color: ${baseColor.r}, ${baseColor.g}, ${baseColor.b}`);
             
             if (useTextureLabels) {
               // Apply PNG decal system to Key Partners for testing
