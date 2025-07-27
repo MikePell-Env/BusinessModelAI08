@@ -308,23 +308,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
-            // Debug Value Propositions mesh properties and try vertical stretching via position manipulation
+            // Debug Value Propositions mesh and try vertex manipulation for true height scaling
             if (sectionName === "Value Propositions") {
-              const meshBounds = mesh.getBoundingInfo();
-              console.log(`📐 Value Propositions Debug Info:`);
+              console.log(`📐 Value Propositions mesh analysis:`);
               console.log(`   Mesh name: ${mesh.name}`);
-              console.log(`   Mesh geometry type:`, mesh.getClassName());
-              console.log(`   Total vertices:`, mesh.getTotalVertices());
-              console.log(`   Has vertex data:`, mesh.getVerticesData ? true : false);
+              console.log(`   Mesh type: ${mesh.getClassName()}`);
+              console.log(`   Position:`, mesh.position);
+              console.log(`   Rotation:`, mesh.rotation);
               
-              // Instead of scaling, try creating a "taller" effect by duplicating and offsetting
-              // Clone the mesh and position it slightly above to create height illusion
-              const clonedMesh = mesh.clone(`${mesh.name}_height_extension`);
-              if (clonedMesh) {
-                clonedMesh.position.y += 0.3; // Offset upward
-                clonedMesh.material = sectionMaterial.clone();
-                clonedMesh.material.alpha = 0.8; // Slightly transparent
-                console.log(`📏 Value Propositions height extended via cloned mesh offset`);
+              // Try vertex manipulation - get vertex positions and scale Y coordinates
+              const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
+              if (positions) {
+                console.log(`   Total vertices: ${positions.length / 3}`);
+                
+                // Create new positions array with Y-coordinates scaled up
+                const newPositions = [...positions];
+                for (let i = 1; i < newPositions.length; i += 3) {
+                  newPositions[i] = newPositions[i] * 2.0; // Scale Y coordinate by 2x
+                }
+                
+                // Apply the modified vertices
+                mesh.setVerticesData(VertexBuffer.PositionKind, newPositions);
+                mesh.refreshBoundingInfo();
+                console.log(`📏 Value Propositions vertices modified - Y coordinates scaled 2x`);
+              } else {
+                console.log(`   No vertex data available for direct manipulation`);
               }
             }
             
