@@ -140,6 +140,8 @@ The application follows a full-stack monorepo architecture with clear separation
   - Implemented manipulation functions for height, transparency, color, and scale adjustments
   - Exposed global functions: adjustBMCSection(), adjustEntireBMC(), listBMCSections()
   - Maintained complete hierarchy: Root Transform → Individual TransformNodes → Meshes
+  - **CRITICAL**: GLB model uses NORMAL Y-axis scaling (larger values = taller shapes)
+  - Value Propositions automatically set to 3.0x height for prominence
 
 ### July 26, 2025 - Complete GLB Model Integration with Babylon.js
 - **✅ Exclusive GLB Model Loading**: Replaced all primitive Babylon.js boxes with custom GLB models from Blender
