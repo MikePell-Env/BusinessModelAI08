@@ -376,14 +376,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   width: 1.0, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
-                // Position on actual mesh surface using bounding box
-                const boundingInfo = mesh.getBoundingInfo();
-                const meshCenter = boundingInfo.boundingBox.centerWorld;
-                const meshTop = boundingInfo.boundingBox.maximumWorld.y;
-                
-                testDecal.position.x = meshCenter.x;
-                testDecal.position.y = meshTop - 0.005; // Just below top surface due to reversed coordinates
-                testDecal.position.z = meshCenter.z;
+                // Use the TransformNode approach that was working before
+                testDecal.position.x = transformNode.position.x;
+                testDecal.position.y = transformNode.position.y + 0.8; // Same offset that worked for red test planes
+                testDecal.position.z = transformNode.position.z;
                 
                 // Lay flat horizontally
                 testDecal.rotation.x = -Math.PI / 2;
@@ -405,9 +401,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     width: 1.0, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
                   }, scene);
                   
-                  textureDecal.position.x = meshCenter.x + 1.5; // Offset to the right of mesh
-                  textureDecal.position.y = meshTop - 0.005; // Just below top surface due to reversed coordinates
-                  textureDecal.position.z = meshCenter.z;
+                  textureDecal.position.x = transformNode.position.x + 1.5; // Offset to the right
+                  textureDecal.position.y = transformNode.position.y + 0.8; // Same working height
+                  textureDecal.position.z = transformNode.position.z;
                   textureDecal.rotation.x = -Math.PI / 2;
                   
                   const textureMaterial = new StandardMaterial(`textureMaterial_${index}`, scene);
