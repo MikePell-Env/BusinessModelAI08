@@ -226,22 +226,64 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         console.log(`📦 BMC model positioned at origin with scale 8.0`);
         
-        // Apply different colors to each BMC section mesh
+        // Apply different colors and interactivity to each BMC section mesh
         let colorIndex = 0;
         result.meshes.forEach((mesh, index) => {
           if (mesh.material && mesh.name !== "__root__") {
             // Create new plastic material with unique color for each section
             const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
-            const sectionColor = bmcColors[colorIndex % bmcColors.length];
+            const baseColor = bmcColors[colorIndex % bmcColors.length];
             
-            sectionMaterial.diffuseColor = sectionColor;
+            sectionMaterial.diffuseColor = baseColor;
             sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Low specular for plastic look
             sectionMaterial.specularPower = 32; // Medium shine
             
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
-            console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - Color: ${sectionColor.r.toFixed(2)}, ${sectionColor.g.toFixed(2)}, ${sectionColor.b.toFixed(2)}`);
+            // Store original color for hover/click effects
+            (mesh as any).originalColor = baseColor.clone();
+            (mesh as any).isClicked = false;
+            
+            // Enable pointer events for this mesh
+            mesh.actionManager = new ActionManager(scene);
+            
+            // Hover enter - brighten color
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              if (!(mesh as any).isClicked) {
+                const brightenedColor = baseColor.scale(1.3); // 30% brighter
+                sectionMaterial.diffuseColor = brightenedColor;
+                console.log(`💡 Hover enter: ${mesh.name || 'unnamed'} brightened`);
+              }
+            }));
+            
+            // Hover exit - restore original color
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              if (!(mesh as any).isClicked) {
+                sectionMaterial.diffuseColor = (mesh as any).originalColor;
+                console.log(`🔄 Hover exit: ${mesh.name || 'unnamed'} restored`);
+              }
+            }));
+            
+            // Click - darken color and toggle state
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              const isCurrentlyClicked = (mesh as any).isClicked;
+              
+              if (isCurrentlyClicked) {
+                // Unclick - restore original color
+                sectionMaterial.diffuseColor = (mesh as any).originalColor;
+                (mesh as any).isClicked = false;
+                console.log(`🔓 Click released: ${mesh.name || 'unnamed'} restored`);
+              } else {
+                // Click - darken color
+                const darkenedColor = baseColor.scale(0.7); // 30% darker
+                sectionMaterial.diffuseColor = darkenedColor;
+                (mesh as any).isClicked = true;
+                console.log(`🔒 Clicked: ${mesh.name || 'unnamed'} darkened`);
+              }
+            }));
+            
+            console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - Interactive color: ${baseColor.r.toFixed(2)}, ${baseColor.g.toFixed(2)}, ${baseColor.b.toFixed(2)}`);
             colorIndex++;
           }
         });
