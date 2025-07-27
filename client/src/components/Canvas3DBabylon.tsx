@@ -387,9 +387,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const meshTop = boundingInfo.boundingBox.maximumWorld.y;
                 const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
                 
-                // Position flush on surface instead of floating above
+                // Position slightly above surface but not floating high
                 textPlane.position.x = transformNode.position.x;
-                textPlane.position.y = meshTop + 0.001; // Just barely above surface to avoid z-fighting
+                textPlane.position.y = meshTop + (meshHeight * 0.1); // 10% of mesh height above surface
                 textPlane.position.z = transformNode.position.z;
                 
                 // Deal with coordinate system - try Y rotation to flip for proper orientation
