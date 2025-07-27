@@ -484,14 +484,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Create label plane with proper PNG aspect ratio (4:1)
-              const labelWidth = size.x * 0.8;   // Wider to prevent horizontal squishing
-              const labelHeight = labelWidth * 0.25; // Maintain 4:1 aspect ratio
+              // Create label plane with 50% taller height like Key Activities
+              const labelWidth = size.x * 0.7;
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like Key Activities
               console.log(`Customer Segments Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
               const labelPlane = MeshBuilder.CreatePlane("customerSegmentsLabel", {
-                width: labelWidth,   // Proper width to match PNG
-                height: labelHeight  // Height based on PNG aspect ratio
+                width: labelWidth,   // Width like Key Activities
+                height: labelHeight  // 50% taller to prevent squishing
               }, scene);
               
               // Position slightly above mesh center
@@ -528,14 +528,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Create label plane with proper PNG aspect ratio (4:1)
-              const labelWidth = size.x * 0.8;   // Wider to prevent horizontal squishing
-              const labelHeight = labelWidth * 0.25; // Maintain 4:1 aspect ratio
+              // Create label plane with 50% taller height like Key Activities
+              const labelWidth = size.x * 0.7;
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like Key Activities
               console.log(`Key Partners Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
               const labelPlane = MeshBuilder.CreatePlane("keyPartnersLabel", {
-                width: labelWidth,   // Proper width to match PNG
-                height: labelHeight  // Height based on PNG aspect ratio
+                width: labelWidth,   // Width like Key Activities
+                height: labelHeight  // 50% taller to prevent squishing
               }, scene);
               
               // Position slightly above mesh center
