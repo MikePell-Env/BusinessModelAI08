@@ -367,18 +367,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               const textureFileName = textureFileMap[sectionName];
               if (textureFileName) {
-                // Load PNG texture from public labels directory
+                // Create 3D text plane positioned exactly like billboard labels
                 const labelTexture = new Texture(`/labels/${textureFileName}`, scene);
                 labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
                 labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
                 labelTexture.hasAlpha = true;
                 
-                // Apply texture to material emissive channel for visibility
-                const material = sectionMaterial;
-                material.emissiveTexture = labelTexture;
-                material.emissiveIntensity = 0.8; // Bright enough to see on dark surface
+                // Create plane with same sizing as billboard labels
+                const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
+                  width: 3, height: 1, sideOrientation: Mesh.DOUBLESIDE
+                }, scene);
                 
-                console.log(`🏷️ Applied PNG texture label: ${textureFileName} to ${sectionName}`);
+                // Position plane exactly where billboard labels appear
+                // Use same logic as billboard positioning system
+                const boundingInfo = mesh.getBoundingInfo();
+                const meshTop = boundingInfo.boundingBox.maximumWorld.y;
+                const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Same as billboard
+                
+                textPlane.position.x = mesh.position.x;
+                textPlane.position.y = meshTop + (labelHeight * 0.5); // Convert from pixel offset to world units
+                textPlane.position.z = mesh.position.z;
+                
+                // Make plane face camera (billboard behavior)
+                textPlane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+                
+                // Apply PNG texture to plane
+                const textMaterial = new StandardMaterial(`textMaterial_${index}`, scene);
+                textMaterial.diffuseTexture = labelTexture;
+                textMaterial.emissiveTexture = labelTexture;
+                textMaterial.emissiveColor = Color3.White();
+                textMaterial.backFaceCulling = false;
+                textMaterial.useAlphaFromDiffuseTexture = true;
+                textPlane.material = textMaterial;
+                
+                console.log(`🏷️ Created 3D text plane for ${sectionName} at Y: ${textPlane.position.y} using ${textureFileName}`);
               } else {
                 console.warn(`⚠️ No texture file mapping found for section: ${sectionName}`);
               }
