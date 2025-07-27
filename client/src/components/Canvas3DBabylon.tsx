@@ -346,12 +346,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             sectionMaterial.disableLighting = false; // Enable proper lighting
             sectionMaterial.backFaceCulling = true; // Standard culling
             
-            // Force material replacement to override any GLB materials
-            mesh.material?.dispose(); // Dispose original material first
-            mesh.material = sectionMaterial;
-            mesh.receiveShadows = true;
+            // FORCE complete material replacement to override any GLB materials
+            if (mesh.material) {
+              mesh.material.dispose(); // Dispose original material first  
+            }
             
-            console.log(`🎨 Applied identical material to ${sectionName} - color: ${baseColor.r}, ${baseColor.g}, ${baseColor.b}`);
+            // Create completely new material instance to avoid inheritance issues
+            const forcedMaterial = new StandardMaterial(`forcedBMC_${sectionName}_${index}`, scene);
+            forcedMaterial.diffuseColor = new Color3(0.1, 0.1, 0.1); // Force exact same dark color
+            forcedMaterial.specularColor = new Color3(0.3, 0.3, 0.3); // Force exact same specular
+            forcedMaterial.specularPower = 32; // Force exact same shine
+            forcedMaterial.emissiveColor = Color3.Black(); // Force no emission
+            forcedMaterial.disableLighting = false; // Force lighting enabled
+            forcedMaterial.backFaceCulling = true; // Force culling
+            
+            // Apply forced material and ensure shadows
+            mesh.material = forcedMaterial;
+            mesh.receiveShadows = true;
+            mesh.refreshBoundingInfo(); // Refresh to ensure material takes effect
+            
+            console.log(`🎨 FORCED identical semi-gloss black material to ${sectionName} - mesh ${index}`);
             
             if (useTextureLabels) {
               // Apply PNG decal system to Key Partners for testing
