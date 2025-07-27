@@ -76,8 +76,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     return section.content.map(item => `• ${item}`).join('\n');
   };
   
-  // Use PNG texture labels instead of billboard labels
-  const useTextureLabels = true;
+  // GUI state removed since labels are no longer used
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -288,30 +287,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Customer Relationships label is where Customer Segments should be  
         // Customer Segments label is where Key Activities should be
         const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
-          0: { color: new Color3(0.1, 0.1, 0.1), name: "Value Propositions" },      // Semi-gloss black
-          1: { color: new Color3(0.1, 0.1, 0.1), name: "Key Partners" },           // Semi-gloss black
-          2: { color: new Color3(0.1, 0.1, 0.1), name: "Customer Segments" },      // Semi-gloss black
-          3: { color: new Color3(0.1, 0.1, 0.1), name: "Key Resources" },          // Semi-gloss black
-          4: { color: new Color3(0.1, 0.1, 0.1), name: "Key Activities" },         // Semi-gloss black
-          5: { color: new Color3(0.1, 0.1, 0.1), name: "Channels" },               // Semi-gloss black
-          6: { color: new Color3(0.1, 0.1, 0.1), name: "Customer Relationships" }, // Semi-gloss black
-          7: { color: new Color3(0.1, 0.1, 0.1), name: "Cost Structure" },         // Semi-gloss black
-          8: { color: new Color3(0.1, 0.1, 0.1), name: "Revenue Streams" },        // Semi-gloss black
+          0: { color: new Color3(0.005, 0.005, 0.005), name: "Value Propositions" },      // Very Dark Black
+          1: { color: new Color3(0.005, 0.005, 0.005), name: "Key Partners" },           // Very Dark Black
+          2: { color: new Color3(0.005, 0.005, 0.005), name: "Customer Segments" },      // Very Dark Black
+          3: { color: new Color3(0.005, 0.005, 0.005), name: "Key Resources" },          // Very Dark Black
+          4: { color: new Color3(0.005, 0.005, 0.005), name: "Key Activities" },         // Very Dark Black
+          5: { color: new Color3(0.005, 0.005, 0.005), name: "Channels" },               // Very Dark Black
+          6: { color: new Color3(0.005, 0.005, 0.005), name: "Customer Relationships" }, // Very Dark Black
+          7: { color: new Color3(0.005, 0.005, 0.005), name: "Cost Structure" },         // Very Dark Black
+          8: { color: new Color3(0.005, 0.005, 0.005), name: "Revenue Streams" },        // Very Dark Black
         };
-
-        // Apply materials and setup to each BMC section mesh
-        
-        // DEBUG: Log all meshes to understand the structure
-        console.log(`🔍 TOTAL MESHES: ${result.meshes.length}`);
-        result.meshes.forEach((m, i) => {
-          console.log(`🔍 Mesh ${i}: name="${m.name}", material=${!!m.material}, materialType=${m.material?.getClassName()}`);
-        });
 
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
         result.meshes.forEach((mesh, index) => {
-          // Process ALL meshes that aren't the root, regardless of existing material
-          if (mesh && mesh.name !== "__root__") {
+          if (mesh.material && mesh.name !== "__root__") {
             const section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
             const baseColor = section.color;
             const sectionName = section.name;
@@ -342,118 +332,53 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
             
-            // Create StandardMaterial with semi-gloss black plastic properties
-            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
+            // Create new semi-gloss black plastic material for each section
+            const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
             
-            // Semi-gloss black plastic material properties for ALL meshes
-            sectionMaterial.diffuseColor = baseColor.clone(); // Dark black base
-            sectionMaterial.specularColor = new Color3(0.3, 0.3, 0.3); // Higher specular for semi-gloss
-            sectionMaterial.specularPower = 32; // Medium shine for plastic appearance
-            sectionMaterial.emissiveColor = Color3.Black(); // No emission 
-            sectionMaterial.disableLighting = false; // Enable proper lighting
-            sectionMaterial.backFaceCulling = true; // Standard culling
+            // Use very dark black color with subtle shine
+            sectionMaterial.baseColor = baseColor;
+            sectionMaterial.metallic = 0.0; // No metallic reflection for plastic
+            sectionMaterial.roughness = 0.7; // Medium-high roughness for semi-gloss finish
+            sectionMaterial.clearCoat.isEnabled = false; // Disable clear coat
+            sectionMaterial.directIntensity = 1.0; // Allow some direct light reflection
+            sectionMaterial.environmentIntensity = 0.3; // Low environment reflection for subtle shine
+            // Environment reflections handled by scene environment
             
-            // FORCE complete material replacement to override any GLB materials
-            if (mesh.material) {
-              mesh.material.dispose(); // Dispose original material first  
-            }
-            
-            // Create completely new material instance for EVERY mesh
-            const forcedMaterial = new StandardMaterial(`forcedBMC_${sectionName}_${index}`, scene);
-            forcedMaterial.diffuseColor = new Color3(0.1, 0.1, 0.1); // Force exact same dark color
-            forcedMaterial.specularColor = new Color3(0.3, 0.3, 0.3); // Force exact same specular
-            forcedMaterial.specularPower = 32; // Force exact same shine
-            forcedMaterial.emissiveColor = Color3.Black(); // Force no emission
-            forcedMaterial.disableLighting = false; // Force lighting enabled
-            forcedMaterial.backFaceCulling = true; // Force culling
-            
-            // Apply forced material and ensure shadows
-            mesh.material = forcedMaterial;
+            mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
-            mesh.refreshBoundingInfo(); // Refresh to ensure material takes effect
             
-            // DEBUG: Verify material was applied
-            const appliedMaterial = mesh.material as StandardMaterial;
-            console.log(`🎨 APPLIED to ${sectionName}: diffuse=(${appliedMaterial.diffuseColor.r.toFixed(2)}, ${appliedMaterial.diffuseColor.g.toFixed(2)}, ${appliedMaterial.diffuseColor.b.toFixed(2)}), specular=(${appliedMaterial.specularColor.r.toFixed(2)}, ${appliedMaterial.specularColor.g.toFixed(2)}, ${appliedMaterial.specularColor.b.toFixed(2)}), power=${appliedMaterial.specularPower}`);
+            // Store original color and material for hover/click effects
+            (mesh as any).originalColor = baseColor.clone();
+            (mesh as any).originalMaterial = sectionMaterial;
+            (mesh as any).isClicked = false;
             
-            if (useTextureLabels) {
-              // Apply PNG decal system to Key Partners for testing
-              if (sectionName === "Key Partners") {
-                console.log(`🎯 FOUND Key Partners shape - applying PNG decal`);
-                
-                // Now apply PNG decal to this identified mesh
-                try {
-                  const decalPosition = new Vector3(
-                    transformNode.position.x, 
-                    transformNode.position.y + 0.5, 
-                    transformNode.position.z
-                  );
-                  
-                  const decalNormal = new Vector3(0, 1, 0);
-                  const decalSize = new Vector3(1.0, 1.0, 0.1);
-                  
-                  const decal = MeshBuilder.CreateDecal(`decal_${sectionName}`, mesh, {
-                    position: decalPosition,
-                    normal: decalNormal,
-                    size: decalSize,
-                    angle: 0,
-                    localMode: true,
-                    cullBackFaces: true
-                  }, scene);
-                  
-                  const decalMaterial = new StandardMaterial(`decalMat_${sectionName}`, scene);
-                  const decalTexture = new Texture('/labels/Label_KeyPartners_1753647389095.png', scene);
-                  
-                  decalTexture.hasAlpha = true;
-                  decalTexture.vScale = -1;
-                  decalTexture.vOffset = 1;
-                  
-                  decalMaterial.diffuseTexture = decalTexture;
-                  decalMaterial.emissiveTexture = decalTexture;
-                  decalMaterial.emissiveColor = Color3.White();
-                  decalMaterial.useAlphaFromDiffuseTexture = true;
-                  decalMaterial.disableLighting = true;
-                  decalMaterial.zOffset = -2;
-                  
-                  decal.material = decalMaterial;
-                  
-                  console.log(`🏷️ Applied PNG decal to Key Partners at position:`, decalPosition);
-                } catch (error) {
-                  console.error(`❌ Failed to create decal for Key Partners:`, error);
-                }
-              }
-            } else {
-              // Create billboard label above this mesh
-              const labelContainer = new Rectangle(`label_${index}`);
-              labelContainer.widthInPixels = 200;
-              labelContainer.heightInPixels = 40;
-              labelContainer.cornerRadius = 8;
-              labelContainer.color = "white";
-              labelContainer.thickness = 2;
-              labelContainer.background = "rgba(0, 0, 0, 0.7)";
-              // Value Propositions label should always appear in front
-              labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
-              
-              const labelText = new TextBlock(`labelText_${index}`, sectionName);
-              labelText.color = "white";
-              labelText.fontSize = "14px";
-              labelText.fontFamily = "Arial, sans-serif";
-              labelText.fontWeight = "bold";
-              
-              labelContainer.addControl(labelText);
-              advancedTexture.addControl(labelContainer);
-              
-              // Position label higher above mesh top with billboard behavior
-              // Special much higher positioning for Value Proposition label
-              const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
-              
-              // Link label to 3D position with billboard behavior
-              labelContainer.linkWithMesh(mesh);
-              labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
-              
-              // Store reference for hover effects
-              (mesh as any).labelContainer = labelContainer;
-            }
+            // Create billboard label above this mesh
+            const labelContainer = new Rectangle(`label_${index}`);
+            labelContainer.widthInPixels = 200;
+            labelContainer.heightInPixels = 40;
+            labelContainer.cornerRadius = 8;
+            labelContainer.color = "white";
+            labelContainer.thickness = 2;
+            labelContainer.background = "rgba(0, 0, 0, 0.7)";
+            // Value Propositions label should always appear in front
+            labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
+            
+            const labelText = new TextBlock(`labelText_${index}`, sectionName);
+            labelText.color = "white";
+            labelText.fontSize = "14px";
+            labelText.fontFamily = "Arial, sans-serif";
+            labelText.fontWeight = "bold";
+            
+            labelContainer.addControl(labelText);
+            advancedTexture.addControl(labelContainer);
+            
+            // Position label higher above mesh top with billboard behavior
+            // Special much higher positioning for Value Proposition label
+            const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
+            
+            // Link label to 3D position with billboard behavior
+            labelContainer.linkWithMesh(mesh);
+            labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
             
             // Create content panel for click events (initially hidden)
             const contentPanel = new Rectangle(`contentPanel_${index}`);
@@ -551,14 +476,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   material.alpha = 1.0; // 100% opacity
                 });
                 
-                // Make label bright blue background (billboard system only)
-                if (!useTextureLabels) {
-                  const labelContainer = (mesh as any).labelContainer;
-                  if (labelContainer) {
-                    labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
-                  }
+                // Make label bright blue background
+                const labelContainer = (mesh as any).labelContainer;
+                if (labelContainer) {
+                  labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
                 }
-                // For texture labels, the blue highlighting is handled by the material color change above
                 
                 console.log(`💡 Hover enter: ${sectionName} bright blue, all objects 100% opacity`);
               }
@@ -575,14 +497,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   material.alpha = 1.0; // Full opacity
                 });
                 
-                // Restore label to semi-transparent (billboard system only)
-                if (!useTextureLabels) {
-                  const labelContainer = (mesh as any).labelContainer;
-                  if (labelContainer) {
-                    labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Semi-transparent
-                  }
+                // Restore label to semi-transparent
+                const labelContainer = (mesh as any).labelContainer;
+                if (labelContainer) {
+                  labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Semi-transparent
                 }
-                // For texture labels, the color restoration is handled by the material color change above
                 
                 console.log(`🔄 Hover exit: ${sectionName} restored, all objects full opacity`);
               }
@@ -716,7 +635,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       scale?: Vector3;
     }) => {
       if (scene) {
-        const rootTransform = scene.getNodeByName("__root__") as TransformNode;
+        const rootTransform = scene.getNodeByName("__root__");
         if (rootTransform) {
           if (options.position) {
             rootTransform.position = options.position;
