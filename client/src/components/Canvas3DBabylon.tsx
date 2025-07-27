@@ -368,19 +368,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
               if (textureFileName) {
-                // Create PNG texture plane at the working height
+                // Create PNG texture and get actual dimensions
                 const labelTexture = new Texture(`/labels/${textureFileName}`, scene);
                 labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
                 labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
                 labelTexture.hasAlpha = true;
                 
-                // Increase width to prevent text cropping - "Value Proposition" needs more space
-                const textAspectRatio = 6.0; // Increased width ratio to show full text
-                const planeHeight = sectionName === "Value Propositions" ? 0.5 : 0.6;
-                const planeWidth = planeHeight * textAspectRatio; // Maintain aspect ratio
+                // Wait for texture to load and get actual dimensions
+                labelTexture.onLoadObservable.addOnce(() => {
+                  const textureWidth = labelTexture.getBaseSize().width;
+                  const textureHeight = labelTexture.getBaseSize().height;
+                  const actualAspectRatio = textureWidth / textureHeight;
+                  
+                  console.log(`📏 Actual PNG dimensions: ${textureWidth}x${textureHeight}, aspect ratio: ${actualAspectRatio}`);
+                  
+                  // Update plane size based on actual PNG dimensions
+                  const baseHeight = sectionName === "Value Propositions" ? 0.5 : 0.6;
+                  const calculatedWidth = baseHeight * actualAspectRatio;
+                  
+                  textPlane.scaling.x = calculatedWidth / 1.0; // Scale from default 1x1 plane
+                  textPlane.scaling.y = baseHeight / 1.0;
+                  textPlane.scaling.z = 1.0;
+                  
+                  console.log(`🔧 Updated plane scaling: ${calculatedWidth}x${baseHeight} (aspect: ${actualAspectRatio})`);
+                });
                 
+                // Create plane with default 1x1 size, will be scaled after texture loads
                 const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
-                  width: planeWidth, height: planeHeight, sideOrientation: Mesh.DOUBLESIDE
+                  width: 1.0, height: 1.0, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
                 // Use TransformNode position for correct placement
