@@ -393,9 +393,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   console.log(`🔧 Updated plane scaling: ${calculatedWidth}x${baseHeight} (aspect: ${actualAspectRatio})`);
                 });
                 
-                // Create reasonably sized plane
+                // Create smaller plane that fits within cylinder top
                 const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
-                  width: 2.5, height: 0.8, sideOrientation: Mesh.DOUBLESIDE
+                  width: 1.2, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
                 // Use TransformNode position for correct placement
@@ -423,11 +423,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textMaterial.backFaceCulling = false;
                 textMaterial.useAlphaFromDiffuseTexture = true;
                 
-                // Fix upside down texture and scale down to prevent cropping
-                labelTexture.vScale = -0.6; // Flip vertically and scale down to 60%
-                labelTexture.vOffset = 0.8; // Adjust offset for scaled texture
-                labelTexture.uScale = 0.6;  // Scale horizontally to 60%
-                labelTexture.uOffset = 0.2; // Center the scaled texture
+                // Fix upside down texture and scale up to fill smaller plane
+                labelTexture.vScale = -1.5; // Flip vertically and scale up to 150%
+                labelTexture.vOffset = 1.25; // Adjust offset for scaled texture
+                labelTexture.uScale = 1.5;  // Scale horizontally to 150%
+                labelTexture.uOffset = -0.25; // Center the scaled texture
                 
                 textPlane.material = textMaterial;
                 
