@@ -368,86 +368,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
               if (textureFileName) {
-                // Create PNG texture and get actual dimensions
-                const labelTexture = new Texture(`/labels/${textureFileName}`, scene);
-                labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
-                labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
-                labelTexture.hasAlpha = true;
+                // Simple decal approach - create plane positioned flush on surface
+                const boundingInfo = mesh.getBoundingInfo();
+                const meshCenter = boundingInfo.boundingBox.centerWorld;
+                const meshTop = boundingInfo.boundingBox.maximumWorld.y;
                 
-                // Wait for texture to load and resize plane to match PNG aspect ratio
-                labelTexture.onLoadObservable.addOnce(() => {
-                  const textureWidth = labelTexture.getBaseSize().width;
-                  const textureHeight = labelTexture.getBaseSize().height;
-                  const actualAspectRatio = textureWidth / textureHeight;
-                  
-                  console.log(`📏 PNG dimensions: ${textureWidth}x${textureHeight}, aspect ratio: ${actualAspectRatio}`);
-                  
-                  // Create plane with native PNG aspect ratio - narrower due to reversed coordinates
-                  const desiredHeight = 0.4; // Standard height
-                  const nativeWidth = (desiredHeight * actualAspectRatio) * 0.7; // 30% narrower due to coordinate flip
-                  
-                  // Replace the plane with correctly sized one
-                  textPlane.dispose();
-                  const correctPlane = MeshBuilder.CreatePlane(`textPlane_${index}_corrected`, {
-                    width: nativeWidth, height: desiredHeight, sideOrientation: Mesh.DOUBLESIDE
-                  }, scene);
-                  
-                  // Copy all properties from old plane
-                  correctPlane.position = textPlane.position.clone();
-                  correctPlane.rotation = textPlane.rotation.clone();
-                  correctPlane.material = textMaterial;
-                  
-                  console.log(`🔧 Recreated plane with native aspect: ${nativeWidth}x${desiredHeight}`);
-                });
-                
-                // Create smaller plane that fits within cylinder top
-                const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
-                  width: 1.2, height: 0.4, sideOrientation: Mesh.DOUBLESIDE
+                // Create appropriately sized plane for decal
+                const decalPlane = MeshBuilder.CreatePlane(`decal_${index}`, {
+                  width: 1.5, height: 0.5, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
-                // Use TransformNode position for correct placement
-                const boundingInfo = mesh.getBoundingInfo();
-                const meshTop = boundingInfo.boundingBox.maximumWorld.y;
-                const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
+                // Position flush on top surface
+                decalPlane.position.x = meshCenter.x;
+                decalPlane.position.y = meshTop + 0.01; // Just above surface to prevent z-fighting
+                decalPlane.position.z = meshCenter.z;
                 
-                // Go back to the working height from red test planes
-                textPlane.position.x = transformNode.position.x;
-                textPlane.position.y = meshTop + (meshHeight * 5.0); // Same height that worked for red planes
-                textPlane.position.z = transformNode.position.z;
+                // Lay flat on surface
+                decalPlane.rotation.x = -Math.PI / 2;
                 
-                // Use the simplest rotation that worked before
-                textPlane.rotation.x = -Math.PI / 2; // Lay flat (90 degrees down)
-                textPlane.rotation.y = 0; // No Y rotation
-                textPlane.rotation.z = 0; // No Z rotation
+                // Create simple texture material
+                const decalMaterial = new StandardMaterial(`decalMaterial_${index}`, scene);
+                const decalTexture = new Texture(`/labels/${textureFileName}`, scene);
                 
-                console.log(`🔄 Flush positioning + Y flip for ${sectionName}`);
+                // Simple texture settings - no complex UV manipulation
+                decalTexture.hasAlpha = true;
+                decalTexture.vScale = -1; // Only flip vertically
+                decalTexture.vOffset = 1;
                 
-                // Apply PNG texture with normal UV coordinates
-                const textMaterial = new StandardMaterial(`textMaterial_${index}`, scene);
-                textMaterial.diffuseTexture = labelTexture;
-                textMaterial.emissiveTexture = labelTexture;
-                textMaterial.emissiveColor = Color3.White();
-                textMaterial.backFaceCulling = false;
-                textMaterial.useAlphaFromDiffuseTexture = true;
+                decalMaterial.diffuseTexture = decalTexture;
+                decalMaterial.emissiveTexture = decalTexture;
+                decalMaterial.emissiveColor = Color3.White();
+                decalMaterial.useAlphaFromDiffuseTexture = true;
+                decalMaterial.backFaceCulling = false;
                 
-                // Apply texture with expanded UV mapping to show complete image
-                labelTexture.vScale = -1.2; // Flip and scale up to show more content
-                labelTexture.vOffset = 1.1; // Adjust offset for expanded texture
-                labelTexture.uScale = 1.2;  // Scale up horizontally to show complete text
-                labelTexture.uOffset = -0.1; // Shift left to show beginning of text
+                decalPlane.material = decalMaterial;
                 
-                textPlane.material = textMaterial;
-                
-                console.log(`🏷️ PNG texture plane: ${sectionName} at (${textPlane.position.x}, ${textPlane.position.y}, ${textPlane.position.z}) using ${textureFileName}`);
-                console.log(`📍 TransformNode position: (${transformNode.position.x}, ${transformNode.position.y}, ${transformNode.position.z})`);
-                
-                // Add texture loading feedback
-                labelTexture.onLoadObservable.add(() => {
-                  console.log(`✅ Texture loaded: ${textureFileName}`);
-                });
-                labelTexture.onErrorObservable.add(() => {
-                  console.error(`❌ Texture failed: ${textureFileName}`);
-                });
+                console.log(`🏷️ Simple decal for ${sectionName} at (${decalPlane.position.x}, ${decalPlane.position.y}, ${decalPlane.position.z})`);
               } else {
                 console.warn(`⚠️ No texture mapping for: ${sectionName}`);
               }
