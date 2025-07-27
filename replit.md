@@ -115,26 +115,23 @@ The application follows a full-stack monorepo architecture with clear separation
 
 ### July 27, 2025 - Complete Interactive 3D BMC System with Billboard Labels
 - **✅ Simplified Architecture**: Replaced 7 individual GLB objects with single complete BMC model (BMC_blender_09_complete_1753576063858.glb)
-- **✅ Matte Black Plastic Material System**: All BMC sections now use uniform matte black plastic appearance
-  - Material properties: metallic=0.0, roughness=0.9 for authentic matte plastic finish
-  - Color3(0.1, 0.1, 0.1) for consistent dark black appearance across all sections
-  - Eliminated multi-color system in favor of professional monochrome aesthetic
-- **✅ Full Interactive System**: Added hover and click detection with dramatic visual feedback
-  - Hover changes object to turquoise blue (Color3(0.25, 0.8, 0.7)) and makes all other objects 10% opacity
-  - Click toggles between darkened (30% darker) and normal states
+- **✅ Semi-Gloss Black Plastic Material System**: All BMC sections now use uniform semi-gloss black plastic appearance
+  - Material properties: metallic=0.0, roughness=0.7, environmentIntensity=0.3 for semi-gloss finish
+  - Color3(0.005, 0.005, 0.005) for consistent very dark black appearance across all sections
+  - Professional monochrome aesthetic with subtle shine
+- **✅ Full Interactive System**: Added hover and click detection with bright blue selection
+  - Hover changes object to bright blue (Color3(0.0, 0.39, 1.0)) with all objects at 100% opacity
+  - Click keeps object bright blue and makes other objects 50% opacity for focus
   - Smart state management prevents hover effects when clicked
-  - Hover exit restores all objects to original dark black color and full opacity
+  - Content panels appear on click with detailed business model information
 - **✅ Billboard Label System**: Added floating labels above each BMC section
   - Labels always face camera using linkWithMesh billboard behavior
   - Professional styling with dark backgrounds and white bold text
-  - Positioned precisely above mesh centers using bounding box calculations
-- **✅ Optimal Camera Positioning**: Set default 3D camera to angled overhead perspective (alpha: -π/2.5, beta: π/6, radius: 25)
-- **✅ Perfect UI Consistency**: Added exact title/subtitle header overlay matching 2D view styling
-- **✅ Enhanced Logging**: Comprehensive console logging with proper BMC section names for all interactions
-- **✅ Fixed Label Positioning**: Resolved critical label misalignment issue where labels didn't correspond to correct shapes
-  - Implemented position-based mapping system using direct index-to-label assignment
-  - Corrected three specific label swaps: Customer Segments ↔ Customer Relationships ↔ Key Activities
-  - All labels now accurately match their corresponding 3D shapes and colors
+  - Positioned precisely above mesh centers with special height for Value Propositions
+- **✅ Refactored Interaction Architecture**: Separated mesh interactions from label functionality
+  - Created dedicated functions: updateMeshHoverEnter/Exit, updateLabelHoverEnter/Exit
+  - Separate functions for click selection: updateMeshClickSelect/Unselect, updateContentPanel
+  - Modular design allows independent control of mesh and label behaviors
 - **✅ Individual Shape Manipulation System**: Added TransformNode hierarchy for granular control
   - Created individual TransformNode parent for each of the 7 BMC shapes
   - Preserved root TransformNode for scaling entire collection
