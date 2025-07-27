@@ -373,23 +373,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
                 labelTexture.hasAlpha = true;
                 
-                // Create plane with same sizing as billboard labels
+                // Create plane sized to fit on surface
                 const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
-                  width: 3, height: 1, sideOrientation: Mesh.DOUBLESIDE
+                  width: 2.5, height: 1.2, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
-                // Position plane exactly where billboard labels appear
-                // Use same logic as billboard positioning system
+                // Position plane flush on the top surface of the mesh
                 const boundingInfo = mesh.getBoundingInfo();
                 const meshTop = boundingInfo.boundingBox.maximumWorld.y;
-                const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Same as billboard
                 
                 textPlane.position.x = mesh.position.x;
-                textPlane.position.y = meshTop + (labelHeight * 0.5); // Convert from pixel offset to world units
+                textPlane.position.y = meshTop + 0.001; // Just slightly above to avoid z-fighting
                 textPlane.position.z = mesh.position.z;
                 
-                // Make plane face camera (billboard behavior)
-                textPlane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+                // Rotate plane to lay flat on top surface (facing up)
+                textPlane.rotation.x = -Math.PI / 2; // Rotate 90 degrees to face up
+                textPlane.rotation.y = 0;
+                textPlane.rotation.z = 0;
                 
                 // Apply PNG texture to plane
                 const textMaterial = new StandardMaterial(`textMaterial_${index}`, scene);
