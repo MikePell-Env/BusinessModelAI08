@@ -704,10 +704,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 height: labelHeight  // 50% taller to reduce squishing
               }, scene);
               
-              // Position within the mesh boundaries, moved left from top view perspective
+              // Position within the mesh boundaries, moved left and down toward bottom
               labelPlane.position.x = center.x - size.x * 0.15; // Move left but leave margin on left edge
               labelPlane.position.y = center.y + size.y * 0.6;
-              labelPlane.position.z = center.z + size.z * 0.3; // Move up more in top view
+              labelPlane.position.z = center.z - size.z * 0.3; // Move down toward bottom of shape
               
               // Rotate to be flat on top
               labelPlane.rotation.x = Math.PI / 2;
