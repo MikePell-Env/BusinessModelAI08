@@ -367,22 +367,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
-              // Apply PNG decal directly to Key Partners surface
-              if (sectionName === "Key Partners") {
-                console.log(`🎯 Applying PNG decal to ${sectionName}`);
+              // Apply PNG decal using official Babylon.js CreateDecal method
+              if (sectionName === "Key Partners" && mesh) {
+                console.log(`🎯 Creating official Babylon.js decal for ${sectionName}`);
                 
-                // Create a visible decal plane at world coordinates first
-                const decalPlane = MeshBuilder.CreatePlane(`decal_${sectionName}`, {
-                  width: 1.2, height: 0.5, sideOrientation: Mesh.DOUBLESIDE
+                // Define decal position on the mesh surface
+                const decalPosition = new Vector3(
+                  transformNode.position.x, 
+                  transformNode.position.y + 0.5, // Top surface
+                  transformNode.position.z
+                );
+                
+                // Define surface normal (pointing up for top surface)
+                const decalNormal = new Vector3(0, 1, 0);
+                
+                // Define decal size
+                const decalSize = new Vector3(1.0, 1.0, 0.1);
+                
+                // Create the official decal mesh
+                const decal = MeshBuilder.CreateDecal(`decal_${sectionName}`, mesh, {
+                  position: decalPosition,
+                  normal: decalNormal,
+                  size: decalSize,
+                  angle: 0,
+                  localMode: true, // Use local coordinates for proper attachment
+                  cullBackFaces: true // Remove back faces to prevent leaking
                 }, scene);
                 
-                // Position at a clearly visible location for testing
-                decalPlane.position.x = 0;
-                decalPlane.position.y = 1.5; // Above the model
-                decalPlane.position.z = 0;
-                decalPlane.rotation.x = -Math.PI / 2; // Lay flat
-                
-                // Use any available PNG as texture
+                // Apply PNG texture to the decal
                 const decalMaterial = new StandardMaterial(`decalMat_${sectionName}`, scene);
                 const decalTexture = new Texture('/labels/Label_KeyPartners_1753647389095.png', scene);
                 
@@ -395,11 +407,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 decalMaterial.emissiveColor = Color3.White();
                 decalMaterial.useAlphaFromDiffuseTexture = true;
                 decalMaterial.disableLighting = true;
-                decalMaterial.backFaceCulling = false;
+                decalMaterial.zOffset = -2; // Prevent z-fighting as per documentation
                 
-                decalPlane.material = decalMaterial;
+                decal.material = decalMaterial;
                 
-                console.log(`🏷️ Created PNG decal at world position (0, 1.5, 0)`);
+                console.log(`🏷️ Created official Babylon.js decal on ${sectionName} mesh at position:`, decalPosition);
               }
             } else {
               // Create billboard label above this mesh
