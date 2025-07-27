@@ -325,9 +325,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 z: meshBounds.boundingBox.maximumWorld.z - meshBounds.boundingBox.minimumWorld.z
               });
               
-              // Try scaling the X-axis to see if that's the height dimension
-              mesh.scaling = new Vector3(2.0, 1, 1); // Double the X-axis
-              console.log(`📏 Value Propositions scaled 2x on X-axis`);
+              // Try uniform scaling to make the entire shape bigger while maintaining proportions
+              mesh.scaling = new Vector3(1.5, 1.5, 1.5); // Scale all dimensions equally
+              console.log(`📏 Value Propositions scaled 1.5x uniformly (all axes)`);
             }
             
             // Store original color for hover/click effects
