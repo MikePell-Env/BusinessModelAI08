@@ -332,15 +332,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelContainer.addControl(labelText);
             advancedTexture.addControl(labelContainer);
             
-            // Position label above mesh top using bounding box maximum height
+            // Position label higher above mesh top with billboard behavior
             const meshBounds = mesh.getBoundingInfo();
-            const meshTopY = meshBounds.boundingBox.maximumWorld.y; // Get the actual top of the mesh
-            const labelOffsetAboveTop = sectionName === "Value Propositions" ? 2.0 : 1.0; // Extra space above mesh top
-            const labelWorldY = meshTopY + labelOffsetAboveTop;
+            const meshCenter = meshBounds.boundingBox.centerWorld;
+            // Special much higher positioning for Value Proposition label
+            const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
+            const labelPosition = new Vector3(meshCenter.x, meshCenter.y + labelHeight, meshCenter.z);
             
             // Link label to 3D position with billboard behavior
             labelContainer.linkWithMesh(mesh);
-            labelContainer.linkOffsetY = `-${labelOffsetAboveTop * 50}px`; // Convert world units to approximate pixels
+            labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
             
             // Create content panel for click events (initially hidden)
             const contentPanel = new Rectangle(`contentPanel_${index}`);
