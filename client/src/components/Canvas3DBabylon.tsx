@@ -386,30 +386,70 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
               textTexture.update();
               
-              // Create a 3D plane for the text
-              const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
-                width: 4,
-                height: 2,
-                sideOrientation: Mesh.DOUBLESIDE
-              }, scene);
-              
-              // Position plane on top of mesh surface
+              // Create TWO text planes - one for "top" and one for "bottom" to test coordinate system
               const boundingInfo = mesh.getBoundingInfo();
               const meshTop = boundingInfo.boundingBox.maximumWorld.y;
-              textPlane.position.x = mesh.position.x;
-              textPlane.position.y = meshTop + 0.01; // Slightly above surface
-              textPlane.position.z = mesh.position.z;
-              textPlane.rotation.x = -Math.PI / 2; // Lay flat on top
+              const meshBottom = boundingInfo.boundingBox.minimumWorld.y;
+              const meshCenter = mesh.position;
               
-              // Create material for text plane
-              const textMaterial = new StandardMaterial(`textMaterial_${index}`, scene);
-              textMaterial.diffuseTexture = textTexture;
-              textMaterial.emissiveTexture = textTexture;
-              textMaterial.emissiveColor = Color3.White();
-              textMaterial.backFaceCulling = false;
-              textPlane.material = textMaterial;
+              // TOP plane (what we think is top)
+              const topPlane = MeshBuilder.CreatePlane(`topPlane_${index}`, {
+                width: 3, height: 1.5, sideOrientation: Mesh.DOUBLESIDE
+              }, scene);
+              topPlane.position.x = meshCenter.x;
+              topPlane.position.y = meshTop + 0.02;
+              topPlane.position.z = meshCenter.z;
+              topPlane.rotation.x = -Math.PI / 2; // Lay flat
               
-              console.log(`🏷️ Created 3D text plane for ${sectionName} at Y: ${textPlane.position.y}`);
+              // BOTTOM plane (what we think is bottom)
+              const bottomPlane = MeshBuilder.CreatePlane(`bottomPlane_${index}`, {
+                width: 3, height: 1.5, sideOrientation: Mesh.DOUBLESIDE
+              }, scene);
+              bottomPlane.position.x = meshCenter.x;
+              bottomPlane.position.y = meshBottom - 0.02;
+              bottomPlane.position.z = meshCenter.z;
+              bottomPlane.rotation.x = Math.PI / 2; // Lay flat (opposite rotation)
+              
+              // Create material with "TOP" text
+              const topMaterial = new StandardMaterial(`topMaterial_${index}`, scene);
+              const topTexture = textTexture.clone();
+              // Clear and redraw with "TOP" prefix
+              const topContext = topTexture.getContext();
+              topContext.fillStyle = "rgba(255, 0, 0, 0.8)"; // Red background
+              topContext.fillRect(0, 0, 512, 256);
+              topContext.fillStyle = "#FFFFFF";
+              topContext.strokeStyle = "#000000";
+              topContext.lineWidth = 2;
+              topContext.font = "bold 24px Arial";
+              topContext.textAlign = "center";
+              topContext.fillText("TOP: " + sectionName, 256, 128);
+              topTexture.update();
+              topMaterial.diffuseTexture = topTexture;
+              topMaterial.emissiveTexture = topTexture;
+              topMaterial.backFaceCulling = false;
+              topPlane.material = topMaterial;
+              
+              // Create material with "BOTTOM" text  
+              const bottomMaterial = new StandardMaterial(`bottomMaterial_${index}`, scene);
+              const bottomTexture = textTexture.clone();
+              const bottomContext = bottomTexture.getContext();
+              bottomContext.fillStyle = "rgba(0, 255, 0, 0.8)"; // Green background
+              bottomContext.fillRect(0, 0, 512, 256);
+              bottomContext.fillStyle = "#FFFFFF";
+              bottomContext.strokeStyle = "#000000"; 
+              bottomContext.lineWidth = 2;
+              bottomContext.font = "bold 24px Arial";
+              bottomContext.textAlign = "center";
+              bottomContext.fillText("BOTTOM: " + sectionName, 256, 128);
+              bottomTexture.update();
+              bottomMaterial.diffuseTexture = bottomTexture;
+              bottomMaterial.emissiveTexture = bottomTexture;
+              bottomMaterial.backFaceCulling = false;
+              bottomPlane.material = bottomMaterial;
+              
+              console.log(`🔍 ${sectionName} - MeshTop: ${meshTop}, MeshBottom: ${meshBottom}, MeshCenter: ${meshCenter.y}`);
+              console.log(`🔴 TOP plane at Y: ${topPlane.position.y} (RED background)`);
+              console.log(`🟢 BOTTOM plane at Y: ${bottomPlane.position.y} (GREEN background)`);
             } else {
               // ORIGINAL: Create billboard label above this mesh
               const labelContainer = new Rectangle(`label_${index}`);
