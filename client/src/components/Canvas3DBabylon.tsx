@@ -444,7 +444,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Reset mesh clicked state
               sectionMaterial.baseColor = (mesh as any).originalColor;
               (mesh as any).isClicked = false;
-              console.log(`❌ Close button: ${sectionName} panel closed and mesh restored`);
+              
+              // Restore all objects to full opacity
+              contentPanelsRef.current.forEach(({ material }) => {
+                material.alpha = 1.0; // Full opacity
+              });
+              
+              console.log(`❌ Close button: ${sectionName} panel closed, mesh restored, all objects full opacity`);
             });
             
             // Store references for hover and click effects
@@ -458,18 +464,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Enable pointer events for this mesh
             mesh.actionManager = new ActionManager(scene);
             
-            // Hover enter - change to bright blue and make other objects 30% opacity
+            // Hover enter - change to bright blue, keep all objects at 100% opacity
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
               if (!(mesh as any).isClicked) {
                 // Change hovered object to bright blue (matching label hover color)
                 const brightBlueColor = new Color3(0.0, 0.39, 1.0); // Bright blue like label
                 sectionMaterial.baseColor = brightBlueColor;
                 
-                // Make all other BMC objects 80% opacity
-                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                  if (otherMesh !== mesh) {
-                    material.alpha = 0.8; // 80% opacity
-                  }
+                // Keep all objects at 100% opacity during hover
+                contentPanelsRef.current.forEach(({ material }) => {
+                  material.alpha = 1.0; // 100% opacity
                 });
                 
                 // Make label bright blue background
@@ -478,7 +482,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
                 }
                 
-                console.log(`💡 Hover enter: ${sectionName} bright blue, others 80% opacity`);
+                console.log(`💡 Hover enter: ${sectionName} bright blue, all objects 100% opacity`);
               }
             }));
             
@@ -503,22 +507,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             }));
             
-            // Click - darken color, toggle state, and show/hide content panel
+            // Click - set blue color, make other objects 30% opacity, and show/hide content panel
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
               const isCurrentlyClicked = (mesh as any).isClicked;
               const contentPanel = (mesh as any).contentPanel;
               const contentText = (mesh as any).contentText;
               
               if (isCurrentlyClicked) {
-                // Unclick - restore original color and hide content panel
+                // Unclick - restore original color, full opacity to all, and hide content panel
                 sectionMaterial.baseColor = (mesh as any).originalColor;
                 (mesh as any).isClicked = false;
+                
+                // Restore all objects to full opacity
+                contentPanelsRef.current.forEach(({ material }) => {
+                  material.alpha = 1.0; // Full opacity
+                });
+                
                 if (contentPanel) {
                   contentPanel.isVisible = false;
                 }
-                console.log(`🔓 Click released: ${sectionName} restored and panel hidden`);
+                console.log(`🔓 Click released: ${sectionName} restored, all objects full opacity, panel hidden`);
               } else {
-                // Close all other panels first
+                // Close all other panels first and reset their states
                 contentPanelsRef.current.forEach(({ panel, mesh: otherMesh, material }) => {
                   if (otherMesh !== mesh && panel.isVisible) {
                     panel.isVisible = false;
@@ -527,10 +537,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   }
                 });
                 
-                // Click - darken color and show content panel
-                const darkenedColor = baseColor.scale(0.7); // 30% darker
-                sectionMaterial.baseColor = darkenedColor;
+                // Click - set blue color (same as hover) and make other objects 30% opacity
+                const brightBlueColor = new Color3(0.0, 0.39, 1.0); // Bright blue like hover
+                sectionMaterial.baseColor = brightBlueColor;
                 (mesh as any).isClicked = true;
+                
+                // Make all other objects 30% opacity
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  if (otherMesh !== mesh) {
+                    material.alpha = 0.3; // 30% opacity for others
+                  }
+                });
                 
                 // Get content from canvas data and display in panel
                 const sectionContent = getSectionContent(sectionName);
@@ -539,7 +556,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   contentPanel.isVisible = true;
                 }
                 
-                console.log(`🔒 Clicked: ${sectionName} darkened and panel shown (others closed)`);
+                console.log(`🔒 Clicked: ${sectionName} blue selected, others 30% opacity, panel shown`);
               }
             }));
             
