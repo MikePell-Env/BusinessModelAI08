@@ -600,7 +600,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`✅ Customer Relationships label plane created`);
             }
             
-            if (sectionName === "Customer Channels") {
+            if (sectionName === "Channels") {
               console.log(`🏷️ Creating floating label for Customer Channels mesh (index ${index})`);
               
               // Get mesh bounds for positioning
