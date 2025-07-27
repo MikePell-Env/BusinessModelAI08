@@ -379,14 +379,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log(`   Max: (${meshMax.x.toFixed(2)}, ${meshMax.y.toFixed(2)}, ${meshMax.z.toFixed(2)})`);
                 console.log(`   Center: (${meshCenter.x.toFixed(2)}, ${meshCenter.y.toFixed(2)}, ${meshCenter.z.toFixed(2)})`);
                 
-                // Test positions: top, bottom, front, back, left, right
+                // Test positions: REVERSED for outside surfaces due to coordinate system
                 const testPositions = [
-                  { name: "TOP", pos: new Vector3(meshCenter.x, meshMax.y + 0.01, meshCenter.z), rot: new Vector3(-Math.PI/2, 0, 0) },
-                  { name: "BOTTOM", pos: new Vector3(meshCenter.x, meshMin.y - 0.01, meshCenter.z), rot: new Vector3(Math.PI/2, 0, 0) },
-                  { name: "FRONT", pos: new Vector3(meshCenter.x, meshCenter.y, meshMax.z + 0.01), rot: new Vector3(0, 0, 0) },
-                  { name: "BACK", pos: new Vector3(meshCenter.x, meshCenter.y, meshMin.z - 0.01), rot: new Vector3(0, Math.PI, 0) },
-                  { name: "LEFT", pos: new Vector3(meshMin.x - 0.01, meshCenter.y, meshCenter.z), rot: new Vector3(0, -Math.PI/2, 0) },
-                  { name: "RIGHT", pos: new Vector3(meshMax.x + 0.01, meshCenter.y, meshCenter.z), rot: new Vector3(0, Math.PI/2, 0) }
+                  { name: "TOP", pos: new Vector3(meshCenter.x, meshMax.y - 0.01, meshCenter.z), rot: new Vector3(-Math.PI/2, 0, 0) },
+                  { name: "BOTTOM", pos: new Vector3(meshCenter.x, meshMin.y + 0.01, meshCenter.z), rot: new Vector3(Math.PI/2, 0, 0) },
+                  { name: "FRONT", pos: new Vector3(meshCenter.x, meshCenter.y, meshMax.z - 0.01), rot: new Vector3(0, 0, 0) },
+                  { name: "BACK", pos: new Vector3(meshCenter.x, meshCenter.y, meshMin.z + 0.01), rot: new Vector3(0, Math.PI, 0) },
+                  { name: "LEFT", pos: new Vector3(meshMin.x + 0.01, meshCenter.y, meshCenter.z), rot: new Vector3(0, -Math.PI/2, 0) },
+                  { name: "RIGHT", pos: new Vector3(meshMax.x - 0.01, meshCenter.y, meshCenter.z), rot: new Vector3(0, Math.PI/2, 0) }
                 ];
                 
                 testPositions.forEach((testPos, testIndex) => {
