@@ -119,10 +119,11 @@ The application follows a full-stack monorepo architecture with clear separation
   - Material properties: metallic=0.0, roughness=0.9 for authentic matte plastic finish
   - Color3(0.1, 0.1, 0.1) for consistent dark black appearance across all sections
   - Eliminated multi-color system in favor of professional monochrome aesthetic
-- **✅ Full Interactive System**: Added hover and click detection with visual feedback
-  - Hover brightens colors by 30% for visual feedback
+- **✅ Full Interactive System**: Added hover and click detection with dramatic visual feedback
+  - Hover changes object to turquoise blue (Color3(0.25, 0.8, 0.7)) and makes all other objects 10% opacity
   - Click toggles between darkened (30% darker) and normal states
   - Smart state management prevents hover effects when clicked
+  - Hover exit restores all objects to original dark black color and full opacity
 - **✅ Billboard Label System**: Added floating labels above each BMC section
   - Labels always face camera using linkWithMesh billboard behavior
   - Professional styling with dark backgrounds and white bold text
