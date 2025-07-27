@@ -308,6 +308,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
+            // Debug Value Propositions mesh properties to understand coordinate system
+            if (sectionName === "Value Propositions") {
+              const meshBounds = mesh.getBoundingInfo();
+              console.log(`📐 Value Propositions Debug Info:`);
+              console.log(`   Mesh name: ${mesh.name}`);
+              console.log(`   Bounding box min:`, meshBounds.boundingBox.minimumWorld);
+              console.log(`   Bounding box max:`, meshBounds.boundingBox.maximumWorld);
+              console.log(`   Bounding box center:`, meshBounds.boundingBox.centerWorld);
+              console.log(`   Current rotation:`, mesh.rotation);
+              console.log(`   Current scaling:`, mesh.scaling);
+              console.log(`   Current position:`, mesh.position);
+              console.log(`   Box dimensions (max-min):`, {
+                x: meshBounds.boundingBox.maximumWorld.x - meshBounds.boundingBox.minimumWorld.x,
+                y: meshBounds.boundingBox.maximumWorld.y - meshBounds.boundingBox.minimumWorld.y,
+                z: meshBounds.boundingBox.maximumWorld.z - meshBounds.boundingBox.minimumWorld.z
+              });
+            }
+            
             // Store original color for hover/click effects
             (mesh as any).originalColor = baseColor.clone();
             (mesh as any).isClicked = false;
