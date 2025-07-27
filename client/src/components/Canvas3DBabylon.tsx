@@ -542,10 +542,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 sectionMaterial.baseColor = brightBlueColor;
                 (mesh as any).isClicked = true;
                 
-                // Make all other objects 30% opacity
+                // Make all other objects 50% opacity
                 contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                   if (otherMesh !== mesh) {
-                    material.alpha = 0.3; // 30% opacity for others
+                    material.alpha = 0.5; // 50% opacity for others
                   }
                 });
                 
@@ -556,7 +556,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   contentPanel.isVisible = true;
                 }
                 
-                console.log(`🔒 Clicked: ${sectionName} blue selected, others 30% opacity, panel shown`);
+                console.log(`🔒 Clicked: ${sectionName} blue selected, others 50% opacity, panel shown`);
               }
             }));
             
