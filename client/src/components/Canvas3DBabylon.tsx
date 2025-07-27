@@ -378,13 +378,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   width: 2.5, height: 1.2, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
-                // Position plane flush on the top surface of the mesh
+                // Position plane 25% above the top surface to test visibility
                 const boundingInfo = mesh.getBoundingInfo();
                 const meshTop = boundingInfo.boundingBox.maximumWorld.y;
+                const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
                 
                 textPlane.position.x = mesh.position.x;
-                textPlane.position.y = meshTop + 0.001; // Just slightly above to avoid z-fighting
+                textPlane.position.y = meshTop + (meshHeight * 0.25); // 25% of mesh height above surface
                 textPlane.position.z = mesh.position.z;
+                
+                console.log(`📍 ${sectionName} - MeshTop: ${meshTop}, Height: ${meshHeight}, Plane Y: ${textPlane.position.y}`);
                 
                 // Rotate plane to lay flat on top surface (facing up)
                 textPlane.rotation.x = -Math.PI / 2; // Rotate 90 degrees to face up
