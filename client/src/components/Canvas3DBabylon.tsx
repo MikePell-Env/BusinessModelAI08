@@ -308,33 +308,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
-            // Debug Value Propositions mesh and try vertex manipulation for true height scaling
-            if (sectionName === "Value Propositions") {
-              console.log(`📐 Value Propositions mesh analysis:`);
-              console.log(`   Mesh name: ${mesh.name}`);
-              console.log(`   Mesh type: ${mesh.getClassName()}`);
-              console.log(`   Position:`, mesh.position);
-              console.log(`   Rotation:`, mesh.rotation);
-              
-              // Try vertex manipulation - get vertex positions and scale Y coordinates
-              const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
-              if (positions) {
-                console.log(`   Total vertices: ${positions.length / 3}`);
-                
-                // Create new positions array with Y-coordinates scaled up
-                const newPositions = [...positions];
-                for (let i = 1; i < newPositions.length; i += 3) {
-                  newPositions[i] = newPositions[i] * 2.0; // Scale Y coordinate by 2x
-                }
-                
-                // Apply the modified vertices
-                mesh.setVerticesData(VertexBuffer.PositionKind, newPositions);
-                mesh.refreshBoundingInfo();
-                console.log(`📏 Value Propositions vertices modified - Y coordinates scaled 2x`);
-              } else {
-                console.log(`   No vertex data available for direct manipulation`);
-              }
-            }
+
             
             // Store original color for hover/click effects
             (mesh as any).originalColor = baseColor.clone();
