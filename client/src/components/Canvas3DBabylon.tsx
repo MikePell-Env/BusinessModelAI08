@@ -299,6 +299,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           8: { color: new Color3(0.005, 0.005, 0.005), name: "Revenue Streams" },        // Very Dark Black
         };
 
+        // Store reference to all meshes for hover effects
+        const allMeshes = result.meshes.filter(mesh => mesh.material && mesh.name !== "__root__");
+        
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
         result.meshes.forEach((mesh, index) => {
@@ -378,7 +381,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   (mesh.material as StandardMaterial).diffuseColor = hoverColor;
                   
                   // Reduce opacity of all other meshes to 10%
-                  meshes.forEach((otherMesh) => {
+                  allMeshes.forEach((otherMesh) => {
                     if (otherMesh !== mesh && otherMesh.material) {
                       (otherMesh.material as StandardMaterial).alpha = 0.1;
                     }
@@ -395,7 +398,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   (mesh.material as StandardMaterial).diffuseColor = (mesh as any).originalColor;
                   
                   // Restore full opacity to all meshes
-                  meshes.forEach((otherMesh) => {
+                  allMeshes.forEach((otherMesh) => {
                     if (otherMesh.material) {
                       (otherMesh.material as StandardMaterial).alpha = 1.0;
                     }
