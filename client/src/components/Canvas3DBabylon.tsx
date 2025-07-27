@@ -423,7 +423,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 }
               }));
 
-              // TEST: Make Key Partners shape bright red to identify it
+              // TEST: Make Key Partners shape bright red to identify it AND apply PNG decal
               if (sectionName === "Key Partners") {
                 console.log(`🎯 FOUND Key Partners shape - making it bright red for identification`);
                 
@@ -438,6 +438,47 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log(`🔴 Key Partners shape should now be BRIGHT RED`);
                 console.log(`📍 Key Partners mesh position:`, mesh.position);
                 console.log(`📍 Key Partners transform position:`, transformNode.position);
+                
+                // Now apply PNG decal to this identified mesh
+                try {
+                  const decalPosition = new Vector3(
+                    transformNode.position.x, 
+                    transformNode.position.y + 0.5, 
+                    transformNode.position.z
+                  );
+                  
+                  const decalNormal = new Vector3(0, 1, 0);
+                  const decalSize = new Vector3(1.0, 1.0, 0.1);
+                  
+                  const decal = MeshBuilder.CreateDecal(`decal_${sectionName}`, mesh, {
+                    position: decalPosition,
+                    normal: decalNormal,
+                    size: decalSize,
+                    angle: 0,
+                    localMode: true,
+                    cullBackFaces: true
+                  }, scene);
+                  
+                  const decalMaterial = new StandardMaterial(`decalMat_${sectionName}`, scene);
+                  const decalTexture = new Texture('/labels/Label_KeyPartners_1753647389095.png', scene);
+                  
+                  decalTexture.hasAlpha = true;
+                  decalTexture.vScale = -1;
+                  decalTexture.vOffset = 1;
+                  
+                  decalMaterial.diffuseTexture = decalTexture;
+                  decalMaterial.emissiveTexture = decalTexture;
+                  decalMaterial.emissiveColor = Color3.White();
+                  decalMaterial.useAlphaFromDiffuseTexture = true;
+                  decalMaterial.disableLighting = true;
+                  decalMaterial.zOffset = -2;
+                  
+                  decal.material = decalMaterial;
+                  
+                  console.log(`🏷️ Applied PNG decal to Key Partners at position:`, decalPosition);
+                } catch (error) {
+                  console.error(`❌ Failed to create decal for Key Partners:`, error);
+                }
               }
             } else {
               // Create billboard label above this mesh
