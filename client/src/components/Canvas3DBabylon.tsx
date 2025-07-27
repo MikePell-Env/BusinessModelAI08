@@ -438,20 +438,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             contentPanel.linkWithMesh(mesh);
             contentPanel.linkOffsetY = `-${(labelHeight + 2.8) * 50}px`; // Moderately above the label for good visibility
             
-            // Add close button functionality
-            closeButton.onPointerClickObservable.add(() => {
-              contentPanel.isVisible = false;
-              // Reset mesh clicked state
-              sectionMaterial.baseColor = (mesh as any).originalColor;
-              (mesh as any).isClicked = false;
-              
-              // Restore all objects to full opacity
-              contentPanelsRef.current.forEach(({ material }) => {
-                material.alpha = 1.0; // Full opacity
-              });
-              
-              console.log(`❌ Close button: ${sectionName} panel closed, mesh restored, all objects full opacity`);
-            });
+            // Close button will be configured after interaction functions are defined
             
             // Store references for hover and click effects
             (mesh as any).labelContainer = labelContainer;
@@ -464,68 +451,107 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Enable pointer events for this mesh
             mesh.actionManager = new ActionManager(scene);
             
+            // Separate functions for mesh and label interactions
+            const updateMeshHoverEnter = () => {
+              // Change hovered object to bright blue
+              const brightBlueColor = new Color3(0.0, 0.39, 1.0);
+              sectionMaterial.baseColor = brightBlueColor;
+              
+              // Keep all objects at 100% opacity during hover
+              contentPanelsRef.current.forEach(({ material }) => {
+                material.alpha = 1.0; // 100% opacity
+              });
+            };
+            
+            const updateLabelHoverEnter = () => {
+              // Make label bright blue background
+              const labelContainer = (mesh as any).labelContainer;
+              if (labelContainer) {
+                labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
+              }
+            };
+            
             // Hover enter - change to bright blue, keep all objects at 100% opacity
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
               if (!(mesh as any).isClicked) {
-                // Change hovered object to bright blue (matching label hover color)
-                const brightBlueColor = new Color3(0.0, 0.39, 1.0); // Bright blue like label
-                sectionMaterial.baseColor = brightBlueColor;
-                
-                // Keep all objects at 100% opacity during hover
-                contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 1.0; // 100% opacity
-                });
-                
-                // Make label bright blue background
-                const labelContainer = (mesh as any).labelContainer;
-                if (labelContainer) {
-                  labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
-                }
-                
+                updateMeshHoverEnter();
+                updateLabelHoverEnter();
                 console.log(`💡 Hover enter: ${sectionName} bright blue, all objects 100% opacity`);
               }
             }));
             
+            const updateMeshHoverExit = () => {
+              // Restore hovered object to original color
+              sectionMaterial.baseColor = (mesh as any).originalColor;
+              
+              // Restore all other BMC objects to full opacity
+              contentPanelsRef.current.forEach(({ material }) => {
+                material.alpha = 1.0; // Full opacity
+              });
+            };
+            
+            const updateLabelHoverExit = () => {
+              // Restore label background
+              const labelContainer = (mesh as any).labelContainer;
+              if (labelContainer) {
+                labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Original dark background
+              }
+            };
+            
             // Hover exit - restore original color and full opacity to all objects
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
               if (!(mesh as any).isClicked) {
-                // Restore hovered object to original color
-                sectionMaterial.baseColor = (mesh as any).originalColor;
-                
-                // Restore all other BMC objects to full opacity
-                contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 1.0; // Full opacity
-                });
-                
-                // Restore label background
-                const labelContainer = (mesh as any).labelContainer;
-                if (labelContainer) {
-                  labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Original dark background
-                }
-                
+                updateMeshHoverExit();
+                updateLabelHoverExit();
                 console.log(`🔄 Hover exit: ${sectionName} restored, all objects full opacity`);
               }
             }));
             
-            // Click - set blue color, make other objects 30% opacity, and show/hide content panel
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              const isCurrentlyClicked = (mesh as any).isClicked;
+            const updateMeshClickSelect = () => {
+              // Set blue color (same as hover) and make other objects 50% opacity
+              const brightBlueColor = new Color3(0.0, 0.39, 1.0);
+              sectionMaterial.baseColor = brightBlueColor;
+              (mesh as any).isClicked = true;
+              
+              // Make all other objects 50% opacity
+              contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                if (otherMesh !== mesh) {
+                  material.alpha = 0.5; // 50% opacity for others
+                }
+              });
+            };
+            
+            const updateMeshClickUnselect = () => {
+              // Restore original color and full opacity to all
+              sectionMaterial.baseColor = (mesh as any).originalColor;
+              (mesh as any).isClicked = false;
+              
+              // Restore all objects to full opacity
+              contentPanelsRef.current.forEach(({ material }) => {
+                material.alpha = 1.0; // Full opacity
+              });
+            };
+            
+            const updateContentPanel = (show: boolean, sectionContent?: string) => {
               const contentPanel = (mesh as any).contentPanel;
               const contentText = (mesh as any).contentText;
               
+              if (show && contentText && contentPanel && sectionContent) {
+                contentText.text = sectionContent;
+                contentPanel.isVisible = true;
+              } else if (contentPanel) {
+                contentPanel.isVisible = false;
+              }
+            };
+            
+            // Click - set blue color, make other objects 50% opacity, and show/hide content panel
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              const isCurrentlyClicked = (mesh as any).isClicked;
+              
               if (isCurrentlyClicked) {
-                // Unclick - restore original color, full opacity to all, and hide content panel
-                sectionMaterial.baseColor = (mesh as any).originalColor;
-                (mesh as any).isClicked = false;
-                
-                // Restore all objects to full opacity
-                contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 1.0; // Full opacity
-                });
-                
-                if (contentPanel) {
-                  contentPanel.isVisible = false;
-                }
+                // Unclick - restore mesh and hide content panel
+                updateMeshClickUnselect();
+                updateContentPanel(false);
                 console.log(`🔓 Click released: ${sectionName} restored, all objects full opacity, panel hidden`);
               } else {
                 // Close all other panels first and reset their states
@@ -537,28 +563,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   }
                 });
                 
-                // Click - set blue color (same as hover) and make other objects 30% opacity
-                const brightBlueColor = new Color3(0.0, 0.39, 1.0); // Bright blue like hover
-                sectionMaterial.baseColor = brightBlueColor;
-                (mesh as any).isClicked = true;
-                
-                // Make all other objects 50% opacity
-                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                  if (otherMesh !== mesh) {
-                    material.alpha = 0.5; // 50% opacity for others
-                  }
-                });
-                
-                // Get content from canvas data and display in panel
+                // Select this mesh and show content panel
+                updateMeshClickSelect();
                 const sectionContent = getSectionContent(sectionName);
-                if (contentText && contentPanel) {
-                  contentText.text = sectionContent;
-                  contentPanel.isVisible = true;
-                }
+                updateContentPanel(true, sectionContent);
                 
                 console.log(`🔒 Clicked: ${sectionName} blue selected, others 50% opacity, panel shown`);
               }
             }));
+            
+            // Now configure close button functionality with access to refactored functions
+            closeButton.onPointerClickObservable.add(() => {
+              updateMeshClickUnselect();
+              updateContentPanel(false);
+              console.log(`❌ Close button: ${sectionName} panel closed, mesh restored, all objects full opacity`);
+            });
             
             console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - ${sectionName} - Interactive color: ${baseColor.r.toFixed(2)}, ${baseColor.g.toFixed(2)}, ${baseColor.b.toFixed(2)}`);
             sectionIndex++;
