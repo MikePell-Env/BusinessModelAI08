@@ -134,6 +134,12 @@ The application follows a full-stack monorepo architecture with clear separation
   - Implemented position-based mapping system using direct index-to-label assignment
   - Corrected three specific label swaps: Customer Segments ↔ Customer Relationships ↔ Key Activities
   - All labels now accurately match their corresponding 3D shapes and colors
+- **✅ Individual Shape Manipulation System**: Added TransformNode hierarchy for granular control
+  - Created individual TransformNode parent for each of the 7 BMC shapes
+  - Preserved root TransformNode for scaling entire collection
+  - Implemented manipulation functions for height, transparency, color, and scale adjustments
+  - Exposed global functions: adjustBMCSection(), adjustEntireBMC(), listBMCSections()
+  - Maintained complete hierarchy: Root Transform → Individual TransformNodes → Meshes
 
 ### July 26, 2025 - Complete GLB Model Integration with Babylon.js
 - **✅ Exclusive GLB Model Loading**: Replaced all primitive Babylon.js boxes with custom GLB models from Blender
