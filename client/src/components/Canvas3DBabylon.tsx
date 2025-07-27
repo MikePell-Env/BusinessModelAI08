@@ -222,18 +222,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
 
 
-    // Create neutral environment with minimal color variations
+    // Create bright environment for vivid metallic reflections
     const environmentHelper = scene.createDefaultEnvironment({
       createGround: false, // We already have ground
       createSkybox: true,
       skyboxSize: 100,
-      skyboxColor: new Color3(0.8, 0.8, 0.82), // Very neutral grey-blue
-      groundColor: new Color3(0.85, 0.85, 0.85)
+      skyboxColor: new Color3(0.95, 0.95, 0.97), // Bright neutral white-blue
+      groundColor: new Color3(0.9, 0.9, 0.9)
     });
     
-    // Set environment to use minimal HDR for cleaner metallic reflections
+    // Set environment to bright intensity for vivid metallic reflections
     if (environmentHelper) {
-      scene.environmentIntensity = 0.3; // Reduce reflection intensity
+      scene.environmentIntensity = 1.0; // Full reflection intensity
     }
 
     // Create GUI for 3D billboard labels
