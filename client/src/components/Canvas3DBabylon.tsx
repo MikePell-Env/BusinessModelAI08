@@ -573,7 +573,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Position within the mesh boundaries, moved towards upper portion
               labelPlane.position.x = center.x;
               labelPlane.position.y = center.y + size.y * 0.6;
-              labelPlane.position.z = center.z - size.z * 0.2; // Move up in top view (negative Z due to rotation)
+              labelPlane.position.z = center.z + size.z * 0.2; // Move up in top view (positive Z)
               
               // Rotate to be flat on top
               labelPlane.rotation.x = Math.PI / 2;
