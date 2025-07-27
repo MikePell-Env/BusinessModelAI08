@@ -465,10 +465,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const brightBlueColor = new Color3(0.0, 0.39, 1.0); // Bright blue like label
                 sectionMaterial.baseColor = brightBlueColor;
                 
-                // Make all other BMC objects 30% opacity
+                // Make all other BMC objects 80% opacity
                 contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                   if (otherMesh !== mesh) {
-                    material.alpha = 0.3; // 30% opacity
+                    material.alpha = 0.8; // 80% opacity
                   }
                 });
                 
@@ -478,7 +478,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
                 }
                 
-                console.log(`💡 Hover enter: ${sectionName} bright blue, others 30% opacity`);
+                console.log(`💡 Hover enter: ${sectionName} bright blue, others 80% opacity`);
               }
             }));
             
