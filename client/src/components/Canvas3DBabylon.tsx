@@ -134,20 +134,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     directionalLight2.diffuse = new Color3(0.95, 0.95, 1); // Slightly cool fill
     directionalLight2.specular = new Color3(0.2, 0.2, 0.25); // Very subtle cool specular
 
-    // Create ground with grey plastic material and light grey gridlines
+    // Create ground with power blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     
-    // Create dynamic texture for light grey grid pattern on grey plastic
+    // Create dynamic texture for power blue grid pattern with white lines
     const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
     const gridContext = gridTexture.getContext();
     
-    // Fill with light grey plastic background
-    gridContext.fillStyle = "#cccccc"; // Light grey background (0.8 * 255 = 204)
+    // Fill with power blue background
+    gridContext.fillStyle = "#1E90FF"; // Power blue background (DodgerBlue)
     gridContext.fillRect(0, 0, 1024, 1024);
     
-    // Draw light grey grid lines
-    gridContext.strokeStyle = "#b8b8b8"; // Slightly darker grey for grid lines
-    gridContext.lineWidth = 1;
+    // Draw white grid lines
+    gridContext.strokeStyle = "#FFFFFF"; // White grid lines
+    gridContext.lineWidth = 2; // Slightly thicker for better visibility on blue
     
     // Draw vertical lines (spacing every 32 pixels)
     for (let i = 0; i <= 1024; i += 32) {
@@ -167,10 +167,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     gridTexture.update();
     
-    // Apply grey plastic material with grid texture to ground
+    // Apply power blue material with white grid texture to ground
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
     groundMaterial.diffuseTexture = gridTexture;
-    groundMaterial.specularColor = new Color3(0.15, 0.15, 0.15); // Reduced specular reflection for lighter plastic look
+    groundMaterial.specularColor = new Color3(0.1, 0.1, 0.2); // Subtle blue-tinted specular reflection
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
     ground.material = groundMaterial;
 
