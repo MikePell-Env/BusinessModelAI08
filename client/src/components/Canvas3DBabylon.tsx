@@ -22,8 +22,13 @@ import {
   Matrix,
   TransformNode
 } from '@babylonjs/core';
+import { 
+  AdvancedDynamicTexture,
+  Rectangle,
+  TextBlock,
+  Control
+} from '@babylonjs/gui';
 import '@babylonjs/loaders/glTF';
-// GUI imports removed since labels are no longer used
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 
