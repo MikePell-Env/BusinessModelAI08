@@ -183,7 +183,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       scene.createDefaultSkybox(scene.environmentTexture, true, 100, 0.3);
     }
 
-    // GUI setup removed since labels are no longer used
+    // Create GUI for 3D billboard labels
+    const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
     
 
     
@@ -197,17 +198,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
 
-    // Define BMC section colors matching traditional business model canvas
-    const bmcColors = [
-      new Color3(0.3, 0.6, 0.9),   // Blue - Value Propositions
-      new Color3(0.4, 0.8, 0.4),   // Green - Key Partners  
-      new Color3(0.9, 0.6, 0.3),   // Orange - Key Activities
-      new Color3(0.9, 0.3, 0.3),   // Red - Key Resources
-      new Color3(0.9, 0.9, 0.3),   // Yellow - Customer Relationships
-      new Color3(0.6, 0.9, 0.9),   // Cyan - Channels
-      new Color3(0.8, 0.4, 0.9),   // Purple - Customer Segments
-      new Color3(0.7, 0.7, 0.7),   // Gray - Cost Structure
-      new Color3(0.5, 0.9, 0.5),   // Light Green - Revenue Streams
+    // Define BMC section colors and names matching traditional business model canvas
+    const bmcSections = [
+      { color: new Color3(0.3, 0.6, 0.9), name: "Value Propositions" },      // Blue
+      { color: new Color3(0.4, 0.8, 0.4), name: "Key Partners" },           // Green  
+      { color: new Color3(0.9, 0.6, 0.3), name: "Key Activities" },         // Orange
+      { color: new Color3(0.9, 0.3, 0.3), name: "Key Resources" },          // Red
+      { color: new Color3(0.9, 0.9, 0.3), name: "Customer Relationships" }, // Yellow
+      { color: new Color3(0.6, 0.9, 0.9), name: "Channels" },               // Cyan
+      { color: new Color3(0.8, 0.4, 0.9), name: "Customer Segments" },      // Purple
+      { color: new Color3(0.7, 0.7, 0.7), name: "Cost Structure" },         // Gray
+      { color: new Color3(0.5, 0.9, 0.5), name: "Revenue Streams" },        // Light Green
     ];
 
     // Load complete BMC GLB model with individual section coloring
@@ -226,14 +227,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         console.log(`📦 BMC model positioned at origin with scale 8.0`);
         
-        // Apply different colors and interactivity to each BMC section mesh
-        let colorIndex = 0;
+        // Apply different colors, interactivity, and labels to each BMC section mesh
+        let sectionIndex = 0;
         result.meshes.forEach((mesh, index) => {
           if (mesh.material && mesh.name !== "__root__") {
+            const section = bmcSections[sectionIndex % bmcSections.length];
+            const baseColor = section.color;
+            const sectionName = section.name;
+            
             // Create new plastic material with unique color for each section
             const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
-            const baseColor = bmcColors[colorIndex % bmcColors.length];
-            
             sectionMaterial.diffuseColor = baseColor;
             sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Low specular for plastic look
             sectionMaterial.specularPower = 32; // Medium shine
@@ -245,6 +248,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).originalColor = baseColor.clone();
             (mesh as any).isClicked = false;
             
+            // Create billboard label above this mesh
+            const labelContainer = new Rectangle(`label_${index}`);
+            labelContainer.widthInPixels = 200;
+            labelContainer.heightInPixels = 40;
+            labelContainer.cornerRadius = 8;
+            labelContainer.color = "white";
+            labelContainer.thickness = 2;
+            labelContainer.background = "rgba(0, 0, 0, 0.7)";
+            
+            const labelText = new TextBlock(`labelText_${index}`, sectionName);
+            labelText.color = "white";
+            labelText.fontSize = "14px";
+            labelText.fontFamily = "Arial, sans-serif";
+            labelText.fontWeight = "bold";
+            
+            labelContainer.addControl(labelText);
+            advancedTexture.addControl(labelContainer);
+            
+            // Position label above mesh center with billboard behavior
+            const meshBounds = mesh.getBoundingInfo();
+            const meshCenter = meshBounds.boundingBox.centerWorld;
+            const labelHeight = 2.0; // Height above mesh in world units
+            const labelPosition = new Vector3(meshCenter.x, meshCenter.y + labelHeight, meshCenter.z);
+            
+            // Link label to 3D position with billboard behavior
+            labelContainer.linkWithMesh(mesh);
+            labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
+            
             // Enable pointer events for this mesh
             mesh.actionManager = new ActionManager(scene);
             
@@ -253,7 +284,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               if (!(mesh as any).isClicked) {
                 const brightenedColor = baseColor.scale(1.3); // 30% brighter
                 sectionMaterial.diffuseColor = brightenedColor;
-                console.log(`💡 Hover enter: ${mesh.name || 'unnamed'} brightened`);
+                console.log(`💡 Hover enter: ${sectionName} brightened`);
               }
             }));
             
@@ -261,7 +292,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
               if (!(mesh as any).isClicked) {
                 sectionMaterial.diffuseColor = (mesh as any).originalColor;
-                console.log(`🔄 Hover exit: ${mesh.name || 'unnamed'} restored`);
+                console.log(`🔄 Hover exit: ${sectionName} restored`);
               }
             }));
             
@@ -273,18 +304,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 // Unclick - restore original color
                 sectionMaterial.diffuseColor = (mesh as any).originalColor;
                 (mesh as any).isClicked = false;
-                console.log(`🔓 Click released: ${mesh.name || 'unnamed'} restored`);
+                console.log(`🔓 Click released: ${sectionName} restored`);
               } else {
                 // Click - darken color
                 const darkenedColor = baseColor.scale(0.7); // 30% darker
                 sectionMaterial.diffuseColor = darkenedColor;
                 (mesh as any).isClicked = true;
-                console.log(`🔒 Clicked: ${mesh.name || 'unnamed'} darkened`);
+                console.log(`🔒 Clicked: ${sectionName} darkened`);
               }
             }));
             
-            console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - Interactive color: ${baseColor.r.toFixed(2)}, ${baseColor.g.toFixed(2)}, ${baseColor.b.toFixed(2)}`);
-            colorIndex++;
+            console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - ${sectionName} - Interactive color: ${baseColor.r.toFixed(2)}, ${baseColor.g.toFixed(2)}, ${baseColor.b.toFixed(2)}`);
+            sectionIndex++;
           }
         });
         
