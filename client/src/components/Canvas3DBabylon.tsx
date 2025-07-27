@@ -392,14 +392,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textPlane.position.y = meshTop + (meshHeight * 5.0); // Same height that worked
                 textPlane.position.z = transformNode.position.z;
                 
-                // Try simpler approach - just Z rotation to flip text
+                // Keep plane flat, fix mirroring with UV coordinates instead of rotation
                 textPlane.rotation.x = -Math.PI / 2; // Lay flat (90 degrees down)
-                textPlane.rotation.y = 0; // No Y rotation
-                textPlane.rotation.z = Math.PI; // Only Z rotation to flip text 180 degrees
+                textPlane.rotation.y = 0; // No rotation
+                textPlane.rotation.z = 0; // No rotation
                 
-                console.log(`🔄 Simple rotation test for ${sectionName}: X=${textPlane.rotation.x}, Y=${textPlane.rotation.y}, Z=${textPlane.rotation.z}`);
+                console.log(`🔄 UV flip approach for ${sectionName}`);
                 
-                // Apply PNG texture with proper UV scaling
+                // Apply PNG texture with UV flipping to correct mirroring
                 const textMaterial = new StandardMaterial(`textMaterial_${index}`, scene);
                 textMaterial.diffuseTexture = labelTexture;
                 textMaterial.emissiveTexture = labelTexture;
@@ -407,10 +407,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textMaterial.backFaceCulling = false;
                 textMaterial.useAlphaFromDiffuseTexture = true;
                 
-                // Ensure proper UV scaling to prevent cropping
-                labelTexture.uScale = 1;
-                labelTexture.vScale = 1;
-                labelTexture.uOffset = 0;
+                // Fix horizontal mirroring by flipping U coordinates
+                labelTexture.uScale = -1; // Flip horizontally
+                labelTexture.vScale = 1;  // Keep vertical normal
+                labelTexture.uOffset = 1; // Adjust offset for flipped U
                 labelTexture.vOffset = 0;
                 
                 textPlane.material = textMaterial;
