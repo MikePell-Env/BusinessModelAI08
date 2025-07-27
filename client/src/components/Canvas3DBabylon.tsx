@@ -475,8 +475,46 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Note: directIntensity and environmentIntensity properties handled by scene environment
             // Environment reflections handled by scene environment
             
-            // Customer Segments uses standard black material like other sections
-            // No special texture mapping applied
+            // Add a floating label plane for Customer Segments (index 6)
+            if (sectionName === "Customer Segments") {
+              console.log(`🏷️ Creating floating label for Customer Segments mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create small label plane
+              const labelPlane = MeshBuilder.CreatePlane("customerSegmentsLabel", {
+                width: size.x * 0.4,
+                height: size.z * 0.25
+              }, scene);
+              
+              // Position slightly above mesh center
+              labelPlane.position.x = center.x;
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z;
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create label material
+              const labelMaterial = new StandardMaterial("customerSegmentsLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = true; // Make it always visible
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh; // Move with parent mesh
+              
+              // Make label non-interactive so it doesn't interfere with hover/click
+              labelPlane.isPickable = false;
+              
+              console.log(`✅ Label plane created above Customer Segments`);
+            }
             
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
