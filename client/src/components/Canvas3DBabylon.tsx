@@ -382,9 +382,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   
                   console.log(`📏 PNG dimensions: ${textureWidth}x${textureHeight}, aspect ratio: ${actualAspectRatio}`);
                   
-                  // Create plane with native PNG aspect ratio - wider to prevent cropping
-                  const desiredHeight = 0.5; // Slightly taller for better visibility
-                  const nativeWidth = (desiredHeight * actualAspectRatio) * 1.4; // 40% wider to prevent left cropping
+                  // Create plane with native PNG aspect ratio - narrower due to reversed coordinates
+                  const desiredHeight = 0.4; // Standard height
+                  const nativeWidth = (desiredHeight * actualAspectRatio) * 0.7; // 30% narrower due to coordinate flip
                   
                   // Replace the plane with correctly sized one
                   textPlane.dispose();
