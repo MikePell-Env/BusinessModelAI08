@@ -290,17 +290,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseColor = section.color;
             const sectionName = section.name;
             
-            // Create new shiny metallic material with unique color for each section
+            // Create new shiny metallic material with gun metal grey or bright blue for Value Propositions
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
             
-            // Make colors more vivid and saturated for metallic appearance
-            const vividColor = new Color3(
-              Math.pow(baseColor.r, 0.7), // Enhance color saturation
-              Math.pow(baseColor.g, 0.7), 
-              Math.pow(baseColor.b, 0.7)
-            );
+            // Set colors: gun metal grey for all sections, bright blue for Value Propositions
+            let materialColor: Color3;
+            if (sectionName === "Value Propositions") {
+              materialColor = new Color3(0.0, 0.5, 1.0); // Bright blue
+            } else {
+              materialColor = new Color3(0.35, 0.4, 0.45); // Gun metal grey
+            }
             
-            sectionMaterial.baseColor = vividColor;
+            sectionMaterial.baseColor = materialColor;
             sectionMaterial.metallic = 0.95; // Very high metallic reflection
             sectionMaterial.roughness = 0.05; // Very low roughness for mirror-like finish
             // Environment reflections handled by scene environment
