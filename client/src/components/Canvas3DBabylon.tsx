@@ -564,14 +564,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Create label plane with fixed height to prevent squishing
+              // Create label plane with 50% taller height than before
               const labelWidth = size.x * 0.6;
-              const labelHeight = 50; // Fixed height to prevent squishing
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger than the previous calculated height
               console.log(`Customer Relationships Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
               const labelPlane = MeshBuilder.CreatePlane("customerRelationshipsLabel", {
                 width: labelWidth,   // Smaller width to fit better within mesh
-                height: labelHeight  // Fixed height to prevent squishing
+                height: labelHeight  // 50% taller to reduce squishing
               }, scene);
               
               // Position within the mesh boundaries, moved towards upper portion
