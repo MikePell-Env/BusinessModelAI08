@@ -570,8 +570,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 height: size.z * 0.25  // Taller to match the narrower mesh proportions
               }, scene);
               
-              // Position slightly above mesh center
-              labelPlane.position.x = center.x;
+              // Position within the mesh boundaries, moved towards upper portion
+              labelPlane.position.x = center.x + size.x * 0.15; // Move right within the rectangle
               labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z;
               
