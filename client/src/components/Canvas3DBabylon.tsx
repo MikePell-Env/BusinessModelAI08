@@ -10,6 +10,7 @@ import {
   PBRMetallicRoughnessMaterial, 
   StandardMaterial,
   Color3, 
+  Color4,
   Vector3, 
   Mesh, 
   ActionManager, 
