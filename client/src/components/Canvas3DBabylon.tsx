@@ -372,9 +372,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
               // Add hover and click interactivity to each mesh
               mesh.actionManager = new ActionManager(scene);
+              console.log(`🎮 Adding action manager to ${sectionName} mesh`);
               
               // Hover enter - change to turquoise blue and fade others
               mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+                console.log(`🔍 HOVER ENTER triggered on ${sectionName}`);
                 if (!(mesh as any).isClicked) {
                   // Change hovered mesh to turquoise blue
                   const hoverColor = Color3.FromHexString("#40E0D0"); // Turquoise blue
@@ -387,12 +389,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     }
                   });
                   
-                  console.log(`🟦 Hovering over ${sectionName}`);
+                  console.log(`🟦 Hovering over ${sectionName} - changed to turquoise`);
                 }
               }));
               
               // Hover exit - restore original colors and full opacity
               mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+                console.log(`🔍 HOVER EXIT triggered on ${sectionName}`);
                 if (!(mesh as any).isClicked) {
                   // Restore original dark black color
                   (mesh.material as StandardMaterial).diffuseColor = (mesh as any).originalColor;
@@ -404,12 +407,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     }
                   });
                   
-                  console.log(`⚫ Stopped hovering over ${sectionName}`);
+                  console.log(`⚫ Stopped hovering over ${sectionName} - restored colors`);
                 }
               }));
               
               // Click - toggle between darkened and normal states
               mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+                console.log(`🔍 CLICK triggered on ${sectionName}`);
                 const isCurrentlyClicked = (mesh as any).isClicked;
                 
                 if (isCurrentlyClicked) {
@@ -422,7 +426,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   const darkenedColor = (mesh as any).originalColor.scale(0.7);
                   (mesh.material as StandardMaterial).diffuseColor = darkenedColor;
                   (mesh as any).isClicked = true;
-                  console.log(`🔒 Clicked ${sectionName} - darkened`);
+                  console.log(`🔒 Clicked ${sectionName} - darkened by 30%`);
                 }
               }));
 
@@ -430,11 +434,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               if (sectionName === "Key Partners") {
                 console.log(`🎯 FOUND Key Partners shape - making it bright red for identification`);
                 
-                // Override material for identification
+                // Override material for identification but store original first
                 const testMaterial = new StandardMaterial(`testMat_${sectionName}`, scene);
                 testMaterial.diffuseColor = Color3.Red();
                 testMaterial.emissiveColor = Color3.Red();
                 testMaterial.disableLighting = true;
+                
+                // Store original material reference before overriding
+                (mesh as any).originalMaterial = mesh.material;
+                (mesh as any).originalColor = baseColor.clone(); // Keep original color for hover
                 
                 mesh.material = testMaterial;
                 
