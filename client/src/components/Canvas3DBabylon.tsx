@@ -352,33 +352,33 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).originalMaterial = sectionMaterial;
             (mesh as any).isClicked = false;
             
-            // Billboard labels hidden per user request
-            // const labelContainer = new Rectangle(`label_${index}`);
-            // labelContainer.widthInPixels = 200;
-            // labelContainer.heightInPixels = 40;
-            // labelContainer.cornerRadius = 8;
-            // labelContainer.color = "white";
-            // labelContainer.thickness = 2;
-            // labelContainer.background = "rgba(0, 0, 0, 0.7)";
-            // // Value Propositions label should always appear in front
-            // labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
-            // 
-            // const labelText = new TextBlock(`labelText_${index}`, sectionName);
-            // labelText.color = "white";
-            // labelText.fontSize = "14px";
-            // labelText.fontFamily = "Arial, sans-serif";
-            // labelText.fontWeight = "bold";
-            // 
-            // labelContainer.addControl(labelText);
-            // advancedTexture.addControl(labelContainer);
-            // 
-            // // Position label higher above mesh top with billboard behavior
-            // // Special much higher positioning for Value Proposition label
-            // const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
-            // 
-            // // Link label to 3D position with billboard behavior
-            // labelContainer.linkWithMesh(mesh);
-            // labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
+            // Create billboard label above this mesh
+            const labelContainer = new Rectangle(`label_${index}`);
+            labelContainer.widthInPixels = 200;
+            labelContainer.heightInPixels = 40;
+            labelContainer.cornerRadius = 8;
+            labelContainer.color = "white";
+            labelContainer.thickness = 2;
+            labelContainer.background = "rgba(0, 0, 0, 0.7)";
+            // Value Propositions label should always appear in front
+            labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
+            
+            const labelText = new TextBlock(`labelText_${index}`, sectionName);
+            labelText.color = "white";
+            labelText.fontSize = "14px";
+            labelText.fontFamily = "Arial, sans-serif";
+            labelText.fontWeight = "bold";
+            
+            labelContainer.addControl(labelText);
+            advancedTexture.addControl(labelContainer);
+            
+            // Position label higher above mesh top with billboard behavior
+            // Special much higher positioning for Value Proposition label
+            const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
+            
+            // Link label to 3D position with billboard behavior
+            labelContainer.linkWithMesh(mesh);
+            labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
             
             // Create content panel for click events (initially hidden)
             const contentPanel = new Rectangle(`contentPanel_${index}`);
@@ -453,8 +453,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`❌ Close button: ${sectionName} panel closed, mesh restored, all objects full opacity`);
             });
             
-            // Store references for hover and click effects (labelContainer disabled)
-            // (mesh as any).labelContainer = labelContainer;
+            // Store references for hover and click effects
+            (mesh as any).labelContainer = labelContainer;
             (mesh as any).contentPanel = contentPanel;
             (mesh as any).contentText = contentText;
             
@@ -476,11 +476,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   material.alpha = 1.0; // 100% opacity
                 });
                 
-                // Label interaction disabled (labels hidden per user request)
-                // const labelContainer = (mesh as any).labelContainer;
-                // if (labelContainer) {
-                //   labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
-                // }
+                // Make label bright blue background
+                const labelContainer = (mesh as any).labelContainer;
+                if (labelContainer) {
+                  labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
+                }
                 
                 console.log(`💡 Hover enter: ${sectionName} bright blue, all objects 100% opacity`);
               }
@@ -497,11 +497,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   material.alpha = 1.0; // Full opacity
                 });
                 
-                // Label interaction disabled (labels hidden per user request)
-                // const labelContainer = (mesh as any).labelContainer;
-                // if (labelContainer) {
-                //   labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Semi-transparent
-                // }
+                // Restore label background
+                const labelContainer = (mesh as any).labelContainer;
+                if (labelContainer) {
+                  labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Original dark background
+                }
                 
                 console.log(`🔄 Hover exit: ${sectionName} restored, all objects full opacity`);
               }
