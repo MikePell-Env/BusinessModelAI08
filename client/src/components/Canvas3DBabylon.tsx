@@ -564,14 +564,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Create label plane with correct aspect ratio matching the PNG file and mesh shape
+              // Create label plane with correct aspect ratio matching the PNG file 
               const labelWidth = size.x * 0.6;
-              const labelHeight = size.z * 0.18;
+              const labelHeight = labelWidth * 0.25; // Use PNG aspect ratio (roughly 4:1) instead of mesh proportions
               console.log(`Customer Relationships Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
               const labelPlane = MeshBuilder.CreatePlane("customerRelationshipsLabel", {
                 width: labelWidth,   // Smaller width to fit better within mesh
-                height: labelHeight  // Proportionally smaller height maintaining aspect ratio
+                height: labelHeight  // Height based on PNG aspect ratio to prevent squishing
               }, scene);
               
               // Position within the mesh boundaries, moved towards upper portion
