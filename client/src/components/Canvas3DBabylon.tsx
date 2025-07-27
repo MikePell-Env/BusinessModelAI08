@@ -303,28 +303,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const isTopFace = Math.abs(avgY - maxY) < 0.01 && avgNormalY > 0.5;
         
         if (isTopFace) {
-          // This is a top face - set UV coordinates to show the full texture
-          newUvs[v1Index * 2] = 0.0;     // u1 - left
-          newUvs[v1Index * 2 + 1] = 0.0; // v1 - bottom
+          // This is a top face - map UV coordinates to display the texture properly
+          // Get world positions to determine proper UV mapping
+          const v1X = positions[v1Index * 3];
+          const v1Z = positions[v1Index * 3 + 2];
+          const v2X = positions[v2Index * 3];
+          const v2Z = positions[v2Index * 3 + 2];
+          const v3X = positions[v3Index * 3];
+          const v3Z = positions[v3Index * 3 + 2];
           
-          newUvs[v2Index * 2] = 1.0;     // u2 - right  
-          newUvs[v2Index * 2 + 1] = 0.0; // v2 - bottom
+          // Find min/max coordinates for this face to map UV properly
+          const minX = Math.min(v1X, v2X, v3X);
+          const maxX = Math.max(v1X, v2X, v3X);
+          const minZ = Math.min(v1Z, v2Z, v3Z);
+          const maxZ = Math.max(v1Z, v2Z, v3Z);
           
-          newUvs[v3Index * 2] = 0.5;     // u3 - center
-          newUvs[v3Index * 2 + 1] = 1.0; // v3 - top
+          // Map each vertex to UV space based on its relative position
+          newUvs[v1Index * 2] = (v1X - minX) / (maxX - minX);     // u1
+          newUvs[v1Index * 2 + 1] = 1.0 - (v1Z - minZ) / (maxZ - minZ); // v1 (flipped for proper orientation)
+          
+          newUvs[v2Index * 2] = (v2X - minX) / (maxX - minX);     // u2
+          newUvs[v2Index * 2 + 1] = 1.0 - (v2Z - minZ) / (maxZ - minZ); // v2 (flipped for proper orientation)
+          
+          newUvs[v3Index * 2] = (v3X - minX) / (maxX - minX);     // u3
+          newUvs[v3Index * 2 + 1] = 1.0 - (v3Z - minZ) / (maxZ - minZ); // v3 (flipped for proper orientation)
           
           topFacesFound++;
           console.log(`✅ Top face ${topFacesFound} found at Y=${avgY.toFixed(3)}, normal Y=${avgNormalY.toFixed(3)}`);
         } else {
-          // This is not a top face - set UV coordinates to transparent area (or black area of texture)
-          newUvs[v1Index * 2] = 0.0;     // u1
-          newUvs[v1Index * 2 + 1] = 0.0; // v1
-          
-          newUvs[v2Index * 2] = 0.0;     // u2
-          newUvs[v2Index * 2 + 1] = 0.0; // v2
-          
-          newUvs[v3Index * 2] = 0.0;     // u3  
-          newUvs[v3Index * 2 + 1] = 0.0; // v3
+          // This is not a top face - don't modify UVs, keep original mapping
+          // This preserves the original black color on sides
         }
       }
       
@@ -450,6 +458,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Apply custom UV mapping to show texture only on top face
               applyTopFaceTexture(mesh as Mesh, scene);
+              
+              // Store the textured material for hover effects
+              (mesh as any).hasTexture = true;
+              (mesh as any).texturedMaterial = sectionMaterial;
             }
             
             mesh.material = sectionMaterial;
@@ -564,9 +576,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Separate functions for mesh and label interactions
             const updateMeshHoverEnter = () => {
-              // Change hovered object to bright blue
+              // For textured meshes, use emissive color to create blue glow effect
+              // For non-textured meshes, change base color
               const brightBlueColor = new Color3(0.0, 0.39, 1.0);
-              sectionMaterial.baseColor = brightBlueColor;
+              
+              if ((mesh as any).hasTexture) {
+                // For textured mesh, use emissive color to add blue glow while preserving texture
+                sectionMaterial.emissiveColor = brightBlueColor.scale(0.3); // Subtle blue glow
+                console.log(`💡 Textured mesh hover: ${sectionName} - adding blue emissive glow`);
+              } else {
+                // For non-textured mesh, change base color as before
+                sectionMaterial.baseColor = brightBlueColor;
+                console.log(`💡 Standard mesh hover: ${sectionName} - changing base color`);
+              }
               
               // Keep all objects at 100% opacity during hover
               contentPanelsRef.current.forEach(({ material }) => {
@@ -592,8 +614,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }));
             
             const updateMeshHoverExit = () => {
-              // Restore hovered object to original color
-              sectionMaterial.baseColor = (mesh as any).originalColor;
+              // Restore hovered object to original state
+              if ((mesh as any).hasTexture) {
+                // For textured mesh, remove emissive glow
+                sectionMaterial.emissiveColor = new Color3(0, 0, 0); // No emissive
+                console.log(`🔄 Textured mesh hover exit: ${sectionName} - removing emissive glow`);
+              } else {
+                // For non-textured mesh, restore base color
+                sectionMaterial.baseColor = (mesh as any).originalColor;
+                console.log(`🔄 Standard mesh hover exit: ${sectionName} - restoring base color`);
+              }
               
               // Restore all other BMC objects to full opacity
               contentPanelsRef.current.forEach(({ material }) => {
@@ -621,7 +651,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const updateMeshClickSelect = () => {
               // Set blue color (same as hover) and make other objects 50% opacity
               const brightBlueColor = new Color3(0.0, 0.39, 1.0);
-              sectionMaterial.baseColor = brightBlueColor;
+              
+              if ((mesh as any).hasTexture) {
+                // For textured mesh, use emissive color for blue glow effect
+                sectionMaterial.emissiveColor = brightBlueColor.scale(0.3); // Subtle blue glow
+                console.log(`🔒 Textured mesh click: ${sectionName} - adding blue emissive glow`);
+              } else {
+                // For non-textured mesh, change base color
+                sectionMaterial.baseColor = brightBlueColor;
+                console.log(`🔒 Standard mesh click: ${sectionName} - changing base color`);
+              }
+              
               (mesh as any).isClicked = true;
               
               // Make all other objects 50% opacity
@@ -633,8 +673,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             };
             
             const updateMeshClickUnselect = () => {
-              // Restore original color and full opacity to all
-              sectionMaterial.baseColor = (mesh as any).originalColor;
+              // Restore original state and full opacity to all
+              if ((mesh as any).hasTexture) {
+                // For textured mesh, remove emissive glow
+                sectionMaterial.emissiveColor = new Color3(0, 0, 0); // No emissive
+                console.log(`🔓 Textured mesh unclick: ${sectionName} - removing emissive glow`);
+              } else {
+                // For non-textured mesh, restore base color
+                sectionMaterial.baseColor = (mesh as any).originalColor;
+                console.log(`🔓 Standard mesh unclick: ${sectionName} - restoring base color`);
+              }
+              
               (mesh as any).isClicked = false;
               
               // Restore all objects to full opacity
@@ -669,7 +718,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 contentPanelsRef.current.forEach(({ panel, mesh: otherMesh, material }) => {
                   if (otherMesh !== mesh && panel.isVisible) {
                     panel.isVisible = false;
-                    material.baseColor = (otherMesh as any).originalColor;
+                    
+                    // Properly restore other mesh based on whether it has texture
+                    if ((otherMesh as any).hasTexture) {
+                      // For textured mesh, remove emissive glow
+                      material.emissiveColor = new Color3(0, 0, 0);
+                    } else {
+                      // For non-textured mesh, restore base color
+                      material.baseColor = (otherMesh as any).originalColor;
+                    }
+                    
                     (otherMesh as any).isClicked = false;
                   }
                 });
