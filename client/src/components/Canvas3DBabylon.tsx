@@ -77,7 +77,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   };
   
   // Label system toggle - set to false to use billboard labels, true for texture labels
-  const useTextureLabels = true;
+  const useTextureLabels = false; // Temporarily switch back to test system
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -422,11 +422,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               textTexture.hasAlpha = true;
               
               // Apply text texture as diffuse texture for better visibility
+              // CRITICAL: GLB models may have inverted UV coordinates - flip V axis
+              textTexture.vScale = -1;
+              textTexture.vOffset = 1;
+              
               sectionMaterial.diffuseTexture = textTexture;
               sectionMaterial.emissiveTexture = textTexture;
               sectionMaterial.emissiveIntensity = 0.8; // Much brighter glow for text visibility
               
+              // Debug mesh orientation and UV mapping
               console.log(`📝 Applied texture label to ${sectionName} at position (${textX}, ${textY})`);
+              console.log(`🔍 Mesh rotation: ${mesh.rotation.x}, ${mesh.rotation.y}, ${mesh.rotation.z}`);
+              console.log(`🔍 Texture vScale: ${textTexture.vScale}, vOffset: ${textTexture.vOffset}`);
             } else {
               // ORIGINAL: Create billboard label above this mesh
               const labelContainer = new Rectangle(`label_${index}`);
