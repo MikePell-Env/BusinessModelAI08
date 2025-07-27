@@ -284,17 +284,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Create connecting line from label to shape top
             const meshTop = meshBounds.boundingBox.maximumWorld.y;
             const linePoints = [
-              new Vector3(meshCenter.x, meshCenter.y + labelHeight - 0.5, meshCenter.z), // Bottom of label area
-              new Vector3(meshCenter.x, meshTop + 0.1, meshCenter.z)  // Slightly above top of mesh
+              new Vector3(meshCenter.x, meshCenter.y + labelHeight - 0.8, meshCenter.z), // Bottom of label area
+              new Vector3(meshCenter.x, meshTop + 0.2, meshCenter.z)  // Top of mesh
             ];
-            const connectingLine = MeshBuilder.CreateLines(`line_${index}`, {points: linePoints}, scene);
-            connectingLine.color = new Color3(0, 0, 0); // Black line
+            
+            // Create a thicker tube line instead of thin line for better visibility
+            const connectingLine = MeshBuilder.CreateTube(`line_${index}`, {
+              path: linePoints,
+              radius: 0.02, // Small radius for thin line appearance
+              tessellation: 8
+            }, scene);
+            
+            // Make line material black and always visible
+            const lineMaterial = new StandardMaterial(`lineMaterial_${index}`, scene);
+            lineMaterial.diffuseColor = new Color3(0, 0, 0); // Black
+            lineMaterial.emissiveColor = new Color3(0.1, 0.1, 0.1); // Slight emissive for visibility
+            connectingLine.material = lineMaterial;
             connectingLine.visibility = 0; // Initially invisible
             
-            // Make line thicker and more visible
-            const lineMaterial = new StandardMaterial(`lineMaterial_${index}`, scene);
-            lineMaterial.emissiveColor = new Color3(0, 0, 0); // Black emissive for visibility
-            connectingLine.material = lineMaterial;
+            console.log(`🔗 Created connecting line for ${sectionName} from Y:${(meshCenter.y + labelHeight - 0.8).toFixed(2)} to Y:${(meshTop + 0.2).toFixed(2)}`);
             
             // Store references for hover effects
             (mesh as any).labelContainer = labelContainer;
@@ -319,6 +327,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const connectingLine = (mesh as any).connectingLine;
                 if (connectingLine) {
                   connectingLine.visibility = 1; // Make line visible
+                  console.log(`📍 Line now visible for ${sectionName}: visibility=${connectingLine.visibility}`);
+                } else {
+                  console.log(`❌ No connecting line found for ${sectionName}`);
                 }
                 
                 console.log(`💡 Hover enter: ${sectionName} brightened with bright blue label and black line`);
