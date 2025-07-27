@@ -287,15 +287,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Customer Relationships label is where Customer Segments should be  
         // Customer Segments label is where Key Activities should be
         const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
-          0: { color: new Color3(0.02, 0.02, 0.02), name: "Value Propositions" },      // Deep Matte Black
-          1: { color: new Color3(0.02, 0.02, 0.02), name: "Key Partners" },           // Deep Matte Black
-          2: { color: new Color3(0.02, 0.02, 0.02), name: "Customer Segments" },      // Deep Matte Black
-          3: { color: new Color3(0.02, 0.02, 0.02), name: "Key Resources" },          // Deep Matte Black
-          4: { color: new Color3(0.02, 0.02, 0.02), name: "Key Activities" },         // Deep Matte Black
-          5: { color: new Color3(0.02, 0.02, 0.02), name: "Channels" },               // Deep Matte Black
-          6: { color: new Color3(0.02, 0.02, 0.02), name: "Customer Relationships" }, // Deep Matte Black
-          7: { color: new Color3(0.02, 0.02, 0.02), name: "Cost Structure" },         // Deep Matte Black
-          8: { color: new Color3(0.02, 0.02, 0.02), name: "Revenue Streams" },        // Deep Matte Black
+          0: { color: new Color3(0.005, 0.005, 0.005), name: "Value Propositions" },      // Very Dark Black
+          1: { color: new Color3(0.005, 0.005, 0.005), name: "Key Partners" },           // Very Dark Black
+          2: { color: new Color3(0.005, 0.005, 0.005), name: "Customer Segments" },      // Very Dark Black
+          3: { color: new Color3(0.005, 0.005, 0.005), name: "Key Resources" },          // Very Dark Black
+          4: { color: new Color3(0.005, 0.005, 0.005), name: "Key Activities" },         // Very Dark Black
+          5: { color: new Color3(0.005, 0.005, 0.005), name: "Channels" },               // Very Dark Black
+          6: { color: new Color3(0.005, 0.005, 0.005), name: "Customer Relationships" }, // Very Dark Black
+          7: { color: new Color3(0.005, 0.005, 0.005), name: "Cost Structure" },         // Very Dark Black
+          8: { color: new Color3(0.005, 0.005, 0.005), name: "Revenue Streams" },        // Very Dark Black
         };
 
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
