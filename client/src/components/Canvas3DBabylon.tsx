@@ -498,15 +498,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Rotate to be flat on top
               labelPlane.rotation.x = Math.PI / 2;
               
-              // Create transparent material for the white text PNG
+              // Create unlit material for white text PNG to prevent lighting interference
               const labelMaterial = new StandardMaterial("customerSegmentsLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
               labelTexture.hasAlpha = true;
               
-              labelMaterial.diffuseTexture = labelTexture;
+              // Use emissive instead of diffuse to ensure white text shows as white
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.diffuseColor = new Color3(0, 0, 0); // No diffuse contribution
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = true;
-              labelMaterial.backFaceCulling = false; // Show both sides
+              labelMaterial.backFaceCulling = false;
               
               labelPlane.material = labelMaterial;
               labelPlane.parent = mesh; // Move with parent mesh
