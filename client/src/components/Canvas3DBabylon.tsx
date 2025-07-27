@@ -458,17 +458,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Enable pointer events for this mesh
             mesh.actionManager = new ActionManager(scene);
             
-            // Hover enter - change to turquoise blue and make other objects 10% opacity
+            // Hover enter - change to bright blue and make other objects 30% opacity
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
               if (!(mesh as any).isClicked) {
-                // Change hovered object to turquoise blue
-                const turquoiseColor = new Color3(0.25, 0.8, 0.7); // Turquoise blue
-                sectionMaterial.baseColor = turquoiseColor;
+                // Change hovered object to bright blue (matching label hover color)
+                const brightBlueColor = new Color3(0.0, 0.39, 1.0); // Bright blue like label
+                sectionMaterial.baseColor = brightBlueColor;
                 
-                // Make all other BMC objects 10% opacity
+                // Make all other BMC objects 30% opacity
                 contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                   if (otherMesh !== mesh) {
-                    material.alpha = 0.1; // 10% opacity
+                    material.alpha = 0.3; // 30% opacity
                   }
                 });
                 
@@ -478,7 +478,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
                 }
                 
-                console.log(`💡 Hover enter: ${sectionName} turquoise blue, others 10% opacity`);
+                console.log(`💡 Hover enter: ${sectionName} bright blue, others 30% opacity`);
               }
             }));
             
