@@ -308,55 +308,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
-            // Comprehensive debugging for Value Propositions mesh structure (NO CHANGES APPLIED)
-            if (sectionName === "Value Propositions") {
-              console.log(`🔍 RESEARCH: Value Propositions Mesh Analysis`);
-              console.log(`   Mesh name: ${mesh.name}`);
-              console.log(`   Mesh type: ${mesh.getClassName()}`);
-              console.log(`   Parent: ${mesh.parent ? mesh.parent.name : 'None'}`);
-              
-              // World vs Local transforms
-              const worldMatrix = mesh.getWorldMatrix();
-              console.log(`   World matrix scaling factors:`, {
-                x: Math.sqrt(worldMatrix.m[0] * worldMatrix.m[0] + worldMatrix.m[1] * worldMatrix.m[1] + worldMatrix.m[2] * worldMatrix.m[2]),
-                y: Math.sqrt(worldMatrix.m[4] * worldMatrix.m[4] + worldMatrix.m[5] * worldMatrix.m[5] + worldMatrix.m[6] * worldMatrix.m[6]),
-                z: Math.sqrt(worldMatrix.m[8] * worldMatrix.m[8] + worldMatrix.m[9] * worldMatrix.m[9] + worldMatrix.m[10] * worldMatrix.m[10])
-              });
-              
-              // Vertex analysis
-              const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
-              if (positions) {
-                let minY = Infinity, maxY = -Infinity;
-                let minX = Infinity, maxX = -Infinity;
-                let minZ = Infinity, maxZ = -Infinity;
-                
-                for (let i = 0; i < positions.length; i += 3) {
-                  const x = positions[i];
-                  const y = positions[i + 1];
-                  const z = positions[i + 2];
-                  
-                  minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-                  minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-                  minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z);
-                }
-                
-                console.log(`   Local vertex bounds:`, {
-                  x: `${minX.toFixed(3)} to ${maxX.toFixed(3)} (span: ${(maxX - minX).toFixed(3)})`,
-                  y: `${minY.toFixed(3)} to ${maxY.toFixed(3)} (span: ${(maxY - minY).toFixed(3)})`,
-                  z: `${minZ.toFixed(3)} to ${maxZ.toFixed(3)} (span: ${(maxZ - minZ).toFixed(3)})`
-                });
-                
-                // Check if mesh is axis-aligned or rotated
-                console.log(`   Vertex distribution analysis:`);
-                console.log(`     Most vertices at Y=${minY.toFixed(3)}: bottom face`);
-                console.log(`     Most vertices at Y=${maxY.toFixed(3)}: top face`);
-                console.log(`     Height span (Y): ${(maxY - minY).toFixed(3)} units`);
-              }
-              
-              console.log(`   🎯 THEORY: To increase height, scale factor ${2.0} should be applied to axis with span ${(mesh.getBoundingInfo().boundingBox.maximumWorld.y - mesh.getBoundingInfo().boundingBox.minimumWorld.y).toFixed(3)}`);
-              console.log(`   🎯 NO CHANGES APPLIED - RESEARCH ONLY`);
-            }
-            
             // Store original color for hover/click effects
             (mesh as any).originalColor = baseColor.clone();
             (mesh as any).isClicked = false;
