@@ -76,8 +76,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     return section.content.map(item => `• ${item}`).join('\n');
   };
   
-  // Label system toggle - set to false to use billboard labels, true for texture labels
-  const useTextureLabels = true;
+  // Label system toggle - set to false to use billboard labels, true for texture labels  
+  const useTextureLabels = true; // Switch to 3D text approach
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -354,55 +354,62 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).isClicked = false;
             
             if (useTextureLabels) {
-              // NEW: Create simple full-surface texture with centered text
-              const textTexture = new DynamicTexture(`textTexture_${index}`, {width: 512, height: 512}, scene, false);
+              // NEW: Create 3D text plane that sits on top of the mesh surface
+              const textTexture = new DynamicTexture(`textTexture_${index}`, {width: 512, height: 256}, scene, false);
               const textContext = textTexture.getContext();
               
-              // Fill entire texture with semi-transparent dark background
-              textContext.fillStyle = "rgba(0, 0, 0, 0.3)";
-              textContext.fillRect(0, 0, 512, 512);
+              // Fill with semi-transparent background
+              textContext.fillStyle = "rgba(0, 0, 0, 0.8)";
+              textContext.fillRect(0, 0, 512, 256);
               
-              // Set text properties for maximum visibility
+              // Draw white text with black outline
               textContext.fillStyle = "#FFFFFF";
               textContext.strokeStyle = "#000000";
-              textContext.lineWidth = 3;
-              textContext.font = "bold 48px Arial, sans-serif";
+              textContext.lineWidth = 2;
+              textContext.font = "bold 32px Arial, sans-serif";
               textContext.textAlign = "center";
               textContext.textBaseline = "middle";
               
-              // Always center text in texture (256, 256)
-              const textX = 256, textY = 256;
-              
-              // Split long text into multiple lines and draw with stroke + fill
+              // Split text into lines
               const words = sectionName.split(' ');
               if (words.length > 1) {
-                // Multi-line text for better fit
-                const lineHeight = 50;
-                const startY = textY - (words.length - 1) * lineHeight / 2;
+                const lineHeight = 35;
+                const startY = 128 - (words.length - 1) * lineHeight / 2;
                 words.forEach((word, i) => {
                   const y = startY + i * lineHeight;
-                  textContext.strokeText(word, textX, y); // Black outline
-                  textContext.fillText(word, textX, y);   // White fill
+                  textContext.strokeText(word, 256, y);
+                  textContext.fillText(word, 256, y);
                 });
               } else {
-                // Single line text
-                textContext.strokeText(sectionName, textX, textY); // Black outline
-                textContext.fillText(sectionName, textX, textY);   // White fill
+                textContext.strokeText(sectionName, 256, 128);
+                textContext.fillText(sectionName, 256, 128);
               }
-              
               textTexture.update();
               
-              // Configure texture - no flipping, just apply directly
-              textTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
-              textTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
-              textTexture.hasAlpha = true;
+              // Create a 3D plane for the text
+              const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
+                width: 4,
+                height: 2,
+                sideOrientation: Mesh.DOUBLESIDE
+              }, scene);
               
-              // Apply texture as both diffuse and emissive for maximum visibility
-              sectionMaterial.diffuseTexture = textTexture;
-              sectionMaterial.emissiveTexture = textTexture;
-              sectionMaterial.emissiveIntensity = 1.0; // Full brightness
+              // Position plane on top of mesh surface
+              const boundingInfo = mesh.getBoundingInfo();
+              const meshTop = boundingInfo.boundingBox.maximumWorld.y;
+              textPlane.position.x = mesh.position.x;
+              textPlane.position.y = meshTop + 0.01; // Slightly above surface
+              textPlane.position.z = mesh.position.z;
+              textPlane.rotation.x = -Math.PI / 2; // Lay flat on top
               
-              console.log(`✨ Applied full-surface texture label to ${sectionName}`);
+              // Create material for text plane
+              const textMaterial = new StandardMaterial(`textMaterial_${index}`, scene);
+              textMaterial.diffuseTexture = textTexture;
+              textMaterial.emissiveTexture = textTexture;
+              textMaterial.emissiveColor = Color3.White();
+              textMaterial.backFaceCulling = false;
+              textPlane.material = textMaterial;
+              
+              console.log(`🏷️ Created 3D text plane for ${sectionName} at Y: ${textPlane.position.y}`);
             } else {
               // ORIGINAL: Create billboard label above this mesh
               const labelContainer = new Rectangle(`label_${index}`);
