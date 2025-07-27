@@ -270,11 +270,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   return (
     <div className={`w-full h-full ${isTransitioning ? 'opacity-50' : ''} relative`}>
-      {/* PowerPoint Title Overlay - matching 2D view */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
-        <h1 className="text-2xl font-bold text-gray-800 bg-white/90 px-4 py-2 rounded-lg shadow-sm">
-          {canvas.name || "Business Model Canvas"}
-        </h1>
+      {/* Header - exact match to 2D view */}
+      <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-10 text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{canvas.name}</h1>
+        <p className="text-gray-600">{canvas.description}</p>
       </div>
       
       <canvas
