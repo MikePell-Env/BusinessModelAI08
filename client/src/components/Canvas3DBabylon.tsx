@@ -352,33 +352,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).originalMaterial = sectionMaterial;
             (mesh as any).isClicked = false;
             
-            // Create billboard label above this mesh
-            const labelContainer = new Rectangle(`label_${index}`);
-            labelContainer.widthInPixels = 200;
-            labelContainer.heightInPixels = 40;
-            labelContainer.cornerRadius = 8;
-            labelContainer.color = "white";
-            labelContainer.thickness = 2;
-            labelContainer.background = "rgba(0, 0, 0, 0.7)";
-            // Value Propositions label should always appear in front
-            labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
+            // Create dynamic texture with just the text label for the mesh
+            const textTexture = new DynamicTexture(`textTexture_${index}`, {width: 512, height: 128}, scene, false);
+            const textContext = textTexture.getContext();
             
-            const labelText = new TextBlock(`labelText_${index}`, sectionName);
-            labelText.color = "white";
-            labelText.fontSize = "14px";
-            labelText.fontFamily = "Arial, sans-serif";
-            labelText.fontWeight = "bold";
+            // Clear texture with transparent background
+            textContext.clearRect(0, 0, 512, 128);
             
-            labelContainer.addControl(labelText);
-            advancedTexture.addControl(labelContainer);
+            // Set text properties
+            textContext.fillStyle = "white";
+            textContext.font = "bold 32px Arial, sans-serif";
+            textContext.textAlign = "center";
+            textContext.textBaseline = "middle";
             
-            // Position label higher above mesh top with billboard behavior
-            // Special much higher positioning for Value Proposition label
-            const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
+            // Draw the section name text only
+            textContext.fillText(sectionName, 256, 64);
+            textTexture.update();
             
-            // Link label to 3D position with billboard behavior
-            labelContainer.linkWithMesh(mesh);
-            labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
+            // Apply text texture to material as decal/overlay
+            sectionMaterial.emissiveTexture = textTexture;
+            sectionMaterial.emissiveIntensity = 0.3; // Subtle glow for text visibility
             
             // Create content panel for click events (initially hidden)
             const contentPanel = new Rectangle(`contentPanel_${index}`);
