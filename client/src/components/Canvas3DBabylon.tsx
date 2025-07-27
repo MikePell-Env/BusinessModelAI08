@@ -377,14 +377,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   width: 2.5, height: 1.2, sideOrientation: Mesh.DOUBLESIDE
                 }, scene);
                 
-                // Use the same positioning that worked for red test planes
+                // Use TransformNode position for correct placement
                 const boundingInfo = mesh.getBoundingInfo();
                 const meshTop = boundingInfo.boundingBox.maximumWorld.y;
                 const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
                 
-                textPlane.position.x = mesh.position.x;
+                // Use transformNode position instead of mesh position
+                textPlane.position.x = transformNode.position.x;
                 textPlane.position.y = meshTop + (meshHeight * 5.0); // Same height that worked
-                textPlane.position.z = mesh.position.z;
+                textPlane.position.z = transformNode.position.z;
                 textPlane.rotation.x = -Math.PI / 2; // Lay flat
                 
                 // Apply PNG texture with enhanced visibility
@@ -396,7 +397,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textMaterial.useAlphaFromDiffuseTexture = true;
                 textPlane.material = textMaterial;
                 
-                console.log(`🏷️ PNG texture plane: ${sectionName} at Y: ${textPlane.position.y} using ${textureFileName}`);
+                console.log(`🏷️ PNG texture plane: ${sectionName} at (${textPlane.position.x}, ${textPlane.position.y}, ${textPlane.position.z}) using ${textureFileName}`);
+                console.log(`📍 TransformNode position: (${transformNode.position.x}, ${transformNode.position.y}, ${transformNode.position.z})`);
                 
                 // Add texture loading feedback
                 labelTexture.onLoadObservable.add(() => {
