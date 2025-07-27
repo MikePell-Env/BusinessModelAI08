@@ -430,11 +430,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textMaterial.backFaceCulling = false;
                 textMaterial.useAlphaFromDiffuseTexture = true;
                 
-                // Apply texture with proper UV mapping to show complete image
-                labelTexture.vScale = -0.8; // Flip and scale down slightly to fit in plane
-                labelTexture.vOffset = 0.9; // Adjust offset for scaled texture
-                labelTexture.uScale = 0.8;  // Scale down horizontally to fit completely
-                labelTexture.uOffset = 0.1; // Center the texture horizontally
+                // Apply texture with expanded UV mapping to show complete image
+                labelTexture.vScale = -1.2; // Flip and scale up to show more content
+                labelTexture.vOffset = 1.1; // Adjust offset for expanded texture
+                labelTexture.uScale = 1.2;  // Scale up horizontally to show complete text
+                labelTexture.uOffset = -0.1; // Shift left to show beginning of text
                 
                 textPlane.material = textMaterial;
                 
