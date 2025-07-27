@@ -128,6 +128,52 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
     ground.material = groundMaterial;
 
+    // Create extruded border rails on all sides
+    const railHeight = 0.3;
+    const railWidth = 0.2;
+    const railColor = new Color3(0.5, 0.5, 0.5); // Medium grey rail color
+    
+    // Create rail material
+    const railMaterial = new StandardMaterial("railMaterial", scene);
+    railMaterial.diffuseColor = railColor;
+    railMaterial.specularColor = new Color3(0, 0, 0);
+    
+    // North rail (back)
+    const northRail = MeshBuilder.CreateBox("northRail", {
+      width: 20.4, // Slightly wider to cover corners
+      height: railHeight,
+      depth: railWidth
+    }, scene);
+    northRail.position = new Vector3(0, railHeight/2, -10 - railWidth/2);
+    northRail.material = railMaterial;
+    
+    // South rail (front)
+    const southRail = MeshBuilder.CreateBox("southRail", {
+      width: 20.4,
+      height: railHeight,
+      depth: railWidth
+    }, scene);
+    southRail.position = new Vector3(0, railHeight/2, 10 + railWidth/2);
+    southRail.material = railMaterial;
+    
+    // East rail (right)
+    const eastRail = MeshBuilder.CreateBox("eastRail", {
+      width: railWidth,
+      height: railHeight,
+      depth: 20
+    }, scene);
+    eastRail.position = new Vector3(10 + railWidth/2, railHeight/2, 0);
+    eastRail.material = railMaterial;
+    
+    // West rail (left)
+    const westRail = MeshBuilder.CreateBox("westRail", {
+      width: railWidth,
+      height: railHeight,
+      depth: 20
+    }, scene);
+    westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0);
+    westRail.material = railMaterial;
+
 
     
 
