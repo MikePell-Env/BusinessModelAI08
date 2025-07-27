@@ -334,31 +334,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             titleText.paddingTop = "8px";
             titleText.height = "25px";
             
-            // Create close button (grey X)
-            const closeButton = new Rectangle(`closeButton_${index}`);
-            closeButton.widthInPixels = 20;
-            closeButton.heightInPixels = 20;
-            closeButton.cornerRadius = 3;
+            // Create close button (just X text, no box)
+            const closeButton = new TextBlock(`closeButton_${index}`, "X");
             closeButton.color = "grey";
-            closeButton.thickness = 1;
-            closeButton.background = "rgba(200, 200, 200, 0.8)";
+            closeButton.fontSize = "16px";
+            closeButton.fontWeight = "bold";
+            closeButton.fontFamily = "Arial, sans-serif";
             closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
             closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
             closeButton.paddingTop = "8px";
-            closeButton.paddingRight = "8px";
+            closeButton.paddingRight = "12px";
             closeButton.isPointerBlocker = true;
-            
-            const closeButtonText = new TextBlock(`closeButtonText_${index}`, "X");
-            closeButtonText.color = "white";
-            closeButtonText.fontSize = "14px";
-            closeButtonText.fontWeight = "bold";
-            closeButtonText.fontFamily = "Arial, sans-serif";
-            closeButton.addControl(closeButtonText);
             
             // Create content text area (below title)
             const contentText = new TextBlock(`contentText_${index}`, "");
             contentText.color = "black";
-            contentText.fontSize = "12px";
+            contentText.fontSize = "13px"; // Slightly larger
             contentText.fontFamily = "Arial, sans-serif";
             contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
             contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
@@ -378,7 +369,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             contentPanel.linkOffsetY = `-${(labelHeight + 3.0) * 50}px`; // Above the label
             
             // Add close button functionality
-            closeButton.onPointerUpObservable.add(() => {
+            closeButton.onPointerClickObservable.add(() => {
               contentPanel.isVisible = false;
               // Reset mesh clicked state
               sectionMaterial.diffuseColor = (mesh as any).originalColor;
