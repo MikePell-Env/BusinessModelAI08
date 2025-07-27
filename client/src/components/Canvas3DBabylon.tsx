@@ -367,56 +367,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
+              // Color the mesh surface to identify which faces are visible
+              console.log(`🎨 Coloring mesh surface for ${sectionName} to identify visible faces`);
+              
+              // Apply bright colored material to make the surface visible
+              const surfaceTestMaterial = new StandardMaterial(`surfaceTest_${index}`, scene);
+              
+              // Use different bright colors for each section to distinguish them
+              const testColors = [
+                Color3.Red(),     // Value Propositions
+                Color3.Green(),   // Key Partners  
+                Color3.Blue(),    // Key Activities
+                Color3.Yellow(),  // Key Resources
+                Color3.Magenta(), // Customer Relationships
+                Color3.Cyan(),    // Customer Segments
+                Color3.Orange()   // Customer Channels
+              ];
+              
+              const colorIndex = index % testColors.length;
+              surfaceTestMaterial.diffuseColor = testColors[colorIndex];
+              surfaceTestMaterial.emissiveColor = testColors[colorIndex].scale(0.3); // Slight glow
+              
+              // Override the dark material temporarily to see surfaces clearly
+              mesh.material = surfaceTestMaterial;
+              
+              console.log(`   🎨 Applied ${testColors[colorIndex].toString()} color to ${sectionName}`);
+              console.log(`   📍 Mesh position: (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
+              console.log(`   📦 Transform position: (${transformNode.position.x.toFixed(2)}, ${transformNode.position.y.toFixed(2)}, ${transformNode.position.z.toFixed(2)})`);
+              
+              // Also log mesh geometry info
+              const boundingInfo = mesh.getBoundingInfo();
+              console.log(`   📏 Bounding box: Min(${boundingInfo.boundingBox.minimumWorld.x.toFixed(2)}, ${boundingInfo.boundingBox.minimumWorld.y.toFixed(2)}, ${boundingInfo.boundingBox.minimumWorld.z.toFixed(2)}) Max(${boundingInfo.boundingBox.maximumWorld.x.toFixed(2)}, ${boundingInfo.boundingBox.maximumWorld.y.toFixed(2)}, ${boundingInfo.boundingBox.maximumWorld.z.toFixed(2)})`);
+              
               if (textureFileName) {
-                // Systematic decal experiment - test multiple surface positions
-                const boundingInfo = mesh.getBoundingInfo();
-                const meshMin = boundingInfo.boundingBox.minimumWorld;
-                const meshMax = boundingInfo.boundingBox.maximumWorld;
-                const meshCenter = boundingInfo.boundingBox.centerWorld;
-                
-                console.log(`🔍 Testing surfaces for ${sectionName}:`);
-                console.log(`   Min: (${meshMin.x.toFixed(2)}, ${meshMin.y.toFixed(2)}, ${meshMin.z.toFixed(2)})`);
-                console.log(`   Max: (${meshMax.x.toFixed(2)}, ${meshMax.y.toFixed(2)}, ${meshMax.z.toFixed(2)})`);
-                console.log(`   Center: (${meshCenter.x.toFixed(2)}, ${meshCenter.y.toFixed(2)}, ${meshCenter.z.toFixed(2)})`);
-                
-                // Test positions: REVERSED for outside surfaces due to coordinate system
-                const testPositions = [
-                  { name: "TOP", pos: new Vector3(meshCenter.x, meshMax.y - 0.01, meshCenter.z), rot: new Vector3(-Math.PI/2, 0, 0) },
-                  { name: "BOTTOM", pos: new Vector3(meshCenter.x, meshMin.y + 0.01, meshCenter.z), rot: new Vector3(Math.PI/2, 0, 0) },
-                  { name: "FRONT", pos: new Vector3(meshCenter.x, meshCenter.y, meshMax.z - 0.01), rot: new Vector3(0, 0, 0) },
-                  { name: "BACK", pos: new Vector3(meshCenter.x, meshCenter.y, meshMin.z + 0.01), rot: new Vector3(0, Math.PI, 0) },
-                  { name: "LEFT", pos: new Vector3(meshMin.x + 0.01, meshCenter.y, meshCenter.z), rot: new Vector3(0, -Math.PI/2, 0) },
-                  { name: "RIGHT", pos: new Vector3(meshMax.x - 0.01, meshCenter.y, meshCenter.z), rot: new Vector3(0, Math.PI/2, 0) }
-                ];
-                
-                testPositions.forEach((testPos, testIndex) => {
-                  const testPlane = MeshBuilder.CreatePlane(`test_${sectionName}_${testPos.name}_${testIndex}`, {
-                    width: 0.8, height: 0.3, sideOrientation: Mesh.DOUBLESIDE
-                  }, scene);
-                  
-                  testPlane.position = testPos.pos;
-                  testPlane.rotation = testPos.rot;
-                  
-                  // Create test material with texture
-                  const testMaterial = new StandardMaterial(`testMat_${testIndex}`, scene);
-                  const testTexture = new Texture(`/labels/${textureFileName}`, scene);
-                  
-                  testTexture.hasAlpha = true;
-                  testTexture.vScale = -1;
-                  testTexture.vOffset = 1;
-                  
-                  testMaterial.diffuseTexture = testTexture;
-                  testMaterial.emissiveTexture = testTexture;
-                  testMaterial.emissiveColor = Color3.White();
-                  testMaterial.useAlphaFromDiffuseTexture = true;
-                  testMaterial.backFaceCulling = false;
-                  
-                  testPlane.material = testMaterial;
-                  
-                  console.log(`   🧪 ${testPos.name} surface at (${testPos.pos.x.toFixed(2)}, ${testPos.pos.y.toFixed(2)}, ${testPos.pos.z.toFixed(2)})`);
-                });
+                console.log(`   🏷️ Would apply texture: ${textureFileName}`);
               } else {
-                console.warn(`⚠️ No texture mapping for: ${sectionName}`);
+                console.warn(`   ⚠️ No texture mapping for: ${sectionName}`);
               }
             } else {
               // Create billboard label above this mesh
