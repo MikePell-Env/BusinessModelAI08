@@ -286,7 +286,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Current observation: Key Activities label is where Customer Relationships should be
         // Customer Relationships label is where Customer Segments should be  
         // Customer Segments label is where Key Activities should be
-        const correctLabelMapping = {
+        const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
           0: { color: new Color3(0.3, 0.6, 0.9), name: "Value Propositions" },      // Blue - stays same
           1: { color: new Color3(0.4, 0.8, 0.4), name: "Key Partners" },           // Green - stays same
           2: { color: new Color3(0.8, 0.4, 0.9), name: "Customer Segments" },      // Purple - moved from position 4
@@ -306,6 +306,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseColor = section.color;
             const sectionName = section.name;
             
+            // Create TransformNode parent for individual manipulation
+            const transformNode = new TransformNode(`bmcTransform_${sectionName}_${index}`, scene);
+            transformNode.position = mesh.position.clone();
+            transformNode.rotation = mesh.rotation.clone();
+            transformNode.scaling = mesh.scaling.clone();
+            
+            // Reset mesh transform and parent to TransformNode
+            mesh.position = Vector3.Zero();
+            mesh.rotation = Vector3.Zero();
+            mesh.scaling = new Vector3(1, 1, 1);
+            mesh.parent = transformNode;
+            
+            // Store references for manipulation
+            (mesh as any).bmcTransformNode = transformNode;
+            (mesh as any).bmcSectionName = sectionName;
+            
+            console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
+            
             // Create new shiny metallic material with unique color for each section
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
             
@@ -324,8 +342,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
-            // Store original color for hover/click effects
+            // Store original color and material for hover/click effects
             (mesh as any).originalColor = baseColor.clone();
+            (mesh as any).originalMaterial = sectionMaterial;
             (mesh as any).isClicked = false;
             
             // Create billboard label above this mesh
@@ -516,6 +535,81 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }).catch((error) => {
       console.error("❌ Failed to load BMC model:", error);
     });
+
+    // Helper functions for manipulating individual BMC sections
+    const adjustBMCSection = (sectionName: string, options: {
+      height?: number;
+      transparency?: number; 
+      color?: Color3;
+      scale?: Vector3;
+    }) => {
+      if (scene) {
+        const meshes = scene.meshes;
+        meshes.forEach((mesh) => {
+          if ((mesh as any).bmcSectionName === sectionName) {
+            const transformNode = (mesh as any).bmcTransformNode as TransformNode;
+            const material = mesh.material as PBRMetallicRoughnessMaterial;
+            
+            if (transformNode) {
+              // Adjust height (Y scaling)
+              if (options.height !== undefined) {
+                transformNode.scaling.y = options.height;
+                console.log(`📏 ${sectionName} height adjusted to ${options.height}`);
+              }
+              
+              // Adjust overall scale
+              if (options.scale) {
+                transformNode.scaling = options.scale;
+                console.log(`📐 ${sectionName} scale adjusted to (${options.scale.x}, ${options.scale.y}, ${options.scale.z})`);
+              }
+            }
+            
+            if (material) {
+              // Adjust transparency (alpha)
+              if (options.transparency !== undefined) {
+                material.alpha = 1 - options.transparency; // Convert transparency to alpha
+                console.log(`👻 ${sectionName} transparency set to ${options.transparency}`);
+              }
+              
+              // Adjust color
+              if (options.color) {
+                const vividColor = new Color3(
+                  Math.pow(options.color.r, 0.7),
+                  Math.pow(options.color.g, 0.7), 
+                  Math.pow(options.color.b, 0.7)
+                );
+                material.baseColor = vividColor;
+                (mesh as any).originalColor = options.color.clone();
+                console.log(`🎨 ${sectionName} color changed to (${options.color.r.toFixed(2)}, ${options.color.g.toFixed(2)}, ${options.color.b.toFixed(2)})`);
+              }
+            }
+          }
+        });
+      }
+    };
+
+    // Helper function to list all available BMC sections
+    const listBMCSections = () => {
+      if (scene) {
+        const sections: string[] = [];
+        scene.meshes.forEach((mesh) => {
+          if ((mesh as any).bmcSectionName) {
+            sections.push((mesh as any).bmcSectionName);
+          }
+        });
+        console.log("📋 Available BMC sections:", sections);
+        return sections;
+      }
+      return [];
+    };
+
+    // Expose manipulation functions globally for development/testing
+    (window as any).adjustBMCSection = adjustBMCSection;
+    (window as any).listBMCSections = listBMCSections;
+    
+    console.log("🔧 BMC section manipulation functions available:");
+    console.log("   window.adjustBMCSection(sectionName, {height, transparency, color, scale})");
+    console.log("   window.listBMCSections() - shows all available section names");
 
     // Start the render loop
     engine.runRenderLoop(() => {
