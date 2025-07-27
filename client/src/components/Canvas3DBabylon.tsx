@@ -475,45 +475,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Note: directIntensity and environmentIntensity properties handled by scene environment
             // Environment reflections handled by scene environment
             
-            // Special texture plane for Customer Segments (index 2)
+            // Special texture mapping for Customer Segments (index 2)
             if (sectionName === "Customer Segments") {
-              console.log(`🎯 Creating texture plane for Customer Segments mesh (index ${index})`);
+              console.log(`🎯 Applying texture to Customer Segments mesh (index ${index})`);
               
-              // Get mesh bounds to position plane correctly
-              const boundingInfo = mesh.getBoundingInfo();
-              const center = boundingInfo.boundingBox.center;
-              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
-              
-              // Create a small plane for the label (much smaller than the mesh)
-              const labelPlane = MeshBuilder.CreatePlane("customerSegmentsLabel", {
-                width: size.x * 0.3,  // 30% of mesh width
-                height: size.z * 0.2  // 20% of mesh depth for better aspect ratio
-              }, scene);
-              
-              // Position plane slightly above the mesh surface
-              labelPlane.position.x = center.x;
-              labelPlane.position.y = center.y + size.y * 0.51; // Just above top surface
-              labelPlane.position.z = center.z;
-              
-              // Rotate to lay flat on top
-              labelPlane.rotation.x = Math.PI / 2;
-              
-              // Create material for the label plane
-              const labelMaterial = new PBRMetallicRoughnessMaterial("customerSegmentsLabelMat", scene);
+              // Load the original PNG texture
               const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
-              labelTexture.hasAlpha = true; // Enable transparency
+              labelTexture.uOffset = 0;
+              labelTexture.vOffset = 0;
+              labelTexture.uScale = 1;
+              labelTexture.vScale = 1;
+              labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
+              labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
               
-              labelMaterial.baseTexture = labelTexture;
-              labelMaterial.metallic = 0.0;
-              labelMaterial.roughness = 0.8;
-              labelMaterial.transparencyMode = Material.MATERIAL_ALPHABLEND;
+              // Apply texture to the material as base texture
+              sectionMaterial.baseTexture = labelTexture;
               
-              labelPlane.material = labelMaterial;
+              // Apply simplified UV mapping to show texture only on top faces
+              applyTopFaceTexture(mesh as Mesh, scene);
               
-              // Parent the label plane to the mesh so it moves together
-              labelPlane.parent = mesh;
-              
-              console.log(`✅ Label plane created at position (${center.x.toFixed(2)}, ${(center.y + size.y * 0.51).toFixed(2)}, ${center.z.toFixed(2)})`);
+              // Store the textured material for hover effects
+              (mesh as any).hasTexture = true;
+              (mesh as any).texturedMaterial = sectionMaterial;
             }
             
             mesh.material = sectionMaterial;
