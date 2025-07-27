@@ -336,16 +336,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
             
-            // Create new semi-gloss black plastic material for each section
-            const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
+            // Create StandardMaterial for consistent hover/click behavior
+            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
             
             // Use very dark black color with subtle shine
-            sectionMaterial.baseColor = baseColor;
-            sectionMaterial.metallic = 0.0; // No metallic reflection for plastic
-            sectionMaterial.roughness = 0.7; // Medium-high roughness for semi-gloss finish
-            sectionMaterial.clearCoat.isEnabled = false; // Disable clear coat
-            // Use default lighting properties for PBR material
-            // Environment reflections handled by scene environment
+            sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Subtle specular reflection
+            sectionMaterial.emissiveColor = Color3.Black(); // No emission by default
             
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
@@ -355,27 +352,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).originalMaterial = sectionMaterial;
             (mesh as any).isClicked = false;
             
-            if (useTextureLabels) {
-              // Map section names to PNG texture file names
-              const textureFileMap: { [key: string]: string } = {
-                "Value Propositions": "Label_ValueProposition_1753647389093.png",
-                "Customer Channels": "Label_CustomerChannels_1753647389094.png",
-                "Channels": "Label_CustomerChannels_1753647389094.png",
-                "Customer Segments": "Label_CustomerSegments_1753647389094.png", 
-                "Customer Relationships": "Label_CustomerRelationships_1753647389094.png",
-                "Key Resources": "Label_KeyResources_1753647389095.png",
-                "Key Activities": "Label_KeyActivities_1753647389095.png",
-                "Key Partners": "Label_KeyPartners_1753647389095.png"
-              };
-              
-              const textureFileName = textureFileMap[sectionName];
-              console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
-              // Add hover and click interactivity to each mesh
-              mesh.actionManager = new ActionManager(scene);
-              console.log(`🎮 Adding action manager to ${sectionName} mesh`);
-              
-              // Hover enter - change to bright blue and fade others
-              mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+            // Add hover and click interactivity to ALL meshes
+            mesh.actionManager = new ActionManager(scene);
+            console.log(`🎮 Adding action manager to ${sectionName} mesh`);
+            
+            // Hover enter - change to bright blue and fade others
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
                 console.log(`🔍 HOVER ENTER triggered on ${sectionName}`);
                 if (!(mesh as any).isClicked) {
                   // Change hovered mesh to bright blue
@@ -451,6 +433,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 }
               }));
 
+            if (useTextureLabels) {
               // TEST: Make Key Partners shape bright red to identify it AND apply PNG decal
               if (sectionName === "Key Partners") {
                 console.log(`🎯 FOUND Key Partners shape - making it bright red for identification`);
