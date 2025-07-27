@@ -54,13 +54,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create camera with perspective matching the screenshot or restore saved state
+    // Create camera with perspective matching the user's desired angled view
     const savedCameraState = getCamera3DState();
     const camera = new ArcRotateCamera(
       "camera",
-      savedCameraState?.alpha ?? -Math.PI / 6,    // Alpha - more frontal angle for better view of the layout
-      savedCameraState?.beta ?? Math.PI / 4,      // Beta - lower angle for the perspective shown in screenshot
-      savedCameraState?.radius ?? 20,             // Radius - further back to see the full canvas layout
+      savedCameraState?.alpha ?? -Math.PI / 3,    // Alpha - angled from left side for perspective view
+      savedCameraState?.beta ?? Math.PI / 3.5,    // Beta - elevated angle to look down at the BMC model
+      savedCameraState?.radius ?? 18,             // Radius - close enough to see details but show full model
       Vector3.Zero(),  // Target position
       scene
     );
@@ -269,7 +269,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   }, [is3D, saveCamera3DState]);
 
   return (
-    <div className={`w-full h-full ${isTransitioning ? 'opacity-50' : ''}`}>
+    <div className={`w-full h-full ${isTransitioning ? 'opacity-50' : ''} relative`}>
+      {/* PowerPoint Title Overlay - matching 2D view */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+        <h1 className="text-2xl font-bold text-gray-800 bg-white/90 px-4 py-2 rounded-lg shadow-sm">
+          {canvas.name || "Business Model Canvas"}
+        </h1>
+      </div>
+      
       <canvas
         ref={canvasRef}
         className="w-full h-full"
