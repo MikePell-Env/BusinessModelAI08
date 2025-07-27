@@ -387,14 +387,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const meshTop = boundingInfo.boundingBox.maximumWorld.y;
                 const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
                 
-                // Position slightly above surface but not floating high
+                // Go back to the working height from red test planes
                 textPlane.position.x = transformNode.position.x;
-                textPlane.position.y = meshTop + (meshHeight * 0.1); // 10% of mesh height above surface
+                textPlane.position.y = meshTop + (meshHeight * 5.0); // Same height that worked for red planes
                 textPlane.position.z = transformNode.position.z;
                 
-                // Deal with coordinate system - try Y rotation to flip for proper orientation
+                // Use the simplest rotation that worked before
                 textPlane.rotation.x = -Math.PI / 2; // Lay flat (90 degrees down)
-                textPlane.rotation.y = Math.PI; // 180 degree flip for coordinate system
+                textPlane.rotation.y = 0; // No Y rotation
                 textPlane.rotation.z = 0; // No Z rotation
                 
                 console.log(`🔄 Flush positioning + Y flip for ${sectionName}`);
