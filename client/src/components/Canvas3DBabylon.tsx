@@ -374,22 +374,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               mesh.actionManager = new ActionManager(scene);
               console.log(`🎮 Adding action manager to ${sectionName} mesh`);
               
-              // Hover enter - change to turquoise blue and fade others
+              // Hover enter - change to bright blue and fade others
               mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
                 console.log(`🔍 HOVER ENTER triggered on ${sectionName}`);
                 if (!(mesh as any).isClicked) {
-                  // Change hovered mesh to turquoise blue
-                  const hoverColor = Color3.FromHexString("#40E0D0"); // Turquoise blue
+                  // Change hovered mesh to bright blue
+                  const hoverColor = Color3.FromHexString("#0080FF"); // Bright blue
                   (mesh.material as StandardMaterial).diffuseColor = hoverColor;
+                  (mesh.material as StandardMaterial).emissiveColor = hoverColor.scale(0.3); // Slight glow
                   
-                  // Reduce opacity of all other meshes to 10%
+                  // Reduce opacity of all other meshes to 90%
                   allMeshes.forEach((otherMesh) => {
                     if (otherMesh !== mesh && otherMesh.material) {
-                      (otherMesh.material as StandardMaterial).alpha = 0.1;
+                      (otherMesh.material as StandardMaterial).alpha = 0.9;
                     }
                   });
                   
-                  console.log(`🟦 Hovering over ${sectionName} - changed to turquoise`);
+                  console.log(`🔵 Hovering over ${sectionName} - changed to bright blue`);
                 }
               }));
               
@@ -397,8 +398,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
                 console.log(`🔍 HOVER EXIT triggered on ${sectionName}`);
                 if (!(mesh as any).isClicked) {
-                  // Restore original dark black color
-                  (mesh.material as StandardMaterial).diffuseColor = (mesh as any).originalColor;
+                  // Restore original color and remove emissive
+                  if (sectionName === "Key Partners") {
+                    // Restore red color for Key Partners
+                    (mesh.material as StandardMaterial).diffuseColor = Color3.Red();
+                    (mesh.material as StandardMaterial).emissiveColor = Color3.Red();
+                  } else {
+                    // Restore original dark black color for others
+                    (mesh.material as StandardMaterial).diffuseColor = (mesh as any).originalColor;
+                    (mesh.material as StandardMaterial).emissiveColor = Color3.Black();
+                  }
                   
                   // Restore full opacity to all meshes
                   allMeshes.forEach((otherMesh) => {
@@ -418,13 +427,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 
                 if (isCurrentlyClicked) {
                   // Unclick - restore to original state
-                  (mesh.material as StandardMaterial).diffuseColor = (mesh as any).originalColor;
+                  if (sectionName === "Key Partners") {
+                    (mesh.material as StandardMaterial).diffuseColor = Color3.Red();
+                    (mesh.material as StandardMaterial).emissiveColor = Color3.Red();
+                  } else {
+                    (mesh.material as StandardMaterial).diffuseColor = (mesh as any).originalColor;
+                    (mesh.material as StandardMaterial).emissiveColor = Color3.Black();
+                  }
                   (mesh as any).isClicked = false;
                   console.log(`🔓 Unclicked ${sectionName} - restored to normal`);
                 } else {
                   // Click - darken by 30%
-                  const darkenedColor = (mesh as any).originalColor.scale(0.7);
-                  (mesh.material as StandardMaterial).diffuseColor = darkenedColor;
+                  if (sectionName === "Key Partners") {
+                    const darkenedRed = Color3.Red().scale(0.7);
+                    (mesh.material as StandardMaterial).diffuseColor = darkenedRed;
+                    (mesh.material as StandardMaterial).emissiveColor = darkenedRed;
+                  } else {
+                    const darkenedColor = (mesh as any).originalColor.scale(0.7);
+                    (mesh.material as StandardMaterial).diffuseColor = darkenedColor;
+                  }
                   (mesh as any).isClicked = true;
                   console.log(`🔒 Clicked ${sectionName} - darkened by 30%`);
                 }
