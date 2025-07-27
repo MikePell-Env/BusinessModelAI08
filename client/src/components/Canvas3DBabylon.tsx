@@ -556,6 +556,46 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`✅ Key Partners label plane created`);
             }
             
+            if (sectionName === "Customer Relationships") {
+              console.log(`🏷️ Creating floating label for Customer Relationships mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with correct aspect ratio matching the PNG file
+              const labelPlane = MeshBuilder.CreatePlane("customerRelationshipsLabel", {
+                width: size.x * 0.7,   // Wide to match PNG aspect ratio
+                height: size.z * 0.15  // Much shorter to prevent vertical stretching
+              }, scene);
+              
+              // Position slightly above mesh center
+              labelPlane.position.x = center.x;
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z;
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create bright material for white text
+              const labelMaterial = new StandardMaterial("customerRelationshipsLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_CustomerRelationships.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              console.log(`✅ Customer Relationships label plane created`);
+            }
+            
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
