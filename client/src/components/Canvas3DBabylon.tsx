@@ -751,8 +751,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Create label plane with much smaller size for better proportion
-              const labelWidth = size.x * 0.32; // Half the previous size for better proportion in circular area
+              // Create label plane with moderately smaller size for better proportion
+              const labelWidth = size.x * 0.45; // 30% smaller than original 65% for better proportion in circular area
               const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like other labels
               console.log(`Value Propositions Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
