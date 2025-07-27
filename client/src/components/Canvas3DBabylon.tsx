@@ -365,41 +365,48 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 "Key Partners": "Label_KeyPartners_1753647389095.png"
               };
               
-              // DEBUG: Create test plane with solid color first
-              const testPlane = MeshBuilder.CreatePlane(`testPlane_${index}`, {
-                width: 2.5, height: 1.2, sideOrientation: Mesh.DOUBLESIDE
-              }, scene);
-              
-              // Position plane 25% above the top surface
-              const boundingInfo = mesh.getBoundingInfo();
-              const meshTop = boundingInfo.boundingBox.maximumWorld.y;
-              const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
-              
-              testPlane.position.x = mesh.position.x;
-              testPlane.position.y = meshTop + (meshHeight * 5.0); // 5x higher as requested
-              testPlane.position.z = mesh.position.z;
-              testPlane.rotation.x = -Math.PI / 2;
-              
-              // Create bright colored material for visibility test
-              const testMaterial = new StandardMaterial(`testMaterial_${index}`, scene);
-              testMaterial.diffuseColor = new Color3(1, 0, 0); // Bright red
-              testMaterial.emissiveColor = new Color3(0.2, 0, 0); // Red glow
-              testMaterial.backFaceCulling = false;
-              testPlane.material = testMaterial;
-              
-              console.log(`🔴 TEST PLANE: ${sectionName} at (${testPlane.position.x}, ${testPlane.position.y}, ${testPlane.position.z})`);
-              console.log(`📐 Mesh bounds - Top: ${meshTop}, Height: ${meshHeight}`);
-              
-              // Also try to load PNG texture to test file access
               const textureFileName = textureFileMap[sectionName];
               if (textureFileName) {
+                // Create PNG texture plane at the working height
                 const labelTexture = new Texture(`/labels/${textureFileName}`, scene);
+                labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
+                labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
+                labelTexture.hasAlpha = true;
+                
+                const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
+                  width: 2.5, height: 1.2, sideOrientation: Mesh.DOUBLESIDE
+                }, scene);
+                
+                // Use the same positioning that worked for red test planes
+                const boundingInfo = mesh.getBoundingInfo();
+                const meshTop = boundingInfo.boundingBox.maximumWorld.y;
+                const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
+                
+                textPlane.position.x = mesh.position.x;
+                textPlane.position.y = meshTop + (meshHeight * 5.0); // Same height that worked
+                textPlane.position.z = mesh.position.z;
+                textPlane.rotation.x = -Math.PI / 2; // Lay flat
+                
+                // Apply PNG texture with enhanced visibility
+                const textMaterial = new StandardMaterial(`textMaterial_${index}`, scene);
+                textMaterial.diffuseTexture = labelTexture;
+                textMaterial.emissiveTexture = labelTexture;
+                textMaterial.emissiveColor = Color3.White();
+                textMaterial.backFaceCulling = false;
+                textMaterial.useAlphaFromDiffuseTexture = true;
+                textPlane.material = textMaterial;
+                
+                console.log(`🏷️ PNG texture plane: ${sectionName} at Y: ${textPlane.position.y} using ${textureFileName}`);
+                
+                // Add texture loading feedback
                 labelTexture.onLoadObservable.add(() => {
-                  console.log(`✅ Successfully loaded texture: ${textureFileName}`);
+                  console.log(`✅ Texture loaded: ${textureFileName}`);
                 });
                 labelTexture.onErrorObservable.add(() => {
-                  console.error(`❌ Failed to load texture: ${textureFileName}`);
+                  console.error(`❌ Texture failed: ${textureFileName}`);
                 });
+              } else {
+                console.warn(`⚠️ No texture mapping for: ${sectionName}`);
               }
             } else {
               // Create billboard label above this mesh
