@@ -250,6 +250,93 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
 
 
+    // Function to apply texture only to top face of mesh using proper UV mapping
+    const applyTopFaceTexture = (mesh: Mesh, scene: Scene) => {
+      console.log(`🔍 Analyzing mesh vertex data for top face identification...`);
+      
+      // Get vertex data
+      const positions = mesh.getVerticesData("position");
+      const indices = mesh.getIndices();
+      let uvs = mesh.getVerticesData("uv");
+      const normals = mesh.getVerticesData("normal");
+      
+      if (!positions || !indices || !uvs || !normals) {
+        console.log(`❌ Missing vertex data for texture mapping`);
+        return;
+      }
+      
+      console.log(`📊 Mesh has ${positions.length/3} vertices, ${indices.length/3} faces`);
+      
+      // Find the maximum Y coordinate to identify top faces
+      let maxY = -Infinity;
+      for (let i = 1; i < positions.length; i += 3) { // Y coordinates are at positions 1, 4, 7, etc.
+        maxY = Math.max(maxY, positions[i]);
+      }
+      
+      console.log(`📏 Maximum Y coordinate found: ${maxY}`);
+      
+      // Clone UV array for modification (convert to regular array if needed)
+      const newUvs = Array.from(uvs);
+      
+      // Process each triangle face
+      let topFacesFound = 0;
+      for (let i = 0; i < indices.length; i += 3) {
+        const v1Index = indices[i];
+        const v2Index = indices[i + 1];
+        const v3Index = indices[i + 2];
+        
+        // Get positions for this triangle
+        const v1Y = positions[v1Index * 3 + 1];
+        const v2Y = positions[v2Index * 3 + 1];
+        const v3Y = positions[v3Index * 3 + 1];
+        
+        // Get normals for this triangle
+        const n1Y = normals[v1Index * 3 + 1];
+        const n2Y = normals[v2Index * 3 + 1];
+        const n3Y = normals[v3Index * 3 + 1];
+        
+        // Calculate average Y position and normal for this face
+        const avgY = (v1Y + v2Y + v3Y) / 3;
+        const avgNormalY = (n1Y + n2Y + n3Y) / 3;
+        
+        // Check if this is a top face (close to maxY and normal pointing up)
+        const isTopFace = Math.abs(avgY - maxY) < 0.01 && avgNormalY > 0.5;
+        
+        if (isTopFace) {
+          // This is a top face - set UV coordinates to show the full texture
+          newUvs[v1Index * 2] = 0.0;     // u1 - left
+          newUvs[v1Index * 2 + 1] = 0.0; // v1 - bottom
+          
+          newUvs[v2Index * 2] = 1.0;     // u2 - right  
+          newUvs[v2Index * 2 + 1] = 0.0; // v2 - bottom
+          
+          newUvs[v3Index * 2] = 0.5;     // u3 - center
+          newUvs[v3Index * 2 + 1] = 1.0; // v3 - top
+          
+          topFacesFound++;
+          console.log(`✅ Top face ${topFacesFound} found at Y=${avgY.toFixed(3)}, normal Y=${avgNormalY.toFixed(3)}`);
+        } else {
+          // This is not a top face - set UV coordinates to transparent area (or black area of texture)
+          newUvs[v1Index * 2] = 0.0;     // u1
+          newUvs[v1Index * 2 + 1] = 0.0; // v1
+          
+          newUvs[v2Index * 2] = 0.0;     // u2
+          newUvs[v2Index * 2 + 1] = 0.0; // v2
+          
+          newUvs[v3Index * 2] = 0.0;     // u3  
+          newUvs[v3Index * 2 + 1] = 0.0; // v3
+        }
+      }
+      
+      console.log(`🎯 Found and textured ${topFacesFound} top faces`);
+      
+      // Apply the modified UV coordinates back to the mesh
+      mesh.setVerticesData("uv", newUvs);
+      mesh.refreshBoundingInfo();
+      
+      console.log(`✅ UV mapping applied successfully to Customer Segments mesh`);
+    };
+
     // Only GLB models are used now - no more box geometry functions needed
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
@@ -344,6 +431,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             sectionMaterial.directIntensity = 1.0; // Allow some direct light reflection
             sectionMaterial.environmentIntensity = 0.3; // Low environment reflection for subtle shine
             // Environment reflections handled by scene environment
+            
+            // Special texture mapping for Customer Segments (index 2)
+            if (sectionName === "Customer Segments") {
+              console.log(`🎯 Applying texture to Customer Segments mesh (index ${index})`);
+              
+              // Load the Customer Segments label texture
+              const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
+              labelTexture.uOffset = 0;
+              labelTexture.vOffset = 0;
+              labelTexture.uScale = 1;
+              labelTexture.vScale = 1;
+              labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
+              labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
+              
+              // Apply texture to the material - will appear on all faces initially
+              sectionMaterial.baseTexture = labelTexture;
+              
+              // Apply custom UV mapping to show texture only on top face
+              applyTopFaceTexture(mesh as Mesh, scene);
+            }
             
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
