@@ -374,9 +374,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
                 labelTexture.hasAlpha = true;
                 
-                // Size plane appropriately - smaller for Value Proposition cylinder
-                const planeWidth = sectionName === "Value Propositions" ? 2.0 : 2.5;
-                const planeHeight = sectionName === "Value Propositions" ? 0.8 : 1.0;
+                // Calculate proper aspect ratio based on PNG dimensions (roughly 4:1)
+                const textAspectRatio = 4.0; // Width:Height ratio from PNG inspection
+                const planeHeight = sectionName === "Value Propositions" ? 0.5 : 0.6;
+                const planeWidth = planeHeight * textAspectRatio; // Maintain aspect ratio
                 
                 const textPlane = MeshBuilder.CreatePlane(`textPlane_${index}`, {
                   width: planeWidth, height: planeHeight, sideOrientation: Mesh.DOUBLESIDE
@@ -407,10 +408,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 textMaterial.backFaceCulling = false;
                 textMaterial.useAlphaFromDiffuseTexture = true;
                 
-                // Use normal UV scaling
-                labelTexture.uScale = 1; 
+                // Fix backwards text by flipping U coordinate
+                labelTexture.uScale = -1; // Flip horizontally to fix backwards text
                 labelTexture.vScale = 1;  
-                labelTexture.uOffset = 0; 
+                labelTexture.uOffset = 1; // Adjust offset for flipped U
                 labelTexture.vOffset = 0;
                 
                 textPlane.material = textMaterial;
