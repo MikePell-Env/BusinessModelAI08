@@ -685,6 +685,51 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`✅ Key Activities label plane created`);
             }
             
+            // Add floating label planes for Key Resources section
+            if (sectionName === "Key Resources") {
+              console.log(`🏷️ Creating floating label for Key Resources mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with 50% taller height than before
+              const labelWidth = size.x * 0.6;
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger than the previous calculated height
+              console.log(`Key Resources Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
+              const labelPlane = MeshBuilder.CreatePlane("keyResourcesLabel", {
+                width: labelWidth,   // Smaller width to fit better within mesh
+                height: labelHeight  // 50% taller to reduce squishing
+              }, scene);
+              
+              // Position within the mesh boundaries, moved left from top view perspective
+              labelPlane.position.x = center.x - size.x * 0.15; // Move left but leave margin on left edge
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z + size.z * 0.3; // Move up more in top view
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create bright material for white text
+              const labelMaterial = new StandardMaterial("keyResourcesLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_KeyResources.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              console.log(`✅ Key Resources label plane created`);
+            }
+            
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
             
