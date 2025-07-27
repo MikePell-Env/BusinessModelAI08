@@ -299,8 +299,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             );
             
             sectionMaterial.baseColor = vividColor;
-            sectionMaterial.metallic = 0.95; // Very high metallic reflection
-            sectionMaterial.roughness = 0.05; // Very low roughness for mirror-like finish
+            sectionMaterial.metallic = 0.6; // Moderate metallic reflection
+            sectionMaterial.roughness = 0.3; // Higher roughness for less mirror-like finish
             // Environment reflections handled by scene environment
             
             mesh.material = sectionMaterial;
