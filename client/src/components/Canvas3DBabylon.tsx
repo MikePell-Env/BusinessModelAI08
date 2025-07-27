@@ -368,37 +368,53 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const textureFileName = textureFileMap[sectionName];
               console.log(`🔍 Looking for texture for section: "${sectionName}" -> ${textureFileName || 'NOT FOUND'}`);
               if (textureFileName) {
-                // Use TransformNode position (working approach) with simple texture
-                const labelPlane = MeshBuilder.CreatePlane(`label_${index}`, {
-                  width: 1.8, height: 0.6, sideOrientation: Mesh.DOUBLESIDE
-                }, scene);
+                // Systematic decal experiment - test multiple surface positions
+                const boundingInfo = mesh.getBoundingInfo();
+                const meshMin = boundingInfo.boundingBox.minimumWorld;
+                const meshMax = boundingInfo.boundingBox.maximumWorld;
+                const meshCenter = boundingInfo.boundingBox.centerWorld;
                 
-                // Position above the TransformNode (working coordinates)
-                labelPlane.position.x = transformNode.position.x;
-                labelPlane.position.y = transformNode.position.y + 0.8; // Fixed height above
-                labelPlane.position.z = transformNode.position.z;
+                console.log(`🔍 Testing surfaces for ${sectionName}:`);
+                console.log(`   Min: (${meshMin.x.toFixed(2)}, ${meshMin.y.toFixed(2)}, ${meshMin.z.toFixed(2)})`);
+                console.log(`   Max: (${meshMax.x.toFixed(2)}, ${meshMax.y.toFixed(2)}, ${meshMax.z.toFixed(2)})`);
+                console.log(`   Center: (${meshCenter.x.toFixed(2)}, ${meshCenter.y.toFixed(2)}, ${meshCenter.z.toFixed(2)})`);
                 
-                // Lay flat
-                labelPlane.rotation.x = -Math.PI / 2;
+                // Test positions: top, bottom, front, back, left, right
+                const testPositions = [
+                  { name: "TOP", pos: new Vector3(meshCenter.x, meshMax.y + 0.01, meshCenter.z), rot: new Vector3(-Math.PI/2, 0, 0) },
+                  { name: "BOTTOM", pos: new Vector3(meshCenter.x, meshMin.y - 0.01, meshCenter.z), rot: new Vector3(Math.PI/2, 0, 0) },
+                  { name: "FRONT", pos: new Vector3(meshCenter.x, meshCenter.y, meshMax.z + 0.01), rot: new Vector3(0, 0, 0) },
+                  { name: "BACK", pos: new Vector3(meshCenter.x, meshCenter.y, meshMin.z - 0.01), rot: new Vector3(0, Math.PI, 0) },
+                  { name: "LEFT", pos: new Vector3(meshMin.x - 0.01, meshCenter.y, meshCenter.z), rot: new Vector3(0, -Math.PI/2, 0) },
+                  { name: "RIGHT", pos: new Vector3(meshMax.x + 0.01, meshCenter.y, meshCenter.z), rot: new Vector3(0, Math.PI/2, 0) }
+                ];
                 
-                // Create texture material with working settings
-                const labelMaterial = new StandardMaterial(`labelMaterial_${index}`, scene);
-                const labelTexture = new Texture(`/labels/${textureFileName}`, scene);
-                
-                // Only apply vertical flip - no scaling tricks
-                labelTexture.hasAlpha = true;
-                labelTexture.vScale = -1;
-                labelTexture.vOffset = 1;
-                
-                labelMaterial.diffuseTexture = labelTexture;
-                labelMaterial.emissiveTexture = labelTexture;
-                labelMaterial.emissiveColor = Color3.White();
-                labelMaterial.useAlphaFromDiffuseTexture = true;
-                labelMaterial.backFaceCulling = false;
-                
-                labelPlane.material = labelMaterial;
-                
-                console.log(`🏷️ Label for ${sectionName} at TransformNode position + 0.8Y`);
+                testPositions.forEach((testPos, testIndex) => {
+                  const testPlane = MeshBuilder.CreatePlane(`test_${sectionName}_${testPos.name}_${testIndex}`, {
+                    width: 0.8, height: 0.3, sideOrientation: Mesh.DOUBLESIDE
+                  }, scene);
+                  
+                  testPlane.position = testPos.pos;
+                  testPlane.rotation = testPos.rot;
+                  
+                  // Create test material with texture
+                  const testMaterial = new StandardMaterial(`testMat_${testIndex}`, scene);
+                  const testTexture = new Texture(`/labels/${textureFileName}`, scene);
+                  
+                  testTexture.hasAlpha = true;
+                  testTexture.vScale = -1;
+                  testTexture.vOffset = 1;
+                  
+                  testMaterial.diffuseTexture = testTexture;
+                  testMaterial.emissiveTexture = testTexture;
+                  testMaterial.emissiveColor = Color3.White();
+                  testMaterial.useAlphaFromDiffuseTexture = true;
+                  testMaterial.backFaceCulling = false;
+                  
+                  testPlane.material = testMaterial;
+                  
+                  console.log(`   🧪 ${testPos.name} surface at (${testPos.pos.x.toFixed(2)}, ${testPos.pos.y.toFixed(2)}, ${testPos.pos.z.toFixed(2)})`);
+                });
               } else {
                 console.warn(`⚠️ No texture mapping for: ${sectionName}`);
               }
