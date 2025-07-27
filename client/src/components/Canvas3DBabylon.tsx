@@ -128,51 +128,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
     ground.material = groundMaterial;
 
-    // Create extruded border rails on all sides
-    const railHeight = 0.3;
-    const railWidth = 0.2;
-    const railColor = new Color3(0.5, 0.5, 0.5); // Medium grey rail color
+
     
-    // Create rail material
-    const railMaterial = new StandardMaterial("railMaterial", scene);
-    railMaterial.diffuseColor = railColor;
-    railMaterial.specularColor = new Color3(0, 0, 0);
-    
-    // North rail (back)
-    const northRail = MeshBuilder.CreateBox("northRail", {
-      width: 20.4, // Slightly wider to cover corners
-      height: railHeight,
-      depth: railWidth
-    }, scene);
-    northRail.position = new Vector3(0, railHeight/2, -7 - railWidth/2);
-    northRail.material = railMaterial;
-    
-    // South rail (front)
-    const southRail = MeshBuilder.CreateBox("southRail", {
-      width: 20.4,
-      height: railHeight,
-      depth: railWidth
-    }, scene);
-    southRail.position = new Vector3(0, railHeight/2, 7 + railWidth/2);
-    southRail.material = railMaterial;
-    
-    // East rail (right)
-    const eastRail = MeshBuilder.CreateBox("eastRail", {
-      width: railWidth,
-      height: railHeight,
-      depth: 14
-    }, scene);
-    eastRail.position = new Vector3(10 + railWidth/2, railHeight/2, 0);
-    eastRail.material = railMaterial;
-    
-    // West rail (left)
-    const westRail = MeshBuilder.CreateBox("westRail", {
-      width: railWidth,
-      height: railHeight,
-      depth: 14
-    }, scene);
-    westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0);
-    westRail.material = railMaterial;
+
 
     // Add default environment for proper PBR reflections
     if (scene.environmentTexture) {
@@ -193,96 +151,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
 
-    // Store selected mesh reference
-    let selectedMesh: AbstractMesh | null = null;
-
-    // Create single master transform node for ALL BMC objects (matching your template positioning)
-    const bmcMasterTransform = new TransformNode("bmcMasterGroup", scene);
-    // Fix coordinate system: rotate Y-axis to flip left/right and translate up
-    bmcMasterTransform.rotation.y = Math.PI; // 180 degree Y rotation to flip left-right positioning
-    bmcMasterTransform.position.y = 4.0; // Translate entire group up to be above ground plane
-    
-    // FINAL unified GLB loading function - all objects use this and parent to master transform
-    const loadGLBModel = (fileName: string, content: string, position: Vector3, elementName: string, scale: number, color: Color3) => {
-      SceneLoader.ImportMeshAsync("", "/models/", fileName, scene).then((result) => {
-        if (result.meshes.length > 0) {
-          const rootMesh = result.meshes[0];
-          rootMesh.position = position;
-          rootMesh.scaling = new Vector3(scale, scale, scale);
-          rootMesh.parent = bmcMasterTransform; // ALL objects parented to single master transform
-          
-          // Apply plastic materials and interactions to all meshes
-          result.meshes.forEach((mesh) => {
-            // Create new PBR material with plastic appearance (not metallic)
-            const plasticMaterial = new PBRMetallicRoughnessMaterial(`${elementName}_plastic`, scene);
-            plasticMaterial.baseColor = color;
-            plasticMaterial.metallic = 0.0; // Plastic = no metallic reflection
-            plasticMaterial.roughness = 0.8; // Matte plastic finish
-            mesh.material = plasticMaterial;
-            
-            mesh.actionManager = new ActionManager(scene);
-            
-            // Hover effect - subtle glow
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(0.2, 0.2, 0.2);
-              }
-            }));
-            
-            // Mouse out - remove glow
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(0, 0, 0);
-              }
-            }));
-            
-            // Click - bright blue selection
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`Clicked on ${elementName}`);
-              if (mesh.material instanceof PBRMetallicRoughnessMaterial) {
-                const material = mesh.material as PBRMetallicRoughnessMaterial;
-                material.emissiveColor = new Color3(0.3, 0.5, 1.0);
-              }
-            }));
-          });
-          
-          console.log(`✓ ${elementName} loaded successfully at position ${position.toString()} with color ${color.toString()}`);
-        }
-      }).catch((error) => {
-        console.error(`❌ Failed to load ${elementName}: ${error}`);
-      });
-    };
-    
-    // Load ALL BMC objects with original positions - transform handled by master node:
-    console.log("🔄 Starting to load all 7 BMC objects...");
-    
-    // Center: Value Proposition (BLUE circle)
-    console.log("Loading Value Proposition...");
-    loadGLBModel("BMC_blender_06_ValueProposition.glb", canvas.valuePropositions.content || "", new Vector3(0, -2.0, 0), "Value Proposition", 45, new Color3(0, 0.4, 0.8));
-    
-    // Left: Key Partners (GREEN tall rectangle) - increasing separation further
-    loadGLBModel("BMC_blender_06_KeyPartners.glb", canvas.keyPartners.content || "", new Vector3(-1.3, -2.0, 0), "Key Partners", 50, new Color3(0, 0.7, 0));
-    
-    // Right: Customer Segments (PURPLE tall rectangle) - increasing separation further
-    loadGLBModel("BMC_blender_06_CustomerSegments.glb", canvas.customerSegments.content || "", new Vector3(1.3, -2.0, 0), "Customer Segments", 50, new Color3(0.7, 0, 0.7));
-    
-    // Top-Left: Key Activities (ORANGE) - trying closer to center approach
-    console.log("Loading Key Activities...");
-    loadGLBModel("BMC_blender_06_KeyActivities.glb", canvas.keyActivities.content || "", new Vector3(-1.5, -2.0, -1.8), "Key Activities", 40, new Color3(1, 0.5, 0));
-    
-    // Top-Right: Customer Relationships (YELLOW) - moved further from center for visibility
-    console.log("Loading Customer Relationships...");
-    loadGLBModel("BMC_blender_06_CustomerRelationships.glb", canvas.customerRelationships.content || "", new Vector3(2.0, -2.0, -2.5), "Customer Relationships", 40, new Color3(1, 0.8, 0));
-    
-    // Bottom-Left: Key Resources (RED) - trying closer to center approach
-    console.log("Loading Key Resources...");
-    loadGLBModel("BMC_blender_06_KeyResources.glb", canvas.keyResources.content || "", new Vector3(-1.5, -2.0, 1.8), "Key Resources", 40, new Color3(1, 0, 0));
-    
-    // Bottom-Right: Customer Channels (CYAN) - moved further from center for visibility
-    console.log("Loading Customer Channels...");
-    loadGLBModel("BMC_blender_06_CustomerChannels.glb", canvas.channels.content || "", new Vector3(2.0, -2.0, 2.5), "Customer Channels", 40, new Color3(0, 0.8, 0.8));
+    // BMC model loading removed for experiment
 
     // Start the render loop
     engine.runRenderLoop(() => {
