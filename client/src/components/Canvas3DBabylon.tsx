@@ -86,7 +86,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Set background to match 2D view (#e9ecef - light gray)
     // #e9ecef = RGB(233, 236, 239) = normalized (0.914, 0.925, 0.937)
-    scene.clearColor = new Color3(0.914, 0.925, 0.937).toColor4(1.0);
+    scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
     
     engineRef.current = engine;
     sceneRef.current = scene;
@@ -223,12 +223,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
 
 
-    // Create bright environment for vivid metallic reflections
+    // Create bright environment for vivid metallic reflections WITHOUT skybox
     const environmentHelper = scene.createDefaultEnvironment({
       createGround: false, // We already have ground
-      createSkybox: true,
+      createSkybox: false, // Disable skybox to show scene clearColor background
       skyboxSize: 100,
-      skyboxColor: new Color3(0.95, 0.95, 0.97), // Bright neutral white-blue
+      skyboxColor: new Color3(0.95, 0.95, 0.97), // Not used since createSkybox is false
       groundColor: new Color3(0.9, 0.9, 0.9)
     });
     
