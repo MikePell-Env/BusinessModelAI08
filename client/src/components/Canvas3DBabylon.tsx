@@ -1109,12 +1109,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                 const otherSectionName = (otherMesh as any).bmcSectionName;
                 
+                // Debug: Check mesh comparison
+                const isSelectedMesh = otherMesh === mesh;
+                const isSelectedSection = otherSectionName === sectionName;
+                console.log(`🔍 Checking mesh: ${otherSectionName}, isSelectedMesh: ${isSelectedMesh}, isSelectedSection: ${isSelectedSection}`);
+                
                 if (otherMesh !== mesh) {
                   material.alpha = 0.5; // 50% opacity for others
                   
                   // Flatten non-selected objects to ground plane
                   if (otherSectionName && adjustBMCSection) {
-                    console.log(`📏 Flattening ${otherSectionName} to ground plane (height: 0.1)`);
+                    console.log(`📏 ✅ FLATTENING ${otherSectionName} to ground plane (height: 0.1) - NOT the selected object`);
                     adjustBMCSection(otherSectionName, { height: 0.1 });
                   }
                 } else {
