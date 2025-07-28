@@ -208,7 +208,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         event.preventDefault();
         isSpacePressed = true;
         translationRef.current.isPressed = true;
-        console.log('🎮 Space bar pressed - starting translation');
+        
+        // Disable camera rotation controls when Space is pressed
+        if (perspectiveCamera.inputs) {
+          perspectiveCamera.inputs.clear();
+        }
+        
+        console.log('🎮 Space bar pressed - starting translation, camera rotation disabled');
       }
     };
     
@@ -217,7 +223,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         event.preventDefault();
         isSpacePressed = false;
         translationRef.current.isPressed = false;
-        console.log('🎮 Space bar released - stopping translation');
+        
+        // Re-enable camera rotation controls when Space is released
+        if (perspectiveCamera.inputs) {
+          perspectiveCamera.inputs.clear();
+          perspectiveCamera.inputs.addMouseWheel();
+          perspectiveCamera.inputs.addPointers();
+          perspectiveCamera.wheelPrecision = 50; // Restore wheel precision
+        }
+        
+        console.log('🎮 Space bar released - stopping translation, camera rotation re-enabled');
       }
     };
     
@@ -225,24 +240,35 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     
-    // Render loop for smooth translation
-    const renderLoop = () => {
+    // Mouse movement handler for horizontal translation when Space is pressed
+    let lastMouseX = 0;
+    
+    const handleMouseMove = (event: PointerEvent) => {
       if (translationRef.current.isPressed && !isOrthographic && perspectiveCamera) {
-        const translationSpeed = 0.02; // Smooth translation speed
-        const newTranslation = translationRef.current.x + (translationSpeed * translationRef.current.direction);
+        const deltaX = event.clientX - lastMouseX;
+        const translationSpeed = 0.01; // Sensitivity for mouse movement
+        const newTranslation = translationRef.current.x + (deltaX * translationSpeed);
         
-        // Check boundaries and reverse direction if needed
-        if (Math.abs(newTranslation) >= maxTranslation) {
-          translationRef.current.direction *= -1; // Reverse direction
-          console.log(`🎮 Translation boundary reached, reversing direction: ${translationRef.current.direction > 0 ? 'right' : 'left'}`);
-        } else {
+        // Constrain to boundaries
+        if (Math.abs(newTranslation) <= maxTranslation) {
           translationRef.current.x = newTranslation;
+          // Apply translation to camera target
+          perspectiveCamera.setTarget(new Vector3(translationRef.current.x, 0, 0));
         }
-        
-        // Apply translation to camera target
-        perspectiveCamera.setTarget(new Vector3(translationRef.current.x, 0, 0));
-        console.log(`🎮 Translating scene to X: ${translationRef.current.x.toFixed(2)}`);
       }
+      lastMouseX = event.clientX;
+    };
+    
+    const handleMouseDown = (event: PointerEvent) => {
+      lastMouseX = event.clientX;
+    };
+    
+    // Add mouse event listeners for translation control
+    canvasRef.current?.addEventListener('pointermove', handleMouseMove);
+    canvasRef.current?.addEventListener('pointerdown', handleMouseDown);
+    
+    // Render loop
+    const renderLoop = () => {
       scene.render();
     };
     
@@ -252,6 +278,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     (scene as any)._keyboardCleanup = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      canvasRef.current?.removeEventListener('pointermove', handleMouseMove);
+      canvasRef.current?.removeEventListener('pointerdown', handleMouseDown);
     };
 
     // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
@@ -1419,6 +1447,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         translationRef.current.isPressed = false;
         perspectiveCamera.setTarget(Vector3.Zero());
         
+        // Ensure camera rotation controls are restored
+        if (perspectiveCamera.inputs) {
+          perspectiveCamera.inputs.clear();
+          perspectiveCamera.inputs.addMouseWheel();
+          perspectiveCamera.inputs.addPointers();
+          perspectiveCamera.wheelPrecision = 50;
+        }
+        
         // Rotate model 180 degrees clockwise to fix upside-down text in orthographic view
         if (rootMesh) {
           rootMesh.rotation = new Vector3(0, Math.PI, 0);
@@ -1440,6 +1476,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         translationRef.current.x = 0;
         translationRef.current.isPressed = false;
         perspectiveCamera.setTarget(Vector3.Zero());
+        
+        // Ensure camera rotation controls are restored
+        if (perspectiveCamera.inputs) {
+          perspectiveCamera.inputs.clear();
+          perspectiveCamera.inputs.addMouseWheel();
+          perspectiveCamera.inputs.addPointers();
+          perspectiveCamera.wheelPrecision = 50;
+        }
         
         // Switch back to perspective camera with restored state
         scene.activeCamera = perspectiveCamera;
