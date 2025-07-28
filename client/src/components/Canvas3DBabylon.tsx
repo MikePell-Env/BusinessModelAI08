@@ -129,7 +129,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Set orthographic projection with proper aspect ratio (reduced size to fit window)
     orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
     const aspectRatio = canvasRef.current!.width / canvasRef.current!.height;
-    const orthoSize = 12; // Increased size to show entire canvas within window
+    const orthoSize = 10; // Reduced size to make model appear larger in view
     
     if (aspectRatio > 1) {
       // Wider than tall - expand horizontally
