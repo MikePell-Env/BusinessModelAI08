@@ -73,7 +73,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         (mesh as any).isClicked = true;
         
-        // Make other objects 50% opacity and flatten them
+        // Make other objects 50% opacity and flatten them, keep selected object normal
         contentPanelsRef.current.forEach(({ mesh: otherMesh, material: otherMaterial }) => {
           if (otherMesh !== mesh) {
             otherMaterial.alpha = 0.5;
@@ -82,6 +82,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const otherSectionName = (otherMesh as any).bmcSectionName;
             if (otherSectionName && adjustBMCSection) {
               adjustBMCSection(otherSectionName, { height: 0.1 });
+            }
+          } else {
+            // Keep selected object at full opacity and proper height
+            otherMaterial.alpha = 1.0;
+            const selectedSectionName = (mesh as any).bmcSectionName;
+            if (selectedSectionName && adjustBMCSection) {
+              const selectedHeight = selectedSectionName === "Value Propositions" ? 9.0 : 1.0;
+              adjustBMCSection(selectedSectionName, { height: selectedHeight });
             }
           }
         });
@@ -1094,6 +1102,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               (mesh as any).isClicked = true;
               
               // Make all other objects 50% opacity and flatten them to ground plane
+              // Keep selected object at full opacity and original height
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                 if (otherMesh !== mesh) {
                   material.alpha = 0.5; // 50% opacity for others
@@ -1103,6 +1112,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   if (otherSectionName && adjustBMCSection) {
                     adjustBMCSection(otherSectionName, { height: 0.1 });
                     console.log(`📏 Flattening ${otherSectionName} to ground plane (height: 0.1)`);
+                  }
+                } else {
+                  // Keep selected object at full opacity and ensure it maintains its proper height
+                  material.alpha = 1.0;
+                  const selectedSectionName = (mesh as any).bmcSectionName;
+                  if (selectedSectionName && adjustBMCSection) {
+                    const selectedHeight = selectedSectionName === "Value Propositions" ? 9.0 : 1.0;
+                    adjustBMCSection(selectedSectionName, { height: selectedHeight });
+                    console.log(`📏 Maintaining ${selectedSectionName} at proper height (${selectedHeight})`);
                   }
                 }
               });
