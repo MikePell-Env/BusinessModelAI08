@@ -2,7 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import { 
   Engine, 
   Scene, 
-  ArcRotateCamera, 
+  ArcRotateCamera,
+  FreeCamera, 
   HemisphericLight, 
   DirectionalLight,
   PointLight,
@@ -43,7 +44,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
   const cameraRef = useRef<ArcRotateCamera | null>(null);
-  const { saveCamera3DState, getCamera3DState, is3D } = useCanvas();
+  const { saveCamera3DState, getCamera3DState, viewMode, is3D } = useCanvas();
   
   // Store all content panels for closing functionality
   const contentPanelsRef = useRef<any[]>([]);
@@ -92,30 +93,50 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create camera with angled perspective matching the user's preferred viewpoint
-    const savedCameraState = getCamera3DState();
-    const camera = new ArcRotateCamera(
-      "camera",
-      savedCameraState?.alpha ?? -Math.PI / 2.5,  // Alpha - more angled from the side for better perspective
-      savedCameraState?.beta ?? Math.PI / 6,      // Beta - high angle for top-down perspective
-      savedCameraState?.radius ?? 25,             // Radius - further back to see entire BMC layout clearly
-      Vector3.Zero(),  // Target position
-      scene
-    );
-    camera.setTarget(Vector3.Zero());
-    cameraRef.current = camera;
+    // Create camera based on view mode
+    let camera: ArcRotateCamera | FreeCamera;
     
-    // Enable camera controls on the canvas
-    camera.attachControl(canvasRef.current, true);
+    if (viewMode === '3D_TOP_ORTHO') {
+      // Create orthographic top-down camera
+      camera = new FreeCamera("orthoCamera", new Vector3(0, 15, 0), scene);
+      camera.setTarget(Vector3.Zero());
+      
+      // Set orthographic projection
+      camera.mode = 1; // ORTHOGRAPHIC_CAMERA
+      camera.orthoTop = 8;
+      camera.orthoBottom = -8;
+      camera.orthoLeft = -12;
+      camera.orthoRight = 12;
+      
+      // Disable rotation for pure top-down view
+      camera.inputs.clear();
+    } else {
+      // Create standard perspective camera for regular 3D view
+      const savedCameraState = getCamera3DState();
+      camera = new ArcRotateCamera(
+        "camera",
+        savedCameraState?.alpha ?? -Math.PI / 2.5,  // Alpha - more angled from the side for better perspective
+        savedCameraState?.beta ?? Math.PI / 6,      // Beta - high angle for top-down perspective
+        savedCameraState?.radius ?? 25,             // Radius - further back to see entire BMC layout clearly
+        Vector3.Zero(),  // Target position
+        scene
+      );
+      camera.setTarget(Vector3.Zero());
+      
+      // Enable camera controls on the canvas
+      camera.attachControl(canvasRef.current, true);
+      
+      // Reduce mouse wheel sensitivity for smoother zooming
+      (camera as ArcRotateCamera).wheelPrecision = 50;        // Default is 3, higher values = less sensitive
+      
+      // Set camera limits for grid layout navigation (original working values)
+      (camera as ArcRotateCamera).lowerRadiusLimit = 5;      // Minimum zoom distance
+      (camera as ArcRotateCamera).upperRadiusLimit = 25;     // Maximum zoom distance
+      (camera as ArcRotateCamera).lowerBetaLimit = 0.1;      // Prevent camera from going below ground
+      (camera as ArcRotateCamera).upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
+    }
     
-    // Reduce mouse wheel sensitivity for smoother zooming
-    camera.wheelPrecision = 50;        // Default is 3, higher values = less sensitive
-    
-    // Set camera limits for grid layout navigation (original working values)
-    camera.lowerRadiusLimit = 5;      // Minimum zoom distance
-    camera.upperRadiusLimit = 25;     // Maximum zoom distance
-    camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
-    camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
+    cameraRef.current = camera as ArcRotateCamera;
 
     // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
@@ -1213,12 +1234,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Clean up on unmount
     return () => {
-      // Save camera state before disposing
-      if (cameraRef.current) {
+      // Save camera state before disposing (only for ArcRotateCamera)
+      if (cameraRef.current && (cameraRef.current as any).alpha !== undefined) {
+        const arcCamera = cameraRef.current as ArcRotateCamera;
         saveCamera3DState(
-          cameraRef.current.alpha,
-          cameraRef.current.beta,
-          cameraRef.current.radius
+          arcCamera.alpha,
+          arcCamera.beta,
+          arcCamera.radius
         );
       }
       
@@ -1229,16 +1251,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         sceneRef.current.dispose();
       }
     };
-  }, [canvas, saveCamera3DState]);
+  }, [canvas, saveCamera3DState, viewMode]);
 
   // Save camera state when switching away from 3D view
   useEffect(() => {
     return () => {
-      if (cameraRef.current && !is3D) {
+      if (cameraRef.current && !is3D && (cameraRef.current as any).alpha !== undefined) {
+        const arcCamera = cameraRef.current as ArcRotateCamera;
         saveCamera3DState(
-          cameraRef.current.alpha,
-          cameraRef.current.beta,
-          cameraRef.current.radius
+          arcCamera.alpha,
+          arcCamera.beta,
+          arcCamera.radius
         );
       }
     };
