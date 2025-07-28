@@ -1101,29 +1101,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               (mesh as any).isClicked = true;
               
-              // Process all objects: set opacity and heights
+              // Make all other objects 50% opacity and flatten them to ground plane
+              // Keep selected object at full opacity and original height
+              
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                 const otherSectionName = (otherMesh as any).bmcSectionName;
+                const isSelectedObject = otherMesh === mesh;
                 
-                if (otherMesh === mesh) {
-                  // This is the selected object - set full opacity and original height
-                  material.alpha = 1.0;
+                if (!isSelectedObject) {
+                  material.alpha = 0.5; // 50% opacity for others
                   
+                  // Flatten non-selected objects to ground plane
                   if (otherSectionName && adjustBMCSection) {
-                    const storedOriginalHeight = originalHeightsRef.current[otherSectionName];
-                    if (storedOriginalHeight !== undefined) {
-                      adjustBMCSection(otherSectionName, { height: storedOriginalHeight });
-                      console.log(`📏 SELECTED: ${otherSectionName} to original height (${storedOriginalHeight})`);
-                    }
+                    console.log(`📏 ✅ FLATTENING non-selected ${otherSectionName} to ground plane (height: 0.1)`);
+                    adjustBMCSection(otherSectionName, { height: 0.1 });
                   }
                 } else {
-                  // This is NOT the selected object - set 50% opacity and flatten
-                  material.alpha = 0.5;
-                  
-                  if (otherSectionName && adjustBMCSection) {
-                    adjustBMCSection(otherSectionName, { height: 0.1 });
-                    console.log(`📏 FLATTEN: ${otherSectionName} to ground plane (0.1)`);
-                  }
+                  // Keep selected object at full opacity - ABSOLUTELY DO NOT modify its height
+                  material.alpha = 1.0;
+                  console.log(`📏 ✋ SKIP: Selected object ${sectionName} - NO HEIGHT CHANGE`);
+                  // CRITICAL: Absolutely no adjustBMCSection calls for selected object
                 }
               });
             };
