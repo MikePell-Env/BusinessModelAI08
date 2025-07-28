@@ -1110,12 +1110,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 
                 if (!isSelectedObject) {
                   material.alpha = 0.5; // 50% opacity for others
-                  
-                  // Flatten non-selected objects to ground plane
-                  if (otherSectionName && adjustBMCSection) {
-                    console.log(`📏 ✅ FLATTENING non-selected ${otherSectionName} to ground plane (height: 0.1)`);
-                    adjustBMCSection(otherSectionName, { height: 0.1 });
-                  }
+                  // DO NOT modify heights of non-selected objects
                 } else {
                   // Keep selected object at full opacity and restore to original height
                   material.alpha = 1.0;
