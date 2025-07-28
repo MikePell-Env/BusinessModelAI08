@@ -2,11 +2,13 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { BusinessModelCanvas, ChatMessage, CanvasUpdateRequest } from "@/types/canvas";
 
+type ViewMode = '2D' | '3D' | '3D_TOP_ORTHO';
+
 interface CanvasState {
   canvas: BusinessModelCanvas | null;
   isLoading: boolean;
   error: string | null;
-  is3D: boolean;
+  viewMode: ViewMode;
   isTransitioning: boolean;
   chatMessages: ChatMessage[];
   isChatOpen: boolean;
@@ -19,7 +21,8 @@ interface CanvasState {
   
   // Actions
   loadCanvas: (canvas: BusinessModelCanvas, isFromPowerPoint?: boolean) => void;
-  toggleView: () => void;
+  setViewMode: (mode: ViewMode) => void;
+  toggleView: () => void; // Keep for backward compatibility
   updateCanvas: (updates: Partial<BusinessModelCanvas>) => void;
   addChatMessage: (message: ChatMessage) => void;
   clearChat: () => void;
@@ -28,6 +31,9 @@ interface CanvasState {
   setLoading: (loading: boolean) => void;
   saveCamera3DState: (alpha: number, beta: number, radius: number) => void;
   getCamera3DState: () => { alpha: number; beta: number; radius: number; } | null;
+  
+  // Computed properties for backward compatibility
+  is3D: boolean;
 }
 
 export const useCanvas = create<CanvasState>()(
@@ -35,12 +41,17 @@ export const useCanvas = create<CanvasState>()(
     canvas: null,
     isLoading: false,
     error: null,
-    is3D: false,
+    viewMode: '2D' as ViewMode,
     isTransitioning: false,
     chatMessages: [],
     isChatOpen: false,
     hasImportedFromPowerPoint: false,
     camera3DState: null,
+    
+    // Computed property for backward compatibility
+    get is3D() {
+      return get().viewMode !== '2D';
+    },
     
     loadCanvas: (canvas, isFromPowerPoint = false) => {
       set({ 
@@ -50,12 +61,21 @@ export const useCanvas = create<CanvasState>()(
       });
     },
     
-    toggleView: () => {
-      const { is3D } = get();
+    setViewMode: (mode: ViewMode) => {
       set({ isTransitioning: true });
       
       setTimeout(() => {
-        set({ is3D: !is3D, isTransitioning: false });
+        set({ viewMode: mode, isTransitioning: false });
+      }, 300);
+    },
+    
+    toggleView: () => {
+      const { viewMode } = get();
+      const newMode = viewMode === '2D' ? '3D' : '2D';
+      set({ isTransitioning: true });
+      
+      setTimeout(() => {
+        set({ viewMode: newMode, isTransitioning: false });
       }, 300);
     },
     
