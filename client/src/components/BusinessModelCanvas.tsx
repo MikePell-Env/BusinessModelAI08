@@ -10,7 +10,7 @@ import { PowerPointImporter } from './PowerPointImporter';
 import { MicrosoftRecommendations } from './MicrosoftRecommendations';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
-import { Eye, Box, RotateCcw, Square, Settings } from 'lucide-react';
+import { Eye, Box, RotateCcw, RectangleHorizontal, Settings } from 'lucide-react';
 
 export const BusinessModelCanvas: React.FC = () => {
   const {
@@ -102,7 +102,7 @@ export const BusinessModelCanvas: React.FC = () => {
           }`}
           size="sm"
         >
-          <Square className="w-4 h-4 mr-2" />
+          <RectangleHorizontal className="w-4 h-4 mr-2" />
           3D Top
         </Button>
 
