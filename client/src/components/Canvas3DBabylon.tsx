@@ -88,9 +88,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               adjustBMCSection(otherSectionName, { height: 0.1 });
             }
           } else {
-            // Keep selected object at full opacity - ABSOLUTELY DO NOT modify its height
+            // Keep selected object at full opacity and restore to original height
             otherMaterial.alpha = 1.0;
-            console.log(`📏 RestoreSelectedState: SELECTED OBJECT ${sectionName} - HEIGHT COMPLETELY UNTOUCHED`);
+            
+            // Restore selected object to its original height during camera switches
+            if (sectionName && adjustBMCSection) {
+              const storedOriginalHeight = originalHeightsRef.current[sectionName];
+              if (storedOriginalHeight !== undefined) {
+                adjustBMCSection(sectionName, { height: storedOriginalHeight });
+                console.log(`📏 RestoreSelectedState: SELECTED ${sectionName} to original height (${storedOriginalHeight})`);
+              }
+            }
           }
         });
         
