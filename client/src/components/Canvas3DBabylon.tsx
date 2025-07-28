@@ -84,11 +84,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Flatten non-selected objects to ground plane
             const otherSectionName = (otherMesh as any).bmcSectionName;
             if (otherSectionName && adjustBMCSection) {
+              console.log(`📏 RestoreSelectedState: Flattening ${otherSectionName} to ground plane (height: 0.1)`);
               adjustBMCSection(otherSectionName, { height: 0.1 });
             }
           } else {
-            // Keep selected object at full opacity - do NOT modify its height
+            // Keep selected object at full opacity - ABSOLUTELY DO NOT modify its height
             otherMaterial.alpha = 1.0;
+            console.log(`📏 RestoreSelectedState: SELECTED OBJECT ${sectionName} - HEIGHT COMPLETELY UNTOUCHED`);
           }
         });
         
@@ -1116,9 +1118,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     adjustBMCSection(otherSectionName, { height: 0.1 });
                   }
                 } else {
-                  // Keep selected object at full opacity - do NOT modify its height
+                  // Keep selected object at full opacity - ABSOLUTELY DO NOT modify its height
                   material.alpha = 1.0;
-                  console.log(`📏 SELECTED OBJECT ${sectionName} - HEIGHT UNTOUCHED - maintaining original dimensions`);
+                  console.log(`📏 ✋ SELECTED OBJECT ${sectionName} - HEIGHT COMPLETELY UNTOUCHED - NO ADJUSTMENT CALLS`);
+                  // CRITICAL: NO adjustBMCSection calls for the selected object
                 }
               });
             };
@@ -1142,21 +1145,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log("📊 Available original heights:", originalHeightsRef.current);
               console.log("🔧 adjustBMCSection function available:", !!adjustBMCSection);
               
-              contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                material.alpha = 1.0; // Full opacity
-                
-                // Restore all objects to their stored original heights
-                const otherSectionName = (otherMesh as any).bmcSectionName;
-                console.log(`🔍 Processing ${otherSectionName}...`);
-                
-                if (otherSectionName && adjustBMCSection && originalHeightsRef.current[otherSectionName]) {
-                  const originalHeight = originalHeightsRef.current[otherSectionName];
-                  console.log(`📏 Restoring ${otherSectionName} from current to original height (${originalHeight})`);
-                  adjustBMCSection(otherSectionName, { height: originalHeight });
-                } else {
-                  console.warn(`⚠️ Cannot restore ${otherSectionName}: adjustBMCSection=${!!adjustBMCSection}, hasOriginalHeight=${!!originalHeightsRef.current[otherSectionName]}`);
-                }
-              });
+              // Use setTimeout to ensure adjustBMCSection is fully available
+              setTimeout(() => {
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  material.alpha = 1.0; // Full opacity
+                  
+                  // Restore all objects to their stored original heights
+                  const otherSectionName = (otherMesh as any).bmcSectionName;
+                  console.log(`🔍 Processing ${otherSectionName}...`);
+                  
+                  if (otherSectionName && adjustBMCSection && originalHeightsRef.current[otherSectionName]) {
+                    const originalHeight = originalHeightsRef.current[otherSectionName];
+                    console.log(`📏 Restoring ${otherSectionName} from current to original height (${originalHeight})`);
+                    adjustBMCSection(otherSectionName, { height: originalHeight });
+                  } else {
+                    console.warn(`⚠️ Cannot restore ${otherSectionName}: adjustBMCSection=${!!adjustBMCSection}, hasOriginalHeight=${!!originalHeightsRef.current[otherSectionName]}`);
+                  }
+                });
+              }, 50); // Small delay to ensure function availability
             };
             
             const updateContentPanel = (show: boolean, sectionContent?: string) => {
