@@ -972,12 +972,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             };
             
-            // Hover enter - change to bright blue, keep all objects at 100% opacity
+            // Hover enter - only change appearance if not already clicked
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
               if (!(mesh as any).isClicked) {
                 updateMeshHoverEnter();
                 updateLabelHoverEnter();
                 console.log(`💡 Hover enter: ${sectionName} bright blue, all objects 100% opacity`);
+              } else {
+                console.log(`🔒 Hover enter: ${sectionName} already clicked - maintaining selected state`);
               }
             }));
             
@@ -1007,12 +1009,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             };
             
-            // Hover exit - restore original color and full opacity to all objects
+            // Hover exit - only restore if not clicked (clicked objects maintain their visual state)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
               if (!(mesh as any).isClicked) {
                 updateMeshHoverExit();
                 updateLabelHoverExit();
                 console.log(`🔄 Hover exit: ${sectionName} restored, all objects full opacity`);
+              } else {
+                console.log(`🔒 Hover exit: ${sectionName} clicked - maintaining visual state`);
               }
             }));
             
