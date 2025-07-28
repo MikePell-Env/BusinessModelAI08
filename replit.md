@@ -88,6 +88,14 @@ The application follows a full-stack monorepo architecture with clear separation
 
 ## Recent Changes
 
+### July 28, 2025 - Stable Checkpoint: 3D Top Button Icon Fix
+- **✅ STABLE ROLLBACK POINT**: Fixed critical Square icon import error that broke 3D Top mode functionality
+- **✅ Icon Resolution**: Replaced non-existent Square icon with RectangleHorizontal for 3D Top button representation
+- **✅ Import Cleanup**: Maintained all necessary icon imports (Eye, Box, RotateCcw, RectangleHorizontal, Settings)
+- **✅ Functionality Verified**: 3D Top orthographic mode working correctly with proper icon display
+- **✅ User Interface Stable**: All three view modes (2D View, 3D Top, 3D View) operational with appropriate icons
+- **✅ No Breaking Changes**: All existing hover/click interactions, camera persistence, and selection states preserved
+
 ### July 26, 2025 - Complete 3D BMC Layout with Corrected Coordinate System
 - **✅ Master Transform Coordinate Fix**: Successfully resolved coordinate system issues using single master transform node approach
 - **✅ Perfect Object Positioning**: All 7 GLB objects now positioned correctly above ground plane with proper spacing
