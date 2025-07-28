@@ -1101,20 +1101,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Make all other objects 50% opacity and flatten them to ground plane
               // Keep selected object at full opacity and original height
+              console.log(`🔒 Starting selection process for ${sectionName}...`);
+              console.log("📊 Available original heights:", originalHeightsRef.current);
+              
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                const otherSectionName = (otherMesh as any).bmcSectionName;
+                
                 if (otherMesh !== mesh) {
                   material.alpha = 0.5; // 50% opacity for others
                   
                   // Flatten non-selected objects to ground plane
-                  const otherSectionName = (otherMesh as any).bmcSectionName;
                   if (otherSectionName && adjustBMCSection) {
-                    adjustBMCSection(otherSectionName, { height: 0.1 });
                     console.log(`📏 Flattening ${otherSectionName} to ground plane (height: 0.1)`);
+                    adjustBMCSection(otherSectionName, { height: 0.1 });
                   }
                 } else {
                   // Keep selected object at full opacity - do NOT modify its height
                   material.alpha = 1.0;
-                  console.log(`📏 Selected object ${sectionName} height unchanged - maintaining original dimensions`);
+                  console.log(`📏 SELECTED OBJECT ${sectionName} - HEIGHT UNTOUCHED - maintaining original dimensions`);
                 }
               });
             };
@@ -1134,15 +1138,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               (mesh as any).isClicked = false;
               
               // Restore all objects to full opacity and their stored original heights
+              console.log("🔄 Starting deselection restoration process...");
+              console.log("📊 Available original heights:", originalHeightsRef.current);
+              console.log("🔧 adjustBMCSection function available:", !!adjustBMCSection);
+              
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                 material.alpha = 1.0; // Full opacity
                 
                 // Restore all objects to their stored original heights
                 const otherSectionName = (otherMesh as any).bmcSectionName;
+                console.log(`🔍 Processing ${otherSectionName}...`);
+                
                 if (otherSectionName && adjustBMCSection && originalHeightsRef.current[otherSectionName]) {
                   const originalHeight = originalHeightsRef.current[otherSectionName];
+                  console.log(`📏 Restoring ${otherSectionName} from current to original height (${originalHeight})`);
                   adjustBMCSection(otherSectionName, { height: originalHeight });
-                  console.log(`📏 Restoring ${otherSectionName} to stored original height (${originalHeight})`);
+                } else {
+                  console.warn(`⚠️ Cannot restore ${otherSectionName}: adjustBMCSection=${!!adjustBMCSection}, hasOriginalHeight=${!!originalHeightsRef.current[otherSectionName]}`);
                 }
               });
             };
