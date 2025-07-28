@@ -1191,12 +1191,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const isCurrentlyClicked = (mesh as any).isClicked;
               
               if (isCurrentlyClicked) {
+                // Clear selected object state FIRST so applyHeightState knows nothing is selected
+                setSelectedObject(null);
+                
                 // Unclick - restore mesh and hide content panel
                 updateMeshClickUnselect();
                 updateContentPanel(false);
-                
-                // Clear selected object state
-                setSelectedObject(null);
                 
                 console.log(`🔓 Click released: ${sectionName} restored, all objects full opacity, panel hidden`);
               } else {
@@ -1241,11 +1241,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Now configure close button functionality with access to refactored functions
             closeButton.onPointerClickObservable.add(() => {
+              // Clear selected object state FIRST so applyHeightState knows nothing is selected
+              setSelectedObject(null);
+              
               updateMeshClickUnselect();
               updateContentPanel(false);
-              
-              // Clear selected object state
-              setSelectedObject(null);
               
               console.log(`❌ Close button: ${sectionName} panel closed, mesh restored, all objects full opacity`);
             });
