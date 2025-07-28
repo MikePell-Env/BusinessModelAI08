@@ -51,6 +51,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Store all content panels for closing functionality
   const contentPanelsRef = useRef<any[]>([]);
   
+  // Translation state for Space bar controls
+  const translationRef = useRef({ x: 0, isPressed: false, direction: 1 });
+  const maxTranslation = 8; // Constrain to outer edges of the model
+  
   // Function to restore selected object state after camera switches
   const restoreSelectedObjectState = () => {
     const selectedObjectName = getSelectedObject();
@@ -195,6 +199,60 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Set active camera based on mode
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
+    
+    // Add Space bar translation controls for 3D View mode only
+    let isSpacePressed = false;
+    
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code === 'Space' && !isOrthographic && !isSpacePressed) {
+        event.preventDefault();
+        isSpacePressed = true;
+        translationRef.current.isPressed = true;
+        console.log('🎮 Space bar pressed - starting translation');
+      }
+    };
+    
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.code === 'Space') {
+        event.preventDefault();
+        isSpacePressed = false;
+        translationRef.current.isPressed = false;
+        console.log('🎮 Space bar released - stopping translation');
+      }
+    };
+    
+    // Add keyboard event listeners
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    // Render loop for smooth translation
+    const renderLoop = () => {
+      if (translationRef.current.isPressed && !isOrthographic && perspectiveCamera) {
+        const translationSpeed = 0.02; // Smooth translation speed
+        const newTranslation = translationRef.current.x + (translationSpeed * translationRef.current.direction);
+        
+        // Check boundaries and reverse direction if needed
+        if (Math.abs(newTranslation) >= maxTranslation) {
+          translationRef.current.direction *= -1; // Reverse direction
+          console.log(`🎮 Translation boundary reached, reversing direction: ${translationRef.current.direction > 0 ? 'right' : 'left'}`);
+        } else {
+          translationRef.current.x = newTranslation;
+        }
+        
+        // Apply translation to camera target
+        perspectiveCamera.setTarget(new Vector3(translationRef.current.x, 0, 0));
+        console.log(`🎮 Translating scene to X: ${translationRef.current.x.toFixed(2)}`);
+      }
+      scene.render();
+    };
+    
+    engine.runRenderLoop(renderLoop);
+    
+    // Store cleanup function for event listeners
+    (scene as any)._keyboardCleanup = () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
 
     // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
@@ -1313,12 +1371,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     }, 1000); // Wait for meshes to load
 
-    // Start the render loop
-    engine.runRenderLoop(() => {
-      if (scene) {
-        scene.render();
-      }
-    });
+    // Note: Custom render loop with translation handling is set up above
 
     // Clean up on unmount
     return () => {
@@ -1329,6 +1382,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           cameraRef.current.beta,
           cameraRef.current.radius
         );
+      }
+      
+      // Clean up keyboard event listeners
+      if (sceneRef.current && (sceneRef.current as any)._keyboardCleanup) {
+        (sceneRef.current as any)._keyboardCleanup();
       }
       
       if (engineRef.current) {
@@ -1356,6 +1414,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           perspectiveCamera.radius
         );
         
+        // Reset translation when switching to orthographic view
+        translationRef.current.x = 0;
+        translationRef.current.isPressed = false;
+        perspectiveCamera.setTarget(Vector3.Zero());
+        
         // Rotate model 180 degrees clockwise to fix upside-down text in orthographic view
         if (rootMesh) {
           rootMesh.rotation = new Vector3(0, Math.PI, 0);
@@ -1363,7 +1426,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
-        console.log("🔄 Switched to orthographic top view camera with model rotation");
+        console.log("🔄 Switched to orthographic top view camera with model rotation and reset translation");
         
         // Restore selected object state after camera switch
         setTimeout(() => restoreSelectedObjectState(), 100);
@@ -1373,9 +1436,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           rootMesh.rotation = Vector3.Zero();
         }
         
+        // Reset translation when switching back to perspective view
+        translationRef.current.x = 0;
+        translationRef.current.isPressed = false;
+        perspectiveCamera.setTarget(Vector3.Zero());
+        
         // Switch back to perspective camera with restored state
         scene.activeCamera = perspectiveCamera;
-        console.log("🔄 Switched back to perspective camera with model reset");
+        console.log("🔄 Switched back to perspective camera with model reset and centered translation");
         
         // Restore selected object state after camera switch
         setTimeout(() => restoreSelectedObjectState(), 100);
