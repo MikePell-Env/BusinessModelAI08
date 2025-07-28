@@ -2,7 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import { 
   Engine, 
   Scene, 
-  ArcRotateCamera, 
+  ArcRotateCamera,
+  FreeCamera, 
   HemisphericLight, 
   DirectionalLight,
   PointLight,
@@ -43,7 +44,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
   const cameraRef = useRef<ArcRotateCamera | null>(null);
-  const { saveCamera3DState, getCamera3DState, is3D } = useCanvas();
+  const orthoCameraRef = useRef<FreeCamera | null>(null);
+  const { saveCamera3DState, getCamera3DState, is3D, isOrthographic } = useCanvas();
   
   // Store all content panels for closing functionality
   const contentPanelsRef = useRef<any[]>([]);
@@ -92,30 +94,50 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Create camera with angled perspective matching the user's preferred viewpoint
+    // Create perspective camera (always created to preserve state)
     const savedCameraState = getCamera3DState();
-    const camera = new ArcRotateCamera(
-      "camera",
+    const perspectiveCamera = new ArcRotateCamera(
+      "perspectiveCamera",
       savedCameraState?.alpha ?? -Math.PI / 2.5,  // Alpha - more angled from the side for better perspective
       savedCameraState?.beta ?? Math.PI / 6,      // Beta - high angle for top-down perspective
       savedCameraState?.radius ?? 25,             // Radius - further back to see entire BMC layout clearly
       Vector3.Zero(),  // Target position
       scene
     );
-    camera.setTarget(Vector3.Zero());
-    cameraRef.current = camera;
+    perspectiveCamera.setTarget(Vector3.Zero());
     
-    // Enable camera controls on the canvas
-    camera.attachControl(canvasRef.current, true);
+    // Enable camera controls on the canvas for perspective camera
+    perspectiveCamera.attachControl(canvasRef.current, true);
     
     // Reduce mouse wheel sensitivity for smoother zooming
-    camera.wheelPrecision = 50;        // Default is 3, higher values = less sensitive
+    perspectiveCamera.wheelPrecision = 50;        // Default is 3, higher values = less sensitive
     
     // Set camera limits for grid layout navigation (original working values)
-    camera.lowerRadiusLimit = 5;      // Minimum zoom distance
-    camera.upperRadiusLimit = 25;     // Maximum zoom distance
-    camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
-    camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
+    perspectiveCamera.lowerRadiusLimit = 5;      // Minimum zoom distance
+    perspectiveCamera.upperRadiusLimit = 25;     // Maximum zoom distance
+    perspectiveCamera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
+    perspectiveCamera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
+    
+    // Create orthographic camera for top view
+    const orthoCamera = new FreeCamera("orthoCamera", new Vector3(0, 15, 0), scene);
+    orthoCamera.setTarget(Vector3.Zero());
+    
+    // Set orthographic projection
+    orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
+    orthoCamera.orthoTop = 8;
+    orthoCamera.orthoBottom = -8;
+    orthoCamera.orthoLeft = -12;
+    orthoCamera.orthoRight = 12;
+    
+    // Disable rotation controls for pure top-down view
+    orthoCamera.inputs.clear();
+    
+    // Store camera references
+    cameraRef.current = perspectiveCamera;
+    orthoCameraRef.current = orthoCamera;
+    
+    // Set active camera based on mode
+    scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
 
     // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
@@ -1213,8 +1235,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Clean up on unmount
     return () => {
-      // Save camera state before disposing
-      if (cameraRef.current) {
+      // Save perspective camera state before disposing (only from perspective camera)
+      if (cameraRef.current && !isOrthographic) {
         saveCamera3DState(
           cameraRef.current.alpha,
           cameraRef.current.beta,
@@ -1229,7 +1251,33 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         sceneRef.current.dispose();
       }
     };
-  }, [canvas, saveCamera3DState]);
+  }, [canvas, saveCamera3DState, isOrthographic]);
+
+  // Handle camera switching when orthographic mode changes
+  useEffect(() => {
+    if (sceneRef.current && cameraRef.current && orthoCameraRef.current) {
+      const scene = sceneRef.current;
+      const perspectiveCamera = cameraRef.current;
+      const orthoCamera = orthoCameraRef.current;
+      
+      if (isOrthographic) {
+        // Save current perspective camera state before switching
+        saveCamera3DState(
+          perspectiveCamera.alpha,
+          perspectiveCamera.beta,
+          perspectiveCamera.radius
+        );
+        
+        // Switch to orthographic camera
+        scene.activeCamera = orthoCamera;
+        console.log("🔄 Switched to orthographic top view camera");
+      } else {
+        // Switch back to perspective camera with restored state
+        scene.activeCamera = perspectiveCamera;
+        console.log("🔄 Switched back to perspective camera with restored state");
+      }
+    }
+  }, [isOrthographic, saveCamera3DState]);
 
   // Save camera state when switching away from 3D view
   useEffect(() => {

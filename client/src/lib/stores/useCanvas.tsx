@@ -7,6 +7,7 @@ interface CanvasState {
   isLoading: boolean;
   error: string | null;
   is3D: boolean;
+  isOrthographic: boolean;
   isTransitioning: boolean;
   chatMessages: ChatMessage[];
   isChatOpen: boolean;
@@ -20,6 +21,7 @@ interface CanvasState {
   // Actions
   loadCanvas: (canvas: BusinessModelCanvas, isFromPowerPoint?: boolean) => void;
   toggleView: () => void;
+  setOrthographicView: (isOrtho: boolean) => void;
   updateCanvas: (updates: Partial<BusinessModelCanvas>) => void;
   addChatMessage: (message: ChatMessage) => void;
   clearChat: () => void;
@@ -36,6 +38,7 @@ export const useCanvas = create<CanvasState>()(
     isLoading: false,
     error: null,
     is3D: false,
+    isOrthographic: false,
     isTransitioning: false,
     chatMessages: [],
     isChatOpen: false,
@@ -55,7 +58,19 @@ export const useCanvas = create<CanvasState>()(
       set({ isTransitioning: true });
       
       setTimeout(() => {
-        set({ is3D: !is3D, isTransitioning: false });
+        set({ is3D: !is3D, isOrthographic: false, isTransitioning: false });
+      }, 300);
+    },
+    
+    setOrthographicView: (isOrtho: boolean) => {
+      set({ isTransitioning: true });
+      
+      setTimeout(() => {
+        set({ 
+          is3D: true, // Always in 3D when orthographic
+          isOrthographic: isOrtho, 
+          isTransitioning: false 
+        });
       }, 300);
     },
     
