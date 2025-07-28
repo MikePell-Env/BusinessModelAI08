@@ -1101,38 +1101,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               (mesh as any).isClicked = true;
               
-              // Make all other objects 50% opacity and flatten them to ground plane
-              // Keep selected object at full opacity and original height
-              
-              // First, restore THIS selected object to its original height (before processing others)
-              const storedOriginalHeight = originalHeightsRef.current[sectionName];
-              if (storedOriginalHeight !== undefined && adjustBMCSection) {
-                adjustBMCSection(sectionName, { height: storedOriginalHeight });
-                console.log(`📏 SELECTED OBJECT: Restoring ${sectionName} to original height (${storedOriginalHeight})`);
-              } else if (adjustBMCSection) {
-                // Fallback if height not stored
-                const fallbackHeight = sectionName === "Value Propositions" ? 3.0 : 1.0;
-                adjustBMCSection(sectionName, { height: fallbackHeight });
-                console.log(`📏 SELECTED OBJECT: Using fallback height for ${sectionName} (${fallbackHeight})`);
-              }
-
-              // Then process all other objects (flatten them and set opacity)
+              // Process all objects: set opacity and heights
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                 const otherSectionName = (otherMesh as any).bmcSectionName;
-                const isSelectedObject = otherMesh === mesh;
                 
-                if (!isSelectedObject) {
-                  material.alpha = 0.5; // 50% opacity for others
+                if (otherMesh === mesh) {
+                  // This is the selected object - set full opacity and original height
+                  material.alpha = 1.0;
                   
-                  // Flatten non-selected objects to ground plane
                   if (otherSectionName && adjustBMCSection) {
-                    console.log(`📏 FLATTENING non-selected ${otherSectionName} to ground plane (height: 0.1)`);
-                    adjustBMCSection(otherSectionName, { height: 0.1 });
+                    const storedOriginalHeight = originalHeightsRef.current[otherSectionName];
+                    if (storedOriginalHeight !== undefined) {
+                      adjustBMCSection(otherSectionName, { height: storedOriginalHeight });
+                      console.log(`📏 SELECTED: ${otherSectionName} to original height (${storedOriginalHeight})`);
+                    }
                   }
                 } else {
-                  // Keep selected object at full opacity - height already restored above
-                  material.alpha = 1.0;
-                  console.log(`📏 SELECTED OBJECT: ${otherSectionName} - opacity set to 100%, height already restored`);
+                  // This is NOT the selected object - set 50% opacity and flatten
+                  material.alpha = 0.5;
+                  
+                  if (otherSectionName && adjustBMCSection) {
+                    adjustBMCSection(otherSectionName, { height: 0.1 });
+                    console.log(`📏 FLATTEN: ${otherSectionName} to ground plane (0.1)`);
+                  }
                 }
               });
             };
