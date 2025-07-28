@@ -1104,6 +1104,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Make all other objects 50% opacity and flatten them to ground plane
               // Keep selected object at full opacity and original height
               
+              // First, restore THIS selected object to its original height (before processing others)
+              const storedOriginalHeight = originalHeightsRef.current[sectionName];
+              if (storedOriginalHeight !== undefined && adjustBMCSection) {
+                adjustBMCSection(sectionName, { height: storedOriginalHeight });
+                console.log(`📏 SELECTED OBJECT: Restoring ${sectionName} to original height (${storedOriginalHeight})`);
+              } else if (adjustBMCSection) {
+                // Fallback if height not stored
+                const fallbackHeight = sectionName === "Value Propositions" ? 3.0 : 1.0;
+                adjustBMCSection(sectionName, { height: fallbackHeight });
+                console.log(`📏 SELECTED OBJECT: Using fallback height for ${sectionName} (${fallbackHeight})`);
+              }
+
+              // Then process all other objects (flatten them and set opacity)
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                 const otherSectionName = (otherMesh as any).bmcSectionName;
                 const isSelectedObject = otherMesh === mesh;
@@ -1117,22 +1130,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     adjustBMCSection(otherSectionName, { height: 0.1 });
                   }
                 } else {
-                  // Keep selected object at full opacity and restore to original height
+                  // Keep selected object at full opacity - height already restored above
                   material.alpha = 1.0;
-                  
-                  // Restore selected object to its original height
-                  if (otherSectionName && adjustBMCSection) {
-                    const storedOriginalHeight = originalHeightsRef.current[otherSectionName];
-                    if (storedOriginalHeight !== undefined) {
-                      adjustBMCSection(otherSectionName, { height: storedOriginalHeight });
-                      console.log(`📏 SELECTED OBJECT: Restoring ${otherSectionName} to original height (${storedOriginalHeight})`);
-                    } else {
-                      // Fallback if height not stored
-                      const fallbackHeight = otherSectionName === "Value Propositions" ? 3.0 : 1.0;
-                      adjustBMCSection(otherSectionName, { height: fallbackHeight });
-                      console.log(`📏 SELECTED OBJECT: Using fallback height for ${otherSectionName} (${fallbackHeight})`);
-                    }
-                  }
+                  console.log(`📏 SELECTED OBJECT: ${otherSectionName} - opacity set to 100%, height already restored`);
                 }
               });
             };
