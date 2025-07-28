@@ -1347,42 +1347,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // Dynamically read and store the ACTUAL current heights from the loaded GLB model
+    // Read the ACTUAL current scaling.y (height) values from each mesh's transform node
     // NOTE: This GLB model uses NORMAL Y-axis scaling - LARGER values = TALLER shapes  
     setTimeout(() => {
-      console.log("🏗️ Reading actual current heights from loaded BMC sections...");
+      console.log("🏗️ Reading actual transform node scaling.y values...");
       
-      if (window.listBMCSections) {
-        const sections = window.listBMCSections();
-        console.log("📋 Available BMC sections:", sections);
-        
-        // Read the current scale.y (height) of each section's transform node
-        sections.forEach(sectionName => {
-          try {
-            // Try to get the actual current height from the transform node
-            const transformNodes = scene.getTransformNodesByTags(sectionName);
-            if (transformNodes.length > 0) {
-              const currentHeight = transformNodes[0].scaling.y;
-              originalHeightsRef.current[sectionName] = currentHeight;
-              console.log(`📏 ${sectionName}: Current height = ${currentHeight}`);
-            } else {
-              // Fallback: Assume standard heights based on section type
-              const fallbackHeight = sectionName === "Value Propositions" ? 3.0 : 1.0;
-              originalHeightsRef.current[sectionName] = fallbackHeight;
-              console.log(`📏 ${sectionName}: Using fallback height = ${fallbackHeight}`);
-            }
-          } catch (error) {
-            console.warn(`⚠️ Could not read height for ${sectionName}:`, error);
-            const fallbackHeight = sectionName === "Value Propositions" ? 3.0 : 1.0;
-            originalHeightsRef.current[sectionName] = fallbackHeight;
+      if (scene && scene.meshes) {
+        // Go through all meshes and read their current transform node scaling.y
+        scene.meshes.forEach((mesh) => {
+          const sectionName = (mesh as any).bmcSectionName;
+          const transformNode = (mesh as any).bmcTransformNode as TransformNode;
+          
+          if (sectionName && transformNode) {
+            const currentHeight = transformNode.scaling.y;
+            originalHeightsRef.current[sectionName] = currentHeight;
+            console.log(`📏 ${sectionName}: Read actual scaling.y = ${currentHeight}`);
           }
         });
         
-        console.log("📏 Final stored original heights:", originalHeightsRef.current);
+        console.log("📏 Stored actual transform node heights:", originalHeightsRef.current);
       } else {
-        console.error("❌ listBMCSections function not available");
+        console.error("❌ Scene or meshes not available for reading heights");
       }
-    }, 1500); // Wait longer for all functions to be available
+    }, 1500); // Wait for all meshes to be loaded and processed
 
     // Start the render loop
     engine.runRenderLoop(() => {
