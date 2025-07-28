@@ -45,6 +45,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const engineRef = useRef<Engine | null>(null);
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const orthoCameraRef = useRef<FreeCamera | null>(null);
+  const rootMeshRef = useRef<AbstractMesh | null>(null);
   const { saveCamera3DState, getCamera3DState, is3D, isOrthographic } = useCanvas();
   
   // Store all content panels for closing functionality
@@ -125,10 +126,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Rotate camera 180 degrees clockwise around Y-axis to match desired orientation
     orthoCamera.rotation.y = Math.PI;
     
-    // Set orthographic projection with proper aspect ratio (match canvas dimensions)
+    // Set orthographic projection with proper aspect ratio (reduced size to fit window)
     orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
     const aspectRatio = canvasRef.current!.width / canvasRef.current!.height;
-    const orthoSize = 8; // Base orthographic size
+    const orthoSize = 12; // Increased size to show entire canvas within window
     
     if (aspectRatio > 1) {
       // Wider than tall - expand horizontally
@@ -441,10 +442,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.log(`✅ BMC model loaded with ${result.meshes.length} meshes`);
         
         const rootMesh = result.meshes[0];
+        rootMeshRef.current = rootMesh;
         
         // Position at center of ground plane, slightly above surface
         rootMesh.position = new Vector3(0, 0.1, 0);
-        rootMesh.rotation = Vector3.Zero();
+        
+        // Rotate entire model 180 degrees clockwise around Y-axis when in orthographic mode to fix upside-down text
+        if (isOrthographic) {
+          rootMesh.rotation = new Vector3(0, Math.PI, 0);
+        } else {
+          rootMesh.rotation = Vector3.Zero();
+        }
         
         // Start with visible scale
         rootMesh.scaling = new Vector3(8, 8, 8);
@@ -1274,6 +1282,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const scene = sceneRef.current;
       const perspectiveCamera = cameraRef.current;
       const orthoCamera = orthoCameraRef.current;
+      const rootMesh = rootMeshRef.current;
       
       if (isOrthographic) {
         // Save current perspective camera state before switching
@@ -1283,13 +1292,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           perspectiveCamera.radius
         );
         
+        // Rotate model 180 degrees clockwise to fix upside-down text in orthographic view
+        if (rootMesh) {
+          rootMesh.rotation = new Vector3(0, Math.PI, 0);
+        }
+        
         // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
-        console.log("🔄 Switched to orthographic top view camera");
+        console.log("🔄 Switched to orthographic top view camera with model rotation");
       } else {
+        // Reset model rotation for perspective view
+        if (rootMesh) {
+          rootMesh.rotation = Vector3.Zero();
+        }
+        
         // Switch back to perspective camera with restored state
         scene.activeCamera = perspectiveCamera;
-        console.log("🔄 Switched back to perspective camera with restored state");
+        console.log("🔄 Switched back to perspective camera with model reset");
       }
     }
   }, [isOrthographic, saveCamera3DState]);
