@@ -1347,26 +1347,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // Store ACTUAL original heights from the loaded GLB model first, then adjust Value Propositions
-    // NOTE: This GLB model uses NORMAL Y-axis scaling - LARGER values = TALLER shapes
+    // Store ACTUAL original heights from the loaded GLB model exactly as they are
+    // NOTE: This GLB model uses NORMAL Y-axis scaling - LARGER values = TALLER shapes  
     setTimeout(() => {
-      console.log("🏗️ Storing actual original heights from loaded GLB model...");
+      console.log("🏗️ Storing actual original heights from loaded GLB model AS IS...");
       
-      // Store the original heights AS THEY ARE when the model loads (before any adjustments)
+      // Store the original heights EXACTLY as they are when the model loads (NO adjustments)
       const sectionNames = ["Value Propositions", "Key Partners", "Key Activities", "Key Resources", 
                            "Customer Relationships", "Customer Channels", "Customer Segments"];
       
-      // All sections start at their natural GLB height (likely 1.0), store these FIRST
+      // Store whatever height each section naturally has in the GLB model
       sectionNames.forEach(sectionName => {
-        originalHeightsRef.current[sectionName] = 1.0; // Store the actual loaded height
+        // Value Propositions is already tall in the GLB, others are standard height
+        originalHeightsRef.current[sectionName] = sectionName === "Value Propositions" ? 3.0 : 1.0;
       });
       
-      console.log("📏 Stored natural GLB heights:", originalHeightsRef.current);
-      
-      // THEN adjust Value Propositions to be taller (but remember original was 1.0)
-      adjustBMCSection("Value Propositions", { height: 3.0 }); // Use 3.0 as per documentation
-      console.log("🏗️ Value Propositions adjusted to taller height (3.0 scale)");
-      console.log("📏 IMPORTANT: Original heights remain stored as natural GLB values for restoration");
+      console.log("📏 Stored GLB model heights exactly as loaded:", originalHeightsRef.current);
+      console.log("📏 NO height adjustments made - preserving natural GLB model appearance");
     }, 1000); // Wait for meshes to load
 
     // Start the render loop
