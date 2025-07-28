@@ -15,12 +15,10 @@ import { Eye, Box, RotateCcw, Settings } from 'lucide-react';
 export const BusinessModelCanvas: React.FC = () => {
   const {
     canvas,
-    viewMode,
     is3D,
     isTransitioning,
     error,
     loadCanvas,
-    setViewMode,
     toggleView,
     setError
   } = useCanvas();
@@ -83,10 +81,10 @@ export const BusinessModelCanvas: React.FC = () => {
       {/* Header Controls */}
       <div className="absolute top-4 left-4 z-40 flex space-x-2">
         <Button
-          onClick={() => setViewMode('2D')}
-          disabled={isTransitioning}
+          onClick={() => !is3D || handleToggleView()}
+          disabled={isTransitioning || !is3D}
           className={`border border-gray-300 shadow-md ${
-            viewMode === '2D' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+            !is3D ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
@@ -95,27 +93,15 @@ export const BusinessModelCanvas: React.FC = () => {
         </Button>
 
         <Button
-          onClick={() => setViewMode('3D')}
-          disabled={isTransitioning}
+          onClick={() => is3D || handleToggleView()}
+          disabled={isTransitioning || is3D}
           className={`border border-gray-300 shadow-md ${
-            viewMode === '3D' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+            is3D ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
           <Box className="w-4 h-4 mr-2" />
           3D View
-        </Button>
-
-        <Button
-          onClick={() => setViewMode('3D_TOP_ORTHO')}
-          disabled={isTransitioning}
-          className={`border border-gray-300 shadow-md ${
-            viewMode === '3D_TOP_ORTHO' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
-          }`}
-          size="sm"
-        >
-          <Settings className="w-4 h-4 mr-2" />
-          3D Top Ortho
         </Button>
       </div>
 
