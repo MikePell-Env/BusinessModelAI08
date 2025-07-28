@@ -60,6 +60,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const applyHeightState = () => {
     const selectedObjectName = getSelectedObject();
     
+    // Only proceed if we have stored original heights
+    if (Object.keys(originalHeightsRef.current).length === 0) {
+      console.log("📏 Skipping height state - original heights not yet loaded");
+      return;
+    }
+    
     contentPanelsRef.current.forEach(({ mesh }) => {
       const sectionName = (mesh as any).bmcSectionName;
       if (!sectionName || !adjustBMCSection) return;
@@ -67,15 +73,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       if (!selectedObjectName) {
         // No selection: All objects at original height
         const storedHeight = originalHeightsRef.current[sectionName];
-        const height = storedHeight !== undefined ? storedHeight : (sectionName === "Value Propositions" ? 3.0 : 1.0);
-        adjustBMCSection(sectionName, { height });
-        console.log(`📏 No selection: ${sectionName} at original height (${height})`);
+        if (storedHeight !== undefined) {
+          adjustBMCSection(sectionName, { height: storedHeight });
+          console.log(`📏 No selection: ${sectionName} at original height (${storedHeight})`);
+        }
       } else if (sectionName === selectedObjectName) {
         // Selected object: Original height
         const storedHeight = originalHeightsRef.current[sectionName];
-        const height = storedHeight !== undefined ? storedHeight : (sectionName === "Value Propositions" ? 3.0 : 1.0);
-        adjustBMCSection(sectionName, { height });
-        console.log(`📏 Selected: ${sectionName} at original height (${height})`);
+        if (storedHeight !== undefined) {
+          adjustBMCSection(sectionName, { height: storedHeight });
+          console.log(`📏 Selected: ${sectionName} at original height (${storedHeight})`);
+        }
       } else {
         // Non-selected objects: Flattened
         adjustBMCSection(sectionName, { height: 0.1 });
