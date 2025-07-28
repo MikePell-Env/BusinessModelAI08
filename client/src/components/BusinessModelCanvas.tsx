@@ -103,6 +103,16 @@ export const BusinessModelCanvas: React.FC = () => {
           <Box className="w-4 h-4 mr-2" />
           3D View
         </Button>
+
+        <Button
+          onClick={() => {}} // No functionality - just UI button
+          disabled={isTransitioning}
+          className="border border-gray-300 shadow-md bg-white text-gray-800 hover:bg-gray-50"
+          size="sm"
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          3D Top Ortho
+        </Button>
       </div>
 
       {/* Reset Button & Microsoft Stack Status */}
