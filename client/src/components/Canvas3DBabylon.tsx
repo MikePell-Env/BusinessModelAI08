@@ -1117,22 +1117,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     adjustBMCSection(otherSectionName, { height: 0.1 });
                   }
                 } else {
-                  // Keep selected object at full opacity and restore to original height
+                  // Keep selected object at full opacity - DO NOT TOUCH ITS HEIGHT
                   material.alpha = 1.0;
-                  
-                  // Restore selected object to its original height
-                  if (otherSectionName && adjustBMCSection) {
-                    const storedOriginalHeight = originalHeightsRef.current[otherSectionName];
-                    if (storedOriginalHeight !== undefined) {
-                      adjustBMCSection(otherSectionName, { height: storedOriginalHeight });
-                      console.log(`📏 SELECTED OBJECT: Restoring ${otherSectionName} to original height (${storedOriginalHeight})`);
-                    } else {
-                      // Fallback if height not stored
-                      const fallbackHeight = otherSectionName === "Value Propositions" ? 3.0 : 1.0;
-                      adjustBMCSection(otherSectionName, { height: fallbackHeight });
-                      console.log(`📏 SELECTED OBJECT: Using fallback height for ${otherSectionName} (${fallbackHeight})`);
-                    }
-                  }
+                  console.log(`📏 SELECTED OBJECT: ${otherSectionName} - HEIGHT UNTOUCHED (keeping current height)`);
                 }
               });
             };
