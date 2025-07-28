@@ -1204,7 +1204,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           if ((mesh as any).bmcSectionName === "Key Partners") {
             const transformNode = (mesh as any).bmcTransformNode as TransformNode;
             if (transformNode) {
-              transformNode.position.x += 1.5; // Move right by 1.5 units
+              transformNode.position.x += 0.2; // Move right by just 0.2 units (tiny shift)
               console.log("🏗️ Key Partners shape moved to the right from top view perspective using TransformNode");
             }
           }
