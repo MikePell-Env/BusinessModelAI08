@@ -1227,13 +1227,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   console.log(`📏 Flattening previously selected ${previouslySelectedObject} (height: 0.1)`);
                 }
                 
+                // Save selected object state FIRST so applyHeightState knows what's selected
+                setSelectedObject(sectionName);
+                
                 // Select this mesh and show content panel (updateMeshClickSelect will handle heights)
                 updateMeshClickSelect();
                 const sectionContent = getSectionContent(sectionName);
                 updateContentPanel(true, sectionContent);
-                
-                // Save selected object state
-                setSelectedObject(sectionName);
                 
                 console.log(`🔒 Clicked: ${sectionName} blue selected, others 50% opacity, panel shown`);
               }
