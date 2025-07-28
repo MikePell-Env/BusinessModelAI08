@@ -122,12 +122,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const orthoCamera = new FreeCamera("orthoCamera", new Vector3(0, 15, 0), scene);
     orthoCamera.setTarget(Vector3.Zero());
     
-    // Set orthographic projection
+    // Rotate camera 180 degrees clockwise around Y-axis to match desired orientation
+    orthoCamera.rotation.y = Math.PI;
+    
+    // Set orthographic projection with proper aspect ratio (match canvas dimensions)
     orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
-    orthoCamera.orthoTop = 8;
-    orthoCamera.orthoBottom = -8;
-    orthoCamera.orthoLeft = -12;
-    orthoCamera.orthoRight = 12;
+    const aspectRatio = canvasRef.current!.width / canvasRef.current!.height;
+    const orthoSize = 8; // Base orthographic size
+    
+    if (aspectRatio > 1) {
+      // Wider than tall - expand horizontally
+      orthoCamera.orthoTop = orthoSize;
+      orthoCamera.orthoBottom = -orthoSize;
+      orthoCamera.orthoLeft = -orthoSize * aspectRatio;
+      orthoCamera.orthoRight = orthoSize * aspectRatio;
+    } else {
+      // Taller than wide - expand vertically
+      orthoCamera.orthoTop = orthoSize / aspectRatio;
+      orthoCamera.orthoBottom = -orthoSize / aspectRatio;
+      orthoCamera.orthoLeft = -orthoSize;
+      orthoCamera.orthoRight = orthoSize;
+    }
     
     // Disable rotation controls for pure top-down view
     orthoCamera.inputs.clear();
