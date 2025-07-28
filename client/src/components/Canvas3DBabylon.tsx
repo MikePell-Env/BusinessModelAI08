@@ -1186,7 +1186,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 
                 console.log(`🔓 Click released: ${sectionName} restored, all objects full opacity, panel hidden`);
               } else {
-                // Close all other panels first and reset their states
+                // Handle selecting a new object while another is already selected
+                const previouslySelectedObject = getSelectedObject();
+                
+                // Close all other panels first and reset their visual states
                 contentPanelsRef.current.forEach(({ panel, mesh: otherMesh, material }) => {
                   if (otherMesh !== mesh && panel.isVisible) {
                     panel.isVisible = false;
@@ -1204,7 +1207,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   }
                 });
                 
-                // Select this mesh and show content panel
+                // If there was a previously selected object, flatten it
+                if (previouslySelectedObject && adjustBMCSection) {
+                  adjustBMCSection(previouslySelectedObject, { height: 0.1 });
+                  console.log(`📏 Flattening previously selected ${previouslySelectedObject} (height: 0.1)`);
+                }
+                
+                // Select this mesh and show content panel (updateMeshClickSelect will handle heights)
                 updateMeshClickSelect();
                 const sectionContent = getSectionContent(sectionName);
                 updateContentPanel(true, sectionContent);
