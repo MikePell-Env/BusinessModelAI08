@@ -1197,13 +1197,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       adjustBMCSection("Value Propositions", { height: 9.0 });
       console.log("🏗️ Value Propositions automatically set to taller height (9.0 scale - GLB model uses normal Y-axis)");
       
-      // Move Key Partners shape to the right from top view perspective
+      // Move Key Partners shape to the right from top view perspective using its TransformNode
       if (scene) {
-        const keyPartnersTransform = scene.getNodeByName("Key Partners");
-        if (keyPartnersTransform) {
-          keyPartnersTransform.position.x += 1.5; // Move right by 1.5 units
-          console.log("🏗️ Key Partners shape moved to the right from top view perspective");
-        }
+        const meshes = scene.meshes;
+        meshes.forEach((mesh) => {
+          if ((mesh as any).bmcSectionName === "Key Partners") {
+            const transformNode = (mesh as any).bmcTransformNode as TransformNode;
+            if (transformNode) {
+              transformNode.position.x += 1.5; // Move right by 1.5 units
+              console.log("🏗️ Key Partners shape moved to the right from top view perspective using TransformNode");
+            }
+          }
+        });
       }
     }, 1000); // Wait for meshes to load
 
