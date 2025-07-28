@@ -946,7 +946,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const updateMeshHoverEnter = () => {
               // For textured meshes, use emissive color to create blue glow effect
               // For non-textured meshes, change base color
-              const brightBlueColor = new Color3(0.0, 0.39, 1.0);
+              const brightBlueColor = new Color3(0.0, 0.3, 0.8);
               
               if ((mesh as any).hasTexture) {
                 // For textured mesh, use emissive color to add blue glow while preserving texture
@@ -965,10 +965,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             };
             
             const updateLabelHoverEnter = () => {
-              // Make label bright blue background
+              // Make label blue background (less bright)
               const labelContainer = (mesh as any).labelContainer;
               if (labelContainer) {
-                labelContainer.background = "rgba(0, 100, 255, 1.0)"; // Bright blue
+                labelContainer.background = "rgba(0, 77, 204, 1.0)"; // Less bright blue
               }
             };
             
@@ -1018,7 +1018,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             const updateMeshClickSelect = () => {
               // Set blue color (same as hover) and make other objects 50% opacity
-              const brightBlueColor = new Color3(0.0, 0.39, 1.0);
+              const brightBlueColor = new Color3(0.0, 0.3, 0.8);
               
               if ((mesh as any).hasTexture) {
                 // For textured mesh, use emissive color for blue glow effect
