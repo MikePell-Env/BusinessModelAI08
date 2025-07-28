@@ -46,10 +46,51 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const orthoCameraRef = useRef<FreeCamera | null>(null);
   const rootMeshRef = useRef<AbstractMesh | null>(null);
-  const { saveCamera3DState, getCamera3DState, is3D, isOrthographic } = useCanvas();
+  const { saveCamera3DState, getCamera3DState, is3D, isOrthographic, setSelectedObject, getSelectedObject } = useCanvas();
   
   // Store all content panels for closing functionality
   const contentPanelsRef = useRef<any[]>([]);
+  
+  // Function to restore selected object state after camera switches
+  const restoreSelectedObjectState = () => {
+    const selectedObjectName = getSelectedObject();
+    if (!selectedObjectName) return;
+    
+    // Find the mesh with the selected object name
+    contentPanelsRef.current.forEach(({ mesh, material }) => {
+      const sectionName = (mesh as any).bmcSectionName;
+      if (sectionName === selectedObjectName) {
+        // Restore selected state
+        const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+        
+        if ((mesh as any).hasTexture) {
+          material.emissiveColor = brightBlueColor.scale(0.3);
+        } else {
+          material.baseColor = brightBlueColor;
+        }
+        
+        (mesh as any).isClicked = true;
+        
+        // Make other objects 50% opacity
+        contentPanelsRef.current.forEach(({ mesh: otherMesh, material: otherMaterial }) => {
+          if (otherMesh !== mesh) {
+            otherMaterial.alpha = 0.5;
+          }
+        });
+        
+        // Show content panel
+        const contentPanel = (mesh as any).contentPanel;
+        const contentText = (mesh as any).contentText;
+        if (contentPanel && contentText) {
+          const sectionContent = getSectionContent(sectionName);
+          contentText.text = sectionContent;
+          contentPanel.isVisible = true;
+        }
+        
+        console.log(`🔄 Restored selected state: ${sectionName}`);
+      }
+    });
+  };
 
   // Helper function to get section content from canvas data
   const getSectionContent = (sectionName: string): string => {
@@ -1092,6 +1133,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 // Unclick - restore mesh and hide content panel
                 updateMeshClickUnselect();
                 updateContentPanel(false);
+                
+                // Clear selected object state
+                setSelectedObject(null);
+                
                 console.log(`🔓 Click released: ${sectionName} restored, all objects full opacity, panel hidden`);
               } else {
                 // Close all other panels first and reset their states
@@ -1117,6 +1162,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const sectionContent = getSectionContent(sectionName);
                 updateContentPanel(true, sectionContent);
                 
+                // Save selected object state
+                setSelectedObject(sectionName);
+                
                 console.log(`🔒 Clicked: ${sectionName} blue selected, others 50% opacity, panel shown`);
               }
             }));
@@ -1125,6 +1173,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             closeButton.onPointerClickObservable.add(() => {
               updateMeshClickUnselect();
               updateContentPanel(false);
+              
+              // Clear selected object state
+              setSelectedObject(null);
+              
               console.log(`❌ Close button: ${sectionName} panel closed, mesh restored, all objects full opacity`);
             });
             
@@ -1312,6 +1364,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
         console.log("🔄 Switched to orthographic top view camera with model rotation");
+        
+        // Restore selected object state after camera switch
+        setTimeout(() => restoreSelectedObjectState(), 100);
       } else {
         // Reset model rotation for perspective view
         if (rootMesh) {
@@ -1321,6 +1376,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Switch back to perspective camera with restored state
         scene.activeCamera = perspectiveCamera;
         console.log("🔄 Switched back to perspective camera with model reset");
+        
+        // Restore selected object state after camera switch
+        setTimeout(() => restoreSelectedObjectState(), 100);
       }
     }
   }, [isOrthographic, saveCamera3DState]);
