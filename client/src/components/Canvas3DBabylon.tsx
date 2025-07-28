@@ -972,14 +972,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             };
             
-            // Hover enter - only change appearance if not already clicked
+            // Hover enter - only if not clicked AND no other object is currently selected
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              if (!(mesh as any).isClicked) {
+              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
+              
+              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
                 updateMeshHoverEnter();
                 updateLabelHoverEnter();
                 console.log(`💡 Hover enter: ${sectionName} bright blue, all objects 100% opacity`);
-              } else {
+              } else if ((mesh as any).isClicked) {
                 console.log(`🔒 Hover enter: ${sectionName} already clicked - maintaining selected state`);
+              } else {
+                console.log(`🚫 Hover enter: ${sectionName} blocked - another object is selected`);
               }
             }));
             
@@ -1009,14 +1013,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             };
             
-            // Hover exit - only restore if not clicked (clicked objects maintain their visual state)
+            // Hover exit - only restore if not clicked AND no other object is selected
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              if (!(mesh as any).isClicked) {
+              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
+              
+              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
                 updateMeshHoverExit();
                 updateLabelHoverExit();
                 console.log(`🔄 Hover exit: ${sectionName} restored, all objects full opacity`);
-              } else {
+              } else if ((mesh as any).isClicked) {
                 console.log(`🔒 Hover exit: ${sectionName} clicked - maintaining visual state`);
+              } else {
+                console.log(`🚫 Hover exit: ${sectionName} blocked - another object is selected`);
               }
             }));
             
