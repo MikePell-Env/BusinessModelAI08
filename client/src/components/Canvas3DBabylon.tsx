@@ -73,10 +73,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         (mesh as any).isClicked = true;
         
-        // Make other objects 50% opacity
+        // Make other objects 50% opacity and flatten them
         contentPanelsRef.current.forEach(({ mesh: otherMesh, material: otherMaterial }) => {
           if (otherMesh !== mesh) {
             otherMaterial.alpha = 0.5;
+            
+            // Flatten non-selected objects to ground plane
+            const otherSectionName = (otherMesh as any).bmcSectionName;
+            if (otherSectionName && adjustBMCSection) {
+              adjustBMCSection(otherSectionName, { height: 0.1 });
+            }
           }
         });
         
@@ -1087,10 +1093,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               (mesh as any).isClicked = true;
               
-              // Make all other objects 50% opacity
+              // Make all other objects 50% opacity and flatten them to ground plane
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                 if (otherMesh !== mesh) {
                   material.alpha = 0.5; // 50% opacity for others
+                  
+                  // Flatten non-selected objects to ground plane
+                  const otherSectionName = (otherMesh as any).bmcSectionName;
+                  if (otherSectionName && adjustBMCSection) {
+                    adjustBMCSection(otherSectionName, { height: 0.1 });
+                    console.log(`📏 Flattening ${otherSectionName} to ground plane (height: 0.1)`);
+                  }
                 }
               });
             };
@@ -1109,9 +1122,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               (mesh as any).isClicked = false;
               
-              // Restore all objects to full opacity
-              contentPanelsRef.current.forEach(({ material }) => {
+              // Restore all objects to full opacity and original heights
+              contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                 material.alpha = 1.0; // Full opacity
+                
+                // Restore all objects to original height (1.0 is default, except Value Propositions which stays tall)
+                const otherSectionName = (otherMesh as any).bmcSectionName;
+                if (otherSectionName && adjustBMCSection) {
+                  const originalHeight = otherSectionName === "Value Propositions" ? 9.0 : 1.0;
+                  adjustBMCSection(otherSectionName, { height: originalHeight });
+                  console.log(`📏 Restoring ${otherSectionName} to original height (${originalHeight})`);
+                }
               });
             };
             
