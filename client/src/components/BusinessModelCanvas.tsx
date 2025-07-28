@@ -95,18 +95,6 @@ export const BusinessModelCanvas: React.FC = () => {
         </Button>
 
         <Button
-          onClick={() => setOrthographicView(false)}
-          disabled={isTransitioning}
-          className={`border border-gray-300 shadow-md ${
-            is3D && !isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
-          }`}
-          size="sm"
-        >
-          <Box className="w-4 h-4 mr-2" />
-          3D View
-        </Button>
-
-        <Button
           onClick={() => setOrthographicView(true)}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
@@ -116,6 +104,18 @@ export const BusinessModelCanvas: React.FC = () => {
         >
           <Settings className="w-4 h-4 mr-2" />
           3D Top Ortho
+        </Button>
+
+        <Button
+          onClick={() => setOrthographicView(false)}
+          disabled={isTransitioning}
+          className={`border border-gray-300 shadow-md ${
+            is3D && !isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+          }`}
+          size="sm"
+        >
+          <Box className="w-4 h-4 mr-2" />
+          3D View
         </Button>
       </div>
 
