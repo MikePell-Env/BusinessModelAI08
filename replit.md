@@ -88,6 +88,14 @@ The application follows a full-stack monorepo architecture with clear separation
 
 ## Recent Changes
 
+### July 28, 2025 - Dynamic Height Flattening on Object Selection
+- **✅ Enhanced Selection Behavior**: Non-selected objects now flatten to ground plane (height: 0.1) when another object is selected
+- **✅ Automatic Height Restoration**: All objects return to original heights when selection is cleared
+- **✅ Preserved Value Propositions Height**: Special handling to maintain Value Propositions at 9.0 height after restoration
+- **✅ Integrated with Existing System**: Works seamlessly with current transparency and color selection effects
+- **✅ Camera Mode Compatibility**: Height changes preserved across 3D View and 3D Top mode switches
+- **✅ Console Logging**: Detailed logging for height adjustments during selection/deselection
+
 ### July 28, 2025 - Stable Checkpoint: 3D Top Button Icon Fix
 - **✅ STABLE ROLLBACK POINT**: Fixed critical Square icon import error that broke 3D Top mode functionality
 - **✅ Icon Resolution**: Replaced non-existent Square icon with RectangleHorizontal for 3D Top button representation
