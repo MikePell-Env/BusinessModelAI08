@@ -1150,24 +1150,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log("📊 Available original heights:", originalHeightsRef.current);
               console.log("🔧 adjustBMCSection function available:", !!adjustBMCSection);
               
-              // Use setTimeout to ensure adjustBMCSection is fully available
-              setTimeout(() => {
-                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                  material.alpha = 1.0; // Full opacity
+              // Restore all objects to their stored original heights immediately
+              console.log("🔄 Starting height restoration for all objects...");
+              console.log("📊 Current stored original heights:", originalHeightsRef.current);
+              
+              contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                material.alpha = 1.0; // Full opacity
+                
+                // Restore all objects to their stored original heights
+                const otherSectionName = (otherMesh as any).bmcSectionName;
+                console.log(`🔍 Processing restoration for ${otherSectionName}...`);
+                
+                if (otherSectionName && adjustBMCSection) {
+                  // Get the stored original height for this section
+                  const originalHeight = originalHeightsRef.current[otherSectionName];
                   
-                  // Restore all objects to their stored original heights
-                  const otherSectionName = (otherMesh as any).bmcSectionName;
-                  console.log(`🔍 Processing ${otherSectionName}...`);
-                  
-                  if (otherSectionName && adjustBMCSection && originalHeightsRef.current[otherSectionName]) {
-                    const originalHeight = originalHeightsRef.current[otherSectionName];
-                    console.log(`📏 Restoring ${otherSectionName} from current to original height (${originalHeight})`);
+                  if (originalHeight !== undefined) {
+                    console.log(`📏 ✅ RESTORING ${otherSectionName} to stored original height (${originalHeight})`);
                     adjustBMCSection(otherSectionName, { height: originalHeight });
                   } else {
-                    console.warn(`⚠️ Cannot restore ${otherSectionName}: adjustBMCSection=${!!adjustBMCSection}, hasOriginalHeight=${!!originalHeightsRef.current[otherSectionName]}`);
+                    // Fallback to default heights if not stored
+                    const fallbackHeight = otherSectionName === "Value Propositions" ? 9.0 : 1.0;
+                    console.log(`📏 ⚠️ Using fallback height for ${otherSectionName}: ${fallbackHeight}`);
+                    adjustBMCSection(otherSectionName, { height: fallbackHeight });
+                    // Store it for future use
+                    originalHeightsRef.current[otherSectionName] = fallbackHeight;
                   }
-                });
-              }, 50); // Small delay to ensure function availability
+                } else {
+                  console.error(`❌ Cannot restore ${otherSectionName}: adjustBMCSection=${!!adjustBMCSection}`);
+                }
+              });
             };
             
             const updateContentPanel = (show: boolean, sectionContent?: string) => {
@@ -1360,17 +1372,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Store original heights and auto-adjust Value Propositions to be taller
     // NOTE: This GLB model has normal Y-axis scaling - LARGER values = TALLER shapes
     setTimeout(() => {
-      // Initialize original heights for all sections (default is 1.0)
+      console.log("🏗️ Initializing original height storage system...");
+      
+      // Initialize original heights for all sections with proper defaults
       const sectionNames = ["Value Propositions", "Key Partners", "Key Activities", "Key Resources", 
                            "Customer Relationships", "Customer Channels", "Customer Segments"];
       
+      // Clear any existing stored heights and set fresh defaults
+      originalHeightsRef.current = {};
+      
       sectionNames.forEach(sectionName => {
-        originalHeightsRef.current[sectionName] = sectionName === "Value Propositions" ? 9.0 : 1.0;
+        // Value Propositions gets special tall height, others get standard height
+        const defaultHeight = sectionName === "Value Propositions" ? 9.0 : 1.0;
+        originalHeightsRef.current[sectionName] = defaultHeight;
+        console.log(`📏 Stored original height for ${sectionName}: ${defaultHeight}`);
       });
       
-      adjustBMCSection("Value Propositions", { height: 9.0 });
-      console.log("🏗️ Value Propositions automatically set to taller height (9.0 scale - GLB model uses normal Y-axis)");
-      console.log("📏 Original heights stored:", originalHeightsRef.current);
+      // Apply the Value Propositions height adjustment
+      if (adjustBMCSection) {
+        adjustBMCSection("Value Propositions", { height: 9.0 });
+        console.log("🏗️ Value Propositions automatically set to taller height (9.0 scale)");
+      }
+      
+      console.log("📊 Complete original heights storage:", originalHeightsRef.current);
     }, 1000); // Wait for meshes to load
 
     // Start the render loop
