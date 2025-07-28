@@ -1302,17 +1302,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // Auto-adjust Value Propositions to be taller and move Key Partners to the right
-    // NOTE: This GLB model has normal Y-axis scaling - LARGER values = TALLER shapes
+    // Auto-adjust Value Propositions to be taller and flatten Key Partners
+    // NOTE: This GLB model has normal Y-axis scaling - LARGER values = TALLER shapes, SMALLER values = FLATTER
     setTimeout(() => {
       adjustBMCSection("Value Propositions", { height: 9.0 });
       console.log("🏗️ Value Propositions automatically set to taller height (9.0 scale - GLB model uses normal Y-axis)");
       
-      // Move Key Partners shape to the right from top view perspective using its TransformNode
-      if (scene) {
-        const meshes = scene.meshes;
-        // Key Partners positioning removed - back to original position
-      }
+      // Flatten Key Partners to appear flat on the ground plane
+      adjustBMCSection("Key Partners", { height: 0.1 });
+      console.log("🏗️ Key Partners flattened to ground plane (0.1 scale for minimal height)");
     }, 1000); // Wait for meshes to load
 
     // Start the render loop
