@@ -103,7 +103,7 @@ export const BusinessModelCanvas: React.FC = () => {
           size="sm"
         >
           <Settings className="w-4 h-4 mr-2" />
-          3D Top Ortho
+          3D Top
         </Button>
 
         <Button
