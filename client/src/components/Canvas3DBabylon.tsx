@@ -1105,19 +1105,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Keep selected object at full opacity and original height
               
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                if (otherMesh !== mesh) {
+                const otherSectionName = (otherMesh as any).bmcSectionName;
+                const isSelectedObject = otherMesh === mesh;
+                
+                if (!isSelectedObject) {
                   material.alpha = 0.5; // 50% opacity for others
                   
                   // Flatten non-selected objects to ground plane
-                  const otherSectionName = (otherMesh as any).bmcSectionName;
                   if (otherSectionName && adjustBMCSection) {
+                    console.log(`📏 ✅ FLATTENING non-selected ${otherSectionName} to ground plane (height: 0.1)`);
                     adjustBMCSection(otherSectionName, { height: 0.1 });
-                    console.log(`📏 Flattening ${otherSectionName} to ground plane (height: 0.1)`);
                   }
                 } else {
-                  // Keep selected object at full opacity - do NOT modify its height
+                  // Keep selected object at full opacity - ABSOLUTELY DO NOT modify its height
                   material.alpha = 1.0;
-                  console.log(`📏 Selected object ${sectionName} height unchanged - maintaining original dimensions`);
+                  console.log(`📏 ✋ SKIP: Selected object ${sectionName} - NO HEIGHT CHANGE`);
+                  // CRITICAL: Absolutely no adjustBMCSection calls for selected object
                 }
               });
             };
