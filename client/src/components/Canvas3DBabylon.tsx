@@ -1139,16 +1139,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               (mesh as any).isClicked = false;
               
-              // Restore all objects to full opacity and original heights
+              // Restore all objects to full opacity and their stored original heights
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
                 material.alpha = 1.0; // Full opacity
                 
-                // Restore all objects to original height (1.0 is default, except Value Propositions which stays tall)
+                // Restore all objects to their stored original heights
                 const otherSectionName = (otherMesh as any).bmcSectionName;
                 if (otherSectionName && adjustBMCSection) {
-                  const originalHeight = otherSectionName === "Value Propositions" ? 9.0 : 1.0;
-                  adjustBMCSection(otherSectionName, { height: originalHeight });
-                  console.log(`📏 Restoring ${otherSectionName} to original height (${originalHeight})`);
+                  const storedOriginalHeight = originalHeightsRef.current[otherSectionName];
+                  if (storedOriginalHeight !== undefined) {
+                    adjustBMCSection(otherSectionName, { height: storedOriginalHeight });
+                    console.log(`📏 Restoring ${otherSectionName} to stored original height (${storedOriginalHeight})`);
+                  } else {
+                    // Fallback if height not stored
+                    const fallbackHeight = otherSectionName === "Value Propositions" ? 9.0 : 1.0;
+                    adjustBMCSection(otherSectionName, { height: fallbackHeight });
+                    console.log(`📏 Fallback: Restoring ${otherSectionName} to default height (${fallbackHeight})`);
+                  }
                 }
               });
             };
@@ -1340,11 +1347,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // Auto-adjust Value Propositions to be taller
+    // Store original heights and auto-adjust Value Propositions to be taller
     // NOTE: This GLB model has normal Y-axis scaling - LARGER values = TALLER shapes
     setTimeout(() => {
+      // Store original heights for all BMC sections
+      const sectionNames = ["Value Propositions", "Key Partners", "Key Activities", "Key Resources", 
+                           "Customer Relationships", "Customer Channels", "Customer Segments"];
+      
+      sectionNames.forEach(sectionName => {
+        originalHeightsRef.current[sectionName] = sectionName === "Value Propositions" ? 9.0 : 1.0;
+      });
+      
       adjustBMCSection("Value Propositions", { height: 9.0 });
       console.log("🏗️ Value Propositions automatically set to taller height (9.0 scale - GLB model uses normal Y-axis)");
+      console.log("📏 Original heights stored:", originalHeightsRef.current);
     }, 1000); // Wait for meshes to load
 
     // Start the render loop
