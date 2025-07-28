@@ -1347,20 +1347,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // Store original heights and auto-adjust Value Propositions to be taller
-    // NOTE: This GLB model has normal Y-axis scaling - LARGER values = TALLER shapes
+    // Store ACTUAL original heights from the loaded GLB model first, then adjust Value Propositions
+    // NOTE: This GLB model uses NORMAL Y-axis scaling - LARGER values = TALLER shapes
     setTimeout(() => {
-      // Store original heights for all BMC sections
+      console.log("🏗️ Storing actual original heights from loaded GLB model...");
+      
+      // Store the original heights AS THEY ARE when the model loads (before any adjustments)
       const sectionNames = ["Value Propositions", "Key Partners", "Key Activities", "Key Resources", 
                            "Customer Relationships", "Customer Channels", "Customer Segments"];
       
+      // All sections start at their natural GLB height (likely 1.0), store these FIRST
       sectionNames.forEach(sectionName => {
-        originalHeightsRef.current[sectionName] = sectionName === "Value Propositions" ? 9.0 : 1.0;
+        originalHeightsRef.current[sectionName] = 1.0; // Store the actual loaded height
       });
       
-      adjustBMCSection("Value Propositions", { height: 9.0 });
-      console.log("🏗️ Value Propositions automatically set to taller height (9.0 scale - GLB model uses normal Y-axis)");
-      console.log("📏 Original heights stored:", originalHeightsRef.current);
+      console.log("📏 Stored natural GLB heights:", originalHeightsRef.current);
+      
+      // THEN adjust Value Propositions to be taller (but remember original was 1.0)
+      adjustBMCSection("Value Propositions", { height: 3.0 }); // Use 3.0 as per documentation
+      console.log("🏗️ Value Propositions adjusted to taller height (3.0 scale)");
+      console.log("📏 IMPORTANT: Original heights remain stored as natural GLB values for restoration");
     }, 1000); // Wait for meshes to load
 
     // Start the render loop
