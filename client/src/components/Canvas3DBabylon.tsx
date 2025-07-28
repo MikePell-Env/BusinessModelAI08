@@ -1347,24 +1347,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // Store ACTUAL original heights from the loaded GLB model exactly as they are
+    // Dynamically read and store the ACTUAL current heights from the loaded GLB model
     // NOTE: This GLB model uses NORMAL Y-axis scaling - LARGER values = TALLER shapes  
     setTimeout(() => {
-      console.log("🏗️ Storing actual original heights from loaded GLB model AS IS...");
+      console.log("🏗️ Reading actual current heights from loaded BMC sections...");
       
-      // Store the original heights EXACTLY as they are when the model loads (NO adjustments)
-      const sectionNames = ["Value Propositions", "Key Partners", "Key Activities", "Key Resources", 
-                           "Customer Relationships", "Customer Channels", "Customer Segments"];
-      
-      // Store whatever height each section naturally has in the GLB model
-      sectionNames.forEach(sectionName => {
-        // Value Propositions is already tall in the GLB, others are standard height
-        originalHeightsRef.current[sectionName] = sectionName === "Value Propositions" ? 3.0 : 1.0;
-      });
-      
-      console.log("📏 Stored GLB model heights exactly as loaded:", originalHeightsRef.current);
-      console.log("📏 NO height adjustments made - preserving natural GLB model appearance");
-    }, 1000); // Wait for meshes to load
+      if (window.listBMCSections) {
+        const sections = window.listBMCSections();
+        console.log("📋 Available BMC sections:", sections);
+        
+        // Read the current scale.y (height) of each section's transform node
+        sections.forEach(sectionName => {
+          try {
+            // Try to get the actual current height from the transform node
+            const transformNodes = scene.getTransformNodesByTags(sectionName);
+            if (transformNodes.length > 0) {
+              const currentHeight = transformNodes[0].scaling.y;
+              originalHeightsRef.current[sectionName] = currentHeight;
+              console.log(`📏 ${sectionName}: Current height = ${currentHeight}`);
+            } else {
+              // Fallback: Assume standard heights based on section type
+              const fallbackHeight = sectionName === "Value Propositions" ? 3.0 : 1.0;
+              originalHeightsRef.current[sectionName] = fallbackHeight;
+              console.log(`📏 ${sectionName}: Using fallback height = ${fallbackHeight}`);
+            }
+          } catch (error) {
+            console.warn(`⚠️ Could not read height for ${sectionName}:`, error);
+            const fallbackHeight = sectionName === "Value Propositions" ? 3.0 : 1.0;
+            originalHeightsRef.current[sectionName] = fallbackHeight;
+          }
+        });
+        
+        console.log("📏 Final stored original heights:", originalHeightsRef.current);
+      } else {
+        console.error("❌ listBMCSections function not available");
+      }
+    }, 1500); // Wait longer for all functions to be available
 
     // Start the render loop
     engine.runRenderLoop(() => {
