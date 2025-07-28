@@ -1110,7 +1110,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 
                 if (!isSelectedObject) {
                   material.alpha = 0.5; // 50% opacity for others
-                  // DO NOT modify heights of non-selected objects
+                  
+                  // Flatten non-selected objects to ground plane
+                  if (otherSectionName && adjustBMCSection) {
+                    console.log(`📏 FLATTENING non-selected ${otherSectionName} to ground plane (height: 0.1)`);
+                    adjustBMCSection(otherSectionName, { height: 0.1 });
+                  }
                 } else {
                   // Keep selected object at full opacity and restore to original height
                   material.alpha = 1.0;
@@ -1120,12 +1125,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     const storedOriginalHeight = originalHeightsRef.current[otherSectionName];
                     if (storedOriginalHeight !== undefined) {
                       adjustBMCSection(otherSectionName, { height: storedOriginalHeight });
-                      console.log(`📏 ✅ SELECTED OBJECT: Restoring ${otherSectionName} to original height (${storedOriginalHeight})`);
+                      console.log(`📏 SELECTED OBJECT: Restoring ${otherSectionName} to original height (${storedOriginalHeight})`);
                     } else {
                       // Fallback if height not stored
                       const fallbackHeight = otherSectionName === "Value Propositions" ? 3.0 : 1.0;
                       adjustBMCSection(otherSectionName, { height: fallbackHeight });
-                      console.log(`📏 ⚠️ SELECTED OBJECT: Using fallback height for ${otherSectionName} (${fallbackHeight})`);
+                      console.log(`📏 SELECTED OBJECT: Using fallback height for ${otherSectionName} (${fallbackHeight})`);
                     }
                   }
                 }
