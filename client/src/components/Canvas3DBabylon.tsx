@@ -59,40 +59,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Function to restore selected object state after camera switches
   const restoreSelectedObjectState = () => {
     const selectedObjectName = getSelectedObject();
-    
-    if (!selectedObjectName) {
-      // No object selected - restore all objects to original heights and full opacity
-      console.log("🔄 Camera switch: No object selected, restoring all objects to original heights");
-      contentPanelsRef.current.forEach(({ mesh, material }) => {
-        const sectionName = (mesh as any).bmcSectionName;
-        
-        // Restore visual state
-        material.alpha = 1.0;
-        if ((mesh as any).hasTexture) {
-          material.emissiveColor = new Color3(0, 0, 0);
-        } else {
-          material.baseColor = (mesh as any).originalColor;
-        }
-        (mesh as any).isClicked = false;
-        
-        // Restore height to original
-        if (sectionName && adjustBMCSection) {
-          const storedOriginalHeight = originalHeightsRef.current[sectionName];
-          if (storedOriginalHeight !== undefined) {
-            adjustBMCSection(sectionName, { height: storedOriginalHeight });
-            console.log(`📏 Camera switch: Restoring ${sectionName} to original height (${storedOriginalHeight})`);
-          } else {
-            const fallbackHeight = sectionName === "Value Propositions" ? 3.0 : 1.0;
-            adjustBMCSection(sectionName, { height: fallbackHeight });
-            console.log(`📏 Camera switch: Using fallback height for ${sectionName} (${fallbackHeight})`);
-          }
-        }
-      });
-      return;
-    }
-    
-    // Object is selected - restore selection state
-    console.log(`🔄 Camera switch: Restoring selected state for ${selectedObjectName}`);
+    if (!selectedObjectName) return;
     
     // Find the mesh with the selected object name
     contentPanelsRef.current.forEach(({ mesh, material }) => {
@@ -1479,8 +1446,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         scene.activeCamera = orthoCamera;
         console.log("🔄 Switched to orthographic top view camera with model rotation");
         
-        // Restore selected object state after camera switch
-        setTimeout(() => restoreSelectedObjectState(), 100);
+        // Restore selected object state after camera switch, or reset all heights if nothing selected
+        setTimeout(() => {
+          restoreSelectedObjectState();
+          // If no object is selected, ensure all heights are at original values
+          if (!getSelectedObject()) {
+            console.log("🔄 Camera switch to Top: No selection, ensuring original heights");
+            contentPanelsRef.current.forEach(({ mesh }) => {
+              const sectionName = (mesh as any).bmcSectionName;
+              if (sectionName && adjustBMCSection) {
+                const storedHeight = originalHeightsRef.current[sectionName];
+                if (storedHeight !== undefined) {
+                  adjustBMCSection(sectionName, { height: storedHeight });
+                }
+              }
+            });
+          }
+        }, 100);
       } else {
         // Reset model rotation for perspective view
         if (rootMesh) {
@@ -1493,8 +1475,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         scene.activeCamera = perspectiveCamera;
         console.log("🔄 Switched back to perspective camera with model reset");
         
-        // Restore selected object state after camera switch
-        setTimeout(() => restoreSelectedObjectState(), 100);
+        // Restore selected object state after camera switch, or reset all heights if nothing selected
+        setTimeout(() => {
+          restoreSelectedObjectState();
+          // If no object is selected, ensure all heights are at original values
+          if (!getSelectedObject()) {
+            console.log("🔄 Camera switch to 3D View: No selection, ensuring original heights");
+            contentPanelsRef.current.forEach(({ mesh }) => {
+              const sectionName = (mesh as any).bmcSectionName;
+              if (sectionName && adjustBMCSection) {
+                const storedHeight = originalHeightsRef.current[sectionName];
+                if (storedHeight !== undefined) {
+                  adjustBMCSection(sectionName, { height: storedHeight });
+                }
+              }
+            });
+          }
+        }, 100);
       }
     }
   }, [isOrthographic, saveCamera3DState]);
