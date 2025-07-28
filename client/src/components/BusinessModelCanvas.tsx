@@ -16,10 +16,12 @@ export const BusinessModelCanvas: React.FC = () => {
   const {
     canvas,
     is3D,
+    isOrthographic,
     isTransitioning,
     error,
     loadCanvas,
     toggleView,
+    setOrthographicView,
     setError
   } = useCanvas();
   
@@ -93,10 +95,10 @@ export const BusinessModelCanvas: React.FC = () => {
         </Button>
 
         <Button
-          onClick={() => is3D || handleToggleView()}
-          disabled={isTransitioning || is3D}
+          onClick={() => setOrthographicView(false)}
+          disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
-            is3D ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+            is3D && !isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
@@ -105,9 +107,11 @@ export const BusinessModelCanvas: React.FC = () => {
         </Button>
 
         <Button
-          onClick={() => {}} // No functionality - just UI button
+          onClick={() => setOrthographicView(true)}
           disabled={isTransitioning}
-          className="border border-gray-300 shadow-md bg-white text-gray-800 hover:bg-gray-50"
+          className={`border border-gray-300 shadow-md ${
+            isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+          }`}
           size="sm"
         >
           <Settings className="w-4 h-4 mr-2" />
