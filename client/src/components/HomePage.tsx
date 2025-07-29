@@ -99,7 +99,8 @@ export const HomePage: React.FC = () => {
             {/* Demo Info Banner */}
             <div className="bg-blue-500 text-white p-6 rounded-lg mb-16">
               <p className="text-lg">
-                <strong>DEMO:</strong> Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
+                <strong>DEMO:</strong><br />
+                Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
               </p>
             </div>
 
