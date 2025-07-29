@@ -29,7 +29,11 @@ export const HomePage: React.FC = () => {
       <header className="bg-gray-900 text-white px-8 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <div className="text-2xl font-bold">⚡ ENVISIONER</div>
+            <img 
+              src="/envisioner-logo.png" 
+              alt="Envisioner" 
+              className="h-8"
+            />
           </div>
           
           <nav className="flex items-center space-x-8">
