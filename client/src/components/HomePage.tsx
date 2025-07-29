@@ -87,10 +87,10 @@ export const HomePage: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-8 py-12">
-        <div className="grid grid-cols-3 gap-8">
-          {/* Left Column - Main Content */}
-          <div className="col-span-2 flex flex-col items-center">
+      <main className="py-12 relative">
+        <div className="flex">
+          {/* Left Column - Main Content - Centered in available space, with right margin for fixed video column */}
+          <div className="flex-1 px-8 flex justify-center" style={{ marginRight: '320px' }}>
             <div className="w-full max-w-4xl">
               <div className="text-center">
                 <h1 className="text-2xl font-semibold text-gray-900 mb-1">
@@ -207,13 +207,13 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column - Videos with vertical line */}
-          <div className="relative">
+          {/* Right Column - Videos with vertical line - Fixed to right edge */}
+          <div className="fixed right-0 top-20 w-80 h-full">
             {/* Vertical gray line - aligned with bottom of Microsoft Copilot status box */}
             <div className="absolute left-0 top-0 w-px bg-gray-500" style={{ height: 'calc(100vh - 180px)' }}></div>
             
             {/* Content with left padding for spacing from line */}
-            <div className="pl-8">
+            <div className="pl-8 pr-8">
               {/* Header text */}
               <div className="mb-8">
                 <p className="text-lg text-gray-700 leading-relaxed">
