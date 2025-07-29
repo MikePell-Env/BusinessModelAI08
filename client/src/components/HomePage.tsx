@@ -160,8 +160,8 @@ export const HomePage: React.FC = () => {
                     {/* Copilot Icon in center - flexible space */}
                     <div className="flex items-center justify-center flex-grow mt-8">
                       <img 
-                        src="/copilot-icon.webp" 
-                        alt="Copilot" 
+                        src="/copilot-logo.png" 
+                        alt="Microsoft Copilot" 
                         className="w-16 h-16"
                       />
                     </div>
