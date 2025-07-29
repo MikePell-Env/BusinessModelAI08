@@ -69,7 +69,7 @@ export const HomePage: React.FC = () => {
               <div className="grid grid-cols-3 gap-6">
                 {/* Option 1 - Import Office Files */}
                 <div className="text-center">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 hover:border-blue-500 transition-colors relative">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 hover:border-blue-500 transition-colors relative h-full">
                     {/* Number 1 in top left */}
                     <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       1
@@ -101,16 +101,25 @@ export const HomePage: React.FC = () => {
 
                 {/* Option 2 - Ask Copilot (Disabled) */}
                 <div className="text-center opacity-50">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200">
-                    <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                      <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-                    </div>
-                    <div className="bg-gray-200 text-gray-600 text-2xl font-bold w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full">
+                    {/* Number 2 in top left */}
+                    <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       2
                     </div>
+                    
+                    {/* Copilot Icon in center */}
+                    <div className="flex items-center justify-center mb-6 mt-4">
+                      <img 
+                        src="/copilot-icon.png" 
+                        alt="Microsoft Copilot" 
+                        className="w-16 h-16"
+                      />
+                    </div>
+                    
+                    {/* Button at bottom */}
                     <Button 
                       disabled
-                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed"
+                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed rounded-lg py-2"
                     >
                       Ask Copilot...
                     </Button>
@@ -119,16 +128,25 @@ export const HomePage: React.FC = () => {
 
                 {/* Option 3 - Dev API (Disabled) */}
                 <div className="text-center opacity-50">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200">
-                    <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                      <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-                    </div>
-                    <div className="bg-gray-200 text-gray-600 text-2xl font-bold w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full">
+                    {/* Number 3 in top left */}
+                    <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       3
                     </div>
+                    
+                    {/* AI Foundry Icon in center */}
+                    <div className="flex items-center justify-center mb-6 mt-4">
+                      <img 
+                        src="/ai-foundry-icon.png" 
+                        alt="AI Foundry" 
+                        className="w-16 h-16"
+                      />
+                    </div>
+                    
+                    {/* Button at bottom */}
                     <Button 
                       disabled
-                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed"
+                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed rounded-lg py-2"
                     >
                       Dev? Use MCP API...
                     </Button>
