@@ -114,6 +114,98 @@ The application follows a full-stack monorepo architecture with clear separation
 - **Selection Coordination**: Synchronized timing between UI state updates and 3D object manipulations
 - **Cross-Mode Consistency**: Identical behavior across 2D View, 3D View, and 3D Top View modes
 
+### Coordinate System & Orientation Management
+- **GLB Model Orientation Issue**: The Blender-exported GLB model appears upside-down in orthographic top view due to coordinate system differences
+- **Runtime Correction**: 180° Y-axis rotation applied when switching to 3D Top view to fix text orientation
+- **Implementation Details**:
+  ```typescript
+  // Rotate model 180 degrees clockwise to fix upside-down text in orthographic view
+  if (rootMesh) {
+    rootMesh.rotation = new Vector3(0, Math.PI, 0);
+  }
+  ```
+- **Camera Compensation**: Orthographic camera also rotated 180° around Y-axis to maintain proper viewing angle
+- **Height System Compatibility**: NORMAL Y-axis scaling behavior (larger values = taller shapes) maintained across orientations
+
+### Preventing Orientation Issues in Blender
+To avoid the upside-down orientation when exporting GLB models from Blender:
+
+1. **Coordinate System Setup**: 
+   - Use Blender's default Z-up coordinate system
+   - Ensure models face +Y direction in Blender (green arrow)
+   - Orient text/labels to read correctly when viewed from above (looking down -Z axis)
+
+2. **Export Settings**:
+   - Use glTF 2.0 (.glb) format
+   - Transform: Apply all transforms before export
+   - Geometry: Include normals and tangent data
+   - Keep +Y Up in export options (do not change to +Z Up)
+
+3. **Model Orientation Verification**:
+   - In Blender, view from top (Numpad 7) to check text orientation
+   - Text should read correctly from this angle
+   - If upside-down, rotate entire model 180° around Z-axis before export
+
+4. **Alternative Solution**:
+   - Create models with correct orientation for Babylon.js coordinate system
+   - Test import in Babylon.js sandbox before integration
+
+### Current Implementation Code Examples
+
+**Camera Switching Logic** (from Canvas3DBabylon.tsx):
+```typescript
+// Handle orthographic mode switch
+if (isOrthographic) {
+  // Save current perspective camera state
+  saveCamera3DState(perspectiveCamera.alpha, perspectiveCamera.beta, perspectiveCamera.radius);
+  
+  // Rotate model 180 degrees clockwise to fix upside-down text in orthographic view
+  if (rootMesh) {
+    rootMesh.rotation = new Vector3(0, Math.PI, 0);
+  }
+  
+  // Switch to orthographic camera
+  scene.activeCamera = orthoCamera;
+} else {
+  // Reset model rotation for perspective view
+  if (rootMesh) {
+    rootMesh.rotation = Vector3.Zero();
+  }
+  
+  // Switch back to perspective camera
+  scene.activeCamera = perspectiveCamera;
+}
+```
+
+**Orthographic Camera Setup** (compensating for coordinate system):
+```typescript
+// Rotate camera 180 degrees clockwise around Y-axis to match desired orientation
+orthoCamera.rotation.y = Math.PI;
+
+// Set orthographic projection parameters
+orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
+orthoCamera.orthoTop = orthoSize;
+orthoCamera.orthoBottom = -orthoSize;
+orthoCamera.orthoLeft = -orthoSize * aspectRatio;
+orthoCamera.orthoRight = orthoSize * aspectRatio;
+```
+
+**GLB Model Loading** (with position and scale correction):
+```typescript
+// Position at center of ground plane, slightly above surface
+rootMesh.position = new Vector3(0, 0.1, 0);
+
+// Apply orientation based on current camera mode
+if (isOrthographic) {
+  rootMesh.rotation = new Vector3(0, Math.PI, 0);
+} else {
+  rootMesh.rotation = Vector3.Zero();
+}
+
+// Scale for proper visibility
+rootMesh.scaling = new Vector3(8, 8, 8);
+```
+
 ## Recent Changes
 
 ### July 29, 2025 - Refined Height Management System with Proper Timing
