@@ -71,7 +71,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     contentPanelsRef.current.forEach(({ mesh }) => {
       const sectionName = (mesh as any).bmcSectionName;
-      if (!sectionName || !adjustBMCSection) return;
+      if (!sectionName) return;
       
       let targetHeight;
       if (!selectedObjectName) {
@@ -86,8 +86,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
       
       if (targetHeight !== undefined) {
-        adjustBMCSection(sectionName, { height: targetHeight });
-        console.log(`📏 ${sectionName}: ${targetHeight} (${!selectedObjectName ? 'no-selection' : sectionName === selectedObjectName ? 'selected' : 'flattened'})`);
+        // Apply height directly to the mesh's transform node
+        const transformNode = (mesh as any).bmcTransformNode;
+        if (transformNode) {
+          transformNode.scaling.y = targetHeight;
+          console.log(`📏 ${sectionName}: ${targetHeight} (${!selectedObjectName ? 'no-selection' : sectionName === selectedObjectName ? 'selected' : 'flattened'})`);
+        }
       }
     });
   };
@@ -1449,7 +1453,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       scale?: Vector3;
     }) => {
       if (scene) {
-        const rootTransform = scene.getNodeByName("__root__");
+        const rootTransform = scene.getNodeByName("__root__") as TransformNode;
         if (rootTransform) {
           if (options.position) {
             rootTransform.position = options.position;
