@@ -1183,8 +1183,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Apply unified height state after brief delay to ensure state propagation
               setTimeout(() => {
-                console.log("🔓 DESELECT: Applying height state after selection cleared");
+                const currentSelection = getSelectedObject();
+                console.log(`🔓 DESELECT: About to apply height state. Current selection in store: ${currentSelection}`);
+                console.log(`🔓 DESELECT: Deselecting section: ${sectionName}`);
+                
                 applyHeightState(); // Use the store's cleared state
+                
                 console.log("🔓 DESELECT: Height state applied - all objects should be at original heights");
               }, 20); // Small delay to ensure Zustand state has propagated
               
