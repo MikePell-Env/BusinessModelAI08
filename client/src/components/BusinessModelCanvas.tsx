@@ -32,20 +32,15 @@ export const BusinessModelCanvas: React.FC = () => {
 
 
   useEffect(() => {
-    console.log('🎯 BusinessModelCanvas: useEffect triggered, pendingPowerPointFile:', pendingPowerPointFile);
-    
     // Check if there's a pending PowerPoint file to process
     if (pendingPowerPointFile) {
-      console.log('🎯 BusinessModelCanvas: Found pending PowerPoint file:', pendingPowerPointFile.name);
       
       // Execute the same logic as the PowerPointImporter component
       const processPowerPointFile = async () => {
         try {
-          console.log('🎯 BusinessModelCanvas: Starting PowerPoint parsing (same as clicking Import button)...');
           // This is exactly what PowerPointImporter does when clicked
           const canvas = await powerpointParser.parseFile(pendingPowerPointFile);
           loadCanvas(canvas, true); // Same as PowerPointImporter
-          console.log('🎯 BusinessModelCanvas: PowerPoint processed and loaded with isFromPowerPoint=true');
           setPendingPowerPointFile(null); // Clear the pending file
         } catch (error) {
           console.error('PowerPoint processing error:', error);
@@ -60,7 +55,6 @@ export const BusinessModelCanvas: React.FC = () => {
       processPowerPointFile();
     } else if (!canvas) {
       // Only load sample canvas data if no canvas is loaded yet AND no PowerPoint file is pending
-      console.log('🎯 BusinessModelCanvas: No canvas loaded and no pending PowerPoint file, loading sample canvas data');
       try {
         loadCanvas(sampleCanvasData as CanvasType);
       } catch (err) {
