@@ -28,9 +28,14 @@ The application follows a full-stack monorepo architecture with clear separation
 ## Key Components
 
 ### Canvas Visualization System
-- **Canvas2D**: Traditional grid-based business model canvas layout with color-coded sections
-- **Canvas3D**: Interactive 3D visualization using Three.js with hoverable blocks
-- **View Switching**: Smooth transitions between 2D and 3D modes with loading states
+- **Canvas2D**: Traditional grid-based business model canvas layout with color-coded sections and editable text fields
+- **Canvas3DBabylon**: Advanced 3D visualization using Babylon.js with GLB model integration
+  - **Dual Camera Modes**: Perspective 3D View and orthographic 3D Top View with persistent camera states
+  - **GLB Model Integration**: Professional 3D business model canvas using Blender-created GLB assets
+  - **Dynamic Height Management**: Real-time object height manipulation for visual focus and interaction feedback
+  - **Interactive Selection System**: Click-to-select with content panels, hover effects, and transparency control
+  - **Billboard Label System**: Camera-facing PNG texture labels positioned above each 3D object
+- **View Switching**: Seamless transitions between 2D, 3D View, and 3D Top modes with state persistence
 
 ### AI Chat Integration
 - **OpenAI Service**: GPT-4o integration for business model analysis and recommendations
@@ -47,10 +52,14 @@ The application follows a full-stack monorepo architecture with clear separation
 ## Data Flow
 
 1. **Canvas Loading**: Sample canvas data loaded from JSON on application startup
-2. **State Synchronization**: Zustand stores manage canvas state, view mode, and chat history
-3. **AI Interactions**: Chat messages sent to Express backend, processed through OpenAI API
-4. **Real-time Updates**: Canvas modifications reflected immediately in both 2D and 3D views
-5. **Persistent Storage**: Database schema prepared for user data and canvas persistence
+2. **State Synchronization**: Zustand stores manage canvas state, view mode, chat history, and 3D camera positions
+3. **3D Model Integration**: GLB models loaded asynchronously with transform node hierarchy for granular control
+4. **Height State Management**: Real-time height manipulation using actual GLB transform node scaling values
+5. **Selection State Flow**: Coordinated timing between UI state updates and 3D object property changes
+6. **AI Interactions**: Chat messages sent to Express backend, processed through OpenAI API with Microsoft Copilot fallback
+7. **Camera Persistence**: 3D camera positions and orientations saved across view mode switches
+8. **Real-time Updates**: Canvas modifications reflected immediately across 2D, 3D View, and 3D Top modes
+9. **Persistent Storage**: Database schema prepared for user data and canvas persistence
 
 ## External Dependencies
 
@@ -86,7 +95,35 @@ The application follows a full-stack monorepo architecture with clear separation
 - **User System**: Basic user authentication schema prepared
 - **Migration Strategy**: Schema changes tracked in dedicated migrations folder
 
+## Technical Architecture Details
+
+### 3D Visualization System (Babylon.js Implementation)
+- **GLB Model Loading**: Single comprehensive BMC model (BMC_blender_09_complete_1753576063858.glb) with 7 interactive sections
+- **Transform Node Hierarchy**: Root transform → Individual section transforms → Mesh objects for granular control
+- **Height Management System**: 
+  - Reads actual transform node scaling.y values from GLB model
+  - Unified logic: No selection = original heights, selection = selected at original + others flattened (0.1)
+  - State timing: Selection state updated BEFORE height manipulation for accurate behavior
+- **Material System**: Semi-gloss black PBR materials (metallic=0.0, roughness=0.7) with blue selection highlights
+- **Camera System**: Dual-mode with persistent state (perspective 3D View + orthographic 3D Top View)
+- **Billboard Labels**: PNG texture labels with camera-facing behavior positioned above each 3D section
+
+### State Management Architecture
+- **Zustand Stores**: Canvas data, view modes, chat history, 3D camera positions, and object selection states
+- **Persistent Camera State**: saveCamera3DState() and getCamera3DState() for seamless view transitions
+- **Selection Coordination**: Synchronized timing between UI state updates and 3D object manipulations
+- **Cross-Mode Consistency**: Identical behavior across 2D View, 3D View, and 3D Top View modes
+
 ## Recent Changes
+
+### July 29, 2025 - Refined Height Management System with Proper Timing
+- **✅ Critical Timing Fix**: Resolved selection/deselection timing issues where height state was applied before selection state was updated
+- **✅ Unified Height Logic**: Implemented consistent rule across all interactions: No selection = all objects at original height, selection = selected object at original height + others flattened (0.1)
+- **✅ Proper State Sequencing**: Selection state now set/cleared BEFORE calling applyHeightState() for accurate behavior
+- **✅ Enhanced Deselection**: All objects properly return to original stored heights when any object is deselected
+- **✅ Cross-Mode Consistency**: Height management works identically across 3D View and 3D Top orthographic modes
+- **✅ Authentic Height Reading**: System reads actual GLB model transform node scaling values instead of assuming heights
+- **✅ Professional User Experience**: Seamless height transitions provide clear visual feedback for object selection states
 
 ### July 28, 2025 - Dynamic Height Flattening on Object Selection
 - **✅ Enhanced Selection Behavior**: Non-selected objects now flatten to ground plane (height: 0.1) when another object is selected
