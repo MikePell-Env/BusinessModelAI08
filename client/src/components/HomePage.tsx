@@ -199,76 +199,92 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column - Images */}
-          <div className="space-y-6">
-            <div className="text-center">
-              <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
-                <video 
-                  className="w-full h-32 object-cover"
-                  controls
-                  muted
-                  loop
-                  autoPlay
-                  onError={(e) => console.error('Video error:', e)}
-                  onLoadStart={() => console.log('Video loading started')}
-                  onCanPlay={() => console.log('Video can play')}
-                >
-                  <source src="/neon-data-pathway.mp4" type="video/mp4" />
-                  <source src="/2025-07-14T00-25-19_a_neon_data_pathway_1753819819664.mov" type="video/quicktime" />
-                  <img 
-                    src="/video-fallback.png" 
-                    alt="Process Active" 
-                    className="w-full h-32 object-cover rounded-lg"
-                  />
-                </video>
-              </div>
-              <p className="text-sm text-gray-600 font-medium">Processes</p>
-            </div>
+          {/* Right Column - Videos with vertical line */}
+          <div className="relative">
+            {/* Vertical gray line */}
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300"></div>
             
-            <div className="text-center">
-              <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
-                <video 
-                  className="w-full h-32 object-cover"
-                  controls
-                  muted
-                  loop
-                  autoPlay
-                  onError={(e) => console.error('Data Analytics video error:', e)}
-                  onLoadStart={() => console.log('Data Analytics video loading started')}
-                  onCanPlay={() => console.log('Data Analytics video can play')}
-                >
-                  <source src="/data-analytics-video.mp4" type="video/mp4" />
-                  <img 
-                    src="/video-fallback.png" 
-                    alt="Data Analytics" 
-                    className="w-full h-32 object-cover rounded-lg"
-                  />
-                </video>
+            {/* Content with left padding for spacing from line */}
+            <div className="pl-8">
+              {/* Header text */}
+              <div className="mb-8">
+                <p className="text-lg text-gray-700 leading-relaxed">
+                  Use Envisioners to bring these aspects of your business to life...
+                </p>
               </div>
-              <p className="text-sm text-gray-600 font-medium">Datasets</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
-                <video 
-                  className="w-full h-32 object-cover"
-                  controls
-                  muted
-                  loop
-                  autoPlay
-                  onError={(e) => console.error('Systems video error:', e)}
-                  onLoadStart={() => console.log('Systems video loading started')}
-                  onCanPlay={() => console.log('Systems video can play')}
-                >
-                  <source src="/systems-video.mp4" type="video/mp4" />
-                  <img 
-                    src="/video-fallback.png" 
-                    alt="Systems Online" 
-                    className="w-full h-32 object-cover rounded-lg"
-                  />
-                </video>
+              
+              {/* Video sections */}
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                    <video 
+                      className="w-full h-32 object-cover"
+                      controls
+                      muted
+                      loop
+                      autoPlay
+                      onError={(e) => console.error('Video error:', e)}
+                      onLoadStart={() => console.log('Video loading started')}
+                      onCanPlay={() => console.log('Video can play')}
+                    >
+                      <source src="/neon-data-pathway.mp4" type="video/mp4" />
+                      <source src="/2025-07-14T00-25-19_a_neon_data_pathway_1753819819664.mov" type="video/quicktime" />
+                      <img 
+                        src="/video-fallback.png" 
+                        alt="Process Active" 
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                    </video>
+                  </div>
+                  <p className="text-sm text-gray-600 font-medium">Processes</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                    <video 
+                      className="w-full h-32 object-cover"
+                      controls
+                      muted
+                      loop
+                      autoPlay
+                      onError={(e) => console.error('Data Analytics video error:', e)}
+                      onLoadStart={() => console.log('Data Analytics video loading started')}
+                      onCanPlay={() => console.log('Data Analytics video can play')}
+                    >
+                      <source src="/data-analytics-video.mp4" type="video/mp4" />
+                      <img 
+                        src="/video-fallback.png" 
+                        alt="Data Analytics" 
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                    </video>
+                  </div>
+                  <p className="text-sm text-gray-600 font-medium">Datasets</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                    <video 
+                      className="w-full h-32 object-cover"
+                      controls
+                      muted
+                      loop
+                      autoPlay
+                      onError={(e) => console.error('Systems video error:', e)}
+                      onLoadStart={() => console.log('Systems video loading started')}
+                      onCanPlay={() => console.log('Systems video can play')}
+                    >
+                      <source src="/systems-video.mp4" type="video/mp4" />
+                      <img 
+                        src="/video-fallback.png" 
+                        alt="Systems Online" 
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                    </video>
+                  </div>
+                  <p className="text-sm text-gray-600 font-medium">Systems</p>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 font-medium">Systems</p>
             </div>
           </div>
         </div>
