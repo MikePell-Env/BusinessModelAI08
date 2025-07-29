@@ -1212,38 +1212,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               if (isCurrentlyClicked) {
                 // Unclick - restore mesh and hide content panel
-                // CRITICAL: Clear selection state and force apply height restoration
-                setSelectedObject(null);
-                console.log("🔓 DESELECT: Cleared selection state in click handler");
-                
-                // Manually restore all objects to original heights since selection is cleared
-                const storedHeights = getOriginalHeights();
-                console.log("🔓 DESELECT: Available stored heights:", storedHeights);
-                console.log("🔓 DESELECT: Content panels count:", contentPanelsRef.current.length);
-                console.log("🔓 DESELECT: adjustBMCSection available:", !!adjustBMCSection);
-                
-                contentPanelsRef.current.forEach(({ mesh: objMesh }) => {
-                  const objSectionName = (objMesh as any).bmcSectionName;
-                  console.log(`🔓 DESELECT: Processing ${objSectionName}`);
-                  
-                  if (objSectionName && adjustBMCSection && storedHeights[objSectionName] !== undefined) {
-                    const originalHeight = storedHeights[objSectionName];
-                    console.log(`🔓 DESELECT: About to restore ${objSectionName} from height ? to ${originalHeight}`);
-                    adjustBMCSection(objSectionName, { height: originalHeight });
-                    console.log(`🔓 DESELECT: ✅ Restored ${objSectionName} to original height (${originalHeight})`);
-                  } else {
-                    console.log(`🔓 DESELECT: ❌ Cannot restore ${objSectionName}:`, {
-                      hasSection: !!objSectionName,
-                      hasAdjustFunction: !!adjustBMCSection,
-                      hasStoredHeight: storedHeights[objSectionName] !== undefined,
-                      storedHeight: storedHeights[objSectionName]
-                    });
-                  }
-                });
-                
-                console.log("🔓 DESELECT: All objects restored to original heights");
-                
-                // Restore mesh visual state
                 updateMeshClickUnselect();
                 updateContentPanel(false);
                 
@@ -1290,10 +1258,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Now configure close button functionality with access to refactored functions
             closeButton.onPointerClickObservable.add(() => {
-              // Only hide the content panel - keep the 3D object selection state intact
+              // Clear selected object state FIRST so applyHeightState knows nothing is selected
+              setSelectedObject(null);
+              
+              updateMeshClickUnselect();
               updateContentPanel(false);
               
-              console.log(`❌ Close button: ${sectionName} panel closed, 3D object selection preserved`);
+              console.log(`❌ Close button: ${sectionName} panel closed, mesh restored, all objects full opacity`);
             });
             
             console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - ${sectionName} - Interactive color: ${baseColor.r.toFixed(2)}, ${baseColor.g.toFixed(2)}, ${baseColor.b.toFixed(2)}`);
