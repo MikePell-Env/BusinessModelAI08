@@ -63,7 +63,7 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 pb-16 relative">
       {/* Header */}
       <header className="bg-black text-white px-8 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -231,8 +231,8 @@ export const HomePage: React.FC = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-6 mt-20">
+      {/* Footer - Fixed to bottom */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 z-10">
         <div className="max-w-7xl mx-auto px-8 text-center text-gray-500 text-sm">
           Copyright © 2025 Envisioner, Inc. All Rights Reserved.
         </div>
