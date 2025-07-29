@@ -1187,7 +1187,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log(`🔓 DESELECT: About to apply height state. Current selection in store: ${currentSelection}`);
                 console.log(`🔓 DESELECT: Deselecting section: ${sectionName}`);
                 
-                applyHeightState(); // Use the store's cleared state
+                // Force all objects to their original heights by calling applyHeightState multiple times if needed
+                applyHeightState();
+                
+                // Double-check and force restore if needed
+                setTimeout(() => {
+                  const storedHeights = getOriginalHeights();
+                  console.log("🔓 DESELECT: Double-checking heights after restoration:", storedHeights);
+                  
+                  // Manually ensure all objects are at original height
+                  contentPanelsRef.current.forEach(({ mesh }) => {
+                    const objSectionName = (mesh as any).bmcSectionName;
+                    if (objSectionName && adjustBMCSection && storedHeights[objSectionName]) {
+                      const originalHeight = storedHeights[objSectionName];
+                      adjustBMCSection(objSectionName, { height: originalHeight });
+                      console.log(`🔓 DESELECT: FORCE restored ${objSectionName} to height ${originalHeight}`);
+                    }
+                  });
+                }, 50);
                 
                 console.log("🔓 DESELECT: Height state applied - all objects should be at original heights");
               }, 20); // Small delay to ensure Zustand state has propagated
