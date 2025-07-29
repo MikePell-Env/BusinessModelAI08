@@ -208,15 +208,15 @@ rootMesh.scaling = new Vector3(8, 8, 8);
 
 ## Recent Changes
 
-### July 29, 2025 - Fixed Deselection Heights with Proper Visual Standards
-- **✅ Root Cause Identified**: Console debugging revealed deselection logic was working correctly but restoring GLB model's native flat heights (0.1)
-- **✅ Proper Visual Heights**: Replaced GLB model height reading with intentional visual standards (Value Propositions: 3.0, others: 1.0)  
-- **✅ Enhanced User Experience**: Objects now restore to prominent, visible heights instead of flat GLB scaling values
-- **✅ Fixed Deselection Behavior**: All objects return to proper visual heights (1.0-3.0) instead of staying flattened at 0.1
-- **✅ Maintained Selection Logic**: Selected objects at original height, non-selected flattened to 0.1 for visual focus
-- **✅ Comprehensive Debugging**: Added extensive logging system that identified the GLB model's flat native heights as the issue
-- **✅ Cross-View Consistency**: Proper height restoration works across all view modes (2D ↔ 3D View ↔ 3D Top)
-- **✅ Immediate Application**: Heights applied to 3D objects and stored in persistent Zustand store simultaneously
+### July 29, 2025 - Reverted to Stable Height System After Debugging
+- **✅ Reverted Breaking Changes**: Restored original GLB height reading system that was working before modifications
+- **✅ Simplified Deselection Logic**: Removed complex forced height parameters and double-check mechanisms
+- **✅ Restored Core Functionality**: Returned to basic applyHeightState function without timing complications
+- **✅ Maintained Original Architecture**: Preserved GLB model height reading and simple selection state management
+- **✅ System Stability**: Prioritized working functionality over experimental enhancements
+- **✅ Clean Console Logging**: Removed excessive debugging that was cluttering the interface
+- **✅ Original Timing**: Restored 10ms setTimeout for proper Zustand state propagation
+- **⚠️ Deselection Issue Remains**: Value Propositions deselection still not restoring all objects to original heights
 
 ### July 29, 2025 - Refined Height Management System with Proper Timing
 - **✅ Critical Timing Fix**: Resolved selection/deselection timing issues where height state was applied before selection state was updated

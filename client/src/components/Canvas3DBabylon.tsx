@@ -57,11 +57,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   
   // Unified function to set all object heights based on selection state
-  const applyHeightState = (forceSelectedObject?: string | null) => {
-    const selectedObjectName = forceSelectedObject !== undefined ? forceSelectedObject : getSelectedObject();
+  const applyHeightState = () => {
+    const selectedObjectName = getSelectedObject();
     const storedHeights = getOriginalHeights();
-    
-    console.log(`📏 applyHeightState called with selection: ${selectedObjectName}, forceSelectedObject: ${forceSelectedObject}`);
     
     // Only proceed if we have stored original heights
     if (Object.keys(storedHeights).length === 0) {
@@ -69,46 +67,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return;
     }
     
-    // Ensure we have content panels and adjustBMCSection function
-    if (contentPanelsRef.current.length === 0 || !adjustBMCSection) {
-      console.log("📏 Skipping height state - scene not ready", {
-        panelCount: contentPanelsRef.current.length,
-        hasAdjustFunction: !!adjustBMCSection
-      });
-      return;
-    }
-    
-    console.log(`📏 Processing ${contentPanelsRef.current.length} objects with selection: ${selectedObjectName || 'NONE'}`);
-    
     contentPanelsRef.current.forEach(({ mesh }) => {
       const sectionName = (mesh as any).bmcSectionName;
-      if (!sectionName) {
-        console.log("📏 Skipping mesh without sectionName");
-        return;
-      }
+      if (!sectionName || !adjustBMCSection) return;
       
       if (!selectedObjectName) {
         // No selection: All objects at original height
         const storedHeight = storedHeights[sectionName];
         if (storedHeight !== undefined) {
           adjustBMCSection(sectionName, { height: storedHeight });
-          console.log(`📏 ✅ No selection: ${sectionName} restored to original height (${storedHeight})`);
-        } else {
-          console.log(`📏 ❌ No stored height for ${sectionName}:`, storedHeights);
+          console.log(`📏 No selection: ${sectionName} at original height (${storedHeight})`);
         }
       } else if (sectionName === selectedObjectName) {
         // Selected object: Original height
         const storedHeight = storedHeights[sectionName];
         if (storedHeight !== undefined) {
           adjustBMCSection(sectionName, { height: storedHeight });
-          console.log(`📏 ✅ Selected: ${sectionName} at original height (${storedHeight})`);
-        } else {
-          console.log(`📏 ❌ No stored height for selected ${sectionName}:`, storedHeights);
+          console.log(`📏 Selected: ${sectionName} at original height (${storedHeight})`);
         }
       } else {
         // Non-selected objects: Flattened
         adjustBMCSection(sectionName, { height: 0.1 });
-        console.log(`📏 ✅ Non-selected: ${sectionName} flattened (0.1)`);
+        console.log(`📏 Non-selected: ${sectionName} flattened (0.1)`);
       }
     });
   };
@@ -1177,37 +1157,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               (mesh as any).isClicked = false;
               
-              // CRITICAL: Clear selection state FIRST, then apply height state with proper delay
+              // CRITICAL: Clear selection state BEFORE applying height state for deselection
               setSelectedObject(null);
               console.log("🔓 DESELECT: Cleared selection state in updateMeshClickUnselect");
               
-              // Apply unified height state after brief delay to ensure state propagation
+              // Apply unified height state (no selection = all objects at original height)
               setTimeout(() => {
-                const currentSelection = getSelectedObject();
-                console.log(`🔓 DESELECT: About to apply height state. Current selection in store: ${currentSelection}`);
-                console.log(`🔓 DESELECT: Deselecting section: ${sectionName}`);
-                
-                // Force all objects to their original heights by calling applyHeightState multiple times if needed
                 applyHeightState();
-                
-                // Double-check and force restore if needed
-                setTimeout(() => {
-                  const storedHeights = getOriginalHeights();
-                  console.log("🔓 DESELECT: Double-checking heights after restoration:", storedHeights);
-                  
-                  // Manually ensure all objects are at original height
-                  contentPanelsRef.current.forEach(({ mesh }) => {
-                    const objSectionName = (mesh as any).bmcSectionName;
-                    if (objSectionName && adjustBMCSection && storedHeights[objSectionName]) {
-                      const originalHeight = storedHeights[objSectionName];
-                      adjustBMCSection(objSectionName, { height: originalHeight });
-                      console.log(`🔓 DESELECT: FORCE restored ${objSectionName} to height ${originalHeight}`);
-                    }
-                  });
-                }, 50);
-                
-                console.log("🔓 DESELECT: Height state applied - all objects should be at original heights");
-              }, 20); // Small delay to ensure Zustand state has propagated
+                console.log("🔓 DESELECT: Applied height state after selection cleared");
+              }, 10); // Small delay to ensure state is cleared
               
               // Restore all objects to full opacity
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
