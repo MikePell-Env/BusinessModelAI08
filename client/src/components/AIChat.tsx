@@ -37,12 +37,12 @@ export const AIChat: React.FC = () => {
   }, [chatMessages]);
 
   const handleSendMessage = async () => {
-    console.log('Send message clicked:', { inputValue: inputValue.trim(), hasCanvas: !!canvas });
     if (!inputValue.trim()) {
-      console.log('No input value, returning');
       return;
     }
-    // Allow chat to work even without canvas loaded
+
+    // Store the original input value before clearing
+    const originalMessage = inputValue;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -56,6 +56,23 @@ export const AIChat: React.FC = () => {
     setLoading(true);
     setIsProcessing(true);
 
+    // Create a default canvas structure if none is loaded
+    const defaultCanvas = {
+      id: 'default',
+      name: 'General Business Discussion',
+      description: 'No specific business model canvas loaded',
+      keyPartners: { content: [] },
+      keyActivities: { content: [] },
+      keyResources: { content: [] },
+      valuePropositions: { content: [] },
+      customerRelationships: { content: [] },
+      channels: { content: [] },
+      customerSegments: { content: [] },
+      costStructure: { content: [] },
+      revenueStreams: { content: [] },
+      lastModified: new Date()
+    };
+
     try {
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -63,8 +80,8 @@ export const AIChat: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: inputValue,
-          canvas: canvas || null,
+          message: originalMessage,
+          canvas: canvas || defaultCanvas,
           chatHistory: chatMessages
         }),
       });
@@ -113,10 +130,8 @@ export const AIChat: React.FC = () => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    console.log('Key pressed:', e.key);
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      console.log('Enter key detected, calling handleSendMessage');
       handleSendMessage();
     }
   };
@@ -224,10 +239,7 @@ export const AIChat: React.FC = () => {
                 className="flex-1"
               />
               <Button 
-                onClick={() => {
-                  console.log('Send button clicked');
-                  handleSendMessage();
-                }} 
+                onClick={handleSendMessage} 
                 size="icon" 
                 disabled={!inputValue.trim()}
               >
