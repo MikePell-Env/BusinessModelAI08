@@ -149,10 +149,13 @@ export class PowerPointParser {
     
     let currentSection: {title: string, items: string[]} | null = null;
     
+    console.log('PowerPoint Parser - Processing lines:', lines);
+    
     for (const line of lines) {
       if (this.isSectionHeader(line)) {
         // Save previous section
         if (currentSection && currentSection.items.length > 0) {
+          console.log(`PowerPoint Parser - Completed section: ${currentSection.title}`, currentSection.items);
           sections.push(currentSection);
         }
         
@@ -161,22 +164,27 @@ export class PowerPointParser {
           title: line,
           items: []
         };
+        console.log(`PowerPoint Parser - Started new section: ${line}`);
       } else if (this.isBulletPoint(line) && currentSection) {
         const cleanedItem = this.cleanBulletPoint(line);
-        if (cleanedItem && !this.isCompanyInformation(cleanedItem)) {
+        if (cleanedItem && !this.isCompanyInformation(cleanedItem) && !this.isStandaloneKeyword(cleanedItem)) {
           currentSection.items.push(cleanedItem);
+          console.log(`PowerPoint Parser - Added bullet item to ${currentSection.title}: ${cleanedItem}`);
         }
-      } else if (currentSection && line.length > 0 && !this.isSectionHeader(line) && !this.isCompanyInformation(line)) {
-        // Add non-bullet content as regular items, but exclude company information
+      } else if (currentSection && line.length > 0 && !this.isSectionHeader(line) && !this.isCompanyInformation(line) && !this.isStandaloneKeyword(line)) {
+        // Add non-bullet content as regular items, but exclude company information and standalone keywords
         currentSection.items.push(line);
+        console.log(`PowerPoint Parser - Added regular item to ${currentSection.title}: ${line}`);
       }
     }
     
     // Don't forget the last section
     if (currentSection && currentSection.items.length > 0) {
+      console.log(`PowerPoint Parser - Completed final section: ${currentSection.title}`, currentSection.items);
       sections.push(currentSection);
     }
     
+    console.log('PowerPoint Parser - Final sections:', sections);
     return sections;
   }
 
@@ -204,6 +212,21 @@ export class PowerPointParser {
     ];
     
     return companyPatterns.some(pattern => pattern.test(line));
+  }
+
+  private isStandaloneKeyword(line: string): boolean {
+    // Check if line is just a standalone keyword that shouldn't be content
+    const standaloneKeywords = [
+      /^Key$/i,
+      /^Partners$/i,
+      /^Activities$/i,
+      /^Resources$/i,
+      /^Startup,?\s*Inc\.?$/i,
+      /^Inc\.?$/i,
+      /^Company$/i
+    ];
+    
+    return standaloneKeywords.some(pattern => pattern.test(line.trim()));
   }
 
   private extractCompanyName(content: string): string | null {
