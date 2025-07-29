@@ -1258,13 +1258,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Now configure close button functionality with access to refactored functions
             closeButton.onPointerClickObservable.add(() => {
-              // Clear selected object state FIRST so applyHeightState knows nothing is selected
-              setSelectedObject(null);
-              
-              updateMeshClickUnselect();
+              // Only hide the content panel - keep the 3D object selection state intact
               updateContentPanel(false);
               
-              console.log(`❌ Close button: ${sectionName} panel closed, mesh restored, all objects full opacity`);
+              console.log(`❌ Close button: ${sectionName} panel closed, 3D object selection preserved`);
             });
             
             console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - ${sectionName} - Interactive color: ${baseColor.r.toFixed(2)}, ${baseColor.g.toFixed(2)}, ${baseColor.b.toFixed(2)}`);
