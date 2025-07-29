@@ -202,7 +202,7 @@ export const HomePage: React.FC = () => {
           {/* Right Column - Videos with vertical line */}
           <div className="relative">
             {/* Vertical gray line */}
-            <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-500"></div>
             
             {/* Content with left padding for spacing from line */}
             <div className="pl-8">
