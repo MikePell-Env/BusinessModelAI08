@@ -58,9 +58,9 @@ export const BusinessModelCanvas: React.FC = () => {
       };
       
       processPowerPointFile();
-    } else {
-      console.log('🎯 BusinessModelCanvas: No pending PowerPoint file, loading sample canvas data');
-      // Load sample canvas data on component mount only if no PowerPoint file is pending
+    } else if (!canvas) {
+      // Only load sample canvas data if no canvas is loaded yet AND no PowerPoint file is pending
+      console.log('🎯 BusinessModelCanvas: No canvas loaded and no pending PowerPoint file, loading sample canvas data');
       try {
         loadCanvas(sampleCanvasData as CanvasType);
       } catch (err) {
@@ -68,7 +68,7 @@ export const BusinessModelCanvas: React.FC = () => {
         setError('Failed to load canvas data');
       }
     }
-  }, [loadCanvas, setError, pendingPowerPointFile, setPendingPowerPointFile]);
+  }, [loadCanvas, setError, pendingPowerPointFile, setPendingPowerPointFile, canvas]);
 
   const handleToggleView = () => {
     console.log(`Switching to ${is3D ? '2D' : '3D'} view`);
