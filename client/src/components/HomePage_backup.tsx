@@ -89,9 +89,9 @@ export const HomePage: React.FC = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-8 py-12">
         <div className="grid grid-cols-3 gap-8">
-          {/* Left Column - Main Content */}
-          <div className="col-span-2 flex flex-col items-center">
-            <div className="w-full max-w-4xl">
+          {/* Left Column - Main Content - Centered within its column */}
+          <div className="col-span-2">
+            <div className="max-w-4xl mx-auto">
               <div className="text-center">
                 <h1 className="text-2xl font-semibold text-gray-900 mb-1">
                   Welcome to our working demo site!
