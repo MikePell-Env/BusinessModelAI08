@@ -208,6 +208,7 @@ export const HomePage: React.FC = () => {
                   controls
                   muted
                   loop
+                  autoPlay
                 >
                   <source src="/2025-07-14T00-25-19_a_neon_data_pathway_1753819819664.mov" type="video/quicktime" />
                   Your browser does not support the video tag.
