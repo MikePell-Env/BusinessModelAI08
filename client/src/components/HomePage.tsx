@@ -86,211 +86,213 @@ export const HomePage: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-8 py-12">
-        <div className="grid grid-cols-3 gap-8">
-          {/* Left Column - Main Content - Always Centered */}
-          <div className="col-span-2 flex flex-col items-center">
-            <div className="w-full max-w-4xl">
-              <div className="text-center">
-                <h1 className="text-2xl font-semibold text-gray-900 mb-1">
-                  Welcome to our working demo site!
-                </h1>
-                <p className="text-lg text-gray-600 mb-16">
-                  (all real tech, no smoke and mirrors)
-                </p>
-              </div>
-
-              {/* Demo Info Banner */}
-              <div className="bg-blue-500 text-white p-6 rounded-lg mb-16">
-                <p className="text-lg">
-                  <strong>DEMO:</strong><br />
-                  Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
-                </p>
-              </div>
-
-              {/* Selection Section */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-                  <strong>Select</strong> how you want to get to the "moment of clarity" to make decisions:
-                </h2>
-
-              <div className="grid grid-cols-3 gap-6">
-                {/* Option 1 - Import Office Files */}
-                <div className="text-center">
-                  <div className="bg-white p-6 rounded-lg shadow-md border border-blue-500 hover:border-blue-600 transition-colors relative h-full flex flex-col">
-                    {/* Number 1 in top left */}
-                    <div className="absolute top-4 left-4 bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
-                      1
-                    </div>
-                    
-                    {/* Office Icons in center - flexible space */}
-                    <div className="flex items-center justify-center space-x-2 flex-grow mt-8">
-                      <img 
-                        src="/powerpoint-icon.webp" 
-                        alt="PowerPoint" 
-                        className="w-16 h-16"
-                      />
-                      <img 
-                        src="/excel-icon.webp" 
-                        alt="Excel" 
-                        className="w-16 h-16"
-                      />
-                    </div>
-                    
-                    {/* Button at bottom */}
-                    <Button 
-                      onClick={handleDirectImport}
-                      disabled={loading}
-                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2 mt-4"
-                    >
-                      {loading ? 'Processing...' : 'Import Office file...'}
-                    </Button>
-                  </div>
+      {/* Main Content - Always Centered */}
+      <main className="px-8 py-12">
+        <div className="flex justify-center">
+          <div className="max-w-7xl w-full">
+            <div className="grid grid-cols-12 gap-8">
+              {/* Main Content Column - Centered within grid */}
+              <div className="col-span-8 col-start-3">
+                <div className="text-center mb-16">
+                  <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+                    Welcome to our working demo site!
+                  </h1>
+                  <p className="text-lg text-gray-600">
+                    (all real tech, no smoke and mirrors)
+                  </p>
                 </div>
 
-                {/* Option 2 - Ask Copilot (Disabled) */}
-                <div className="text-center opacity-50">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
-                    {/* Number 2 in top left */}
-                    <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
-                      2
-                    </div>
-                    
-                    {/* Copilot Icon in center - flexible space, preserve aspect ratio */}
-                    <div className="flex items-center justify-center flex-grow mt-8">
-                      <img 
-                        src="/copilot-icon.png" 
-                        alt="Microsoft Copilot" 
-                        className="h-16 w-auto"
-                      />
-                    </div>
-                    
-                    {/* Button at bottom */}
-                    <Button 
-                      disabled
-                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 cursor-not-allowed rounded-lg py-2 mt-4"
-                    >
-                      Ask Copilot...
-                    </Button>
-                  </div>
+                {/* Demo Info Banner */}
+                <div className="bg-blue-500 text-white p-6 rounded-lg mb-16">
+                  <p className="text-lg">
+                    <strong>DEMO:</strong><br />
+                    Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
+                  </p>
                 </div>
 
-                {/* Option 3 - Dev API (Disabled) */}
-                <div className="text-center opacity-50">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
-                    {/* Number 3 in top left */}
-                    <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
-                      3
+                {/* Selection Section */}
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+                    <strong>Select</strong> how you want to get to the "moment of clarity" to make decisions:
+                  </h2>
+
+                  <div className="grid grid-cols-3 gap-6">
+                    {/* Option 1 - Import Office Files */}
+                    <div className="text-center">
+                      <div className="bg-white p-6 rounded-lg shadow-md border border-blue-500 hover:border-blue-600 transition-colors relative h-full flex flex-col">
+                        {/* Number 1 in top left */}
+                        <div className="absolute top-4 left-4 bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                          1
+                        </div>
+                        
+                        {/* Office Icons in center - flexible space */}
+                        <div className="flex items-center justify-center space-x-2 flex-grow mt-8">
+                          <img 
+                            src="/powerpoint-icon.webp" 
+                            alt="PowerPoint" 
+                            className="w-16 h-16"
+                          />
+                          <img 
+                            src="/excel-icon.webp" 
+                            alt="Excel" 
+                            className="w-16 h-16"
+                          />
+                        </div>
+                        
+                        {/* Button at bottom */}
+                        <Button 
+                          onClick={handleDirectImport}
+                          disabled={loading}
+                          className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2 mt-4"
+                        >
+                          {loading ? 'Processing...' : 'Import Office file...'}
+                        </Button>
+                      </div>
                     </div>
-                    
-                    {/* AI Foundry Icon in center - flexible space */}
-                    <div className="flex items-center justify-center flex-grow mt-8">
-                      <img 
-                        src="/ai-foundry-icon.png" 
-                        alt="AI Foundry" 
-                        className="w-16 h-16"
-                      />
+
+                    {/* Option 2 - Ask Copilot (Disabled) */}
+                    <div className="text-center opacity-50">
+                      <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
+                        {/* Number 2 in top left */}
+                        <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                          2
+                        </div>
+                        
+                        {/* Copilot Icon in center - flexible space */}
+                        <div className="flex items-center justify-center flex-grow mt-8">
+                          <img 
+                            src="/copilot-icon.webp" 
+                            alt="Copilot" 
+                            className="w-16 h-16"
+                          />
+                        </div>
+                        
+                        {/* Button at bottom */}
+                        <Button 
+                          disabled
+                          className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 cursor-not-allowed rounded-lg py-2 mt-4"
+                        >
+                          Ask Copilot AI...
+                        </Button>
+                      </div>
                     </div>
-                    
-                    {/* Button at bottom */}
-                    <Button 
-                      disabled
-                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 cursor-not-allowed rounded-lg py-2 mt-4"
-                    >
-                      Dev? Use MCP API...
-                    </Button>
+
+                    {/* Option 3 - Dev API (Disabled) */}
+                    <div className="text-center opacity-50">
+                      <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
+                        {/* Number 3 in top left */}
+                        <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                          3
+                        </div>
+                        
+                        {/* AI Foundry Icon in center - flexible space */}
+                        <div className="flex items-center justify-center flex-grow mt-8">
+                          <img 
+                            src="/ai-foundry-icon.png" 
+                            alt="AI Foundry" 
+                            className="w-16 h-16"
+                          />
+                        </div>
+                        
+                        {/* Button at bottom */}
+                        <Button 
+                          disabled
+                          className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 cursor-not-allowed rounded-lg py-2 mt-4"
+                        >
+                          Dev? Use MCP API...
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            </div>
-          </div>
 
-          {/* Right Column - Videos with vertical line */}
-          <div className="relative">
-            {/* Vertical gray line - aligned with bottom of Microsoft Copilot status box */}
-            <div className="absolute left-0 top-0 w-px bg-gray-500" style={{ height: 'calc(100vh - 180px)' }}></div>
-            
-            {/* Content with left padding for spacing from line */}
-            <div className="pl-8">
-              {/* Header text */}
-              <div className="mb-8">
-                <p className="text-lg text-gray-700 leading-relaxed">
-                  Use Envisioners to bring these aspects of your business to life...
-                </p>
-              </div>
-              
-              {/* Video sections */}
-              <div className="space-y-6">
-                <div className="text-center">
-                  <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
-                    <video 
-                      className="w-full h-32 object-cover"
-                      controls
-                      muted
-                      loop
-                      autoPlay
-                      onError={(e) => console.error('Video error:', e)}
-                      onLoadStart={() => console.log('Video loading started')}
-                      onCanPlay={() => console.log('Video can play')}
-                    >
-                      <source src="/neon-data-pathway.mp4" type="video/mp4" />
-                      <source src="/2025-07-14T00-25-19_a_neon_data_pathway_1753819819664.mov" type="video/quicktime" />
-                      <img 
-                        src="/video-fallback.png" 
-                        alt="Process Active" 
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
-                    </video>
-                  </div>
-                  <p className="text-sm text-gray-600 font-medium">Processes</p>
-                </div>
+              {/* Right Column - Videos with vertical line */}
+              <div className="col-span-3 relative">
+                {/* Vertical gray line - aligned with bottom of Microsoft Copilot status box */}
+                <div className="absolute left-0 top-0 w-px bg-gray-500" style={{ height: 'calc(100vh - 180px)' }}></div>
                 
-                <div className="text-center">
-                  <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
-                    <video 
-                      className="w-full h-32 object-cover"
-                      controls
-                      muted
-                      loop
-                      autoPlay
-                      onError={(e) => console.error('Data Analytics video error:', e)}
-                      onLoadStart={() => console.log('Data Analytics video loading started')}
-                      onCanPlay={() => console.log('Data Analytics video can play')}
-                    >
-                      <source src="/data-analytics-video.mp4" type="video/mp4" />
-                      <img 
-                        src="/video-fallback.png" 
-                        alt="Data Analytics" 
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
-                    </video>
+                {/* Content with left padding for spacing from line */}
+                <div className="pl-8">
+                  {/* Header text */}
+                  <div className="mb-8">
+                    <p className="text-lg text-gray-700 leading-relaxed">
+                      Use Envisioners to bring these aspects of your business to life...
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-600 font-medium">Datasets</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
-                    <video 
-                      className="w-full h-32 object-cover"
-                      controls
-                      muted
-                      loop
-                      autoPlay
-                      onError={(e) => console.error('Systems video error:', e)}
-                      onLoadStart={() => console.log('Systems video loading started')}
-                      onCanPlay={() => console.log('Systems video can play')}
-                    >
-                      <source src="/systems-video.mp4" type="video/mp4" />
-                      <img 
-                        src="/video-fallback.png" 
-                        alt="Systems Online" 
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
-                    </video>
+                  
+                  {/* Video sections */}
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                        <video 
+                          className="w-full h-32 object-cover"
+                          controls
+                          muted
+                          loop
+                          autoPlay
+                          onError={(e) => console.error('Video error:', e)}
+                          onLoadStart={() => console.log('Video loading started')}
+                          onCanPlay={() => console.log('Video can play')}
+                        >
+                          <source src="/neon-data-pathway.mp4" type="video/mp4" />
+                          <source src="/2025-07-14T00-25-19_a_neon_data_pathway_1753819819664.mov" type="video/quicktime" />
+                          <img 
+                            src="/video-fallback.png" 
+                            alt="Process Active" 
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                        </video>
+                      </div>
+                      <p className="text-sm text-gray-600 font-medium">Processes</p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                        <video 
+                          className="w-full h-32 object-cover"
+                          controls
+                          muted
+                          loop
+                          autoPlay
+                          onError={(e) => console.error('Data Analytics video error:', e)}
+                          onLoadStart={() => console.log('Data Analytics video loading started')}
+                          onCanPlay={() => console.log('Data Analytics video can play')}
+                        >
+                          <source src="/data-analytics-video.mp4" type="video/mp4" />
+                          <img 
+                            src="/video-fallback.png" 
+                            alt="Data Analytics" 
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                        </video>
+                      </div>
+                      <p className="text-sm text-gray-600 font-medium">Datasets</p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                        <video 
+                          className="w-full h-32 object-cover"
+                          controls
+                          muted
+                          loop
+                          autoPlay
+                          onError={(e) => console.error('Systems video error:', e)}
+                          onLoadStart={() => console.log('Systems video loading started')}
+                          onCanPlay={() => console.log('Systems video can play')}
+                        >
+                          <source src="/systems-video.mp4" type="video/mp4" />
+                          <img 
+                            src="/video-fallback.png" 
+                            alt="Systems Online" 
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                        </video>
+                      </div>
+                      <p className="text-sm text-gray-600 font-medium">Systems</p>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600 font-medium">Systems</p>
                 </div>
               </div>
             </div>
