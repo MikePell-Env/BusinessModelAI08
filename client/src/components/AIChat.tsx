@@ -37,7 +37,12 @@ export const AIChat: React.FC = () => {
   }, [chatMessages]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !canvas) return;
+    console.log('Send message clicked:', { inputValue: inputValue.trim(), hasCanvas: !!canvas });
+    if (!inputValue.trim()) {
+      console.log('No input value, returning');
+      return;
+    }
+    // Allow chat to work even without canvas loaded
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -59,7 +64,7 @@ export const AIChat: React.FC = () => {
         },
         body: JSON.stringify({
           message: inputValue,
-          canvas: canvas,
+          canvas: canvas || null,
           chatHistory: chatMessages
         }),
       });
@@ -108,8 +113,10 @@ export const AIChat: React.FC = () => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    console.log('Key pressed:', e.key);
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      console.log('Enter key detected, calling handleSendMessage');
       handleSendMessage();
     }
   };
@@ -216,7 +223,14 @@ export const AIChat: React.FC = () => {
                 placeholder="Ask about your business model..."
                 className="flex-1"
               />
-              <Button onClick={handleSendMessage} size="icon" disabled={!inputValue.trim()}>
+              <Button 
+                onClick={() => {
+                  console.log('Send button clicked');
+                  handleSendMessage();
+                }} 
+                size="icon" 
+                disabled={!inputValue.trim()}
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
