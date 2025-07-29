@@ -226,10 +226,24 @@ export const HomePage: React.FC = () => {
             </div>
             
             <div className="text-center">
-              <div className="w-full h-32 bg-gradient-to-br from-orange-600 to-yellow-500 rounded-lg shadow-md mb-2 flex items-center justify-center">
-                <div className="text-white text-sm font-bold">
-                  📊 Data Analytics
-                </div>
+              <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                <video 
+                  className="w-full h-32 object-cover"
+                  controls
+                  muted
+                  loop
+                  autoPlay
+                  onError={(e) => console.error('Data Analytics video error:', e)}
+                  onLoadStart={() => console.log('Data Analytics video loading started')}
+                  onCanPlay={() => console.log('Data Analytics video can play')}
+                >
+                  <source src="/data-analytics-video.mp4" type="video/mp4" />
+                  <img 
+                    src="/video-fallback.png" 
+                    alt="Data Analytics" 
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
+                </video>
               </div>
               <p className="text-sm text-gray-600 font-medium">Datasets</p>
             </div>
