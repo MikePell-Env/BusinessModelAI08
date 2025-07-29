@@ -18,6 +18,7 @@ interface CanvasState {
     radius: number;
   } | null;
   selectedObjectName: string | null;
+  originalHeights: { [sectionName: string]: number };
   
   // Actions
   loadCanvas: (canvas: BusinessModelCanvas, isFromPowerPoint?: boolean) => void;
@@ -33,6 +34,8 @@ interface CanvasState {
   getCamera3DState: () => { alpha: number; beta: number; radius: number; } | null;
   setSelectedObject: (objectName: string | null) => void;
   getSelectedObject: () => string | null;
+  setOriginalHeights: (heights: { [sectionName: string]: number }) => void;
+  getOriginalHeights: () => { [sectionName: string]: number };
 }
 
 export const useCanvas = create<CanvasState>()(
@@ -48,6 +51,7 @@ export const useCanvas = create<CanvasState>()(
     hasImportedFromPowerPoint: false,
     camera3DState: null,
     selectedObjectName: null,
+    originalHeights: {},
     
     loadCanvas: (canvas, isFromPowerPoint = false) => {
       set({ 
@@ -129,6 +133,14 @@ export const useCanvas = create<CanvasState>()(
     
     getSelectedObject: () => {
       return get().selectedObjectName;
+    },
+    
+    setOriginalHeights: (heights: { [sectionName: string]: number }) => {
+      set({ originalHeights: heights });
+    },
+    
+    getOriginalHeights: () => {
+      return get().originalHeights;
     }
   }))
 );

@@ -46,7 +46,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const orthoCameraRef = useRef<FreeCamera | null>(null);
   const rootMeshRef = useRef<AbstractMesh | null>(null);
-  const { saveCamera3DState, getCamera3DState, is3D, isOrthographic, setSelectedObject, getSelectedObject } = useCanvas();
+  const { saveCamera3DState, getCamera3DState, is3D, isOrthographic, setSelectedObject, getSelectedObject, setOriginalHeights, getOriginalHeights } = useCanvas();
   
   // Store all content panels for closing functionality
   const contentPanelsRef = useRef<any[]>([]);
@@ -59,9 +59,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Unified function to set all object heights based on selection state
   const applyHeightState = () => {
     const selectedObjectName = getSelectedObject();
+    const storedHeights = getOriginalHeights();
     
     // Only proceed if we have stored original heights
-    if (Object.keys(originalHeightsRef.current).length === 0) {
+    if (Object.keys(storedHeights).length === 0) {
       console.log("📏 Skipping height state - original heights not yet loaded");
       return;
     }
@@ -72,14 +73,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       if (!selectedObjectName) {
         // No selection: All objects at original height
-        const storedHeight = originalHeightsRef.current[sectionName];
+        const storedHeight = storedHeights[sectionName];
         if (storedHeight !== undefined) {
           adjustBMCSection(sectionName, { height: storedHeight });
           console.log(`📏 No selection: ${sectionName} at original height (${storedHeight})`);
         }
       } else if (sectionName === selectedObjectName) {
         // Selected object: Original height
-        const storedHeight = originalHeightsRef.current[sectionName];
+        const storedHeight = storedHeights[sectionName];
         if (storedHeight !== undefined) {
           adjustBMCSection(sectionName, { height: storedHeight });
           console.log(`📏 Selected: ${sectionName} at original height (${storedHeight})`);
@@ -1372,10 +1373,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Read the ACTUAL current scaling.y (height) values from each mesh's transform node
     // NOTE: This GLB model uses NORMAL Y-axis scaling - LARGER values = TALLER shapes  
-    setTimeout(() => {
+    const readInitialHeights = () => {
       console.log("🏗️ Reading actual transform node scaling.y values...");
       
       if (scene && scene.meshes) {
+        const heightsToStore: { [sectionName: string]: number } = {};
+        
         // Go through all meshes and read their current transform node scaling.y
         scene.meshes.forEach((mesh) => {
           const sectionName = (mesh as any).bmcSectionName;
@@ -1383,16 +1386,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           
           if (sectionName && transformNode) {
             const currentHeight = transformNode.scaling.y;
-            originalHeightsRef.current[sectionName] = currentHeight;
+            heightsToStore[sectionName] = currentHeight;
             console.log(`📏 ${sectionName}: Read actual scaling.y = ${currentHeight}`);
           }
         });
         
-        console.log("📏 Stored actual transform node heights:", originalHeightsRef.current);
+        // Store heights in persistent store immediately
+        setOriginalHeights(heightsToStore);
+        console.log("📏 Stored actual transform node heights:", heightsToStore);
+        
+        // Also update the local ref for backward compatibility
+        originalHeightsRef.current = heightsToStore;
       } else {
         console.error("❌ Scene or meshes not available for reading heights");
       }
-    }, 1500); // Wait for all meshes to be loaded and processed
+    };
+    
+    // Try to read heights immediately, then retry if needed
+    readInitialHeights();
+    setTimeout(readInitialHeights, 500); // Backup read in case meshes aren't ready
+    setTimeout(readInitialHeights, 1500); // Final read to ensure heights are captured
 
     // Start the render loop
     engine.runRenderLoop(() => {
