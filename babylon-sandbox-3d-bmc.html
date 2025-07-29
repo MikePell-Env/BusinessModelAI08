@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Business Model Canvas - Babylon.js Sandbox</title>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: grab;
+        }
+        
+        #canvas:active {
+            cursor: grabbing;
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .control-button {
+            background: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .control-button:hover {
+            background: #45a049;
+        }
+        
+        .control-button.active {
+            background: #2196F3;
+        }
+        
+        .info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            max-width: 300px;
+        }
+        
+        .info h3 {
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }
+        
+        .info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <h3>3D Business Model Canvas</h3>
+        <button id="perspectiveBtn" class="control-button active">3D View</button>
+        <button id="orthographicBtn" class="control-button">3D Top</button>
+        <button id="resetCameraBtn" class="control-button">Reset Camera</button>
+    </div>
+    
+    <div class="info">
+        <h3>Interactive Features</h3>
+        <p><strong>Hover:</strong> Objects turn blue</p>
+        <p><strong>Click:</strong> Select object & show content</p>
+        <p><strong>Selection:</strong> Non-selected objects flatten</p>
+        <p><strong>Camera:</strong> Mouse to orbit, wheel to zoom</p>
+        <p><strong>Models:</strong> Professional GLB from Blender</p>
+    </div>
+    
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // Global variables
+        let engine, scene, perspectiveCamera, orthoCamera;
+        let rootMesh = null;
+        let contentPanels = [];
+        let originalHeights = {};
+        let selectedObjectName = null;
+        let isOrthographic = false;
+        let adjustBMCSection = null;
+        let listBMCSections = null;
+        
+        // Business Model Canvas sample data
+        const sampleCanvas = {
+            name: "Sample Business Model",
+            elements: [
+                { name: "Key Partners", content: "Strategic partnerships and alliances that support our business model." },
+                { name: "Key Activities", content: "Core activities required to deliver our value proposition." },
+                { name: "Key Resources", content: "Critical assets needed to make our business model work." },
+                { name: "Value Propositions", content: "Products and services that create value for customer segments." },
+                { name: "Customer Relationships", content: "Types of relationships we establish with customer segments." },
+                { name: "Customer Channels", content: "How we reach and deliver value to our customers." },
+                { name: "Customer Segments", content: "Different groups of people our organization aims to serve." }
+            ]
+        };
+
+        // Initialize Babylon.js scene
+        function initBabylon() {
+            const canvas = document.getElementById('canvas');
+            
+            // Create engine and scene
+            engine = new BABYLON.Engine(canvas, true);
+            scene = new BABYLON.Scene(engine);
+            
+            // Set background to light gray (#e9ecef)
+            scene.clearColor = new BABYLON.Color4(233/255, 236/255, 239/255, 1.0);
+            
+            // Create cameras
+            createCameras(canvas);
+            
+            // Create lighting
+            createLighting();
+            
+            // Create ground with grid
+            createGround();
+            
+            // Load GLB model (using a placeholder URL - replace with actual model)
+            loadBusinessModelCanvas();
+            
+            // Start render loop
+            engine.runRenderLoop(() => {
+                scene.render();
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                engine.resize();
+            });
+        }
+
+        function createCameras(canvas) {
+            // Perspective camera
+            perspectiveCamera = new BABYLON.ArcRotateCamera(
+                "perspectiveCamera",
+                -Math.PI / 2.5,
+                Math.PI / 6,
+                25,
+                BABYLON.Vector3.Zero(),
+                scene
+            );
+            perspectiveCamera.attachControl(canvas, true);
+            perspectiveCamera.wheelPrecision = 50;
+            perspectiveCamera.lowerRadiusLimit = 5;
+            perspectiveCamera.upperRadiusLimit = 25;
+            perspectiveCamera.lowerBetaLimit = 0.1;
+            perspectiveCamera.upperBetaLimit = Math.PI / 2.2;
+            
+            // Orthographic camera
+            orthoCamera = new BABYLON.FreeCamera("orthoCamera", new BABYLON.Vector3(0, 15, 0), scene);
+            orthoCamera.setTarget(BABYLON.Vector3.Zero());
+            orthoCamera.rotation.y = Math.PI;
+            orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
+            
+            const aspectRatio = canvas.width / canvas.height;
+            const orthoSize = 10;
+            
+            if (aspectRatio > 1) {
+                orthoCamera.orthoTop = orthoSize;
+                orthoCamera.orthoBottom = -orthoSize;
+                orthoCamera.orthoLeft = -orthoSize * aspectRatio;
+                orthoCamera.orthoRight = orthoSize * aspectRatio;
+            } else {
+                orthoCamera.orthoTop = orthoSize / aspectRatio;
+                orthoCamera.orthoBottom = -orthoSize / aspectRatio;
+                orthoCamera.orthoLeft = -orthoSize;
+                orthoCamera.orthoRight = orthoSize;
+            }
+            
+            orthoCamera.inputs.clear();
+            scene.activeCamera = perspectiveCamera;
+        }
+
+        function createLighting() {
+            // Hemispheric light
+            const hemisphericLight = new BABYLON.HemisphericLight("hemisphericLight", new BABYLON.Vector3(0, 1, 0), scene);
+            hemisphericLight.intensity = 1.2;
+            hemisphericLight.diffuse = new BABYLON.Color3(0.9, 0.9, 0.9);
+            hemisphericLight.specular = new BABYLON.Color3(0.2, 0.2, 0.2);
+            
+            // Directional lights
+            const directionalLight = new BABYLON.DirectionalLight("directionalLight", new BABYLON.Vector3(-1, -1, -1), scene);
+            directionalLight.intensity = 1.8;
+            directionalLight.diffuse = new BABYLON.Color3(1, 1, 1);
+            directionalLight.specular = new BABYLON.Color3(0.3, 0.3, 0.3);
+            
+            const directionalLight2 = new BABYLON.DirectionalLight("directionalLight2", new BABYLON.Vector3(1, -0.8, 0.5), scene);
+            directionalLight2.intensity = 1.2;
+            directionalLight2.diffuse = new BABYLON.Color3(0.95, 0.95, 1);
+            directionalLight2.specular = new BABYLON.Color3(0.2, 0.2, 0.25);
+            
+            // Environment
+            const environmentHelper = scene.createDefaultEnvironment({
+                createGround: false,
+                createSkybox: false,
+                skyboxSize: 100,
+                skyboxColor: new BABYLON.Color3(0.95, 0.95, 0.97),
+                groundColor: new BABYLON.Color3(0.9, 0.9, 0.9)
+            });
+            
+            if (environmentHelper) {
+                scene.environmentIntensity = 1.0;
+            }
+        }
+
+        function createGround() {
+            const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
+            
+            // Create grid texture
+            const gridTexture = new BABYLON.DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
+            const gridContext = gridTexture.getContext();
+            
+            // Fill with powder blue background
+            gridContext.fillStyle = "#a7dbfc";
+            gridContext.fillRect(0, 0, 1024, 1024);
+            
+            // Draw white grid lines
+            gridContext.strokeStyle = "#FFFFFF";
+            gridContext.lineWidth = 1;
+            
+            // Vertical lines
+            for (let i = 0; i <= 1024; i += 32) {
+                gridContext.beginPath();
+                gridContext.moveTo(i, 0);
+                gridContext.lineTo(i, 1024);
+                gridContext.stroke();
+            }
+            
+            // Horizontal lines
+            for (let i = 0; i <= 1024; i += 32) {
+                gridContext.beginPath();
+                gridContext.moveTo(0, i);
+                gridContext.lineTo(1024, i);
+                gridContext.stroke();
+            }
+            
+            gridTexture.update();
+            
+            // Apply material
+            const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+            groundMaterial.diffuseTexture = gridTexture;
+            groundMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.2);
+            groundMaterial.specularPower = 64;
+            groundMaterial.alpha = 0.5;
+            ground.material = groundMaterial;
+            
+            // Create border rails
+            createBorderRails();
+        }
+
+        function createBorderRails() {
+            const railHeight = 0.15;
+            const railWidth = 0.2;
+            const railColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+            
+            const railMaterial = new BABYLON.StandardMaterial("railMaterial", scene);
+            railMaterial.diffuseColor = railColor;
+            railMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+            
+            // North rail
+            const northRail = BABYLON.MeshBuilder.CreateBox("northRail", {
+                width: 20 + railWidth*2,
+                height: railHeight,
+                depth: railWidth
+            }, scene);
+            northRail.position = new BABYLON.Vector3(0, railHeight/2, -7 - railWidth/2);
+            northRail.material = railMaterial;
+            
+            // South rail
+            const southRail = BABYLON.MeshBuilder.CreateBox("southRail", {
+                width: 20 + railWidth*2,
+                height: railHeight,
+                depth: railWidth
+            }, scene);
+            southRail.position = new BABYLON.Vector3(0, railHeight/2, 7 + railWidth/2);
+            southRail.material = railMaterial;
+            
+            // East rail
+            const eastRail = BABYLON.MeshBuilder.CreateBox("eastRail", {
+                width: railWidth,
+                height: railHeight,
+                depth: 14
+            }, scene);
+            eastRail.position = new BABYLON.Vector3(10 + railWidth/2, railHeight/2, 0);
+            eastRail.material = railMaterial;
+            
+            // West rail
+            const westRail = BABYLON.MeshBuilder.CreateBox("westRail", {
+                width: railWidth,
+                height: railHeight,
+                depth: 14
+            }, scene);
+            westRail.position = new BABYLON.Vector3(-10 - railWidth/2, railHeight/2, 0);
+            westRail.material = railMaterial;
+        }
+
+        function loadBusinessModelCanvas() {
+            // Since we don't have the actual GLB file in sandbox, create placeholder geometry
+            // Replace this section with SceneLoader.ImportMesh() when using actual GLB model
+            
+            console.log("📦 Creating placeholder 3D Business Model Canvas...");
+            
+            // Create a root transform node
+            rootMesh = new BABYLON.TransformNode("bmcRoot", scene);
+            rootMesh.position = new BABYLON.Vector3(0, 0.1, 0);
+            rootMesh.scaling = new BABYLON.Vector3(8, 8, 8);
+            
+            // Business model canvas sections with positions (circular layout)
+            const sections = [
+                { name: "Key Partners", position: [-3, 0, 1.5], color: [0.0, 0.8, 0.0] },
+                { name: "Key Activities", position: [-1.5, 0, 3], color: [1.0, 0.5, 0.0] },
+                { name: "Key Resources", position: [-3, 0, -1.5], color: [0.8, 0.0, 0.0] },
+                { name: "Value Propositions", position: [0, 0, 0], color: [0.0, 0.0, 1.0], height: 3.0 },
+                { name: "Customer Relationships", position: [1.5, 0, 3], color: [1.0, 1.0, 0.0] },
+                { name: "Customer Channels", position: [0, 0, -3], color: [0.0, 1.0, 1.0] },
+                { name: "Customer Segments", position: [3, 0, 1.5], color: [0.5, 0.0, 1.0] }
+            ];
+            
+            const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+            
+            sections.forEach((sectionData, index) => {
+                createBMCSection(sectionData, index, advancedTexture);
+            });
+            
+            // Store original heights
+            sections.forEach(section => {
+                originalHeights[section.name] = section.height || 1.0;
+            });
+            
+            console.log("✅ Placeholder BMC created with", sections.length, "sections");
+        }
+
+        function createBMCSection(sectionData, index, advancedTexture) {
+            const { name, position, color, height = 1.0 } = sectionData;
+            
+            // Create section transform node
+            const sectionTransform = new BABYLON.TransformNode(`${name}Transform`, scene);
+            sectionTransform.parent = rootMesh;
+            sectionTransform.position = new BABYLON.Vector3(position[0], position[1], position[2]);
+            
+            // Create mesh based on section type
+            let mesh;
+            if (name === "Value Propositions") {
+                mesh = BABYLON.MeshBuilder.CreateCylinder(name, { height: height, diameter: 2 }, scene);
+            } else {
+                mesh = BABYLON.MeshBuilder.CreateBox(name, { width: 2, height: height, depth: 1.5 }, scene);
+            }
+            
+            mesh.parent = sectionTransform;
+            mesh.bmcSectionName = name;
+            
+            // Create semi-gloss black plastic material
+            const material = new BABYLON.PBRMetallicRoughnessMaterial(`${name}Material`, scene);
+            material.baseColor = new BABYLON.Color3(0.005, 0.005, 0.005); // Very dark black
+            material.metallicFactor = 0.0; // Not metallic
+            material.roughnessFactor = 0.7; // Semi-gloss
+            material.environmentIntensity = 0.3;
+            
+            mesh.material = material;
+            mesh.receiveShadows = true;
+            
+            // Store original properties
+            mesh.originalColor = material.baseColor.clone();
+            mesh.originalMaterial = material;
+            mesh.isClicked = false;
+            
+            // Create content panel
+            createContentPanel(mesh, name, index, advancedTexture);
+            
+            // Add interactions
+            setupMeshInteractions(mesh, name, material);
+            
+            contentPanels.push({ panel: null, mesh, material });
+        }
+
+        function createContentPanel(mesh, sectionName, index, advancedTexture) {
+            const contentPanel = new BABYLON.GUI.Rectangle(`contentPanel_${index}`);
+            contentPanel.widthInPixels = 320;
+            contentPanel.heightInPixels = 240;
+            contentPanel.cornerRadius = 12;
+            contentPanel.color = "white";
+            contentPanel.thickness = 2;
+            contentPanel.background = "rgba(255, 255, 255, 0.95)";
+            contentPanel.isVisible = false;
+            contentPanel.zIndex = 3000;
+            
+            // Create title
+            const titleText = new BABYLON.GUI.TextBlock(`titleText_${index}`, sectionName);
+            titleText.color = "black";
+            titleText.fontSize = "14px";
+            titleText.fontWeight = "bold";
+            titleText.fontFamily = "Arial, sans-serif";
+            titleText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+            titleText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+            titleText.paddingTop = "8px";
+            titleText.height = "25px";
+            
+            // Create close button
+            const closeButton = new BABYLON.GUI.TextBlock(`closeButton_${index}`, "X");
+            closeButton.color = "grey";
+            closeButton.fontSize = "16px";
+            closeButton.fontWeight = "bold";
+            closeButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            closeButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+            closeButton.topInPixels = 8;
+            closeButton.leftInPixels = -12;
+            closeButton.widthInPixels = 20;
+            closeButton.heightInPixels = 20;
+            closeButton.isPointerBlocker = true;
+            
+            // Create content text
+            const contentText = new BABYLON.GUI.TextBlock(`contentText_${index}`, "");
+            contentText.color = "black";
+            contentText.fontSize = "13px";
+            contentText.fontFamily = "Arial, sans-serif";
+            contentText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+            contentText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+            contentText.paddingTop = "45px";
+            contentText.paddingLeft = "15px";
+            contentText.paddingRight = "15px";
+            contentText.paddingBottom = "15px";
+            contentText.textWrapping = true;
+            
+            // Set content from sample data
+            const elementData = sampleCanvas.elements.find(el => el.name === sectionName);
+            if (elementData) {
+                contentText.text = elementData.content;
+            }
+            
+            contentPanel.addControl(titleText);
+            contentPanel.addControl(closeButton);
+            contentPanel.addControl(contentText);
+            advancedTexture.addControl(contentPanel);
+            
+            // Position panel above mesh
+            contentPanel.linkWithMesh(mesh);
+            contentPanel.linkOffsetY = "-200px";
+            
+            // Store references
+            mesh.contentPanel = contentPanel;
+            mesh.contentText = contentText;
+            
+            // Close button functionality
+            closeButton.onPointerClickObservable.add(() => {
+                unselectObject(mesh, sectionName);
+            });
+        }
+
+        function setupMeshInteractions(mesh, sectionName, material) {
+            mesh.actionManager = new BABYLON.ActionManager(scene);
+            
+            // Hover enter
+            mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, () => {
+                if (!mesh.isClicked && !selectedObjectName) {
+                    const brightBlueColor = new BABYLON.Color3(0.0, 0.3, 0.8);
+                    material.baseColor = brightBlueColor;
+                    
+                    // Set all objects to 100% opacity
+                    contentPanels.forEach(({ material: mat }) => {
+                        mat.alpha = 1.0;
+                    });
+                    
+                    console.log(`💡 Hover enter: ${sectionName}`);
+                }
+            }));
+            
+            // Hover exit
+            mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, () => {
+                if (!mesh.isClicked && !selectedObjectName) {
+                    material.baseColor = mesh.originalColor;
+                    console.log(`🔄 Hover exit: ${sectionName}`);
+                }
+            }));
+            
+            // Click
+            mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, () => {
+                if (mesh.isClicked) {
+                    unselectObject(mesh, sectionName);
+                } else {
+                    selectObject(mesh, sectionName, material);
+                }
+            }));
+        }
+
+        function selectObject(mesh, sectionName, material) {
+            // Clear any existing selection
+            if (selectedObjectName) {
+                const currentSelected = contentPanels.find(p => p.mesh.bmcSectionName === selectedObjectName);
+                if (currentSelected) {
+                    unselectObject(currentSelected.mesh, selectedObjectName);
+                }
+            }
+            
+            selectedObjectName = sectionName;
+            mesh.isClicked = true;
+            
+            // Set blue color
+            const brightBlueColor = new BABYLON.Color3(0.0, 0.3, 0.8);
+            material.baseColor = brightBlueColor;
+            
+            // Show content panel
+            if (mesh.contentPanel) {
+                mesh.contentPanel.isVisible = true;
+            }
+            
+            // Apply height state (selected at original height, others flattened)
+            applyHeightState();
+            
+            // Set opacity (selected 100%, others 50%)
+            contentPanels.forEach(({ mesh: otherMesh, material: otherMat }) => {
+                otherMat.alpha = otherMesh === mesh ? 1.0 : 0.5;
+            });
+            
+            console.log(`🔒 Selected: ${sectionName}`);
+        }
+
+        function unselectObject(mesh, sectionName) {
+            selectedObjectName = null;
+            mesh.isClicked = false;
+            
+            // Restore original color
+            mesh.material.baseColor = mesh.originalColor;
+            
+            // Hide content panel
+            if (mesh.contentPanel) {
+                mesh.contentPanel.isVisible = false;
+            }
+            
+            // Restore all heights and opacity
+            restoreAllObjectsToOriginalState();
+            
+            console.log(`🔓 Unselected: ${sectionName}`);
+        }
+
+        function applyHeightState() {
+            if (Object.keys(originalHeights).length === 0) return;
+            
+            contentPanels.forEach(({ mesh }) => {
+                const sectionName = mesh.bmcSectionName;
+                if (!sectionName) return;
+                
+                let targetHeight;
+                if (!selectedObjectName) {
+                    // No selection: all at original height
+                    targetHeight = originalHeights[sectionName];
+                } else if (sectionName === selectedObjectName) {
+                    // Selected: original height
+                    targetHeight = originalHeights[sectionName];
+                } else {
+                    // Non-selected: flattened
+                    targetHeight = 0.1;
+                }
+                
+                // Apply height by scaling Y
+                const currentScaleY = mesh.scaling.y;
+                const scaleRatio = targetHeight / (originalHeights[sectionName] || 1.0);
+                mesh.scaling.y = scaleRatio;
+                
+                console.log(`📏 ${sectionName}: height ${targetHeight} (scale: ${scaleRatio})`);
+            });
+        }
+
+        function restoreAllObjectsToOriginalState() {
+            contentPanels.forEach(({ mesh, material }) => {
+                const sectionName = mesh.bmcSectionName;
+                if (sectionName && originalHeights[sectionName]) {
+                    // Restore height
+                    mesh.scaling.y = 1.0; // Back to original scale
+                    console.log(`🔓 Restored ${sectionName} to original height`);
+                }
+                
+                // Restore opacity
+                material.alpha = 1.0;
+            });
+        }
+
+        function switchToOrthographic() {
+            if (rootMesh) {
+                rootMesh.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+            }
+            scene.activeCamera = orthoCamera;
+            isOrthographic = true;
+            
+            document.getElementById('perspectiveBtn').classList.remove('active');
+            document.getElementById('orthographicBtn').classList.add('active');
+            
+            console.log("🔄 Switched to orthographic (3D Top) view");
+        }
+
+        function switchToPerspective() {
+            if (rootMesh) {
+                rootMesh.rotation = BABYLON.Vector3.Zero();
+            }
+            scene.activeCamera = perspectiveCamera;
+            isOrthographic = false;
+            
+            document.getElementById('orthographicBtn').classList.remove('active');
+            document.getElementById('perspectiveBtn').classList.add('active');
+            
+            console.log("🔄 Switched to perspective (3D View) view");
+        }
+
+        function resetCamera() {
+            if (isOrthographic) {
+                // Reset orthographic camera position
+                orthoCamera.position = new BABYLON.Vector3(0, 15, 0);
+                orthoCamera.setTarget(BABYLON.Vector3.Zero());
+            } else {
+                // Reset perspective camera
+                perspectiveCamera.alpha = -Math.PI / 2.5;
+                perspectiveCamera.beta = Math.PI / 6;
+                perspectiveCamera.radius = 25;
+                perspectiveCamera.setTarget(BABYLON.Vector3.Zero());
+            }
+            
+            console.log("📷 Camera reset");
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Babylon.js
+            initBabylon();
+            
+            // Setup control buttons
+            document.getElementById('perspectiveBtn').addEventListener('click', switchToPerspective);
+            document.getElementById('orthographicBtn').addEventListener('click', switchToOrthographic);
+            document.getElementById('resetCameraBtn').addEventListener('click', resetCamera);
+            
+            console.log("✅ 3D Business Model Canvas Sandbox Ready!");
+            console.log("📝 Note: Replace placeholder geometry with actual GLB model using SceneLoader.ImportMesh()");
+        });
+
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            if (engine) {
+                engine.resize();
+            }
+        });
+    </script>
+</body>
+</html>
