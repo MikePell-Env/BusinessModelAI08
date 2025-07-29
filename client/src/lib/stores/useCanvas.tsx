@@ -66,7 +66,12 @@ export const useCanvas = create<CanvasState>()(
       set({ isTransitioning: true });
       
       setTimeout(() => {
-        set({ is3D: !is3D, isOrthographic: false, isTransitioning: false });
+        set({ 
+          is3D: !is3D, 
+          isOrthographic: false, 
+          isTransitioning: false,
+          selectedObjectName: null // Clear selection on view switch
+        });
       }, 300);
     },
     
@@ -77,7 +82,8 @@ export const useCanvas = create<CanvasState>()(
         set({ 
           is3D: true, // Always in 3D when orthographic
           isOrthographic: isOrtho, 
-          isTransitioning: false 
+          isTransitioning: false,
+          selectedObjectName: null // Clear selection on view switch
         });
       }, 300);
     },
