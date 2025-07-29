@@ -934,6 +934,109 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.isPickable = false;
               
               console.log(`✅ Value Propositions label plane created`);
+              
+              // Add pulsating green stroke animation to the top edge of Value Propositions cylinder
+              const createPulsatingEdge = () => {
+                // Get mesh geometry to create edge lines
+                const positions = mesh.getVerticesData("position");
+                const indices = mesh.getIndices();
+                
+                if (!positions || !indices) {
+                  console.log("❌ Could not create edge animation - no mesh data");
+                  return;
+                }
+                
+                // Find the top face vertices (highest Y values)
+                const topVertices: Vector3[] = [];
+                const vertices: Vector3[] = [];
+                
+                // Convert positions array to Vector3 array
+                for (let i = 0; i < positions.length; i += 3) {
+                  vertices.push(new Vector3(positions[i], positions[i + 1], positions[i + 2]));
+                }
+                
+                // Find maximum Y value (top of cylinder)
+                let maxY = -Infinity;
+                vertices.forEach(vertex => {
+                  if (vertex.y > maxY) maxY = vertex.y;
+                });
+                
+                // Collect vertices near the top (within small tolerance)
+                const tolerance = 0.01;
+                vertices.forEach(vertex => {
+                  if (Math.abs(vertex.y - maxY) < tolerance) {
+                    topVertices.push(vertex);
+                  }
+                });
+                
+                // Sort top vertices by angle to create circular edge
+                const center = new Vector3(0, maxY, 0); // Top center
+                topVertices.sort((a, b) => {
+                  const angleA = Math.atan2(a.z - center.z, a.x - center.x);
+                  const angleB = Math.atan2(b.z - center.z, b.x - center.x);
+                  return angleA - angleB;
+                });
+                
+                if (topVertices.length < 3) {
+                  console.log("❌ Not enough top vertices found for edge animation");
+                  return;
+                }
+                
+                // Create edge lines using points
+                const edgePoints: Vector3[] = [];
+                topVertices.forEach(vertex => {
+                  edgePoints.push(vertex);
+                });
+                // Close the loop
+                if (edgePoints.length > 0) {
+                  edgePoints.push(edgePoints[0]);
+                }
+                
+                // Create the pulsating green edge line
+                const edgeLine = MeshBuilder.CreateLines("valuePropositionEdge", {
+                  points: edgePoints,
+                  updatable: true
+                }, scene);
+                
+                // Create bright green material for the edge
+                const edgeMaterial = new StandardMaterial("valuePropositionEdgeMat", scene);
+                edgeMaterial.emissiveColor = new Color3(0, 1, 0); // Bright green
+                edgeMaterial.disableLighting = true;
+                
+                // Set line properties
+                edgeLine.color = new Color3(0, 1, 0); // Bright green
+                edgeLine.parent = mesh;
+                edgeLine.isPickable = false;
+                
+                // Store animation reference
+                (mesh as any).pulsatingEdge = edgeLine;
+                
+                // Create pulsating animation
+                let animationTime = 0;
+                const animateEdge = () => {
+                  if (edgeLine && !edgeLine.isDisposed()) {
+                    animationTime += 0.02; // Animation speed
+                    
+                    // Pulsate opacity and glow
+                    const pulse = (Math.sin(animationTime * 2) + 1) / 2; // 0 to 1
+                    const intensity = 0.3 + (pulse * 0.7); // 0.3 to 1.0
+                    
+                    // Update line color with pulsating intensity
+                    edgeLine.color = new Color3(0, intensity, 0);
+                    
+                    // Continue animation
+                    requestAnimationFrame(animateEdge);
+                  }
+                };
+                
+                // Start animation
+                animateEdge();
+                
+                console.log(`✅ Pulsating green edge animation created for Value Propositions with ${topVertices.length} vertices`);
+              };
+              
+              // Create the pulsating edge after a short delay to ensure mesh is ready
+              setTimeout(createPulsatingEdge, 100);
             }
             
             mesh.material = sectionMaterial;
