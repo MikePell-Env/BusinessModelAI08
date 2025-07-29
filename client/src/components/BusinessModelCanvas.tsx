@@ -11,10 +11,14 @@ import { MicrosoftRecommendations } from './MicrosoftRecommendations';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import samplePowerPointData from '@/data/samplePowerPointCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
-import { Eye, Box, RotateCcw, RectangleHorizontal, Settings } from 'lucide-react';
+import { Eye, Box, RotateCcw, RectangleHorizontal, Settings, Home } from 'lucide-react';
 import { powerpointParser } from '@/utils/powerpointParser';
 
-export const BusinessModelCanvas: React.FC = () => {
+interface BusinessModelCanvasProps {
+  onNavigateHome?: () => void;
+}
+
+export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavigateHome }) => {
   const {
     canvas,
     is3D,
@@ -109,6 +113,17 @@ export const BusinessModelCanvas: React.FC = () => {
     <div className="relative w-full h-full bg-white">
       {/* Header Controls */}
       <div className="absolute top-4 left-4 z-40 flex space-x-2">
+        {onNavigateHome && (
+          <Button
+            onClick={onNavigateHome}
+            className="border border-gray-300 shadow-md bg-white text-gray-800 hover:bg-gray-50"
+            size="sm"
+          >
+            <Home className="w-4 h-4 mr-2" />
+            Home
+          </Button>
+        )}
+        
         <Button
           onClick={() => !is3D || handleToggleView()}
           disabled={isTransitioning || !is3D}
