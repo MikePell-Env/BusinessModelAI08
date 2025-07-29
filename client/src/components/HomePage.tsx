@@ -122,7 +122,7 @@ export const HomePage: React.FC = () => {
                     {/* Button at bottom */}
                     <Button 
                       disabled
-                      className="w-full bg-gray-200 text-gray-600 cursor-not-allowed rounded-lg py-2 mt-4"
+                      className="w-full bg-gray-200 text-gray-800 cursor-not-allowed rounded-lg py-2 mt-4"
                     >
                       Ask Copilot...
                     </Button>
@@ -149,7 +149,7 @@ export const HomePage: React.FC = () => {
                     {/* Button at bottom */}
                     <Button 
                       disabled
-                      className="w-full bg-gray-200 text-gray-600 cursor-not-allowed rounded-lg py-2 mt-4"
+                      className="w-full bg-gray-200 text-gray-800 cursor-not-allowed rounded-lg py-2 mt-4"
                     >
                       Dev? Use MCP API...
                     </Button>
