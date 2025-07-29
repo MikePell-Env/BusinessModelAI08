@@ -32,6 +32,8 @@ export const BusinessModelCanvas: React.FC = () => {
 
 
   useEffect(() => {
+    console.log('🎯 BusinessModelCanvas: useEffect triggered, pendingPowerPointFile:', pendingPowerPointFile);
+    
     // Check if there's a pending PowerPoint file to process
     if (pendingPowerPointFile) {
       console.log('🎯 BusinessModelCanvas: Found pending PowerPoint file:', pendingPowerPointFile.name);
@@ -76,6 +78,7 @@ export const BusinessModelCanvas: React.FC = () => {
       processPowerPointFile();
       */
     } else {
+      console.log('🎯 BusinessModelCanvas: No pending PowerPoint file, loading sample canvas data');
       // Load sample canvas data on component mount only if no PowerPoint file is pending
       try {
         loadCanvas(sampleCanvasData as CanvasType);
