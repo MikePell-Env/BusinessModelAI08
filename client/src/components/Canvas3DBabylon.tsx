@@ -1392,45 +1392,51 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // Read the ACTUAL current scaling.y (height) values from each mesh's transform node
-    // NOTE: This GLB model uses NORMAL Y-axis scaling - LARGER values = TALLER shapes  
-    const readInitialHeights = () => {
-      console.log("🏗️ Reading actual transform node scaling.y values...");
+    // Set proper visual heights instead of reading GLB model's flat scaling values
+    // The GLB model's native heights are too flat for good user experience
+    const setProperVisualHeights = () => {
+      console.log("🏗️ Setting proper visual heights for better user experience...");
       
-      if (scene && scene.meshes) {
-        const heightsToStore: { [sectionName: string]: number } = {};
-        
-        // Go through all meshes and read their current transform node scaling.y
+      // Define intended visual heights for each section
+      const properHeights: { [sectionName: string]: number } = {
+        "Value Propositions": 3.0,     // Central prominence
+        "Key Partners": 1.0,           // Standard height
+        "Key Activities": 1.0,         // Standard height  
+        "Key Resources": 1.0,          // Standard height
+        "Customer Relationships": 1.0,  // Standard height
+        "Channels": 1.0,               // Standard height
+        "Customer Segments": 1.0,      // Standard height
+        "Cost Structure": 1.0,         // Standard height
+        "Revenue Streams": 1.0         // Standard height
+      };
+      
+      // Apply these heights to the actual 3D objects immediately
+      if (scene && scene.meshes && adjustBMCSection) {
         scene.meshes.forEach((mesh) => {
           const sectionName = (mesh as any).bmcSectionName;
-          const transformNode = (mesh as any).bmcTransformNode as TransformNode;
-          
-          if (sectionName && transformNode) {
-            const currentHeight = transformNode.scaling.y;
-            heightsToStore[sectionName] = currentHeight;
-            console.log(`📏 ${sectionName}: Read actual scaling.y = ${currentHeight}`);
+          if (sectionName && properHeights[sectionName]) {
+            adjustBMCSection(sectionName, { height: properHeights[sectionName] });
+            console.log(`📏 ${sectionName}: Set visual height = ${properHeights[sectionName]}`);
           }
         });
-        
-        // Store heights in persistent store immediately
-        setOriginalHeights(heightsToStore);
-        console.log("📏 Stored actual transform node heights in PERSISTENT STORE:", heightsToStore);
-        
-        // Verify the store has the heights
-        const verifyStored = getOriginalHeights();
-        console.log("📏 VERIFICATION - Heights in store after setting:", verifyStored);
-        
-        // Also update the local ref for backward compatibility
-        originalHeightsRef.current = heightsToStore;
-      } else {
-        console.error("❌ Scene or meshes not available for reading heights");
       }
+      
+      // Store these proper heights in persistent store
+      setOriginalHeights(properHeights);
+      console.log("📏 Stored proper visual heights in PERSISTENT STORE:", properHeights);
+      
+      // Verify the store has the heights
+      const verifyStored = getOriginalHeights();
+      console.log("📏 VERIFICATION - Heights in store after setting:", verifyStored);
+      
+      // Also update the local ref for backward compatibility
+      originalHeightsRef.current = properHeights;
     };
     
-    // Try to read heights immediately, then retry if needed
-    readInitialHeights();
-    setTimeout(readInitialHeights, 500); // Backup read in case meshes aren't ready
-    setTimeout(readInitialHeights, 1500); // Final read to ensure heights are captured
+    // Set proper visual heights immediately, then retry if needed
+    setProperVisualHeights();
+    setTimeout(setProperVisualHeights, 500); // Backup set in case adjustBMCSection isn't ready
+    setTimeout(setProperVisualHeights, 1500); // Final set to ensure heights are applied
     
     // Also attempt to restore any existing selection state after heights are read
     setTimeout(() => {
