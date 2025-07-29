@@ -69,14 +69,14 @@ export const HomePage: React.FC = () => {
               <div className="grid grid-cols-3 gap-6">
                 {/* Option 1 - Import Office Files */}
                 <div className="text-center">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 hover:border-blue-500 transition-colors relative h-full">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 hover:border-blue-500 transition-colors relative h-full flex flex-col">
                     {/* Number 1 in top left */}
                     <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       1
                     </div>
                     
-                    {/* Office Icons in center */}
-                    <div className="flex items-center justify-center space-x-2 mb-6 mt-4">
+                    {/* Office Icons in center - flexible space */}
+                    <div className="flex items-center justify-center space-x-2 flex-grow mt-8">
                       <img 
                         src="/powerpoint-icon.webp" 
                         alt="PowerPoint" 
@@ -92,7 +92,7 @@ export const HomePage: React.FC = () => {
                     {/* Button at bottom */}
                     <Button 
                       onClick={() => setShowImporter(true)}
-                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2"
+                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2 mt-4"
                     >
                       Import Office file...
                     </Button>
@@ -101,25 +101,25 @@ export const HomePage: React.FC = () => {
 
                 {/* Option 2 - Ask Copilot (Disabled) */}
                 <div className="text-center opacity-50">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
                     {/* Number 2 in top left */}
                     <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       2
                     </div>
                     
-                    {/* Copilot Icon in center */}
-                    <div className="flex items-center justify-center mb-6 mt-4">
+                    {/* Copilot Icon in center - flexible space, preserve aspect ratio */}
+                    <div className="flex items-center justify-center flex-grow mt-8">
                       <img 
                         src="/copilot-icon.png" 
                         alt="Microsoft Copilot" 
-                        className="w-16 h-16"
+                        className="h-16 w-auto"
                       />
                     </div>
                     
                     {/* Button at bottom */}
                     <Button 
                       disabled
-                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed rounded-lg py-2"
+                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
                     >
                       Ask Copilot...
                     </Button>
@@ -128,14 +128,14 @@ export const HomePage: React.FC = () => {
 
                 {/* Option 3 - Dev API (Disabled) */}
                 <div className="text-center opacity-50">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
                     {/* Number 3 in top left */}
                     <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       3
                     </div>
                     
-                    {/* AI Foundry Icon in center */}
-                    <div className="flex items-center justify-center mb-6 mt-4">
+                    {/* AI Foundry Icon in center - flexible space */}
+                    <div className="flex items-center justify-center flex-grow mt-8">
                       <img 
                         src="/ai-foundry-icon.png" 
                         alt="AI Foundry" 
@@ -146,7 +146,7 @@ export const HomePage: React.FC = () => {
                     {/* Button at bottom */}
                     <Button 
                       disabled
-                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed rounded-lg py-2"
+                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
                     >
                       Dev? Use MCP API...
                     </Button>
