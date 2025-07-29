@@ -58,7 +58,7 @@ export const HomePage: React.FC = () => {
 
   // Handle successful PowerPoint import (legacy for modal)
   const handleImportSuccess = (canvasData: CanvasType) => {
-    loadCanvas(canvasData);
+    loadCanvas(canvasData, true); // Set isFromPowerPoint flag to true
     setShowImporter(false);
     setShowCanvas(true); // Go to 2D view after successful import
   };
