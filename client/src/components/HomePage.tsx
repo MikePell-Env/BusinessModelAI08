@@ -49,9 +49,12 @@ export const HomePage: React.FC = () => {
         <div className="grid grid-cols-3 gap-8">
           {/* Left Column - Main Content */}
           <div className="col-span-2">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-              Welcome to our working demo site! (all real tech, no smoke and mirrors)
+            <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+              Welcome to our working demo site!
             </h1>
+            <p className="text-lg text-gray-600 mb-2">
+              (all real tech, no smoke and mirrors)
+            </p>
 
             {/* Demo Info Banner */}
             <div className="bg-blue-500 text-white p-6 rounded-lg mb-8">
@@ -69,7 +72,7 @@ export const HomePage: React.FC = () => {
               <div className="grid grid-cols-3 gap-6">
                 {/* Option 1 - Import Office Files */}
                 <div className="text-center">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 hover:border-blue-500 transition-colors relative h-full flex flex-col">
+                  <div className="bg-white p-6 rounded-lg shadow-md border border-blue-500 hover:border-blue-600 transition-colors relative h-full flex flex-col">
                     {/* Number 1 in top left */}
                     <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       1
