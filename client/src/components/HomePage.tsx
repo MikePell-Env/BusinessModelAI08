@@ -1,22 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { BusinessModelCanvas } from './BusinessModelCanvas';
 import { PowerPointImporter } from './PowerPointImporter';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
+import { powerpointParser } from '@/utils/powerpointParser';
 
 export const HomePage: React.FC = () => {
   const [showCanvas, setShowCanvas] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { loadCanvas } = useCanvas();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // When canvas is shown, render the BusinessModelCanvas component
   if (showCanvas) {
     return <BusinessModelCanvas />;
   }
 
-  // Handle successful PowerPoint import
+  // Handle direct file picker for PowerPoint import
+  const handleDirectImport = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Handle file selection and processing
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type.includes('presentation') || file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
+        setLoading(true);
+        try {
+          const canvas = await powerpointParser.parseFile(file);
+          loadCanvas(canvas, true);
+          setShowCanvas(true); // Go to 2D view after successful import
+        } catch (error) {
+          console.error('File processing error:', error);
+          alert('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');
+        } finally {
+          setLoading(false);
+          // Reset file input for next use
+          if (event.target) {
+            event.target.value = '';
+          }
+        }
+      } else {
+        alert('Please select a PowerPoint file (.pptx or .ppt)');
+        // Reset file input
+        if (event.target) {
+          event.target.value = '';
+        }
+      }
+    }
+  };
+
+  // Handle successful PowerPoint import (legacy for modal)
   const handleImportSuccess = (canvasData: CanvasType) => {
     loadCanvas(canvasData);
     setShowImporter(false);
@@ -94,10 +134,11 @@ export const HomePage: React.FC = () => {
                     
                     {/* Button at bottom */}
                     <Button 
-                      onClick={() => setShowImporter(true)}
+                      onClick={handleDirectImport}
+                      disabled={loading}
                       className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2 mt-4"
                     >
-                      Import Office file...
+                      {loading ? 'Processing...' : 'Import Office file...'}
                     </Button>
                   </div>
                 </div>
@@ -197,6 +238,15 @@ export const HomePage: React.FC = () => {
           Copyright © 2025 Envisioner, Inc. All Rights Reserved.
         </div>
       </footer>
+
+      {/* Hidden file input for direct PowerPoint import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pptx,.ppt"
+        onChange={handleFileChange}
+        className="hidden"
+      />
 
       {/* PowerPoint Importer Modal */}
       {showImporter && (
