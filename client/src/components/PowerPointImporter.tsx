@@ -5,7 +5,15 @@ import { useCanvas } from '@/lib/stores/useCanvas';
 import { BusinessModelCanvas } from '@/types/canvas';
 import { powerpointParser } from '@/utils/powerpointParser';
 
-export const PowerPointImporter: React.FC = () => {
+interface PowerPointImporterProps {
+  onImportSuccess?: (canvas: BusinessModelCanvas) => void;
+  onCancel?: () => void;
+}
+
+export const PowerPointImporter: React.FC<PowerPointImporterProps> = ({ 
+  onImportSuccess, 
+  onCancel 
+}) => {
   const { loadCanvas } = useCanvas();
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -31,6 +39,11 @@ export const PowerPointImporter: React.FC = () => {
           // Parse the actual PowerPoint file
           const canvas = await powerpointParser.parseFile(file);
           loadCanvas(canvas, true);
+          
+          // Call the success callback if provided
+          if (onImportSuccess) {
+            onImportSuccess(canvas);
+          }
         } catch (error) {
           console.error('File processing error:', error);
           alert('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');

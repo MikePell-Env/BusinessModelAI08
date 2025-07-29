@@ -26,16 +26,18 @@ export const HomePage: React.FC = () => {
     }
   };
 
-  // Handle file selection and processing
+  // Handle file selection and processing - use the same approach as the working PowerPointImporter
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.type.includes('presentation') || file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
         setLoading(true);
         try {
+          // Parse the actual PowerPoint file using the same logic as PowerPointImporter
           const canvas = await powerpointParser.parseFile(file);
-          loadCanvas(canvas, true);
-          setShowCanvas(true); // Go to 2D view after successful import
+          
+          // Call the handleImportSuccess to ensure the same flow as the working import
+          handleImportSuccess(canvas);
         } catch (error) {
           console.error('File processing error:', error);
           alert('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');
