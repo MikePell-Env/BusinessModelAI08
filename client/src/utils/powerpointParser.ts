@@ -163,11 +163,11 @@ export class PowerPointParser {
         };
       } else if (this.isBulletPoint(line) && currentSection) {
         const cleanedItem = this.cleanBulletPoint(line);
-        if (cleanedItem) {
+        if (cleanedItem && !this.isCompanyInformation(cleanedItem)) {
           currentSection.items.push(cleanedItem);
         }
-      } else if (currentSection && line.length > 0 && !this.isSectionHeader(line)) {
-        // Add non-bullet content as regular items
+      } else if (currentSection && line.length > 0 && !this.isSectionHeader(line) && !this.isCompanyInformation(line)) {
+        // Add non-bullet content as regular items, but exclude company information
         currentSection.items.push(line);
       }
     }
@@ -191,6 +191,19 @@ export class PowerPointParser {
 
   private cleanBulletPoint(line: string): string {
     return line.replace(/^[\s]*[•·▪▫‣⁃∗\-\*\+]\s*/, '').trim();
+  }
+
+  private isCompanyInformation(line: string): boolean {
+    // Check if line contains company identification patterns that should be excluded from content
+    const companyPatterns = [
+      /^Company:\s*/i,
+      /^Company\s+Name:\s*/i,
+      /^Business:\s*/i,
+      /^Organization:\s*/i,
+      /^Empresa:\s*/i // Spanish
+    ];
+    
+    return companyPatterns.some(pattern => pattern.test(line));
   }
 
   private extractCompanyName(content: string): string | null {
