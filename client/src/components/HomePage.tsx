@@ -66,10 +66,10 @@ export const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 pb-16 relative">
       {/* Header */}
-      <header className="bg-black text-white px-8 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          {/* Blue block - Envisioner logo always left aligned */}
-          <div className="flex items-center space-x-3 justify-start">
+      <header className="bg-black text-white py-4">
+        <div className="w-full flex justify-between items-center px-8">
+          {/* Envisioner logo - left aligned with margin */}
+          <div className="flex items-center">
             <img 
               src="/envisioner-logo.png" 
               alt="Envisioner" 
@@ -77,8 +77,8 @@ export const HomePage: React.FC = () => {
             />
           </div>
           
-          {/* Yellow block - Menu items always right aligned */}
-          <nav className="flex items-center space-x-8 justify-end">
+          {/* Navigation menu - right aligned */}
+          <nav className="flex items-center space-x-8">
             <a href="#" className="text-gray-300 hover:text-white transition-colors">About</a>
             <a href="#" className="text-gray-300 hover:text-white transition-colors">Team</a>
             <a href="#" className="text-gray-300 hover:text-white transition-colors">Contact</a>
