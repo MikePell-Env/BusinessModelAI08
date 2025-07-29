@@ -534,7 +534,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     ];
 
     // Load complete BMC GLB model with individual section coloring
-    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_06_rotated_test.glb", scene).then((result) => {
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", scene).then((result) => {
       if (result.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${result.meshes.length} meshes`);
         
@@ -544,14 +544,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Position at center of ground plane, slightly above surface
         rootMesh.position = new Vector3(0, 0.1, 0);
         
-        // TESTING: Temporarily disabled rotation to test rotated Blender model
         // Rotate entire model 180 degrees clockwise around Y-axis when in orthographic mode to fix upside-down text
-        // if (isOrthographic) {
-        //   rootMesh.rotation = new Vector3(0, Math.PI, 0);
-        // } else {
-        //   rootMesh.rotation = Vector3.Zero();
-        // }
-        rootMesh.rotation = Vector3.Zero();
+        if (isOrthographic) {
+          rootMesh.rotation = new Vector3(0, Math.PI, 0);
+        } else {
+          rootMesh.rotation = Vector3.Zero();
+        }
         
         // Start with visible scale
         rootMesh.scaling = new Vector3(8, 8, 8);
@@ -1441,11 +1439,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
 
         
-        // TESTING: Temporarily disabled rotation to test rotated Blender model
         // Rotate model 180 degrees clockwise to fix upside-down text in orthographic view
-        // if (rootMesh) {
-        //   rootMesh.rotation = new Vector3(0, Math.PI, 0);
-        // }
+        if (rootMesh) {
+          rootMesh.rotation = new Vector3(0, Math.PI, 0);
+        }
         
         // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
