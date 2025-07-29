@@ -117,29 +117,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         (mesh as any).isClicked = true;
         
-        // Make other objects 50% opacity and flatten them, keep selected object normal
+        // Use unified height state logic to handle all objects consistently
+        applyHeightState();
+        
+        // Set opacity states: selected object full opacity, others 50%
         contentPanelsRef.current.forEach(({ mesh: otherMesh, material: otherMaterial }) => {
-          if (otherMesh !== mesh) {
-            otherMaterial.alpha = 0.5;
-            
-            // Flatten non-selected objects to ground plane
-            const otherSectionName = (otherMesh as any).bmcSectionName;
-            if (otherSectionName && adjustBMCSection) {
-              console.log(`📏 RestoreSelectedState: Flattening ${otherSectionName} to ground plane (height: 0.1)`);
-              adjustBMCSection(otherSectionName, { height: 0.1 });
-            }
-          } else {
-            // Keep selected object at full opacity and original height from persistent store
-            otherMaterial.alpha = 1.0;
-            const storedHeights = getOriginalHeights();
-            const originalHeight = storedHeights[sectionName];
-            if (originalHeight !== undefined && adjustBMCSection) {
-              console.log(`📏 RestoreSelectedState: Setting SELECTED ${sectionName} to original height (${originalHeight}) FROM STORE`);
-              adjustBMCSection(sectionName, { height: originalHeight });
-            } else {
-              console.error(`❌ No stored height found for selected object: ${sectionName}`, storedHeights);
-            }
-          }
+          const isSelectedObject = otherMesh === mesh;
+          otherMaterial.alpha = isSelectedObject ? 1.0 : 0.5;
         });
         
         // Show content panel

@@ -208,14 +208,15 @@ rootMesh.scaling = new Vector3(8, 8, 8);
 
 ## Recent Changes
 
-### July 29, 2025 - Universal View Switching Height Management System
-- **✅ Comprehensive View Transition System**: Implemented robust height management that works for ALL view transitions (2D ↔ 3D View ↔ 3D Top)
-- **✅ Multi-Attempt State Restoration**: Added intelligent retry system (3 attempts with increasing delays) to handle varying scene loading times
-- **✅ Persistent Store Integration**: All height management now uses Zustand persistent store instead of local refs for cross-view consistency
-- **✅ Enhanced Debug Logging**: Comprehensive console logging to track height state flow across all view transitions
-- **✅ Timing Race Condition Fixes**: Multiple restoration attempts ensure state is applied regardless of scene loading timing
-- **✅ Universal Height Logic**: Unified rule works across all modes: No selection = all objects at original height, selection = selected at original + others flattened (0.1)
-- **✅ Backward Compatibility**: System maintains existing hover/click functionality while adding persistent height management
+### July 29, 2025 - Complete Height Management System for Universal View Switching  
+- **✅ Fixed Cross-View Selection State**: Resolved critical issue where selected objects lost height when switching between 3D Top ↔ 3D View
+- **✅ Unified Height Logic**: Replaced manual height manipulation in `restoreSelectedObjectState` with centralized `applyHeightState` function
+- **✅ Eliminated Race Conditions**: Fixed timing issue where selected objects were flattened before being restored during view switches  
+- **✅ Enhanced Deselection Logic**: Fixed deselection not restoring all objects to original heights by adding proper state clearing and timing
+- **✅ Comprehensive View Transition System**: Robust height management works for ALL view transitions (2D ↔ 3D View ↔ 3D Top)
+- **✅ Multi-Attempt State Restoration**: Intelligent retry system (3 attempts with delays) handles varying scene loading times
+- **✅ Persistent Store Integration**: All height management uses Zustand persistent store for cross-view consistency
+- **✅ Universal Height Rule**: No selection = all objects at original height, selection = selected at original + others flattened (0.1)
 
 ### July 29, 2025 - Refined Height Management System with Proper Timing
 - **✅ Critical Timing Fix**: Resolved selection/deselection timing issues where height state was applied before selection state was updated
