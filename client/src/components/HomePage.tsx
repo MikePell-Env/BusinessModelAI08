@@ -231,9 +231,6 @@ export const HomePage: React.FC = () => {
                       muted
                       loop
                       autoPlay
-                      onError={(e) => console.error('Video error:', e)}
-                      onLoadStart={() => console.log('Video loading started')}
-                      onCanPlay={() => console.log('Video can play')}
                     >
                       <source src="/neon-data-pathway.mp4" type="video/mp4" />
                       <source src="/2025-07-14T00-25-19_a_neon_data_pathway_1753819819664.mov" type="video/quicktime" />
@@ -255,9 +252,6 @@ export const HomePage: React.FC = () => {
                       muted
                       loop
                       autoPlay
-                      onError={(e) => console.error('Data Analytics video error:', e)}
-                      onLoadStart={() => console.log('Data Analytics video loading started')}
-                      onCanPlay={() => console.log('Data Analytics video can play')}
                     >
                       <source src="/data-analytics-video.mp4" type="video/mp4" />
                       <img 
@@ -278,9 +272,6 @@ export const HomePage: React.FC = () => {
                       muted
                       loop
                       autoPlay
-                      onError={(e) => console.error('Systems video error:', e)}
-                      onLoadStart={() => console.log('Systems video loading started')}
-                      onCanPlay={() => console.log('Systems video can play')}
                     >
                       <source src="/systems-video.mp4" type="video/mp4" />
                       <img 
