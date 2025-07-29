@@ -208,15 +208,15 @@ rootMesh.scaling = new Vector3(8, 8, 8);
 
 ## Recent Changes
 
-### July 29, 2025 - Complete Height Management System for Universal View Switching  
-- **✅ Fixed Cross-View Selection State**: Resolved critical issue where selected objects lost height when switching between 3D Top ↔ 3D View
-- **✅ Unified Height Logic**: Replaced manual height manipulation in `restoreSelectedObjectState` with centralized `applyHeightState` function
-- **✅ Eliminated Race Conditions**: Fixed timing issue where selected objects were flattened before being restored during view switches  
-- **✅ Enhanced Deselection Logic**: Fixed deselection not restoring all objects to original heights by adding proper state clearing and timing
-- **✅ Comprehensive View Transition System**: Robust height management works for ALL view transitions (2D ↔ 3D View ↔ 3D Top)
-- **✅ Multi-Attempt State Restoration**: Intelligent retry system (3 attempts with delays) handles varying scene loading times
-- **✅ Persistent Store Integration**: All height management uses Zustand persistent store for cross-view consistency
-- **✅ Universal Height Rule**: No selection = all objects at original height, selection = selected at original + others flattened (0.1)
+### July 29, 2025 - Fixed Deselection Heights with Proper Visual Standards
+- **✅ Root Cause Identified**: Console debugging revealed deselection logic was working correctly but restoring GLB model's native flat heights (0.1)
+- **✅ Proper Visual Heights**: Replaced GLB model height reading with intentional visual standards (Value Propositions: 3.0, others: 1.0)  
+- **✅ Enhanced User Experience**: Objects now restore to prominent, visible heights instead of flat GLB scaling values
+- **✅ Fixed Deselection Behavior**: All objects return to proper visual heights (1.0-3.0) instead of staying flattened at 0.1
+- **✅ Maintained Selection Logic**: Selected objects at original height, non-selected flattened to 0.1 for visual focus
+- **✅ Comprehensive Debugging**: Added extensive logging system that identified the GLB model's flat native heights as the issue
+- **✅ Cross-View Consistency**: Proper height restoration works across all view modes (2D ↔ 3D View ↔ 3D Top)
+- **✅ Immediate Application**: Heights applied to 3D objects and stored in persistent Zustand store simultaneously
 
 ### July 29, 2025 - Refined Height Management System with Proper Timing
 - **✅ Critical Timing Fix**: Resolved selection/deselection timing issues where height state was applied before selection state was updated
