@@ -39,6 +39,7 @@ export const HomePage: React.FC = () => {
         const { setPendingPowerPointFile } = useCanvas.getState();
         setPendingPowerPointFile(file);
         console.log('🏠 HomePage: File stored, navigating to canvas');
+        console.log('🏠 HomePage: Store state after setting file:', useCanvas.getState().pendingPowerPointFile?.name);
         
         // Go to 2D view - the BusinessModelCanvas will automatically process the file
         setShowCanvas(true);
