@@ -80,12 +80,12 @@ export const HomePage: React.FC = () => {
                       <img 
                         src="/powerpoint-icon.webp" 
                         alt="PowerPoint" 
-                        className="w-12 h-12"
+                        className="w-16 h-16"
                       />
                       <img 
                         src="/excel-icon.webp" 
                         alt="Excel" 
-                        className="w-12 h-12"
+                        className="w-16 h-16"
                       />
                     </div>
                     
@@ -103,7 +103,7 @@ export const HomePage: React.FC = () => {
                 <div className="text-center opacity-50">
                   <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
                     {/* Number 2 in top left */}
-                    <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                    <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       2
                     </div>
                     
@@ -119,7 +119,7 @@ export const HomePage: React.FC = () => {
                     {/* Button at bottom */}
                     <Button 
                       disabled
-                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
+                      className="w-full bg-gray-200 text-gray-600 cursor-not-allowed rounded-lg py-2 mt-4"
                     >
                       Ask Copilot...
                     </Button>
@@ -130,7 +130,7 @@ export const HomePage: React.FC = () => {
                 <div className="text-center opacity-50">
                   <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
                     {/* Number 3 in top left */}
-                    <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                    <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       3
                     </div>
                     
@@ -146,7 +146,7 @@ export const HomePage: React.FC = () => {
                     {/* Button at bottom */}
                     <Button 
                       disabled
-                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
+                      className="w-full bg-gray-200 text-gray-600 cursor-not-allowed rounded-lg py-2 mt-4"
                     >
                       Dev? Use MCP API...
                     </Button>
