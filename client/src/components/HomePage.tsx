@@ -29,17 +29,13 @@ export const HomePage: React.FC = () => {
   // Handle file selection and store file for processing in BusinessModelCanvas
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    console.log('🏠 HomePage: File selected:', file?.name);
     if (file) {
       if (file.type.includes('presentation') || file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
         setLoading(true);
-        console.log('🏠 HomePage: PowerPoint file detected, storing in canvas store');
         
         // Store the file in the canvas store for BusinessModelCanvas to process
         const { setPendingPowerPointFile } = useCanvas.getState();
         setPendingPowerPointFile(file);
-        console.log('🏠 HomePage: File stored, navigating to canvas');
-        console.log('🏠 HomePage: Store state after setting file:', useCanvas.getState().pendingPowerPointFile?.name);
         
         // Go to 2D view - the BusinessModelCanvas will automatically process the file
         setShowCanvas(true);
