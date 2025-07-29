@@ -69,30 +69,48 @@ function App() {
       )}
 
       {azureConfigured === true && (
-        <div className="fixed bottom-20 right-4 bg-green-100 border border-green-300 rounded-lg p-3 max-w-sm z-50">
-          <p className="text-sm text-green-800 mb-1">
-            <strong>🔒 Microsoft Copilot Active</strong>
-          </p>
-          <p className="text-xs text-green-600">
-            Azure OpenAI connected with encrypted credential storage
-          </p>
+        <div className="fixed bottom-20 right-4 bg-green-100 border border-green-300 rounded-lg p-3 w-96 z-50">
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/Microsoft-Copilot-Logo 64x64.png" 
+              alt="Microsoft Copilot" 
+              className="w-10 h-10 flex-shrink-0"
+            />
+            <div className="flex-1">
+              <p className="text-sm text-green-800 mb-1">
+                <strong>🔒 Microsoft Copilot Active</strong>
+              </p>
+              <p className="text-xs text-green-600">
+                Azure OpenAI connected with encrypted credential storage
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
       {azureConfigured === false && (
-        <div className="fixed bottom-20 right-4 bg-blue-100 border border-blue-300 rounded-lg p-3 max-w-sm z-50">
-          <p className="text-sm text-blue-800 mb-2">
-            <strong>Microsoft Copilot Ready</strong>
-          </p>
-          <p className="text-xs text-blue-600 mb-2">
-            AI chat active with OpenAI fallback. Azure setup optional for enterprise features.
-          </p>
-          <button
-            onClick={() => setShowCredentialSetup(true)}
-            className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-          >
-            Configure Azure (Optional)
-          </button>
+        <div className="fixed bottom-20 right-4 bg-blue-100 border border-blue-300 rounded-lg p-3 w-96 z-50">
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/Microsoft-Copilot-Logo 64x64.png" 
+              alt="Microsoft Copilot" 
+              className="w-10 h-10 flex-shrink-0"
+            />
+            <div className="flex-1">
+              <p className="text-sm text-blue-800 mb-2">
+                <strong>Microsoft Copilot Ready</strong>
+              </p>
+              <p className="text-xs text-blue-600 mb-2">
+                AI chat active with OpenAI fallback. Azure setup optional for enterprise features.
+              </p>
+              <button
+                onClick={() => setShowCredentialSetup(true)}
+                className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+              >
+                Configure Azure (Optional)
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
