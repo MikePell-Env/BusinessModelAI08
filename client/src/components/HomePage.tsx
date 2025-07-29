@@ -33,7 +33,40 @@ export const HomePage: React.FC = () => {
       if (file.type.includes('presentation') || file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
         setLoading(true);
         try {
-          const canvas = await powerpointParser.parseFile(file);
+          console.log('Attempting to parse PowerPoint file:', file.name);
+          
+          // Try client-side parsing first
+          let canvas;
+          try {
+            canvas = await powerpointParser.parseFile(file);
+            console.log('Client-side parsing successful:', canvas);
+            
+            // Check if canvas has meaningful content
+            const canvasElements = [
+              canvas.keyPartners, canvas.keyActivities, canvas.keyResources,
+              canvas.valuePropositions, canvas.customerRelationships, canvas.channels,
+              canvas.customerSegments, canvas.costStructure, canvas.revenueStreams
+            ];
+            
+            const hasContent = canvasElements.some(element => 
+              element.content && element.content.length > 0 && 
+              !element.content.every(item => item === 'go here' || item.trim() === '')
+            );
+            
+            console.log('Canvas content check:', {
+              hasContent,
+              sampleContent: canvasElements.map(el => ({ title: el.title, contentLength: el.content.length }))
+            });
+            
+            if (!hasContent) {
+              console.log('Client-side parsing returned empty content');
+              throw new Error('No meaningful content extracted from PowerPoint file');
+            }
+          } catch (clientError) {
+            console.error('PowerPoint parsing failed:', clientError);
+            throw clientError; // Re-throw to show error to user
+          }
+          
           loadCanvas(canvas, true);
           setShowCanvas(true); // Go to 2D view after successful import
         } catch (error) {
