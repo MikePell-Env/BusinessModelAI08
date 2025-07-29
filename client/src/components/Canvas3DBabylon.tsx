@@ -129,9 +129,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               adjustBMCSection(otherSectionName, { height: 0.1 });
             }
           } else {
-            // Keep selected object at full opacity - ABSOLUTELY DO NOT modify its height
+            // Keep selected object at full opacity and original height from persistent store
             otherMaterial.alpha = 1.0;
-            console.log(`📏 RestoreSelectedState: SELECTED OBJECT ${sectionName} - HEIGHT COMPLETELY UNTOUCHED`);
+            const storedHeights = getOriginalHeights();
+            const originalHeight = storedHeights[sectionName];
+            if (originalHeight !== undefined && adjustBMCSection) {
+              console.log(`📏 RestoreSelectedState: Setting SELECTED ${sectionName} to original height (${originalHeight}) FROM STORE`);
+              adjustBMCSection(sectionName, { height: originalHeight });
+            } else {
+              console.error(`❌ No stored height found for selected object: ${sectionName}`, storedHeights);
+            }
           }
         });
         
@@ -1393,7 +1400,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Store heights in persistent store immediately
         setOriginalHeights(heightsToStore);
-        console.log("📏 Stored actual transform node heights:", heightsToStore);
+        console.log("📏 Stored actual transform node heights in PERSISTENT STORE:", heightsToStore);
+        
+        // Verify the store has the heights
+        const verifyStored = getOriginalHeights();
+        console.log("📏 VERIFICATION - Heights in store after setting:", verifyStored);
         
         // Also update the local ref for backward compatibility
         originalHeightsRef.current = heightsToStore;
@@ -1463,6 +1474,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Apply unified height state after camera switch
         setTimeout(() => {
+          console.log("🔄 Camera switch to Top view: About to restore state");
+          const selectedObj = getSelectedObject();
+          const storedHeights = getOriginalHeights();
+          console.log("🔄 Current selection:", selectedObj);
+          console.log("🔄 Stored heights:", storedHeights);
           restoreSelectedObjectState();
           console.log("🔄 Camera switch to Top view: Applied height state");
         }, 100);
@@ -1480,6 +1496,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Apply unified height state after camera switch
         setTimeout(() => {
+          console.log("🔄 Camera switch to 3D View: About to restore state");
+          const selectedObj = getSelectedObject();
+          const storedHeights = getOriginalHeights();
+          console.log("🔄 Current selection:", selectedObj);
+          console.log("🔄 Stored heights:", storedHeights);
           restoreSelectedObjectState();
           console.log("🔄 Camera switch to 3D View: Applied height state");
         }, 100);

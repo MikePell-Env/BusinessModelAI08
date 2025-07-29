@@ -136,11 +136,14 @@ export const useCanvas = create<CanvasState>()(
     },
     
     setOriginalHeights: (heights: { [sectionName: string]: number }) => {
+      console.log("🏪 STORE: Setting originalHeights:", heights);
       set({ originalHeights: heights });
     },
     
     getOriginalHeights: () => {
-      return get().originalHeights;
+      const heights = get().originalHeights;
+      console.log("🏪 STORE: Getting originalHeights:", heights);
+      return heights;
     }
   }))
 );
