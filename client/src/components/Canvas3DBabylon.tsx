@@ -96,35 +96,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Function to restore selected object state after camera switches
   const restoreSelectedObjectState = () => {
     const selectedObjectName = getSelectedObject();
-    
-    // First, always restore all objects to original heights and full opacity
-    console.log("🔄 VIEW SWITCH: Restoring all objects to original state");
-    const storedHeights = getOriginalHeights();
-    contentPanelsRef.current.forEach(({ mesh, material }) => {
-      const objSectionName = (mesh as any).bmcSectionName;
-      if (objSectionName && adjustBMCSection && storedHeights[objSectionName] !== undefined) {
-        const originalHeight = storedHeights[objSectionName];
-        adjustBMCSection(objSectionName, { height: originalHeight });
-        console.log(`🔄 VIEW SWITCH: Restored ${objSectionName} to original height (${originalHeight})`);
-      }
-      
-      // Restore full opacity
-      material.alpha = 1.0;
-      
-      // Clear any click states
-      (mesh as any).isClicked = false;
-      
-      // Restore original colors
-      if ((mesh as any).hasTexture) {
-        material.emissiveColor = new Color3(0, 0, 0); // No emissive
-      } else {
-        material.baseColor = (mesh as any).originalColor;
-      }
-    });
-    
     if (!selectedObjectName) {
-      // No selection: all objects restored above
-      console.log("🔄 VIEW SWITCH: No selection - all objects at original heights");
+      // Apply height state for no selection
+      applyHeightState();
       return;
     }
     
