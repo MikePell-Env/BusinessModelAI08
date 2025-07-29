@@ -57,9 +57,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   
   // Unified function to set all object heights based on selection state
-  const applyHeightState = () => {
-    const selectedObjectName = getSelectedObject();
+  const applyHeightState = (forceSelectedObject?: string | null) => {
+    const selectedObjectName = forceSelectedObject !== undefined ? forceSelectedObject : getSelectedObject();
     const storedHeights = getOriginalHeights();
+    
+    console.log(`📏 applyHeightState called with selection: ${selectedObjectName}`);
     
     // Only proceed if we have stored original heights
     if (Object.keys(storedHeights).length === 0) {
@@ -1157,15 +1159,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               (mesh as any).isClicked = false;
               
-              // CRITICAL: Clear selection state BEFORE applying height state for deselection
+              // CRITICAL: Clear selection state FIRST, then apply height state immediately
               setSelectedObject(null);
               console.log("🔓 DESELECT: Cleared selection state in updateMeshClickUnselect");
               
-              // Apply unified height state (no selection = all objects at original height)
-              setTimeout(() => {
-                applyHeightState();
-                console.log("🔓 DESELECT: Applied height state after selection cleared");
-              }, 10); // Small delay to ensure state is cleared
+              // Force apply height state with null selection to ensure immediate restoration
+              console.log("🔓 DESELECT: Forcing applyHeightState with null selection");
+              applyHeightState(null); // Force no selection state to restore all heights immediately
               
               // Restore all objects to full opacity
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
