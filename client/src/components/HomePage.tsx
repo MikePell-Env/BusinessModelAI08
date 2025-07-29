@@ -56,6 +56,9 @@ export const HomePage: React.FC = () => {
               (all real tech, no smoke and mirrors)
             </p>
 
+            {/* Large spacing before content */}
+            <div className="mb-32"></div>
+
             {/* Demo Info Banner */}
             <div className="bg-blue-500 text-white p-6 rounded-lg mb-8">
               <p className="text-lg">
