@@ -202,10 +202,16 @@ export const HomePage: React.FC = () => {
           {/* Right Column - Images */}
           <div className="space-y-6">
             <div className="text-center">
-              <div className="w-full h-32 bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg shadow-md mb-2 flex items-center justify-center">
-                <div className="text-green-400 text-sm font-mono">
-                  &lt;Process&gt; Active
-                </div>
+              <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                <video 
+                  className="w-full h-32 object-cover"
+                  controls
+                  muted
+                  loop
+                >
+                  <source src="/2025-07-14T00-25-19_a_neon_data_pathway_1753819819664.mov" type="video/quicktime" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
               <p className="text-sm text-gray-600 font-medium">Processes</p>
             </div>
