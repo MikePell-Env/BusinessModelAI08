@@ -68,7 +68,8 @@ export const HomePage: React.FC = () => {
       {/* Header */}
       <header className="bg-black text-white px-8 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-3">
+          {/* Blue block - Envisioner logo always left aligned */}
+          <div className="flex items-center space-x-3 justify-start">
             <img 
               src="/envisioner-logo.png" 
               alt="Envisioner" 
@@ -76,7 +77,8 @@ export const HomePage: React.FC = () => {
             />
           </div>
           
-          <nav className="flex items-center space-x-8">
+          {/* Yellow block - Menu items always right aligned */}
+          <nav className="flex items-center space-x-8 justify-end">
             <a href="#" className="text-gray-300 hover:text-white transition-colors">About</a>
             <a href="#" className="text-gray-300 hover:text-white transition-colors">Team</a>
             <a href="#" className="text-gray-300 hover:text-white transition-colors">Contact</a>
@@ -87,28 +89,31 @@ export const HomePage: React.FC = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-8 py-12">
         <div className="grid grid-cols-3 gap-8">
-          {/* Left Column - Main Content */}
-          <div className="col-span-2">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-1">
-              Welcome to our working demo site!
-            </h1>
-            <p className="text-lg text-gray-600 mb-16">
-              (all real tech, no smoke and mirrors)
-            </p>
+          {/* Left Column - Main Content - Always Centered */}
+          <div className="col-span-2 flex flex-col items-center">
+            <div className="w-full max-w-4xl">
+              <div className="text-center">
+                <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+                  Welcome to our working demo site!
+                </h1>
+                <p className="text-lg text-gray-600 mb-16">
+                  (all real tech, no smoke and mirrors)
+                </p>
+              </div>
 
-            {/* Demo Info Banner */}
-            <div className="bg-blue-500 text-white p-6 rounded-lg mb-16">
-              <p className="text-lg">
-                <strong>DEMO:</strong><br />
-                Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
-              </p>
-            </div>
+              {/* Demo Info Banner */}
+              <div className="bg-blue-500 text-white p-6 rounded-lg mb-16">
+                <p className="text-lg">
+                  <strong>DEMO:</strong><br />
+                  Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
+                </p>
+              </div>
 
-            {/* Selection Section */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                <strong>Select</strong> how you want to get to the "moment of clarity" to make decisions:
-              </h2>
+              {/* Selection Section */}
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+                  <strong>Select</strong> how you want to get to the "moment of clarity" to make decisions:
+                </h2>
 
               <div className="grid grid-cols-3 gap-6">
                 {/* Option 1 - Import Office Files */}
@@ -198,6 +203,7 @@ export const HomePage: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           </div>
 
