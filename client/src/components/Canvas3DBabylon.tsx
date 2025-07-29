@@ -1381,13 +1381,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // Read the ACTUAL current scaling.y (height) values from each mesh's transform node
-    // NOTE: This GLB model uses NORMAL Y-axis scaling - LARGER values = TALLER shapes  
-    const readInitialHeights = () => {
-      console.log("🏗️ Reading actual transform node scaling.y values...");
+    // CRITICAL: Read and store the original heights from GLB model
+    // NOTE: GLB model uses NORMAL Y-axis scaling - LARGER values = TALLER shapes  
+    const readAndStoreInitialHeights = () => {
+      console.log("🏗️ CRITICAL: Reading and storing actual transform node scaling.y values...");
       
-      if (scene && scene.meshes) {
+      if (scene && scene.meshes && contentPanelsRef.current.length > 0) {
         const heightsToStore: { [sectionName: string]: number } = {};
+        let heightsFound = 0;
         
         // Go through all meshes and read their current transform node scaling.y
         scene.meshes.forEach((mesh) => {
@@ -1397,29 +1398,59 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           if (sectionName && transformNode) {
             const currentHeight = transformNode.scaling.y;
             heightsToStore[sectionName] = currentHeight;
-            console.log(`📏 ${sectionName}: Read actual scaling.y = ${currentHeight}`);
+            heightsFound++;
+            console.log(`📏 STORED: ${sectionName} = ${currentHeight}`);
           }
         });
         
-        // Store heights in persistent store immediately
-        setOriginalHeights(heightsToStore);
-        console.log("📏 Stored actual transform node heights in PERSISTENT STORE:", heightsToStore);
-        
-        // Verify the store has the heights
-        const verifyStored = getOriginalHeights();
-        console.log("📏 VERIFICATION - Heights in store after setting:", verifyStored);
-        
-        // Also update the local ref for backward compatibility
-        originalHeightsRef.current = heightsToStore;
+        // Only store if we found heights for all sections
+        if (heightsFound > 0 && Object.keys(heightsToStore).length === contentPanelsRef.current.length) {
+          setOriginalHeights(heightsToStore);
+          originalHeightsRef.current = heightsToStore;
+          console.log(`📏 ✅ SUCCESS: Stored ${heightsFound} original heights in store:`, heightsToStore);
+          return true;
+        } else {
+          console.log(`📏 ❌ INCOMPLETE: Found ${heightsFound} heights but expected ${contentPanelsRef.current.length}`);
+          return false;
+        }
       } else {
-        console.error("❌ Scene or meshes not available for reading heights");
+        console.log("📏 ❌ NOT READY: Scene, meshes, or panels not available yet");
+        return false;
       }
     };
     
-    // Try to read heights immediately, then retry if needed
-    readInitialHeights();
-    setTimeout(readInitialHeights, 500); // Backup read in case meshes aren't ready
-    setTimeout(readInitialHeights, 1500); // Final read to ensure heights are captured
+    // CRITICAL: Ensure heights are read and stored properly with multiple attempts
+    const attemptHeightStorage = (attempt: number, maxAttempts: number = 5) => {
+      console.log(`📏 HEIGHT STORAGE ATTEMPT ${attempt}/${maxAttempts}`);
+      
+      if (readAndStoreInitialHeights()) {
+        console.log(`📏 ✅ Heights successfully stored on attempt ${attempt}`);
+        return;
+      }
+      
+      if (attempt < maxAttempts) {
+        const delay = attempt * 500; // Increasing delays: 500ms, 1000ms, 1500ms, 2000ms
+        setTimeout(() => attemptHeightStorage(attempt + 1, maxAttempts), delay);
+      } else {
+        console.error(`📏 ❌ FAILED to store heights after ${maxAttempts} attempts`);
+        
+        // Emergency fallback: set reasonable default heights
+        const emergencyHeights = {
+          "Value Propositions": 3.0,
+          "Key Partners": 1.0,
+          "Key Activities": 1.0,
+          "Key Resources": 1.0,
+          "Customer Relationships": 1.0,
+          "Channels": 1.0,
+          "Customer Segments": 1.0
+        };
+        setOriginalHeights(emergencyHeights);
+        console.log("📏 🚨 EMERGENCY: Using fallback heights:", emergencyHeights);
+      }
+    };
+    
+    // Start immediate attempt
+    attemptHeightStorage(1);
     
     // Also attempt to restore any existing selection state after heights are read
     setTimeout(() => {
