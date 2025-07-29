@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { BusinessModelCanvas } from './BusinessModelCanvas';
 import { PowerPointImporter } from './PowerPointImporter';
+import { AIChat } from './AIChat';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
@@ -328,6 +329,9 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* AI Chat Component */}
+      <AIChat />
     </div>
   );
 };
