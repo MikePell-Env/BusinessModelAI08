@@ -77,8 +77,8 @@ export const HomePage: React.FC = () => {
             />
           </div>
           
-          {/* Navigation menu - right aligned */}
-          <nav className="flex items-center space-x-8">
+          {/* Navigation menu - always right aligned */}
+          <nav className="flex items-center justify-end space-x-8 ml-auto">
             <a href="#" className="text-gray-300 hover:text-white transition-colors">About</a>
             <a href="#" className="text-gray-300 hover:text-white transition-colors">Team</a>
             <a href="#" className="text-gray-300 hover:text-white transition-colors">Contact</a>
