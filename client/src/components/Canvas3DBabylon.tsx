@@ -1173,8 +1173,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               (mesh as any).isClicked = false;
               
+              // CRITICAL: Clear selection state BEFORE applying height state for deselection
+              setSelectedObject(null);
+              console.log("🔓 DESELECT: Cleared selection state in updateMeshClickUnselect");
+              
               // Apply unified height state (no selection = all objects at original height)
-              applyHeightState();
+              setTimeout(() => {
+                applyHeightState();
+                console.log("🔓 DESELECT: Applied height state after selection cleared");
+              }, 10); // Small delay to ensure state is cleared
               
               // Restore all objects to full opacity
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
@@ -1199,9 +1206,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const isCurrentlyClicked = (mesh as any).isClicked;
               
               if (isCurrentlyClicked) {
-                // Clear selected object state FIRST so applyHeightState knows nothing is selected
-                setSelectedObject(null);
-                
                 // Unclick - restore mesh and hide content panel
                 updateMeshClickUnselect();
                 updateContentPanel(false);
