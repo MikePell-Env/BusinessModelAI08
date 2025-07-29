@@ -1,207 +1,195 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { BusinessModelCanvas } from './BusinessModelCanvas';
-import { Play, ArrowRight, Eye, Box, RectangleHorizontal } from 'lucide-react';
+import { PowerPointImporter } from './PowerPointImporter';
+import { useCanvas } from '@/lib/stores/useCanvas';
+import sampleCanvasData from '@/data/sampleCanvas.json';
+import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
 
 export const HomePage: React.FC = () => {
   const [showCanvas, setShowCanvas] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
+  const { loadCanvas } = useCanvas();
 
+  // When canvas is shown, render the BusinessModelCanvas component
   if (showCanvas) {
     return <BusinessModelCanvas />;
   }
 
+  // Handle successful PowerPoint import
+  const handleImportSuccess = (canvasData: CanvasType) => {
+    loadCanvas(canvasData);
+    setShowImporter(false);
+    setShowCanvas(true); // Go to 2D view after successful import
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="w-full px-8 py-6">
+      <header className="bg-gray-900 text-white px-8 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Box className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">Envisioner</h1>
+            <div className="text-2xl font-bold">⚡ ENVISIONER</div>
           </div>
           
-          <nav className="flex items-center space-x-6">
-            <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-              Features
-            </Button>
-            <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-              Documentation
-            </Button>
-            <Button 
-              onClick={() => setShowCanvas(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
-            >
-              Get Started
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+          <nav className="flex items-center space-x-8">
+            <a href="#" className="text-gray-300 hover:text-white transition-colors">About</a>
+            <a href="#" className="text-gray-300 hover:text-white transition-colors">Team</a>
+            <a href="#" className="text-gray-300 hover:text-white transition-colors">Contact</a>
           </nav>
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-8 py-12">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Business Model Canvas
-          </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Transform your business ideas into interactive 3D visualizations. 
-            Create, analyze, and refine your business model with AI-powered insights.
-          </p>
-          <p className="text-lg text-blue-600 mb-12">
-            Import a PowerPoint slide to begin
-          </p>
-          
-          <div className="flex items-center justify-center space-x-4 mb-12">
-            <Button 
-              onClick={() => setShowCanvas(true)}
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Launch Canvas
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="px-8 py-4 text-lg"
-              onClick={() => setShowCanvas(true)}
-            >
-              View Demo
-            </Button>
-          </div>
-        </div>
+        <div className="grid grid-cols-3 gap-8">
+          {/* Left Column - Main Content */}
+          <div className="col-span-2">
+            <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+              Welcome to our working demo site! (all real tech, no smoke and mirrors)
+            </h1>
 
-        {/* Feature Tabs */}
-        <div className="mb-12">
-          <div className="flex justify-center space-x-2 mb-8">
-            <button className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
-              <Eye className="w-4 h-4 mr-2" />
-              2D View
-            </button>
-            <button className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
-              <RectangleHorizontal className="w-4 h-4 mr-2" />
-              3D Top
-            </button>
-            <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md shadow-md">
-              <Box className="w-4 h-4 mr-2" />
-              3D View
-            </button>
-          </div>
-        </div>
+            {/* Demo Info Banner */}
+            <div className="bg-blue-500 text-white p-6 rounded-lg mb-8">
+              <p className="text-lg">
+                <strong>DEMO:</strong> Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
+              </p>
+            </div>
 
-        {/* 3D Canvas Preview */}
-        <div className="relative max-w-5xl mx-auto">
-          <div className="aspect-video bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="w-full h-full flex items-center justify-center relative">
-              {/* Canvas Preview Image */}
-              <div className="relative w-4/5 h-4/5 perspective-1000">
-                <div className="w-full h-full transform rotate-x-12 rotate-y-6 shadow-xl rounded-lg bg-blue-50 border-4 border-gray-300">
-                  <div className="w-full h-full grid grid-cols-3 grid-rows-3 gap-1 p-4">
-                    {/* Key Partners */}
-                    <div className="bg-gray-700 rounded flex items-center justify-center text-white text-sm font-medium">
-                      Key Partners
-                    </div>
-                    
-                    {/* Key Activities */}
-                    <div className="bg-gray-700 rounded flex items-center justify-center text-white text-sm font-medium">
-                      Key Activities
-                    </div>
-                    
-                    {/* Customer Relationships */}
-                    <div className="bg-gray-700 rounded flex items-center justify-center text-white text-sm font-medium">
-                      Customer Relationships
-                    </div>
-                    
-                    {/* Key Resources */}
-                    <div className="bg-gray-700 rounded flex items-center justify-center text-white text-sm font-medium">
-                      Key Resources
-                    </div>
-                    
-                    {/* Value Propositions - Center Circle */}
-                    <div className="relative flex items-center justify-center">
-                      <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-lg">
-                        Value Proposition
+            {/* Selection Section */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                <strong>Select</strong> how you want to get to the "moment of clarity" to make decisions:
+              </h2>
+
+              <div className="grid grid-cols-3 gap-6">
+                {/* Option 1 - Import Office Files */}
+                <div className="text-center">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 hover:border-blue-500 transition-colors">
+                    <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                      <div className="flex space-x-1">
+                        {/* PowerPoint Icon */}
+                        <div className="w-8 h-8 bg-orange-600 rounded flex items-center justify-center text-white text-xs font-bold">
+                          P
+                        </div>
+                        {/* Excel Icon */}
+                        <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center text-white text-xs font-bold">
+                          X
+                        </div>
                       </div>
-                      <div className="absolute inset-0 border-4 border-blue-300 rounded-full animate-pulse"></div>
                     </div>
-                    
-                    {/* Customer Segments */}
-                    <div className="bg-gray-700 rounded flex items-center justify-center text-white text-sm font-medium">
-                      Customer Segments
+                    <div className="bg-gray-200 text-gray-600 text-2xl font-bold w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                      1
                     </div>
-                    
-                    {/* Empty */}
-                    <div></div>
-                    
-                    {/* Customer Channels */}
-                    <div className="bg-gray-700 rounded flex items-center justify-center text-white text-sm font-medium">
-                      Customer Channels
+                    <Button 
+                      onClick={() => setShowImporter(true)}
+                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400"
+                    >
+                      Import Office file...
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Option 2 - Ask Copilot (Disabled) */}
+                <div className="text-center opacity-50">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200">
+                    <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
                     </div>
-                    
-                    {/* Empty */}
-                    <div></div>
+                    <div className="bg-gray-200 text-gray-600 text-2xl font-bold w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                      2
+                    </div>
+                    <Button 
+                      disabled
+                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed"
+                    >
+                      Ask Copilot...
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Option 3 - Dev API (Disabled) */}
+                <div className="text-center opacity-50">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200">
+                    <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+                    </div>
+                    <div className="bg-gray-200 text-gray-600 text-2xl font-bold w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                      3
+                    </div>
+                    <Button 
+                      disabled
+                      className="w-full bg-gray-100 text-gray-500 cursor-not-allowed"
+                    >
+                      Dev? Use MCP API...
+                    </Button>
                   </div>
                 </div>
               </div>
-              
-              {/* Overlay Call to Action */}
-              <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                <Button 
-                  onClick={() => setShowCanvas(true)}
-                  size="lg"
-                  className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-4 text-lg shadow-xl"
-                >
-                  <Play className="w-5 h-5 mr-2" />
-                  Start Building
-                </Button>
-              </div>
             </div>
           </div>
-        </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mt-20">
-          <div className="text-center p-6">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Box className="w-8 h-8 text-blue-600" />
+          {/* Right Column - Images */}
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="w-full h-32 bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg shadow-md mb-2 flex items-center justify-center">
+                <div className="text-green-400 text-sm font-mono">
+                  &lt;Process&gt; Active
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 font-medium">Processes</p>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">3D Visualization</h3>
-            <p className="text-gray-600">
-              Transform flat business models into interactive 3D experiences with dynamic height manipulation and perspective views.
-            </p>
-          </div>
-          
-          <div className="text-center p-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Play className="w-8 h-8 text-green-600" />
+            
+            <div className="text-center">
+              <div className="w-full h-32 bg-gradient-to-br from-orange-600 to-yellow-500 rounded-lg shadow-md mb-2 flex items-center justify-center">
+                <div className="text-white text-sm font-bold">
+                  📊 Data Analytics
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 font-medium">Datasets</p>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">AI-Powered Insights</h3>
-            <p className="text-gray-600">
-              Get intelligent recommendations and analysis powered by Microsoft Copilot and OpenAI integration.
-            </p>
-          </div>
-          
-          <div className="text-center p-6">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ArrowRight className="w-8 h-8 text-purple-600" />
+            
+            <div className="text-center">
+              <div className="w-full h-32 bg-gradient-to-br from-gray-800 to-gray-600 rounded-lg shadow-md mb-2 flex items-center justify-center">
+                <div className="text-blue-400 text-sm font-mono">
+                  [System] Online
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 font-medium">Systems</p>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">PowerPoint Integration</h3>
-            <p className="text-gray-600">
-              Import your existing PowerPoint business model slides and watch them come to life in 3D.
-            </p>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="mt-20 border-t border-gray-200 py-8">
-        <div className="max-w-7xl mx-auto px-8 text-center text-gray-600">
-          <p>Built with React, Babylon.js, and AI-powered business intelligence</p>
+      <footer className="border-t border-gray-200 py-6 mt-20">
+        <div className="max-w-7xl mx-auto px-8 text-center text-gray-500 text-sm">
+          Copyright © 2025 Envisioner, Inc. All Rights Reserved.
         </div>
       </footer>
+
+      {/* PowerPoint Importer Modal */}
+      {showImporter && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Import PowerPoint File</h3>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowImporter(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </Button>
+            </div>
+            <PowerPointImporter 
+              onImportSuccess={handleImportSuccess}
+              onCancel={() => setShowImporter(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
