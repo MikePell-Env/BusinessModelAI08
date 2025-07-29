@@ -130,7 +130,7 @@ export const AIChat: React.FC = () => {
   }
 
   return (
-    <div className={`fixed top-6 bottom-6 right-6 w-96 bg-white shadow-xl z-50 transition-all duration-300 rounded-lg border flex flex-col ${
+    <div className={`fixed top-6 bottom-6 right-6 w-96 bg-white shadow-xl z-[9999] transition-all duration-300 rounded-lg border flex flex-col ${
       isMinimized ? 'h-14 top-auto' : ''
     }`}>
       {/* Header */}
