@@ -208,16 +208,15 @@ rootMesh.scaling = new Vector3(8, 8, 8);
 
 ## Recent Changes
 
-### July 29, 2025 - STABLE ROLLBACK POINT: Fixed 3D View Deselection Height Restoration
-- **✅ WORKING DESELECTION**: Successfully fixed Value Propositions and all object deselection in 3D View mode
-- **✅ Direct Height Restoration**: Bypassed Zustand state timing issues by manually restoring all objects to original heights
-- **✅ Eliminated Async Dependencies**: Removed reliance on applyHeightState function with its state propagation delays
-- **✅ Comprehensive Debug System**: Added detailed logging to track height restoration success/failure for each object
-- **✅ Robust Error Handling**: Enhanced validation for stored heights, adjust functions, and content panels
-- **✅ Immediate State Clearing**: Selection state cleared in store while height restoration happens synchronously
-- **✅ Cross-View Consistency**: Height management works identically across 3D View and 3D Top orthographic modes
-- **✅ Production Ready**: System now handles deselection reliably without timing race conditions
-- **🔒 STABLE STATE**: All hover/click interactions, camera persistence, view switching, and height management working correctly
+### July 29, 2025 - SIMPLE HEIGHT MANAGEMENT: Direct Original Height Restoration
+- **✅ SIMPLIFIED APPROACH**: Completely redesigned height storage to save original heights once at GLB model startup
+- **✅ DIRECT RESTORATION**: Deselection now directly restores ALL objects to their saved original heights
+- **✅ ELIMINATED COMPLEXITY**: Removed complex retry mechanisms, validation checks, and async timing issues
+- **✅ STARTUP HEIGHT CAPTURE**: Original heights saved immediately when GLB model loads with simple retry logic
+- **✅ RELIABLE DESELECTION**: All objects restored to exact original heights from store during deselection
+- **✅ NO STATE DEPENDENCIES**: Height restoration no longer depends on applyHeightState timing or Zustand propagation
+- **✅ CONSISTENT BEHAVIOR**: Same height restoration logic works across all view modes (2D, 3D View, 3D Top)
+- **✅ PRODUCTION READY**: Clean, simple, and reliable height management system
 
 ### July 29, 2025 - Refined Height Management System with Proper Timing
 - **✅ Critical Timing Fix**: Resolved selection/deselection timing issues where height state was applied before selection state was updated

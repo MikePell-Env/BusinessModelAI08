@@ -1162,17 +1162,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             };
             
             const updateMeshClickUnselect = () => {
-              console.log(`🔓 DESELECT: ${sectionName} clicked - clearing selection`);
+              console.log(`🔓 DESELECT: ${sectionName} - restoring all to original heights`);
               
-              // Clear selection in store first
+              // Clear selection
               setSelectedObject(null);
               (mesh as any).isClicked = false;
               
-              // Apply height state (will restore all objects to original heights since no selection)
-              applyHeightState();
+              // Get saved original heights
+              const savedHeights = getOriginalHeights();
+              console.log("🔓 Using saved heights:", savedHeights);
               
-              // Restore all visual states
+              // Restore ALL objects to their original heights
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                const objSectionName = (otherMesh as any).bmcSectionName;
+                
+                // Restore original height
+                if (objSectionName && savedHeights[objSectionName] && adjustBMCSection) {
+                  const originalHeight = savedHeights[objSectionName];
+                  adjustBMCSection(objSectionName, { height: originalHeight });
+                  console.log(`🔓 RESTORED: ${objSectionName} to height ${originalHeight}`);
+                }
+                
                 // Restore original colors
                 if ((otherMesh as any).hasTexture) {
                   material.emissiveColor = new Color3(0, 0, 0);
@@ -1185,7 +1195,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 (otherMesh as any).isClicked = false;
               });
               
-              console.log(`🔓 DESELECT: All objects restored to original state`);
+              console.log("🔓 DESELECT COMPLETE: All objects restored to original heights");
             };
             
             const updateContentPanel = (show: boolean, sectionContent?: string) => {
@@ -1381,76 +1391,50 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
-    // CRITICAL: Read and store the original heights from GLB model
-    // NOTE: GLB model uses NORMAL Y-axis scaling - LARGER values = TALLER shapes  
-    const readAndStoreInitialHeights = () => {
-      console.log("🏗️ CRITICAL: Reading and storing actual transform node scaling.y values...");
+    // SIMPLE: Save original heights when GLB model first loads
+    const saveOriginalHeights = () => {
+      console.log("📏 STARTUP: Saving original heights from GLB model...");
+      
+      // Check if we already have heights stored
+      const existingHeights = getOriginalHeights();
+      if (Object.keys(existingHeights).length > 0) {
+        console.log("📏 Already have heights stored:", existingHeights);
+        return true;
+      }
       
       if (scene && scene.meshes && contentPanelsRef.current.length > 0) {
-        const heightsToStore: { [sectionName: string]: number } = {};
-        let heightsFound = 0;
+        const originalHeights: { [sectionName: string]: number } = {};
         
-        // Go through all meshes and read their current transform node scaling.y
+        // Read each mesh's current transform node scaling.y as the original height
         scene.meshes.forEach((mesh) => {
           const sectionName = (mesh as any).bmcSectionName;
           const transformNode = (mesh as any).bmcTransformNode as TransformNode;
           
           if (sectionName && transformNode) {
-            const currentHeight = transformNode.scaling.y;
-            heightsToStore[sectionName] = currentHeight;
-            heightsFound++;
-            console.log(`📏 STORED: ${sectionName} = ${currentHeight}`);
+            const height = transformNode.scaling.y;
+            originalHeights[sectionName] = height;
+            console.log(`📏 ORIGINAL: ${sectionName} = ${height}`);
           }
         });
         
-        // Only store if we found heights for all sections
-        if (heightsFound > 0 && Object.keys(heightsToStore).length === contentPanelsRef.current.length) {
-          setOriginalHeights(heightsToStore);
-          originalHeightsRef.current = heightsToStore;
-          console.log(`📏 ✅ SUCCESS: Stored ${heightsFound} original heights in store:`, heightsToStore);
-          return true;
-        } else {
-          console.log(`📏 ❌ INCOMPLETE: Found ${heightsFound} heights but expected ${contentPanelsRef.current.length}`);
-          return false;
+        // Store in both places
+        setOriginalHeights(originalHeights);
+        originalHeightsRef.current = originalHeights;
+        console.log("📏 SAVED original heights:", originalHeights);
+        return true;
+      }
+      
+      return false;
+    };
+    
+    // Try to save heights immediately, then retry
+    if (!saveOriginalHeights()) {
+      setTimeout(() => {
+        if (!saveOriginalHeights()) {
+          setTimeout(() => saveOriginalHeights(), 1000);
         }
-      } else {
-        console.log("📏 ❌ NOT READY: Scene, meshes, or panels not available yet");
-        return false;
-      }
-    };
-    
-    // CRITICAL: Ensure heights are read and stored properly with multiple attempts
-    const attemptHeightStorage = (attempt: number, maxAttempts: number = 5) => {
-      console.log(`📏 HEIGHT STORAGE ATTEMPT ${attempt}/${maxAttempts}`);
-      
-      if (readAndStoreInitialHeights()) {
-        console.log(`📏 ✅ Heights successfully stored on attempt ${attempt}`);
-        return;
-      }
-      
-      if (attempt < maxAttempts) {
-        const delay = attempt * 500; // Increasing delays: 500ms, 1000ms, 1500ms, 2000ms
-        setTimeout(() => attemptHeightStorage(attempt + 1, maxAttempts), delay);
-      } else {
-        console.error(`📏 ❌ FAILED to store heights after ${maxAttempts} attempts`);
-        
-        // Emergency fallback: set reasonable default heights
-        const emergencyHeights = {
-          "Value Propositions": 3.0,
-          "Key Partners": 1.0,
-          "Key Activities": 1.0,
-          "Key Resources": 1.0,
-          "Customer Relationships": 1.0,
-          "Channels": 1.0,
-          "Customer Segments": 1.0
-        };
-        setOriginalHeights(emergencyHeights);
-        console.log("📏 🚨 EMERGENCY: Using fallback heights:", emergencyHeights);
-      }
-    };
-    
-    // Start immediate attempt
-    attemptHeightStorage(1);
+      }, 500);
+    }
     
     // Also attempt to restore any existing selection state after heights are read
     setTimeout(() => {
