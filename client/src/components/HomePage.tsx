@@ -73,13 +73,17 @@ export const HomePage: React.FC = () => {
                     <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                       <div className="flex space-x-1">
                         {/* PowerPoint Icon */}
-                        <div className="w-8 h-8 bg-orange-600 rounded flex items-center justify-center text-white text-xs font-bold">
-                          P
-                        </div>
+                        <img 
+                          src="/powerpoint-icon.webp" 
+                          alt="PowerPoint" 
+                          className="w-8 h-8"
+                        />
                         {/* Excel Icon */}
-                        <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center text-white text-xs font-bold">
-                          X
-                        </div>
+                        <img 
+                          src="/excel-icon.webp" 
+                          alt="Excel" 
+                          className="w-8 h-8"
+                        />
                       </div>
                     </div>
                     <div className="bg-gray-200 text-gray-600 text-2xl font-bold w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
