@@ -11,6 +11,7 @@ import { MicrosoftRecommendations } from './MicrosoftRecommendations';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
 import { Eye, Box, RotateCcw, RectangleHorizontal, Settings } from 'lucide-react';
+import { powerpointParser } from '@/utils/powerpointParser';
 
 export const BusinessModelCanvas: React.FC = () => {
   const {
@@ -22,20 +23,42 @@ export const BusinessModelCanvas: React.FC = () => {
     loadCanvas,
     toggleView,
     setOrthographicView,
-    setError
+    setError,
+    pendingPowerPointFile,
+    setPendingPowerPointFile
   } = useCanvas();
   
 
 
   useEffect(() => {
-    // Load sample canvas data on component mount
-    try {
-      loadCanvas(sampleCanvasData as CanvasType);
-    } catch (err) {
-      console.error('Error loading canvas data:', err);
-      setError('Failed to load canvas data');
+    // Check if there's a pending PowerPoint file to process
+    if (pendingPowerPointFile) {
+      const processPowerPointFile = async () => {
+        try {
+          const canvas = await powerpointParser.parseFile(pendingPowerPointFile);
+          loadCanvas(canvas, true); // Set isFromPowerPoint flag to true
+          setPendingPowerPointFile(null); // Clear the pending file
+        } catch (error) {
+          console.error('PowerPoint processing error:', error);
+          setError('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');
+          setPendingPowerPointFile(null); // Clear the pending file even on error
+          
+          // Load sample canvas as fallback
+          loadCanvas(sampleCanvasData as CanvasType);
+        }
+      };
+      
+      processPowerPointFile();
+    } else {
+      // Load sample canvas data on component mount only if no PowerPoint file is pending
+      try {
+        loadCanvas(sampleCanvasData as CanvasType);
+      } catch (err) {
+        console.error('Error loading canvas data:', err);
+        setError('Failed to load canvas data');
+      }
     }
-  }, [loadCanvas, setError]);
+  }, [loadCanvas, setError, pendingPowerPointFile, setPendingPowerPointFile]);
 
   const handleToggleView = () => {
     console.log(`Switching to ${is3D ? '2D' : '3D'} view`);
