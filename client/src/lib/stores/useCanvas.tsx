@@ -19,6 +19,7 @@ interface CanvasState {
   } | null;
   selectedObjectName: string | null;
   originalHeights: { [sectionName: string]: number };
+  pendingPowerPointFile: File | null;
   
   // Actions
   loadCanvas: (canvas: BusinessModelCanvas, isFromPowerPoint?: boolean) => void;
@@ -36,6 +37,7 @@ interface CanvasState {
   getSelectedObject: () => string | null;
   setOriginalHeights: (heights: { [sectionName: string]: number }) => void;
   getOriginalHeights: () => { [sectionName: string]: number };
+  setPendingPowerPointFile: (file: File | null) => void;
 }
 
 export const useCanvas = create<CanvasState>()(
@@ -52,6 +54,7 @@ export const useCanvas = create<CanvasState>()(
     camera3DState: null,
     selectedObjectName: null,
     originalHeights: {},
+    pendingPowerPointFile: null,
     
     loadCanvas: (canvas, isFromPowerPoint = false) => {
       set({ 
@@ -141,9 +144,11 @@ export const useCanvas = create<CanvasState>()(
     },
     
     getOriginalHeights: () => {
-      const heights = get().originalHeights;
-      console.log("🏪 STORE: Getting originalHeights:", heights);
-      return heights;
-    }
+      return get().originalHeights;
+    },
+    
+    setPendingPowerPointFile: (file: File | null) => {
+      set({ pendingPowerPointFile: file });
+    },
   }))
 );
