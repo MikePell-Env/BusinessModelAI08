@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect } from "react";
-import { BusinessModelCanvas } from "./components/BusinessModelCanvas";
+import { HomePage } from "./components/HomePage";
 import { AzureCredentialSetup } from "./components/AzureCredentialSetup";
 import "@fontsource/inter";
 
@@ -61,7 +61,7 @@ function App() {
           </div>
         </div>
       }>
-        <BusinessModelCanvas />
+        <HomePage />
       </Suspense>
 
       {showCredentialSetup && (

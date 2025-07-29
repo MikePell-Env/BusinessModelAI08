@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom 3D perspective effects for HomePage */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.rotate-x-12 {
+  transform: rotateX(12deg);
+}
+
+.rotate-y-6 {
+  transform: rotateY(6deg);
+}
+
+/* Smooth hover transitions */
+.transition-all {
+  transition: all 0.3s ease;
+}
+
 @layer base {
   * {
     @apply border-border;
