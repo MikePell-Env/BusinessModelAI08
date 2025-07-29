@@ -209,9 +209,17 @@ export const HomePage: React.FC = () => {
                   muted
                   loop
                   autoPlay
+                  onError={(e) => console.error('Video error:', e)}
+                  onLoadStart={() => console.log('Video loading started')}
+                  onCanPlay={() => console.log('Video can play')}
                 >
+                  <source src="/neon-data-pathway.mp4" type="video/mp4" />
                   <source src="/2025-07-14T00-25-19_a_neon_data_pathway_1753819819664.mov" type="video/quicktime" />
-                  Your browser does not support the video tag.
+                  <img 
+                    src="/video-fallback.png" 
+                    alt="Process Active" 
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
                 </video>
               </div>
               <p className="text-sm text-gray-600 font-medium">Processes</p>
