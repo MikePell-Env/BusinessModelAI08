@@ -69,29 +69,30 @@ export const HomePage: React.FC = () => {
               <div className="grid grid-cols-3 gap-6">
                 {/* Option 1 - Import Office Files */}
                 <div className="text-center">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 hover:border-blue-500 transition-colors">
-                    <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                      <div className="flex space-x-1">
-                        {/* PowerPoint Icon */}
-                        <img 
-                          src="/powerpoint-icon.webp" 
-                          alt="PowerPoint" 
-                          className="w-8 h-8"
-                        />
-                        {/* Excel Icon */}
-                        <img 
-                          src="/excel-icon.webp" 
-                          alt="Excel" 
-                          className="w-8 h-8"
-                        />
-                      </div>
-                    </div>
-                    <div className="bg-gray-200 text-gray-600 text-2xl font-bold w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 hover:border-blue-500 transition-colors relative">
+                    {/* Number 1 in top left */}
+                    <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       1
                     </div>
+                    
+                    {/* Office Icons in center */}
+                    <div className="flex items-center justify-center space-x-2 mb-6 mt-4">
+                      <img 
+                        src="/powerpoint-icon.webp" 
+                        alt="PowerPoint" 
+                        className="w-12 h-12"
+                      />
+                      <img 
+                        src="/excel-icon.webp" 
+                        alt="Excel" 
+                        className="w-12 h-12"
+                      />
+                    </div>
+                    
+                    {/* Button at bottom */}
                     <Button 
                       onClick={() => setShowImporter(true)}
-                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400"
+                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2"
                     >
                       Import Office file...
                     </Button>
