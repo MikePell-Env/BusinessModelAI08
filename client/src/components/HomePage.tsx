@@ -249,10 +249,24 @@ export const HomePage: React.FC = () => {
             </div>
             
             <div className="text-center">
-              <div className="w-full h-32 bg-gradient-to-br from-gray-800 to-gray-600 rounded-lg shadow-md mb-2 flex items-center justify-center">
-                <div className="text-blue-400 text-sm font-mono">
-                  [System] Online
-                </div>
+              <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                <video 
+                  className="w-full h-32 object-cover"
+                  controls
+                  muted
+                  loop
+                  autoPlay
+                  onError={(e) => console.error('Systems video error:', e)}
+                  onLoadStart={() => console.log('Systems video loading started')}
+                  onCanPlay={() => console.log('Systems video can play')}
+                >
+                  <source src="/systems-video.mp4" type="video/mp4" />
+                  <img 
+                    src="/video-fallback.png" 
+                    alt="Systems Online" 
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
+                </video>
               </div>
               <p className="text-sm text-gray-600 font-medium">Systems</p>
             </div>
