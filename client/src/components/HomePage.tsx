@@ -26,7 +26,7 @@ export const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="bg-gray-900 text-white px-8 py-4">
+      <header className="bg-black text-white px-8 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <img 
