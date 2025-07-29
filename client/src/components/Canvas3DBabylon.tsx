@@ -1417,6 +1417,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     readInitialHeights();
     setTimeout(readInitialHeights, 500); // Backup read in case meshes aren't ready
     setTimeout(readInitialHeights, 1500); // Final read to ensure heights are captured
+    
+    // Also attempt to restore any existing selection state after heights are read
+    setTimeout(() => {
+      const existingSelection = getSelectedObject();
+      if (existingSelection && Object.keys(getOriginalHeights()).length > 0) {
+        console.log("🔄 Initial load: Found existing selection, restoring state:", existingSelection);
+        restoreSelectedObjectState();
+      }
+    }, 2000);
 
     // Start the render loop
     engine.runRenderLoop(() => {
@@ -1507,6 +1516,43 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     }
   }, [isOrthographic, saveCamera3DState]);
+
+  // Handle restoration when entering any 3D mode (from 2D or between 3D modes)
+  useEffect(() => {
+    if (is3D && sceneRef.current) {
+      console.log("🔄 === ENTERING/STAYING IN 3D MODE ===");
+      
+      // Multiple attempts to restore state as scene loads  
+      const attemptRestore = (attempt: number) => {
+        const selectedObj = getSelectedObject();
+        const storedHeights = getOriginalHeights();
+        console.log(`🔄 Restore attempt ${attempt} - Current selection:`, selectedObj);
+        console.log(`🔄 Restore attempt ${attempt} - Stored heights:`, storedHeights);
+        
+        if (Object.keys(storedHeights).length > 0 && contentPanelsRef.current.length > 0) {
+          restoreSelectedObjectState();
+          console.log(`🔄 Restore attempt ${attempt}: Successfully applied height state`);
+          return true; // Success
+        } else {
+          console.log(`🔄 Restore attempt ${attempt}: Not ready yet (heights: ${Object.keys(storedHeights).length}, panels: ${contentPanelsRef.current.length})`);
+          return false; // Not ready yet
+        }
+      };
+      
+      // Try immediately
+      if (!attemptRestore(1)) {
+        // Try after short delay
+        setTimeout(() => {
+          if (!attemptRestore(2)) {
+            // Final attempt after longer delay
+            setTimeout(() => {
+              attemptRestore(3);
+            }, 800);
+          }
+        }, 300);
+      }
+    }
+  }, [is3D, isOrthographic, getSelectedObject, getOriginalHeights, restoreSelectedObjectState]);
 
   // Save camera state when switching away from 3D view
   useEffect(() => {

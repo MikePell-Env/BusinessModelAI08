@@ -208,6 +208,15 @@ rootMesh.scaling = new Vector3(8, 8, 8);
 
 ## Recent Changes
 
+### July 29, 2025 - Universal View Switching Height Management System
+- **✅ Comprehensive View Transition System**: Implemented robust height management that works for ALL view transitions (2D ↔ 3D View ↔ 3D Top)
+- **✅ Multi-Attempt State Restoration**: Added intelligent retry system (3 attempts with increasing delays) to handle varying scene loading times
+- **✅ Persistent Store Integration**: All height management now uses Zustand persistent store instead of local refs for cross-view consistency
+- **✅ Enhanced Debug Logging**: Comprehensive console logging to track height state flow across all view transitions
+- **✅ Timing Race Condition Fixes**: Multiple restoration attempts ensure state is applied regardless of scene loading timing
+- **✅ Universal Height Logic**: Unified rule works across all modes: No selection = all objects at original height, selection = selected at original + others flattened (0.1)
+- **✅ Backward Compatibility**: System maintains existing hover/click functionality while adding persistent height management
+
 ### July 29, 2025 - Refined Height Management System with Proper Timing
 - **✅ Critical Timing Fix**: Resolved selection/deselection timing issues where height state was applied before selection state was updated
 - **✅ Unified Height Logic**: Implemented consistent rule across all interactions: No selection = all objects at original height, selection = selected object at original height + others flattened (0.1)
