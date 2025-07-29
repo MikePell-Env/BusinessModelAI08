@@ -37,37 +37,19 @@ export const BusinessModelCanvas: React.FC = () => {
     // Check if there's a pending PowerPoint file to process
     if (pendingPowerPointFile) {
       console.log('🎯 BusinessModelCanvas: Found pending PowerPoint file:', pendingPowerPointFile.name);
-      console.log('🎯 BusinessModelCanvas: Testing with sample PowerPoint data first...');
       
-      // TEMPORARY TEST: Use sample PowerPoint data to verify the flow works
-      try {
-        loadCanvas(samplePowerPointData as CanvasType, true); // Set isFromPowerPoint flag to true
-        console.log('🎯 BusinessModelCanvas: Sample PowerPoint data loaded with isFromPowerPoint=true');
-        setPendingPowerPointFile(null); // Clear the pending file
-      } catch (error) {
-        console.error('Error loading sample PowerPoint data:', error);
-        setError('Failed to load PowerPoint data');
-        setPendingPowerPointFile(null);
-      }
-      
-      /* 
-      // ORIGINAL CODE - will restore after testing
+      // Execute the same logic as the PowerPointImporter component
       const processPowerPointFile = async () => {
         try {
-          console.log('🎯 BusinessModelCanvas: Starting PowerPoint parsing...');
+          console.log('🎯 BusinessModelCanvas: Starting PowerPoint parsing (same as clicking Import button)...');
+          // This is exactly what PowerPointImporter does when clicked
           const canvas = await powerpointParser.parseFile(pendingPowerPointFile);
-          console.log('🎯 BusinessModelCanvas: PowerPoint parsed successfully:', canvas);
-          console.log('🎯 BusinessModelCanvas: Sample content from parsed canvas:', {
-            keyPartners: canvas.keyPartners.content,
-            valuePropositions: canvas.valuePropositions.content
-          });
-          
-          loadCanvas(canvas, true); // Set isFromPowerPoint flag to true
-          console.log('🎯 BusinessModelCanvas: Canvas loaded with isFromPowerPoint=true');
+          loadCanvas(canvas, true); // Same as PowerPointImporter
+          console.log('🎯 BusinessModelCanvas: PowerPoint processed and loaded with isFromPowerPoint=true');
           setPendingPowerPointFile(null); // Clear the pending file
         } catch (error) {
           console.error('PowerPoint processing error:', error);
-          setError('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');
+          alert('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');
           setPendingPowerPointFile(null); // Clear the pending file even on error
           
           // Load sample canvas as fallback
@@ -76,7 +58,6 @@ export const BusinessModelCanvas: React.FC = () => {
       };
       
       processPowerPointFile();
-      */
     } else {
       console.log('🎯 BusinessModelCanvas: No pending PowerPoint file, loading sample canvas data');
       // Load sample canvas data on component mount only if no PowerPoint file is pending
