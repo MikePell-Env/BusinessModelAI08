@@ -115,7 +115,7 @@ export const HomePage: React.FC = () => {
                 <div className="text-center">
                   <div className="bg-white p-6 rounded-lg shadow-md border border-blue-500 hover:border-blue-600 transition-colors relative h-full flex flex-col">
                     {/* Number 1 in top left */}
-                    <div className="absolute top-4 left-4 bg-gray-700 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                    <div className="absolute top-4 left-4 bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       1
                     </div>
                     
