@@ -51,7 +51,7 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
       style={{ backgroundColor: '#e9ecef' }}
     >
       {/* Header - positioned below button group */}
-      <div className="mb-6 text-center pt-20">
+      <div className="mb-6 text-center pt-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{canvas.name}</h1>
         <p className="text-gray-600">{canvas.description}</p>
       </div>
