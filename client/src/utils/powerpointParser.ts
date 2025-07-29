@@ -30,14 +30,20 @@ export class PowerPointParser {
 
   async parseFile(file: File): Promise<BusinessModelCanvas> {
     try {
+      console.log('Starting PowerPoint parsing for:', file.name);
       const arrayBuffer = await file.arrayBuffer();
       const zip = await JSZip.loadAsync(arrayBuffer);
+      console.log('ZIP loaded successfully, file count:', Object.keys(zip.files).length);
       
       // Extract text content from PowerPoint slides
       const slideTexts = await this.extractSlideTexts(zip);
+      console.log('Extracted slide texts:', slideTexts);
       
       // Parse the extracted text into canvas format
-      return this.parseTextToCanvas(slideTexts, file.name);
+      const canvas = this.parseTextToCanvas(slideTexts, file.name);
+      console.log('Final parsed canvas:', canvas);
+      
+      return canvas;
       
     } catch (error) {
       console.error('PowerPoint parsing failed:', error);
@@ -53,12 +59,15 @@ export class PowerPointParser {
       const slideFiles = Object.keys(zip.files)
         .filter(filename => filename.match(/ppt\/slides\/slide\d+\.xml$/))
         .sort();
+      
+      console.log('Found slide files:', slideFiles);
 
       for (const filename of slideFiles) {
         const slideFile = zip.files[filename];
         if (slideFile) {
           const xmlContent = await slideFile.async('text');
           const slideText = this.extractTextFromSlideXML(xmlContent);
+          console.log(`Slide ${filename} extracted text:`, slideText);
           if (slideText.trim()) {
             slideTexts.push(slideText);
           }
@@ -68,6 +77,7 @@ export class PowerPointParser {
       console.error('Error extracting slide texts:', error);
     }
 
+    console.log('Final slide texts array:', slideTexts);
     return slideTexts;
   }
 
