@@ -61,7 +61,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const selectedObjectName = forceSelectedObject !== undefined ? forceSelectedObject : getSelectedObject();
     const storedHeights = getOriginalHeights();
     
-    console.log(`📏 applyHeightState called with selection: ${selectedObjectName}`);
+    console.log(`📏 applyHeightState called with selection: ${selectedObjectName}, forceSelectedObject: ${forceSelectedObject}`);
     
     // Only proceed if we have stored original heights
     if (Object.keys(storedHeights).length === 0) {
@@ -69,28 +69,46 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return;
     }
     
+    // Ensure we have content panels and adjustBMCSection function
+    if (contentPanelsRef.current.length === 0 || !adjustBMCSection) {
+      console.log("📏 Skipping height state - scene not ready", {
+        panelCount: contentPanelsRef.current.length,
+        hasAdjustFunction: !!adjustBMCSection
+      });
+      return;
+    }
+    
+    console.log(`📏 Processing ${contentPanelsRef.current.length} objects with selection: ${selectedObjectName || 'NONE'}`);
+    
     contentPanelsRef.current.forEach(({ mesh }) => {
       const sectionName = (mesh as any).bmcSectionName;
-      if (!sectionName || !adjustBMCSection) return;
+      if (!sectionName) {
+        console.log("📏 Skipping mesh without sectionName");
+        return;
+      }
       
       if (!selectedObjectName) {
         // No selection: All objects at original height
         const storedHeight = storedHeights[sectionName];
         if (storedHeight !== undefined) {
           adjustBMCSection(sectionName, { height: storedHeight });
-          console.log(`📏 No selection: ${sectionName} at original height (${storedHeight})`);
+          console.log(`📏 ✅ No selection: ${sectionName} restored to original height (${storedHeight})`);
+        } else {
+          console.log(`📏 ❌ No stored height for ${sectionName}:`, storedHeights);
         }
       } else if (sectionName === selectedObjectName) {
         // Selected object: Original height
         const storedHeight = storedHeights[sectionName];
         if (storedHeight !== undefined) {
           adjustBMCSection(sectionName, { height: storedHeight });
-          console.log(`📏 Selected: ${sectionName} at original height (${storedHeight})`);
+          console.log(`📏 ✅ Selected: ${sectionName} at original height (${storedHeight})`);
+        } else {
+          console.log(`📏 ❌ No stored height for selected ${sectionName}:`, storedHeights);
         }
       } else {
         // Non-selected objects: Flattened
         adjustBMCSection(sectionName, { height: 0.1 });
-        console.log(`📏 Non-selected: ${sectionName} flattened (0.1)`);
+        console.log(`📏 ✅ Non-selected: ${sectionName} flattened (0.1)`);
       }
     });
   };
@@ -1161,11 +1179,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // CRITICAL: Clear selection state FIRST, then apply height state immediately
               setSelectedObject(null);
-              console.log("🔓 DESELECT: Cleared selection state in updateMeshClickUnselect");
+              console.log("🔓 DESELECT: Cleared selection state, current store state:", getSelectedObject());
               
               // Force apply height state with null selection to ensure immediate restoration
               console.log("🔓 DESELECT: Forcing applyHeightState with null selection");
               applyHeightState(null); // Force no selection state to restore all heights immediately
+              
+              // Double-check the height state was applied correctly by logging final state
+              setTimeout(() => {
+                const finalSelection = getSelectedObject();
+                console.log("🔓 DESELECT: Final verification - selection state:", finalSelection);
+                const storedHeights = getOriginalHeights();
+                console.log("🔓 DESELECT: Available stored heights:", storedHeights);
+              }, 100);
               
               // Restore all objects to full opacity
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
