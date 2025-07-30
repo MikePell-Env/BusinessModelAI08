@@ -1061,7 +1061,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 ];
                 
                 // Create tiny bright blue sphere (tracer head)
-                const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.002 }, scene);
+                const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.001 }, scene);
                 const tracerMaterial = new StandardMaterial("tracerMat", scene);
                 tracerMaterial.emissiveColor = new Color3(0, 0.7, 1); // Bright blue
                 tracerMaterial.disableLighting = true;
@@ -1071,7 +1071,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 
                 // Create trail points array for the tail effect
                 const trailPoints: Vector3[] = [];
-                const maxTrailLength = 30; // Longer trail
+                const maxTrailLength = 60; // Much longer trail (2x)
                 
                 // Create trail meshes
                 const trailMeshes: Mesh[] = [];
