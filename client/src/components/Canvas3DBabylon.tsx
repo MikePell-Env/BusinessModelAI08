@@ -1070,19 +1070,33 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 tracerSphere.parent = mesh;
                 tracerSphere.isPickable = false;
                 
-                // Create trail points array for the tail effect
-                const trailPoints: Vector3[] = [];
-                const maxTrailLength = 60; // Much longer trail (2x)
+                // Create a stable trail using multiple static line segments
+                const trailSegments: LinesMesh[] = [];
+                const maxTrailSegments = 20; // Number of trail segments
                 
-                // Create initial trail line with updatable geometry
-                let trailLine: LinesMesh | null = null;
+                // Pre-create all trail segments with fixed positions
+                for (let i = 0; i < maxTrailSegments; i++) {
+                  const segmentPoints = [Vector3.Zero(), Vector3.Zero()];
+                  const trailSegment = MeshBuilder.CreateLines(`customerSegmentsTrail_${i}`, {
+                    points: segmentPoints
+                  }, scene);
+                  
+                  // Set blue color with gradient effect (older segments are more transparent)
+                  const alpha = (maxTrailSegments - i) / maxTrailSegments;
+                  trailSegment.color = new Color3(0, 0.7 * alpha, 1 * alpha);
+                  trailSegment.parent = mesh;
+                  trailSegment.isPickable = false;
+                  trailSegment.visibility = 0; // Start invisible
+                  trailSegments.push(trailSegment);
+                }
                 
                 // Store animation reference
-                (mesh as any).blueTracer = { sphere: tracerSphere, trail: trailLine };
+                (mesh as any).blueTracer = { sphere: tracerSphere, trail: trailSegments };
                 
                 // Animation variables
                 let animationTime = 0;
                 const totalPathLength = pathPoints.length;
+                const trailHistory: Vector3[] = [];
                 
                 const animateTracer = () => {
                   if (tracerSphere && !tracerSphere.isDisposed()) {
@@ -1102,46 +1116,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
                     tracerSphere.position = currentPos;
                     
-                    // Update trail
-                    trailPoints.unshift(currentPos.clone());
-                    if (trailPoints.length > maxTrailLength) {
-                      trailPoints.pop();
+                    // Update trail history
+                    trailHistory.unshift(currentPos.clone());
+                    if (trailHistory.length > maxTrailSegments + 1) {
+                      trailHistory.pop();
                     }
                     
-                    // Create or update trail line more efficiently
-                    if (trailPoints.length > 1) {
-                      if (!trailLine) {
-                        // Create initial trail line with updatable flag
-                        trailLine = MeshBuilder.CreateLines("customerSegmentsTrail", {
-                          points: trailPoints,
-                          updatable: true
-                        }, scene);
-                        
-                        // Set bright blue color
-                        trailLine.color = new Color3(0, 0.7, 1);
-                        trailLine.parent = mesh;
-                        trailLine.isPickable = false;
-                      } else {
-                        // Update existing trail line geometry
-                        try {
-                          trailLine = MeshBuilder.CreateLines("customerSegmentsTrail", {
-                            points: trailPoints,
-                            instance: trailLine
-                          }, scene);
-                        } catch (error) {
-                          // If update fails, recreate the trail line
-                          if (trailLine) {
-                            trailLine.dispose();
-                          }
-                          trailLine = MeshBuilder.CreateLines("customerSegmentsTrail", {
-                            points: trailPoints,
-                            updatable: true
-                          }, scene);
-                          trailLine.color = new Color3(0, 0.7, 1);
-                          trailLine.parent = mesh;
-                          trailLine.isPickable = false;
-                        }
-                      }
+                    // Update trail segments using static positioning
+                    for (let i = 0; i < trailSegments.length && i < trailHistory.length - 1; i++) {
+                      const segment = trailSegments[i];
+                      const startPos = trailHistory[i];
+                      const endPos = trailHistory[i + 1];
+                      
+                      // Update segment position by moving the entire line
+                      segment.position = startPos;
+                      const direction = endPos.subtract(startPos);
+                      
+                      // Use simple visibility animation instead of geometry updates
+                      const alpha = (maxTrailSegments - i) / maxTrailSegments;
+                      segment.visibility = alpha * 0.8; // Make trail visible with gradient
                     }
                     
                     // Continue animation
