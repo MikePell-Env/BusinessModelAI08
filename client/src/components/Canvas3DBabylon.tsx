@@ -1052,7 +1052,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const max = boundingInfo.maximum;
                 
                 // Calculate rectangular path exactly on top surface outline
-                const topY = max.y + 0.001; // Right on the surface
+                const topY = max.y; // Directly on the surface
                 const pathPoints = [
                   new Vector3(min.x, topY, min.z), // Bottom-left
                   new Vector3(max.x, topY, min.z), // Bottom-right
