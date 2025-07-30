@@ -1074,7 +1074,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const trailPoints: Vector3[] = [];
                 const maxTrailLength = 60; // Much longer trail (2x)
                 
-                // Create a single trail line instead of individual spheres
+                // Create initial trail line with updatable geometry
                 let trailLine: LinesMesh | null = null;
                 
                 // Store animation reference
@@ -1108,22 +1108,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                       trailPoints.pop();
                     }
                     
-                    // Create/update trail line
+                    // Create or update trail line more efficiently
                     if (trailPoints.length > 1) {
-                      // Dispose old trail line
-                      if (trailLine) {
-                        trailLine.dispose();
+                      if (!trailLine) {
+                        // Create initial trail line with updatable flag
+                        trailLine = MeshBuilder.CreateLines("customerSegmentsTrail", {
+                          points: trailPoints,
+                          updatable: true
+                        }, scene);
+                        
+                        // Set bright blue color
+                        trailLine.color = new Color3(0, 0.7, 1);
+                        trailLine.parent = mesh;
+                        trailLine.isPickable = false;
+                      } else {
+                        // Update existing trail line geometry
+                        try {
+                          trailLine = MeshBuilder.CreateLines("customerSegmentsTrail", {
+                            points: trailPoints,
+                            instance: trailLine
+                          }, scene);
+                        } catch (error) {
+                          // If update fails, recreate the trail line
+                          if (trailLine) {
+                            trailLine.dispose();
+                          }
+                          trailLine = MeshBuilder.CreateLines("customerSegmentsTrail", {
+                            points: trailPoints,
+                            updatable: true
+                          }, scene);
+                          trailLine.color = new Color3(0, 0.7, 1);
+                          trailLine.parent = mesh;
+                          trailLine.isPickable = false;
+                        }
                       }
-                      
-                      // Create new trail line with current points
-                      trailLine = MeshBuilder.CreateLines("customerSegmentsTrail", {
-                        points: trailPoints
-                      }, scene);
-                      
-                      // Set bright blue color with gradient effect
-                      trailLine.color = new Color3(0, 0.7, 1);
-                      trailLine.parent = mesh;
-                      trailLine.isPickable = false;
                     }
                     
                     // Continue animation
