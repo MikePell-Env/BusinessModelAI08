@@ -1070,33 +1070,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 tracerSphere.parent = mesh;
                 tracerSphere.isPickable = false;
                 
-                // Create a stable trail using multiple static line segments
-                const trailSegments: LinesMesh[] = [];
-                const maxTrailSegments = 20; // Number of trail segments
+                // Create a simple trail using small spheres instead of lines
+                const trailSpheres: Mesh[] = [];
+                const maxTrailLength = 15; // Number of trail spheres
                 
-                // Pre-create all trail segments with fixed positions
-                for (let i = 0; i < maxTrailSegments; i++) {
-                  const segmentPoints = [Vector3.Zero(), Vector3.Zero()];
-                  const trailSegment = MeshBuilder.CreateLines(`customerSegmentsTrail_${i}`, {
-                    points: segmentPoints
+                // Pre-create trail spheres
+                for (let i = 0; i < maxTrailLength; i++) {
+                  const trailSphere = MeshBuilder.CreateSphere(`customerSegmentsTrailSphere_${i}`, { 
+                    diameter: 0.008 - (i * 0.0003) // Gradually smaller spheres
                   }, scene);
                   
-                  // Set blue color with gradient effect (older segments are more transparent)
-                  const alpha = (maxTrailSegments - i) / maxTrailSegments;
-                  trailSegment.color = new Color3(0, 0.7 * alpha, 1 * alpha);
-                  trailSegment.parent = mesh;
-                  trailSegment.isPickable = false;
-                  trailSegment.visibility = 0; // Start invisible
-                  trailSegments.push(trailSegment);
+                  const trailMaterial = new StandardMaterial(`trailSphereMat_${i}`, scene);
+                  const alpha = (maxTrailLength - i) / maxTrailLength;
+                  trailMaterial.emissiveColor = new Color3(0, 0.7 * alpha, 1 * alpha); // Bright blue with fade
+                  trailMaterial.disableLighting = true;
+                  trailMaterial.alpha = alpha * 0.8; // Transparency gradient
+                  
+                  trailSphere.material = trailMaterial;
+                  trailSphere.parent = mesh;
+                  trailSphere.isPickable = false;
+                  trailSphere.visibility = 0; // Start invisible
+                  trailSpheres.push(trailSphere);
                 }
                 
                 // Store animation reference
-                (mesh as any).blueTracer = { sphere: tracerSphere, trail: trailSegments };
+                (mesh as any).blueTracer = { sphere: tracerSphere, trail: trailSpheres };
                 
                 // Animation variables
                 let animationTime = 0;
                 const totalPathLength = pathPoints.length;
-                const trailHistory: Vector3[] = [];
+                const trailPositions: Vector3[] = [];
                 
                 const animateTracer = () => {
                   if (tracerSphere && !tracerSphere.isDisposed()) {
@@ -1116,25 +1119,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
                     tracerSphere.position = currentPos;
                     
-                    // Update trail history
-                    trailHistory.unshift(currentPos.clone());
-                    if (trailHistory.length > maxTrailSegments + 1) {
-                      trailHistory.pop();
+                    // Update trail positions
+                    trailPositions.unshift(currentPos.clone());
+                    if (trailPositions.length > maxTrailLength) {
+                      trailPositions.pop();
                     }
                     
-                    // Update trail segments using static positioning
-                    for (let i = 0; i < trailSegments.length && i < trailHistory.length - 1; i++) {
-                      const segment = trailSegments[i];
-                      const startPos = trailHistory[i];
-                      const endPos = trailHistory[i + 1];
-                      
-                      // Update segment position by moving the entire line
-                      segment.position = startPos;
-                      const direction = endPos.subtract(startPos);
-                      
-                      // Use simple visibility animation instead of geometry updates
-                      const alpha = (maxTrailSegments - i) / maxTrailSegments;
-                      segment.visibility = alpha * 0.8; // Make trail visible with gradient
+                    // Update trail spheres positions
+                    for (let i = 0; i < trailSpheres.length && i < trailPositions.length; i++) {
+                      const trailSphere = trailSpheres[i];
+                      trailSphere.position = trailPositions[i];
+                      trailSphere.visibility = 1; // Make visible
                     }
                     
                     // Continue animation
