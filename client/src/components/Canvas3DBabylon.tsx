@@ -1042,6 +1042,104 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Create the pulsating edge after a short delay to ensure mesh is ready
               setTimeout(createPulsatingEdge, 100);
             }
+
+            // Create blue tracer animation for Customer Segments
+            if (sectionName === "Customer Segments") {
+              const createBlueTracer = () => {
+                // Get mesh bounding info
+                const boundingInfo = mesh.getBoundingInfo();
+                const min = boundingInfo.minimum;
+                const max = boundingInfo.maximum;
+                
+                // Calculate rectangular path around top surface
+                const topY = max.y + 0.02; // Slightly above surface
+                const pathPoints = [
+                  new Vector3(min.x, topY, min.z), // Bottom-left
+                  new Vector3(max.x, topY, min.z), // Bottom-right
+                  new Vector3(max.x, topY, max.z), // Top-right
+                  new Vector3(min.x, topY, max.z), // Top-left
+                ];
+                
+                // Create bright blue sphere (tracer head)
+                const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.08 }, scene);
+                const tracerMaterial = new StandardMaterial("tracerMat", scene);
+                tracerMaterial.emissiveColor = new Color3(0, 0.7, 1); // Bright blue
+                tracerMaterial.disableLighting = true;
+                tracerSphere.material = tracerMaterial;
+                tracerSphere.parent = mesh;
+                tracerSphere.isPickable = false;
+                
+                // Create trail points array for the tail effect
+                const trailPoints: Vector3[] = [];
+                const maxTrailLength = 20; // Number of trail segments
+                
+                // Create trail meshes
+                const trailMeshes: Mesh[] = [];
+                for (let i = 0; i < maxTrailLength; i++) {
+                  const trailSegment = MeshBuilder.CreateSphere(`trailSegment_${i}`, { diameter: 0.06 - (i * 0.002) }, scene);
+                  const trailMaterial = new StandardMaterial(`trailMat_${i}`, scene);
+                  const alpha = 1.0 - (i / maxTrailLength); // Fade out
+                  trailMaterial.emissiveColor = new Color3(0, 0.7 * alpha, 1 * alpha);
+                  trailMaterial.alpha = alpha;
+                  trailMaterial.disableLighting = true;
+                  trailSegment.material = trailMaterial;
+                  trailSegment.parent = mesh;
+                  trailSegment.isPickable = false;
+                  trailSegment.isVisible = false; // Initially hidden
+                  trailMeshes.push(trailSegment);
+                }
+                
+                // Store animation reference
+                (mesh as any).blueTracer = { sphere: tracerSphere, trail: trailMeshes };
+                
+                // Animation variables
+                let animationTime = 0;
+                const totalPathLength = pathPoints.length;
+                
+                const animateTracer = () => {
+                  if (tracerSphere && !tracerSphere.isDisposed()) {
+                    animationTime += 0.015; // Animation speed
+                    
+                    // Calculate position along path
+                    const progress = (animationTime % (totalPathLength * 2)) / (totalPathLength * 2);
+                    const scaledProgress = progress * totalPathLength;
+                    const segmentIndex = Math.floor(scaledProgress) % totalPathLength;
+                    const segmentProgress = scaledProgress - Math.floor(scaledProgress);
+                    
+                    // Get current and next points
+                    const currentPoint = pathPoints[segmentIndex];
+                    const nextPoint = pathPoints[(segmentIndex + 1) % totalPathLength];
+                    
+                    // Interpolate position
+                    const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
+                    tracerSphere.position = currentPos;
+                    
+                    // Update trail
+                    trailPoints.unshift(currentPos.clone());
+                    if (trailPoints.length > maxTrailLength) {
+                      trailPoints.pop();
+                    }
+                    
+                    // Position trail segments
+                    for (let i = 0; i < trailMeshes.length && i < trailPoints.length; i++) {
+                      trailMeshes[i].position = trailPoints[i];
+                      trailMeshes[i].isVisible = true;
+                    }
+                    
+                    // Continue animation
+                    requestAnimationFrame(animateTracer);
+                  }
+                };
+                
+                // Start animation
+                animateTracer();
+                
+                console.log(`✅ Blue tracer animation created for Customer Segments with rectangular path`);
+              };
+              
+              // Create the blue tracer after a short delay to ensure mesh is ready
+              setTimeout(createBlueTracer, 100);
+            }
             
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
