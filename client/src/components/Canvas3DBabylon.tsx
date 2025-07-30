@@ -1051,8 +1051,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const min = boundingInfo.minimum;
                 const max = boundingInfo.maximum;
                 
-                // Calculate rectangular path around top surface
-                const topY = max.y + 0.02; // Slightly above surface
+                // Calculate rectangular path exactly on top surface outline
+                const topY = max.y + 0.001; // Right on the surface
                 const pathPoints = [
                   new Vector3(min.x, topY, min.z), // Bottom-left
                   new Vector3(max.x, topY, min.z), // Bottom-right
@@ -1060,8 +1060,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   new Vector3(min.x, topY, max.z), // Top-left
                 ];
                 
-                // Create bright blue sphere (tracer head)
-                const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.015 }, scene);
+                // Create tiny bright blue sphere (tracer head)
+                const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.005 }, scene);
                 const tracerMaterial = new StandardMaterial("tracerMat", scene);
                 tracerMaterial.emissiveColor = new Color3(0, 0.7, 1); // Bright blue
                 tracerMaterial.disableLighting = true;
@@ -1071,12 +1071,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 
                 // Create trail points array for the tail effect
                 const trailPoints: Vector3[] = [];
-                const maxTrailLength = 20; // Number of trail segments
+                const maxTrailLength = 15; // Number of trail segments
                 
                 // Create trail meshes
                 const trailMeshes: Mesh[] = [];
                 for (let i = 0; i < maxTrailLength; i++) {
-                  const trailSegment = MeshBuilder.CreateSphere(`trailSegment_${i}`, { diameter: 0.012 - (i * 0.0003) }, scene);
+                  const trailSegment = MeshBuilder.CreateSphere(`trailSegment_${i}`, { diameter: 0.004 - (i * 0.0001) }, scene);
                   const trailMaterial = new StandardMaterial(`trailMat_${i}`, scene);
                   const alpha = 1.0 - (i / maxTrailLength); // Fade out
                   trailMaterial.emissiveColor = new Color3(0, 0.7 * alpha, 1 * alpha);
@@ -1098,7 +1098,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 
                 const animateTracer = () => {
                   if (tracerSphere && !tracerSphere.isDisposed()) {
-                    animationTime += 0.015; // Animation speed
+                    animationTime += 0.035; // Faster animation speed
                     
                     // Calculate position along path
                     const progress = (animationTime % (totalPathLength * 2)) / (totalPathLength * 2);
