@@ -1071,7 +1071,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 tracerSphere.isPickable = false;
                 
                 // Create a single stable trail line that gets updated safely
-                const maxTrailLength = 20;
+                const maxTrailLength = 8;
                 const trailPositions: Vector3[] = [];
                 
                 // Initialize trail positions with current position
