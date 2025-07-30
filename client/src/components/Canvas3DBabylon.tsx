@@ -1070,39 +1070,35 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 tracerSphere.parent = mesh;
                 tracerSphere.isPickable = false;
                 
-                // Create a simple trail using small spheres instead of lines
-                const trailSpheres: Mesh[] = [];
-                const maxTrailLength = 15; // Number of trail spheres
+                // Create a single stable trail line that gets updated safely
+                const maxTrailLength = 20;
+                const trailPositions: Vector3[] = [];
                 
-                // Pre-create trail spheres
+                // Initialize trail positions with current position
                 for (let i = 0; i < maxTrailLength; i++) {
-                  const trailSphere = MeshBuilder.CreateSphere(`customerSegmentsTrailSphere_${i}`, { 
-                    diameter: 0.0008 - (i * 0.00002) // Ultra-tiny trail spheres, gradually decreasing
-                  }, scene);
-                  
-                  const trailMaterial = new StandardMaterial(`trailSphereMat_${i}`, scene);
-                  const alpha = (maxTrailLength - i) / maxTrailLength;
-                  trailMaterial.emissiveColor = new Color3(0, 0.7 * alpha, 1 * alpha); // Bright blue with fade
-                  trailMaterial.disableLighting = true;
-                  trailMaterial.alpha = alpha * 0.8; // Transparency gradient
-                  
-                  trailSphere.material = trailMaterial;
-                  trailSphere.parent = mesh;
-                  trailSphere.isPickable = false;
-                  trailSphere.visibility = 0; // Start invisible
-                  trailSpheres.push(trailSphere);
+                  trailPositions.push(pathPoints[0].clone());
                 }
                 
+                // Create a single trail line with initial points
+                const trailLine = MeshBuilder.CreateLines("customerSegmentsTrail", {
+                  points: trailPositions,
+                  updatable: true
+                }, scene);
+                
+                trailLine.color = new Color3(0, 0.7, 1); // Bright blue
+                trailLine.parent = mesh;
+                trailLine.isPickable = false;
+                
                 // Store animation reference
-                (mesh as any).blueTracer = { sphere: tracerSphere, trail: trailSpheres };
+                (mesh as any).blueTracer = { sphere: tracerSphere, trail: trailLine };
                 
                 // Animation variables
                 let animationTime = 0;
                 const totalPathLength = pathPoints.length;
-                const trailPositions: Vector3[] = [];
+                let updateCounter = 0;
                 
                 const animateTracer = () => {
-                  if (tracerSphere && !tracerSphere.isDisposed()) {
+                  if (tracerSphere && !tracerSphere.isDisposed() && trailLine && !trailLine.isDisposed()) {
                     animationTime += 0.035; // Faster animation speed
                     
                     // Calculate position along path
@@ -1119,17 +1115,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
                     tracerSphere.position = currentPos;
                     
-                    // Update trail positions
-                    trailPositions.unshift(currentPos.clone());
-                    if (trailPositions.length > maxTrailLength) {
-                      trailPositions.pop();
-                    }
-                    
-                    // Update trail spheres positions
-                    for (let i = 0; i < trailSpheres.length && i < trailPositions.length; i++) {
-                      const trailSphere = trailSpheres[i];
-                      trailSphere.position = trailPositions[i];
-                      trailSphere.visibility = 1; // Make visible
+                    // Update trail positions less frequently to avoid vertex buffer issues
+                    updateCounter++;
+                    if (updateCounter % 3 === 0) { // Update every 3rd frame
+                      // Shift trail positions
+                      for (let i = trailPositions.length - 1; i > 0; i--) {
+                        trailPositions[i] = trailPositions[i - 1].clone();
+                      }
+                      trailPositions[0] = currentPos.clone();
+                      
+                      // Safely update line geometry
+                      try {
+                        MeshBuilder.CreateLines("customerSegmentsTrail", {
+                          points: trailPositions,
+                          instance: trailLine
+                        }, scene);
+                      } catch (error) {
+                        // If update fails, just continue without updating trail
+                        console.log("Trail update skipped to prevent crash");
+                      }
                     }
                     
                     // Continue animation
