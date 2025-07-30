@@ -1077,7 +1077,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 // Pre-create trail spheres
                 for (let i = 0; i < maxTrailLength; i++) {
                   const trailSphere = MeshBuilder.CreateSphere(`customerSegmentsTrailSphere_${i}`, { 
-                    diameter: 0.008 - (i * 0.0003) // Gradually smaller spheres
+                    diameter: 0.002 - (i * 0.00005) // Much smaller trail spheres, gradually decreasing
                   }, scene);
                   
                   const trailMaterial = new StandardMaterial(`trailSphereMat_${i}`, scene);
