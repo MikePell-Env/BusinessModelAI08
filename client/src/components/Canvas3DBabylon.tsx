@@ -22,7 +22,8 @@ import {
   SceneLoader,
   AbstractMesh,
   Matrix,
-  TransformNode
+  TransformNode,
+  LinesMesh
 } from '@babylonjs/core';
 import { 
   AdvancedDynamicTexture,
