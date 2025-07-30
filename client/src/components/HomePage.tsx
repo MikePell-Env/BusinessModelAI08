@@ -169,7 +169,7 @@ export const HomePage: React.FC = () => {
                     {/* Button at bottom */}
                     <Button 
                       disabled
-                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 cursor-not-allowed rounded-lg py-2 mt-4"
+                      className="w-full bg-gray-400 text-gray-600 hover:bg-gray-400 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
                     >
                       Ask Copilot AI...
                     </Button>
@@ -196,7 +196,7 @@ export const HomePage: React.FC = () => {
                     {/* Button at bottom */}
                     <Button 
                       disabled
-                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 cursor-not-allowed rounded-lg py-2 mt-4"
+                      className="w-full bg-gray-400 text-gray-600 hover:bg-gray-400 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
                     >
                       Dev? Use MCP API...
                     </Button>
