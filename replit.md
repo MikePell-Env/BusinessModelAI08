@@ -59,4 +59,4 @@ The application employs a full-stack monorepo architecture, separating client an
 - **PostgreSQL**: Relational database for persistent storage.
 
 ### Other Integrations
-- **PowerPoint Import**: Utilizes JSZip and XML parsing for importing content from PowerPoint files.
+- **PowerPoint Import**: Utilizes JSZip and XML parsing for importing content from PowerPoint files. Features enhanced paragraph-based text extraction to preserve complete bullet points and strict content filtering for Revenue Streams to prevent financial projection data contamination.
