@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { BusinessModelCanvas } from './BusinessModelCanvas';
 import { PowerPointImporter } from './PowerPointImporter';
 import { AIChat } from './AIChat';
+import { Header } from './Header';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
@@ -65,26 +66,7 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 pb-16 relative">
-      {/* Header */}
-      <header className="bg-black text-white py-4">
-        <div className="w-full flex justify-between items-center px-8">
-          {/* Envisioner logo - left aligned with margin */}
-          <div className="flex items-center">
-            <img 
-              src="/envisioner-logo.png" 
-              alt="Envisioner" 
-              className="h-8"
-            />
-          </div>
-          
-          {/* Navigation menu - always right aligned */}
-          <nav className="flex items-center justify-end space-x-8 ml-auto">
-            <a href="#" className="text-gray-300 hover:text-white transition-colors">About</a>
-            <a href="#" className="text-gray-300 hover:text-white transition-colors">Team</a>
-            <a href="#" className="text-gray-300 hover:text-white transition-colors">Contact</a>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="py-12 relative">
