@@ -41,7 +41,7 @@ export class PowerPointParser {
       
     } catch (error) {
       console.error('PowerPoint parsing failed:', error);
-      throw new Error(`Failed to parse PowerPoint file: ${error.message}`);
+      throw new Error(`Failed to parse PowerPoint file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -167,17 +167,17 @@ export class PowerPointParser {
         console.log(`PowerPoint Parser - Started new section: ${line}`);
       } else if (this.isBulletPoint(line) && currentSection) {
         const cleanedItem = this.cleanBulletPoint(line);
-        if (cleanedItem && !this.isCompanyInformation(cleanedItem) && !this.isStandaloneKeyword(cleanedItem)) {
+        if (cleanedItem && !this.isCompanyInformation(cleanedItem) && !this.isStandaloneKeyword(cleanedItem) && !this.isRelevantToAnotherSection(cleanedItem, currentSection.title)) {
           currentSection.items.push(cleanedItem);
           console.log(`PowerPoint Parser - Added bullet item to ${currentSection.title}: ${cleanedItem}`);
         }
       } else if (currentSection && line.length > 0 && !this.isSectionHeader(line) && !this.isCompanyInformation(line) && !this.isStandaloneKeyword(line)) {
         // Add non-bullet content as regular items, but filter out very long paragraphs and exclude company information
-        if (this.isValidContentItem(line)) {
+        if (this.isValidContentItem(line) && !this.isRelevantToAnotherSection(line, currentSection.title)) {
           currentSection.items.push(line);
           console.log(`PowerPoint Parser - Added regular item to ${currentSection.title}: ${line}`);
         } else {
-          console.log(`PowerPoint Parser - Skipped long paragraph for ${currentSection.title}: ${line.substring(0, 50)}...`);
+          console.log(`PowerPoint Parser - Skipped item for ${currentSection.title}: ${line.substring(0, 50)}...`);
         }
       }
     }
@@ -212,7 +212,11 @@ export class PowerPointParser {
       /^Company\s+Name:\s*/i,
       /^Business:\s*/i,
       /^Organization:\s*/i,
-      /^Empresa:\s*/i // Spanish
+      /^Empresa:\s*/i, // Spanish
+      /Envisioner,?\s*Inc\.?/i,
+      /Business\s+Model/i,
+      /^Inc\.?\s*$/i,
+      /^\s*Envisioner\s*$/i
     ];
     
     return companyPatterns.some(pattern => pattern.test(line));
@@ -227,7 +231,14 @@ export class PowerPointParser {
       /^Resources$/i,
       /^Startup,?\s*Inc\.?$/i,
       /^Inc\.?$/i,
-      /^Company$/i
+      /^Company$/i,
+      /^Business$/i,
+      /^Model$/i,
+      /^Envisioner$/i,
+      /^Revenue$/i,
+      /^Streams$/i,
+      /^Cost$/i,
+      /^Structure$/i
     ];
     
     return standaloneKeywords.some(pattern => pattern.test(line.trim()));
@@ -281,6 +292,42 @@ export class PowerPointParser {
     }
     
     return true;
+  }
+
+  private isRelevantToAnotherSection(line: string, currentSectionTitle: string): boolean {
+    // Check if the content seems more relevant to another section
+    const trimmedLine = line.toLowerCase();
+    const currentSectionKey = this.findSectionKey(currentSectionTitle.toLowerCase());
+    
+    // Don't allow content that mentions other sections
+    const sectionMentions = [
+      { keywords: ['partner', 'alliance', 'supplier'], section: 'keyPartners' },
+      { keywords: ['activity', 'process', 'operation'], section: 'keyActivities' },
+      { keywords: ['resource', 'asset', 'infrastructure'], section: 'keyResources' },
+      { keywords: ['value proposition', 'benefit', 'solution'], section: 'valuePropositions' },
+      { keywords: ['relationship', 'support', 'service'], section: 'customerRelationships' },
+      { keywords: ['channel', 'distribution', 'sales'], section: 'channels' },
+      { keywords: ['segment', 'customer', 'target'], section: 'customerSegments' },
+      { keywords: ['cost', 'expense', 'overhead'], section: 'costStructure' },
+      { keywords: ['revenue', 'income', 'pricing', 'subscription', 'fee'], section: 'revenueStreams' }
+    ];
+    
+    for (const sectionInfo of sectionMentions) {
+      if (sectionInfo.section !== currentSectionKey) {
+        // Check if this line contains keywords strongly associated with another section
+        const keywordMatches = sectionInfo.keywords.filter(keyword => 
+          trimmedLine.includes(keyword)
+        ).length;
+        
+        // If this line has 2+ keywords from another section, it probably belongs there
+        if (keywordMatches >= 2) {
+          console.log(`PowerPoint Parser - Content "${line}" seems more relevant to ${sectionInfo.section} than ${currentSectionKey}`);
+          return true;
+        }
+      }
+    }
+    
+    return false;
   }
 
   private extractCompanyName(content: string): string | null {
