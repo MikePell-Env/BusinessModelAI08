@@ -217,7 +217,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
 
       {/* Copyright Bar - Bottom (only in 3D views) */}
       {is3D && (
-        <div className="absolute bottom-0 left-0 right-0 bg-black text-white text-center py-2 text-sm z-40">
+        <div className="absolute bottom-0 left-0 right-0 bg-white text-black text-center py-2 text-sm z-40">
           Copyright © 2025 Envisioner, Inc. All Rights Reserved.
         </div>
       )}
