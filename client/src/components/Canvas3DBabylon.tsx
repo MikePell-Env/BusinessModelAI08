@@ -638,11 +638,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Debug: Log Customer Segments position for Revenue Streams placement reference
-              console.log(`🔍 Customer Segments mesh position:`, mesh.position);
-              console.log(`🔍 Customer Segments world position:`, mesh.getAbsolutePosition());
-              console.log(`🔍 Customer Segments bounding center:`, center);
-              console.log(`🔍 Customer Segments transform node:`, (mesh as any).bmcTransformNode?.position);
+
               
               // Create label plane with larger size to match other labels
               const labelWidth = size.x * 1.0; // Full width to match font size of other labels
