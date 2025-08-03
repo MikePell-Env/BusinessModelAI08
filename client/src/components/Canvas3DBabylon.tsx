@@ -616,7 +616,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).bmcTransformNode = transformNode;
             (mesh as any).bmcSectionName = sectionName;
             
+            // Log world coordinates
+            const worldPosition = transformNode.getAbsolutePosition();
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
+            console.log(`📍 World Position: (${worldPosition.x.toFixed(3)}, ${worldPosition.y.toFixed(3)}, ${worldPosition.z.toFixed(3)})`);
             
             // Create new semi-gloss black plastic material for each section
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
@@ -718,6 +721,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   // Store references
                   (duplicateMesh as any).bmcTransformNode = duplicateTransformNode;
                   (duplicateMesh as any).bmcSectionName = "Customer Segments Duplicate";
+                  
+                  // Log duplicate world coordinates
+                  const duplicateWorldPosition = duplicateTransformNode.getAbsolutePosition();
+                  console.log(`📍 Customer Segments Duplicate World Position: (${duplicateWorldPosition.x.toFixed(3)}, ${duplicateWorldPosition.y.toFixed(3)}, ${duplicateWorldPosition.z.toFixed(3)})`);
+                  console.log(`📏 Duplicate Scaling: (${duplicateTransformNode.scaling.x.toFixed(3)}, ${duplicateTransformNode.scaling.y.toFixed(3)}, ${duplicateTransformNode.scaling.z.toFixed(3)})`);
+                  console.log(`🔄 Duplicate Rotation Y: ${(duplicateTransformNode.rotation.y * 180 / Math.PI).toFixed(1)}°`);
                   
                   // Clone and rotate the label to match the object rotation
                   const duplicateLabel = labelPlane.clone(`customerSegmentsDuplicateLabel_${index}`, duplicateTransformNode);
