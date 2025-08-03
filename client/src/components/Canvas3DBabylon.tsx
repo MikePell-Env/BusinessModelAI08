@@ -531,10 +531,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Function to create virtual BMC sections for missing parts (Cost Structure, Revenue Streams)
     const createVirtualBMCSection = (sectionName: string, position: Vector3, scene: Scene, parentMesh: AbstractMesh) => {
       // Create a simple box geometry for the virtual section
+      // Make it wider to match the bottom BMC sections layout
       const virtualBox = MeshBuilder.CreateBox(`virtual_${sectionName}`, {
-        width: 1.5,
+        width: 2.2,  // Wider to match Cost Structure and Revenue Streams proportions
         height: 0.1,
-        depth: 0.8
+        depth: 1.0   // Slightly deeper for better proportion
       }, scene);
       
       // Position relative to the parent mesh
@@ -568,29 +569,54 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Hover effect
       virtualBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-        if (selectedObject !== sectionName) {
-          (virtualMaterial.baseColor as Color3).copyFrom(new Color3(0.1, 0.3, 0.8)); // Blue hover
-          console.log(`🔍 Hovering: ${sectionName} (virtual)`);
-        }
+        (virtualMaterial.baseColor as Color3).copyFrom(new Color3(0.1, 0.3, 0.8)); // Blue hover
+        console.log(`🔍 Hovering: ${sectionName} (virtual)`);
       }));
       
       virtualBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        if (selectedObject !== sectionName) {
-          (virtualMaterial.baseColor as Color3).copyFrom(new Color3(0.005, 0.005, 0.005)); // Back to black
-        }
+        (virtualMaterial.baseColor as Color3).copyFrom(new Color3(0.005, 0.005, 0.005)); // Back to black
       }));
       
       // Click interaction
       virtualBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
         setSelectedObject(sectionName);
-        const sectionContent = getSectionContent(sectionName);
-        updateContentPanel(true, sectionContent);
         console.log(`🔒 Clicked: ${sectionName} (virtual section)`);
       }));
       
       console.log(`🆕 Created virtual section: ${sectionName} at position (${position.x}, ${position.y}, ${position.z})`);
       
       return virtualBox;
+    };
+
+    // Function to create labels for virtual BMC sections
+    const createVirtualSectionLabel = (sectionName: string, mesh: AbstractMesh, advancedTexture: AdvancedDynamicTexture) => {
+      // Create label container (Rectangle)
+      const labelContainer = new Rectangle(`labelContainer_virtual_${sectionName}`);
+      labelContainer.widthInPixels = 140;
+      labelContainer.heightInPixels = 30;
+      labelContainer.cornerRadius = 8;
+      labelContainer.color = "transparent";
+      labelContainer.thickness = 0;
+      labelContainer.background = "rgba(0, 0, 0, 0.7)";
+      labelContainer.zIndex = 1000;
+      
+      const labelText = new TextBlock(`labelText_virtual_${sectionName}`, sectionName);
+      labelText.color = "white";
+      labelText.fontSize = "14px";
+      labelText.fontFamily = "Arial, sans-serif";
+      labelText.fontWeight = "bold";
+      
+      labelContainer.addControl(labelText);
+      advancedTexture.addControl(labelContainer);
+      
+      // Position label above mesh
+      labelContainer.linkWithMesh(mesh);
+      labelContainer.linkOffsetY = "-60px"; // Position above the mesh
+      
+      // Keep label visible (not hidden like the existing ones)
+      labelContainer.isVisible = true;
+      
+      console.log(`🏷️ Created label for virtual section: ${sectionName}`);
     };
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
@@ -1556,11 +1582,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         });
         
         // Create virtual sections for Cost Structure and Revenue Streams 
-        // These will be positioned at the bottom of the BMC layout
-        createVirtualBMCSection("Cost Structure", new Vector3(-2, 0.1, 2.5), scene, rootMesh);
-        createVirtualBMCSection("Revenue Streams", new Vector3(2, 0.1, 2.5), scene, rootMesh);
+        // Position to match standard BMC layout: bottom row, left and right sections
+        const costStructureBox = createVirtualBMCSection("Cost Structure", new Vector3(-1.5, 0.1, 3.0), scene, rootMesh);
+        const revenueStreamsBox = createVirtualBMCSection("Revenue Streams", new Vector3(1.5, 0.1, 3.0), scene, rootMesh);
         
-        console.log(`✅ Added virtual Cost Structure and Revenue Streams sections`);
+        // Create labels for virtual sections
+        createVirtualSectionLabel("Cost Structure", costStructureBox, advancedTexture);
+        createVirtualSectionLabel("Revenue Streams", revenueStreamsBox, advancedTexture);
+        
+        console.log(`✅ Added virtual Cost Structure and Revenue Streams sections with labels`);
         
       } else {
         console.error("❌ No meshes found in BMC model");
