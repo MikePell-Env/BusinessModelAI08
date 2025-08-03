@@ -238,7 +238,10 @@ export class PowerPointParser {
       /^Revenue$/i,
       /^Streams$/i,
       /^Cost$/i,
-      /^Structure$/i
+      /^Structure$/i,
+      /^Financials?$/i,
+      /^\d{4}$/i, // Years like 2025
+      /^H[12]$/i // H1, H2
     ];
     
     return standaloneKeywords.some(pattern => pattern.test(line.trim()));
@@ -295,9 +298,31 @@ export class PowerPointParser {
   }
 
   private isRelevantToAnotherSection(line: string, currentSectionTitle: string): boolean {
-    // Check if the content seems more relevant to another section
+    // Check if the content seems more relevant to another section or is financial/projection data
     const trimmedLine = line.toLowerCase();
     const currentSectionKey = this.findSectionKey(currentSectionTitle.toLowerCase());
+    
+    // For Revenue Streams specifically, filter out financial projections and detailed financial data
+    if (currentSectionKey === 'revenueStreams') {
+      // Exclude financial projections, pro forma references, and detailed financial figures
+      const financialProjectionPatterns = [
+        /projections?\s+based\s+on/i,
+        /funding\s+h[12]/i,
+        /financials?$/i,
+        /pro\s+forma/i,
+        /see\s+the.*for\s+detail/i,
+        /^\$[\d.,]+[kmb]?$/i, // Dollar amounts like $6.3M, $5.7M
+        /^\d{4}$/, // Years like 2025
+        /h[12]\s+of\s+\d{4}/i, // H1 of 2025, H2 of 2025
+        /revenue\s+projection/i,
+        /financial\s+forecast/i
+      ];
+      
+      if (financialProjectionPatterns.some(pattern => pattern.test(trimmedLine))) {
+        console.log(`PowerPoint Parser - Filtered financial projection from Revenue Streams: ${line}`);
+        return true;
+      }
+    }
     
     // Don't allow content that mentions other sections
     const sectionMentions = [
