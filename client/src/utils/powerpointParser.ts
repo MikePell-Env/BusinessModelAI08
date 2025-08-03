@@ -75,7 +75,7 @@ export class PowerPointParser {
     try {
       // Extract text from PowerPoint XML by looking at paragraph structures
       // PowerPoint organizes text in <a:p> (paragraph) tags containing <a:t> (text) tags
-      const paragraphMatches = xmlContent.match(/<a:p[^>]*>.*?<\/a:p>/gs);
+      const paragraphMatches = xmlContent.match(/<a:p[^>]*>[\s\S]*?<\/a:p>/g);
       
       if (!paragraphMatches) {
         // Fallback to original method if no paragraph structure found
@@ -328,25 +328,58 @@ export class PowerPointParser {
     const trimmedLine = line.toLowerCase();
     const currentSectionKey = this.findSectionKey(currentSectionTitle.toLowerCase());
     
-    // For Revenue Streams specifically, filter out financial projections and detailed financial data
+    // For Revenue Streams specifically, be very restrictive - only allow actual revenue stream types
     if (currentSectionKey === 'revenueStreams') {
-      // Exclude financial projections, pro forma references, and detailed financial figures
-      const financialProjectionPatterns = [
-        /projections?\s+based\s+on/i,
-        /funding\s+h[12]/i,
-        /financials?$/i,
-        /pro\s+forma/i,
-        /see\s+the.*for\s+detail/i,
-        /^\$[\d.,]+[kmb]?$/i, // Dollar amounts like $6.3M, $5.7M
-        /^\d{4}$/, // Years like 2025
-        /h[12]\s+of\s+\d{4}/i, // H1 of 2025, H2 of 2025
-        /revenue\s+projection/i,
-        /financial\s+forecast/i
+      // Only allow specific revenue stream patterns
+      const validRevenueStreamPatterns = [
+        /subscription\s+fees?/i,
+        /licensing\s+(deals?|fees?)/i,
+        /transaction\s+fees?/i,
+        /api\s+usage/i,
+        /professional\s+services?/i,
+        /consulting/i,
+        /training\s+(and\s+certification\s+)?programs?/i,
+        /certification\s+programs?/i,
+        /enterprise\s+licensing/i,
+        /monthly\s+subscription/i,
+        /saas\s+subscription/i,
+        /software\s+licensing/i,
+        /commission/i,
+        /advertising\s+revenue/i,
+        /freemium/i,
+        /one[\-\s]time\s+purchase/i
       ];
       
-      if (financialProjectionPatterns.some(pattern => pattern.test(trimmedLine))) {
-        console.log(`PowerPoint Parser - Filtered financial projection from Revenue Streams: ${line}`);
-        return true;
+      // If it doesn't match typical revenue stream patterns, exclude it
+      if (!validRevenueStreamPatterns.some(pattern => pattern.test(trimmedLine))) {
+        // Exclude specific problematic content we've seen
+        const excludePatterns = [
+          /^rev$/i,
+          /^exp$/i,
+          /^\$\$?\s*profitable$/i,
+          /^year\s+\d+$/i,
+          /projections?\s+based\s+on/i,
+          /funding\s+h[12]/i,
+          /financials?$/i,
+          /pro\s+forma/i,
+          /see\s+the.*for\s+detail/i,
+          /^\$[\d.,]+[kmb]?$/i, // Dollar amounts like $6.3M, $5.7M
+          /^\d{4}$/, // Years like 2025
+          /h[12]\s+of\s+\d{4}/i, // H1 of 2025, H2 of 2025
+          /revenue\s+projection/i,
+          /financial\s+forecast/i,
+          /profit/i,
+          /margin/i,
+          /forecast/i,
+          /projection/i,
+          /budget/i,
+          /financial/i
+        ];
+        
+        if (excludePatterns.some(pattern => pattern.test(trimmedLine))) {
+          console.log(`PowerPoint Parser - Filtered non-revenue-stream content: ${line}`);
+          return true;
+        }
       }
     }
     
