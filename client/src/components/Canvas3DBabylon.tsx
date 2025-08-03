@@ -638,6 +638,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
+              // Debug: Log Customer Segments position for Revenue Streams placement reference
+              console.log(`🔍 Customer Segments mesh position:`, mesh.position);
+              console.log(`🔍 Customer Segments world position:`, mesh.getAbsolutePosition());
+              console.log(`🔍 Customer Segments bounding center:`, center);
+              console.log(`🔍 Customer Segments transform node:`, (mesh as any).bmcTransformNode?.position);
+              
               // Create label plane with larger size to match other labels
               const labelWidth = size.x * 1.0; // Full width to match font size of other labels
               const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like Key Activities
@@ -1508,8 +1514,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Position directly below Customer Segments in bottom-right section
-        revenueRootMesh.position = new Vector3(7.2, 0.1, 4.2); // Bottom-right, under Customer Segments
+        // Debug: Log the model's original bounds and position
+        console.log(`🔍 Revenue Streams original position:`, revenueRootMesh.position);
+        console.log(`🔍 Revenue Streams original rotation:`, revenueRootMesh.rotation);
+        console.log(`🔍 Revenue Streams original scaling:`, revenueRootMesh.scaling);
+        
+        // Get bounding info to understand model dimensions
+        const boundingInfo = revenueRootMesh.getBoundingInfo();
+        console.log(`🔍 Revenue Streams bounds:`, boundingInfo.boundingBox);
+        
+        // Position in bottom-right area matching BMC layout - need to coordinate with main model
+        // Main model is at (0, 0.1, 0) with scale 8,8,8
+        // Customer Segments should be around positive X, so Revenue Streams should be below it
+        revenueRootMesh.position = new Vector3(4.5, 0.1, -4.5); // Try bottom-right relative to center
         
         // Rotate entire model 180 degrees clockwise around Y-axis when in orthographic mode to fix upside-down text
         if (isOrthographic) {
