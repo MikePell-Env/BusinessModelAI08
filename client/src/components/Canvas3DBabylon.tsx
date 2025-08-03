@@ -695,13 +695,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   duplicateTransformNode.rotation = transformNode.rotation.clone();
                   duplicateTransformNode.scaling = transformNode.scaling.clone();
                   
-                  // Reduce width by 50% and adjust length to match proportions
-                  duplicateTransformNode.scaling.x *= 0.5;
-                  duplicateTransformNode.scaling.z *= 0.8;
+                  // Adjust scaling to span from Customer Channels to Customer Segments width
+                  duplicateTransformNode.scaling.x *= 1.6; // Wider to span across both sections
+                  duplicateTransformNode.scaling.z *= 0.8; // Keep reduced length
                   
-                  // Position in bottom-right area like Revenue Streams section
+                  // Position in bottom-right area spanning the width
                   const offsetZ = size.z * 6.5; // Further away to match bottom row
-                  const offsetX = size.x * 1.8; // Align left edge with Customer Channels
+                  const offsetX = size.x * 0.8; // Center between Customer Channels and Customer Segments
                   duplicateTransformNode.position.z -= offsetZ;
                   duplicateTransformNode.position.x -= offsetX;
                   
