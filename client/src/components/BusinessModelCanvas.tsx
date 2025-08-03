@@ -111,10 +111,14 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
   }
 
   return (
-    <div className="w-full h-full bg-white flex flex-col">
-      <Header onNavigateHome={onNavigateHome} />
+    <div className="w-full h-full bg-white relative">
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Header onNavigateHome={onNavigateHome} />
+      </div>
       
-      <div className="relative flex-1">
+      {/* Main content with top padding to account for fixed header */}
+      <div className="pt-16 h-full relative">
         {/* Header Controls */}
         <div className="absolute top-4 left-4 z-40 flex space-x-2">
         
@@ -197,7 +201,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       </div>
 
       {/* Canvas Views */}
-      <div className="w-full h-full relative">
+      <div className={`w-full h-full relative ${is3D ? 'pb-16' : ''}`}>
         {is3D ? (
           <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} />
         ) : (
@@ -215,9 +219,9 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
         </div>
       )}
 
-      {/* Copyright Bar - Bottom (only in 3D views) */}
+      {/* Fixed Copyright Bar - Bottom (only in 3D views) */}
       {is3D && (
-        <footer className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 z-40">
+        <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 z-50">
           <div className="max-w-7xl mx-auto px-8 text-center text-gray-500 text-sm">
             Copyright © 2025 Envisioner, Inc. All Rights Reserved.
           </div>
