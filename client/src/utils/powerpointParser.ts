@@ -73,31 +73,57 @@ export class PowerPointParser {
 
   private extractTextFromSlideXML(xmlContent: string): string {
     try {
-      // Extract text from PowerPoint XML using regex
-      // PowerPoint text is stored in <a:t> tags within the XML
-      const textMatches = xmlContent.match(/<a:t[^>]*>([^<]*)<\/a:t>/g);
+      // Extract text from PowerPoint XML by looking at paragraph structures
+      // PowerPoint organizes text in <a:p> (paragraph) tags containing <a:t> (text) tags
+      const paragraphMatches = xmlContent.match(/<a:p[^>]*>.*?<\/a:p>/gs);
       
-      if (!textMatches) return '';
+      if (!paragraphMatches) {
+        // Fallback to original method if no paragraph structure found
+        const textMatches = xmlContent.match(/<a:t[^>]*>([^<]*)<\/a:t>/g);
+        if (!textMatches) return '';
+        
+        const texts = textMatches
+          .map(match => {
+            const textContent = match.replace(/<a:t[^>]*>([^<]*)<\/a:t>/, '$1');
+            return this.decodeXMLEntities(textContent);
+          })
+          .filter(text => text.trim().length > 0);
+        
+        return texts.join('\n');
+      }
       
-      const texts = textMatches
-        .map(match => {
-          // Extract text content from the tag
-          const textContent = match.replace(/<a:t[^>]*>([^<]*)<\/a:t>/, '$1');
-          // Decode XML entities
-          return textContent
-            .replace(/&amp;/g, '&')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&quot;/g, '"')
-            .replace(/&apos;/g, "'");
+      const paragraphTexts = paragraphMatches
+        .map(paragraph => {
+          // Extract all text content from within this paragraph
+          const textMatches = paragraph.match(/<a:t[^>]*>([^<]*)<\/a:t>/g);
+          if (!textMatches) return '';
+          
+          const textsInParagraph = textMatches
+            .map(match => {
+              const textContent = match.replace(/<a:t[^>]*>([^<]*)<\/a:t>/, '$1');
+              return this.decodeXMLEntities(textContent);
+            })
+            .filter(text => text.trim().length > 0);
+          
+          // Join text within the same paragraph with spaces (not newlines)
+          return textsInParagraph.join(' ').trim();
         })
-        .filter(text => text.trim().length > 0);
+        .filter(text => text.length > 0);
 
-      return texts.join('\n');
+      return paragraphTexts.join('\n');
     } catch (error) {
       console.error('Error parsing slide XML:', error);
       return '';
     }
+  }
+
+  private decodeXMLEntities(text: string): string {
+    return text
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&apos;/g, "'");
   }
 
   private parseTextToCanvas(slideTexts: string[], filename: string): BusinessModelCanvas {
