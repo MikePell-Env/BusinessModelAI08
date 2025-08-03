@@ -172,9 +172,13 @@ export class PowerPointParser {
           console.log(`PowerPoint Parser - Added bullet item to ${currentSection.title}: ${cleanedItem}`);
         }
       } else if (currentSection && line.length > 0 && !this.isSectionHeader(line) && !this.isCompanyInformation(line) && !this.isStandaloneKeyword(line)) {
-        // Add non-bullet content as regular items, but exclude company information and standalone keywords
-        currentSection.items.push(line);
-        console.log(`PowerPoint Parser - Added regular item to ${currentSection.title}: ${line}`);
+        // Add non-bullet content as regular items, but filter out very long paragraphs and exclude company information
+        if (this.isValidContentItem(line)) {
+          currentSection.items.push(line);
+          console.log(`PowerPoint Parser - Added regular item to ${currentSection.title}: ${line}`);
+        } else {
+          console.log(`PowerPoint Parser - Skipped long paragraph for ${currentSection.title}: ${line.substring(0, 50)}...`);
+        }
       }
     }
     
@@ -227,6 +231,56 @@ export class PowerPointParser {
     ];
     
     return standaloneKeywords.some(pattern => pattern.test(line.trim()));
+  }
+
+  private isValidContentItem(line: string): boolean {
+    // Filter out content that's too long for canvas display or seems like descriptive paragraphs
+    const trimmedLine = line.trim();
+    
+    // Skip very long lines (likely paragraphs)
+    if (trimmedLine.length > 120) {
+      return false;
+    }
+    
+    // Skip lines that look like full sentences/paragraphs (contain multiple sentences)
+    const sentenceCount = (trimmedLine.match(/[.!?]+/g) || []).length;
+    if (sentenceCount > 1) {
+      return false;
+    }
+    
+    // Skip lines that contain too many common paragraph words
+    const paragraphIndicators = [
+      'however', 'therefore', 'furthermore', 'moreover', 'additionally',
+      'consequently', 'nevertheless', 'nonetheless', 'meanwhile', 'ultimately',
+      'specifically', 'particularly', 'essentially', 'generally', 'typically'
+    ];
+    const words = trimmedLine.toLowerCase().split(/\s+/);
+    const paragraphWordCount = words.filter(word => 
+      paragraphIndicators.some(indicator => word.includes(indicator))
+    ).length;
+    
+    if (paragraphWordCount > 1) {
+      return false;
+    }
+    
+    // Skip lines that start with typical paragraph starters
+    const paragraphStarters = [
+      /^The key differentiating factor/i,
+      /^Combined with the ability/i,
+      /^This approach/i,
+      /^Our strategy/i,
+      /^The company/i,
+      /^Based on/i,
+      /^According to/i,
+      /^In order to/i,
+      /^With the goal/i
+    ];
+    
+    if (paragraphStarters.some(pattern => pattern.test(trimmedLine))) {
+      return false;
+    }
+    
+    return true;
   }
 
   private extractCompanyName(content: string): string | null {
