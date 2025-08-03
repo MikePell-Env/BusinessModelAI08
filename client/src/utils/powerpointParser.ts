@@ -148,13 +148,10 @@ export class PowerPointParser {
     const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
     let currentSection: {title: string, items: string[]} | null = null;
-    let nextLineIndex = 0;
     
     console.log('PowerPoint Parser - Processing lines:', lines);
     
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      
+    for (const line of lines) {
       if (this.isSectionHeader(line)) {
         // Save previous section
         if (currentSection && currentSection.items.length > 0) {
@@ -168,29 +165,20 @@ export class PowerPointParser {
           items: []
         };
         console.log(`PowerPoint Parser - Started new section: ${line}`);
-        
-        // Look ahead to collect only content until the next section header or end
-        nextLineIndex = i + 1;
-        while (nextLineIndex < lines.length && !this.isSectionHeader(lines[nextLineIndex])) {
-          const contentLine = lines[nextLineIndex];
-          
-          // Only process bullet points for strict section content
-          if (this.isBulletPoint(contentLine)) {
-            const cleanedItem = this.cleanBulletPoint(contentLine);
-            if (cleanedItem && 
-                !this.isCompanyInformation(cleanedItem) && 
-                !this.isStandaloneKeyword(cleanedItem) &&
-                this.isValidContentItem(cleanedItem)) {
-              currentSection.items.push(cleanedItem);
-              console.log(`PowerPoint Parser - Added bullet item to ${currentSection.title}: ${cleanedItem}`);
-            }
-          }
-          
-          nextLineIndex++;
+      } else if (this.isBulletPoint(line) && currentSection) {
+        const cleanedItem = this.cleanBulletPoint(line);
+        if (cleanedItem && !this.isCompanyInformation(cleanedItem) && !this.isStandaloneKeyword(cleanedItem) && !this.isRelevantToAnotherSection(cleanedItem, currentSection.title)) {
+          currentSection.items.push(cleanedItem);
+          console.log(`PowerPoint Parser - Added bullet item to ${currentSection.title}: ${cleanedItem}`);
         }
-        
-        // Skip ahead to the next section
-        i = nextLineIndex - 1;
+      } else if (currentSection && line.length > 0 && !this.isSectionHeader(line) && !this.isCompanyInformation(line) && !this.isStandaloneKeyword(line)) {
+        // Add non-bullet content as regular items, but filter out very long paragraphs and exclude company information
+        if (this.isValidContentItem(line) && !this.isRelevantToAnotherSection(line, currentSection.title)) {
+          currentSection.items.push(line);
+          console.log(`PowerPoint Parser - Added regular item to ${currentSection.title}: ${line}`);
+        } else {
+          console.log(`PowerPoint Parser - Skipped item for ${currentSection.title}: ${line.substring(0, 50)}...`);
+        }
       }
     }
     
