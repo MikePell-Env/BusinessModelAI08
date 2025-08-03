@@ -689,7 +689,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 duplicateTransformNode.scaling = transformNode.scaling.clone();
                 
                 // Translate on Z-axis to position below original (bottom of canvas)
-                const offsetZ = size.z * 6.0; // Much larger spacing for clear separation
+                const offsetZ = size.z * 2.0; // Moderate spacing to keep in view
                 duplicateTransformNode.position.z -= offsetZ;
                 
                 // Rotate 90 degrees around Y-axis to make it perpendicular
