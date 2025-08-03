@@ -1508,8 +1508,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Position at center-right area based on diagram layout
-        revenueRootMesh.position = new Vector3(5.5, 0.1, 4.5); // Bottom-right position
+        // Position at bottom-right based on diagram layout
+        revenueRootMesh.position = new Vector3(2.8, 0.1, 5.2); // Bottom-right position matching diagram
         
         // Rotate entire model 180 degrees clockwise around Y-axis when in orthographic mode to fix upside-down text
         if (isOrthographic) {
