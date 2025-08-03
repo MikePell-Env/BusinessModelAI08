@@ -681,6 +681,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const duplicateMesh = mesh.clone(`customerSegmentsDuplicate_${index}`, mesh.parent);
                 
                 if (duplicateMesh && duplicateMesh.material) {
+                  // Remove any cloned labels from the duplicate mesh
+                  duplicateMesh.getChildren().forEach(child => {
+                    if (child.name.includes("Label") || child.name.includes("label")) {
+                      child.dispose();
+                    }
+                  });
                   const duplicateTransformNode = new TransformNode(`bmcTransform_CustomerSegmentsDuplicate_${index}`, scene);
                   
                   // Position the duplicate
