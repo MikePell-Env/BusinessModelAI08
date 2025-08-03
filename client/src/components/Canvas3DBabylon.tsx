@@ -700,7 +700,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   
                   // Position in bottom-right area like Revenue Streams section
                   const offsetZ = size.z * 6.5; // Further away to match bottom row
-                  const offsetX = size.x * 1.2; // More left adjustment for better alignment
+                  const offsetX = size.x * 1.8; // Align left edge with Customer Channels
                   duplicateTransformNode.position.z -= offsetZ;
                   duplicateTransformNode.position.x -= offsetX;
                   
