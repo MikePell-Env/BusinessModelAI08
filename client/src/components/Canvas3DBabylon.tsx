@@ -528,96 +528,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log(`✅ UV mapping applied successfully to Customer Segments mesh`);
     };
 
-    // Function to create virtual BMC sections for missing parts (Cost Structure, Revenue Streams)
-    const createVirtualBMCSection = (sectionName: string, position: Vector3, scene: Scene, parentMesh: AbstractMesh) => {
-      // Create a simple box geometry for the virtual section
-      // Make it wider to match the bottom BMC sections layout
-      const virtualBox = MeshBuilder.CreateBox(`virtual_${sectionName}`, {
-        width: 2.2,  // Wider to match Cost Structure and Revenue Streams proportions
-        height: 0.1,
-        depth: 1.0   // Slightly deeper for better proportion
-      }, scene);
-      
-      // Position relative to the parent mesh
-      virtualBox.position = position;
-      virtualBox.parent = parentMesh;
-      
-      // Create TransformNode for individual manipulation
-      const transformNode = new TransformNode(`bmcTransform_${sectionName}_virtual`, scene);
-      transformNode.parent = parentMesh;
-      transformNode.position = position;
-      
-      // Reset virtual box transform and parent to TransformNode
-      virtualBox.position = Vector3.Zero();
-      virtualBox.parent = transformNode;
-      
-      // Store references for manipulation
-      (virtualBox as any).bmcTransformNode = transformNode;
-      (virtualBox as any).bmcSectionName = sectionName;
-      
-      // Create semi-gloss black material
-      const virtualMaterial = new PBRMetallicRoughnessMaterial(`virtual_${sectionName}_material`, scene);
-      virtualMaterial.baseColor = new Color3(0.005, 0.005, 0.005);
-      virtualMaterial.metallic = 0.1;
-      virtualMaterial.roughness = 0.4;
-      virtualMaterial.alpha = 1.0;
-      virtualBox.material = virtualMaterial;
-      
-      // Add hover and click interactions
-      virtualBox.isPickable = true;
-      virtualBox.actionManager = new ActionManager(scene);
-      
-      // Hover effect
-      virtualBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-        (virtualMaterial.baseColor as Color3).copyFrom(new Color3(0.1, 0.3, 0.8)); // Blue hover
-        console.log(`🔍 Hovering: ${sectionName} (virtual)`);
-      }));
-      
-      virtualBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        (virtualMaterial.baseColor as Color3).copyFrom(new Color3(0.005, 0.005, 0.005)); // Back to black
-      }));
-      
-      // Click interaction
-      virtualBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-        setSelectedObject(sectionName);
-        console.log(`🔒 Clicked: ${sectionName} (virtual section)`);
-      }));
-      
-      console.log(`🆕 Created virtual section: ${sectionName} at position (${position.x}, ${position.y}, ${position.z})`);
-      
-      return virtualBox;
-    };
-
-    // Function to create labels for virtual BMC sections
-    const createVirtualSectionLabel = (sectionName: string, mesh: AbstractMesh, advancedTexture: AdvancedDynamicTexture) => {
-      // Create label container (Rectangle)
-      const labelContainer = new Rectangle(`labelContainer_virtual_${sectionName}`);
-      labelContainer.widthInPixels = 140;
-      labelContainer.heightInPixels = 30;
-      labelContainer.cornerRadius = 8;
-      labelContainer.color = "transparent";
-      labelContainer.thickness = 0;
-      labelContainer.background = "rgba(0, 0, 0, 0.7)";
-      labelContainer.zIndex = 1000;
-      
-      const labelText = new TextBlock(`labelText_virtual_${sectionName}`, sectionName);
-      labelText.color = "white";
-      labelText.fontSize = "14px";
-      labelText.fontFamily = "Arial, sans-serif";
-      labelText.fontWeight = "bold";
-      
-      labelContainer.addControl(labelText);
-      advancedTexture.addControl(labelContainer);
-      
-      // Position label above mesh
-      labelContainer.linkWithMesh(mesh);
-      labelContainer.linkOffsetY = "-60px"; // Position above the mesh
-      
-      // Keep label visible (not hidden like the existing ones)
-      labelContainer.isVisible = true;
-      
-      console.log(`🏷️ Created label for virtual section: ${sectionName}`);
-    };
+    // Only GLB models are used now - no more box geometry functions needed
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
 
@@ -669,7 +580,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           4: { color: new Color3(0.005, 0.005, 0.005), name: "Key Activities" },         // Very Dark Black
           5: { color: new Color3(0.005, 0.005, 0.005), name: "Channels" },               // Very Dark Black
           6: { color: new Color3(0.005, 0.005, 0.005), name: "Customer Relationships" }, // Very Dark Black
-          // Add virtual sections for Cost Structure and Revenue Streams
           7: { color: new Color3(0.005, 0.005, 0.005), name: "Cost Structure" },         // Very Dark Black
           8: { color: new Color3(0.005, 0.005, 0.005), name: "Revenue Streams" },        // Very Dark Black
         };
@@ -1580,17 +1490,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             sectionIndex++;
           }
         });
-        
-        // Create virtual sections for Cost Structure and Revenue Streams 
-        // Position to match standard BMC layout: bottom row, left and right sections
-        const costStructureBox = createVirtualBMCSection("Cost Structure", new Vector3(-1.5, 0.1, 3.0), scene, rootMesh);
-        const revenueStreamsBox = createVirtualBMCSection("Revenue Streams", new Vector3(1.5, 0.1, 3.0), scene, rootMesh);
-        
-        // Create labels for virtual sections
-        createVirtualSectionLabel("Cost Structure", costStructureBox, advancedTexture);
-        createVirtualSectionLabel("Revenue Streams", revenueStreamsBox, advancedTexture);
-        
-        console.log(`✅ Added virtual Cost Structure and Revenue Streams sections with labels`);
         
       } else {
         console.error("❌ No meshes found in BMC model");
