@@ -673,40 +673,47 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               console.log(`✅ Customer Segments label plane created`);
               
-              // Create duplicate Customer Segments object positioned below
+              // Create duplicate Customer Segments object positioned to the side
               console.log(`🔄 Creating duplicate Customer Segments object`);
               
               // Clone the mesh and its transform node
               const duplicateMesh = mesh.clone(`customerSegmentsDuplicate_${index}`, null);
-              const duplicateTransformNode = new TransformNode(`bmcTransform_CustomerSegmentsDuplicate_${index}`, scene);
               
-              // Position the duplicate below the original
-              duplicateTransformNode.parent = rootMesh;
-              duplicateTransformNode.position = transformNode.position.clone();
-              duplicateTransformNode.rotation = transformNode.rotation.clone();
-              duplicateTransformNode.scaling = transformNode.scaling.clone();
-              
-              // Translate down on Y-axis to position below original
-              const offsetY = size.y * 1.5; // Position below with some spacing
-              duplicateTransformNode.position.y -= offsetY;
-              
-              // Set up the duplicate mesh
-              duplicateMesh.position = Vector3.Zero();
-              duplicateMesh.rotation = Vector3.Zero();
-              duplicateMesh.scaling = new Vector3(1, 1, 1);
-              duplicateMesh.parent = duplicateTransformNode;
-              
-              // Apply the same material
-              duplicateMesh.material = sectionMaterial;
-              
-              // Store references for the duplicate
-              (duplicateMesh as any).bmcTransformNode = duplicateTransformNode;
-              (duplicateMesh as any).bmcSectionName = "Customer Segments Duplicate";
-              
-              // Clone the label for the duplicate
-              const duplicateLabel = labelPlane.clone(`customerSegmentsDuplicateLabel_${index}`, duplicateTransformNode);
-              duplicateLabel.parent = duplicateMesh;
-              duplicateLabel.isPickable = false;
+              if (duplicateMesh) {
+                const duplicateTransformNode = new TransformNode(`bmcTransform_CustomerSegmentsDuplicate_${index}`, scene);
+                
+                // Position the duplicate to the side of the original
+                duplicateTransformNode.parent = rootMesh;
+                duplicateTransformNode.position = transformNode.position.clone();
+                duplicateTransformNode.rotation = transformNode.rotation.clone();
+                duplicateTransformNode.scaling = transformNode.scaling.clone();
+                
+                // Translate on X-axis to position to the right of original
+                const offsetX = size.x * 2.0; // Position to the right with clear spacing
+                duplicateTransformNode.position.x += offsetX;
+                
+                // Set up the duplicate mesh
+                duplicateMesh.position = Vector3.Zero();
+                duplicateMesh.rotation = Vector3.Zero();
+                duplicateMesh.scaling = new Vector3(1, 1, 1);
+                duplicateMesh.parent = duplicateTransformNode;
+                
+                // Apply the same material
+                duplicateMesh.material = sectionMaterial;
+                
+                // Store references for the duplicate
+                (duplicateMesh as any).bmcTransformNode = duplicateTransformNode;
+                (duplicateMesh as any).bmcSectionName = "Customer Segments Duplicate";
+                
+                // Clone the label for the duplicate
+                const duplicateLabel = labelPlane.clone(`customerSegmentsDuplicateLabel_${index}`, duplicateTransformNode);
+                if (duplicateLabel) {
+                  duplicateLabel.parent = duplicateMesh;
+                  duplicateLabel.isPickable = false;
+                }
+                
+                console.log(`✅ Customer Segments duplicate created and positioned to the right of original`);
+              }
               
               console.log(`✅ Customer Segments duplicate created and positioned below original`);
             }
