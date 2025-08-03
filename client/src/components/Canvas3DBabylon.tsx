@@ -672,53 +672,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.isPickable = false;
               
               console.log(`✅ Customer Segments label plane created`);
-              
-              // Create duplicate Customer Segments object positioned to the side
-              console.log(`🔄 Creating duplicate Customer Segments object`);
-              
-              // Clone the mesh and its transform node
-              const duplicateMesh = mesh.clone(`customerSegmentsDuplicate_${index}`, null);
-              
-              if (duplicateMesh) {
-                const duplicateTransformNode = new TransformNode(`bmcTransform_CustomerSegmentsDuplicate_${index}`, scene);
-                
-                // Position the duplicate to the side of the original
-                duplicateTransformNode.parent = rootMesh;
-                duplicateTransformNode.position = transformNode.position.clone();
-                duplicateTransformNode.rotation = transformNode.rotation.clone();
-                duplicateTransformNode.scaling = transformNode.scaling.clone();
-                
-                // Translate on Z-axis to position below original (bottom of canvas)
-                const offsetZ = size.z * 2.0; // Moderate spacing to keep in view
-                duplicateTransformNode.position.z -= offsetZ;
-                
-                // Rotate 90 degrees around Y-axis to make it perpendicular
-                duplicateTransformNode.rotation.y += Math.PI / 2;
-                
-                // Set up the duplicate mesh
-                duplicateMesh.position = Vector3.Zero();
-                duplicateMesh.rotation = Vector3.Zero();
-                duplicateMesh.scaling = new Vector3(1, 1, 1);
-                duplicateMesh.parent = duplicateTransformNode;
-                
-                // Apply the same material
-                duplicateMesh.material = sectionMaterial;
-                
-                // Store references for the duplicate
-                (duplicateMesh as any).bmcTransformNode = duplicateTransformNode;
-                (duplicateMesh as any).bmcSectionName = "Customer Segments Duplicate";
-                
-                // Clone the label for the duplicate
-                const duplicateLabel = labelPlane.clone(`customerSegmentsDuplicateLabel_${index}`, duplicateTransformNode);
-                if (duplicateLabel) {
-                  duplicateLabel.parent = duplicateMesh;
-                  duplicateLabel.isPickable = false;
-                }
-                
-                console.log(`✅ Customer Segments duplicate created and positioned to the right of original`);
-              }
-              
-              console.log(`✅ Customer Segments duplicate created and positioned below original`);
             }
             
             if (sectionName === "Key Partners") {
