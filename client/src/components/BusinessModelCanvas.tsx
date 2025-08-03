@@ -5,6 +5,7 @@ import { useCanvas } from '@/lib/stores/useCanvas';
 import { Canvas2D } from './Canvas2D';
 import { Canvas3DBabylon } from './Canvas3DBabylon';
 import { AIChat } from './AIChat';
+import { Header } from './Header';
 import { MicrosoftStackStatus } from './MicrosoftStackStatus';
 import { PowerPointImporter } from './PowerPointImporter';
 import { MicrosoftRecommendations } from './MicrosoftRecommendations';
@@ -110,19 +111,12 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
   }
 
   return (
-    <div className="relative w-full h-full bg-white">
-      {/* Header Controls */}
-      <div className="absolute top-4 left-4 z-40 flex space-x-2">
-        {onNavigateHome && (
-          <Button
-            onClick={onNavigateHome}
-            className="border border-gray-300 shadow-md bg-white text-gray-800 hover:bg-gray-50"
-            size="sm"
-          >
-            <Home className="w-4 h-4 mr-2" />
-            Home
-          </Button>
-        )}
+    <div className="w-full h-full bg-white flex flex-col">
+      <Header onNavigateHome={onNavigateHome} />
+      
+      <div className="relative flex-1">
+        {/* Header Controls */}
+        <div className="absolute top-4 left-4 z-40 flex space-x-2">
         
         <Button
           onClick={() => !is3D || handleToggleView()}
@@ -218,6 +212,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-40">
         <PowerPointImporter />
       </div>
+    </div>
     </div>
   );
 };
