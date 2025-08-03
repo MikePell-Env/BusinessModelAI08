@@ -208,10 +208,19 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       {/* AI Chat Component */}
       <AIChat />
 
-      {/* PowerPoint Import Button - Bottom Center */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-40">
-        <PowerPointImporter />
-      </div>
+      {/* PowerPoint Import Button - Bottom Center (only in 2D view) */}
+      {!is3D && (
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-40">
+          <PowerPointImporter />
+        </div>
+      )}
+
+      {/* Copyright Bar - Bottom (only in 3D views) */}
+      {is3D && (
+        <div className="absolute bottom-0 left-0 right-0 bg-black text-white text-center py-2 text-sm z-40">
+          Copyright © 2025 Envisioner, Inc. All Rights Reserved.
+        </div>
+      )}
     </div>
     </div>
   );
