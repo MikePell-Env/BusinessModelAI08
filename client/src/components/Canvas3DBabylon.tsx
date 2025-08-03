@@ -1062,7 +1062,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 ];
                 
                 // Create tiny bright blue sphere (tracer head)
-                const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.001 }, scene);
+                const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.0015 }, scene);
                 const tracerMaterial = new StandardMaterial("tracerMat", scene);
                 tracerMaterial.emissiveColor = new Color3(0, 0.7, 1); // Bright blue
                 tracerMaterial.disableLighting = true;
