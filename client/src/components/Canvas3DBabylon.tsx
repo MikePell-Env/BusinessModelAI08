@@ -40,6 +40,44 @@ interface Canvas3DBabylonProps {
   isTransitioning?: boolean;
 }
 
+// Temporary coordinate display function
+const addCoordinateDisplay = (name: string, position: Vector3) => {
+  let coordDisplay = document.getElementById('coord-display');
+  if (!coordDisplay) {
+    coordDisplay = document.createElement('div');
+    coordDisplay.id = 'coord-display';
+    coordDisplay.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      border-radius: 5px;
+      z-index: 9999;
+      max-height: 80vh;
+      overflow-y: auto;
+      min-width: 300px;
+    `;
+    document.body.appendChild(coordDisplay);
+    coordDisplay.innerHTML = '<div style="font-weight: bold; margin-bottom: 10px;">3D Object Coordinates</div>';
+  }
+  
+  const coordLine = document.createElement('div');
+  coordLine.innerHTML = `${name}: (${position.x.toFixed(3)}, ${position.y.toFixed(3)}, ${position.z.toFixed(3)})`;
+  coordDisplay.appendChild(coordLine);
+};
+
+// Clear coordinate display
+const clearCoordinateDisplay = () => {
+  const coordDisplay = document.getElementById('coord-display');
+  if (coordDisplay) {
+    coordDisplay.remove();
+  }
+};
+
 export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
@@ -339,6 +377,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       depth: railWidth
     }, scene);
     northRail.position = new Vector3(0, railHeight/2, -7 - railWidth/2); // 14/2 = 7
+    addCoordinateDisplay("North Rail", northRail.position);
     northRail.material = railMaterial;
     
     // South rail (front) - extends full width including rail thickness for flush corners
@@ -348,6 +387,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       depth: railWidth
     }, scene);
     southRail.position = new Vector3(0, railHeight/2, 7 + railWidth/2); // 14/2 = 7
+    addCoordinateDisplay("South Rail", southRail.position);
     southRail.material = railMaterial;
     
     // East rail (right) - only spans ground depth (not including rail thickness to avoid overlap)
@@ -357,6 +397,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       depth: 14 // Only ground depth, no extension needed
     }, scene);
     eastRail.position = new Vector3(10 + railWidth/2, railHeight/2, 0); // 20/2 = 10
+    addCoordinateDisplay("East Rail", eastRail.position);
     eastRail.material = railMaterial;
     
     // West rail (left) - only spans ground depth (not including rail thickness to avoid overlap)
@@ -366,6 +407,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       depth: 14 // Only ground depth, no extension needed
     }, scene);
     westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0); // 20/2 = 10
+    addCoordinateDisplay("West Rail", westRail.position);
     westRail.material = railMaterial;
 
 
@@ -555,6 +597,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Position at center of ground plane, slightly above surface
         rootMesh.position = new Vector3(0, 0.1, 0);
+        addCoordinateDisplay("Root Mesh (GLB Container)", rootMesh.position);
         
         // Rotate entire model 180 degrees clockwise around Y-axis when in orthographic mode to fix upside-down text
         if (isOrthographic) {
@@ -616,10 +659,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).bmcTransformNode = transformNode;
             (mesh as any).bmcSectionName = sectionName;
             
-            // Log world coordinates
+            // Log world coordinates and add to display
             const worldPosition = transformNode.getAbsolutePosition();
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
             console.log(`📍 World Position: (${worldPosition.x.toFixed(3)}, ${worldPosition.y.toFixed(3)}, ${worldPosition.z.toFixed(3)})`);
+            
+            // Add to coordinate display
+            addCoordinateDisplay(sectionName, worldPosition);
             
             // Create new semi-gloss black plastic material for each section
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
@@ -722,11 +768,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   (duplicateMesh as any).bmcTransformNode = duplicateTransformNode;
                   (duplicateMesh as any).bmcSectionName = "Customer Segments Duplicate";
                   
-                  // Log duplicate world coordinates
+                  // Log duplicate world coordinates and add to display
                   const duplicateWorldPosition = duplicateTransformNode.getAbsolutePosition();
                   console.log(`📍 Customer Segments Duplicate World Position: (${duplicateWorldPosition.x.toFixed(3)}, ${duplicateWorldPosition.y.toFixed(3)}, ${duplicateWorldPosition.z.toFixed(3)})`);
                   console.log(`📏 Duplicate Scaling: (${duplicateTransformNode.scaling.x.toFixed(3)}, ${duplicateTransformNode.scaling.y.toFixed(3)}, ${duplicateTransformNode.scaling.z.toFixed(3)})`);
                   console.log(`🔄 Duplicate Rotation Y: ${(duplicateTransformNode.rotation.y * 180 / Math.PI).toFixed(1)}°`);
+                  
+                  // Add duplicate to coordinate display
+                  addCoordinateDisplay("Customer Segments Duplicate", duplicateWorldPosition);
                   
                   // Clone and rotate the label to match the object rotation
                   const duplicateLabel = labelPlane.clone(`customerSegmentsDuplicateLabel_${index}`, duplicateTransformNode);
@@ -1752,6 +1801,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           cameraRef.current.radius
         );
       }
+      
+      // Clear coordinate display
+      clearCoordinateDisplay();
       
       if (engineRef.current) {
         engineRef.current.dispose();
