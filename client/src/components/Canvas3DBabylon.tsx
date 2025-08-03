@@ -40,43 +40,7 @@ interface Canvas3DBabylonProps {
   isTransitioning?: boolean;
 }
 
-// Temporary coordinate display function
-const addCoordinateDisplay = (name: string, position: Vector3) => {
-  let coordDisplay = document.getElementById('coord-display');
-  if (!coordDisplay) {
-    coordDisplay = document.createElement('div');
-    coordDisplay.id = 'coord-display';
-    coordDisplay.style.cssText = `
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: rgba(0,0,0,0.8);
-      color: white;
-      padding: 10px;
-      font-family: monospace;
-      font-size: 12px;
-      border-radius: 5px;
-      z-index: 9999;
-      max-height: 80vh;
-      overflow-y: auto;
-      min-width: 300px;
-    `;
-    document.body.appendChild(coordDisplay);
-    coordDisplay.innerHTML = '<div style="font-weight: bold; margin-bottom: 10px;">3D Object Coordinates</div>';
-  }
-  
-  const coordLine = document.createElement('div');
-  coordLine.innerHTML = `${name}: (${position.x.toFixed(3)}, ${position.y.toFixed(3)}, ${position.z.toFixed(3)})`;
-  coordDisplay.appendChild(coordLine);
-};
 
-// Clear coordinate display
-const clearCoordinateDisplay = () => {
-  const coordDisplay = document.getElementById('coord-display');
-  if (coordDisplay) {
-    coordDisplay.remove();
-  }
-};
 
 export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -377,7 +341,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       depth: railWidth
     }, scene);
     northRail.position = new Vector3(0, railHeight/2, -7 - railWidth/2); // 14/2 = 7
-    addCoordinateDisplay("North Rail", northRail.position);
     northRail.material = railMaterial;
     
     // South rail (front) - extends full width including rail thickness for flush corners
@@ -387,7 +350,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       depth: railWidth
     }, scene);
     southRail.position = new Vector3(0, railHeight/2, 7 + railWidth/2); // 14/2 = 7
-    addCoordinateDisplay("South Rail", southRail.position);
     southRail.material = railMaterial;
     
     // East rail (right) - only spans ground depth (not including rail thickness to avoid overlap)
@@ -397,7 +359,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       depth: 14 // Only ground depth, no extension needed
     }, scene);
     eastRail.position = new Vector3(10 + railWidth/2, railHeight/2, 0); // 20/2 = 10
-    addCoordinateDisplay("East Rail", eastRail.position);
     eastRail.material = railMaterial;
     
     // West rail (left) - only spans ground depth (not including rail thickness to avoid overlap)
@@ -407,7 +368,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       depth: 14 // Only ground depth, no extension needed
     }, scene);
     westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0); // 20/2 = 10
-    addCoordinateDisplay("West Rail", westRail.position);
     westRail.material = railMaterial;
 
 
@@ -597,7 +557,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Position at center of ground plane, slightly above surface
         rootMesh.position = new Vector3(0, 0.1, 0);
-        addCoordinateDisplay("Root Mesh (GLB Container)", rootMesh.position);
         
         // Rotate entire model 180 degrees clockwise around Y-axis when in orthographic mode to fix upside-down text
         if (isOrthographic) {
@@ -659,13 +618,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).bmcTransformNode = transformNode;
             (mesh as any).bmcSectionName = sectionName;
             
-            // Log world coordinates and add to display
-            const worldPosition = transformNode.getAbsolutePosition();
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
-            console.log(`📍 World Position: (${worldPosition.x.toFixed(3)}, ${worldPosition.y.toFixed(3)}, ${worldPosition.z.toFixed(3)})`);
-            
-            // Add to coordinate display
-            addCoordinateDisplay(sectionName, worldPosition);
             
             // Create new semi-gloss black plastic material for each section
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
@@ -721,78 +674,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.isPickable = false;
               
               console.log(`✅ Customer Segments label plane created`);
-              
-              // Create duplicate Customer Segments object positioned below
-              console.log(`🔄 Creating duplicate Customer Segments object`);
-              
-              try {
-                // Clone the mesh more safely
-                const duplicateMesh = mesh.clone(`customerSegmentsDuplicate_${index}`, mesh.parent);
-                
-                if (duplicateMesh && duplicateMesh.material) {
-                  // Remove any cloned labels from the duplicate mesh
-                  duplicateMesh.getChildren().forEach(child => {
-                    if (child.name.includes("Label") || child.name.includes("label")) {
-                      child.dispose();
-                    }
-                  });
-                  const duplicateTransformNode = new TransformNode(`bmcTransform_CustomerSegmentsDuplicate_${index}`, scene);
-                  
-                  // Position the duplicate
-                  duplicateTransformNode.parent = rootMesh;
-                  duplicateTransformNode.position = transformNode.position.clone();
-                  duplicateTransformNode.rotation = transformNode.rotation.clone();
-                  duplicateTransformNode.scaling = transformNode.scaling.clone();
-                  
-                  // Reduce width by 50%, adjust length, and increase height
-                  duplicateTransformNode.scaling.x *= 0.5;
-                  duplicateTransformNode.scaling.y *= 1.2;
-                  duplicateTransformNode.scaling.z *= 0.8;
-                  
-                  // Position in bottom-right area like Revenue Streams section
-                  const offsetZ = size.z * 6.5; // Further away to match bottom row
-                  const offsetX = size.x * 1.8; // Align left edge with Customer Channels
-                  duplicateTransformNode.position.z -= offsetZ;
-                  duplicateTransformNode.position.x -= offsetX;
-                  
-                  // Rotate 90 degrees around Y-axis
-                  duplicateTransformNode.rotation.y += Math.PI / 2;
-                  
-                  // Set up the duplicate mesh
-                  duplicateMesh.position = Vector3.Zero();
-                  duplicateMesh.rotation = Vector3.Zero();
-                  duplicateMesh.scaling = new Vector3(1, 1, 1);
-                  duplicateMesh.parent = duplicateTransformNode;
-                  
-                  // Store references
-                  (duplicateMesh as any).bmcTransformNode = duplicateTransformNode;
-                  (duplicateMesh as any).bmcSectionName = "Customer Segments Duplicate";
-                  
-                  // Log duplicate world coordinates and add to display
-                  const duplicateWorldPosition = duplicateTransformNode.getAbsolutePosition();
-                  console.log(`📍 Customer Segments Duplicate World Position: (${duplicateWorldPosition.x.toFixed(3)}, ${duplicateWorldPosition.y.toFixed(3)}, ${duplicateWorldPosition.z.toFixed(3)})`);
-                  console.log(`📏 Duplicate Scaling: (${duplicateTransformNode.scaling.x.toFixed(3)}, ${duplicateTransformNode.scaling.y.toFixed(3)}, ${duplicateTransformNode.scaling.z.toFixed(3)})`);
-                  console.log(`🔄 Duplicate Rotation Y: ${(duplicateTransformNode.rotation.y * 180 / Math.PI).toFixed(1)}°`);
-                  
-                  // Add duplicate to coordinate display
-                  addCoordinateDisplay("Customer Segments Duplicate", duplicateWorldPosition);
-                  
-                  // Clone and rotate the label to match the object rotation
-                  const duplicateLabel = labelPlane.clone(`customerSegmentsDuplicateLabel_${index}`, duplicateTransformNode);
-                  if (duplicateLabel) {
-                    duplicateLabel.parent = duplicateMesh;
-                    duplicateLabel.isPickable = false;
-                    // Rotate label to match the 90° Y-axis rotation of the object
-                    duplicateLabel.rotation.y += Math.PI / 2;
-                  }
-                  
-                  console.log(`✅ Customer Segments duplicate created successfully`);
-                } else {
-                  console.log(`❌ Failed to clone Customer Segments mesh`);
-                }
-              } catch (error) {
-                console.log(`❌ Error creating duplicate: ${error}`);
-              }
             }
             
             if (sectionName === "Key Partners") {
@@ -1801,9 +1682,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           cameraRef.current.radius
         );
       }
-      
-      // Clear coordinate display
-      clearCoordinateDisplay();
+
       
       if (engineRef.current) {
         engineRef.current.dispose();
