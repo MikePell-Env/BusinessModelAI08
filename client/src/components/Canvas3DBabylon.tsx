@@ -709,6 +709,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   (duplicateMesh as any).bmcTransformNode = duplicateTransformNode;
                   (duplicateMesh as any).bmcSectionName = "Customer Segments Duplicate";
                   
+                  // Clone and rotate the label to match the object rotation
+                  const duplicateLabel = labelPlane.clone(`customerSegmentsDuplicateLabel_${index}`, duplicateTransformNode);
+                  if (duplicateLabel) {
+                    duplicateLabel.parent = duplicateMesh;
+                    duplicateLabel.isPickable = false;
+                    // Rotate label to match the 90° Y-axis rotation of the object
+                    duplicateLabel.rotation.y += Math.PI / 2;
+                  }
+                  
                   console.log(`✅ Customer Segments duplicate created successfully`);
                 } else {
                   console.log(`❌ Failed to clone Customer Segments mesh`);
