@@ -171,9 +171,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       "Key Resources": "keyResources",
       "Customer Relationships": "customerRelationships",
       "Channels": "channels",
-      "Customer Segments": "customerSegments",
-      "Cost Structure": "costStructure",
-      "Revenue Streams": "revenueStreams"
+      "Customer Segments": "customerSegments"
     };
     
     const sectionKey = sectionMap[sectionName];
@@ -543,8 +541,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       { color: new Color3(0.8, 0.4, 0.9), name: "Customer Relationships" }, // Purple (was Customer Segments position)
       { color: new Color3(0.6, 0.9, 0.9), name: "Channels" },               // Cyan
       { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
-      { color: new Color3(0.7, 0.7, 0.7), name: "Cost Structure" },         // Gray
-      { color: new Color3(0.5, 0.9, 0.5), name: "Revenue Streams" },        // Light Green
     ];
 
     // Load complete BMC GLB model with individual section coloring
@@ -574,6 +570,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Current observation: Key Activities label is where Customer Relationships should be
         // Customer Relationships label is where Customer Segments should be  
         // Customer Segments label is where Key Activities should be
+        // GLB model contains 7 sections (no Cost Structure or Revenue Streams)
         const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
           0: { color: new Color3(0.005, 0.005, 0.005), name: "Value Propositions" },      // Very Dark Black
           1: { color: new Color3(0.005, 0.005, 0.005), name: "Key Partners" },           // Very Dark Black
@@ -582,8 +579,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           4: { color: new Color3(0.005, 0.005, 0.005), name: "Key Activities" },         // Very Dark Black
           5: { color: new Color3(0.005, 0.005, 0.005), name: "Channels" },               // Very Dark Black
           6: { color: new Color3(0.005, 0.005, 0.005), name: "Customer Relationships" }, // Very Dark Black
-          7: { color: new Color3(0.005, 0.005, 0.005), name: "Cost Structure" },         // Very Dark Black
-          8: { color: new Color3(0.005, 0.005, 0.005), name: "Revenue Streams" },        // Very Dark Black
         };
 
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
