@@ -672,6 +672,47 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.isPickable = false;
               
               console.log(`✅ Customer Segments label plane created`);
+              
+              // Create duplicate Customer Segments object positioned below
+              console.log(`🔄 Creating duplicate Customer Segments object`);
+              
+              try {
+                // Clone the mesh more safely
+                const duplicateMesh = mesh.clone(`customerSegmentsDuplicate_${index}`, mesh.parent);
+                
+                if (duplicateMesh && duplicateMesh.material) {
+                  const duplicateTransformNode = new TransformNode(`bmcTransform_CustomerSegmentsDuplicate_${index}`, scene);
+                  
+                  // Position the duplicate
+                  duplicateTransformNode.parent = rootMesh;
+                  duplicateTransformNode.position = transformNode.position.clone();
+                  duplicateTransformNode.rotation = transformNode.rotation.clone();
+                  duplicateTransformNode.scaling = transformNode.scaling.clone();
+                  
+                  // Translate on Z-axis to position below original
+                  const offsetZ = size.z * 2.0;
+                  duplicateTransformNode.position.z -= offsetZ;
+                  
+                  // Rotate 90 degrees around Y-axis
+                  duplicateTransformNode.rotation.y += Math.PI / 2;
+                  
+                  // Set up the duplicate mesh
+                  duplicateMesh.position = Vector3.Zero();
+                  duplicateMesh.rotation = Vector3.Zero();
+                  duplicateMesh.scaling = new Vector3(1, 1, 1);
+                  duplicateMesh.parent = duplicateTransformNode;
+                  
+                  // Store references
+                  (duplicateMesh as any).bmcTransformNode = duplicateTransformNode;
+                  (duplicateMesh as any).bmcSectionName = "Customer Segments Duplicate";
+                  
+                  console.log(`✅ Customer Segments duplicate created successfully`);
+                } else {
+                  console.log(`❌ Failed to clone Customer Segments mesh`);
+                }
+              } catch (error) {
+                console.log(`❌ Error creating duplicate: ${error}`);
+              }
             }
             
             if (sectionName === "Key Partners") {
