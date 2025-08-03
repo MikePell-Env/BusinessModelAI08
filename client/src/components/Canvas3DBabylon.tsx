@@ -1523,11 +1523,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const boundingInfo = revenueRootMesh.getBoundingInfo();
         console.log(`🔍 Revenue Streams bounds:`, boundingInfo.boundingBox);
         
-        // Position in bottom-right area matching BMC layout - coordinate with main model
-        // Based on debug output: Customer Segments is at X ≈ 8.38
-        // Main model is at (0, 0.1, 0) with scale 8,8,8 and 180° rotation in orthographic
-        // Revenue Streams should have similar X but different Z to be below Customer Segments
-        revenueRootMesh.position = new Vector3(6.5, 0.1, -6.8); // Below Customer Segments
+        // Position based on Customer Segments actual world coordinates
+        // Customer Segments bounding center from debug: Vector3(8.378232955932617, 0.8999999761581421, -0.22831414878368378)
+        // Revenue Streams should be at same X, but offset Z to be below (more positive Z in this coordinate system)
+        revenueRootMesh.position = new Vector3(8.4, 0.1, 6.0); // Match Customer Segments X, offset Z for bottom position
         
         // Rotate entire model 180 degrees clockwise around Y-axis when in orthographic mode to fix upside-down text
         if (isOrthographic) {
