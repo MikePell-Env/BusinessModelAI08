@@ -546,9 +546,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     ];
 
     // Load complete BMC GLB model with individual section coloring
-    // BACKUP: Original working model: "BMC_blender_09_complete_1753576063858.glb"
-    // NEW: Testing corrected orientation model with CostStructure and RevenueStreams
-    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_07_corrected.glb", scene).then((result) => {
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", scene).then((result) => {
       if (result.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${result.meshes.length} meshes`);
         
@@ -558,18 +556,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Position at center of ground plane, slightly above surface
         rootMesh.position = new Vector3(0, 0.1, 0);
         
-        // TESTING: New model should have correct orientation - try without rotation compensation first
-        // BACKUP CODE (if needed): 
-        // if (isOrthographic) { rootMesh.rotation = new Vector3(0, Math.PI, 0); } else { rootMesh.rotation = Vector3.Zero(); }
-        rootMesh.rotation = Vector3.Zero();
+        // Rotate entire model 180 degrees clockwise around Y-axis when in orthographic mode to fix upside-down text
+        if (isOrthographic) {
+          rootMesh.rotation = new Vector3(0, Math.PI, 0);
+        } else {
+          rootMesh.rotation = Vector3.Zero();
+        }
         
         // Start with visible scale
         rootMesh.scaling = new Vector3(8, 8, 8);
         
         console.log(`📦 BMC model positioned at origin with scale 8.0`);
         
-        // BMC section mapping for new model with CostStructure and RevenueStreams sections
-        // Updated for BMC_blender_07_corrected.glb which includes all 9 BMC sections
+        // Corrected BMC section mapping - based on user feedback that specific labels need to swap
+        // Current observation: Key Activities label is where Customer Relationships should be
+        // Customer Relationships label is where Customer Segments should be  
+        // Customer Segments label is where Key Activities should be
         const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
           0: { color: new Color3(0.005, 0.005, 0.005), name: "Value Propositions" },      // Very Dark Black
           1: { color: new Color3(0.005, 0.005, 0.005), name: "Key Partners" },           // Very Dark Black
