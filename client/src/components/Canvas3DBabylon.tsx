@@ -195,25 +195,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
 
-    // Check WebGL support before initializing engine
-    const canvas_element = canvasRef.current;
-    const gl = canvas_element.getContext('webgl') || canvas_element.getContext('experimental-webgl');
-    
-    if (!gl) {
-      console.error('WebGL not supported in this browser');
-      // Show fallback message instead of crashing
-      const ctx = canvas_element.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = '#f0f0f0';
-        ctx.fillRect(0, 0, canvas_element.width, canvas_element.height);
-        ctx.fillStyle = '#333';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('WebGL not supported. Please use a modern browser.', canvas_element.width / 2, canvas_element.height / 2);
-      }
-      return;
-    }
-
     try {
       // Initialize Babylon.js engine and scene
       const engine = new Engine(canvasRef.current, true);
