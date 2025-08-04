@@ -731,8 +731,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const rootMesh = result.meshes[0];
         rootMeshRef.current = rootMesh;
         
-        // Position higher up on the ground plane (toward the top in 3D Top view)
-        rootMesh.position = new Vector3(0, 0.1, 3);
+        // Position moderately higher on the ground plane (like in 2D reference)
+        rootMesh.position = new Vector3(0, 0.1, 1.2);
         
         // Keep model at normal rotation for all views
         rootMesh.rotation = Vector3.Zero();
