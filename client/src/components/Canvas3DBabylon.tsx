@@ -297,10 +297,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return;
     }
 
-    // Initialize Babylon.js engine and scene with error handling
-    let engine: Engine;
-    let scene: Scene;
-    
     // Check WebGL support first
     const canvasElement = canvasRef.current;
     const gl = canvasElement.getContext('webgl') || canvasElement.getContext('experimental-webgl');
@@ -309,6 +305,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return;
     }
     console.log('✅ WebGL context available');
+
+    // Initialize Babylon.js engine and scene with error handling
+    let engine: Engine | null = null;
+    let scene: Scene | null = null;
 
     try {
       // Initialize engine with compatibility settings to avoid shader issues
@@ -331,8 +331,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log("✅ Babylon.js engine and scene initialized successfully");
     } catch (error) {
       console.error('Failed to initialize Babylon.js engine:', error);
-      console.error('Engine object:', typeof engine !== 'undefined' ? engine : 'undefined');
-      console.error('Scene object:', typeof scene !== 'undefined' ? scene : 'undefined');
+      console.error('Engine object:', engine ? 'created' : 'null');
+      console.error('Scene object:', scene ? 'created' : 'null');
+      return;
+    }
+
+    // Ensure we have valid engine and scene before proceeding
+    if (!engine || !scene) {
+      console.error('❌ Engine or scene initialization failed');
       return;
     }
     
