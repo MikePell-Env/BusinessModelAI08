@@ -484,17 +484,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
 
 
-    // Disable environment helper for better performance
-    // const environmentHelper = scene.createDefaultEnvironment({
-    //   createGround: false,
-    //   createSkybox: false,
-    //   skyboxSize: 100,
-    //   skyboxColor: new Color3(0.95, 0.95, 0.97),
-    //   groundColor: new Color3(0.9, 0.9, 0.9)
-    // });
+    // Create optimized environment for better rendering performance
+    const environmentHelper = scene.createDefaultEnvironment({
+      createGround: false, // We already have ground
+      createSkybox: false, // Disable skybox to show scene clearColor background
+      skyboxSize: 100,
+      skyboxColor: new Color3(0.95, 0.95, 0.97), // Not used since createSkybox is false
+      groundColor: new Color3(0.9, 0.9, 0.9)
+    });
     
-    // Set basic environment intensity
-    scene.environmentIntensity = 0.5; // Reduced for performance
+    // Set environment to moderate intensity for good performance
+    if (environmentHelper) {
+      scene.environmentIntensity = 0.8; // Balanced for performance and quality
+    }
 
     // Create GUI for 3D billboard labels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -737,12 +739,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Keep model at normal rotation for all views
         rootMesh.rotation = Vector3.Zero();
         
-        console.log("📍 BMC Coordinate System Reference:");
-        console.log("   X-axis: Left(-) to Right(+)");  
-        console.log("   Y-axis: Down(-) to Up(+)");
-        console.log("   Z-axis: Back(-) to Front(+)");
-        console.log("   Current BMC position:", rootMesh.position);
-        console.log("   In 3D Top view: +Z = toward viewer/top, -Z = away from viewer/bottom");
+        // Position logging removed for better performance
         
         // Start with visible scale
         rootMesh.scaling = new Vector3(8, 8, 8);
