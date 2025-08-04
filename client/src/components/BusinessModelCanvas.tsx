@@ -201,7 +201,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       </div>
 
       {/* Canvas Views */}
-      <div className={`w-full h-full relative ${is3D ? 'pb-16' : ''}`}>
+      <div className="w-full h-full relative">
         {is3D ? (
           <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} />
         ) : (
