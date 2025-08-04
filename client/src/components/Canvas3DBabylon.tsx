@@ -1876,14 +1876,55 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }, 500);
     }
     
-    // Also attempt to restore any existing selection state after heights are read
+    // Clear any existing selection state to ensure hover behavior works on first load
+    const clearAllSelections = () => {
+      console.log("🔄 STARTUP: Clearing all selections to enable hover behavior");
+      
+      // Clear selection state in the store
+      setSelectedObject(null);
+      
+      // Reset all mesh click states and restore original colors
+      if (scene && contentPanelsRef.current.length > 0) {
+        contentPanelsRef.current.forEach(({ mesh, material }) => {
+          (mesh as any).isClicked = false;
+          
+          // Restore original colors
+          if ((mesh as any).hasTexture) {
+            material.emissiveColor = new Color3(0, 0, 0);
+          } else {
+            if (material.baseColor) {
+              material.baseColor = (mesh as any).originalColor;
+            }
+            material.diffuseColor = (mesh as any).originalColor;
+          }
+          
+          // Full opacity
+          material.alpha = 1.0;
+        });
+        
+        console.log("✅ All selections cleared, hover behavior enabled");
+      }
+    };
+    
+    // Clear selections immediately to ensure hover works
+    setTimeout(() => {
+      clearAllSelections();
+    }, 1000);
+    
+    // Only restore selection state if user explicitly had something selected and heights are available
+    // This prevents blocking hover behavior on initial load
     setTimeout(() => {
       const existingSelection = getSelectedObject();
-      if (existingSelection && Object.keys(getOriginalHeights()).length > 0) {
-        console.log("🔄 Initial load: Found existing selection, restoring state:", existingSelection);
+      const hasHeights = Object.keys(getOriginalHeights()).length > 0;
+      
+      // Only restore if there's a clear user selection and we have height data
+      if (existingSelection && hasHeights) {
+        console.log("🔄 Initial load: Restoring user selection:", existingSelection);
         restoreSelectedObjectState();
+      } else {
+        console.log("🔄 Initial load: No selection to restore, hover behavior ready");
       }
-    }, 2000);
+    }, 2500);
 
     // Start the render loop with safety check
     let isDisposed = false;
