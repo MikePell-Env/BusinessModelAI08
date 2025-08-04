@@ -180,12 +180,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
       
       if (targetHeight !== undefined) {
-        // Apply height directly to the mesh's transform node
-        const transformNode = (mesh as any).bmcTransformNode;
-        if (transformNode) {
-          transformNode.scaling.y = targetHeight;
-          console.log(`📏 ${sectionName}: ${targetHeight} (${!selectedObjectName ? 'no-selection' : sectionName === selectedObjectName ? 'selected' : 'flattened'})`);
-        }
+        // Apply height directly to the mesh scaling since transform nodes were removed
+        mesh.scaling.y = targetHeight;
+        console.log(`📏 ${sectionName}: ${targetHeight} (${!selectedObjectName ? 'no-selection' : sectionName === selectedObjectName ? 'selected' : 'flattened'})`);
       }
     });
   };
@@ -1889,11 +1886,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Force render update and immediate state restoration
         scene.render();
         
-        // Use requestAnimationFrame to ensure camera switch is complete
-        requestAnimationFrame(() => {
-          restoreSelectedObjectState();
-          console.log("🔄 Switched to orthographic view with state restored");
-        });
+        // Restore state immediately for faster switching
+        restoreSelectedObjectState();
+        console.log("🔄 Switched to orthographic view with state restored");
       } else {
         // Switch back to perspective camera
         scene.activeCamera = perspectiveCamera;
@@ -1901,11 +1896,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Force render update and immediate state restoration
         scene.render();
         
-        // Use requestAnimationFrame to ensure camera switch is complete
-        requestAnimationFrame(() => {
-          restoreSelectedObjectState();
-          console.log("🔄 Switched to perspective view with state restored");
-        });
+        // Restore state immediately for faster switching
+        restoreSelectedObjectState();
+        console.log("🔄 Switched to perspective view with state restored");
       }
     }
   }, [isOrthographic]);
