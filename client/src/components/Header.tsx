@@ -13,7 +13,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome }) => {
           <img 
             src="/envisioner-logo-new.png" 
             alt="Envisioner" 
-            className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+            className="h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity"
             onClick={onNavigateHome}
           />
         </div>
