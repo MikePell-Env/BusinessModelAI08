@@ -731,11 +731,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const rootMesh = result.meshes[0];
         rootMeshRef.current = rootMesh;
         
-        // Position higher up on the ground plane (toward the top)
-        rootMesh.position = new Vector3(0, 0.1, -3);
+        // Position higher up on the ground plane (toward the top in 3D Top view)
+        rootMesh.position = new Vector3(0, 0.1, 3);
         
         // Keep model at normal rotation for all views
         rootMesh.rotation = Vector3.Zero();
+        
+        console.log("📍 BMC Coordinate System Reference:");
+        console.log("   X-axis: Left(-) to Right(+)");  
+        console.log("   Y-axis: Down(-) to Up(+)");
+        console.log("   Z-axis: Back(-) to Front(+)");
+        console.log("   Current BMC position:", rootMesh.position);
+        console.log("   In 3D Top view: +Z = toward viewer/top, -Z = away from viewer/bottom");
         
         // Start with visible scale
         rootMesh.scaling = new Vector3(8, 8, 8);
