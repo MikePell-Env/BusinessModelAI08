@@ -325,12 +325,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Enable camera controls on the canvas for perspective camera
     perspectiveCamera.attachControl(canvasRef.current, true);
     
-    // Optimize camera settings for performance and reduced drift
-    perspectiveCamera.wheelPrecision = 100;        // Higher value = less sensitive, reduces drift
-    perspectiveCamera.panningSensibility = 2000;   // Reduce panning sensitivity 
-    perspectiveCamera.angularSensibilityX = 4000;  // Reduce rotation sensitivity
-    perspectiveCamera.angularSensibilityY = 4000;  // Reduce rotation sensitivity
-    perspectiveCamera.inertia = 0.7;               // Reduce inertia to stop drift faster
+    // Reduce mouse wheel sensitivity for smoother zooming
+    perspectiveCamera.wheelPrecision = 50;        // Default is 3, higher values = less sensitive
     
     // Set camera limits for grid layout navigation (original working values)
     perspectiveCamera.lowerRadiusLimit = 5;      // Minimum zoom distance
@@ -757,35 +753,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseColor = section.color;
             const sectionName = section.name;
             
-            // Create TransformNode parent for individual manipulation
-            const transformNode = new TransformNode(`bmcTransform_${sectionName}_${index}`, scene);
-            
-            // Store the mesh's current local transform relative to rootMesh
-            const localPosition = mesh.position.clone();
-            const localRotation = mesh.rotation.clone();
-            const localScaling = mesh.scaling.clone();
-            
-            // Set TransformNode as child of rootMesh to maintain hierarchy
-            transformNode.parent = rootMesh;
-            transformNode.position = localPosition;
-            transformNode.rotation = localRotation;
-            transformNode.scaling = localScaling;
-            
-            // Reset mesh transform and parent to individual TransformNode
-            mesh.position = Vector3.Zero();
-            mesh.rotation = Vector3.Zero();
-            mesh.scaling = new Vector3(1, 1, 1);
-            mesh.parent = transformNode;
-            
-            // Store references for manipulation
-            (mesh as any).bmcTransformNode = transformNode;
+            // Store section name directly on mesh for simpler approach
             (mesh as any).bmcSectionName = sectionName;
             
-            // Create section controller for consistent manipulation (additive improvement)
-            const controller = new BMCSectionController(mesh as AbstractMesh, sectionName);
-            sectionControllersRef.current.set(sectionName, controller);
-            
-            console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
+            // TransformNode created for coordinate control
             
             // Create simplified material for better performance
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
@@ -1321,12 +1292,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log(`✅ Blue tracer animation created for Customer Segments with rectangular path`);
               };
               
-              // Blue tracer disabled for better performance
-              // setTimeout(createBlueTracer, 100);
+              // Create the blue tracer after a short delay to ensure mesh is ready
+              setTimeout(createBlueTracer, 100);
             }
             
             mesh.material = sectionMaterial;
-            mesh.receiveShadows = false; // Disable shadows for better performance
+            mesh.receiveShadows = true;
             
             // Store original color and material for hover/click effects
             (mesh as any).originalColor = baseColor.clone();
@@ -1847,19 +1818,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     }, 2000);
 
-    // Start optimized render loop with reduced frame rate for better performance
+    // Start the render loop with safety check
     let isDisposed = false;
-    let lastTime = 0;
-    const targetFPS = 30; // Reduce from 60 to 30 FPS for better performance
-    const frameInterval = 1000 / targetFPS;
-    
     engine.runRenderLoop(() => {
       if (!isDisposed && scene && !scene.isDisposed) {
-        const currentTime = performance.now();
-        if (currentTime - lastTime >= frameInterval) {
-          scene.render();
-          lastTime = currentTime;
-        }
+        scene.render();
       }
     });
 
