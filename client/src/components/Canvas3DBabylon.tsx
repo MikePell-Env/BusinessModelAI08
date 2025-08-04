@@ -195,9 +195,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
 
-    // Initialize Babylon.js engine and scene
-    const engine = new Engine(canvasRef.current, true);
-    const scene = new Scene(engine);
+    // Initialize Babylon.js engine and scene with error handling
+    let engine: Engine;
+    let scene: Scene;
+    
+    try {
+      engine = new Engine(canvasRef.current, true, {
+        preserveDrawingBuffer: true,
+        stencil: true,
+        antialias: true,
+        alpha: false
+      });
+      scene = new Scene(engine);
+    } catch (error) {
+      console.error('Failed to initialize Babylon.js engine:', error);
+      return;
+    }
     
     // Set background to match 2D view (#e9ecef - light gray)
     // #e9ecef = RGB(233, 236, 239) = normalized (0.914, 0.925, 0.937)
@@ -1664,30 +1677,43 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     }, 2000);
 
-    // Start the render loop
+    // Start the render loop with safety check
+    let isDisposed = false;
     engine.runRenderLoop(() => {
-      if (scene) {
+      if (!isDisposed && scene && !scene.isDisposed) {
         scene.render();
       }
     });
 
     // Clean up on unmount
     return () => {
+      isDisposed = true;
+      
       // Save perspective camera state before disposing (only from perspective camera)
       if (cameraRef.current && !isOrthographic) {
-        saveCamera3DState(
-          cameraRef.current.alpha,
-          cameraRef.current.beta,
-          cameraRef.current.radius
-        );
+        try {
+          saveCamera3DState(
+            cameraRef.current.alpha,
+            cameraRef.current.beta,
+            cameraRef.current.radius
+          );
+        } catch (e) {
+          console.warn('Error saving camera state during cleanup:', e);
+        }
       }
 
-      
-      if (engineRef.current) {
-        engineRef.current.dispose();
-      }
-      if (sceneRef.current) {
-        sceneRef.current.dispose();
+      // Properly dispose of Babylon.js resources
+      try {
+        if (scene && !scene.isDisposed) {
+          scene.dispose();
+        }
+        if (engine && !engine.isDisposed) {
+          engine.dispose();
+        }
+        sceneRef.current = null;
+        engineRef.current = null;
+      } catch (e) {
+        console.warn('Error during Babylon.js cleanup:', e);
       }
     };
   }, [canvas, saveCamera3DState, isOrthographic]);
