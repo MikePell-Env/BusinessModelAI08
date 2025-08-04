@@ -1603,6 +1603,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           }
         });
         
+        // Apply Value Proposition height adjustment using new coordinate system
+        setTimeout(() => {
+          transformUtils.setSectionHeight("Value Propositions", 1.2);
+          console.log("📏 Value Propositions made 20% taller (height: 1.2)");
+        }, 500);
+        
       } else {
         console.error("❌ No meshes found in BMC model");
       }
