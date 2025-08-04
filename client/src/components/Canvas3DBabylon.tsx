@@ -292,17 +292,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     try {
       engine = new Engine(canvasRef.current, true, {
-        preserveDrawingBuffer: false, // Disable for better performance
-        stencil: false,               // Disable unless needed
+        preserveDrawingBuffer: true,
+        stencil: true,
         antialias: true,
-        alpha: false,
-        powerPreference: "high-performance" // Request high performance GPU
+        alpha: false
       });
       scene = new Scene(engine);
-      
-      // Optimize rendering for performance
-      scene.skipPointerMovePicking = true;  // Skip unnecessary pointer move calculations
-      scene.constantlyUpdateMeshUnderPointer = false; // Reduce constant updates
     } catch (error) {
       console.error('Failed to initialize Babylon.js engine:', error);
       return;
@@ -381,14 +376,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Set active camera based on mode
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
 
-    // Optimized lighting setup for better performance
+    // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 1.5; // Higher intensity since we're using fewer lights
-    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9);
+    hemisphericLight.intensity = 1.2; // Moderate ambient lighting
+    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Neutral ambient
+    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Low specular for subtle shine
     
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 1.5; // Balanced lighting with fewer lights
+    directionalLight.intensity = 1.8; // Strong directional light for shape definition
     directionalLight.diffuse = new Color3(1, 1, 1);
+    directionalLight.specular = new Color3(0.3, 0.3, 0.3); // Low specular for controlled shine
+    
+    // Add key light from opposite direction for better form definition
+    const directionalLight2 = new DirectionalLight("directionalLight2", new Vector3(1, -0.8, 0.5), scene);
+    directionalLight2.intensity = 1.2; // Moderate fill light
+    directionalLight2.diffuse = new Color3(0.95, 0.95, 1); // Slightly cool fill
+    directionalLight2.specular = new Color3(0.2, 0.2, 0.25); // Very subtle cool specular
 
     // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -1854,19 +1857,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     }, 2000);
 
-    // Start the render loop with safety check and frame rate limiting
+    // Start the render loop with safety check
     let isDisposed = false;
-    let lastTime = 0;
-    const targetFPS = 60;
-    const frameTime = 1000 / targetFPS;
-    
     engine.runRenderLoop(() => {
       if (!isDisposed && scene && !scene.isDisposed) {
-        const now = performance.now();
-        if (now - lastTime >= frameTime) {
-          scene.render();
-          lastTime = now;
-        }
+        scene.render();
       }
     });
 
