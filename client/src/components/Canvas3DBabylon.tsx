@@ -1914,89 +1914,35 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           perspectiveCamera.radius
         );
         
-
-        
-        // Rotate model 180 degrees clockwise to fix upside-down text in orthographic view
-        if (rootMesh) {
-          rootMesh.rotation = new Vector3(0, Math.PI, 0);
-        }
-        
-        // Switch to orthographic camera
+        // Switch to orthographic camera (no model rotation needed)
         scene.activeCamera = orthoCamera;
-        console.log("🔄 Switched to orthographic top view camera with model rotation");
+        console.log("🔄 Switched to orthographic top view camera");
         
-        // Apply unified height state after camera switch
-        setTimeout(() => {
-          console.log("🔄 Camera switch to Top view: About to restore state");
-          const selectedObj = getSelectedObject();
-          const storedHeights = getOriginalHeights();
-          console.log("🔄 Current selection:", selectedObj);
-          console.log("🔄 Stored heights:", storedHeights);
-          restoreSelectedObjectState();
-          console.log("🔄 Camera switch to Top view: Applied height state");
-        }, 100);
+        // Immediate state restoration without delay
+        restoreSelectedObjectState();
       } else {
-        // Reset model rotation for perspective view
-        if (rootMesh) {
-          rootMesh.rotation = Vector3.Zero();
-        }
-        
-
-        
-        // Switch back to perspective camera with restored state
+        // Switch back to perspective camera
         scene.activeCamera = perspectiveCamera;
-        console.log("🔄 Switched back to perspective camera with model reset");
+        console.log("🔄 Switched back to perspective camera");
         
-        // Apply unified height state after camera switch
-        setTimeout(() => {
-          console.log("🔄 Camera switch to 3D View: About to restore state");
-          const selectedObj = getSelectedObject();
-          const storedHeights = getOriginalHeights();
-          console.log("🔄 Current selection:", selectedObj);
-          console.log("🔄 Stored heights:", storedHeights);
-          restoreSelectedObjectState();
-          console.log("🔄 Camera switch to 3D View: Applied height state");
-        }, 100);
+        // Immediate state restoration without delay
+        restoreSelectedObjectState();
       }
     }
   }, [isOrthographic, saveCamera3DState]);
 
-  // Handle restoration when entering any 3D mode (from 2D or between 3D modes)
+  // Handle restoration when entering 3D mode - simplified for performance
   useEffect(() => {
     if (is3D && sceneRef.current) {
-      console.log("🔄 === ENTERING/STAYING IN 3D MODE ===");
+      console.log("🔄 Entering 3D mode");
       
-      // Multiple attempts to restore state as scene loads  
-      const attemptRestore = (attempt: number) => {
-        const selectedObj = getSelectedObject();
-        const storedHeights = getOriginalHeights();
-        console.log(`🔄 Restore attempt ${attempt} - Current selection:`, selectedObj);
-        console.log(`🔄 Restore attempt ${attempt} - Stored heights:`, storedHeights);
-        
-        if (Object.keys(storedHeights).length > 0 && contentPanelsRef.current.length > 0) {
-          restoreSelectedObjectState();
-          console.log(`🔄 Restore attempt ${attempt}: Successfully applied height state`);
-          return true; // Success
-        } else {
-          console.log(`🔄 Restore attempt ${attempt}: Not ready yet (heights: ${Object.keys(storedHeights).length}, panels: ${contentPanelsRef.current.length})`);
-          return false; // Not ready yet
-        }
-      };
-      
-      // Try immediately
-      if (!attemptRestore(1)) {
-        // Try after short delay
-        setTimeout(() => {
-          if (!attemptRestore(2)) {
-            // Final attempt after longer delay
-            setTimeout(() => {
-              attemptRestore(3);
-            }, 800);
-          }
-        }, 300);
+      // Single quick attempt to restore state if available
+      const storedHeights = getOriginalHeights();
+      if (Object.keys(storedHeights).length > 0) {
+        restoreSelectedObjectState();
       }
     }
-  }, [is3D, isOrthographic, getSelectedObject, getOriginalHeights, restoreSelectedObjectState]);
+  }, [is3D]);
 
   // Save camera state when switching away from 3D view
   useEffect(() => {
