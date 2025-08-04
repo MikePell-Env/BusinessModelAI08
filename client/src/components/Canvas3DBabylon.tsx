@@ -306,6 +306,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     engineRef.current = engine;
     sceneRef.current = scene;
+    
+    // Enable pointer interactions on the scene
+    scene.enablePointerEvents = true;
+    console.log("🎯 Scene pointer events enabled");
 
     // Create perspective camera (always created to preserve state)
     const savedCameraState = getCamera3DState();
@@ -1409,8 +1413,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Add to panels array for global closing
             contentPanelsRef.current.push({ panel: contentPanel, mesh, material: sectionMaterial });
             
-            // Enable pointer events for this mesh
+            // Enable pointer events for this mesh with proper setup
             mesh.actionManager = new ActionManager(scene);
+            mesh.isPickable = true; // Ensure mesh is pickable for hover/click
+            console.log(`🎯 ${sectionName}: ActionManager and pickable state enabled`);
             
             // Separate functions for mesh and label interactions
             const updateMeshHoverEnter = () => {
