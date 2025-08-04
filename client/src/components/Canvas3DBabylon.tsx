@@ -376,15 +376,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Set active camera based on mode
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
 
-    // Simplified lighting for better performance
+    // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 1.8; // Higher ambient to reduce need for directional lights
-    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9);
+    hemisphericLight.intensity = 1.2; // Moderate ambient lighting
+    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Neutral ambient
+    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Low specular for subtle shine
     
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 1.0; // Reduced intensity
+    directionalLight.intensity = 1.8; // Strong directional light for shape definition
     directionalLight.diffuse = new Color3(1, 1, 1);
-    directionalLight.specular = new Color3(0.1, 0.1, 0.1); // Minimal specular for performance
+    directionalLight.specular = new Color3(0.3, 0.3, 0.3); // Low specular for controlled shine
 
     // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -477,8 +478,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
 
 
-    // Minimal environment for maximum performance
-    scene.environmentIntensity = 0.3; // Very low for better performance
+    // Create optimized environment for PBR materials to work properly
+    const environmentHelper = scene.createDefaultEnvironment({
+      createGround: false, // We already have ground
+      createSkybox: false, // Disable skybox to show scene clearColor background
+      skyboxSize: 100,
+      skyboxColor: new Color3(0.95, 0.95, 0.97), // Not used since createSkybox is false
+      groundColor: new Color3(0.9, 0.9, 0.9)
+    });
+    
+    // Set environment to moderate intensity for PBR materials
+    if (environmentHelper) {
+      scene.environmentIntensity = 0.5; // Moderate for PBR materials to work
+    }
 
     // Create GUI for 3D billboard labels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -758,11 +770,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // TransformNode created for coordinate control
             
-            // Use StandardMaterial for much better performance instead of PBR
-            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
-            sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Low specular
-            sectionMaterial.specularPower = 64;
+            // Create semi-gloss black plastic material for each section
+            const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
+            
+            // Use very dark black color with subtle shine
+            sectionMaterial.baseColor = baseColor;
+            sectionMaterial.metallic = 0.0; // No metallic reflection for plastic
+            sectionMaterial.roughness = 0.7; // Medium-high roughness for semi-gloss finish
+            sectionMaterial.clearCoat.isEnabled = false; // Disable clear coat
             // Note: directIntensity and environmentIntensity properties handled by scene environment
             // Environment reflections handled by scene environment
             
