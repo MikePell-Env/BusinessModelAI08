@@ -299,8 +299,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     let scene: Scene;
     
     // Check WebGL support first
-    const canvas = canvasRef.current;
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    const canvasElement = canvasRef.current;
+    const gl = canvasElement.getContext('webgl') || canvasElement.getContext('experimental-webgl');
     if (!gl) {
       console.error('WebGL is not supported in this browser');
       return;
@@ -309,7 +309,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     try {
       // Initialize engine with explicit fallback
-      engine = new Engine(canvas, true, {
+      engine = new Engine(canvasElement, true, {
         preserveDrawingBuffer: true,
         stencil: true
       }, false);
@@ -326,8 +326,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log("✅ Babylon.js engine and scene initialized successfully");
     } catch (error) {
       console.error('Failed to initialize Babylon.js engine:', error);
-      console.error('Engine object:', engine);
-      console.error('Scene object:', scene);
+      console.error('Engine object:', typeof engine !== 'undefined' ? engine : 'undefined');
+      console.error('Scene object:', typeof scene !== 'undefined' ? scene : 'undefined');
       return;
     }
     
