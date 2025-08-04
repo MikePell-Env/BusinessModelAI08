@@ -116,12 +116,9 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header onNavigateHome={onNavigateHome} />
       </div>
-      
-      {/* Main content with top padding to account for fixed header */}
-      <div className="pt-16 h-full relative">
-        {/* Header Controls */}
-        <div className="absolute top-4 left-4 z-40 flex space-x-2">
-        
+
+      {/* Fixed View Controls - positioned below header */}
+      <div className="fixed top-20 left-4 z-40 flex space-x-2">
         <Button
           onClick={() => !is3D || handleToggleView()}
           disabled={isTransitioning || !is3D}
@@ -158,6 +155,9 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
           3D View
         </Button>
       </div>
+      
+      {/* Main content with top padding to account for fixed header */}
+      <div className="pt-16 h-full relative">
 
       {/* Reset Button & Microsoft Stack Status */}
       <div className="absolute top-4 right-4 z-40 flex space-x-2">
