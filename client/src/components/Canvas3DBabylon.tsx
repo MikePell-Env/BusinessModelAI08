@@ -784,15 +784,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Customer Segments label is where Key Activities should be
         // GLB model mesh mapping - adding fallback entries to prevent VAO errors
         const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
-          0: { color: new Color3(0.15, 0.15, 0.15), name: "Value Propositions" },      // Dark Grey
-          1: { color: new Color3(0.15, 0.15, 0.15), name: "Key Partners" },           // Dark Grey
-          2: { color: new Color3(0.15, 0.15, 0.15), name: "Customer Segments" },      // Dark Grey
-          3: { color: new Color3(0.15, 0.15, 0.15), name: "Key Resources" },          // Dark Grey
-          4: { color: new Color3(0.15, 0.15, 0.15), name: "Key Activities" },         // Dark Grey
-          5: { color: new Color3(0.15, 0.15, 0.15), name: "Channels" },               // Dark Grey
-          6: { color: new Color3(0.15, 0.15, 0.15), name: "Customer Relationships" }, // Dark Grey
-          7: { color: new Color3(0.15, 0.15, 0.15), name: "Cost Structure" },         // Fallback - Dark Grey
-          8: { color: new Color3(0.15, 0.15, 0.15), name: "Revenue Streams" },        // Fallback - Dark Grey
+          0: { color: new Color3(0.01, 0.01, 0.01), name: "Value Propositions" },      // Very Dark Black
+          1: { color: new Color3(0.01, 0.01, 0.01), name: "Key Partners" },           // Very Dark Black
+          2: { color: new Color3(0.01, 0.01, 0.01), name: "Customer Segments" },      // Very Dark Black
+          3: { color: new Color3(0.01, 0.01, 0.01), name: "Key Resources" },          // Very Dark Black
+          4: { color: new Color3(0.01, 0.01, 0.01), name: "Key Activities" },         // Very Dark Black
+          5: { color: new Color3(0.01, 0.01, 0.01), name: "Channels" },               // Very Dark Black
+          6: { color: new Color3(0.01, 0.01, 0.01), name: "Customer Relationships" }, // Very Dark Black
+          7: { color: new Color3(0.01, 0.01, 0.01), name: "Cost Structure" },         // Fallback - Very Dark Black
+          8: { color: new Color3(0.01, 0.01, 0.01), name: "Revenue Streams" },        // Fallback - Very Dark Black
         };
 
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
