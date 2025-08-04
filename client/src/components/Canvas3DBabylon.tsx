@@ -1605,8 +1605,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Apply Value Proposition height adjustment using new coordinate system
         setTimeout(() => {
-          transformUtils.setSectionHeight("Value Propositions", 1.2);
-          console.log("📏 Value Propositions made 20% taller (height: 1.2)");
+          transformUtils.setSectionHeight("Value Propositions", 1.08);
+          console.log("📏 Value Propositions adjusted to 1.08 height (20% taller, then 10% reduction)");
         }, 500);
         
       } else {
