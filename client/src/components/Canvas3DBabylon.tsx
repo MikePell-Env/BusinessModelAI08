@@ -1681,6 +1681,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         setTimeout(() => {
           applyBlackTopFace("Channels");
         }, 1000);
+
+        // Move entire BMC group toward top edge of ground plane
+        setTimeout(() => {
+          if (rootMeshRef.current) {
+            // Move from center (0, 0.1, 0) toward top edge - moving in negative Z direction
+            rootMeshRef.current.position = new Vector3(0, 0.1, -4);
+            console.log("📍 Moved entire BMC group toward top edge of ground plane (Z: -4)");
+          }
+        }, 1200);
         
       } else {
         console.error("❌ No meshes found in BMC model");
