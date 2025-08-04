@@ -195,10 +195,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
 
-    try {
-      // Initialize Babylon.js engine and scene
-      const engine = new Engine(canvasRef.current, true);
-      const scene = new Scene(engine);
+    // Initialize Babylon.js engine and scene
+    const engine = new Engine(canvasRef.current, true);
+    const scene = new Scene(engine);
     
     // Set background to match 2D view (#e9ecef - light gray)
     // #e9ecef = RGB(233, 236, 239) = normalized (0.914, 0.925, 0.937)
@@ -1691,19 +1690,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         sceneRef.current.dispose();
       }
     };
-    } catch (error) {
-      console.error('Error initializing 3D scene:', error);
-      // Show fallback message on error
-      const ctx = canvasRef.current?.getContext('2d');
-      if (ctx && canvasRef.current) {
-        ctx.fillStyle = '#f0f0f0';
-        ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        ctx.fillStyle = '#333';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('3D rendering error. Please refresh the page.', canvasRef.current.width / 2, canvasRef.current.height / 2);
-      }
-    }
   }, [canvas, saveCamera3DState, isOrthographic]);
 
   // Handle camera switching when orthographic mode changes
