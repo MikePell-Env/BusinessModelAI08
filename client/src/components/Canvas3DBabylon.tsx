@@ -222,7 +222,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if ((mesh as any).hasTexture) {
           material.emissiveColor = brightBlueColor.scale(0.3);
         } else {
-          material.diffuseColor = brightBlueColor;
+          material.baseColor = brightBlueColor;
         }
         (mesh as any).isClicked = true;
         material.alpha = 1.0;
@@ -240,6 +240,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if ((mesh as any).hasTexture) {
           material.emissiveColor = new Color3(0, 0, 0);
         } else {
+          if (material.baseColor) {
+            material.baseColor = (mesh as any).originalColor;
+          }
           material.diffuseColor = (mesh as any).originalColor;
         }
         (mesh as any).isClicked = false;
@@ -308,10 +311,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log('✅ WebGL context available');
 
     try {
-      // Initialize engine with explicit fallback
+      // Initialize engine with compatibility settings to avoid shader issues
       engine = new Engine(canvasElement, true, {
         preserveDrawingBuffer: true,
-        stencil: true
+        stencil: true,
+        disableWebGL2Support: true, // Force WebGL 1.0 for better compatibility
+        forceSRGBBufferSupportState: false // Disable SRGB for compatibility
       }, false);
       
       if (!engine) {
@@ -676,13 +681,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           console.log(`🖤 Applying black top face to ${sectionName}`);
           
           // Create a multi-material setup for different faces
-          const originalMaterial = mesh.material as StandardMaterial;
+          const originalMaterial = mesh.material as any;
           
-          // Create black material for top face
-          const blackMaterial = new StandardMaterial(`${sectionName}_black_top`, scene);
+          // Create black material for top face using the same hybrid approach
+          const blackMaterial = new StandardMaterial(`${sectionName}_black_top`, scene) as any;
           blackMaterial.diffuseColor = new Color3(0, 0, 0); // Pure black
           blackMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
           blackMaterial.specularPower = 32;
+          blackMaterial.baseColor = new Color3(0, 0, 0); // Add baseColor compatibility
           
           // Get vertex data to identify top faces
           const positions = mesh.getVerticesData("position");
@@ -802,13 +808,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // TransformNode created for coordinate control
             
-            // Create simple standard material to avoid WebGL shader compilation issues
-            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
+            // Create StandardMaterial with PBR-compatible properties for hover behavior
+            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene) as any;
             
             // Use very dark black color with subtle shine
             sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Minimal specular for subtle shine
-            sectionMaterial.specularPower = 32; // Medium shininess
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+            sectionMaterial.specularPower = 32;
+            
+            // Add baseColor property for compatibility with hover behavior
+            sectionMaterial.baseColor = baseColor;
+            
+            // Store original colors for hover behavior
+            (sectionMaterial as any).originalBaseColor = baseColor.clone();
+            (sectionMaterial as any).originalDiffuseColor = baseColor.clone();
             
             // Add floating label planes for specific sections
             if (sectionName === "Customer Segments") {
