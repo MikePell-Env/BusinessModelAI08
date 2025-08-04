@@ -649,8 +649,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           // Create black material for top face
           const blackMaterial = new PBRMetallicRoughnessMaterial(`${sectionName}_black_top`, scene);
           blackMaterial.baseColor = new Color3(0, 0, 0); // Pure black
-          blackMaterial.metallicFactor = 0.1;
-          blackMaterial.roughnessFactor = 0.3;
+          blackMaterial.metallic = 0.1;
+          blackMaterial.roughness = 0.3;
           
           // Get vertex data to identify top faces
           const positions = mesh.getVerticesData("position");
@@ -694,7 +694,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.setVerticesData("color", colors);
             
             // Enable vertex colors in material
-            originalMaterial.useVertexColors = true;
+            if ('useVertexColor' in originalMaterial) {
+              (originalMaterial as any).useVertexColor = true;
+            }
             
             console.log(`✅ Applied black top face to ${sectionName} using vertex colors`);
           }
