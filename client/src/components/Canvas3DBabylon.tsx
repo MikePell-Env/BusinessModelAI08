@@ -42,6 +42,42 @@ interface Canvas3DBabylonProps {
 
 
 
+// Coordinate system normalization utilities (non-breaking additions)
+class BMCSectionController {
+  constructor(private mesh: AbstractMesh, private sectionName: string) {}
+  
+  // Consistent height manipulation with current behavior preserved
+  setHeight(height: number) {
+    this.mesh.scaling.y = height;
+  }
+  
+  // Get current height (matches existing logic)
+  getHeight(): number {
+    return this.mesh.scaling.y;
+  }
+  
+  // Standard positioning system
+  setPosition(x: number, y: number, z: number) {
+    this.mesh.position = new Vector3(x, y, z);
+  }
+  
+  // Consistent rotation handling
+  setRotation(x: number, y: number, z: number) {
+    this.mesh.rotation = new Vector3(x, y, z);
+  }
+}
+
+// Standard grid positions for future consistency (doesn't affect current layout)
+const STANDARD_POSITIONS = {
+  'KeyPartners': { x: -15, y: 0, z: 10 },
+  'KeyActivities': { x: -5, y: 0, z: 10 },
+  'ValueProposition': { x: 5, y: 0, z: 10 },
+  'CustomerRelationships': { x: 15, y: 0, z: 10 },
+  'CustomerSegments': { x: 25, y: 0, z: 10 },
+  'KeyResources': { x: -5, y: 0, z: -10 },
+  'Channels': { x: 15, y: 0, z: -10 }
+};
+
 export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
@@ -51,11 +87,66 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const rootMeshRef = useRef<AbstractMesh | null>(null);
   const { saveCamera3DState, getCamera3DState, is3D, isOrthographic, setSelectedObject, getSelectedObject, setOriginalHeights, getOriginalHeights } = useCanvas();
   
+  // Section controllers for consistent manipulation (additive, doesn't change existing behavior)
+  const sectionControllersRef = useRef<Map<string, BMCSectionController>>(new Map());
+  
   // Store all content panels for closing functionality
   const contentPanelsRef = useRef<any[]>([]);
   
   // Store original heights for each BMC section
   const originalHeightsRef = useRef<{ [sectionName: string]: number }>({});
+  
+  // Transform utilities (safe wrappers around existing functionality)
+  const transformUtils = {
+    // Get controller for consistent manipulation
+    getSectionController: (sectionName: string): BMCSectionController | undefined => {
+      return sectionControllersRef.current.get(sectionName);
+    },
+    
+    // Safe height setting that preserves all current behavior
+    setSectionHeight: (sectionName: string, height: number) => {
+      const controller = sectionControllersRef.current.get(sectionName);
+      if (controller) {
+        controller.setHeight(height);
+      }
+    },
+    
+    // Get current layout positions (for future reference)
+    getCurrentPositions: (): Record<string, Vector3> => {
+      const positions: Record<string, Vector3> = {};
+      sectionControllersRef.current.forEach((controller, sectionName) => {
+        positions[sectionName] = (controller as any).mesh.position.clone();
+      });
+      return positions;
+    },
+    
+    // Development utilities (safe for debugging without affecting functionality)
+    debugCoordinates: () => {
+      console.log("🔍 Current BMC Section Coordinates:");
+      sectionControllersRef.current.forEach((controller, sectionName) => {
+        const mesh = (controller as any).mesh;
+        console.log(`  ${sectionName}:`, {
+          position: mesh.position.asArray(),
+          rotation: mesh.rotation.asArray(),
+          scaling: mesh.scaling.asArray()
+        });
+      });
+    },
+    
+    // Export current state for development
+    exportCurrentState: () => {
+      const state: any = {};
+      sectionControllersRef.current.forEach((controller, sectionName) => {
+        const mesh = (controller as any).mesh;
+        state[sectionName] = {
+          position: mesh.position.asArray(),
+          rotation: mesh.rotation.asArray(),
+          scaling: mesh.scaling.asArray()
+        };
+      });
+      return state;
+    }
+  };
   
 
   
@@ -629,6 +720,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Store references for manipulation
             (mesh as any).bmcTransformNode = transformNode;
             (mesh as any).bmcSectionName = sectionName;
+            
+            // Create section controller for consistent manipulation (additive improvement)
+            const controller = new BMCSectionController(mesh as AbstractMesh, sectionName);
+            sectionControllersRef.current.set(sectionName, controller);
             
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
             
