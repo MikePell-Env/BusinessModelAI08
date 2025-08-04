@@ -335,16 +335,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
     
     // Create orthographic camera for top view
-    const orthoCamera = new FreeCamera("orthoCamera", new Vector3(0, 15, 0), scene);
+    const orthoCamera = new FreeCamera("orthoCamera", new Vector3(0, 20, 0), scene);
     orthoCamera.setTarget(Vector3.Zero());
     
-    // Rotate camera 180 degrees clockwise around Y-axis to match desired orientation
-    orthoCamera.rotation.y = Math.PI;
+    // Look straight down for top view
+    orthoCamera.rotation.x = Math.PI / 2;
+    orthoCamera.rotation.y = 0;
+    orthoCamera.rotation.z = 0;
     
     // Set orthographic projection with proper aspect ratio (reduced size to fit window)
     orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
     const aspectRatio = canvasRef.current!.width / canvasRef.current!.height;
-    const orthoSize = 10; // Reduced size to make model appear larger in view
+    const orthoSize = 12; // Slightly larger to ensure model is visible
     
     if (aspectRatio > 1) {
       // Wider than tall - expand horizontally
@@ -359,6 +361,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       orthoCamera.orthoLeft = -orthoSize;
       orthoCamera.orthoRight = orthoSize;
     }
+    
+    // Set proper clipping planes for orthographic view
+    orthoCamera.minZ = 0.1;
+    orthoCamera.maxZ = 100;
     
     // Disable rotation controls for pure top-down view
     orthoCamera.inputs.clear();
@@ -730,12 +736,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Position at center of ground plane, slightly above surface
         rootMesh.position = new Vector3(0, 0.1, 0);
         
-        // Rotate entire model 180 degrees clockwise around Y-axis when in orthographic mode to fix upside-down text
-        if (isOrthographic) {
-          rootMesh.rotation = new Vector3(0, Math.PI, 0);
-        } else {
-          rootMesh.rotation = Vector3.Zero();
-        }
+        // Keep model at normal rotation for all views
+        rootMesh.rotation = Vector3.Zero();
         
         // Start with visible scale
         rootMesh.scaling = new Vector3(8, 8, 8);
