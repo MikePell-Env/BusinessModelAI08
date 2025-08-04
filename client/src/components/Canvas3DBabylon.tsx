@@ -325,8 +325,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Enable camera controls on the canvas for perspective camera
     perspectiveCamera.attachControl(canvasRef.current, true);
     
-    // Reduce mouse wheel sensitivity for smoother zooming
-    perspectiveCamera.wheelPrecision = 50;        // Default is 3, higher values = less sensitive
+    // Optimize camera settings for performance and reduced drift
+    perspectiveCamera.wheelPrecision = 100;        // Higher value = less sensitive, reduces drift
+    perspectiveCamera.panningSensibility = 2000;   // Reduce panning sensitivity 
+    perspectiveCamera.angularSensibilityX = 4000;  // Reduce rotation sensitivity
+    perspectiveCamera.angularSensibilityY = 4000;  // Reduce rotation sensitivity
+    perspectiveCamera.inertia = 0.7;               // Reduce inertia to stop drift faster
     
     // Set camera limits for grid layout navigation (original working values)
     perspectiveCamera.lowerRadiusLimit = 5;      // Minimum zoom distance
@@ -1317,12 +1321,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log(`✅ Blue tracer animation created for Customer Segments with rectangular path`);
               };
               
-              // Create the blue tracer after a short delay to ensure mesh is ready
-              setTimeout(createBlueTracer, 100);
+              // Blue tracer disabled for better performance
+              // setTimeout(createBlueTracer, 100);
             }
             
             mesh.material = sectionMaterial;
-            mesh.receiveShadows = true;
+            mesh.receiveShadows = false; // Disable shadows for better performance
             
             // Store original color and material for hover/click effects
             (mesh as any).originalColor = baseColor.clone();
@@ -1843,11 +1847,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     }, 2000);
 
-    // Start the render loop with safety check
+    // Start optimized render loop with reduced frame rate for better performance
     let isDisposed = false;
+    let lastTime = 0;
+    const targetFPS = 30; // Reduce from 60 to 30 FPS for better performance
+    const frameInterval = 1000 / targetFPS;
+    
     engine.runRenderLoop(() => {
       if (!isDisposed && scene && !scene.isDisposed) {
-        scene.render();
+        const currentTime = performance.now();
+        if (currentTime - lastTime >= frameInterval) {
+          scene.render();
+          lastTime = currentTime;
+        }
       }
     });
 
