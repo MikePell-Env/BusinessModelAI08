@@ -784,15 +784,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Customer Segments label is where Key Activities should be
         // GLB model mesh mapping - adding fallback entries to prevent VAO errors
         const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
-          0: { color: new Color3(0.005, 0.005, 0.005), name: "Value Propositions" },      // Very Dark Black
-          1: { color: new Color3(0.005, 0.005, 0.005), name: "Key Partners" },           // Very Dark Black
-          2: { color: new Color3(0.005, 0.005, 0.005), name: "Customer Segments" },      // Very Dark Black
-          3: { color: new Color3(0.005, 0.005, 0.005), name: "Key Resources" },          // Very Dark Black
-          4: { color: new Color3(0.005, 0.005, 0.005), name: "Key Activities" },         // Very Dark Black
-          5: { color: new Color3(0.005, 0.005, 0.005), name: "Channels" },               // Very Dark Black
-          6: { color: new Color3(0.005, 0.005, 0.005), name: "Customer Relationships" }, // Very Dark Black
-          7: { color: new Color3(0.005, 0.005, 0.005), name: "Cost Structure" },         // Fallback - Very Dark Black
-          8: { color: new Color3(0.005, 0.005, 0.005), name: "Revenue Streams" },        // Fallback - Very Dark Black
+          0: { color: new Color3(0.01, 0.01, 0.01), name: "Value Propositions" },      // Very Dark Black
+          1: { color: new Color3(0.01, 0.01, 0.01), name: "Key Partners" },           // Very Dark Black
+          2: { color: new Color3(0.01, 0.01, 0.01), name: "Customer Segments" },      // Very Dark Black
+          3: { color: new Color3(0.01, 0.01, 0.01), name: "Key Resources" },          // Very Dark Black
+          4: { color: new Color3(0.01, 0.01, 0.01), name: "Key Activities" },         // Very Dark Black
+          5: { color: new Color3(0.01, 0.01, 0.01), name: "Channels" },               // Very Dark Black
+          6: { color: new Color3(0.01, 0.01, 0.01), name: "Customer Relationships" }, // Very Dark Black
+          7: { color: new Color3(0.01, 0.01, 0.01), name: "Cost Structure" },         // Fallback - Very Dark Black
+          8: { color: new Color3(0.01, 0.01, 0.01), name: "Revenue Streams" },        // Fallback - Very Dark Black
         };
 
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
@@ -1470,9 +1470,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 sectionMaterial.emissiveColor = brightBlueColor.scale(0.3); // Subtle blue glow
                 console.log(`💡 Textured mesh hover: ${sectionName} - adding blue emissive glow`);
               } else {
-                // For non-textured mesh, change base color as before
-                sectionMaterial.baseColor = brightBlueColor;
-                console.log(`💡 Standard mesh hover: ${sectionName} - changing base color`);
+                // For non-textured mesh, update both baseColor and diffuseColor for visibility
+                if (sectionMaterial.baseColor) {
+                  sectionMaterial.baseColor = brightBlueColor;
+                }
+                sectionMaterial.diffuseColor = brightBlueColor;
+                console.log(`💡 Standard mesh hover: ${sectionName} - changing base color and diffuseColor`);
               }
               
               // Keep all objects at 100% opacity during hover
@@ -1512,9 +1515,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 sectionMaterial.emissiveColor = new Color3(0, 0, 0); // No emissive
                 console.log(`🔄 Textured mesh hover exit: ${sectionName} - removing emissive glow`);
               } else {
-                // For non-textured mesh, restore base color
-                sectionMaterial.baseColor = (mesh as any).originalColor;
-                console.log(`🔄 Standard mesh hover exit: ${sectionName} - restoring base color`);
+                // For non-textured mesh, restore both baseColor and diffuseColor
+                if (sectionMaterial.baseColor) {
+                  sectionMaterial.baseColor = (mesh as any).originalColor;
+                }
+                sectionMaterial.diffuseColor = (mesh as any).originalColor;
+                console.log(`🔄 Standard mesh hover exit: ${sectionName} - restoring base color and diffuseColor`);
               }
               
               // Restore all other BMC objects to full opacity
@@ -1556,9 +1562,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 sectionMaterial.emissiveColor = brightBlueColor.scale(0.3); // Subtle blue glow
                 console.log(`🔒 Textured mesh click: ${sectionName} - adding blue emissive glow`);
               } else {
-                // For non-textured mesh, change base color
-                sectionMaterial.baseColor = brightBlueColor;
-                console.log(`🔒 Standard mesh click: ${sectionName} - changing base color`);
+                // For non-textured mesh, update both baseColor and diffuseColor for visibility
+                if (sectionMaterial.baseColor) {
+                  sectionMaterial.baseColor = brightBlueColor;
+                }
+                sectionMaterial.diffuseColor = brightBlueColor;
+                console.log(`🔒 Standard mesh click: ${sectionName} - changing base color and diffuseColor`);
               }
               
               (mesh as any).isClicked = true;
@@ -1602,7 +1611,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 if ((otherMesh as any).hasTexture) {
                   material.emissiveColor = new Color3(0, 0, 0);
                 } else {
-                  material.baseColor = (otherMesh as any).originalColor;
+                  if (material.baseColor) {
+                    material.baseColor = (otherMesh as any).originalColor;
+                  }
+                  material.diffuseColor = (otherMesh as any).originalColor;
                 }
                 
                 // Full opacity and clear click states
