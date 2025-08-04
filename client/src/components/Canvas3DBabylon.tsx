@@ -634,6 +634,74 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log(`✅ UV mapping applied successfully to Customer Segments mesh`);
     };
 
+    // Function to apply black color to only the top face of a specific section
+    const applyBlackTopFace = (sectionName: string) => {
+      if (!scene) return;
+      
+      const meshes = scene.meshes;
+      meshes.forEach((mesh) => {
+        if ((mesh as any).bmcSectionName === sectionName && mesh.material) {
+          console.log(`🖤 Applying black top face to ${sectionName}`);
+          
+          // Create a multi-material setup for different faces
+          const originalMaterial = mesh.material as PBRMetallicRoughnessMaterial;
+          
+          // Create black material for top face
+          const blackMaterial = new PBRMetallicRoughnessMaterial(`${sectionName}_black_top`, scene);
+          blackMaterial.baseColor = new Color3(0, 0, 0); // Pure black
+          blackMaterial.metallicFactor = 0.1;
+          blackMaterial.roughnessFactor = 0.3;
+          
+          // Get vertex data to identify top faces
+          const positions = mesh.getVerticesData("position");
+          const indices = mesh.getIndices();
+          const normals = mesh.getVerticesData("normal");
+          
+          if (positions && indices && normals) {
+            // Find maximum Y coordinate for top faces
+            let maxY = -Infinity;
+            for (let i = 1; i < positions.length; i += 3) {
+              maxY = Math.max(maxY, positions[i]);
+            }
+            
+            // Create vertex colors array (RGBA per vertex)
+            const colors = new Float32Array(positions.length / 3 * 4);
+            
+            // Process each vertex
+            for (let i = 0; i < positions.length / 3; i++) {
+              const y = positions[i * 3 + 1];
+              const normalY = normals[i * 3 + 1];
+              
+              // Check if this vertex is on top face (close to maxY and normal pointing up)
+              const isTopVertex = Math.abs(y - maxY) < 0.01 && normalY > 0.5;
+              
+              if (isTopVertex) {
+                // Black color for top vertices
+                colors[i * 4] = 0;     // R
+                colors[i * 4 + 1] = 0; // G  
+                colors[i * 4 + 2] = 0; // B
+                colors[i * 4 + 3] = 1; // A
+              } else {
+                // Keep original color for side vertices
+                colors[i * 4] = 1;     // R
+                colors[i * 4 + 1] = 1; // G
+                colors[i * 4 + 2] = 1; // B  
+                colors[i * 4 + 3] = 1; // A
+              }
+            }
+            
+            // Apply vertex colors to mesh
+            mesh.setVerticesData("color", colors);
+            
+            // Enable vertex colors in material
+            originalMaterial.useVertexColors = true;
+            
+            console.log(`✅ Applied black top face to ${sectionName} using vertex colors`);
+          }
+        }
+      });
+    };
+
     // Only GLB models are used now - no more box geometry functions needed
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
@@ -1608,6 +1676,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           transformUtils.setSectionHeight("Value Propositions", 1.08);
           console.log("📏 Value Propositions adjusted to 1.08 height (20% taller, then 10% reduction)");
         }, 500);
+
+        // Apply black top face to Customer Channels section
+        setTimeout(() => {
+          applyBlackTopFace("Channels");
+        }, 1000);
         
       } else {
         console.error("❌ No meshes found in BMC model");
