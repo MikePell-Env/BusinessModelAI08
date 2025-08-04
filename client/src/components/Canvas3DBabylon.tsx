@@ -290,8 +290,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     try {
       engine = new Engine(canvasRef.current, true, {
         preserveDrawingBuffer: false,  // Disable for better performance
-        stencil: false,               // Disable for better performance  
-        antialias: false,             // Major performance improvement
+        stencil: true,                // Re-enable for pointer events
+        antialias: false,             // Keep disabled for performance
         alpha: false
       });
       scene = new Scene(engine);
@@ -308,8 +308,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     sceneRef.current = scene;
     
     // Enable pointer interactions on the scene
-    scene.enablePointerEvents = true;
-    console.log("🎯 Scene pointer events enabled");
+    scene.actionManager = new ActionManager(scene);
+    console.log("🎯 Scene ActionManager enabled");
 
     // Create perspective camera (always created to preserve state)
     const savedCameraState = getCamera3DState();
@@ -1450,6 +1450,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Hover enter - only if not clicked AND no other object is currently selected
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              console.log(`🎯 HOVER DETECTED on ${sectionName}`); // Debug logging
               const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
               
               if (!(mesh as any).isClicked && !isAnyObjectClicked) {
@@ -1491,6 +1492,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Hover exit - only restore if not clicked AND no other object is selected
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              console.log(`🎯 HOVER EXIT DETECTED on ${sectionName}`); // Debug logging
               const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
               
               if (!(mesh as any).isClicked && !isAnyObjectClicked) {
