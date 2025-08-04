@@ -288,13 +288,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     let scene: Scene;
     
     try {
-      engine = new Engine(canvasRef.current, true, {
-        preserveDrawingBuffer: false,  // Disable for better performance
-        stencil: true,                // Re-enable for pointer events
-        antialias: false,             // Keep disabled for performance
-        alpha: false
-      });
+      // Use minimal engine config to ensure it initializes properly
+      engine = new Engine(canvasRef.current, true);
       scene = new Scene(engine);
+      console.log("✅ Babylon.js engine initialized successfully");
     } catch (error) {
       console.error('Failed to initialize Babylon.js engine:', error);
       return;
