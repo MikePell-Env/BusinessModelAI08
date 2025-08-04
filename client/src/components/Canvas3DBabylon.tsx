@@ -471,6 +471,54 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     groundMaterial.alpha = 0.5; // 50% opacity
     ground.material = groundMaterial;
 
+    // Add click detection to ground for clearing selections
+    ground.actionManager = new ActionManager(scene);
+    ground.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+      // Clear any active selection when clicking on empty space
+      const hasActiveSelection = getSelectedObject();
+      if (hasActiveSelection) {
+        console.log(`🌍 Background click: Clearing selection and restoring all objects`);
+        
+        // Clear selection state
+        setSelectedObject(null);
+        
+        // Restore all BMC objects to their original state and heights
+        if (contentPanelsRef.current) {
+          contentPanelsRef.current.forEach(({ mesh, material, panel }) => {
+            // Clear click state
+            (mesh as any).isClicked = false;
+            
+            // Hide content panel
+            if (panel) {
+              panel.isVisible = false;
+            }
+            
+            // Restore original colors
+            if ((mesh as any).hasTexture) {
+              material.emissiveColor = new Color3(0, 0, 0);
+            } else {
+              if (material.baseColor) {
+                material.baseColor = (mesh as any).originalColor;
+              }
+              material.diffuseColor = (mesh as any).originalColor;
+            }
+            
+            // Restore full opacity
+            material.alpha = 1.0;
+          });
+        }
+        
+        // Restore all objects to original heights using the adjust function
+        if (adjustBMCSection && getOriginalHeights) {
+          const originalHeights = getOriginalHeights();
+          Object.entries(originalHeights).forEach(([sectionName, originalHeight]) => {
+            adjustBMCSection(sectionName, { height: originalHeight });
+          });
+          console.log(`📏 Background click: All objects restored to original heights`);
+        }
+      }
+    }));
+
     // Create extruded border rails on all sides
     const railHeight = 0.15; // Reduced from 0.3 to 0.15
     const railWidth = 0.2;
