@@ -1902,7 +1902,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const scene = sceneRef.current;
       const perspectiveCamera = cameraRef.current;
       const orthoCamera = orthoCameraRef.current;
-      const rootMesh = rootMeshRef.current;
       
       if (isOrthographic) {
         // Save current perspective camera state before switching
@@ -1912,35 +1911,49 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           perspectiveCamera.radius
         );
         
-        // Switch to orthographic camera (no model rotation needed)
+        // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
-        console.log("🔄 Switched to orthographic top view camera");
         
-        // Immediate state restoration without delay
-        restoreSelectedObjectState();
+        // Force render update and immediate state restoration
+        scene.render();
+        
+        // Use requestAnimationFrame to ensure camera switch is complete
+        requestAnimationFrame(() => {
+          restoreSelectedObjectState();
+          console.log("🔄 Switched to orthographic view with state restored");
+        });
       } else {
         // Switch back to perspective camera
         scene.activeCamera = perspectiveCamera;
-        console.log("🔄 Switched back to perspective camera");
         
-        // Immediate state restoration without delay
-        restoreSelectedObjectState();
+        // Force render update and immediate state restoration
+        scene.render();
+        
+        // Use requestAnimationFrame to ensure camera switch is complete
+        requestAnimationFrame(() => {
+          restoreSelectedObjectState();
+          console.log("🔄 Switched to perspective view with state restored");
+        });
       }
     }
-  }, [isOrthographic, saveCamera3DState]);
+  }, [isOrthographic, saveCamera3DState, restoreSelectedObjectState]);
 
-  // Handle restoration when entering 3D mode - simplified for performance
+  // Handle restoration when entering 3D mode - optimized for smooth transitions
   useEffect(() => {
     if (is3D && sceneRef.current) {
       console.log("🔄 Entering 3D mode");
       
-      // Single quick attempt to restore state if available
-      const storedHeights = getOriginalHeights();
-      if (Object.keys(storedHeights).length > 0) {
-        restoreSelectedObjectState();
-      }
+      // Force render and restore state in next frame for smooth transition
+      sceneRef.current.render();
+      requestAnimationFrame(() => {
+        const storedHeights = getOriginalHeights();
+        if (Object.keys(storedHeights).length > 0) {
+          restoreSelectedObjectState();
+          console.log("🔄 3D mode state restored");
+        }
+      });
     }
-  }, [is3D]);
+  }, [is3D, restoreSelectedObjectState, getOriginalHeights]);
 
   // Save camera state when switching away from 3D view
   useEffect(() => {
