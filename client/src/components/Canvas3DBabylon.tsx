@@ -292,12 +292,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     try {
       engine = new Engine(canvasRef.current, true, {
-        preserveDrawingBuffer: true,
-        stencil: true,
+        preserveDrawingBuffer: false, // Disable for better performance
+        stencil: false,               // Disable unless needed
         antialias: true,
-        alpha: false
+        alpha: false,
+        powerPreference: "high-performance" // Request high performance GPU
       });
       scene = new Scene(engine);
+      
+      // Optimize rendering for performance
+      scene.skipPointerMovePicking = true;  // Skip unnecessary pointer move calculations
+      scene.constantlyUpdateMeshUnderPointer = false; // Reduce constant updates
     } catch (error) {
       console.error('Failed to initialize Babylon.js engine:', error);
       return;
@@ -335,7 +340,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
     
     // Create orthographic camera for top view
-    const orthoCamera = new FreeCamera("orthoCamera", new Vector3(0, 20, 0), scene);
+    const orthoCamera = new FreeCamera("orthoCamera", new Vector3(0, 15, 0), scene);
     orthoCamera.setTarget(Vector3.Zero());
     
     // Look straight down for top view
@@ -343,10 +348,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     orthoCamera.rotation.y = 0;
     orthoCamera.rotation.z = 0;
     
-    // Set orthographic projection with proper aspect ratio (reduced size to fit window)
+    // Set orthographic projection with proper aspect ratio (optimized size)
     orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
     const aspectRatio = canvasRef.current!.width / canvasRef.current!.height;
-    const orthoSize = 12; // Slightly larger to ensure model is visible
+    const orthoSize = 10; // Optimized size for performance
     
     if (aspectRatio > 1) {
       // Wider than tall - expand horizontally
@@ -376,22 +381,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Set active camera based on mode
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
 
-    // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
+    // Optimized lighting setup for better performance
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 1.2; // Moderate ambient lighting
-    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Neutral ambient
-    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Low specular for subtle shine
+    hemisphericLight.intensity = 1.5; // Higher intensity since we're using fewer lights
+    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9);
     
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 1.8; // Strong directional light for shape definition
+    directionalLight.intensity = 1.5; // Balanced lighting with fewer lights
     directionalLight.diffuse = new Color3(1, 1, 1);
-    directionalLight.specular = new Color3(0.3, 0.3, 0.3); // Low specular for controlled shine
-    
-    // Add key light from opposite direction for better form definition
-    const directionalLight2 = new DirectionalLight("directionalLight2", new Vector3(1, -0.8, 0.5), scene);
-    directionalLight2.intensity = 1.2; // Moderate fill light
-    directionalLight2.diffuse = new Color3(0.95, 0.95, 1); // Slightly cool fill
-    directionalLight2.specular = new Color3(0.2, 0.2, 0.25); // Very subtle cool specular
 
     // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -1857,11 +1854,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     }, 2000);
 
-    // Start the render loop with safety check
+    // Start the render loop with safety check and frame rate limiting
     let isDisposed = false;
+    let lastTime = 0;
+    const targetFPS = 60;
+    const frameTime = 1000 / targetFPS;
+    
     engine.runRenderLoop(() => {
       if (!isDisposed && scene && !scene.isDisposed) {
-        scene.render();
+        const now = performance.now();
+        if (now - lastTime >= frameTime) {
+          scene.render();
+          lastTime = now;
+        }
       }
     });
 
