@@ -1395,7 +1395,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             contentPanel.thickness = 2;
             contentPanel.background = "rgba(255, 255, 255, 0.95)";
             contentPanel.isVisible = false; // Initially hidden
-            contentPanel.zIndex = 3000; // Very high z-index to appear above all labels and windows
+            contentPanel.zIndex = 9999; // Maximum z-index to ensure BMC panels always draw on top of all other elements
             
             // Create title text at top of panel
             const titleText = new TextBlock(`titleText_${index}`, sectionName);
