@@ -1936,7 +1936,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         });
       }
     }
-  }, [isOrthographic, saveCamera3DState, restoreSelectedObjectState]);
+  }, [isOrthographic]);
 
   // Handle restoration when entering 3D mode - optimized for smooth transitions
   useEffect(() => {
@@ -1953,7 +1953,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       });
     }
-  }, [is3D, restoreSelectedObjectState, getOriginalHeights]);
+  }, [is3D]);
 
   // Save camera state when switching away from 3D view
   useEffect(() => {
