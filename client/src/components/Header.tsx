@@ -11,7 +11,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome }) => {
         {/* Envisioner logo - left aligned with margin */}
         <div className="flex items-center">
           <img 
-            src="/envisioner-logo.png" 
+            src="/envisioner-logo-new.png" 
             alt="Envisioner" 
             className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity"
             onClick={onNavigateHome}
