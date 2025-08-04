@@ -376,22 +376,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Set active camera based on mode
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
 
-    // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
+    // Simplified lighting for better performance
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 1.2; // Moderate ambient lighting
-    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Neutral ambient
-    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Low specular for subtle shine
+    hemisphericLight.intensity = 1.8; // Higher ambient to reduce need for directional lights
+    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9);
     
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 1.8; // Strong directional light for shape definition
+    directionalLight.intensity = 1.0; // Reduced intensity
     directionalLight.diffuse = new Color3(1, 1, 1);
-    directionalLight.specular = new Color3(0.3, 0.3, 0.3); // Low specular for controlled shine
-    
-    // Add key light from opposite direction for better form definition
-    const directionalLight2 = new DirectionalLight("directionalLight2", new Vector3(1, -0.8, 0.5), scene);
-    directionalLight2.intensity = 1.2; // Moderate fill light
-    directionalLight2.diffuse = new Color3(0.95, 0.95, 1); // Slightly cool fill
-    directionalLight2.specular = new Color3(0.2, 0.2, 0.25); // Very subtle cool specular
+    directionalLight.specular = new Color3(0.1, 0.1, 0.1); // Minimal specular for performance
 
     // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -484,19 +477,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
 
 
-    // Create optimized environment for better rendering performance
-    const environmentHelper = scene.createDefaultEnvironment({
-      createGround: false, // We already have ground
-      createSkybox: false, // Disable skybox to show scene clearColor background
-      skyboxSize: 100,
-      skyboxColor: new Color3(0.95, 0.95, 0.97), // Not used since createSkybox is false
-      groundColor: new Color3(0.9, 0.9, 0.9)
-    });
-    
-    // Set environment to moderate intensity for good performance
-    if (environmentHelper) {
-      scene.environmentIntensity = 0.8; // Balanced for performance and quality
-    }
+    // Minimal environment for maximum performance
+    scene.environmentIntensity = 0.3; // Very low for better performance
 
     // Create GUI for 3D billboard labels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -801,14 +783,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             console.log(`🔧 Created TransformNode for ${sectionName} - mesh ${index}`);
             
-            // Create new semi-gloss black plastic material for each section
+            // Create simplified material for better performance
             const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
             
-            // Use very dark black color with subtle shine
+            // Simplified material settings for performance
             sectionMaterial.baseColor = baseColor;
-            sectionMaterial.metallic = 0.0; // No metallic reflection for plastic
-            sectionMaterial.roughness = 0.7; // Medium-high roughness for semi-gloss finish
-            sectionMaterial.clearCoat.isEnabled = false; // Disable clear coat
+            sectionMaterial.metallic = 0.0;
+            sectionMaterial.roughness = 0.9; // Higher roughness = less reflections = better performance
+            sectionMaterial.clearCoat.isEnabled = false;
+            sectionMaterial.sheen.isEnabled = false; // Disable sheen for performance
+            sectionMaterial.anisotropy.isEnabled = false; // Disable anisotropy for performance
             // Note: directIntensity and environmentIntensity properties handled by scene environment
             // Environment reflections handled by scene environment
             
