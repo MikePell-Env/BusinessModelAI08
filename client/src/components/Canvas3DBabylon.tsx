@@ -292,9 +292,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     try {
       engine = new Engine(canvasRef.current, true, {
-        preserveDrawingBuffer: true,
-        stencil: true,
-        antialias: true,
+        preserveDrawingBuffer: false,  // Disable for better performance
+        stencil: false,               // Disable for better performance  
+        antialias: false,             // Major performance improvement
         alpha: false
       });
       scene = new Scene(engine);
@@ -758,16 +758,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // TransformNode created for coordinate control
             
-            // Create simplified material for better performance
-            const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
-            
-            // Simplified material settings for performance
-            sectionMaterial.baseColor = baseColor;
-            sectionMaterial.metallic = 0.0;
-            sectionMaterial.roughness = 0.9; // Higher roughness = less reflections = better performance
-            sectionMaterial.clearCoat.isEnabled = false;
-            sectionMaterial.sheen.isEnabled = false; // Disable sheen for performance
-            sectionMaterial.anisotropy.isEnabled = false; // Disable anisotropy for performance
+            // Use StandardMaterial for much better performance instead of PBR
+            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
+            sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Low specular
+            sectionMaterial.specularPower = 64;
             // Note: directIntensity and environmentIntensity properties handled by scene environment
             // Environment reflections handled by scene environment
             
@@ -1260,24 +1255,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
                     tracerSphere.position = currentPos;
                     
-                    // Update trail positions less frequently to avoid vertex buffer issues
+                    // Update trail positions much less frequently for better performance
                     updateCounter++;
-                    if (updateCounter % 3 === 0) { // Update every 3rd frame
+                    if (updateCounter % 10 === 0) { // Update every 10th frame instead of 3rd
                       // Shift trail positions
                       for (let i = trailPositions.length - 1; i > 0; i--) {
                         trailPositions[i] = trailPositions[i - 1].clone();
                       }
                       trailPositions[0] = currentPos.clone();
                       
-                      // Safely update line geometry
+                      // Safely update line geometry with simpler approach
                       try {
                         MeshBuilder.CreateLines("customerSegmentsTrail", {
                           points: trailPositions,
                           instance: trailLine
                         }, scene);
                       } catch (error) {
-                        // If update fails, just continue without updating trail
-                        console.log("Trail update skipped to prevent crash");
+                        // Skip trail update if it fails
                       }
                     }
                     
