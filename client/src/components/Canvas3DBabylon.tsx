@@ -1637,17 +1637,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             };
             
-            // Click - set blue color, make other objects 50% opacity, and show/hide content panel
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              const isCurrentlyClicked = (mesh as any).isClicked;
+            // Double-click to show panel directly
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              console.log(`⚡ Double-click detected on ${sectionName}`);
               
-              if (isCurrentlyClicked) {
-                // Unclick - restore mesh and hide content panel
-                updateMeshClickUnselect();
-                updateContentPanel(false);
-                
-                console.log(`🔓 Click released: ${sectionName} restored, all objects full opacity, panel hidden`);
-              } else {
+              // Ensure object is selected first
+              if (!((mesh as any).isClicked)) {
                 // Handle selecting a new object while another is already selected
                 const previouslySelectedObject = getSelectedObject();
                 
@@ -1661,8 +1656,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                       // For textured mesh, remove emissive glow
                       material.emissiveColor = new Color3(0, 0, 0);
                     } else {
-                      // For non-textured mesh, restore base color
-                      material.baseColor = (otherMesh as any).originalColor;
+                      // For non-textured mesh, restore base color and diffuseColor
+                      if (material.baseColor) {
+                        material.baseColor = (otherMesh as any).originalColor;
+                      }
+                      material.diffuseColor = (otherMesh as any).originalColor;
                     }
                     
                     (otherMesh as any).isClicked = false;
@@ -1678,12 +1676,80 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 // Save selected object state FIRST so applyHeightState knows what's selected
                 setSelectedObject(sectionName);
                 
-                // Select this mesh and show content panel (updateMeshClickSelect will handle heights)
+                // Select this mesh
                 updateMeshClickSelect();
-                const sectionContent = getSectionContent(sectionName);
-                updateContentPanel(true, sectionContent);
+              }
+              
+              // Show panel regardless of selection state
+              const sectionContent = getSectionContent(sectionName);
+              updateContentPanel(true, sectionContent);
+              console.log(`⚡ Double-click: ${sectionName} selected and panel shown`);
+            }));
+            
+            // Click - first click selects without panel, second click shows panel
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              const isCurrentlyClicked = (mesh as any).isClicked;
+              const isCurrentlySelected = getSelectedObject() === sectionName;
+              
+              if (isCurrentlyClicked && isCurrentlySelected) {
+                // Second click on already selected object - show/hide panel
+                const contentPanel = (mesh as any).contentPanel;
+                const isPanelVisible = contentPanel && contentPanel.isVisible;
                 
-                console.log(`🔒 Clicked: ${sectionName} blue selected, others 50% opacity, panel shown`);
+                if (isPanelVisible) {
+                  // Panel is visible, hide it
+                  updateContentPanel(false);
+                  console.log(`📋 Panel hidden: ${sectionName} panel closed, object remains selected`);
+                } else {
+                  // Panel is hidden, show it
+                  const sectionContent = getSectionContent(sectionName);
+                  updateContentPanel(true, sectionContent);
+                  console.log(`📋 Panel shown: ${sectionName} panel opened for selected object`);
+                }
+              } else if (isCurrentlyClicked) {
+                // Unclick - restore mesh and hide content panel
+                updateMeshClickUnselect();
+                updateContentPanel(false);
+                
+                console.log(`🔓 Click released: ${sectionName} restored, all objects full opacity, panel hidden`);
+              } else {
+                // First click on unselected object - select without showing panel
+                const previouslySelectedObject = getSelectedObject();
+                
+                // Close all other panels first and reset their visual states
+                contentPanelsRef.current.forEach(({ panel, mesh: otherMesh, material }) => {
+                  if (otherMesh !== mesh && panel.isVisible) {
+                    panel.isVisible = false;
+                    
+                    // Properly restore other mesh based on whether it has texture
+                    if ((otherMesh as any).hasTexture) {
+                      // For textured mesh, remove emissive glow
+                      material.emissiveColor = new Color3(0, 0, 0);
+                    } else {
+                      // For non-textured mesh, restore base color and diffuseColor
+                      if (material.baseColor) {
+                        material.baseColor = (otherMesh as any).originalColor;
+                      }
+                      material.diffuseColor = (otherMesh as any).originalColor;
+                    }
+                    
+                    (otherMesh as any).isClicked = false;
+                  }
+                });
+                
+                // If there was a previously selected object, flatten it
+                if (previouslySelectedObject && adjustBMCSection) {
+                  adjustBMCSection(previouslySelectedObject, { height: 0.1 });
+                  console.log(`📏 Flattening previously selected ${previouslySelectedObject} (height: 0.1)`);
+                }
+                
+                // Save selected object state FIRST so applyHeightState knows what's selected
+                setSelectedObject(sectionName);
+                
+                // Select this mesh but DON'T show content panel yet
+                updateMeshClickSelect();
+                
+                console.log(`🔒 Selected: ${sectionName} blue selected, others 50% opacity, panel hidden (click again to show panel)`);
               }
             }));
             
