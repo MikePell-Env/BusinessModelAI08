@@ -222,7 +222,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if ((mesh as any).hasTexture) {
           material.emissiveColor = brightBlueColor.scale(0.3);
         } else {
-          material.baseColor = brightBlueColor;
+          material.diffuseColor = brightBlueColor;
         }
         (mesh as any).isClicked = true;
         material.alpha = 1.0;
@@ -240,7 +240,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if ((mesh as any).hasTexture) {
           material.emissiveColor = new Color3(0, 0, 0);
         } else {
-          material.baseColor = (mesh as any).originalColor;
+          material.diffuseColor = (mesh as any).originalColor;
         }
         (mesh as any).isClicked = false;
         material.alpha = 0.5;
@@ -676,13 +676,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           console.log(`🖤 Applying black top face to ${sectionName}`);
           
           // Create a multi-material setup for different faces
-          const originalMaterial = mesh.material as PBRMetallicRoughnessMaterial;
+          const originalMaterial = mesh.material as StandardMaterial;
           
           // Create black material for top face
-          const blackMaterial = new PBRMetallicRoughnessMaterial(`${sectionName}_black_top`, scene);
-          blackMaterial.baseColor = new Color3(0, 0, 0); // Pure black
-          blackMaterial.metallic = 0.1;
-          blackMaterial.roughness = 0.3;
+          const blackMaterial = new StandardMaterial(`${sectionName}_black_top`, scene);
+          blackMaterial.diffuseColor = new Color3(0, 0, 0); // Pure black
+          blackMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+          blackMaterial.specularPower = 32;
           
           // Get vertex data to identify top faces
           const positions = mesh.getVerticesData("position");
@@ -802,16 +802,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // TransformNode created for coordinate control
             
-            // Create semi-gloss black plastic material for each section
-            const sectionMaterial = new PBRMetallicRoughnessMaterial(`bmcSection_${index}`, scene);
+            // Create simple standard material to avoid WebGL shader compilation issues
+            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene);
             
             // Use very dark black color with subtle shine
-            sectionMaterial.baseColor = baseColor;
-            sectionMaterial.metallic = 0.0; // No metallic reflection for plastic
-            sectionMaterial.roughness = 0.7; // Medium-high roughness for semi-gloss finish
-            sectionMaterial.clearCoat.isEnabled = false; // Disable clear coat
-            // Note: directIntensity and environmentIntensity properties handled by scene environment
-            // Environment reflections handled by scene environment
+            sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Minimal specular for subtle shine
+            sectionMaterial.specularPower = 32; // Medium shininess
             
             // Add floating label planes for specific sections
             if (sectionName === "Customer Segments") {
