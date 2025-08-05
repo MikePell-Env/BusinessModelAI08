@@ -1952,9 +1952,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const center = boundingInfo.boundingBox.center;
             const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
             
-            // Create label plane with same sizing as Customer Channels (no squishing)
+            // Create label plane with proper aspect ratio to prevent vertical squishing
             const labelWidth = size.x * 0.65; // Same as Customer Channels
-            const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger height to prevent squishing - same formula as other labels 
+            const labelHeight = (labelWidth * 0.25) * 2.0; // Doubled height to prevent squishing
             console.log(`Revenue Streams Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
             console.log(`🔍 Revenue Streams mesh center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
             console.log(`🔍 Revenue Streams mesh size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
@@ -1987,6 +1987,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.material = labelMaterial;
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
+            
+            // Apply additional scaling to prevent vertical squishing - scale Y-axis more to maintain readability
+            labelPlane.scaling = new Vector3(1.0, 1.3, 1.0); // 30% taller Y-scale to reduce vertical compression
             
             console.log(`✅ Revenue Streams label plane created at position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
             console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
