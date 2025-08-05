@@ -1970,9 +1970,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Calculate required width: Revenue Streams left edge (0.467) to Customer Segments right edge
             const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
             
-            // Simply reduce the current X-axis scaling by 5% to make it narrower
+            // Reduce the current X-axis scaling by 15% to make it significantly narrower
             const currentScaleX = revenueStreamsMesh.scaling.x;
-            const reducedScaleX = currentScaleX * 0.95; // Reduce by 5%
+            const reducedScaleX = currentScaleX * 0.85; // Reduce by 15%
             
             // Apply reduced X-axis scaling
             revenueStreamsMesh.scaling.x = reducedScaleX;
@@ -1980,9 +1980,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log("🔧 DELAYED Revenue Streams Width Reduction:");
             console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
             console.log(`  Current X scale: ${currentScaleX.toFixed(3)}`);
-            console.log(`  Reduced X scale (95%): ${reducedScaleX.toFixed(3)}`);
+            console.log(`  Reduced X scale (85%): ${reducedScaleX.toFixed(3)}`);
             console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
-            console.log("✅ Revenue Streams width reduced by 5% to make it narrower!");
+            console.log("✅ Revenue Streams width reduced by 15% to make it narrower!");
           } else {
             console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
           }
