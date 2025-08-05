@@ -1308,48 +1308,61 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const min = boundingInfo.minimum;
                 const max = boundingInfo.maximum;
                 
-                // Calculate rectangular path that follows only the edges with many intermediate points
+                // Calculate rectangular path with proportional steps based on edge lengths
                 const padding = 0.001; // Small padding to ensure we stay on the surface
                 const topY = max.y + padding; // Slightly above the surface
-                const edgeSteps = 10; // Number of steps along each edge for smooth following
+                
+                // Calculate edge lengths for proportional speed
+                const widthLength = Math.abs(max.x - min.x);
+                const heightLength = Math.abs(max.z - min.z);
+                const totalPerimeter = 2 * (widthLength + heightLength);
+                
+                // Calculate steps per edge based on their relative length
+                const totalSteps = 80; // Total points around perimeter
+                const bottomSteps = Math.ceil((widthLength / totalPerimeter) * totalSteps);
+                const rightSteps = Math.ceil((heightLength / totalPerimeter) * totalSteps);
+                const topSteps = Math.ceil((widthLength / totalPerimeter) * totalSteps);
+                const leftSteps = Math.ceil((heightLength / totalPerimeter) * totalSteps);
+                
                 const pathPoints: Vector3[] = [];
                 
                 // Bottom edge (min.x, min.z) to (max.x, min.z)
-                for (let i = 0; i <= edgeSteps; i++) {
-                  const t = i / edgeSteps;
+                for (let i = 0; i <= bottomSteps; i++) {
+                  const t = i / bottomSteps;
                   const x = min.x + (max.x - min.x) * t;
                   pathPoints.push(new Vector3(x, topY, min.z));
                 }
                 
                 // Right edge (max.x, min.z) to (max.x, max.z) - skip first point to avoid duplicate
-                for (let i = 1; i <= edgeSteps; i++) {
-                  const t = i / edgeSteps;
+                for (let i = 1; i <= rightSteps; i++) {
+                  const t = i / rightSteps;
                   const z = min.z + (max.z - min.z) * t;
                   pathPoints.push(new Vector3(max.x, topY, z));
                 }
                 
                 // Top edge (max.x, max.z) to (min.x, max.z) - skip first point to avoid duplicate
-                for (let i = 1; i <= edgeSteps; i++) {
-                  const t = i / edgeSteps;
+                for (let i = 1; i <= topSteps; i++) {
+                  const t = i / topSteps;
                   const x = max.x - (max.x - min.x) * t;
                   pathPoints.push(new Vector3(x, topY, max.z));
                 }
                 
                 // Left edge (min.x, max.z) to (min.x, min.z) - skip first and last points to avoid duplicates
-                for (let i = 1; i < edgeSteps; i++) {
-                  const t = i / edgeSteps;
+                for (let i = 1; i < leftSteps; i++) {
+                  const t = i / leftSteps;
                   const z = max.z - (max.z - min.z) * t;
                   pathPoints.push(new Vector3(min.x, topY, z));
                 }
                 
-                // Create tiny bright blue sphere (tracer head)
-                const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.0015 }, scene);
+                // Create tiny bright blue sphere (tracer head) with blur effect
+                const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.002 }, scene);
                 const tracerMaterial = new StandardMaterial("tracerMat", scene);
-                tracerMaterial.emissiveColor = new Color3(0, 0.7, 1); // Bright blue
+                tracerMaterial.emissiveColor = new Color3(0, 0.9, 1); // Brighter blue
                 tracerMaterial.disableLighting = true;
-                tracerMaterial.alpha = 0.8; // Slight transparency for blur effect
-                tracerMaterial.diffuseColor = new Color3(0, 0.5, 1); // Softer blue base
-                tracerMaterial.specularColor = new Color3(0.2, 0.8, 1); // Soft highlight
+                tracerMaterial.alpha = 0.6; // More transparency for stronger blur effect
+                tracerMaterial.diffuseColor = new Color3(0, 0.7, 1); // Brighter blue base
+                tracerMaterial.specularColor = new Color3(0.4, 1.0, 1); // Strong highlight for glow
+                tracerMaterial.useAlphaFromDiffuseTexture = true;
                 tracerSphere.material = tracerMaterial;
                 tracerSphere.parent = mesh;
                 tracerSphere.isPickable = false;
@@ -1391,7 +1404,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     
                     // Check if animation should be paused (3D Top view)
                     if (!animationRef.isPaused) {
-                      animationTime += 0.15; // Much faster for dramatic speed increase
+                      animationTime += 0.25; // Even faster to address slow short edges
                       
                       // Calculate position along the edge-based rectangular path
                       const effectivePathLength = pathPoints.length;
