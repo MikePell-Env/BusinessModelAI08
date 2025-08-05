@@ -2128,7 +2128,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Handle restoration when entering 3D mode - optimized for smooth transitions
   useEffect(() => {
     if (is3D && sceneRef.current) {
-      console.log("🔄 Entering 3D mode");
+      const selectedObject = getSelectedObject();
+      console.log(`🔄 Entering 3D mode with selection: "${selectedObject}"`);
       
       // Force render and restore state in next frame for smooth transition
       sceneRef.current.render();
@@ -2136,11 +2137,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const storedHeights = getOriginalHeights();
         if (Object.keys(storedHeights).length > 0) {
           restoreSelectedObjectState();
-          console.log("🔄 3D mode state restored");
+          console.log(`🔄 3D mode state restored for selection: "${selectedObject}"`);
+        } else {
+          // Even without stored heights, still try to restore selection state
+          restoreSelectedObjectState();
+          console.log(`🔄 3D mode selection restored without heights: "${selectedObject}"`);
         }
       });
     }
-  }, [is3D]);
+  }, [is3D, getSelectedObject, getOriginalHeights, restoreSelectedObjectState]);
 
   // Save camera state when switching away from 3D view
   useEffect(() => {
