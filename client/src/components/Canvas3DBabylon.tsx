@@ -1517,19 +1517,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const updateMeshHoverEnter = () => {
               // For textured meshes, use emissive color to create blue glow effect
               // For non-textured meshes, change base color
-              const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+              // Special handling for Channels section with darker color
+              const hoverColor = sectionName === "Channels" 
+                ? new Color3(0.05, 0.05, 0.05) 
+                : new Color3(0.0, 0.3, 0.8);
               
               if ((mesh as any).hasTexture) {
-                // For textured mesh, use emissive color to add blue glow while preserving texture
-                sectionMaterial.emissiveColor = brightBlueColor.scale(0.3); // Subtle blue glow
-                console.log(`💡 Textured mesh hover: ${sectionName} - adding blue emissive glow`);
+                // For textured mesh, use emissive color to add glow while preserving texture
+                sectionMaterial.emissiveColor = hoverColor.scale(0.3); // Subtle glow
+                console.log(`💡 Textured mesh hover: ${sectionName} - adding ${sectionName === "Channels" ? "dark grey" : "blue"} emissive glow`);
               } else {
                 // For non-textured mesh, update both baseColor and diffuseColor for visibility
                 if (sectionMaterial.baseColor) {
-                  sectionMaterial.baseColor = brightBlueColor;
+                  sectionMaterial.baseColor = hoverColor;
                 }
-                sectionMaterial.diffuseColor = brightBlueColor;
-                console.log(`💡 Standard mesh hover: ${sectionName} - changing base color and diffuseColor`);
+                sectionMaterial.diffuseColor = hoverColor;
+                console.log(`💡 Standard mesh hover: ${sectionName} - changing base color and diffuseColor to ${sectionName === "Channels" ? "dark grey" : "bright blue"}`);
               }
               
               // Keep all objects at 100% opacity during hover
