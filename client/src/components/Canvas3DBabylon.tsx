@@ -1987,6 +1987,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
           }
         }, 4000);
+        
+        // Immediate Revenue Streams width check
+        setTimeout(() => {
+          const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
+          if (revenueStreamsMesh) {
+            const revBoundingInfo = revenueStreamsMesh.getBoundingInfo();
+            const revWorldMatrix = revenueStreamsMesh.getWorldMatrix();
+            const revMin = Vector3.TransformCoordinates(revBoundingInfo.minimum, revWorldMatrix);
+            const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
+            const currentRevWidth = revMax.x - revMin.x;
+            
+            console.log("📏 CURRENT Revenue Streams Dimensions:");
+            console.log(`  Left edge (min X): ${revMin.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${revMax.x.toFixed(3)}`);
+            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            console.log(`  Current X scale: ${revenueStreamsMesh.scaling.x.toFixed(3)}`);
+            console.log(`  Position: (${revenueStreamsMesh.position.x.toFixed(3)}, ${revenueStreamsMesh.position.y.toFixed(3)}, ${revenueStreamsMesh.position.z.toFixed(3)})`);
+          } else {
+            console.log("❌ Revenue Streams mesh not found for width check");
+          }
+        }, 5000);
 
 
         
