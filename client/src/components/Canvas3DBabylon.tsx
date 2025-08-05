@@ -1261,23 +1261,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 edgeLine.parent = mesh;
                 edgeLine.isPickable = false;
                 
-                // Store animation reference
-                (mesh as any).pulsatingEdge = edgeLine;
+                // Store animation reference with pause state
+                (mesh as any).pulsatingEdge = { line: edgeLine, isPaused: false };
                 
                 // Create pulsating animation
                 let animationTime = 0;
                 const animateEdge = () => {
                   if (edgeLine && !edgeLine.isDisposed()) {
-                    animationTime += 0.02; // Animation speed
+                    const animationRef = (mesh as any).pulsatingEdge;
                     
-                    // Pulsate opacity and glow
-                    const pulse = (Math.sin(animationTime * 2) + 1) / 2; // 0 to 1
-                    const intensity = 0.3 + (pulse * 0.7); // 0.3 to 1.0
+                    // Check if animation should be paused (3D Top view)
+                    if (!animationRef.isPaused) {
+                      animationTime += 0.02; // Animation speed
+                      
+                      // Pulsate opacity and glow
+                      const pulse = (Math.sin(animationTime * 2) + 1) / 2; // 0 to 1
+                      const intensity = 0.3 + (pulse * 0.7); // 0.3 to 1.0
+                      
+                      // Update line color with pulsating intensity
+                      edgeLine.color = new Color3(0, intensity, 0);
+                    } else {
+                      // Keep static bright color when paused
+                      edgeLine.color = new Color3(0, 1, 0);
+                    }
                     
-                    // Update line color with pulsating intensity
-                    edgeLine.color = new Color3(0, intensity, 0);
-                    
-                    // Continue animation
+                    // Continue animation loop
                     requestAnimationFrame(animateEdge);
                   }
                 };
@@ -1340,8 +1348,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 trailLine.parent = mesh;
                 trailLine.isPickable = false;
                 
-                // Store animation reference
-                (mesh as any).blueTracer = { sphere: tracerSphere, trail: trailLine };
+                // Store animation reference with pause state
+                (mesh as any).blueTracer = { 
+                  sphere: tracerSphere, 
+                  trail: trailLine, 
+                  isPaused: false 
+                };
                 
                 // Animation variables
                 let animationTime = 0;
@@ -1350,43 +1362,49 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 
                 const animateTracer = () => {
                   if (tracerSphere && !tracerSphere.isDisposed() && trailLine && !trailLine.isDisposed()) {
-                    animationTime += 0.035; // Faster animation speed
+                    const animationRef = (mesh as any).blueTracer;
                     
-                    // Calculate position along path
-                    const progress = (animationTime % (totalPathLength * 2)) / (totalPathLength * 2);
-                    const scaledProgress = progress * totalPathLength;
-                    const segmentIndex = Math.floor(scaledProgress) % totalPathLength;
-                    const segmentProgress = scaledProgress - Math.floor(scaledProgress);
-                    
-                    // Get current and next points
-                    const currentPoint = pathPoints[segmentIndex];
-                    const nextPoint = pathPoints[(segmentIndex + 1) % totalPathLength];
-                    
-                    // Interpolate position
-                    const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
-                    tracerSphere.position = currentPos;
-                    
-                    // Update trail positions much less frequently for better performance
-                    updateCounter++;
-                    if (updateCounter % 10 === 0) { // Update every 10th frame instead of 3rd
-                      // Shift trail positions
-                      for (let i = trailPositions.length - 1; i > 0; i--) {
-                        trailPositions[i] = trailPositions[i - 1].clone();
-                      }
-                      trailPositions[0] = currentPos.clone();
+                    // Check if animation should be paused (3D Top view)
+                    if (!animationRef.isPaused) {
+                      animationTime += 0.035; // Faster animation speed
                       
-                      // Safely update line geometry with simpler approach
-                      try {
-                        MeshBuilder.CreateLines("customerSegmentsTrail", {
-                          points: trailPositions,
-                          instance: trailLine
-                        }, scene);
-                      } catch (error) {
-                        // Skip trail update if it fails
+                      // Calculate position along path
+                      const progress = (animationTime % (totalPathLength * 2)) / (totalPathLength * 2);
+                      const scaledProgress = progress * totalPathLength;
+                      const segmentIndex = Math.floor(scaledProgress) % totalPathLength;
+                      const segmentProgress = scaledProgress - Math.floor(scaledProgress);
+                      
+                      // Get current and next points
+                      const currentPoint = pathPoints[segmentIndex];
+                      const nextPoint = pathPoints[(segmentIndex + 1) % totalPathLength];
+                      
+                      // Interpolate position
+                      const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
+                      tracerSphere.position = currentPos;
+                      
+                      // Update trail positions much less frequently for better performance
+                      updateCounter++;
+                      if (updateCounter % 10 === 0) { // Update every 10th frame instead of 3rd
+                        // Shift trail positions
+                        for (let i = trailPositions.length - 1; i > 0; i--) {
+                          trailPositions[i] = trailPositions[i - 1].clone();
+                        }
+                        trailPositions[0] = currentPos.clone();
+                        
+                        // Safely update line geometry with simpler approach
+                        try {
+                          MeshBuilder.CreateLines("customerSegmentsTrail", {
+                            points: trailPositions,
+                            instance: trailLine
+                          }, scene);
+                        } catch (error) {
+                          // Skip trail update if it fails
+                        }
                       }
                     }
+                    // Note: When paused, tracer sphere stays at current position
                     
-                    // Continue animation
+                    // Continue animation loop
                     requestAnimationFrame(animateTracer);
                   }
                 };
@@ -2122,6 +2140,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         restoreSelectedObjectState();
         console.log("🔄 Switched to perspective view with state restored");
       }
+    }
+  }, [isOrthographic]);
+
+  // Control animations based on view mode - pause in 3D Top, resume in 3D View
+  useEffect(() => {
+    if (sceneRef.current) {
+      const scene = sceneRef.current;
+      
+      // Find Value Proposition and Customer Segments meshes and control their animations
+      scene.meshes.forEach((mesh) => {
+        if (mesh.name && mesh.name.includes('Value Propositions')) {
+          const animationRef = (mesh as any).pulsatingEdge;
+          if (animationRef) {
+            animationRef.isPaused = isOrthographic; // Pause in 3D Top view
+            console.log(`🎬 Value Proposition animation ${isOrthographic ? 'PAUSED' : 'RESUMED'}`);
+          }
+        }
+        
+        if (mesh.name && mesh.name.includes('Customer Segments')) {
+          const animationRef = (mesh as any).blueTracer;
+          if (animationRef) {
+            animationRef.isPaused = isOrthographic; // Pause in 3D Top view
+            console.log(`🎬 Customer Segments animation ${isOrthographic ? 'PAUSED' : 'RESUMED'}`);
+          }
+        }
+      });
     }
   }, [isOrthographic]);
 
