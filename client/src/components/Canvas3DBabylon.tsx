@@ -1879,17 +1879,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Position in bottom right area from top view perspective
+        // Position directly below Customer Channels from top view perspective
         // Based on the top view image, Revenue Streams should be positioned:
-        // - To the right (positive X) relative to the center
-        // - Forward (positive Z) from the main BMC layout
-        revenueRootMesh.position = new Vector3(3.5, 0.1, 2.8);
+        // - Aligned with Customer Channels horizontally (same X as Channels)
+        // - Below the main BMC layout (positive Z direction)
+        revenueRootMesh.position = new Vector3(1.0, 0.1, 1.8);
         
         // Match the rotation and scale of the main BMC model
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(8, 8, 8);
         
-        console.log(`📦 Revenue Streams positioned at (3.5, 0.1, 2.8) with scale 8.0`);
+        console.log(`📦 Revenue Streams positioned at (1.0, 0.1, 1.8) with scale 8.0`);
         
         // Apply standard base color and interactivity to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
@@ -1962,7 +1962,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Hover enter behavior
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              if (mesh.material && !isObjectSelected(sectionName)) {
+              if (mesh.material && selectedObject() !== sectionName) {
                 const material = mesh.material as any;
                 const hoverColor = new Color3(0.0, 0.3, 0.8); // Bright blue hover
                 
@@ -1979,7 +1979,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Hover leave behavior
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              if (mesh.material && !isObjectSelected(sectionName)) {
+              if (mesh.material && selectedObject() !== sectionName) {
                 const material = mesh.material as any;
                 const originalColor = (material as any).originalBaseColor || new Color3(0.07, 0.07, 0.07);
                 
