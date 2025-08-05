@@ -1970,19 +1970,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Calculate required width: Revenue Streams left edge (0.467) to Customer Segments right edge
             const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
             
-            // Reduce the current X-axis scaling by 15% to make it significantly narrower
-            const currentScaleX = revenueStreamsMesh.scaling.x;
-            const reducedScaleX = currentScaleX * 0.85; // Reduce by 15%
+            // Set Revenue Streams width to exactly 8.5 units
+            const targetWidth = 8.5;
+            const baseWidth = currentRevWidth / revenueStreamsMesh.scaling.x; // Get unscaled width
+            const requiredScaleX = targetWidth / baseWidth;
             
-            // Apply reduced X-axis scaling
-            revenueStreamsMesh.scaling.x = reducedScaleX;
+            // Apply exact X-axis scaling for 8.5 width
+            revenueStreamsMesh.scaling.x = requiredScaleX;
             
-            console.log("🔧 DELAYED Revenue Streams Width Reduction:");
+            console.log("🔧 DELAYED Revenue Streams Width Adjustment:");
             console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
-            console.log(`  Current X scale: ${currentScaleX.toFixed(3)}`);
-            console.log(`  Reduced X scale (85%): ${reducedScaleX.toFixed(3)}`);
+            console.log(`  Target width: ${targetWidth.toFixed(3)}`);
+            console.log(`  Base width (unscaled): ${baseWidth.toFixed(3)}`);
+            console.log(`  Required X scale: ${requiredScaleX.toFixed(3)}`);
             console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
-            console.log("✅ Revenue Streams width reduced by 15% to make it narrower!");
+            console.log("✅ Revenue Streams width set to exactly 8.5 units!");
           } else {
             console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
           }
