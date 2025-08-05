@@ -1901,25 +1901,47 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Calculate precise positioning to fit exactly between Customer Channels boundaries
-        // Based on BMC layout: Customer Channels spans roughly from center to right side
-        // Revenue Streams should match this exact span
-        const channelsLeftEdge = -1.2; // Calculated from Customer Channels left boundary
-        const channelsRightEdge = 4.8;  // Calculated from Customer Channels right boundary
-        const channelsWidth = channelsRightEdge - channelsLeftEdge; // ~6.0 units
-        const channelsCenterX = (channelsLeftEdge + channelsRightEdge) / 2; // ~1.8
+        // Use actual coordinate measurement from debug logs to calculate precise positioning
+        // Wait for Customer Channels mesh to be ready, then calculate positioning
+        setTimeout(() => {
+          const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Channels");
+          if (channelsMesh) {
+            const boundingInfo = channelsMesh.getBoundingInfo();
+            const worldMatrix = channelsMesh.getWorldMatrix();
+            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
+            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
+            
+            // Calculate exact positioning based on Customer Channels boundaries
+            const channelsLeftEdge = min.x;
+            const channelsRightEdge = max.x;
+            const channelsWidth = channelsRightEdge - channelsLeftEdge;
+            const channelsCenterX = (channelsLeftEdge + channelsRightEdge) / 2;
+            
+            // Position Revenue Streams to match Customer Channels boundaries exactly
+            revenueRootMesh.position = new Vector3(channelsCenterX, 0.1, -10.5);
+            
+            // Calculate scale to match exact width
+            // Revenue Streams original width needs to match Customer Channels width
+            const revenueOriginalWidth = 1.0; // GLB model base width
+            const targetScaleX = channelsWidth / revenueOriginalWidth;
+            revenueRootMesh.scaling = new Vector3(targetScaleX, 8, 8);
+            
+            console.log(`🎯 PRECISE ALIGNMENT: Revenue Streams positioned at (${channelsCenterX.toFixed(3)}, 0.1, -10.5)`);
+            console.log(`🎯 Scale adjusted to (${targetScaleX.toFixed(3)}, 8, 8) to match Channels width: ${channelsWidth.toFixed(3)}`);
+            console.log(`🎯 Channels boundaries: left=${channelsLeftEdge.toFixed(3)}, right=${channelsRightEdge.toFixed(3)}`);
+          } else {
+            // Fallback positioning if Channels mesh not found
+            revenueRootMesh.position = new Vector3(0.0, 0.1, -10.5);
+            revenueRootMesh.scaling = new Vector3(8, 8, 8);
+          }
+        }, 2500); // Run after debug logs
         
-        // Position Revenue Streams to match Customer Channels boundaries exactly
-        revenueRootMesh.position = new Vector3(channelsCenterX, 0.1, -10.5);
+        // Initial positioning
+        revenueRootMesh.position = new Vector3(0.0, 0.1, -10.5);
         revenueRootMesh.rotation = Vector3.Zero();
+        revenueRootMesh.scaling = new Vector3(8, 8, 8);
         
-        // Scale Revenue Streams to match Customer Channels width precisely
-        // Base scale factor of 8, but adjust X scale to fit exact width
-        const baseScale = 8;
-        const widthScaleAdjustment = channelsWidth / 6.0; // Normalize to expected width
-        revenueRootMesh.scaling = new Vector3(baseScale * widthScaleAdjustment, baseScale, baseScale);
-        
-        console.log(`📦 Revenue Streams positioned at (${channelsCenterX.toFixed(1)}, 0.1, -10.5) with width-adjusted scale (${(baseScale * widthScaleAdjustment).toFixed(1)}, ${baseScale}, ${baseScale})`);
+        console.log(`📦 Revenue Streams initially positioned at (0.0, 0.1, -10.5) - will be precisely aligned after measuring Customer Channels`);
         
         // Apply basic material to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
