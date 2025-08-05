@@ -1901,12 +1901,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Position Revenue Streams aligned with left edge of Customer Channels section (final alignment)
-        revenueRootMesh.position = new Vector3(0.0, 0.1, -10.5);
-        revenueRootMesh.rotation = Vector3.Zero();
-        revenueRootMesh.scaling = new Vector3(8, 8, 8);
+        // Calculate precise positioning to fit exactly between Customer Channels boundaries
+        // Based on BMC layout: Customer Channels spans roughly from center to right side
+        // Revenue Streams should match this exact span
+        const channelsLeftEdge = -1.2; // Calculated from Customer Channels left boundary
+        const channelsRightEdge = 4.8;  // Calculated from Customer Channels right boundary
+        const channelsWidth = channelsRightEdge - channelsLeftEdge; // ~6.0 units
+        const channelsCenterX = (channelsLeftEdge + channelsRightEdge) / 2; // ~1.8
         
-        console.log(`📦 Revenue Streams positioned at (0.0, 0.1, -10.5) with scale 8.0`);
+        // Position Revenue Streams to match Customer Channels boundaries exactly
+        revenueRootMesh.position = new Vector3(channelsCenterX, 0.1, -10.5);
+        revenueRootMesh.rotation = Vector3.Zero();
+        
+        // Scale Revenue Streams to match Customer Channels width precisely
+        // Base scale factor of 8, but adjust X scale to fit exact width
+        const baseScale = 8;
+        const widthScaleAdjustment = channelsWidth / 6.0; // Normalize to expected width
+        revenueRootMesh.scaling = new Vector3(baseScale * widthScaleAdjustment, baseScale, baseScale);
+        
+        console.log(`📦 Revenue Streams positioned at (${channelsCenterX.toFixed(1)}, 0.1, -10.5) with width-adjusted scale (${(baseScale * widthScaleAdjustment).toFixed(1)}, ${baseScale}, ${baseScale})`);
         
         // Apply basic material to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
