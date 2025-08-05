@@ -1938,6 +1938,45 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log("❌ Revenue Streams mesh or Customer Segments NOT found - cannot resize width");
           }
         }, 2000);
+        
+        // Delayed Revenue Streams width adjustment to ensure both meshes are fully loaded
+        setTimeout(() => {
+          const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
+          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
+          
+          if (revenueStreamsMesh && segmentsMesh) {
+            // Get current Revenue Streams dimensions
+            const revBoundingInfo = revenueStreamsMesh.getBoundingInfo();
+            const revWorldMatrix = revenueStreamsMesh.getWorldMatrix();
+            const revMin = Vector3.TransformCoordinates(revBoundingInfo.minimum, revWorldMatrix);
+            const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
+            const currentRevWidth = revMax.x - revMin.x;
+            
+            // Get Customer Segments right edge
+            const segBoundingInfo = segmentsMesh.getBoundingInfo();
+            const segWorldMatrix = segmentsMesh.getWorldMatrix();
+            const segMin = Vector3.TransformCoordinates(segBoundingInfo.minimum, segWorldMatrix);
+            const segMax = Vector3.TransformCoordinates(segBoundingInfo.maximum, segWorldMatrix);
+            
+            // Calculate required width: Revenue Streams left edge (0.467) to Customer Segments right edge
+            const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
+            const scalingRatio = requiredWidth / currentRevWidth;
+            
+            // Apply only X-axis scaling to change width while keeping position
+            const currentScale = revenueStreamsMesh.scaling;
+            revenueStreamsMesh.scaling = new Vector3(currentScale.x * scalingRatio, currentScale.y, currentScale.z);
+            
+            console.log("🔧 DELAYED Revenue Streams Width Adjustment:");
+            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            console.log(`  Required width: ${requiredWidth.toFixed(3)}`);
+            console.log(`  Scaling ratio: ${scalingRatio.toFixed(3)}`);
+            console.log(`  New X scale: ${(currentScale.x * scalingRatio).toFixed(3)}`);
+            console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
+            console.log("✅ Revenue Streams width adjusted to align with Customer Segments!");
+          } else {
+            console.log("❌ DELAYED: Revenue Streams or Customer Segments mesh still not found");
+          }
+        }, 3000);
 
 
         
