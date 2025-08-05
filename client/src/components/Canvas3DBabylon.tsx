@@ -1971,20 +1971,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
             
             // Set Revenue Streams width to exactly 7.5 units
+            // First, let's check which axis controls the horizontal width in top view
             const targetWidth = 7.5;
-            const baseWidth = currentRevWidth / revenueStreamsMesh.scaling.x; // Get unscaled width
-            const requiredScaleX = targetWidth / baseWidth;
             
-            // Apply exact X-axis scaling for 7.5 width
-            revenueStreamsMesh.scaling.x = requiredScaleX;
+            // Debug all three dimensions to understand the orientation
+            console.log("🔍 Revenue Streams 3D Dimensions Debug:");
+            console.log(`  X-axis width: ${(revMax.x - revMin.x).toFixed(3)}`);
+            console.log(`  Z-axis width: ${(revMax.z - revMin.z).toFixed(3)}`);
+            console.log(`  Y-axis height: ${(revMax.y - revMin.y).toFixed(3)}`);
+            console.log(`  Current scaling: X=${revenueStreamsMesh.scaling.x.toFixed(3)}, Y=${revenueStreamsMesh.scaling.y.toFixed(3)}, Z=${revenueStreamsMesh.scaling.z.toFixed(3)}`);
             
-            console.log("🔧 DELAYED Revenue Streams Width Adjustment:");
-            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            // Try Z-axis scaling instead of X-axis for horizontal width
+            const currentZWidth = revMax.z - revMin.z;
+            const baseZWidth = currentZWidth / revenueStreamsMesh.scaling.z;
+            const requiredScaleZ = targetWidth / baseZWidth;
+            
+            // Apply Z-axis scaling for horizontal width in top view
+            revenueStreamsMesh.scaling.z = requiredScaleZ;
+            
+            console.log("🔧 DELAYED Revenue Streams Width Adjustment (Z-axis):");
+            console.log(`  Current Z width: ${currentZWidth.toFixed(3)}`);
             console.log(`  Target width: ${targetWidth.toFixed(3)}`);
-            console.log(`  Base width (unscaled): ${baseWidth.toFixed(3)}`);
-            console.log(`  Required X scale: ${requiredScaleX.toFixed(3)}`);
+            console.log(`  Base Z width (unscaled): ${baseZWidth.toFixed(3)}`);
+            console.log(`  Required Z scale: ${requiredScaleZ.toFixed(3)}`);
             console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
-            console.log("✅ Revenue Streams width set to exactly 7.5 units!");
+            console.log("✅ Revenue Streams Z-axis width set to exactly 7.5 units!");
           } else {
             console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
           }
