@@ -1927,6 +1927,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const labelWidth = size.x * 0.65; // Same as Customer Channels
             const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger height to prevent squishing - same formula as other labels 
             console.log(`Revenue Streams Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+            console.log(`🔍 Revenue Streams mesh center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
+            console.log(`🔍 Revenue Streams mesh size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
             
             const labelPlane = MeshBuilder.CreatePlane("revenueStreamsLabel", {
               width: labelWidth,
@@ -1957,7 +1959,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            console.log(`✅ Revenue Streams label plane created`);
+            console.log(`✅ Revenue Streams label plane created at position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+            console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
+            console.log(`🔍 Label scale: (${labelPlane.scaling.x.toFixed(3)}, ${labelPlane.scaling.y.toFixed(3)}, ${labelPlane.scaling.z.toFixed(3)})`);
+            console.log(`🔍 Label dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}`);
             const baseColor = new Color3(0.07, 0.07, 0.07);
             const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene);
             sectionMaterial.diffuseColor = baseColor;
