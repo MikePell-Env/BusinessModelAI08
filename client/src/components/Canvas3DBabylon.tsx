@@ -1866,6 +1866,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Debug current coordinates to understand proper positioning
         setTimeout(() => {
           transformUtils.debugCoordinates();
+          
+          // Measure Customer Channels dimensions for precise Revenue Streams alignment
+          const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Channels");
+          if (channelsMesh) {
+            const boundingInfo = channelsMesh.getBoundingInfo();
+            const worldMatrix = channelsMesh.getWorldMatrix();
+            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
+            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
+            
+            console.log("🔍 Customer Channels Coordinates:");
+            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
+            console.log(`  Width: ${(max.x - min.x).toFixed(3)}`);
+            console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
+            console.log(`  Position: (${channelsMesh.position.x.toFixed(3)}, ${channelsMesh.position.y.toFixed(3)}, ${channelsMesh.position.z.toFixed(3)})`);
+            console.log(`  Scale: (${channelsMesh.scaling.x.toFixed(3)}, ${channelsMesh.scaling.y.toFixed(3)}, ${channelsMesh.scaling.z.toFixed(3)})`);
+          }
         }, 2000);
 
 
@@ -1907,6 +1924,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`🎨 Revenue Streams Mesh ${index}: ${mesh.name || 'unnamed'} configured`);
           }
         });
+        
+        // Debug Revenue Streams dimensions after loading
+        setTimeout(() => {
+          const revenueMesh = result.meshes.find(mesh => mesh.name !== "__root__");
+          if (revenueMesh) {
+            const boundingInfo = revenueMesh.getBoundingInfo();
+            const worldMatrix = revenueMesh.getWorldMatrix();
+            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
+            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
+            
+            console.log("🔍 Revenue Streams Current Dimensions:");
+            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
+            console.log(`  Width: ${(max.x - min.x).toFixed(3)}`);
+            console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
+            console.log(`  Position: (${revenueRootMesh.position.x.toFixed(3)}, ${revenueRootMesh.position.y.toFixed(3)}, ${revenueRootMesh.position.z.toFixed(3)})`);
+            console.log(`  Scale: (${revenueRootMesh.scaling.x.toFixed(3)}, ${revenueRootMesh.scaling.y.toFixed(3)}, ${revenueRootMesh.scaling.z.toFixed(3)})`);
+          }
+        }, 500);
         
       } else {
         console.error("❌ No meshes found in Revenue Streams model");
