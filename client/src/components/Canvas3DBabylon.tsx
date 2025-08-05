@@ -1355,7 +1355,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 tracerSphere.isPickable = false;
                 
                 // Create a single stable trail line that gets updated safely
-                const maxTrailLength = 4; // Shorter trail for smoother appearance
+                const maxTrailLength = 12; // Longer trail for better visual impact
                 const trailPositions: Vector3[] = [];
                 
                 // Initialize trail positions with current position
@@ -1391,7 +1391,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     
                     // Check if animation should be paused (3D Top view)
                     if (!animationRef.isPaused) {
-                      animationTime += 0.055; // Faster for smoother motion
+                      animationTime += 0.15; // Much faster for dramatic speed increase
                       
                       // Calculate position along the edge-based rectangular path
                       const effectivePathLength = pathPoints.length;
@@ -1408,9 +1408,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                       const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
                       tracerSphere.position = currentPos;
                       
-                      // Update trail positions more frequently for smoother trail
+                      // Update trail positions more frequently for smoother trail with faster speed
                       updateCounter++;
-                      if (updateCounter % 5 === 0) { // Update every 5th frame for smoother trail
+                      if (updateCounter % 3 === 0) { // Update every 3rd frame for longer trail with faster speed
                         // Shift trail positions
                         for (let i = trailPositions.length - 1; i > 0; i--) {
                           trailPositions[i] = trailPositions[i - 1].clone();
