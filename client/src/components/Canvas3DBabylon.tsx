@@ -768,10 +768,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const isTopVertex = Math.abs(y - maxY) < 0.01 && normalY > 0.5;
               
               if (isTopVertex) {
-                // Dark grey color for top vertices (0.05, 0.05, 0.05)
-                colors[i * 4] = 0.05;     // R
-                colors[i * 4 + 1] = 0.05; // G  
-                colors[i * 4 + 2] = 0.05; // B
+                // Standard base color for top vertices to match other shapes (0.07, 0.07, 0.07)
+                colors[i * 4] = 0.07;     // R
+                colors[i * 4 + 1] = 0.07; // G  
+                colors[i * 4 + 2] = 0.07; // B
                 colors[i * 4 + 3] = 1; // A
               } else {
                 // Keep original color for side vertices
@@ -790,7 +790,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               (originalMaterial as any).useVertexColor = true;
             }
             
-            console.log(`✅ Applied dark grey top face to ${sectionName} using vertex colors`);
+            console.log(`✅ Applied standard base color top face to ${sectionName} using vertex colors`);
           }
         }
       });
