@@ -1308,13 +1308,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const min = boundingInfo.minimum;
                 const max = boundingInfo.maximum;
                 
-                // Calculate rectangular path exactly on top surface outline
-                const topY = max.y; // Directly on the surface
+                // Calculate rectangular path exactly on top surface outline with padding
+                const padding = 0.001; // Small padding to ensure we stay on the surface
+                const topY = max.y + padding; // Slightly above the surface
                 const pathPoints = [
-                  new Vector3(min.x, topY, min.z), // Bottom-left
-                  new Vector3(max.x, topY, min.z), // Bottom-right
-                  new Vector3(max.x, topY, max.z), // Top-right
-                  new Vector3(min.x, topY, max.z), // Top-left
+                  new Vector3(min.x, topY, min.z), // Bottom-left corner
+                  new Vector3(max.x, topY, min.z), // Bottom-right corner
+                  new Vector3(max.x, topY, max.z), // Top-right corner
+                  new Vector3(min.x, topY, max.z), // Top-left corner
+                  new Vector3(min.x, topY, min.z), // Back to start to close the loop
                 ];
                 
                 // Create tiny bright blue sphere (tracer head)
@@ -1357,7 +1359,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 
                 // Animation variables
                 let animationTime = 0;
-                const totalPathLength = pathPoints.length;
+                const totalPathLength = pathPoints.length - 1; // Subtract 1 since we added duplicate start point
                 let updateCounter = 0;
                 
                 const animateTracer = () => {
@@ -1366,19 +1368,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     
                     // Check if animation should be paused (3D Top view)
                     if (!animationRef.isPaused) {
-                      animationTime += 0.035; // Faster animation speed
+                      animationTime += 0.025; // Slower for smoother edge following
                       
-                      // Calculate position along path
-                      const progress = (animationTime % (totalPathLength * 2)) / (totalPathLength * 2);
-                      const scaledProgress = progress * totalPathLength;
-                      const segmentIndex = Math.floor(scaledProgress) % totalPathLength;
+                      // Calculate position along the rectangular path
+                      // Use pathPoints.length - 1 since we added duplicate start point
+                      const effectivePathLength = pathPoints.length - 1;
+                      const progress = (animationTime % (effectivePathLength * 2)) / (effectivePathLength * 2);
+                      const scaledProgress = progress * effectivePathLength;
+                      const segmentIndex = Math.floor(scaledProgress) % effectivePathLength;
                       const segmentProgress = scaledProgress - Math.floor(scaledProgress);
                       
-                      // Get current and next points
+                      // Get current and next points, ensuring we stay within bounds
                       const currentPoint = pathPoints[segmentIndex];
-                      const nextPoint = pathPoints[(segmentIndex + 1) % totalPathLength];
+                      const nextPoint = pathPoints[(segmentIndex + 1) % pathPoints.length];
                       
-                      // Interpolate position
+                      // Interpolate position smoothly along the edge
                       const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
                       tracerSphere.position = currentPos;
                       
@@ -1412,7 +1416,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 // Start animation
                 animateTracer();
                 
-                console.log(`✅ Blue tracer animation created for Customer Segments with rectangular path`);
+                console.log(`✅ Blue tracer animation created for Customer Segments with ${pathPoints.length} path points:`);
+                pathPoints.forEach((point, index) => {
+                  console.log(`  Point ${index}: (${point.x.toFixed(3)}, ${point.y.toFixed(3)}, ${point.z.toFixed(3)})`);
+                });
               };
               
               // Create the blue tracer after a short delay to ensure mesh is ready
