@@ -1877,7 +1877,43 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.error("❌ Failed to load BMC model:", error);
     });
 
-    // Revenue Streams loading temporarily disabled to fix 3D Top view issue
+    // Load Revenue Streams as separate GLB model positioned below Customer Channels
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_07_RevenueStreams_1754360428541.glb", scene).then((result) => {
+      if (result.meshes.length > 0) {
+        console.log(`✅ Revenue Streams model loaded with ${result.meshes.length} meshes`);
+        
+        const revenueRootMesh = result.meshes[0];
+        
+        // Position Revenue Streams at the last working coordinates
+        revenueRootMesh.position = new Vector3(-8.8, 0.1, -11.9);
+        revenueRootMesh.rotation = Vector3.Zero();
+        revenueRootMesh.scaling = new Vector3(8, 8, 8);
+        
+        console.log(`📦 Revenue Streams positioned at (-8.8, 0.1, -11.9) with scale 8.0`);
+        
+        // Apply basic material to Revenue Streams mesh
+        result.meshes.forEach((mesh, index) => {
+          if (mesh.material && mesh.name !== "__root__") {
+            const baseColor = new Color3(0.07, 0.07, 0.07);
+            const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene);
+            sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+            sectionMaterial.specularPower = 32;
+            mesh.material = sectionMaterial;
+            
+            // Store section name for interactions
+            (mesh as any).bmcSectionName = "Revenue Streams";
+            
+            console.log(`🎨 Revenue Streams Mesh ${index}: ${mesh.name || 'unnamed'} configured`);
+          }
+        });
+        
+      } else {
+        console.error("❌ No meshes found in Revenue Streams model");
+      }
+    }).catch((error) => {
+      console.error("❌ Failed to load Revenue Streams model:", error);
+    });
 
     // Helper functions for manipulating individual BMC sections
     // IMPORTANT: GLB Model Coordinate System Behavior
