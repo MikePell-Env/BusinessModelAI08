@@ -1867,15 +1867,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         setTimeout(() => {
           console.log("📦 Creating Revenue Streams box geometry");
           
-          // Create smaller box that matches the GLB model scale better
+          // Create box with appropriate dimensions for Revenue Streams  
           const revenueStreamsBox = MeshBuilder.CreateBox("revenueStreamsBox", {
-            width: 0.35,  // Much smaller width
-            height: 0.04, // Much smaller height
-            depth: 0.18   // Much smaller depth
+            width: 0.35,  // Width similar to Customer Segments
+            height: 0.04, // Standard height for BMC sections  
+            depth: 0.18   // Depth similar to Customer Segments
           }, scene);
           
-          // Position relative to the main BMC model coordinate system (which is at origin with 8x scale)
-          revenueStreamsBox.position = new Vector3(0.31, 0.04, -0.28); // Bottom-right position in BMC coordinate space
+          // Position in bottom-right area relative to main BMC model
+          // Main BMC is at (0, 0.1, 0.9) with 8x scale, so we position relative to that
+          revenueStreamsBox.position = new Vector3(2.8, 0.35, -1.4); // Bottom-right position
           revenueStreamsBox.scaling = new Vector3(8, 8, 8); // Match the main BMC model scaling
           
           // Create material matching other BMC sections
@@ -1900,6 +1901,44 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           const revenueStreamsTransform = new TransformNode("revenueStreamsTransform", scene);
           revenueStreamsBox.parent = revenueStreamsTransform;
           (revenueStreamsBox as any).bmcTransformNode = revenueStreamsTransform;
+          
+          // Create floating label for Revenue Streams
+          const createRevenueStreamsLabel = () => {
+            const boundingInfo = revenueStreamsBox.getBoundingInfo();
+            const center = boundingInfo.boundingBox.center;
+            const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+            
+            // Create label plane
+            const labelWidth = size.x * 0.8;
+            const labelHeight = labelWidth * 0.3;
+            
+            const labelPlane = MeshBuilder.CreatePlane("revenueStreamsLabel", {
+              width: labelWidth,
+              height: labelHeight
+            }, scene);
+            
+            // Position above the center of the box
+            labelPlane.position.x = center.x;
+            labelPlane.position.y = center.y + size.y * 0.6;
+            labelPlane.position.z = center.z;
+            
+            // Rotate to be flat on top
+            labelPlane.rotation.x = Math.PI / 2;
+            
+            // Create material with text
+            const labelMaterial = new StandardMaterial("revenueStreamsLabelMat", scene);
+            labelMaterial.diffuseColor = new Color3(1, 1, 1); // White text
+            labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+            labelMaterial.disableLighting = false;
+            
+            labelPlane.material = labelMaterial;
+            labelPlane.parent = revenueStreamsBox;
+            labelPlane.isPickable = false;
+            
+            console.log(`✅ Revenue Streams label created`);
+          };
+          
+          createRevenueStreamsLabel();
           
           // Add interactive behavior similar to other BMC sections
           const createInteractiveBehavior = () => {
