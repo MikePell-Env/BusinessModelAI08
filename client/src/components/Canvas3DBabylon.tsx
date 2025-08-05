@@ -725,14 +725,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log(`✅ UV mapping applied successfully to Customer Segments mesh`);
     };
 
-    // Function to apply black color to only the top face of a specific section
-    const applyBlackTopFace = (sectionName: string) => {
+    // Function to apply dark grey color to only the top face of a specific section
+    const applyDarkTopFace = (sectionName: string) => {
       if (!scene) return;
       
       const meshes = scene.meshes;
       meshes.forEach((mesh) => {
         if ((mesh as any).bmcSectionName === sectionName && mesh.material) {
-          console.log(`🖤 Applying black top face to ${sectionName}`);
+          console.log(`🖤 Applying dark grey top face to ${sectionName}`);
           
           // Create a multi-material setup for different faces
           const originalMaterial = mesh.material as any;
@@ -768,10 +768,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const isTopVertex = Math.abs(y - maxY) < 0.01 && normalY > 0.5;
               
               if (isTopVertex) {
-                // Black color for top vertices
-                colors[i * 4] = 0;     // R
-                colors[i * 4 + 1] = 0; // G  
-                colors[i * 4 + 2] = 0; // B
+                // Dark grey color for top vertices (0.05, 0.05, 0.05)
+                colors[i * 4] = 0.05;     // R
+                colors[i * 4 + 1] = 0.05; // G  
+                colors[i * 4 + 2] = 0.05; // B
                 colors[i * 4 + 3] = 1; // A
               } else {
                 // Keep original color for side vertices
@@ -790,7 +790,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               (originalMaterial as any).useVertexColor = true;
             }
             
-            console.log(`✅ Applied black top face to ${sectionName} using vertex colors`);
+            console.log(`✅ Applied dark grey top face to ${sectionName} using vertex colors`);
           }
         }
       });
@@ -1517,22 +1517,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const updateMeshHoverEnter = () => {
               // For textured meshes, use emissive color to create blue glow effect
               // For non-textured meshes, change base color
-              // Special handling for Channels section with darker color
-              const hoverColor = sectionName === "Channels" 
-                ? new Color3(0.05, 0.05, 0.05) 
-                : new Color3(0.0, 0.3, 0.8);
+              const brightBlueColor = new Color3(0.0, 0.3, 0.8);
               
               if ((mesh as any).hasTexture) {
-                // For textured mesh, use emissive color to add glow while preserving texture
-                sectionMaterial.emissiveColor = hoverColor.scale(0.3); // Subtle glow
-                console.log(`💡 Textured mesh hover: ${sectionName} - adding ${sectionName === "Channels" ? "dark grey" : "blue"} emissive glow`);
+                // For textured mesh, use emissive color to add blue glow while preserving texture
+                sectionMaterial.emissiveColor = brightBlueColor.scale(0.3); // Subtle blue glow
+                console.log(`💡 Textured mesh hover: ${sectionName} - adding blue emissive glow`);
               } else {
                 // For non-textured mesh, update both baseColor and diffuseColor for visibility
                 if (sectionMaterial.baseColor) {
-                  sectionMaterial.baseColor = hoverColor;
+                  sectionMaterial.baseColor = brightBlueColor;
                 }
-                sectionMaterial.diffuseColor = hoverColor;
-                console.log(`💡 Standard mesh hover: ${sectionName} - changing base color and diffuseColor to ${sectionName === "Channels" ? "dark grey" : "bright blue"}`);
+                sectionMaterial.diffuseColor = brightBlueColor;
+                console.log(`💡 Standard mesh hover: ${sectionName} - changing base color and diffuseColor`);
               }
               
               // Keep all objects at 100% opacity during hover
@@ -1834,7 +1831,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
         // Apply black top face to Customer Channels section
         setTimeout(() => {
-          applyBlackTopFace("Channels");
+          applyDarkTopFace("Channels");
         }, 1000);
 
 
