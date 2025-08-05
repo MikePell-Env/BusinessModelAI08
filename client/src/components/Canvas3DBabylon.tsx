@@ -1867,15 +1867,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         setTimeout(() => {
           console.log("📦 Creating Revenue Streams box geometry");
           
-          // Create box with similar dimensions to Customer Segments
+          // Create smaller box that matches the GLB model scale better
           const revenueStreamsBox = MeshBuilder.CreateBox("revenueStreamsBox", {
-            width: 2.8,  // Similar width to Customer Segments
-            height: 0.3, // Same height as other BMC sections
-            depth: 1.4   // Similar depth to Customer Segments
+            width: 0.35,  // Much smaller width
+            height: 0.04, // Much smaller height
+            depth: 0.18   // Much smaller depth
           }, scene);
           
-          // Position in bottom-right based on the diagram
-          revenueStreamsBox.position = new Vector3(2.2, 0.15, -2.5); // Bottom-right position
+          // Position in bottom-right based on the diagram, but without excessive scaling
+          revenueStreamsBox.position = new Vector3(2.5, 0.35, -2.2); // Bottom-right position
           revenueStreamsBox.scaling = new Vector3(8, 8, 8); // Match the main BMC model scaling
           
           // Create material matching other BMC sections
@@ -1900,15 +1900,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           const revenueStreamsTransform = new TransformNode("revenueStreamsTransform", scene);
           revenueStreamsBox.parent = revenueStreamsTransform;
           (revenueStreamsBox as any).bmcTransformNode = revenueStreamsTransform;
-          
-          // Add to transformUtils for coordinate system management
-          if (transformUtils && transformUtils.sectionControllers) {
-            transformUtils.sectionControllers["Revenue Streams"] = {
-              mesh: revenueStreamsBox,
-              transformNode: revenueStreamsTransform,
-              originalHeight: 0.3
-            };
-          }
           
           // Add interactive behavior similar to other BMC sections
           const createInteractiveBehavior = () => {
