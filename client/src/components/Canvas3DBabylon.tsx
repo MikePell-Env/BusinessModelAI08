@@ -1962,7 +1962,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Hover enter behavior
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              if (mesh.material && selectedObject() !== sectionName) {
+              if (mesh.material && getSelectedObject() !== sectionName) {
                 const material = mesh.material as any;
                 const hoverColor = new Color3(0.0, 0.3, 0.8); // Bright blue hover
                 
@@ -1979,7 +1979,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Hover leave behavior
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              if (mesh.material && selectedObject() !== sectionName) {
+              if (mesh.material && getSelectedObject() !== sectionName) {
                 const material = mesh.material as any;
                 const originalColor = (material as any).originalBaseColor || new Color3(0.07, 0.07, 0.07);
                 
@@ -1994,48 +1994,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             }));
             
-            // Click behavior (similar to main BMC objects)
+            // Click behavior - use same simple pattern as main BMC objects
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              const currentlySelected = selectedObject();
+              console.log(`🔒 Revenue Streams clicked - setting selection to: ${sectionName}`);
+              setSelectedObject(sectionName);
               
-              if (currentlySelected === sectionName && isContentPanelVisible()) {
-                // Already selected and panel visible - close panel
-                setSelectedObject(null);
-                setIsContentPanelVisible(false);
-                
-                // Restore mesh to standard color
-                const material = mesh.material as any;
-                const originalColor = (material as any).originalBaseColor || new Color3(0.07, 0.07, 0.07);
-                
-                if (material.diffuseColor) {
-                  material.diffuseColor = originalColor;
-                }
-                if (material.baseColor) {
-                  material.baseColor = originalColor;
-                }
-                
-                console.log(`❌ Panel closed: ${sectionName} restored, panel hidden`);
-              } else if (currentlySelected === sectionName && !isContentPanelVisible()) {
-                // Already selected but panel hidden - show panel
-                setIsContentPanelVisible(true);
-                console.log(`📋 Panel opened: ${sectionName} panel now visible`);
-              } else {
-                // Not selected - select this object
-                setSelectedObject(sectionName);
-                setIsContentPanelVisible(false);
-                
-                // Apply blue selection color
-                const material = mesh.material as any;
-                const selectedColor = new Color3(0.0, 0.3, 0.8);
-                
-                if (material.diffuseColor) {
-                  material.diffuseColor = selectedColor;
-                }
-                if (material.baseColor) {
-                  material.baseColor = selectedColor;
-                }
-                
-                console.log(`🔒 Selected: ${sectionName} blue selected, panel hidden (click again to show panel)`);
+              // Apply blue selection color
+              const material = mesh.material as any;
+              const selectedColor = new Color3(0.0, 0.3, 0.8);
+              
+              if (material.diffuseColor) {
+                material.diffuseColor = selectedColor;
+              }
+              if (material.baseColor) {
+                material.baseColor = selectedColor;
               }
             }));
             
