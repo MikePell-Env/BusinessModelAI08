@@ -1970,22 +1970,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Calculate required width: Revenue Streams left edge (0.467) to Customer Segments right edge
             const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
             
-            // Calculate proper scaling - reduce by 15% to ensure alignment within bounds
+            // Simply reduce the current X-axis scaling by 5% to make it narrower
             const currentScaleX = revenueStreamsMesh.scaling.x;
-            const baseScalingRatio = requiredWidth / (currentRevWidth / currentScaleX);
-            const adjustedScalingRatio = baseScalingRatio * 0.85; // Reduce by 15% for proper alignment
+            const reducedScaleX = currentScaleX * 0.95; // Reduce by 5%
             
-            // Apply new X-axis scaling
-            revenueStreamsMesh.scaling.x = adjustedScalingRatio;
+            // Apply reduced X-axis scaling
+            revenueStreamsMesh.scaling.x = reducedScaleX;
             
-            console.log("🔧 DELAYED Revenue Streams Width Adjustment:");
+            console.log("🔧 DELAYED Revenue Streams Width Reduction:");
             console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
-            console.log(`  Required width: ${requiredWidth.toFixed(3)}`);
             console.log(`  Current X scale: ${currentScaleX.toFixed(3)}`);
-            console.log(`  Base scaling ratio: ${baseScalingRatio.toFixed(3)}`);
-            console.log(`  Adjusted X scale (85%): ${adjustedScalingRatio.toFixed(3)}`);
+            console.log(`  Reduced X scale (95%): ${reducedScaleX.toFixed(3)}`);
             console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
-            console.log("✅ Revenue Streams width adjusted (85% of calculated) to align within Customer Segments bounds!");
+            console.log("✅ Revenue Streams width reduced by 5% to make it narrower!");
           } else {
             console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
           }
