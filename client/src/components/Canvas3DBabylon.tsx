@@ -725,7 +725,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log(`✅ UV mapping applied successfully to Customer Segments mesh`);
     };
 
-    // Function to apply standard base color to only the top face of a specific section
+    // Function to apply standard base color to a specific section
     const applyDarkTopFace = (sectionName: string) => {
       if (!scene) return;
       
@@ -734,66 +734,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       meshes.forEach((mesh) => {
         if ((mesh as any).bmcSectionName === sectionName && mesh.material) {
           foundMesh = true;
-          console.log(`🎨 Applying standard base color top face to ${sectionName}`);
+          console.log(`🎨 Applying standard base color to ${sectionName} entire mesh`);
           
-          // Create a multi-material setup for different faces
-          const originalMaterial = mesh.material as any;
+          const material = mesh.material as any;
+          const standardColor = new Color3(0.07, 0.07, 0.07); // Standard base color
           
-          // Create black material for top face using the same hybrid approach
-          const blackMaterial = new StandardMaterial(`${sectionName}_black_top`, scene) as any;
-          blackMaterial.diffuseColor = new Color3(0, 0, 0); // Pure black
-          blackMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
-          blackMaterial.specularPower = 32;
-          blackMaterial.baseColor = new Color3(0, 0, 0); // Add baseColor compatibility
-          
-          // Get vertex data to identify top faces
-          const positions = mesh.getVerticesData("position");
-          const indices = mesh.getIndices();
-          const normals = mesh.getVerticesData("normal");
-          
-          if (positions && indices && normals) {
-            // Find maximum Y coordinate for top faces
-            let maxY = -Infinity;
-            for (let i = 1; i < positions.length; i += 3) {
-              maxY = Math.max(maxY, positions[i]);
-            }
-            
-            // Create vertex colors array (RGBA per vertex)
-            const colors = new Float32Array(positions.length / 3 * 4);
-            
-            // Process each vertex
-            for (let i = 0; i < positions.length / 3; i++) {
-              const y = positions[i * 3 + 1];
-              const normalY = normals[i * 3 + 1];
-              
-              // Check if this vertex is on top face (close to maxY and normal pointing up)
-              const isTopVertex = Math.abs(y - maxY) < 0.01 && normalY > 0.5;
-              
-              if (isTopVertex) {
-                // Standard base color for top vertices to match other shapes (0.07, 0.07, 0.07)
-                colors[i * 4] = 0.07;     // R
-                colors[i * 4 + 1] = 0.07; // G  
-                colors[i * 4 + 2] = 0.07; // B
-                colors[i * 4 + 3] = 1; // A
-              } else {
-                // Keep original color for side vertices
-                colors[i * 4] = 1;     // R
-                colors[i * 4 + 1] = 1; // G
-                colors[i * 4 + 2] = 1; // B  
-                colors[i * 4 + 3] = 1; // A
-              }
-            }
-            
-            // Apply vertex colors to mesh
-            mesh.setVerticesData("color", colors);
-            
-            // Enable vertex colors in material
-            if ('useVertexColor' in originalMaterial) {
-              (originalMaterial as any).useVertexColor = true;
-            }
-            
-            console.log(`✅ Applied standard base color top face to ${sectionName} using vertex colors`);
+          // Apply standard color to the entire mesh for consistency
+          if (material.diffuseColor) {
+            material.diffuseColor = standardColor;
           }
+          if (material.baseColor) {
+            material.baseColor = standardColor;
+          }
+          
+          // Update original colors for hover behavior
+          if (material.originalBaseColor) {
+            material.originalBaseColor = standardColor.clone();
+          }
+          if (material.originalDiffuseColor) {
+            material.originalDiffuseColor = standardColor.clone();
+          }
+          
+          console.log(`✅ Applied standard base color (0.07, 0.07, 0.07) to ${sectionName} entire mesh`);
         }
       });
       
@@ -1897,8 +1859,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
         // Apply standard base color top face to Customer Channels section
         setTimeout(() => {
+          console.log("🎯 About to apply standard base color to Customer Channels section");
           applyDarkTopFace("Channels");
-        }, 1000);
+        }, 1500);
 
 
         
