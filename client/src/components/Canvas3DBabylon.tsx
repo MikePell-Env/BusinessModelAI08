@@ -1872,6 +1872,184 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.error("❌ Failed to load BMC model:", error);
     });
 
+    // Load Revenue Streams as separate GLB model positioned in bottom right
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_07_RevenueStreams_1754360428541.glb", scene).then((result) => {
+      if (result.meshes.length > 0) {
+        console.log(`✅ Revenue Streams model loaded with ${result.meshes.length} meshes`);
+        
+        const revenueRootMesh = result.meshes[0];
+        
+        // Position in bottom right area from top view perspective
+        // Based on the top view image, Revenue Streams should be positioned:
+        // - To the right (positive X) relative to the center
+        // - Forward (positive Z) from the main BMC layout
+        revenueRootMesh.position = new Vector3(3.5, 0.1, 2.8);
+        
+        // Match the rotation and scale of the main BMC model
+        revenueRootMesh.rotation = Vector3.Zero();
+        revenueRootMesh.scaling = new Vector3(8, 8, 8);
+        
+        console.log(`📦 Revenue Streams positioned at (3.5, 0.1, 2.8) with scale 8.0`);
+        
+        // Apply standard base color and interactivity to Revenue Streams mesh
+        result.meshes.forEach((mesh, index) => {
+          if (mesh.material && mesh.name !== "__root__") {
+            const sectionName = "Revenue Streams";
+            const baseColor = new Color3(0.07, 0.07, 0.07); // Standard base color
+            
+            // Store section name on mesh
+            (mesh as any).bmcSectionName = sectionName;
+            
+            // Create StandardMaterial with same properties as main BMC
+            const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene) as any;
+            sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+            sectionMaterial.specularPower = 32;
+            sectionMaterial.baseColor = baseColor;
+            
+            // Store original colors for hover behavior
+            (sectionMaterial as any).originalBaseColor = baseColor.clone();
+            (sectionMaterial as any).originalDiffuseColor = baseColor.clone();
+            
+            // Apply material to mesh
+            mesh.material = sectionMaterial;
+            
+            // Add Revenue Streams label
+            console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
+            
+            // Get mesh bounds for positioning
+            const boundingInfo = mesh.getBoundingInfo();
+            const center = boundingInfo.boundingBox.center;
+            const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+            
+            // Create label plane
+            const labelWidth = size.x * 0.8;
+            const labelHeight = (labelWidth * 0.25) * 1.5;
+            console.log(`Revenue Streams Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+            
+            const labelPlane = MeshBuilder.CreatePlane("revenueStreamsLabel", {
+              width: labelWidth,
+              height: labelHeight
+            }, scene);
+            
+            // Position label on top of mesh
+            labelPlane.position.x = center.x;
+            labelPlane.position.y = center.y + size.y * 0.6;
+            labelPlane.position.z = center.z;
+            
+            // Rotate to be flat on top
+            labelPlane.rotation.x = Math.PI / 2;
+            
+            // Create label material
+            const labelMaterial = new StandardMaterial("revenueStreamsLabelMat", scene);
+            const labelTexture = new Texture("/textures/Label_RevenueStreams.png", scene);
+            labelTexture.hasAlpha = true;
+            
+            labelMaterial.diffuseTexture = labelTexture;
+            labelMaterial.emissiveTexture = labelTexture;
+            labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+            labelMaterial.useAlphaFromDiffuseTexture = true;
+            labelMaterial.disableLighting = false;
+            
+            labelPlane.material = labelMaterial;
+            labelPlane.parent = mesh;
+            labelPlane.isPickable = false;
+            
+            console.log(`✅ Revenue Streams label plane created`);
+            
+            // Add same hover behavior as main BMC objects
+            mesh.actionManager = new ActionManager(scene);
+            
+            // Hover enter behavior
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              if (mesh.material && !isObjectSelected(sectionName)) {
+                const material = mesh.material as any;
+                const hoverColor = new Color3(0.0, 0.3, 0.8); // Bright blue hover
+                
+                if (material.diffuseColor) {
+                  material.diffuseColor = hoverColor;
+                }
+                if (material.baseColor) {
+                  material.baseColor = hoverColor;
+                }
+                
+                console.log(`🔵 Hover: ${sectionName} - bright blue`);
+              }
+            }));
+            
+            // Hover leave behavior
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              if (mesh.material && !isObjectSelected(sectionName)) {
+                const material = mesh.material as any;
+                const originalColor = (material as any).originalBaseColor || new Color3(0.07, 0.07, 0.07);
+                
+                if (material.diffuseColor) {
+                  material.diffuseColor = originalColor;
+                }
+                if (material.baseColor) {
+                  material.baseColor = originalColor;
+                }
+                
+                console.log(`⚫ Hover out: ${sectionName} - restored to standard color`);
+              }
+            }));
+            
+            // Click behavior (similar to main BMC objects)
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              const currentlySelected = selectedObject();
+              
+              if (currentlySelected === sectionName && isContentPanelVisible()) {
+                // Already selected and panel visible - close panel
+                setSelectedObject(null);
+                setIsContentPanelVisible(false);
+                
+                // Restore mesh to standard color
+                const material = mesh.material as any;
+                const originalColor = (material as any).originalBaseColor || new Color3(0.07, 0.07, 0.07);
+                
+                if (material.diffuseColor) {
+                  material.diffuseColor = originalColor;
+                }
+                if (material.baseColor) {
+                  material.baseColor = originalColor;
+                }
+                
+                console.log(`❌ Panel closed: ${sectionName} restored, panel hidden`);
+              } else if (currentlySelected === sectionName && !isContentPanelVisible()) {
+                // Already selected but panel hidden - show panel
+                setIsContentPanelVisible(true);
+                console.log(`📋 Panel opened: ${sectionName} panel now visible`);
+              } else {
+                // Not selected - select this object
+                setSelectedObject(sectionName);
+                setIsContentPanelVisible(false);
+                
+                // Apply blue selection color
+                const material = mesh.material as any;
+                const selectedColor = new Color3(0.0, 0.3, 0.8);
+                
+                if (material.diffuseColor) {
+                  material.diffuseColor = selectedColor;
+                }
+                if (material.baseColor) {
+                  material.baseColor = selectedColor;
+                }
+                
+                console.log(`🔒 Selected: ${sectionName} blue selected, panel hidden (click again to show panel)`);
+              }
+            }));
+            
+            console.log(`🎨 Revenue Streams Mesh ${index}: ${mesh.name || 'unnamed'} - Interactive color: ${baseColor.r.toFixed(2)}, ${baseColor.g.toFixed(2)}, ${baseColor.b.toFixed(2)}`);
+          }
+        });
+        
+      } else {
+        console.error("❌ No meshes found in Revenue Streams model");
+      }
+    }).catch((error) => {
+      console.error("❌ Failed to load Revenue Streams model:", error);
+    });
+
     // Helper functions for manipulating individual BMC sections
     // IMPORTANT: GLB Model Coordinate System Behavior
     // This specific GLB model (BMC_blender_09_complete_1753576063858.glb) has NORMAL Y-axis scaling:
