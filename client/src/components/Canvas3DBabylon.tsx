@@ -1901,19 +1901,62 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Position Revenue Streams to align with Customer Channels
-        // Moving LEFT (decreasing X) to align with Customer Channels left edge
+        // Position Revenue Streams to align with Customer Channels center
+        // From console logs: Customer Channels center X = 2.850
         // X-axis: negative = LEFT, positive = RIGHT
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
-        revenueRootMesh.position = new Vector3(-0.5, 0.1, -10.5);
+        revenueRootMesh.position = new Vector3(2.850, 0.1, -10.5);
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(8, 8, 8);
         
-        console.log(`📦 Revenue Streams positioned at (-0.5, 0.1, -10.5) - moved further LEFT to align with Customer Channels`);
+        console.log(`📦 Revenue Streams positioned at (2.850, 0.1, -10.5) - aligned with Customer Channels center`);
         
-        // Apply basic material to Revenue Streams mesh
+        // Apply basic material and label to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
           if (mesh.material && mesh.name !== "__root__") {
+            
+            // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
+            console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
+            
+            // Get mesh bounds for positioning
+            const boundingInfo = mesh.getBoundingInfo();
+            const center = boundingInfo.boundingBox.center;
+            const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+            
+            // Create label plane with 50% taller height and slightly larger overall (same as Customer Channels)
+            const labelWidth = size.x * 0.65; 
+            const labelHeight = (labelWidth * 0.25) * 1.5; 
+            console.log(`Revenue Streams Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+            
+            const labelPlane = MeshBuilder.CreatePlane("revenueStreamsLabel", {
+              width: labelWidth,
+              height: labelHeight
+            }, scene);
+            
+            // Position within the mesh boundaries, moved right with margin (same positioning as Customer Channels)  
+            labelPlane.position.x = center.x + size.x * 0.15; // Move right but leave margin on right edge
+            labelPlane.position.y = center.y + size.y * 0.6;
+            labelPlane.position.z = center.z - size.z * 0.3; // Move down toward bottom of shape
+            
+            // Rotate to be flat on top (same as Customer Channels)
+            labelPlane.rotation.x = Math.PI / 2;
+            
+            // Create bright material for white text (same as Customer Channels)
+            const labelMaterial = new StandardMaterial("revenueStreamsLabelMat", scene);
+            const labelTexture = new Texture("/textures/Label_RevenueStreams.png", scene);
+            labelTexture.hasAlpha = true;
+            
+            labelMaterial.diffuseTexture = labelTexture;
+            labelMaterial.emissiveTexture = labelTexture;
+            labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+            labelMaterial.useAlphaFromDiffuseTexture = true;
+            labelMaterial.disableLighting = false;
+            
+            labelPlane.material = labelMaterial;
+            labelPlane.parent = mesh;
+            labelPlane.isPickable = false;
+            
+            console.log(`✅ Revenue Streams label plane created`);
             const baseColor = new Color3(0.07, 0.07, 0.07);
             const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene);
             sectionMaterial.diffuseColor = baseColor;
