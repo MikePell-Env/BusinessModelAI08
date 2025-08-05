@@ -1964,10 +1964,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               height: labelHeight
             }, scene);
             
-            // Position within the mesh boundaries, moved right with margin (same positioning as Customer Channels)  
-            labelPlane.position.x = center.x + size.x * 0.15; // Move right but leave margin on right edge
-            labelPlane.position.y = center.y + size.y * 0.6;
-            labelPlane.position.z = center.z - size.z * 0.3; // Move down toward bottom of shape
+            // Center the label horizontally and vertically within the top face of the Revenue Streams object
+            labelPlane.position.x = center.x; // Center horizontally
+            labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
+            labelPlane.position.z = center.z; // Center vertically (Z-axis)
             
             // Rotate to be flat on top and then 90 degrees counterclockwise to read properly
             labelPlane.rotation.x = Math.PI / 2;
