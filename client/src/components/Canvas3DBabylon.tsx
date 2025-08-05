@@ -1885,15 +1885,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const revenueRootMesh = result.meshes[0];
         
         // Position Revenue Streams below Customer Channels with adequate spacing
-        // X-axis alignment is correct, now moving further down in Z direction
-        // Moving from Z: -2.8 to Z: -4.2 for better vertical spacing
-        revenueRootMesh.position = new Vector3(2.2, 0.1, -4.2);
+        // X-axis alignment is correct, now moving much further down in Z direction
+        // Moving from Z: -4.2 to Z: -9.8 (4x increase in negative Z direction)
+        revenueRootMesh.position = new Vector3(2.2, 0.1, -9.8);
         
         // Match the rotation and scale of the main BMC model
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(8, 8, 8);
         
-        console.log(`📦 Revenue Streams positioned at (2.2, 0.1, -4.2) below Customer Channels with scale 8.0`);
+        console.log(`📦 Revenue Streams positioned at (2.2, 0.1, -9.8) below Customer Channels with scale 8.0`);
         
         // Apply standard base color and interactivity to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
