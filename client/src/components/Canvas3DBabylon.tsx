@@ -725,14 +725,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log(`✅ UV mapping applied successfully to Customer Segments mesh`);
     };
 
-    // Function to apply dark grey color to only the top face of a specific section
+    // Function to apply standard base color to only the top face of a specific section
     const applyDarkTopFace = (sectionName: string) => {
       if (!scene) return;
       
       const meshes = scene.meshes;
+      let foundMesh = false;
       meshes.forEach((mesh) => {
         if ((mesh as any).bmcSectionName === sectionName && mesh.material) {
-          console.log(`🖤 Applying dark grey top face to ${sectionName}`);
+          foundMesh = true;
+          console.log(`🎨 Applying standard base color top face to ${sectionName}`);
           
           // Create a multi-material setup for different faces
           const originalMaterial = mesh.material as any;
@@ -794,6 +796,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           }
         }
       });
+      
+      if (!foundMesh) {
+        console.log(`❌ No mesh found with section name: ${sectionName}`);
+      }
     };
 
     // Only GLB models are used now - no more box geometry functions needed
@@ -1889,7 +1895,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           console.log("📏 Value Propositions adjusted to 1.08 height (20% taller, then 10% reduction)");
         }, 500);
 
-        // Apply black top face to Customer Channels section
+        // Apply standard base color top face to Customer Channels section
         setTimeout(() => {
           applyDarkTopFace("Channels");
         }, 1000);
