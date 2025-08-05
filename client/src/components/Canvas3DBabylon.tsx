@@ -1901,14 +1901,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Position Revenue Streams closer to original position (was better before)
+        // Position Revenue Streams more to the left (where it was originally working better)
         // X-axis: negative = LEFT, positive = RIGHT
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
-        revenueRootMesh.position = new Vector3(1.8, 0.1, -10.5);
+        revenueRootMesh.position = new Vector3(0.5, 0.1, -10.5);
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(8, 8, 8);
         
-        console.log(`📦 Revenue Streams positioned at (1.8, 0.1, -10.5) - reverted to closer position`);
+        console.log(`📦 Revenue Streams positioned at (0.5, 0.1, -10.5) - moved more to the left`);
         
         // Apply basic material and label to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
@@ -1922,9 +1922,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const center = boundingInfo.boundingBox.center;
             const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
             
-            // Create label plane with 50% taller height and slightly larger overall (same as Customer Channels)
-            const labelWidth = size.x * 0.65; 
-            const labelHeight = (labelWidth * 0.25) * 1.5; 
+            // Create label plane with proper aspect ratio (preserve original proportions)
+            const labelWidth = size.x * 0.6; 
+            const labelHeight = labelWidth * 0.3; // Keep natural aspect ratio without squishing 
             console.log(`Revenue Streams Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
             
             const labelPlane = MeshBuilder.CreatePlane("revenueStreamsLabel", {
