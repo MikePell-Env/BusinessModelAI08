@@ -1874,8 +1874,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             depth: 0.18   // Much smaller depth
           }, scene);
           
-          // Position in bottom-right based on the diagram, but without excessive scaling
-          revenueStreamsBox.position = new Vector3(2.5, 0.35, -2.2); // Bottom-right position
+          // Position relative to the main BMC model coordinate system (which is at origin with 8x scale)
+          revenueStreamsBox.position = new Vector3(0.31, 0.04, -0.28); // Bottom-right position in BMC coordinate space
           revenueStreamsBox.scaling = new Vector3(8, 8, 8); // Match the main BMC model scaling
           
           // Create material matching other BMC sections
@@ -1911,7 +1911,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             revenueStreamsBox.actionManager = new ActionManager(scene);
             
             revenueStreamsBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              if (!selectedObject) {
+              const currentSelection = canvasStore.getState().selectedObject;
+              if (!currentSelection) {
                 material.baseColor = new Color3(0.0, 0.3, 0.8); // Bright blue hover
                 material.diffuseColor = new Color3(0.0, 0.3, 0.8);
                 console.log(`👆 Revenue Streams hovered - blue color applied`);
@@ -1919,7 +1920,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }));
             
             revenueStreamsBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              if (!selectedObject) {
+              const currentSelection = canvasStore.getState().selectedObject;
+              if (!currentSelection) {
                 material.baseColor = originalBaseColor;
                 material.diffuseColor = originalDiffuseColor;
                 console.log(`👋 Revenue Streams hover ended - original color restored`);
@@ -1928,7 +1930,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Click behavior for selection
             revenueStreamsBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              if (selectedObject === "Revenue Streams") {
+              const currentSelection = canvasStore.getState().selectedObject;
+              if (currentSelection === "Revenue Streams") {
                 // Second click - show content panel
                 console.log(`📋 Revenue Streams content panel opened`);
                 // Note: Content panel logic would be added here
