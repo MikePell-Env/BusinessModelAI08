@@ -1988,8 +1988,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Apply additional scaling to prevent vertical squishing - scale Y-axis more to maintain readability
-            labelPlane.scaling = new Vector3(1.0, 1.3, 1.0); // 30% taller Y-scale to reduce vertical compression
+            // Apply proportional scaling to make label twice as large while maintaining aspect ratio
+            labelPlane.scaling = new Vector3(2.0, 2.6, 1.0); // 2x larger with extra Y-scale to prevent compression
             
             console.log(`✅ Revenue Streams label plane created at position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
             console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
