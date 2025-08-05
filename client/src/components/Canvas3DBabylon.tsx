@@ -1939,67 +1939,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           }
         }, 2000);
         
-        // Delayed Revenue Streams width adjustment to ensure both meshes are fully loaded
-        setTimeout(() => {
-          console.log("🔍 DELAYED: Searching for meshes to resize Revenue Streams...");
-          
-          // Debug all available meshes
-          console.log(`🔍 Available meshes (${scene.meshes.length}):`);
-          scene.meshes.forEach((mesh, i) => {
-            const sectionName = (mesh as any).bmcSectionName;
-            console.log(`  ${i}: ${mesh.name} - section: ${sectionName || 'none'}`);
-          });
-          
-          const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
-          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
-          
-          if (revenueStreamsMesh && segmentsMesh) {
-            // Get current Revenue Streams dimensions
-            const revBoundingInfo = revenueStreamsMesh.getBoundingInfo();
-            const revWorldMatrix = revenueStreamsMesh.getWorldMatrix();
-            const revMin = Vector3.TransformCoordinates(revBoundingInfo.minimum, revWorldMatrix);
-            const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
-            const currentRevWidth = revMax.x - revMin.x;
-            
-            // Get Customer Segments right edge
-            const segBoundingInfo = segmentsMesh.getBoundingInfo();
-            const segWorldMatrix = segmentsMesh.getWorldMatrix();
-            const segMin = Vector3.TransformCoordinates(segBoundingInfo.minimum, segWorldMatrix);
-            const segMax = Vector3.TransformCoordinates(segBoundingInfo.maximum, segWorldMatrix);
-            
-            // Calculate required width: Revenue Streams left edge (0.467) to Customer Segments right edge
-            const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
-            
-            // Set Revenue Streams width to exactly 7.5 units
-            // First, let's check which axis controls the horizontal width in top view
-            const targetWidth = 7.5;
-            
-            // Debug all three dimensions to understand the orientation
-            console.log("🔍 Revenue Streams 3D Dimensions Debug:");
-            console.log(`  X-axis width: ${(revMax.x - revMin.x).toFixed(3)}`);
-            console.log(`  Z-axis width: ${(revMax.z - revMin.z).toFixed(3)}`);
-            console.log(`  Y-axis height: ${(revMax.y - revMin.y).toFixed(3)}`);
-            console.log(`  Current scaling: X=${revenueStreamsMesh.scaling.x.toFixed(3)}, Y=${revenueStreamsMesh.scaling.y.toFixed(3)}, Z=${revenueStreamsMesh.scaling.z.toFixed(3)}`);
-            
-            // Try Z-axis scaling instead of X-axis for horizontal width
-            const currentZWidth = revMax.z - revMin.z;
-            const baseZWidth = currentZWidth / revenueStreamsMesh.scaling.z;
-            const requiredScaleZ = targetWidth / baseZWidth;
-            
-            // Apply Z-axis scaling for horizontal width in top view
-            revenueStreamsMesh.scaling.z = requiredScaleZ;
-            
-            console.log("🔧 DELAYED Revenue Streams Width Adjustment (Z-axis):");
-            console.log(`  Current Z width: ${currentZWidth.toFixed(3)}`);
-            console.log(`  Target width: ${targetWidth.toFixed(3)}`);
-            console.log(`  Base Z width (unscaled): ${baseZWidth.toFixed(3)}`);
-            console.log(`  Required Z scale: ${requiredScaleZ.toFixed(3)}`);
-            console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
-            console.log("✅ Revenue Streams Z-axis width set to exactly 7.5 units!");
-          } else {
-            console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
-          }
-        }, 4000);
+        // Simple approach: Just check dimensions without complex scaling
+        console.log("📏 Revenue Streams configured with reduced X-scale 6.8 for proper width alignment");
         
         // Immediate Revenue Streams width check
         setTimeout(() => {
@@ -2047,7 +1988,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
         revenueRootMesh.position = new Vector3(-0.221, 0.1, -10.5); // Adjusted to align left edges
         revenueRootMesh.rotation = Vector3.Zero();
-        revenueRootMesh.scaling = new Vector3(8, 8, 8);
+        // Try different scaling approach - make it wider in Z-axis instead of X-axis
+        revenueRootMesh.scaling = new Vector3(4, 8, 12); // X=4 (narrow), Y=8 (height), Z=12 (wide for horizontal span)
         
         console.log(`📦 Revenue Streams positioned at (-0.533, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
