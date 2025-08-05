@@ -1883,6 +1883,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`  Position: (${channelsMesh.position.x.toFixed(3)}, ${channelsMesh.position.y.toFixed(3)}, ${channelsMesh.position.z.toFixed(3)})`);
             console.log(`  Scale: (${channelsMesh.scaling.x.toFixed(3)}, ${channelsMesh.scaling.y.toFixed(3)}, ${channelsMesh.scaling.z.toFixed(3)})`);
           }
+          
+          // Also debug Revenue Streams model loading status
+          const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
+          if (revenueStreamsMesh) {
+            console.log("✅ Revenue Streams mesh found in scene!");
+            console.log(`  Has label plane children: ${revenueStreamsMesh.getChildMeshes().length > 0}`);
+          } else {
+            console.log("❌ Revenue Streams mesh NOT found in scene - model may not have loaded properly");
+          }
         }, 2000);
 
 
@@ -1895,25 +1904,45 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
 
     // Load Revenue Streams as separate GLB model positioned below Customer Channels
+    console.log(`🔄 Starting to load Revenue Streams model...`);
     SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_07_RevenueStreams_1754360428541.glb", scene).then((result) => {
+      console.log(`🔄 Revenue Streams model load completed, meshes: ${result.meshes.length}`);
       if (result.meshes.length > 0) {
         console.log(`✅ Revenue Streams model loaded with ${result.meshes.length} meshes`);
         
         const revenueRootMesh = result.meshes[0];
         
         // Position Revenue Streams to align with LEFT EDGE of Customer Channels
-        // From console logs: Customer Channels left edge = 0.467
+        // From console logs: Customer Channels left edge = 0.467, Revenue Streams left edge = 0.155
+        // Need to move right by 0.312 units to align: Current X position -0.533 becomes -0.221
         // X-axis: negative = LEFT, positive = RIGHT
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
-        revenueRootMesh.position = new Vector3(-0.533, 0.1, -10.5); // Adjusted to align left edges
+        revenueRootMesh.position = new Vector3(-0.221, 0.1, -10.5); // Adjusted to align left edges
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(8, 8, 8);
         
         console.log(`📦 Revenue Streams positioned at (-0.533, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
-        // Apply basic material and label to Revenue Streams mesh
+        // Apply basic material and label to Revenue Streams mesh  
+        console.log(`🔍 Revenue Streams meshes found: ${result.meshes.length}`);
         result.meshes.forEach((mesh, index) => {
-          if (mesh.material && mesh.name !== "__root__") {
+          console.log(`🔍 Processing Revenue Streams mesh ${index}: ${mesh.name}, has material: ${!!mesh.material}, is root: ${mesh.name === "__root__"}`);
+        });
+        
+        result.meshes.forEach((mesh, index) => {
+          if (mesh.name !== "__root__") {
+            console.log(`✅ Processing non-root Revenue Streams mesh ${index}: ${mesh.name}`);
+            
+            // Create material for Revenue Streams mesh first (required for labels)
+            const baseColor = new Color3(0.07, 0.07, 0.07);
+            const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene);
+            sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+            sectionMaterial.specularPower = 32;
+            mesh.material = sectionMaterial;
+            
+            // Store section name for interactions
+            (mesh as any).bmcSectionName = "Revenue Streams";
             
             // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
             console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
@@ -1963,15 +1992,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
             console.log(`🔍 Label scale: (${labelPlane.scaling.x.toFixed(3)}, ${labelPlane.scaling.y.toFixed(3)}, ${labelPlane.scaling.z.toFixed(3)})`);
             console.log(`🔍 Label dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}`);
-            const baseColor = new Color3(0.07, 0.07, 0.07);
-            const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene);
-            sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
-            sectionMaterial.specularPower = 32;
-            mesh.material = sectionMaterial;
-            
-            // Store section name for interactions
-            (mesh as any).bmcSectionName = "Revenue Streams";
             
             console.log(`🎨 Revenue Streams Mesh ${index}: ${mesh.name || 'unnamed'} configured`);
           }
@@ -2001,6 +2021,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     }).catch((error) => {
       console.error("❌ Failed to load Revenue Streams model:", error);
+      console.error("❌ Revenue Streams model error details:", error.message);
     });
 
     // Helper functions for manipulating individual BMC sections
