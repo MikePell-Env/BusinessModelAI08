@@ -1884,12 +1884,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Position Revenue Streams at the last working coordinates
-        revenueRootMesh.position = new Vector3(-8.8, 0.1, -11.9);
+        // Position Revenue Streams with adjustments: up 1x (Z: -11.9 to -10.5), right 1x (X: -8.8 to -6.4)
+        revenueRootMesh.position = new Vector3(-6.4, 0.1, -10.5);
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(8, 8, 8);
         
-        console.log(`📦 Revenue Streams positioned at (-8.8, 0.1, -11.9) with scale 8.0`);
+        console.log(`📦 Revenue Streams positioned at (-6.4, 0.1, -10.5) with scale 8.0`);
         
         // Apply basic material to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
