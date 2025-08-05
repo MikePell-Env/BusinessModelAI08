@@ -1315,8 +1315,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const max = boundingInfo.maximum;
                 
                 // Calculate rectangular path with proportional steps based on edge lengths
-                const padding = 0.001; // Small padding to ensure we stay on the surface
-                const topY = max.y + padding; // Slightly above the surface
+                const padding = 0.0005; // Minimal padding to hug the top surface
+                const topY = max.y + padding; // Hug the top surface closely
                 
                 // Calculate edge lengths for proportional speed
                 const widthLength = Math.abs(max.x - min.x);
@@ -1410,7 +1410,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     
                     // Check if animation should be paused (3D Top view)
                     if (!animationRef.isPaused) {
-                      animationTime += 0.25; // Even faster to address slow short edges
+                      animationTime += 0.5; // Double speed - faster movement around edges
                       
                       // Calculate position along the edge-based rectangular path
                       const effectivePathLength = pathPoints.length;
