@@ -1905,11 +1905,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Moving LEFT (decreasing X) to align with Customer Channels left edge
         // X-axis: negative = LEFT, positive = RIGHT
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
-        revenueRootMesh.position = new Vector3(0.5, 0.1, -10.5);
+        revenueRootMesh.position = new Vector3(-0.5, 0.1, -10.5);
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(8, 8, 8);
         
-        console.log(`📦 Revenue Streams positioned at (0.5, 0.1, -10.5) - moved LEFT to align with Customer Channels`);
+        console.log(`📦 Revenue Streams positioned at (-0.5, 0.1, -10.5) - moved further LEFT to align with Customer Channels`);
         
         // Apply basic material to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
