@@ -1884,21 +1884,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Parent to the main BMC root mesh to inherit transforms
-        if (rootMeshRef.current) {
-          revenueRootMesh.parent = rootMeshRef.current;
-        }
+        // Position Revenue Streams below Customer Channels with adequate spacing
+        // Based on STANDARD_POSITIONS: Customer Channels is at { x: 15, y: 0, z: -10 }
+        // Revenue Streams should be positioned below with spacing: { x: 15, y: 0, z: -18 }
+        // Converting to the actual coordinate system used by the GLB model
+        revenueRootMesh.position = new Vector3(2.2, 0.1, -2.8);
         
-        // Position below Customer Channels using BMC coordinate system
-        // Try positioning relative to the BMC layout - Customer Channels should be 
-        // at the right side, so Revenue Streams goes below it
-        revenueRootMesh.position = new Vector3(0.15, 0, 0.3);
-        
-        // Match the rotation and scale of the main BMC model components
+        // Match the rotation and scale of the main BMC model
         revenueRootMesh.rotation = Vector3.Zero();
-        revenueRootMesh.scaling = new Vector3(1, 1, 1);
+        revenueRootMesh.scaling = new Vector3(8, 8, 8);
         
-        console.log(`📦 Revenue Streams positioned at (0.15, 0, 0.3) relative to BMC root with scale 1.0`);
+        console.log(`📦 Revenue Streams positioned at (2.2, 0.1, -2.8) below Customer Channels with scale 8.0`);
         
         // Apply standard base color and interactivity to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
