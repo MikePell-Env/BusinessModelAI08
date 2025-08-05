@@ -1332,7 +1332,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 tracerSphere.isPickable = false;
                 
                 // Create a single stable trail line that gets updated safely
-                const maxTrailLength = 8;
+                const maxTrailLength = 4; // Shorter trail for smoother appearance
                 const trailPositions: Vector3[] = [];
                 
                 // Initialize trail positions with current position
@@ -1368,7 +1368,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     
                     // Check if animation should be paused (3D Top view)
                     if (!animationRef.isPaused) {
-                      animationTime += 0.025; // Slower for smoother edge following
+                      animationTime += 0.055; // Faster for smoother motion
                       
                       // Calculate position along the rectangular path
                       // Use pathPoints.length - 1 since we added duplicate start point
@@ -1386,9 +1386,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                       const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
                       tracerSphere.position = currentPos;
                       
-                      // Update trail positions much less frequently for better performance
+                      // Update trail positions more frequently for smoother trail
                       updateCounter++;
-                      if (updateCounter % 10 === 0) { // Update every 10th frame instead of 3rd
+                      if (updateCounter % 5 === 0) { // Update every 5th frame for smoother trail
                         // Shift trail positions
                         for (let i = trailPositions.length - 1; i > 0; i--) {
                           trailPositions[i] = trailPositions[i - 1].clone();
