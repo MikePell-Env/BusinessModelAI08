@@ -1863,6 +1863,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           applyDarkTopFace("Channels");
         }, 1500);
 
+        // Debug current coordinates to understand proper positioning
+        setTimeout(() => {
+          transformUtils.debugCoordinates();
+        }, 2000);
+
 
         
       } else {
@@ -1879,17 +1884,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Position directly below Customer Channels from top view perspective
-        // Based on the top view image, Revenue Streams should be positioned:
-        // - Aligned with Customer Channels horizontally (same X as Channels)
-        // - Below the main BMC layout (positive Z direction)
-        revenueRootMesh.position = new Vector3(1.0, 0.1, 1.8);
+        // Parent to the main BMC root mesh to inherit transforms
+        if (rootMeshRef.current) {
+          revenueRootMesh.parent = rootMeshRef.current;
+        }
         
-        // Match the rotation and scale of the main BMC model
+        // Position below Customer Channels using BMC coordinate system
+        // Try positioning relative to the BMC layout - Customer Channels should be 
+        // at the right side, so Revenue Streams goes below it
+        revenueRootMesh.position = new Vector3(0.15, 0, 0.3);
+        
+        // Match the rotation and scale of the main BMC model components
         revenueRootMesh.rotation = Vector3.Zero();
-        revenueRootMesh.scaling = new Vector3(8, 8, 8);
+        revenueRootMesh.scaling = new Vector3(1, 1, 1);
         
-        console.log(`📦 Revenue Streams positioned at (1.0, 0.1, 1.8) with scale 8.0`);
+        console.log(`📦 Revenue Streams positioned at (0.15, 0, 0.3) relative to BMC root with scale 1.0`);
         
         // Apply standard base color and interactivity to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
