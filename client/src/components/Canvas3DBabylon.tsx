@@ -1884,13 +1884,58 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`  Scale: (${channelsMesh.scaling.x.toFixed(3)}, ${channelsMesh.scaling.y.toFixed(3)}, ${channelsMesh.scaling.z.toFixed(3)})`);
           }
           
-          // Also debug Revenue Streams model loading status
+          // Measure Customer Segments dimensions for Revenue Streams width alignment
+          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
+          if (segmentsMesh) {
+            const boundingInfo = segmentsMesh.getBoundingInfo();
+            const worldMatrix = segmentsMesh.getWorldMatrix();
+            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
+            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
+            
+            console.log("🔍 Customer Segments Coordinates:");
+            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
+            console.log(`  Width: ${(max.x - min.x).toFixed(3)}`);
+            console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
+            console.log(`  Position: (${segmentsMesh.position.x.toFixed(3)}, ${segmentsMesh.position.y.toFixed(3)}, ${segmentsMesh.position.z.toFixed(3)})`);
+            console.log(`  Scale: (${segmentsMesh.scaling.x.toFixed(3)}, ${segmentsMesh.scaling.y.toFixed(3)}, ${segmentsMesh.scaling.z.toFixed(3)})`);
+          }
+          
+          // Calculate Revenue Streams scaling to align right edge with Customer Segments
           const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
-          if (revenueStreamsMesh) {
-            console.log("✅ Revenue Streams mesh found in scene!");
+          if (revenueStreamsMesh && segmentsMesh) {
+            // Get current Revenue Streams dimensions
+            const revBoundingInfo = revenueStreamsMesh.getBoundingInfo();
+            const revWorldMatrix = revenueStreamsMesh.getWorldMatrix();
+            const revMin = Vector3.TransformCoordinates(revBoundingInfo.minimum, revWorldMatrix);
+            const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
+            const currentRevWidth = revMax.x - revMin.x;
+            
+            // Get Customer Segments right edge
+            const segBoundingInfo = segmentsMesh.getBoundingInfo();
+            const segWorldMatrix = segmentsMesh.getWorldMatrix();
+            const segMin = Vector3.TransformCoordinates(segBoundingInfo.minimum, segWorldMatrix);
+            const segMax = Vector3.TransformCoordinates(segBoundingInfo.maximum, segWorldMatrix);
+            
+            // Calculate required width: Revenue Streams left edge (0.467) to Customer Segments right edge
+            const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
+            const scalingRatio = requiredWidth / currentRevWidth;
+            
+            // Apply only X-axis scaling to change width while keeping position
+            const currentScale = revenueStreamsMesh.scaling;
+            revenueStreamsMesh.scaling = new Vector3(currentScale.x * scalingRatio, currentScale.y, currentScale.z);
+            
+            console.log("🔧 Revenue Streams Width Adjustment:");
+            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            console.log(`  Required width: ${requiredWidth.toFixed(3)}`);
+            console.log(`  Scaling ratio: ${scalingRatio.toFixed(3)}`);
+            console.log(`  New X scale: ${(currentScale.x * scalingRatio).toFixed(3)}`);
+            console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
+            
+            console.log("✅ Revenue Streams mesh found and resized!");
             console.log(`  Has label plane children: ${revenueStreamsMesh.getChildMeshes().length > 0}`);
           } else {
-            console.log("❌ Revenue Streams mesh NOT found in scene - model may not have loaded properly");
+            console.log("❌ Revenue Streams mesh or Customer Segments NOT found - cannot resize width");
           }
         }, 2000);
 
