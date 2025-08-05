@@ -1970,12 +1970,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Calculate required width: Revenue Streams left edge (0.467) to Customer Segments right edge
             const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
             
-            // Set Revenue Streams width to exactly 8.5 units
-            const targetWidth = 8.5;
+            // Set Revenue Streams width to exactly 7.5 units
+            const targetWidth = 7.5;
             const baseWidth = currentRevWidth / revenueStreamsMesh.scaling.x; // Get unscaled width
             const requiredScaleX = targetWidth / baseWidth;
             
-            // Apply exact X-axis scaling for 8.5 width
+            // Apply exact X-axis scaling for 7.5 width
             revenueStreamsMesh.scaling.x = requiredScaleX;
             
             console.log("🔧 DELAYED Revenue Streams Width Adjustment:");
@@ -1984,7 +1984,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`  Base width (unscaled): ${baseWidth.toFixed(3)}`);
             console.log(`  Required X scale: ${requiredScaleX.toFixed(3)}`);
             console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
-            console.log("✅ Revenue Streams width set to exactly 8.5 units!");
+            console.log("✅ Revenue Streams width set to exactly 7.5 units!");
           } else {
             console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
           }
