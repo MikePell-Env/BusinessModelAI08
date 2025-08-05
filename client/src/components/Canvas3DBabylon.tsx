@@ -1901,14 +1901,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         const revenueRootMesh = result.meshes[0];
         
-        // Position Revenue Streams more to the left (where it was originally working better)
+        // Position Revenue Streams to align with LEFT EDGE of Customer Channels
+        // From console logs: Customer Channels left edge = 0.467
         // X-axis: negative = LEFT, positive = RIGHT
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
-        revenueRootMesh.position = new Vector3(0.5, 0.1, -10.5);
+        revenueRootMesh.position = new Vector3(-0.533, 0.1, -10.5); // Adjusted to align left edges
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(8, 8, 8);
         
-        console.log(`📦 Revenue Streams positioned at (0.5, 0.1, -10.5) - moved more to the left`);
+        console.log(`📦 Revenue Streams positioned at (-0.533, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
         // Apply basic material and label to Revenue Streams mesh
         result.meshes.forEach((mesh, index) => {
@@ -1937,9 +1938,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.position.y = center.y + size.y * 0.6;
             labelPlane.position.z = center.z - size.z * 0.3; // Move down toward bottom of shape
             
-            // Rotate to be flat on top and then 90 degrees counterclockwise to match other labels
+            // Rotate to be flat on top (same as other BMC labels)
             labelPlane.rotation.x = Math.PI / 2;
-            labelPlane.rotation.y = -Math.PI / 2; // 90 degrees counterclockwise
             
             // Create bright material for white text (same as Customer Channels)
             const labelMaterial = new StandardMaterial("revenueStreamsLabelMat", scene);
