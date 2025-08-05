@@ -1308,16 +1308,39 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 const min = boundingInfo.minimum;
                 const max = boundingInfo.maximum;
                 
-                // Calculate rectangular path exactly on top surface outline with padding
+                // Calculate rectangular path that follows only the edges with many intermediate points
                 const padding = 0.001; // Small padding to ensure we stay on the surface
                 const topY = max.y + padding; // Slightly above the surface
-                const pathPoints = [
-                  new Vector3(min.x, topY, min.z), // Bottom-left corner
-                  new Vector3(max.x, topY, min.z), // Bottom-right corner
-                  new Vector3(max.x, topY, max.z), // Top-right corner
-                  new Vector3(min.x, topY, max.z), // Top-left corner
-                  new Vector3(min.x, topY, min.z), // Back to start to close the loop
-                ];
+                const edgeSteps = 10; // Number of steps along each edge for smooth following
+                const pathPoints: Vector3[] = [];
+                
+                // Bottom edge (min.x, min.z) to (max.x, min.z)
+                for (let i = 0; i <= edgeSteps; i++) {
+                  const t = i / edgeSteps;
+                  const x = min.x + (max.x - min.x) * t;
+                  pathPoints.push(new Vector3(x, topY, min.z));
+                }
+                
+                // Right edge (max.x, min.z) to (max.x, max.z) - skip first point to avoid duplicate
+                for (let i = 1; i <= edgeSteps; i++) {
+                  const t = i / edgeSteps;
+                  const z = min.z + (max.z - min.z) * t;
+                  pathPoints.push(new Vector3(max.x, topY, z));
+                }
+                
+                // Top edge (max.x, max.z) to (min.x, max.z) - skip first point to avoid duplicate
+                for (let i = 1; i <= edgeSteps; i++) {
+                  const t = i / edgeSteps;
+                  const x = max.x - (max.x - min.x) * t;
+                  pathPoints.push(new Vector3(x, topY, max.z));
+                }
+                
+                // Left edge (min.x, max.z) to (min.x, min.z) - skip first and last points to avoid duplicates
+                for (let i = 1; i < edgeSteps; i++) {
+                  const t = i / edgeSteps;
+                  const z = max.z - (max.z - min.z) * t;
+                  pathPoints.push(new Vector3(min.x, topY, z));
+                }
                 
                 // Create tiny bright blue sphere (tracer head)
                 const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.0015 }, scene);
@@ -1359,7 +1382,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 
                 // Animation variables
                 let animationTime = 0;
-                const totalPathLength = pathPoints.length - 1; // Subtract 1 since we added duplicate start point
+                const totalPathLength = pathPoints.length; // Use actual path length
                 let updateCounter = 0;
                 
                 const animateTracer = () => {
@@ -1370,19 +1393,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                     if (!animationRef.isPaused) {
                       animationTime += 0.055; // Faster for smoother motion
                       
-                      // Calculate position along the rectangular path
-                      // Use pathPoints.length - 1 since we added duplicate start point
-                      const effectivePathLength = pathPoints.length - 1;
+                      // Calculate position along the edge-based rectangular path
+                      const effectivePathLength = pathPoints.length;
                       const progress = (animationTime % (effectivePathLength * 2)) / (effectivePathLength * 2);
                       const scaledProgress = progress * effectivePathLength;
                       const segmentIndex = Math.floor(scaledProgress) % effectivePathLength;
                       const segmentProgress = scaledProgress - Math.floor(scaledProgress);
                       
-                      // Get current and next points, ensuring we stay within bounds
+                      // Get current and next points, wrapping around for smooth loop
                       const currentPoint = pathPoints[segmentIndex];
                       const nextPoint = pathPoints[(segmentIndex + 1) % pathPoints.length];
                       
-                      // Interpolate position smoothly along the edge
+                      // Interpolate position smoothly along the rectangular edges only
                       const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
                       tracerSphere.position = currentPos;
                       
