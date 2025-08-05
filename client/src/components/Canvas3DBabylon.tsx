@@ -1923,9 +1923,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const center = boundingInfo.boundingBox.center;
             const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
             
-            // Create label plane with proper aspect ratio (preserve original proportions)
-            const labelWidth = size.x * 0.6; 
-            const labelHeight = labelWidth * 0.3; // Keep natural aspect ratio without squishing 
+            // Create label plane with larger size to match other BMC labels visually
+            const labelWidth = size.x * 0.8; // Much larger to match other labels
+            const labelHeight = labelWidth * 0.25; // Proper aspect ratio for readability 
             console.log(`Revenue Streams Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
             
             const labelPlane = MeshBuilder.CreatePlane("revenueStreamsLabel", {
@@ -1938,8 +1938,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.position.y = center.y + size.y * 0.6;
             labelPlane.position.z = center.z - size.z * 0.3; // Move down toward bottom of shape
             
-            // Rotate to be flat on top (same as other BMC labels)
+            // Rotate to be flat on top and then 90 degrees counterclockwise to read properly
             labelPlane.rotation.x = Math.PI / 2;
+            labelPlane.rotation.y = -Math.PI / 2; // 90 degrees counterclockwise for proper text orientation
             
             // Create bright material for white text (same as Customer Channels)
             const labelMaterial = new StandardMaterial("revenueStreamsLabelMat", scene);
