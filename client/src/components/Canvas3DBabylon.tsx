@@ -1863,6 +1863,97 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           applyDarkTopFace("Channels");
         }, 1500);
 
+        // Create Revenue Streams box positioned like Customer Segments but in bottom-right
+        setTimeout(() => {
+          console.log("📦 Creating Revenue Streams box geometry");
+          
+          // Create box with similar dimensions to Customer Segments
+          const revenueStreamsBox = MeshBuilder.CreateBox("revenueStreamsBox", {
+            width: 2.8,  // Similar width to Customer Segments
+            height: 0.3, // Same height as other BMC sections
+            depth: 1.4   // Similar depth to Customer Segments
+          }, scene);
+          
+          // Position in bottom-right based on the diagram
+          revenueStreamsBox.position = new Vector3(2.2, 0.15, -2.5); // Bottom-right position
+          revenueStreamsBox.scaling = new Vector3(8, 8, 8); // Match the main BMC model scaling
+          
+          // Create material matching other BMC sections
+          const revenueStreamsMaterial = new StandardMaterial("revenueStreamsMat", scene) as any;
+          const baseColor = new Color3(0.07, 0.07, 0.07); // Standard base color
+          
+          revenueStreamsMaterial.diffuseColor = baseColor;
+          revenueStreamsMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+          revenueStreamsMaterial.specularPower = 32;
+          revenueStreamsMaterial.baseColor = baseColor;
+          
+          // Store original colors for hover behavior
+          revenueStreamsMaterial.originalBaseColor = baseColor.clone();
+          revenueStreamsMaterial.originalDiffuseColor = baseColor.clone();
+          
+          revenueStreamsBox.material = revenueStreamsMaterial;
+          
+          // Store section name for identification
+          (revenueStreamsBox as any).bmcSectionName = "Revenue Streams";
+          
+          // Create transform node for coordinate control
+          const revenueStreamsTransform = new TransformNode("revenueStreamsTransform", scene);
+          revenueStreamsBox.parent = revenueStreamsTransform;
+          (revenueStreamsBox as any).bmcTransformNode = revenueStreamsTransform;
+          
+          // Add to transformUtils for coordinate system management
+          if (transformUtils && transformUtils.sectionControllers) {
+            transformUtils.sectionControllers["Revenue Streams"] = {
+              mesh: revenueStreamsBox,
+              transformNode: revenueStreamsTransform,
+              originalHeight: 0.3
+            };
+          }
+          
+          // Add interactive behavior similar to other BMC sections
+          const createInteractiveBehavior = () => {
+            const material = revenueStreamsBox.material as any;
+            const originalBaseColor = material.originalBaseColor;
+            const originalDiffuseColor = material.originalDiffuseColor;
+            
+            // Hover behavior
+            revenueStreamsBox.actionManager = new ActionManager(scene);
+            
+            revenueStreamsBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              if (!selectedObject) {
+                material.baseColor = new Color3(0.0, 0.3, 0.8); // Bright blue hover
+                material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+                console.log(`👆 Revenue Streams hovered - blue color applied`);
+              }
+            }));
+            
+            revenueStreamsBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              if (!selectedObject) {
+                material.baseColor = originalBaseColor;
+                material.diffuseColor = originalDiffuseColor;
+                console.log(`👋 Revenue Streams hover ended - original color restored`);
+              }
+            }));
+            
+            // Click behavior for selection
+            revenueStreamsBox.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              if (selectedObject === "Revenue Streams") {
+                // Second click - show content panel
+                console.log(`📋 Revenue Streams content panel opened`);
+                // Note: Content panel logic would be added here
+              } else {
+                // First click - select object
+                setSelectedObject("Revenue Streams");
+                console.log(`🔒 Selected: Revenue Streams blue selected, others 50% opacity`);
+              }
+            }));
+          };
+          
+          createInteractiveBehavior();
+          
+          console.log(`✅ Revenue Streams box created at position (${revenueStreamsBox.position.x}, ${revenueStreamsBox.position.y}, ${revenueStreamsBox.position.z})`);
+        }, 2000);
+
 
         
       } else {
