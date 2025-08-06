@@ -242,6 +242,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const rootMeshRef = useRef<AbstractMesh | null>(null);
   const { saveCamera3DState, getCamera3DState, is3D, isOrthographic, setSelectedObject, getSelectedObject, setOriginalHeights, getOriginalHeights } = useCanvas();
   
+  // Unified transformation system for all BMC objects
+  const unifiedTransformRef = useRef<UnifiedBMCTransformSystem>(new UnifiedBMCTransformSystem());
+  
   // Section controllers for consistent manipulation (additive, doesn't change existing behavior)
   const sectionControllersRef = useRef<Map<string, BMCSectionController>>(new Map());
   
