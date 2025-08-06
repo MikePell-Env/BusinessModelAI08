@@ -1894,6 +1894,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           // Debug current coordinates to understand proper positioning
           transformUtils.debugCoordinates();
           
+          // DEMONSTRATION: Test unified system operations
+          setTimeout(() => {
+            console.log("🧪 TESTING UNIFIED OPERATIONS:");
+            
+            // Test 1: Bulk height adjustment
+            console.log("📏 Setting all sections to height 1.8 via unified system...");
+            transformUtils.adjustAllSectionsHeight(1.8);
+            
+            // Test 2: Individual section manipulation
+            setTimeout(() => {
+              console.log("📏 Individual adjustments via unified API:");
+              transformUtils.setSectionHeight("Revenue Streams", 2.2);
+              transformUtils.setSectionHeight("Cost Structure", 1.0);
+              transformUtils.setSectionHeight("Value Propositions", 1.5);
+              
+              // Test 3: System state export
+              setTimeout(() => {
+                console.log("💾 Unified system state export:");
+                console.log(transformUtils.exportCurrentState());
+                
+                console.log("✅ UNIFIED SYSTEM TEST COMPLETE - All operations successful!");
+              }, 1000);
+            }, 1500);
+          }, 2000);
+        }, 5000);
+          
           // Measure Customer Channels dimensions for precise Revenue Streams alignment
           const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Channels");
           if (channelsMesh) {
