@@ -145,25 +145,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         };
       });
       return state;
-    },
-    
-    // UNIFIED OPERATION: Demonstrate how easy changes should be
-    adjustAllSectionsHeight: (height: number) => {
-      console.log(`🎛️ UNIFIED: Setting all sections to height ${height}`);
-      sectionControllersRef.current.forEach((controller, sectionName) => {
-        controller.setHeight(height);
-        console.log(`📏 ${sectionName}: height set to ${height} via unified system`);
-      });
-    },
-    
-    // UNIFIED OPERATION: Get all section names
-    getAllSectionNames: (): string[] => {
-      return Array.from(sectionControllersRef.current.keys());
-    },
-    
-    // UNIFIED OPERATION: Check if section exists in unified system
-    hasSection: (sectionName: string): boolean => {
-      return sectionControllersRef.current.has(sectionName);
     }
   };
   
@@ -1882,47 +1863,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           applyDarkTopFace("Channels");
         }, 1500);
 
-        // Test unified system integration for all sections
+        // Debug current coordinates to understand proper positioning
         setTimeout(() => {
-          console.log("🎛️ UNIFIED SYSTEM STATUS:");
-          console.log(`Total sections in unified system: ${transformUtils.getAllSectionNames().length}`);
-          console.log(`Sections: ${transformUtils.getAllSectionNames().join(", ")}`);
-          console.log(`Revenue Streams integrated: ${transformUtils.hasSection("Revenue Streams")}`);
-          console.log(`Cost Structure integrated: ${transformUtils.hasSection("Cost Structure")}`);
-          console.log(`Value Propositions integrated: ${transformUtils.hasSection("Value Propositions")}`);
-          
-          // Debug current coordinates to understand proper positioning
           transformUtils.debugCoordinates();
           
-          // DEMONSTRATION: Test unified system operations
-          setTimeout(() => {
-            console.log("🧪 TESTING UNIFIED OPERATIONS:");
-            
-            // Test 1: Bulk height adjustment
-            console.log("📏 Setting all sections to height 1.8 via unified system...");
-            transformUtils.adjustAllSectionsHeight(1.8);
-            
-            // Test 2: Individual section manipulation
-            setTimeout(() => {
-              console.log("📏 Individual adjustments via unified API:");
-              transformUtils.setSectionHeight("Revenue Streams", 2.2);
-              transformUtils.setSectionHeight("Cost Structure", 1.0);
-              transformUtils.setSectionHeight("Value Propositions", 1.5);
-              
-              // Test 3: System state export
-              setTimeout(() => {
-                console.log("💾 Unified system state export:");
-                console.log(transformUtils.exportCurrentState());
-                
-                console.log("✅ UNIFIED SYSTEM TEST COMPLETE - All operations successful!");
-              }, 1000);
-            }, 1500);
-          }, 2000);
-        }, 5000);
-        
-        // Measure Customer Channels dimensions for precise Revenue Streams alignment
-        const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Channels");
-        if (channelsMesh) {
+          // Measure Customer Channels dimensions for precise Revenue Streams alignment
+          const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Channels");
+          if (channelsMesh) {
             const boundingInfo = channelsMesh.getBoundingInfo();
             const worldMatrix = channelsMesh.getWorldMatrix();
             const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
@@ -1935,11 +1882,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
             console.log(`  Position: (${channelsMesh.position.x.toFixed(3)}, ${channelsMesh.position.y.toFixed(3)}, ${channelsMesh.position.z.toFixed(3)})`);
             console.log(`  Scale: (${channelsMesh.scaling.x.toFixed(3)}, ${channelsMesh.scaling.y.toFixed(3)}, ${channelsMesh.scaling.z.toFixed(3)})`);
-        }
-        
-        // Measure Customer Segments dimensions for Revenue Streams width alignment
-        const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
-        if (segmentsMesh) {
+          }
+          
+          // Measure Customer Segments dimensions for Revenue Streams width alignment
+          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
+          if (segmentsMesh) {
             const boundingInfo = segmentsMesh.getBoundingInfo();
             const worldMatrix = segmentsMesh.getWorldMatrix();
             const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
@@ -1952,12 +1899,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
             console.log(`  Position: (${segmentsMesh.position.x.toFixed(3)}, ${segmentsMesh.position.y.toFixed(3)}, ${segmentsMesh.position.z.toFixed(3)})`);
             console.log(`  Scale: (${segmentsMesh.scaling.x.toFixed(3)}, ${segmentsMesh.scaling.y.toFixed(3)}, ${segmentsMesh.scaling.z.toFixed(3)})`);
-        }
-        
-        // Calculate Revenue Streams scaling to align right edge with Customer Segments
-        setTimeout(() => {
+          }
+          
+          // Calculate Revenue Streams scaling to align right edge with Customer Segments
           const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
-          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
           if (revenueStreamsMesh && segmentsMesh) {
             // Get current Revenue Streams dimensions
             const revBoundingInfo = revenueStreamsMesh.getBoundingInfo();
@@ -2093,11 +2038,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
         revenueRootMesh.position = new Vector3(-0.221, 0.1, -10.5); // Adjusted to align left edges
         revenueRootMesh.rotation = Vector3.Zero();
-        revenueRootMesh.scaling = new Vector3(7.7, 0.5, 8); // Flatter height for proper 3D view appearance
-        
-        console.log(`✅ Revenue Streams positioned at (${revenueRootMesh.position.x.toFixed(3)}, ${revenueRootMesh.position.y.toFixed(3)}, ${revenueRootMesh.position.z.toFixed(3)}) - keeping as separate object for now`);
-        
-
+        revenueRootMesh.scaling = new Vector3(7.7, 8, 8);
         
         console.log(`📦 Revenue Streams positioned at (-0.533, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
@@ -2124,11 +2065,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).originalColor = baseColor.clone();
             (mesh as any).isClicked = false;
             (mesh as any).hasTexture = false; // Revenue Streams uses solid color
-            
-            // INTEGRATE WITH UNIFIED SYSTEM: Create BMCSectionController
-            const controller = new BMCSectionController(mesh, "Revenue Streams");
-            sectionControllersRef.current.set("Revenue Streams", controller);
-            console.log(`🎛️ Revenue Streams integrated into unified geometry system`);
             
             // Create content panel for consistency (hidden)
             const revenueContentPanel = new Rectangle(`revenueStreamsContentPanel`);
@@ -2289,11 +2225,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Place in lower left area with same width as Revenue Streams
         costRootMesh.position = new Vector3(-10.1, 0.1, -10.5); // Shifted farther left
         costRootMesh.rotation = Vector3.Zero();
-        costRootMesh.scaling = new Vector3(8.0, 0.5, 8); // Width set to 8.0, flatter height for proper 3D view
-        
-        console.log(`✅ Cost Structure positioned at (${costRootMesh.position.x.toFixed(3)}, ${costRootMesh.position.y.toFixed(3)}, ${costRootMesh.position.z.toFixed(3)}) - keeping as separate object for now`);
-        
-
+        costRootMesh.scaling = new Vector3(8.0, 8, 8); // Width set to 8.0
         
         console.log(`📦 Cost Structure positioned at (-10.1, 0.1, -10.5) - width 8.0, positioned farther left`);
         
@@ -2320,11 +2252,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).originalColor = baseColor.clone();
             (mesh as any).isClicked = false;
             (mesh as any).hasTexture = false; // Cost Structure uses solid color
-            
-            // INTEGRATE WITH UNIFIED SYSTEM: Create BMCSectionController
-            const controller = new BMCSectionController(mesh, "Cost Structure");
-            sectionControllersRef.current.set("Cost Structure", controller);
-            console.log(`🎛️ Cost Structure integrated into unified geometry system`);
             
             // Create content panel for consistency (hidden)
             const costContentPanel = new Rectangle(`costStructureContentPanel`);
@@ -2578,8 +2505,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.adjustEntireBMC({position, rotation, scale}) - entire collection");
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
-    
-
 
     // SIMPLE: Save original heights when GLB model first loads
     const saveOriginalHeights = () => {
