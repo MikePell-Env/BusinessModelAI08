@@ -145,6 +145,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         };
       });
       return state;
+    },
+    
+    // UNIFIED OPERATION: Demonstrate how easy changes should be
+    adjustAllSectionsHeight: (height: number) => {
+      console.log(`🎛️ UNIFIED: Setting all sections to height ${height}`);
+      sectionControllersRef.current.forEach((controller, sectionName) => {
+        controller.setHeight(height);
+        console.log(`📏 ${sectionName}: height set to ${height} via unified system`);
+      });
+    },
+    
+    // UNIFIED OPERATION: Get all section names
+    getAllSectionNames: (): string[] => {
+      return Array.from(sectionControllersRef.current.keys());
+    },
+    
+    // UNIFIED OPERATION: Check if section exists in unified system
+    hasSection: (sectionName: string): boolean => {
+      return sectionControllersRef.current.has(sectionName);
     }
   };
   
@@ -1863,8 +1882,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           applyDarkTopFace("Channels");
         }, 1500);
 
-        // Debug current coordinates to understand proper positioning
+        // Test unified system integration for all sections
         setTimeout(() => {
+          console.log("🎛️ UNIFIED SYSTEM STATUS:");
+          console.log(`Total sections in unified system: ${transformUtils.getAllSectionNames().length}`);
+          console.log(`Sections: ${transformUtils.getAllSectionNames().join(", ")}`);
+          console.log(`Revenue Streams integrated: ${transformUtils.hasSection("Revenue Streams")}`);
+          console.log(`Cost Structure integrated: ${transformUtils.hasSection("Cost Structure")}`);
+          console.log(`Value Propositions integrated: ${transformUtils.hasSection("Value Propositions")}`);
+          
+          // Debug current coordinates to understand proper positioning
           transformUtils.debugCoordinates();
           
           // Measure Customer Channels dimensions for precise Revenue Streams alignment
@@ -2066,6 +2093,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).isClicked = false;
             (mesh as any).hasTexture = false; // Revenue Streams uses solid color
             
+            // INTEGRATE WITH UNIFIED SYSTEM: Create BMCSectionController
+            const controller = new BMCSectionController(mesh, "Revenue Streams");
+            sectionControllersRef.current.set("Revenue Streams", controller);
+            console.log(`🎛️ Revenue Streams integrated into unified geometry system`);
+            
             // Create content panel for consistency (hidden)
             const revenueContentPanel = new Rectangle(`revenueStreamsContentPanel`);
             revenueContentPanel.isVisible = false;
@@ -2252,6 +2284,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).originalColor = baseColor.clone();
             (mesh as any).isClicked = false;
             (mesh as any).hasTexture = false; // Cost Structure uses solid color
+            
+            // INTEGRATE WITH UNIFIED SYSTEM: Create BMCSectionController
+            const controller = new BMCSectionController(mesh, "Cost Structure");
+            sectionControllersRef.current.set("Cost Structure", controller);
+            console.log(`🎛️ Cost Structure integrated into unified geometry system`);
             
             // Create content panel for consistency (hidden)
             const costContentPanel = new Rectangle(`costStructureContentPanel`);
