@@ -2093,7 +2093,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
         revenueRootMesh.position = new Vector3(-0.221, 0.1, -10.5); // Adjusted to align left edges
         revenueRootMesh.rotation = Vector3.Zero();
-        revenueRootMesh.scaling = new Vector3(7.7, 8, 8);
+        revenueRootMesh.scaling = new Vector3(7.7, 0.5, 8); // Flatter height for proper 3D view appearance
         
         console.log(`✅ Revenue Streams positioned at (${revenueRootMesh.position.x.toFixed(3)}, ${revenueRootMesh.position.y.toFixed(3)}, ${revenueRootMesh.position.z.toFixed(3)}) - keeping as separate object for now`);
         
@@ -2289,7 +2289,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Place in lower left area with same width as Revenue Streams
         costRootMesh.position = new Vector3(-10.1, 0.1, -10.5); // Shifted farther left
         costRootMesh.rotation = Vector3.Zero();
-        costRootMesh.scaling = new Vector3(8.0, 8, 8); // Width set to 8.0
+        costRootMesh.scaling = new Vector3(8.0, 0.5, 8); // Width set to 8.0, flatter height for proper 3D view
         
         console.log(`✅ Cost Structure positioned at (${costRootMesh.position.x.toFixed(3)}, ${costRootMesh.position.y.toFixed(3)}, ${costRootMesh.position.z.toFixed(3)}) - keeping as separate object for now`);
         
