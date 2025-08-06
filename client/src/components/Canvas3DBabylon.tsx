@@ -1919,10 +1919,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }, 1500);
           }, 2000);
         }, 5000);
-          
-          // Measure Customer Channels dimensions for precise Revenue Streams alignment
-          const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Channels");
-          if (channelsMesh) {
+        
+        // Measure Customer Channels dimensions for precise Revenue Streams alignment
+        const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Channels");
+        if (channelsMesh) {
             const boundingInfo = channelsMesh.getBoundingInfo();
             const worldMatrix = channelsMesh.getWorldMatrix();
             const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
@@ -1935,11 +1935,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
             console.log(`  Position: (${channelsMesh.position.x.toFixed(3)}, ${channelsMesh.position.y.toFixed(3)}, ${channelsMesh.position.z.toFixed(3)})`);
             console.log(`  Scale: (${channelsMesh.scaling.x.toFixed(3)}, ${channelsMesh.scaling.y.toFixed(3)}, ${channelsMesh.scaling.z.toFixed(3)})`);
-          }
-          
-          // Measure Customer Segments dimensions for Revenue Streams width alignment
-          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
-          if (segmentsMesh) {
+        }
+        
+        // Measure Customer Segments dimensions for Revenue Streams width alignment
+        const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
+        if (segmentsMesh) {
             const boundingInfo = segmentsMesh.getBoundingInfo();
             const worldMatrix = segmentsMesh.getWorldMatrix();
             const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
@@ -1952,10 +1952,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
             console.log(`  Position: (${segmentsMesh.position.x.toFixed(3)}, ${segmentsMesh.position.y.toFixed(3)}, ${segmentsMesh.position.z.toFixed(3)})`);
             console.log(`  Scale: (${segmentsMesh.scaling.x.toFixed(3)}, ${segmentsMesh.scaling.y.toFixed(3)}, ${segmentsMesh.scaling.z.toFixed(3)})`);
-          }
-          
-          // Calculate Revenue Streams scaling to align right edge with Customer Segments
+        }
+        
+        // Calculate Revenue Streams scaling to align right edge with Customer Segments
+        setTimeout(() => {
           const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
+          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
           if (revenueStreamsMesh && segmentsMesh) {
             // Get current Revenue Streams dimensions
             const revBoundingInfo = revenueStreamsMesh.getBoundingInfo();
@@ -2568,6 +2570,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.adjustEntireBMC({position, rotation, scale}) - entire collection");
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
+    
+    // SHIFT ENTIRE BMC 1.0 UNIT TO THE RIGHT
+    setTimeout(() => {
+      console.log("🔄 SHIFTING ENTIRE BMC 1.0 UNIT TO THE RIGHT...");
+      adjustEntireBMC({ 
+        position: new Vector3(1.0, 0, 0) // Move right by 1.0 unit on X-axis
+      });
+      console.log("✅ BMC shift completed - entire structure moved 1.0 unit right");
+    }, 1000);
 
     // SIMPLE: Save original heights when GLB model first loads
     const saveOriginalHeights = () => {
