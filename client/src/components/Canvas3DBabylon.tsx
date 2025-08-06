@@ -2159,11 +2159,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // X-axis: negative = LEFT, positive = RIGHT
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
         // Place in lower left area with same width as Revenue Streams
-        costRootMesh.position = new Vector3(-9.85, 0.1, -10.5); // Shifted slightly left
+        costRootMesh.position = new Vector3(-10.1, 0.1, -10.5); // Shifted farther left
         costRootMesh.rotation = Vector3.Zero();
         costRootMesh.scaling = new Vector3(8.15, 8, 8); // Width set to 8.15
         
-        console.log(`📦 Cost Structure positioned at (-9.85, 0.1, -10.5) - width 8.15, shifted left`);
+        console.log(`📦 Cost Structure positioned at (-10.1, 0.1, -10.5) - width 8.15, shifted farther left`);
         
         // Apply basic material and label to Cost Structure mesh  
         console.log(`🔍 Cost Structure meshes found: ${result.meshes.length}`);
