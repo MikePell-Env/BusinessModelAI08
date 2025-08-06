@@ -2095,35 +2095,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(7.7, 8, 8);
         
-        // Parent Revenue Streams to master transform node while preserving current position
+        console.log(`✅ Revenue Streams positioned at (${revenueRootMesh.position.x.toFixed(3)}, ${revenueRootMesh.position.y.toFixed(3)}, ${revenueRootMesh.position.z.toFixed(3)}) - keeping as separate object for now`);
+        
+        // Store reference for unified transform operations
         setTimeout(() => {
-          if (rootMeshRef.current) {
-            console.log("🔗 Parenting Revenue Streams to master transform node...");
-            
-            // Store current world position before parenting
-            const currentWorldPos = revenueRootMesh.getAbsolutePosition();
-            console.log(`Revenue Streams world pos before parenting: (${currentWorldPos.x.toFixed(3)}, ${currentWorldPos.y.toFixed(3)}, ${currentWorldPos.z.toFixed(3)})`);
-            
-            // Parent to root mesh
-            revenueRootMesh.setParent(rootMeshRef.current);
-            
-            // Calculate local position to maintain world position
-            const parentWorldPos = rootMeshRef.current.getAbsolutePosition();
-            const localPos = currentWorldPos.subtract(parentWorldPos);
-            
-            revenueRootMesh.position = localPos;
-            
-            // Ensure visibility
-            revenueRootMesh.setEnabled(true);
-            revenueRootMesh.isVisible = true;
-            
-            console.log(`✅ Revenue Streams parented - local pos: (${localPos.x.toFixed(3)}, ${localPos.y.toFixed(3)}, ${localPos.z.toFixed(3)})`);
-            console.log(`✅ Revenue Streams final world pos: (${revenueRootMesh.getAbsolutePosition().x.toFixed(3)}, ${revenueRootMesh.getAbsolutePosition().y.toFixed(3)}, ${revenueRootMesh.getAbsolutePosition().z.toFixed(3)})`);
-            console.log(`✅ Revenue Streams visibility: enabled=${revenueRootMesh.isEnabled()}, visible=${revenueRootMesh.isVisible}`);
-          } else {
-            console.log("❌ Master transform node not available for Revenue Streams parenting");
+          if (transformUtils && transformUtils.addExternalObject) {
+            transformUtils.addExternalObject("Revenue Streams", revenueRootMesh);
+            console.log("✅ Revenue Streams registered with transform utilities for unified operations");
           }
-        }, 500);
+        }, 1000);
         
         console.log(`📦 Revenue Streams positioned at (-0.533, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
@@ -2317,35 +2297,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         costRootMesh.rotation = Vector3.Zero();
         costRootMesh.scaling = new Vector3(8.0, 8, 8); // Width set to 8.0
         
-        // Parent Cost Structure to master transform node while preserving current position
+        console.log(`✅ Cost Structure positioned at (${costRootMesh.position.x.toFixed(3)}, ${costRootMesh.position.y.toFixed(3)}, ${costRootMesh.position.z.toFixed(3)}) - keeping as separate object for now`);
+        
+        // Store reference for unified transform operations  
         setTimeout(() => {
-          if (rootMeshRef.current) {
-            console.log("🔗 Parenting Cost Structure to master transform node...");
-            
-            // Store current world position before parenting
-            const currentWorldPos = costRootMesh.getAbsolutePosition();
-            console.log(`Cost Structure world pos before parenting: (${currentWorldPos.x.toFixed(3)}, ${currentWorldPos.y.toFixed(3)}, ${currentWorldPos.z.toFixed(3)})`);
-            
-            // Parent to root mesh
-            costRootMesh.setParent(rootMeshRef.current);
-            
-            // Calculate local position to maintain world position
-            const parentWorldPos = rootMeshRef.current.getAbsolutePosition();
-            const localPos = currentWorldPos.subtract(parentWorldPos);
-            
-            costRootMesh.position = localPos;
-            
-            // Ensure visibility
-            costRootMesh.setEnabled(true);
-            costRootMesh.isVisible = true;
-            
-            console.log(`✅ Cost Structure parented - local pos: (${localPos.x.toFixed(3)}, ${localPos.y.toFixed(3)}, ${localPos.z.toFixed(3)})`);
-            console.log(`✅ Cost Structure final world pos: (${costRootMesh.getAbsolutePosition().x.toFixed(3)}, ${costRootMesh.getAbsolutePosition().y.toFixed(3)}, ${costRootMesh.getAbsolutePosition().z.toFixed(3)})`);
-            console.log(`✅ Cost Structure visibility: enabled=${costRootMesh.isEnabled()}, visible=${costRootMesh.isVisible}`);
-          } else {
-            console.log("❌ Master transform node not available for Cost Structure parenting");
+          if (transformUtils && transformUtils.addExternalObject) {
+            transformUtils.addExternalObject("Cost Structure", costRootMesh);
+            console.log("✅ Cost Structure registered with transform utilities for unified operations");
           }
-        }, 500);
+        }, 1000);
         
         console.log(`📦 Cost Structure positioned at (-10.1, 0.1, -10.5) - width 8.0, positioned farther left`);
         
