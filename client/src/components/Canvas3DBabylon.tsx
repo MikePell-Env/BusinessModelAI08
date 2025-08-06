@@ -2571,8 +2571,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
     
-    // SHIFT ENTIRE BMC 1.0 UNIT TO THE RIGHT
-
+    // Shift entire BMC structure 1.0 unit to the right using topmost transform
+    setTimeout(() => {
+      console.log("🔄 Shifting entire BMC 1.0 unit to the right using topmost transform...");
+      if (adjustEntireBMC) {
+        adjustEntireBMC({ 
+          position: new Vector3(1.0, 0, 0) // Move right by 1.0 unit on X-axis
+        });
+        console.log("✅ BMC shift completed - entire structure moved 1.0 unit right");
+      } else {
+        console.log("❌ adjustEntireBMC function not available");
+      }
+    }, 1500);
 
     // SIMPLE: Save original heights when GLB model first loads
     const saveOriginalHeights = () => {
