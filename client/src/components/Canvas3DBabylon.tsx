@@ -2095,6 +2095,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(7.7, 8, 8);
         
+        // Parent Revenue Streams to master transform node while preserving current position
+        setTimeout(() => {
+          if (rootMeshRef.current) {
+            console.log("🔗 Parenting Revenue Streams to master transform node...");
+            const currentWorldPos = revenueRootMesh.position.clone();
+            const currentWorldRot = revenueRootMesh.rotation.clone();
+            const currentWorldScale = revenueRootMesh.scaling.clone();
+            
+            revenueRootMesh.setParent(rootMeshRef.current);
+            
+            // Convert world position to local position relative to parent
+            const parentWorldMatrix = rootMeshRef.current.getWorldMatrix();
+            const parentInvMatrix = Matrix.Invert(parentWorldMatrix);
+            const localPos = Vector3.TransformCoordinates(currentWorldPos, parentInvMatrix);
+            
+            revenueRootMesh.position = localPos;
+            revenueRootMesh.rotation = currentWorldRot;
+            revenueRootMesh.scaling = currentWorldScale;
+            
+            console.log(`✅ Revenue Streams parented to master transform - local pos: (${localPos.x.toFixed(3)}, ${localPos.y.toFixed(3)}, ${localPos.z.toFixed(3)})`);
+          } else {
+            console.log("❌ Master transform node not available for Revenue Streams parenting");
+          }
+        }, 500);
+        
         console.log(`📦 Revenue Streams positioned at (-0.533, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
         // Apply basic material and label to Revenue Streams mesh  
@@ -2286,6 +2311,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         costRootMesh.position = new Vector3(-10.1, 0.1, -10.5); // Shifted farther left
         costRootMesh.rotation = Vector3.Zero();
         costRootMesh.scaling = new Vector3(8.0, 8, 8); // Width set to 8.0
+        
+        // Parent Cost Structure to master transform node while preserving current position
+        setTimeout(() => {
+          if (rootMeshRef.current) {
+            console.log("🔗 Parenting Cost Structure to master transform node...");
+            const currentWorldPos = costRootMesh.position.clone();
+            const currentWorldRot = costRootMesh.rotation.clone();
+            const currentWorldScale = costRootMesh.scaling.clone();
+            
+            costRootMesh.setParent(rootMeshRef.current);
+            
+            // Convert world position to local position relative to parent
+            const parentWorldMatrix = rootMeshRef.current.getWorldMatrix();
+            const parentInvMatrix = Matrix.Invert(parentWorldMatrix);
+            const localPos = Vector3.TransformCoordinates(currentWorldPos, parentInvMatrix);
+            
+            costRootMesh.position = localPos;
+            costRootMesh.rotation = currentWorldRot;
+            costRootMesh.scaling = currentWorldScale;
+            
+            console.log(`✅ Cost Structure parented to master transform - local pos: (${localPos.x.toFixed(3)}, ${localPos.y.toFixed(3)}, ${localPos.z.toFixed(3)})`);
+          } else {
+            console.log("❌ Master transform node not available for Cost Structure parenting");
+          }
+        }, 500);
         
         console.log(`📦 Cost Structure positioned at (-10.1, 0.1, -10.5) - width 8.0, positioned farther left`);
         
@@ -2571,18 +2621,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
     
-    // Shift entire BMC structure 1.0 unit to the right using topmost transform
-    setTimeout(() => {
-      console.log("🔄 Shifting entire BMC 1.0 unit to the right using topmost transform...");
-      if (adjustEntireBMC) {
-        adjustEntireBMC({ 
-          position: new Vector3(1.0, 0, 0) // Move right by 1.0 unit on X-axis
-        });
-        console.log("✅ BMC shift completed - entire structure moved 1.0 unit right");
-      } else {
-        console.log("❌ adjustEntireBMC function not available");
-      }
-    }, 1500);
+
 
     // SIMPLE: Save original heights when GLB model first loads
     const saveOriginalHeights = () => {
