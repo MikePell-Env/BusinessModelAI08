@@ -2161,7 +2161,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Place in lower left area with same width as Revenue Streams
         costRootMesh.position = new Vector3(-9.72, 0.1, -10.5); // Back to original position that was perfectly aligned
         costRootMesh.rotation = Vector3.Zero();
-        costRootMesh.scaling = new Vector3(7.7, 8, 8); // Back to original width
+        costRootMesh.scaling = new Vector3(8.3, 8, 8); // Width increased to 8.3
         
         console.log(`📦 Cost Structure positioned at (-9.72, 0.1, -10.5) - reverted to proper alignment`);
         
