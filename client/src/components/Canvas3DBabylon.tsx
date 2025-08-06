@@ -1967,24 +1967,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const segMin = Vector3.TransformCoordinates(segBoundingInfo.minimum, segWorldMatrix);
             const segMax = Vector3.TransformCoordinates(segBoundingInfo.maximum, segWorldMatrix);
             
-            // Calculate required width: Revenue Streams left edge (0.467) to Customer Segments right edge
-            const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
+            // Calculate required width: From Revenue Streams left edge (A) to Customer Segments right edge (B)
+            // This keeps left edge at A but shrinks right edge from C to B position
+            const revenueLeftEdge = 0.467; // Position A - perfectly aligned with Customer Channels
+            const targetWidth = segMax.x - revenueLeftEdge; // Width from A to B
             
-            // Set Revenue Streams width to exactly 8.5 units
-            const targetWidth = 8.5;
+            // Calculate scaling needed to achieve this exact width
             const baseWidth = currentRevWidth / revenueStreamsMesh.scaling.x; // Get unscaled width
             const requiredScaleX = targetWidth / baseWidth;
             
-            // Apply exact X-axis scaling for 8.5 width
+            // Apply X-axis scaling to align right edge with Customer Segments
             revenueStreamsMesh.scaling.x = requiredScaleX;
             
-            console.log("🔧 DELAYED Revenue Streams Width Adjustment:");
+            console.log("🔧 DELAYED Revenue Streams Width Alignment:");
             console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
-            console.log(`  Target width: ${targetWidth.toFixed(3)}`);
+            console.log(`  Revenue left edge (A): ${revenueLeftEdge.toFixed(3)}`);
+            console.log(`  Customer Segments right edge (B): ${segMax.x.toFixed(3)}`);
+            console.log(`  Target width (A to B): ${targetWidth.toFixed(3)}`);
             console.log(`  Base width (unscaled): ${baseWidth.toFixed(3)}`);
             console.log(`  Required X scale: ${requiredScaleX.toFixed(3)}`);
-            console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
-            console.log("✅ Revenue Streams width set to exactly 8.5 units!");
+            console.log("✅ Revenue Streams right edge aligned with Customer Segments!");
           } else {
             console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
           }
