@@ -42,26 +42,181 @@ interface Canvas3DBabylonProps {
 
 
 
-// Coordinate system normalization utilities (non-breaking additions)
+// UNIFIED BMC TRANSFORMATION SYSTEM
+// Handles coordinate system complexities and provides consistent interface for all BMC objects
+
+/**
+ * BMC Coordinate System Documentation:
+ * 
+ * WORLD COORDINATE SYSTEM (Babylon.js Standard):
+ * - X-axis: RIGHT = positive, LEFT = negative 
+ * - Y-axis: UP = positive, DOWN = negative
+ * - Z-axis: FORWARD = positive, BACKWARD = negative
+ * 
+ * BMC SCREEN LAYOUT MAPPING:
+ * - X-axis: negative = LEFT side of screen, positive = RIGHT side of screen
+ * - Z-axis: negative = UPPER part of screen, positive = LOWER part of screen
+ * - Y-axis: height above ground plane (Y=0.1 is standard base height)
+ * 
+ * OBJECT TYPES IN SYSTEM:
+ * 1. Main BMC Model: Single GLB with 7 sections, uses transformNode scaling
+ * 2. Revenue Streams: Separate GLB positioned at (-0.221, 0.1, -10.5) 
+ * 3. Cost Structure: Separate GLB positioned at (-10.1, 0.1, -10.5)
+ * 
+ * COORDINATE REFERENCE POINTS:
+ * - Customer Channels left edge: X ≈ 0.467
+ * - Revenue Streams aligns with Customer Channels left edge
+ * - Cost Structure spans from Key Partners to Key Resources alignment
+ */
+
+interface BMCObjectDescriptor {
+  mesh: AbstractMesh;
+  sectionName: string;
+  objectType: 'main_bmc' | 'separate_glb';
+  transformNode?: TransformNode; // Only for main BMC sections
+  rootMesh?: AbstractMesh; // Only for separate GLB objects
+}
+
+class UnifiedBMCTransformSystem {
+  private objects = new Map<string, BMCObjectDescriptor>();
+  
+  // Register objects in the unified system
+  registerObject(sectionName: string, descriptor: BMCObjectDescriptor) {
+    this.objects.set(sectionName, descriptor);
+    console.log(`🔗 Registered ${sectionName} as ${descriptor.objectType}`);
+  }
+  
+  // Universal height manipulation (handles different object types)
+  setHeight(sectionName: string, height: number): boolean {
+    const obj = this.objects.get(sectionName);
+    if (!obj) {
+      console.warn(`⚠️ Object not found: ${sectionName}`);
+      return false;
+    }
+    
+    if (obj.objectType === 'main_bmc' && obj.transformNode) {
+      // Main BMC sections use transformNode scaling
+      obj.transformNode.scaling.y = height;
+      console.log(`📏 Main BMC: ${sectionName} height set to ${height}`);
+    } else if (obj.objectType === 'separate_glb') {
+      // Separate GLB objects use mesh scaling directly
+      obj.mesh.scaling.y = height;
+      console.log(`📏 Separate GLB: ${sectionName} height set to ${height}`);
+    }
+    return true;
+  }
+  
+  // Universal position manipulation
+  setPosition(sectionName: string, x: number, y: number, z: number): boolean {
+    const obj = this.objects.get(sectionName);
+    if (!obj) {
+      console.warn(`⚠️ Object not found: ${sectionName}`);
+      return false;
+    }
+    
+    if (obj.objectType === 'main_bmc') {
+      // Main BMC sections cannot be repositioned individually (part of single mesh)
+      console.warn(`⚠️ Cannot reposition main BMC section: ${sectionName}`);
+      return false;
+    } else if (obj.objectType === 'separate_glb' && obj.rootMesh) {
+      // Separate GLB objects can be repositioned via root mesh
+      obj.rootMesh.position = new Vector3(x, y, z);
+      console.log(`🌍 Separate GLB: ${sectionName} moved to (${x}, ${y}, ${z})`);
+    }
+    return true;
+  }
+  
+  // Universal scaling manipulation
+  setScale(sectionName: string, x: number, y: number, z: number): boolean {
+    const obj = this.objects.get(sectionName);
+    if (!obj) {
+      console.warn(`⚠️ Object not found: ${sectionName}`);
+      return false;
+    }
+    
+    if (obj.objectType === 'main_bmc' && obj.transformNode) {
+      obj.transformNode.scaling = new Vector3(x, y, z);
+      console.log(`📐 Main BMC: ${sectionName} scaled to (${x}, ${y}, ${z})`);
+    } else if (obj.objectType === 'separate_glb' && obj.rootMesh) {
+      obj.rootMesh.scaling = new Vector3(x, y, z);
+      console.log(`📐 Separate GLB: ${sectionName} scaled to (${x}, ${y}, ${z})`);
+    }
+    return true;
+  }
+  
+  // Get current transformation data
+  getTransformData(sectionName: string): any {
+    const obj = this.objects.get(sectionName);
+    if (!obj) return null;
+    
+    if (obj.objectType === 'main_bmc' && obj.transformNode) {
+      return {
+        type: 'main_bmc',
+        position: obj.transformNode.position.asArray(),
+        rotation: obj.transformNode.rotation.asArray(),
+        scaling: obj.transformNode.scaling.asArray()
+      };
+    } else if (obj.objectType === 'separate_glb' && obj.rootMesh) {
+      return {
+        type: 'separate_glb',
+        position: obj.rootMesh.position.asArray(),
+        rotation: obj.rootMesh.rotation.asArray(),
+        scaling: obj.rootMesh.scaling.asArray(),
+        meshPosition: obj.mesh.position.asArray(),
+        meshScaling: obj.mesh.scaling.asArray()
+      };
+    }
+    return null;
+  }
+  
+  // Export all transformation data for debugging
+  exportAllTransforms(): Record<string, any> {
+    const transforms: Record<string, any> = {};
+    this.objects.forEach((obj, name) => {
+      transforms[name] = this.getTransformData(name);
+    });
+    return transforms;
+  }
+  
+  // Get all registered objects
+  getAllObjects(): string[] {
+    return Array.from(this.objects.keys());
+  }
+  
+  // Debug coordinate system
+  debugCoordinateSystem() {
+    console.log("🌐 BMC COORDINATE SYSTEM DEBUG:");
+    console.log("📍 COORDINATE MAPPING:");
+    console.log("  Screen LEFT = Negative X");
+    console.log("  Screen RIGHT = Positive X"); 
+    console.log("  Screen UP = Negative Z");
+    console.log("  Screen DOWN = Positive Z");
+    console.log("  Height = Positive Y");
+    
+    console.log("🔍 REGISTERED OBJECTS:");
+    this.objects.forEach((obj, name) => {
+      const transform = this.getTransformData(name);
+      console.log(`  ${name} (${obj.objectType}):`, transform);
+    });
+  }
+}
+
+// Legacy BMCSectionController for backward compatibility
 class BMCSectionController {
   constructor(private mesh: AbstractMesh, private sectionName: string) {}
   
-  // Consistent height manipulation with current behavior preserved
   setHeight(height: number) {
     this.mesh.scaling.y = height;
   }
   
-  // Get current height (matches existing logic)
   getHeight(): number {
     return this.mesh.scaling.y;
   }
   
-  // Standard positioning system
   setPosition(x: number, y: number, z: number) {
     this.mesh.position = new Vector3(x, y, z);
   }
   
-  // Consistent rotation handling
   setRotation(x: number, y: number, z: number) {
     this.mesh.rotation = new Vector3(x, y, z);
   }
