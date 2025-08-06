@@ -2063,6 +2063,78 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Store section name for interactions
             (mesh as any).bmcSectionName = "Revenue Streams";
             
+            // Store original color for hover states
+            (mesh as any).originalColor = baseColor.clone();
+            (mesh as any).isClicked = false;
+            (mesh as any).hasTexture = false; // Revenue Streams uses solid color, not texture
+            
+            // Create action manager for hover interactions
+            if (!mesh.actionManager) {
+              mesh.actionManager = new ActionManager(scene);
+            }
+            
+            // Add to contentPanelsRef for coordinated hover behavior
+            const revenueStreamsContentPanel = Rectangle.CreateFullscreenUI("revenueStreamsPanel");
+            revenueStreamsContentPanel.isVisible = false;
+            contentPanelsRef.current.push({
+              panel: revenueStreamsContentPanel,
+              mesh: mesh as any,
+              material: sectionMaterial
+            });
+            
+            // Hover enter - same behavior as main BMC sections
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              console.log(`🎯 HOVER DETECTED on Revenue Streams`);
+              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
+              
+              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
+                // Apply bright blue hover color
+                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+                sectionMaterial.diffuseColor = brightBlueColor;
+                if (sectionMaterial.baseColor) {
+                  sectionMaterial.baseColor = brightBlueColor;
+                }
+                
+                // Set all other objects to 50% opacity
+                contentPanelsRef.current.forEach(({ material }) => {
+                  material.alpha = 0.5;
+                });
+                // Keep this object at full opacity
+                sectionMaterial.alpha = 1.0;
+                
+                console.log(`💡 Hover enter: Revenue Streams bright blue, all objects 50% opacity`);
+              } else if ((mesh as any).isClicked) {
+                console.log(`🔒 Hover enter: Revenue Streams already clicked - maintaining selected state`);
+              } else {
+                console.log(`🚫 Hover enter: Revenue Streams blocked - another object is selected`);
+              }
+            }));
+            
+            // Hover exit - same behavior as main BMC sections
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              console.log(`🎯 HOVER EXIT DETECTED on Revenue Streams`);
+              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
+              
+              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
+                // Restore original color
+                sectionMaterial.diffuseColor = (mesh as any).originalColor;
+                if (sectionMaterial.baseColor) {
+                  sectionMaterial.baseColor = (mesh as any).originalColor;
+                }
+                
+                // Restore all objects to full opacity
+                contentPanelsRef.current.forEach(({ material }) => {
+                  material.alpha = 1.0;
+                });
+                
+                console.log(`🔄 Hover exit: Revenue Streams restored, all objects full opacity`);
+              } else if ((mesh as any).isClicked) {
+                console.log(`🔒 Hover exit: Revenue Streams clicked - maintaining visual state`);
+              } else {
+                console.log(`🚫 Hover exit: Revenue Streams blocked - another object is selected`);
+              }
+            }));
+            
             // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
             console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
             
@@ -2185,6 +2257,78 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Store section name for interactions
             (mesh as any).bmcSectionName = "Cost Structure";
+            
+            // Store original color for hover states
+            (mesh as any).originalColor = baseColor.clone();
+            (mesh as any).isClicked = false;
+            (mesh as any).hasTexture = false; // Cost Structure uses solid color, not texture
+            
+            // Create action manager for hover interactions
+            if (!mesh.actionManager) {
+              mesh.actionManager = new ActionManager(scene);
+            }
+            
+            // Add to contentPanelsRef for coordinated hover behavior
+            const costStructureContentPanel = Rectangle.CreateFullscreenUI("costStructurePanel");
+            costStructureContentPanel.isVisible = false;
+            contentPanelsRef.current.push({
+              panel: costStructureContentPanel,
+              mesh: mesh as any,
+              material: sectionMaterial
+            });
+            
+            // Hover enter - same behavior as main BMC sections and Revenue Streams
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              console.log(`🎯 HOVER DETECTED on Cost Structure`);
+              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
+              
+              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
+                // Apply bright blue hover color
+                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+                sectionMaterial.diffuseColor = brightBlueColor;
+                if (sectionMaterial.baseColor) {
+                  sectionMaterial.baseColor = brightBlueColor;
+                }
+                
+                // Set all other objects to 50% opacity
+                contentPanelsRef.current.forEach(({ material }) => {
+                  material.alpha = 0.5;
+                });
+                // Keep this object at full opacity
+                sectionMaterial.alpha = 1.0;
+                
+                console.log(`💡 Hover enter: Cost Structure bright blue, all objects 50% opacity`);
+              } else if ((mesh as any).isClicked) {
+                console.log(`🔒 Hover enter: Cost Structure already clicked - maintaining selected state`);
+              } else {
+                console.log(`🚫 Hover enter: Cost Structure blocked - another object is selected`);
+              }
+            }));
+            
+            // Hover exit - same behavior as main BMC sections and Revenue Streams
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              console.log(`🎯 HOVER EXIT DETECTED on Cost Structure`);
+              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
+              
+              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
+                // Restore original color
+                sectionMaterial.diffuseColor = (mesh as any).originalColor;
+                if (sectionMaterial.baseColor) {
+                  sectionMaterial.baseColor = (mesh as any).originalColor;
+                }
+                
+                // Restore all objects to full opacity
+                contentPanelsRef.current.forEach(({ material }) => {
+                  material.alpha = 1.0;
+                });
+                
+                console.log(`🔄 Hover exit: Cost Structure restored, all objects full opacity`);
+              } else if ((mesh as any).isClicked) {
+                console.log(`🔒 Hover exit: Cost Structure clicked - maintaining visual state`);
+              } else {
+                console.log(`🚫 Hover exit: Cost Structure blocked - another object is selected`);
+              }
+            }));
             
             // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
             console.log(`🏷️ Creating floating label for Cost Structure mesh (index ${index})`);
