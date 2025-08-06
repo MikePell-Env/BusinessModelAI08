@@ -2129,7 +2129,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
             const width = max.x - min.x;
             
-            console.log("📏 Revenue Streams Fixed Dimensions (X-scale 5):");
+            console.log("📏 Revenue Streams Fixed Dimensions (X-scale 7.7):");
             console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
             console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
             console.log(`  Width: ${width.toFixed(3)}`);
@@ -2144,6 +2144,129 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }).catch((error) => {
       console.error("❌ Failed to load Revenue Streams model:", error);
       console.error("❌ Revenue Streams model error details:", error.message);
+    });
+
+    // Load Cost Structure as separate GLB model positioned in lower left area (yellow rectangle in diagram)
+    console.log(`🔄 Starting to load Cost Structure model...`);
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_07_RevenueStreams_1754360428541.glb", scene).then((result) => {
+      console.log(`🔄 Cost Structure model load completed, meshes: ${result.meshes.length}`);
+      if (result.meshes.length > 0) {
+        console.log(`✅ Cost Structure model loaded with ${result.meshes.length} meshes`);
+        
+        const costRootMesh = result.meshes[0];
+        
+        // Position Cost Structure in lower left area (yellow rectangle from diagram)
+        // X-axis: negative = LEFT, positive = RIGHT
+        // Z-axis: negative = UP (screen), positive = DOWN (screen)
+        // Place in lower left area with same width as Revenue Streams
+        costRootMesh.position = new Vector3(-8.5, 0.1, -10.5); // Left side positioning
+        costRootMesh.rotation = Vector3.Zero();
+        costRootMesh.scaling = new Vector3(7.7, 8, 8); // Same dimensions as Revenue Streams
+        
+        console.log(`📦 Cost Structure positioned at (-8.5, 0.1, -10.5) - lower left area`);
+        
+        // Apply basic material and label to Cost Structure mesh  
+        console.log(`🔍 Cost Structure meshes found: ${result.meshes.length}`);
+        result.meshes.forEach((mesh, index) => {
+          console.log(`🔍 Processing Cost Structure mesh ${index}: ${mesh.name}, has material: ${!!mesh.material}, is root: ${mesh.name === "__root__"}`);
+        });
+        
+        result.meshes.forEach((mesh, index) => {
+          if (mesh.name !== "__root__") {
+            console.log(`✅ Processing non-root Cost Structure mesh ${index}: ${mesh.name}`);
+            
+            // Create material for Cost Structure mesh (same pattern as Revenue Streams)
+            const baseColor = new Color3(0.07, 0.07, 0.07);
+            const sectionMaterial = new StandardMaterial(`costStructure_${index}`, scene);
+            sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+            sectionMaterial.specularPower = 32;
+            mesh.material = sectionMaterial;
+            
+            // Store section name for interactions
+            (mesh as any).bmcSectionName = "Cost Structure";
+            
+            // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
+            console.log(`🏷️ Creating floating label for Cost Structure mesh (index ${index})`);
+            
+            // Get mesh bounds for positioning
+            const boundingInfo = mesh.getBoundingInfo();
+            const center = boundingInfo.boundingBox.center;
+            const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+            
+            // Create label plane with same dimensions as Revenue Streams
+            const labelWidth = size.x * 0.65;
+            const labelHeight = (labelWidth * 0.25) * 2.0;
+            console.log(`Cost Structure Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+            console.log(`🔍 Cost Structure mesh center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
+            console.log(`🔍 Cost Structure mesh size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
+            
+            const labelPlane = MeshBuilder.CreatePlane("costStructureLabel", {
+              width: labelWidth,
+              height: labelHeight
+            }, scene);
+            
+            // Center the label horizontally and vertically within the top face of the Cost Structure object
+            labelPlane.position.x = center.x; // Center horizontally
+            labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
+            labelPlane.position.z = center.z; // Center vertically (Z-axis)
+            
+            // Rotate to be flat on top and then 90 degrees counterclockwise (same as Revenue Streams)
+            labelPlane.rotation.x = Math.PI / 2;
+            labelPlane.rotation.y = -Math.PI / 2; // 90 degrees counterclockwise for proper text orientation
+            
+            // Create material with Cost Structure label texture
+            const labelMaterial = new StandardMaterial("costStructureLabelMat", scene);
+            const labelTexture = new Texture("/textures/Label_CostStructure_1754477996199.png", scene);
+            labelTexture.hasAlpha = true;
+            
+            labelMaterial.diffuseTexture = labelTexture;
+            labelMaterial.emissiveTexture = labelTexture;
+            labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+            labelMaterial.useAlphaFromDiffuseTexture = true;
+            labelMaterial.disableLighting = false;
+            
+            labelPlane.material = labelMaterial;
+            labelPlane.parent = mesh;
+            labelPlane.isPickable = false;
+            
+            // Apply same proportional scaling as Revenue Streams
+            labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
+            
+            console.log(`✅ Cost Structure label plane created at position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+            console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
+            console.log(`🔍 Label scale: (${labelPlane.scaling.x.toFixed(3)}, ${labelPlane.scaling.y.toFixed(3)}, ${labelPlane.scaling.z.toFixed(3)})`);
+            console.log(`🔍 Label dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}`);
+            
+            console.log(`🎨 Cost Structure Mesh ${index}: ${mesh.name || 'unnamed'} configured`);
+          }
+        });
+        
+        // Debug Cost Structure dimensions
+        setTimeout(() => {
+          const costMesh = result.meshes.find(mesh => mesh.name !== "__root__");
+          if (costMesh) {
+            const boundingInfo = costMesh.getBoundingInfo();
+            const worldMatrix = costMesh.getWorldMatrix();
+            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
+            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
+            const width = max.x - min.x;
+            
+            console.log("📏 Cost Structure Fixed Dimensions (X-scale 7.7):");
+            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
+            console.log(`  Width: ${width.toFixed(3)}`);
+            console.log(`  Position: (${costRootMesh.position.x.toFixed(3)}, ${costRootMesh.position.y.toFixed(3)}, ${costRootMesh.position.z.toFixed(3)})`);
+            console.log(`  Scale: (${costRootMesh.scaling.x.toFixed(3)}, ${costRootMesh.scaling.y.toFixed(3)}, ${costRootMesh.scaling.z.toFixed(3)})`);
+          }
+        }, 500);
+        
+      } else {
+        console.error("❌ No meshes found in Cost Structure model");
+      }
+    }).catch((error) => {
+      console.error("❌ Failed to load Cost Structure model:", error);
+      console.error("❌ Cost Structure model error details:", error.message);
     });
 
     // Helper functions for manipulating individual BMC sections
