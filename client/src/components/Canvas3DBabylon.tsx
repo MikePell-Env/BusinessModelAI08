@@ -348,7 +348,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // SIMPLIFIED: Restore visual and interaction state after view switches
   const restoreSelectedObjectState = () => {
     const selectedObjectName = getSelectedObject();
-    console.log(`🔄 VIEW SWITCH: Restoring state for selection="${selectedObjectName}"`);
+    console.log(`🔄 VIEW SWITCH: Restoring state for selection="${selectedObjectName}" (contentPanels: ${contentPanelsRef.current.length})`);
+    
+    if (contentPanelsRef.current.length === 0) {
+      console.log(`❌ VIEW SWITCH: No content panels available - cannot restore state`);
+      return;
+    }
     
     // Always apply height state first (handles both selected and no-selection cases)
     applyHeightState();
@@ -379,13 +384,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const brightBlueColor = new Color3(0.0, 0.3, 0.8);
         if ((mesh as any).hasTexture) {
           material.emissiveColor = brightBlueColor.scale(0.3);
-          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (textured, emissive blue)`);
+          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (textured, emissive=${material.emissiveColor.r}, ${material.emissiveColor.g}, ${material.emissiveColor.b})`);
         } else {
           if (material.baseColor) {
             material.baseColor = brightBlueColor;
           }
           material.diffuseColor = brightBlueColor;
-          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (standard, blue color)`);
+          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (standard, diffuse=${material.diffuseColor.r}, ${material.diffuseColor.g}, ${material.diffuseColor.b})`);
         }
         (mesh as any).isClicked = true;
         material.alpha = 1.0;
