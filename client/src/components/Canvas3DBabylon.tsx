@@ -345,59 +345,54 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
   };
 
-  // SIMPLIFIED: Restore visual and interaction state after view switches
+  // Simple state restoration that mirrors the working click selection logic
   const restoreSelectedObjectState = () => {
     const selectedObjectName = getSelectedObject();
-    console.log(`🔄 VIEW SWITCH: Restoring state for selection="${selectedObjectName}" (contentPanels: ${contentPanelsRef.current.length})`);
-    
-    if (contentPanelsRef.current.length === 0) {
-      console.log(`❌ VIEW SWITCH: No content panels available - cannot restore state`);
-      return;
-    }
-    
-    // Always apply height state first (handles both selected and no-selection cases)
-    applyHeightState();
+    console.log(`🔄 VIEW SWITCH: Restoring selection "${selectedObjectName}"`);
     
     if (!selectedObjectName) {
-      // No selection: ensure all objects are at full opacity and original colors
+      // No selection - restore all to normal state
       contentPanelsRef.current.forEach(({ mesh, material }) => {
-        material.alpha = 1.0;
         (mesh as any).isClicked = false;
+        material.alpha = 1.0;
         
         if ((mesh as any).hasTexture) {
           material.emissiveColor = new Color3(0, 0, 0);
         } else {
-          material.baseColor = (mesh as any).originalColor;
+          if (material.baseColor) {
+            material.baseColor = (mesh as any).originalColor;
+          }
+          material.diffuseColor = (mesh as any).originalColor;
         }
       });
-      console.log(`🔄 VIEW SWITCH: No selection - all objects restored to default state`);
+      console.log(`🔄 No selection - all objects normal`);
       return;
     }
     
-    // There is a selection: restore selected object's visual state
+    // Apply height state for selected vs unselected objects
+    applyHeightState();
+    
+    // Apply visual state using the same logic as click selection
     contentPanelsRef.current.forEach(({ mesh, material }) => {
       const sectionName = (mesh as any).bmcSectionName;
-      const isSelected = sectionName === selectedObjectName;
       
-      if (isSelected) {
-        // Restore selected object's blue color and full opacity
+      if (sectionName === selectedObjectName) {
+        // Selected object - apply blue highlighting (same as click logic)
         const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+        
         if ((mesh as any).hasTexture) {
           material.emissiveColor = brightBlueColor.scale(0.3);
-          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (textured, emissive=${material.emissiveColor.r}, ${material.emissiveColor.g}, ${material.emissiveColor.b})`);
         } else {
           if (material.baseColor) {
             material.baseColor = brightBlueColor;
           }
           material.diffuseColor = brightBlueColor;
-          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (standard, diffuse=${material.diffuseColor.r}, ${material.diffuseColor.g}, ${material.diffuseColor.b})`);
         }
         (mesh as any).isClicked = true;
         material.alpha = 1.0;
-        
-        // Content panels are only shown on double-click, not during view state restoration
+        console.log(`🔵 "${sectionName}" selected (blue)`);
       } else {
-        // Non-selected objects: original color, 50% opacity
+        // Non-selected objects - original color, 50% opacity
         if ((mesh as any).hasTexture) {
           material.emissiveColor = new Color3(0, 0, 0);
         } else {
@@ -408,11 +403,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
         (mesh as any).isClicked = false;
         material.alpha = 0.5;
-        console.log(`⚪ VIEW SWITCH: "${sectionName}" restored to original (50% opacity)`);
       }
     });
     
-    console.log(`🔄 VIEW SWITCH: Selection "${selectedObjectName}" restored with proper visual states`);
+    console.log(`✅ Selection "${selectedObjectName}" restored`);
   };
 
   // Helper function to get section content from canvas data
