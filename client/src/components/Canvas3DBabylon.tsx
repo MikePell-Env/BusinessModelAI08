@@ -345,78 +345,69 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
   };
 
-  // Simple state restoration - use existing click logic that already works
+  // SIMPLIFIED: Restore visual and interaction state after view switches
   const restoreSelectedObjectState = () => {
     const selectedObjectName = getSelectedObject();
     console.log(`🔄 VIEW SWITCH: Restoring state for selection="${selectedObjectName}"`);
     
+    // Always apply height state first (handles both selected and no-selection cases)
     applyHeightState();
     
     if (!selectedObjectName) {
-      // No selection: clear all click states and restore all to full opacity 
+      // No selection: ensure all objects are at full opacity and original colors
       contentPanelsRef.current.forEach(({ mesh, material }) => {
-        (mesh as any).isClicked = false;
         material.alpha = 1.0;
+        (mesh as any).isClicked = false;
         
-        // Restore original colors
         if ((mesh as any).hasTexture) {
           material.emissiveColor = new Color3(0, 0, 0);
         } else {
-          const originalColor = (mesh as any).originalColor;
-          if (material.baseColor) {
-            material.baseColor = originalColor;
-          }
-          material.diffuseColor = originalColor;
+          material.baseColor = (mesh as any).originalColor;
         }
       });
-      console.log(`🔄 VIEW SWITCH: No selection - all objects restored to default`);
+      console.log(`🔄 VIEW SWITCH: No selection - all objects restored to default state`);
       return;
     }
     
-    // Find the selected mesh and apply its existing click selection logic
-    const selectedMeshData = contentPanelsRef.current.find(({ mesh }) => 
-      (mesh as any).bmcSectionName === selectedObjectName
-    );
-    
-    if (selectedMeshData) {
-      const { mesh, material } = selectedMeshData;
+    // There is a selection: restore selected object's visual state
+    contentPanelsRef.current.forEach(({ mesh, material }) => {
       const sectionName = (mesh as any).bmcSectionName;
+      const isSelected = sectionName === selectedObjectName;
       
-      // Apply the same selection logic used in clicks - this is the working code
-      const brightBlueColor = new Color3(0.0, 0.3, 0.8);
-      
-      if ((mesh as any).hasTexture) {
-        material.emissiveColor = brightBlueColor.scale(0.3);
-      } else {
-        if (material.baseColor) {
-          material.baseColor = brightBlueColor;
-        }
-        material.diffuseColor = brightBlueColor;
-      }
-      (mesh as any).isClicked = true;
-      
-      // Set opacity states for all objects (selected: 1.0, others: 0.5)
-      contentPanelsRef.current.forEach(({ mesh: otherMesh, material: otherMaterial }) => {
-        const isSelectedObject = otherMesh === mesh;
-        otherMaterial.alpha = isSelectedObject ? 1.0 : 0.5;
-        
-        // Restore non-selected objects to original colors
-        if (!isSelectedObject) {
-          (otherMesh as any).isClicked = false;
-          if ((otherMesh as any).hasTexture) {
-            otherMaterial.emissiveColor = new Color3(0, 0, 0);
-          } else {
-            const originalColor = (otherMesh as any).originalColor;
-            if (otherMaterial.baseColor) {
-              otherMaterial.baseColor = originalColor;
-            }
-            otherMaterial.diffuseColor = originalColor;
+      if (isSelected) {
+        // Restore selected object's blue color and full opacity
+        const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+        if ((mesh as any).hasTexture) {
+          material.emissiveColor = brightBlueColor.scale(0.3);
+          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (textured, emissive blue)`);
+        } else {
+          if (material.baseColor) {
+            material.baseColor = brightBlueColor;
           }
+          material.diffuseColor = brightBlueColor;
+          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (standard, blue color)`);
         }
-      });
-      
-      console.log(`🔵 VIEW SWITCH: "${sectionName}" selection restored using click logic`);
-    }
+        (mesh as any).isClicked = true;
+        material.alpha = 1.0;
+        
+        // Content panels are only shown on double-click, not during view state restoration
+      } else {
+        // Non-selected objects: original color, 50% opacity
+        if ((mesh as any).hasTexture) {
+          material.emissiveColor = new Color3(0, 0, 0);
+        } else {
+          if (material.baseColor) {
+            material.baseColor = (mesh as any).originalColor;
+          }
+          material.diffuseColor = (mesh as any).originalColor;
+        }
+        (mesh as any).isClicked = false;
+        material.alpha = 0.5;
+        console.log(`⚪ VIEW SWITCH: "${sectionName}" restored to original (50% opacity)`);
+      }
+    });
+    
+    console.log(`🔄 VIEW SWITCH: Selection "${selectedObjectName}" restored with proper visual states`);
   };
 
   // Helper function to get section content from canvas data
