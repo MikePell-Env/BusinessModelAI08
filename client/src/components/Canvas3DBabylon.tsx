@@ -345,7 +345,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
   };
 
-  // Simplified state restoration - apply visual state directly based on stored selection
+  // Simple state restoration - use existing click logic that already works
   const restoreSelectedObjectState = () => {
     const selectedObjectName = getSelectedObject();
     console.log(`🔄 VIEW SWITCH: Restoring state for selection="${selectedObjectName}"`);
@@ -353,31 +353,38 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     applyHeightState();
     
     if (!selectedObjectName) {
-      // Clear all selections
+      // No selection: clear all click states and restore all to full opacity 
       contentPanelsRef.current.forEach(({ mesh, material }) => {
-        applyMeshState(mesh, material, false);
+        (mesh as any).isClicked = false;
+        material.alpha = 1.0;
+        
+        // Restore original colors
+        if ((mesh as any).hasTexture) {
+          material.emissiveColor = new Color3(0, 0, 0);
+        } else {
+          const originalColor = (mesh as any).originalColor;
+          if (material.baseColor) {
+            material.baseColor = originalColor;
+          }
+          material.diffuseColor = originalColor;
+        }
       });
-      console.log(`🔄 VIEW SWITCH: No selection - all objects cleared`);
+      console.log(`🔄 VIEW SWITCH: No selection - all objects restored to default`);
       return;
     }
     
-    // Apply selection state to all objects
-    contentPanelsRef.current.forEach(({ mesh, material }) => {
+    // Find the selected mesh and apply its existing click selection logic
+    const selectedMeshData = contentPanelsRef.current.find(({ mesh }) => 
+      (mesh as any).bmcSectionName === selectedObjectName
+    );
+    
+    if (selectedMeshData) {
+      const { mesh, material } = selectedMeshData;
       const sectionName = (mesh as any).bmcSectionName;
-      const isSelected = sectionName === selectedObjectName;
-      applyMeshState(mesh, material, isSelected);
-    });
-    
-    console.log(`🔄 VIEW SWITCH: Selection "${selectedObjectName}" restored`);
-  };
-
-  // Helper function to apply visual state to a mesh
-  const applyMeshState = (mesh: AbstractMesh, material: StandardMaterial, isSelected: boolean) => {
-    const sectionName = (mesh as any).bmcSectionName;
-    const brightBlueColor = new Color3(0.0, 0.3, 0.8);
-    
-    if (isSelected) {
-      // Selected: blue color, full opacity
+      
+      // Apply the same selection logic used in clicks - this is the working code
+      const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+      
       if ((mesh as any).hasTexture) {
         material.emissiveColor = brightBlueColor.scale(0.3);
       } else {
@@ -387,24 +394,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         material.diffuseColor = brightBlueColor;
       }
       (mesh as any).isClicked = true;
-      material.alpha = 1.0;
-      console.log(`🔵 "${sectionName}" → SELECTED (blue highlight)`);
-    } else {
-      // Not selected: original color, 50% opacity or full if no selection
-      const hasAnySelection = getSelectedObject() !== null;
       
-      if ((mesh as any).hasTexture) {
-        material.emissiveColor = new Color3(0, 0, 0);
-      } else {
-        const originalColor = (mesh as any).originalColor;
-        if (material.baseColor) {
-          material.baseColor = originalColor;
+      // Set opacity states for all objects (selected: 1.0, others: 0.5)
+      contentPanelsRef.current.forEach(({ mesh: otherMesh, material: otherMaterial }) => {
+        const isSelectedObject = otherMesh === mesh;
+        otherMaterial.alpha = isSelectedObject ? 1.0 : 0.5;
+        
+        // Restore non-selected objects to original colors
+        if (!isSelectedObject) {
+          (otherMesh as any).isClicked = false;
+          if ((otherMesh as any).hasTexture) {
+            otherMaterial.emissiveColor = new Color3(0, 0, 0);
+          } else {
+            const originalColor = (otherMesh as any).originalColor;
+            if (otherMaterial.baseColor) {
+              otherMaterial.baseColor = originalColor;
+            }
+            otherMaterial.diffuseColor = originalColor;
+          }
         }
-        material.diffuseColor = originalColor;
-      }
-      (mesh as any).isClicked = false;
-      material.alpha = hasAnySelection ? 0.5 : 1.0;
-      console.log(`⚪ "${sectionName}" → NOT SELECTED (${hasAnySelection ? '50%' : '100%'} opacity)`);
+      });
+      
+      console.log(`🔵 VIEW SWITCH: "${sectionName}" selection restored using click logic`);
     }
   };
 
