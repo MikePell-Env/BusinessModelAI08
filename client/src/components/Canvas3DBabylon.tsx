@@ -2224,6 +2224,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).isClicked = false;
             (mesh as any).hasTexture = false; // Revenue Streams uses solid color
             
+            // Register with unified transformation system
+            unifiedTransformRef.current.registerObject("Revenue Streams", {
+              mesh: mesh,
+              sectionName: "Revenue Streams",
+              objectType: 'separate_glb',
+              rootMesh: revenueRootMesh
+            });
+            
             // Create content panel for consistency (hidden)
             const revenueContentPanel = new Rectangle(`revenueStreamsContentPanel`);
             revenueContentPanel.isVisible = false;
@@ -2242,46 +2250,117 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               mesh.isPickable = true;
             }
             
-            // Hover enter behavior (matching main BMC sections)
+            // Hover enter behavior (unified with main BMC sections)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
               console.log(`🎯 HOVER DETECTED on Revenue Streams`);
               const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
               
               if (!(mesh as any).isClicked && !isAnyObjectClicked) {
-                // Apply bright blue hover color
+                // Apply bright blue hover color (unified with main BMC)
                 const brightBlueColor = new Color3(0.0, 0.3, 0.8);
                 sectionMaterial.diffuseColor = brightBlueColor;
                 
-                // Set all other objects to 50% opacity
+                // Keep ALL objects at 100% opacity during hover (unified behavior)
                 contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 0.5;
+                  material.alpha = 1.0; // 100% opacity like main BMC sections
                 });
-                // Keep this object at full opacity
-                sectionMaterial.alpha = 1.0;
                 
-                console.log(`💡 Hover enter: Revenue Streams bright blue, all objects 50% opacity`);
+                console.log(`💡 Hover enter: Revenue Streams bright blue, all objects 100% opacity (unified)`);
               } else {
                 console.log(`🚫 Hover enter: Revenue Streams blocked - object selected or clicked`);
               }
             }));
             
-            // Hover exit behavior (matching main BMC sections)
+            // Hover exit behavior (unified with main BMC sections)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
               console.log(`🎯 HOVER EXIT DETECTED on Revenue Streams`);
               const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
               
               if (!(mesh as any).isClicked && !isAnyObjectClicked) {
-                // Restore original color
+                // Restore original color (unified behavior)
                 sectionMaterial.diffuseColor = (mesh as any).originalColor;
                 
-                // Restore all objects to full opacity
+                // Maintain all objects at full opacity (unified with main BMC)
                 contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 1.0;
+                  material.alpha = 1.0; // Full opacity maintained
                 });
                 
-                console.log(`🔄 Hover exit: Revenue Streams restored, all objects full opacity`);
+                console.log(`🔄 Hover exit: Revenue Streams restored, all objects full opacity (unified)`);
               } else {
                 console.log(`🚫 Hover exit: Revenue Streams blocked - maintaining visual state`);
+              }
+            }));
+            
+            // Add selection (click) behavior for Revenue Streams (unified with main BMC)
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              const isCurrentlyClicked = (mesh as any).isClicked;
+              const isCurrentlySelected = getSelectedObject() === "Revenue Streams";
+              
+              console.log(`🎯 CLICK DETECTED on Revenue Streams - isClicked: ${isCurrentlyClicked}, isSelected: ${isCurrentlySelected}`);
+              
+              if (isCurrentlyClicked && isCurrentlySelected) {
+                // Already selected - deselect and restore all objects
+                console.log(`🔓 DESELECT: Revenue Streams - restoring all objects`);
+                
+                // Clear selection state
+                setSelectedObject(null);
+                (mesh as any).isClicked = false;
+                
+                // Restore original colors and heights for all objects
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  // Restore original colors
+                  if ((otherMesh as any).hasTexture) {
+                    material.emissiveColor = new Color3(0, 0, 0);
+                  } else {
+                    if (material.baseColor) {
+                      material.baseColor = (otherMesh as any).originalColor;
+                    }
+                    material.diffuseColor = (otherMesh as any).originalColor;
+                  }
+                  
+                  // Full opacity and clear click states
+                  material.alpha = 1.0;
+                  (otherMesh as any).isClicked = false;
+                });
+                
+                // Restore heights using the existing applyHeightState function
+                applyHeightState();
+                
+              } else {
+                // Not selected - select and highlight
+                console.log(`🔒 SELECT: Revenue Streams - highlighting in blue, others 50% opacity`);
+                
+                // Clear any other selections first
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  if (otherMesh !== mesh) {
+                    (otherMesh as any).isClicked = false;
+                    
+                    // Restore other objects to original colors
+                    if ((otherMesh as any).hasTexture) {
+                      material.emissiveColor = new Color3(0, 0, 0);
+                    } else {
+                      if (material.baseColor) {
+                        material.baseColor = (otherMesh as any).originalColor;
+                      }
+                      material.diffuseColor = (otherMesh as any).originalColor;
+                    }
+                  }
+                });
+                
+                // Set this object as selected (bright blue, full opacity)
+                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+                sectionMaterial.diffuseColor = brightBlueColor;
+                (mesh as any).isClicked = true;
+                setSelectedObject("Revenue Streams");
+                
+                // Apply selection opacity: selected = 100%, others = 50%
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  const isSelectedObject = otherMesh === mesh;
+                  material.alpha = isSelectedObject ? 1.0 : 0.5;
+                });
+                
+                // Apply height state (selected at original height, others flattened)
+                applyHeightState();
               }
             }));
 
@@ -2411,6 +2490,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).isClicked = false;
             (mesh as any).hasTexture = false; // Cost Structure uses solid color
             
+            // Register with unified transformation system
+            unifiedTransformRef.current.registerObject("Cost Structure", {
+              mesh: mesh,
+              sectionName: "Cost Structure",
+              objectType: 'separate_glb',
+              rootMesh: costRootMesh
+            });
+            
             // Create content panel for consistency (hidden)
             const costContentPanel = new Rectangle(`costStructureContentPanel`);
             costContentPanel.isVisible = false;
@@ -2429,49 +2516,119 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               mesh.isPickable = true;
             }
             
-            // Hover enter behavior (matching main BMC sections and Revenue Streams)
+            // Hover enter behavior (unified with main BMC sections and Revenue Streams)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
               console.log(`🎯 HOVER DETECTED on Cost Structure`);
               const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
               
               if (!(mesh as any).isClicked && !isAnyObjectClicked) {
-                // Apply bright blue hover color
+                // Apply bright blue hover color (unified with main BMC)
                 const brightBlueColor = new Color3(0.0, 0.3, 0.8);
                 sectionMaterial.diffuseColor = brightBlueColor;
                 
-                // Set all other objects to 50% opacity
+                // Keep ALL objects at 100% opacity during hover (unified behavior)
                 contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 0.5;
+                  material.alpha = 1.0; // 100% opacity like main BMC sections
                 });
-                // Keep this object at full opacity
-                sectionMaterial.alpha = 1.0;
                 
-                console.log(`💡 Hover enter: Cost Structure bright blue, all objects 50% opacity`);
+                console.log(`💡 Hover enter: Cost Structure bright blue, all objects 100% opacity (unified)`);
               } else {
                 console.log(`🚫 Hover enter: Cost Structure blocked - object selected or clicked`);
               }
             }));
             
-            // Hover exit behavior (matching main BMC sections and Revenue Streams)
+            // Hover exit behavior (unified with main BMC sections and Revenue Streams)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
               console.log(`🎯 HOVER EXIT DETECTED on Cost Structure`);
               const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
               
               if (!(mesh as any).isClicked && !isAnyObjectClicked) {
-                // Restore original color
+                // Restore original color (unified behavior)
                 sectionMaterial.diffuseColor = (mesh as any).originalColor;
                 
-                // Restore all objects to full opacity
+                // Maintain all objects at full opacity (unified with main BMC)
                 contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 1.0;
+                  material.alpha = 1.0; // Full opacity maintained
                 });
                 
-                console.log(`🔄 Hover exit: Cost Structure restored, all objects full opacity`);
+                console.log(`🔄 Hover exit: Cost Structure restored, all objects full opacity (unified)`);
               } else {
                 console.log(`🚫 Hover exit: Cost Structure blocked - maintaining visual state`);
               }
             }));
             
+            // Add selection (click) behavior for Cost Structure (unified with main BMC and Revenue Streams)
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              const isCurrentlyClicked = (mesh as any).isClicked;
+              const isCurrentlySelected = getSelectedObject() === "Cost Structure";
+              
+              console.log(`🎯 CLICK DETECTED on Cost Structure - isClicked: ${isCurrentlyClicked}, isSelected: ${isCurrentlySelected}`);
+              
+              if (isCurrentlyClicked && isCurrentlySelected) {
+                // Already selected - deselect and restore all objects
+                console.log(`🔓 DESELECT: Cost Structure - restoring all objects`);
+                
+                // Clear selection state
+                setSelectedObject(null);
+                (mesh as any).isClicked = false;
+                
+                // Restore original colors and heights for all objects
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  // Restore original colors
+                  if ((otherMesh as any).hasTexture) {
+                    material.emissiveColor = new Color3(0, 0, 0);
+                  } else {
+                    if (material.baseColor) {
+                      material.baseColor = (otherMesh as any).originalColor;
+                    }
+                    material.diffuseColor = (otherMesh as any).originalColor;
+                  }
+                  
+                  // Full opacity and clear click states
+                  material.alpha = 1.0;
+                  (otherMesh as any).isClicked = false;
+                });
+                
+                // Restore heights using the existing applyHeightState function
+                applyHeightState();
+                
+              } else {
+                // Not selected - select and highlight
+                console.log(`🔒 SELECT: Cost Structure - highlighting in blue, others 50% opacity`);
+                
+                // Clear any other selections first
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  if (otherMesh !== mesh) {
+                    (otherMesh as any).isClicked = false;
+                    
+                    // Restore other objects to original colors
+                    if ((otherMesh as any).hasTexture) {
+                      material.emissiveColor = new Color3(0, 0, 0);
+                    } else {
+                      if (material.baseColor) {
+                        material.baseColor = (otherMesh as any).originalColor;
+                      }
+                      material.diffuseColor = (otherMesh as any).originalColor;
+                    }
+                  }
+                });
+                
+                // Set this object as selected (bright blue, full opacity)
+                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+                sectionMaterial.diffuseColor = brightBlueColor;
+                (mesh as any).isClicked = true;
+                setSelectedObject("Cost Structure");
+                
+                // Apply selection opacity: selected = 100%, others = 50%
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  const isSelectedObject = otherMesh === mesh;
+                  material.alpha = isSelectedObject ? 1.0 : 0.5;
+                });
+                
+                // Apply height state (selected at original height, others flattened)
+                applyHeightState();
+              }
+            }));
 
             // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
             console.log(`🏷️ Creating floating label for Cost Structure mesh (index ${index})`);
