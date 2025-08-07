@@ -385,14 +385,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         (mesh as any).isClicked = true;
         material.alpha = 1.0;
         
-        // Show content panel
-        const contentPanel = (mesh as any).contentPanel;
-        const contentText = (mesh as any).contentText;
-        if (contentPanel && contentText) {
-          const sectionContent = getSectionContent(sectionName);
-          contentText.text = sectionContent;
-          contentPanel.isVisible = true;
-        }
+        // Content panels are only shown on double-click, not during view state restoration
       } else {
         // Non-selected objects: original color, 50% opacity
         if ((mesh as any).hasTexture) {
@@ -1979,7 +1972,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 // Select this mesh but DON'T show content panel yet
                 updateMeshClickSelect();
                 
-                console.log(`🔒 Selected: ${sectionName} blue selected, others 50% opacity, panel hidden (click again to show panel)`);
+                console.log(`🔒 Selected: ${sectionName} blue selected, others 50% opacity, panels only on double-click`);
               }
             }));
             
