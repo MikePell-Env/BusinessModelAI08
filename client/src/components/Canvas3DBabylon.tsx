@@ -379,32 +379,48 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const brightBlueColor = new Color3(0.0, 0.3, 0.8);
         if ((mesh as any).hasTexture) {
           material.emissiveColor = brightBlueColor.scale(0.3);
+          material.markDirty();
           console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (textured, emissive blue)`);
         } else {
-          material.baseColor = brightBlueColor;
+          if (material.baseColor) {
+            material.baseColor = brightBlueColor;
+          }
           material.diffuseColor = brightBlueColor;
           console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (standard, blue color)`);
         }
         (mesh as any).isClicked = true;
         material.alpha = 1.0;
         
+        // Force material update
+        material.markDirty();
+        console.log(`✅ VIEW SWITCH: "${sectionName}" material marked dirty for update`);
+        
         // Content panels are only shown on double-click, not during view state restoration
       } else {
         // Non-selected objects: original color, 50% opacity
         if ((mesh as any).hasTexture) {
           material.emissiveColor = new Color3(0, 0, 0);
+          material.markDirty();
         } else {
           if (material.baseColor) {
             material.baseColor = (mesh as any).originalColor;
           }
           material.diffuseColor = (mesh as any).originalColor;
+          material.markDirty();
         }
         (mesh as any).isClicked = false;
         material.alpha = 0.5;
+        console.log(`⚪ VIEW SWITCH: "${sectionName}" restored to original (50% opacity)`);
       }
     });
     
     console.log(`🔄 VIEW SWITCH: Selection "${selectedObjectName}" restored with proper visual states`);
+    
+    // Force scene render to ensure material changes are applied immediately
+    if (sceneRef.current) {
+      sceneRef.current.render();
+      console.log(`🎨 VIEW SWITCH: Forced scene render for material updates`);
+    }
   };
 
   // Helper function to get section content from canvas data
@@ -3068,21 +3084,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Force render update and immediate state restoration
         scene.render();
         
-        // Restore state immediately for faster switching
+        // Restore state with a slight delay to ensure camera switch is complete
         const selectedObject = getSelectedObject();
-        restoreSelectedObjectState();
-        console.log(`✅ SWITCHED TO 3D TOP VIEW: Selection "${selectedObject}" highlighting maintained`);
+        setTimeout(() => {
+          restoreSelectedObjectState();
+          console.log(`✅ SWITCHED TO 3D TOP VIEW: Selection "${selectedObject}" highlighting restored`);
+        }, 50);
       } else {
         // Switch back to perspective camera
         scene.activeCamera = perspectiveCamera;
         
-        // Force render update and immediate state restoration
+        // Force render update and delayed state restoration
         scene.render();
         
-        // Restore state immediately for faster switching
+        // Restore state with a slight delay to ensure camera switch is complete
         const selectedObject = getSelectedObject();
-        restoreSelectedObjectState();
-        console.log(`✅ SWITCHED TO 3D VIEW: Selection "${selectedObject}" highlighting maintained`);
+        setTimeout(() => {
+          restoreSelectedObjectState();
+          console.log(`✅ SWITCHED TO 3D VIEW: Selection "${selectedObject}" highlighting restored`);
+        }, 50);
       }
     }
   }, [isOrthographic]);
