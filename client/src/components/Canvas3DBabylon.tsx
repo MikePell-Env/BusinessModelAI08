@@ -345,81 +345,66 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
   };
 
-  // SIMPLIFIED: Restore visual and interaction state after view switches
+  // Simplified state restoration - apply visual state directly based on stored selection
   const restoreSelectedObjectState = () => {
     const selectedObjectName = getSelectedObject();
     console.log(`🔄 VIEW SWITCH: Restoring state for selection="${selectedObjectName}"`);
     
-    // Always apply height state first (handles both selected and no-selection cases)
     applyHeightState();
     
     if (!selectedObjectName) {
-      // No selection: ensure all objects are at full opacity and original colors
+      // Clear all selections
       contentPanelsRef.current.forEach(({ mesh, material }) => {
-        material.alpha = 1.0;
-        (mesh as any).isClicked = false;
-        
-        if ((mesh as any).hasTexture) {
-          material.emissiveColor = new Color3(0, 0, 0);
-        } else {
-          material.baseColor = (mesh as any).originalColor;
-        }
+        applyMeshState(mesh, material, false);
       });
-      console.log(`🔄 VIEW SWITCH: No selection - all objects restored to default state`);
+      console.log(`🔄 VIEW SWITCH: No selection - all objects cleared`);
       return;
     }
     
-    // There is a selection: restore selected object's visual state
+    // Apply selection state to all objects
     contentPanelsRef.current.forEach(({ mesh, material }) => {
       const sectionName = (mesh as any).bmcSectionName;
       const isSelected = sectionName === selectedObjectName;
-      
-      if (isSelected) {
-        // Restore selected object's blue color and full opacity
-        const brightBlueColor = new Color3(0.0, 0.3, 0.8);
-        if ((mesh as any).hasTexture) {
-          material.emissiveColor = brightBlueColor.scale(0.3);
-          material.markDirty();
-          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (textured, emissive blue)`);
-        } else {
-          if (material.baseColor) {
-            material.baseColor = brightBlueColor;
-          }
-          material.diffuseColor = brightBlueColor;
-          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (standard, blue color)`);
-        }
-        (mesh as any).isClicked = true;
-        material.alpha = 1.0;
-        
-        // Force material update
-        material.markDirty();
-        console.log(`✅ VIEW SWITCH: "${sectionName}" material marked dirty for update`);
-        
-        // Content panels are only shown on double-click, not during view state restoration
-      } else {
-        // Non-selected objects: original color, 50% opacity
-        if ((mesh as any).hasTexture) {
-          material.emissiveColor = new Color3(0, 0, 0);
-          material.markDirty();
-        } else {
-          if (material.baseColor) {
-            material.baseColor = (mesh as any).originalColor;
-          }
-          material.diffuseColor = (mesh as any).originalColor;
-          material.markDirty();
-        }
-        (mesh as any).isClicked = false;
-        material.alpha = 0.5;
-        console.log(`⚪ VIEW SWITCH: "${sectionName}" restored to original (50% opacity)`);
-      }
+      applyMeshState(mesh, material, isSelected);
     });
     
-    console.log(`🔄 VIEW SWITCH: Selection "${selectedObjectName}" restored with proper visual states`);
+    console.log(`🔄 VIEW SWITCH: Selection "${selectedObjectName}" restored`);
+  };
+
+  // Helper function to apply visual state to a mesh
+  const applyMeshState = (mesh: AbstractMesh, material: StandardMaterial, isSelected: boolean) => {
+    const sectionName = (mesh as any).bmcSectionName;
+    const brightBlueColor = new Color3(0.0, 0.3, 0.8);
     
-    // Force scene render to ensure material changes are applied immediately
-    if (sceneRef.current) {
-      sceneRef.current.render();
-      console.log(`🎨 VIEW SWITCH: Forced scene render for material updates`);
+    if (isSelected) {
+      // Selected: blue color, full opacity
+      if ((mesh as any).hasTexture) {
+        material.emissiveColor = brightBlueColor.scale(0.3);
+      } else {
+        if (material.baseColor) {
+          material.baseColor = brightBlueColor;
+        }
+        material.diffuseColor = brightBlueColor;
+      }
+      (mesh as any).isClicked = true;
+      material.alpha = 1.0;
+      console.log(`🔵 "${sectionName}" → SELECTED (blue highlight)`);
+    } else {
+      // Not selected: original color, 50% opacity or full if no selection
+      const hasAnySelection = getSelectedObject() !== null;
+      
+      if ((mesh as any).hasTexture) {
+        material.emissiveColor = new Color3(0, 0, 0);
+      } else {
+        const originalColor = (mesh as any).originalColor;
+        if (material.baseColor) {
+          material.baseColor = originalColor;
+        }
+        material.diffuseColor = originalColor;
+      }
+      (mesh as any).isClicked = false;
+      material.alpha = hasAnySelection ? 0.5 : 1.0;
+      console.log(`⚪ "${sectionName}" → NOT SELECTED (${hasAnySelection ? '50%' : '100%'} opacity)`);
     }
   };
 
@@ -3084,25 +3069,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Force render update and immediate state restoration
         scene.render();
         
-        // Restore state with a slight delay to ensure camera switch is complete
-        const selectedObject = getSelectedObject();
-        setTimeout(() => {
-          restoreSelectedObjectState();
-          console.log(`✅ SWITCHED TO 3D TOP VIEW: Selection "${selectedObject}" highlighting restored`);
-        }, 50);
-      } else {
-        // Switch back to perspective camera
-        scene.activeCamera = perspectiveCamera;
-        
-        // Force render update and delayed state restoration
+        // Switch to orthographic camera and restore state immediately
+        scene.activeCamera = orthoCamera;
         scene.render();
         
-        // Restore state with a slight delay to ensure camera switch is complete
         const selectedObject = getSelectedObject();
-        setTimeout(() => {
-          restoreSelectedObjectState();
-          console.log(`✅ SWITCHED TO 3D VIEW: Selection "${selectedObject}" highlighting restored`);
-        }, 50);
+        restoreSelectedObjectState();
+        console.log(`✅ SWITCHED TO 3D TOP VIEW: Selection "${selectedObject}" highlighting restored`);
+      } else {
+        // Switch back to perspective camera and restore state immediately  
+        scene.activeCamera = perspectiveCamera;
+        scene.render();
+        
+        const selectedObject = getSelectedObject();
+        restoreSelectedObjectState();
+        console.log(`✅ SWITCHED TO 3D VIEW: Selection "${selectedObject}" highlighting restored`);
       }
     }
   }, [isOrthographic]);
