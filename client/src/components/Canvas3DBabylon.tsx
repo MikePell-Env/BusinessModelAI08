@@ -1926,26 +1926,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`⚡ Double-click: ${sectionName} selected and panel shown`);
             }));
             
-            // Click - first click selects without panel, second click shows panel
+            // Click - first click selects without panel, second click deselects (panels only on double-click)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
               const isCurrentlyClicked = (mesh as any).isClicked;
               const isCurrentlySelected = getSelectedObject() === sectionName;
               
               if (isCurrentlyClicked && isCurrentlySelected) {
-                // Second click on already selected object - show/hide panel
-                const contentPanel = (mesh as any).contentPanel;
-                const isPanelVisible = contentPanel && contentPanel.isVisible;
-                
-                if (isPanelVisible) {
-                  // Panel is visible, hide it
-                  updateContentPanel(false);
-                  console.log(`📋 Panel hidden: ${sectionName} panel closed, object remains selected`);
-                } else {
-                  // Panel is hidden, show it
-                  const sectionContent = getSectionContent(sectionName);
-                  updateContentPanel(true, sectionContent);
-                  console.log(`📋 Panel shown: ${sectionName} panel opened for selected object`);
-                }
+                // Second click on already selected object - deselect (no panel on single click)
+                updateMeshClickUnselect();
+                updateContentPanel(false);
+                console.log(`🔓 Click released: ${sectionName} deselected, panel hidden`);
               } else if (isCurrentlyClicked) {
                 // Unclick - restore mesh and hide content panel
                 updateMeshClickUnselect();
@@ -2364,6 +2354,58 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             }));
 
+            // Double-click to show panel directly (Revenue Streams)
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              console.log(`⚡ Double-click detected on Revenue Streams`);
+              
+              // Ensure object is selected first
+              if (!((mesh as any).isClicked)) {
+                // Handle selecting a new object while another is already selected
+                const previouslySelectedObject = getSelectedObject();
+                
+                // Clear any other selections first
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  if (otherMesh !== mesh) {
+                    (otherMesh as any).isClicked = false;
+                    
+                    // Restore other objects to original colors
+                    if ((otherMesh as any).hasTexture) {
+                      material.emissiveColor = new Color3(0, 0, 0);
+                    } else {
+                      if (material.baseColor) {
+                        material.baseColor = (otherMesh as any).originalColor;
+                      }
+                      material.diffuseColor = (otherMesh as any).originalColor;
+                    }
+                  }
+                });
+                
+                // Apply height state for previous selection
+                if (previouslySelectedObject) {
+                  console.log(`📏 Flattening previously selected ${previouslySelectedObject}`);
+                }
+                
+                // Set this object as selected
+                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+                sectionMaterial.diffuseColor = brightBlueColor;
+                (mesh as any).isClicked = true;
+                setSelectedObject("Revenue Streams");
+                
+                // Apply selection opacity and height state
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  const isSelectedObject = otherMesh === mesh;
+                  material.alpha = isSelectedObject ? 1.0 : 0.5;
+                });
+                
+                applyHeightState();
+              }
+              
+              // Show panel (Revenue Streams content would come from getSectionContent)
+              const sectionContent = getSectionContent("Revenue Streams");
+              // Note: Revenue Streams may not have content panels yet, but this prepares for future implementation
+              console.log(`⚡ Double-click: Revenue Streams selected and ready for panel display`);
+            }));
+
             // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
             console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
             
@@ -2628,6 +2670,58 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 // Apply height state (selected at original height, others flattened)
                 applyHeightState();
               }
+            }));
+
+            // Double-click to show panel directly (Cost Structure)
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              console.log(`⚡ Double-click detected on Cost Structure`);
+              
+              // Ensure object is selected first
+              if (!((mesh as any).isClicked)) {
+                // Handle selecting a new object while another is already selected
+                const previouslySelectedObject = getSelectedObject();
+                
+                // Clear any other selections first
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  if (otherMesh !== mesh) {
+                    (otherMesh as any).isClicked = false;
+                    
+                    // Restore other objects to original colors
+                    if ((otherMesh as any).hasTexture) {
+                      material.emissiveColor = new Color3(0, 0, 0);
+                    } else {
+                      if (material.baseColor) {
+                        material.baseColor = (otherMesh as any).originalColor;
+                      }
+                      material.diffuseColor = (otherMesh as any).originalColor;
+                    }
+                  }
+                });
+                
+                // Apply height state for previous selection
+                if (previouslySelectedObject) {
+                  console.log(`📏 Flattening previously selected ${previouslySelectedObject}`);
+                }
+                
+                // Set this object as selected
+                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+                sectionMaterial.diffuseColor = brightBlueColor;
+                (mesh as any).isClicked = true;
+                setSelectedObject("Cost Structure");
+                
+                // Apply selection opacity and height state
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  const isSelectedObject = otherMesh === mesh;
+                  material.alpha = isSelectedObject ? 1.0 : 0.5;
+                });
+                
+                applyHeightState();
+              }
+              
+              // Show panel (Cost Structure content would come from getSectionContent)
+              const sectionContent = getSectionContent("Cost Structure");
+              // Note: Cost Structure may not have content panels yet, but this prepares for future implementation
+              console.log(`⚡ Double-click: Cost Structure selected and ready for panel display`);
             }));
 
             // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
