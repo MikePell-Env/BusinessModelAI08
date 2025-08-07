@@ -1,7 +1,7 @@
 # Business Model Canvas Visualization Application
 
 ## Overview
-This project is a web application designed for creating and visualizing business model canvases. It integrates AI-powered assistance for business analysis, offering both 2D and interactive 3D visualization modes. The core purpose is to provide a comprehensive tool for business strategizing, combining modern web technologies with advanced visualization and AI capabilities. The application aims to offer a sophisticated, intuitive platform for ideation, analysis, and presentation of business models, targeting a broad market of entrepreneurs, strategists, and analysts.
+This project is a web application designed for creating and visualizing business model canvases. It integrates AI-powered assistance for business analysis, offering both 2D and interactive 3D visualization modes. The core purpose is to provide a comprehensive tool for business strategizing, combining modern web technologies with advanced visualization and AI capabilities. The application features a unified transformation system for all BMC objects with consistent hover and selection behaviors across main BMC sections, Revenue Streams, and Cost Structure components.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
