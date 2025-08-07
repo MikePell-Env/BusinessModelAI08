@@ -379,8 +379,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const brightBlueColor = new Color3(0.0, 0.3, 0.8);
         if ((mesh as any).hasTexture) {
           material.emissiveColor = brightBlueColor.scale(0.3);
+          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (textured, emissive blue)`);
         } else {
           material.baseColor = brightBlueColor;
+          material.diffuseColor = brightBlueColor;
+          console.log(`🔵 VIEW SWITCH: "${sectionName}" highlighted (standard, blue color)`);
         }
         (mesh as any).isClicked = true;
         material.alpha = 1.0;
@@ -3066,8 +3069,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         scene.render();
         
         // Restore state immediately for faster switching
+        const selectedObject = getSelectedObject();
         restoreSelectedObjectState();
-        console.log("🔄 Switched to orthographic view with state restored");
+        console.log(`✅ SWITCHED TO 3D TOP VIEW: Selection "${selectedObject}" highlighting maintained`);
       } else {
         // Switch back to perspective camera
         scene.activeCamera = perspectiveCamera;
@@ -3076,8 +3080,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         scene.render();
         
         // Restore state immediately for faster switching
+        const selectedObject = getSelectedObject();
         restoreSelectedObjectState();
-        console.log("🔄 Switched to perspective view with state restored");
+        console.log(`✅ SWITCHED TO 3D VIEW: Selection "${selectedObject}" highlighting maintained`);
       }
     }
   }, [isOrthographic]);
@@ -3112,7 +3117,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   useEffect(() => {
     if (is3D && sceneRef.current) {
       const selectedObject = getSelectedObject();
-      console.log(`🔄 Entering 3D mode with selection: "${selectedObject}"`);
+      console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
       
       // Force render and restore state in next frame for smooth transition
       sceneRef.current.render();
@@ -3120,13 +3125,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const storedHeights = getOriginalHeights();
         if (Object.keys(storedHeights).length > 0) {
           restoreSelectedObjectState();
-          console.log(`🔄 3D mode state restored for selection: "${selectedObject}"`);
+          console.log(`✅ 3D MODE: Selection "${selectedObject}" highlighting restored with heights`);
         } else {
           // Even without stored heights, still try to restore selection state
           restoreSelectedObjectState();
-          console.log(`🔄 3D mode selection restored without heights: "${selectedObject}"`);
+          console.log(`✅ 3D MODE: Selection "${selectedObject}" highlighting restored (no stored heights)`);
         }
       });
+    } else if (!is3D) {
+      const selectedObject = getSelectedObject();
+      console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
     }
   }, [is3D, getSelectedObject, getOriginalHeights, restoreSelectedObjectState]);
 
