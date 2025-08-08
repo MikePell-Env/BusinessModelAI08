@@ -742,19 +742,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Create GUI for 3D billboard labels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
     
-    // Add "Internal" label to the ground plane (positioned in lower-left area below Cost Structure)
+    // Add "Internal" label to the ground plane (positioned in lower-left corner within ground bounds)
     const createInternalLabel = () => {
+      // Ground plane dimensions: width=20, height=14, centered at (0,0,0)
+      // Ground bounds: X from -10 to +10, Z from -7 to +7
+      // Lower-left corner as seen from top view: X negative (left), Z positive (lower)
+      
       // Create label plane for "Internal" 
       const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
-        width: 2.5,  // Appropriate width for the label
-        height: 0.8  // Height proportional to text
+        width: 2.0,  // Smaller width to fit within ground bounds
+        height: 0.6  // Height proportional to text
       }, scene);
       
-      // Position in lower-left area of the BMC layout (below Cost Structure)
-      // Based on coordinate system: X negative = left, Z positive = lower
-      internalLabelPlane.position.x = -8.5; // Left side, aligned with Cost Structure area
+      // Position in lower-left corner within ground plane bounds
+      // X: -8 (left side, within -10 to +10 range)
+      // Z: 5.5 (lower area, within -7 to +7 range)
+      internalLabelPlane.position.x = -8.0; // Left side within ground bounds
       internalLabelPlane.position.y = 0.01; // Just above ground plane to prevent z-fighting
-      internalLabelPlane.position.z = 8.5;  // Lower area of the layout
+      internalLabelPlane.position.z = 5.5;  // Lower area within ground bounds
       
       // Rotate to be flat on the ground
       internalLabelPlane.rotation.x = Math.PI / 2;
@@ -773,7 +778,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       internalLabelPlane.material = internalLabelMaterial;
       internalLabelPlane.isPickable = false; // Not interactive
       
-      console.log(`✅ Internal label plane created at position (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
+      console.log(`✅ Internal label plane created within ground bounds at position (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
+      console.log(`📏 Ground plane bounds: X(-10 to +10), Z(-7 to +7), Label at X: ${internalLabelPlane.position.x}, Z: ${internalLabelPlane.position.z}`);
     };
     
     // Create the Internal label
