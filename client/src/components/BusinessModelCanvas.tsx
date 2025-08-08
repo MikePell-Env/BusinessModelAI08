@@ -111,7 +111,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
   }
 
   return (
-    <div className="w-full h-full bg-white relative">
+    <div className="w-full h-screen bg-white relative">
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header onNavigateHome={onNavigateHome} />
@@ -201,7 +201,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       </div>
 
       {/* Canvas Views */}
-      <div className={`w-full h-full relative ${is3D ? 'pb-10' : ''}`}>
+      <div className="w-full h-full relative">
         {is3D ? (
           <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} />
         ) : (
