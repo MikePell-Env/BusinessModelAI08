@@ -742,6 +742,43 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Create GUI for 3D billboard labels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
     
+    // Add "Internal" label to the ground plane (positioned in lower-left area below Cost Structure)
+    const createInternalLabel = () => {
+      // Create label plane for "Internal" 
+      const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
+        width: 2.5,  // Appropriate width for the label
+        height: 0.8  // Height proportional to text
+      }, scene);
+      
+      // Position in lower-left area of the BMC layout (below Cost Structure)
+      // Based on coordinate system: X negative = left, Z positive = lower
+      internalLabelPlane.position.x = -8.5; // Left side, aligned with Cost Structure area
+      internalLabelPlane.position.y = 0.01; // Just above ground plane to prevent z-fighting
+      internalLabelPlane.position.z = 8.5;  // Lower area of the layout
+      
+      // Rotate to be flat on the ground
+      internalLabelPlane.rotation.x = Math.PI / 2;
+      
+      // Create material with the Internal label texture
+      const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
+      const internalLabelTexture = new Texture("/textures/Labels_internal_1754697296780.png", scene);
+      internalLabelTexture.hasAlpha = true;
+      
+      internalLabelMaterial.diffuseTexture = internalLabelTexture;
+      internalLabelMaterial.emissiveTexture = internalLabelTexture;
+      internalLabelMaterial.emissiveColor = new Color3(0.9, 0.9, 0.9); // Bright visibility
+      internalLabelMaterial.useAlphaFromDiffuseTexture = true;
+      internalLabelMaterial.disableLighting = false;
+      
+      internalLabelPlane.material = internalLabelMaterial;
+      internalLabelPlane.isPickable = false; // Not interactive
+      
+      console.log(`✅ Internal label plane created at position (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
+    };
+    
+    // Create the Internal label
+    createInternalLabel();
+    
 
     
 
