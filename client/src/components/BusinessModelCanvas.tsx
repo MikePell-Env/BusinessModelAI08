@@ -201,7 +201,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       </div>
 
       {/* Canvas Views */}
-      <div className="w-full h-full relative">
+      <div className={`w-full h-full relative ${is3D ? 'pb-10' : ''}`}>
         {is3D ? (
           <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} />
         ) : (
@@ -221,8 +221,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
 
       {/* Fixed Copyright Bar - Bottom (only in 3D views) */}
       {is3D && (
-        <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 z-50">
-          <div className="max-w-7xl mx-auto px-8 text-center text-gray-500 text-sm">
+        <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 z-50">
+          <div className="max-w-7xl mx-auto px-8 text-center text-gray-500 text-xs">
             Copyright © 2025 Envisioner, Inc. All Rights Reserved.
           </div>
         </footer>
