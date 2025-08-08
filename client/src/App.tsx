@@ -48,9 +48,8 @@ function App() {
   return (
     <div style={{ 
       width: '100vw', 
-      height: '100vh', 
+      minHeight: '100vh', 
       position: 'relative', 
-      overflow: 'hidden',
       fontFamily: 'Inter, sans-serif'
     }}>
       <Suspense fallback={
