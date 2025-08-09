@@ -55,11 +55,7 @@ export class CleanBMCSystem {
 
     console.log(`🔧 Making label visible for: ${itemName}, current alpha: ${item.labelMaterial.alpha}`);
     
-    // CRITICAL: Remove label from parent to prevent opacity inheritance
-    if (item.label.parent) {
-      console.log(`🔗 Detaching ${itemName} label from parent to prevent opacity inheritance`);
-      item.label.parent = null;
-    }
+    // KEEP labels parented for proper positioning - fix opacity inheritance differently
     
     // FORCE label visibility - NEVER change opacity from 100%
     item.label.isVisible = true;
@@ -87,8 +83,11 @@ export class CleanBMCSystem {
       (item.labelMaterial.diffuseTexture as any).hasAlpha = true;
     }
     
-    // CRITICAL: Override any inherited opacity
+    // CRITICAL: Force label visibility to override parent opacity inheritance
     (item.label as any).visibility = 1.0;
+    
+    // Additional fix: Set renderingGroupId to render labels after objects
+    item.label.renderingGroupId = 1;
     
     console.log(`✅ Label ${itemName} visibility enforced: alpha=${item.labelMaterial.alpha}, visible=${item.label.isVisible}, enabled=${item.label.isEnabled()}, parent=${item.label.parent}`);
   }
