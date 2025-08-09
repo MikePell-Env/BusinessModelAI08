@@ -435,14 +435,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const isSelected = objectState.visual.isSelected;
       const isHovered = objectState.visual.isHovered;
       
-      // Determine final color: selected > hovered > original
+      // UNIFIED LOGIC: Determine visual properties based on selection state
       let finalColor: Color3;
+      let finalOpacity: number;
+      let finalHeight: number;
+      
       if (isSelected) {
-        finalColor = objectState.visual.selectedColor; // Bright blue
+        // Selected object: bright blue, full opacity, full height
+        finalColor = new Color3(0.0, 0.3, 0.8); // Bright blue
+        finalOpacity = 1.0;
+        finalHeight = objectState.transform.originalHeight;
       } else if (isHovered) {
-        finalColor = objectState.visual.hoverColor; // Bright blue  
+        // Hovered object: bright blue, full opacity, full height
+        finalColor = new Color3(0.0, 0.3, 0.8); // Bright blue
+        finalOpacity = 1.0;
+        finalHeight = objectState.transform.originalHeight;
+      } else if (selectedComponent) {
+        // Non-selected when something else is selected: grey, 50% opacity, flattened
+        finalColor = new Color3(0.07, 0.07, 0.07); // Dark grey
+        finalOpacity = 0.5;
+        finalHeight = 0.1; // Very flat
       } else {
-        finalColor = objectState.visual.baseColor; // Original grey
+        // No selection: all objects full state
+        finalColor = new Color3(0.07, 0.07, 0.07); // Dark grey
+        finalOpacity = 1.0;
+        finalHeight = objectState.transform.originalHeight;
       }
       
       // Apply color based on texture type
@@ -455,16 +472,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         material.diffuseColor = finalColor;
       }
       
-      // Apply opacity
-      material.alpha = objectState.visual.opacity;
-      
-      // Apply height
-      mesh.scaling.y = objectState.transform.currentHeight;
+      // Apply unified properties
+      material.alpha = finalOpacity;
+      mesh.scaling.y = finalHeight;
       
       // Sync legacy state for compatibility
       (mesh as any).isClicked = isSelected;
       
-      console.log(`🔧 ${sectionName}: selected=${isSelected}, hovered=${isHovered}, opacity=${objectState.visual.opacity}, height=${objectState.transform.currentHeight}`);
+      console.log(`🔧 ${sectionName}: selected=${isSelected}, hovered=${isHovered}, opacity=${finalOpacity}, height=${finalHeight}`);
     });
   };
 
@@ -3079,28 +3094,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
         
-        // Force render update and immediate state restoration
-        scene.render();
-        
-        // Switch to orthographic camera and restore state immediately
-        scene.activeCamera = orthoCamera;
-        scene.render();
-        
-        // Add delay to ensure camera switch completes before state restoration
+        // Single render and delayed state restoration
         setTimeout(() => {
           restoreBMCStateOnViewChange();
           console.log(`✅ SWITCHED TO 3D TOP VIEW: BMC state restored`);
-        }, 100);
+        }, 50);
       } else {
-        // Switch back to perspective camera and restore state immediately  
+        // Switch back to perspective camera  
         scene.activeCamera = perspectiveCamera;
-        scene.render();
         
-        // Add delay to ensure camera switch completes before state restoration
+        // Single delayed state restoration
         setTimeout(() => {
           restoreBMCStateOnViewChange();
           console.log(`✅ SWITCHED TO 3D VIEW: BMC state restored`);
-        }, 100);
+        }, 50);
       }
     }
   }, [isOrthographic]);
@@ -3139,12 +3146,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
       
-      // Force render and restore state with proper timing
-      sceneRef.current.render();
+      // Single delayed state restoration
       setTimeout(() => {
         restoreBMCStateOnViewChange();
         console.log(`✅ 3D MODE: BMC state restored`);
-      }, 150); // Slightly longer delay for entering 3D mode
+      }, 50);
     } else if (!is3D) {
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
