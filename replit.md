@@ -11,6 +11,10 @@ Preferred communication style: Simple, everyday language.
 - **Header Navigation**: Added 4-button navigation with Home/About/Team/Explore/Contact layout
 - **Content Cleanup**: Explore page has demo blue box and 3 video elements removed for cleaner layout
 - **Page Structure**: Home page unchanged, Explore page uses full-width layout without right column
+- **Explore Page Redesign**: Updated to match provided design reference with professional two-column layout:
+  - Left column: Company name, summary content in white card
+  - Right column: Three analysis tools (SWOT, Business Model Canvas, Financials) with simple icons
+  - Gray background, clean typography, Business Model Canvas clickable to launch 3D viewer
 
 ## System Architecture
 The application employs a full-stack monorepo architecture, separating client and server concerns.
