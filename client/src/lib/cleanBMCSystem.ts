@@ -45,29 +45,35 @@ export class CleanBMCSystem {
     }
   }
 
-  // Make a label always visible
+  // Make a label always visible at 100% opacity - NEVER change label opacity
   private makeLabelVisible(itemName: string) {
     const item = this.items.get(itemName);
     if (!item?.label || !item?.labelMaterial) return;
 
-    // Force visibility at 100% opacity
+    // FORCE label visibility - NEVER change opacity from 100%
     item.label.isVisible = true;
     item.label.setEnabled(true);
     
-    // Force material properties for maximum visibility
+    // CRITICAL: Always keep label at 100% opacity regardless of object state
     item.labelMaterial.alpha = 1.0;
     item.labelMaterial.backFaceCulling = false;
     item.labelMaterial.useAlphaFromDiffuseTexture = true;
     item.labelMaterial.disableLighting = false;
     
-    // Set consistent emissive color for readability
+    // Force maximum brightness for visibility
     if (item.labelMaterial.emissiveColor) {
-      item.labelMaterial.emissiveColor.set(0.7, 0.7, 0.7);
+      item.labelMaterial.emissiveColor.set(1.0, 1.0, 1.0); // Full white for maximum visibility
     }
     
-    // Ensure diffuse texture visibility
+    // Force diffuse color to white for better visibility
+    if (item.labelMaterial.diffuseColor) {
+      item.labelMaterial.diffuseColor.set(1.0, 1.0, 1.0);
+    }
+    
+    // Ensure texture visibility
     if (item.labelMaterial.diffuseTexture) {
       (item.labelMaterial.diffuseTexture as any).level = 1.0;
+      (item.labelMaterial.diffuseTexture as any).hasAlpha = true;
     }
   }
 
@@ -131,22 +137,27 @@ export class CleanBMCSystem {
   // Update all visual states based on current selection
   private updateAllVisuals() {
     this.items.forEach((item, name) => {
+      // ALWAYS update labels FIRST to ensure they stay visible
+      this.makeLabelVisible(name);
+      
       if (name === this.selectedItem) {
-        // Selected: bright blue, full height
+        // Selected: bright blue, full height, full opacity
         item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
         item.material.alpha = 1.0;
         item.mesh.scaling.y = item.originalHeight;
       } else if (this.selectedItem) {
-        // Others when selected: dim, flattened
+        // Others when selected: dim object, flattened object - BUT LABELS STAY 100%
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
-        item.material.alpha = 0.5;
+        item.material.alpha = 0.5; // Only affects the 3D object, NOT the label
         item.mesh.scaling.y = 0.1;
       } else {
         // Default state
-        this.setDefaultAppearance(name);
+        item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+        item.material.alpha = 1.0;
+        item.mesh.scaling.y = item.originalHeight;
       }
       
-      // Always keep labels visible
+      // CRITICAL: Force label visibility again after any material changes
       this.makeLabelVisible(name);
     });
   }
@@ -160,12 +171,15 @@ export class CleanBMCSystem {
   // Restore all objects to original material, height, and opacity
   private restoreAllToDefault() {
     this.items.forEach((item, name) => {
+      // FIRST: Force label visibility before changing anything
+      this.makeLabelVisible(name);
+      
       // Original material: medium dark grey, 100% opacity, original height
       item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
       item.material.alpha = 1.0;
       item.mesh.scaling.y = item.originalHeight;
       
-      // Always ensure label visibility
+      // LAST: Force label visibility again after material changes
       this.makeLabelVisible(name);
     });
   }
