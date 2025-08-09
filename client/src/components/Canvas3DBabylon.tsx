@@ -470,13 +470,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Apply opacity to mesh
       material.alpha = targetOpacity;
       
-      // CRITICAL: According to Babylon.js docs, child meshes do NOT inherit parent alpha
-      // But we need to ensure labels stay visible, so explicitly set them to full opacity
+      // CRITICAL: Force all child materials (labels) to stay visible
+      // Key Partners works because its labels maintain full alpha - copy this exact behavior
       if (mesh.getChildren) {
         mesh.getChildren().forEach((child: any) => {
-          if (child.material) {
-            // Force all child materials (labels) to full opacity
+          if (child.material && child.name && child.name.includes("Label")) {
+            // Copy exactly what Key Partners does: set to full opacity and ensure visibility
             child.material.alpha = 1.0;
+            child.isVisible = true;
+            console.log(`🔧 Fixed label visibility for child: ${child.name}`);
           }
         });
       }
