@@ -482,6 +482,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       material.alpha = finalOpacity;
       mesh.scaling.y = finalHeight;
       (mesh as any).isClicked = isSelected;
+      
+      // CRITICAL: Preserve label visibility - labels should always be fully visible
+      if (mesh.getChildren) {
+        mesh.getChildren().forEach((child: any) => {
+          if (child.material && (child.name?.includes('Label') || child.name?.includes('label'))) {
+            child.material.alpha = 1.0; // Force labels to full opacity
+            console.log(`🏷️ Preserving label visibility for ${child.name}`);
+          }
+        });
+      }
     });
   };
 
