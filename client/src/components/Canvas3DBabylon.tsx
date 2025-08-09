@@ -658,16 +658,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // Restore selection state when view mode changes or scene is ready
   useEffect(() => {
-    // Wait for contentPanelsRef to be populated before restoring state
-    const restoreTimer = setTimeout(() => {
-      if (contentPanelsRef.current.length > 0) {
-        syncBMCStateWithLegacy();
-        applyBMCVisualState();
-      }
-    }, 1000); // Give time for models to load and be registered
-
-    return () => clearTimeout(restoreTimer);
-  }, [is3D, isOrthographic]); // Trigger when view mode changes
+    // Only restore when entering 3D mode after models are loaded
+    if (is3D && contentPanelsRef.current.length > 0) {
+      syncBMCStateWithLegacy();
+      applyBMCVisualState();
+    }
+  }, [is3D]); // Only trigger when entering/leaving 3D mode
   
   // GUI state removed since labels are no longer used
 
@@ -3074,20 +3070,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           perspectiveCamera.radius
         );
         
-        // Switch to orthographic camera
+        // Switch to orthographic camera - NO visual updates during switch
         scene.activeCamera = orthoCamera;
-        
-        // Sync states and apply visuals
-        syncBMCStateWithLegacy();
-        applyBMCVisualState();
         console.log(`✅ SWITCHED TO 3D TOP VIEW`);
       } else {
-        // Switch back to perspective camera  
+        // Switch back to perspective camera - NO visual updates during switch
         scene.activeCamera = perspectiveCamera;
-        
-        // Sync states and apply visuals
-        syncBMCStateWithLegacy();
-        applyBMCVisualState();
         console.log(`✅ SWITCHED TO 3D VIEW`);
       }
     }
