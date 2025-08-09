@@ -77,9 +77,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
       {/* Main Content */}
       <main className="py-12 relative">
         <div className="flex">
-          {/* Main Content - Full width without right margin */}
-          <div className="flex-1 px-8 flex justify-center">
+          {/* Left Column - Main Content - Centered in available space, with right margin for fixed video column */}
+          <div className="flex-1 px-8 flex justify-center" style={{ marginRight: '320px' }}>
             <div className="w-full max-w-4xl">
+              {/* Demo Info Banner - moved to top */}
+              <div className="bg-blue-500 text-white p-6 rounded-lg mb-16">
+                <p className="text-lg leading-tight">
+                  <strong>DEMO:</strong> Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
+                </p>
+              </div>
+
               {/* Selection Section */}
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
@@ -174,6 +181,86 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                   </div>
                 </div>
               </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Videos with vertical line - Fixed to right edge */}
+          <div className="fixed right-0 top-20 w-80 h-full">
+            {/* Vertical gray line - aligned with bottom of Microsoft Copilot status box */}
+            <div className="absolute left-0 top-0 w-px bg-gray-500" style={{ height: 'calc(100vh - 180px)' }}></div>
+            
+            {/* Content with left padding for spacing from line */}
+            <div className="pl-8 pr-8">
+              {/* Header text - moved down slightly */}
+              <div className="mt-6 mb-8">
+                <p className="text-base text-gray-700 leading-relaxed">
+                  Use Envisioners to bring these aspects of your business to life...
+                </p>
+              </div>
+              
+              {/* Video sections */}
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                    <video 
+                      className="w-full h-32 object-cover"
+                      controls
+                      muted
+                      loop
+                      autoPlay
+                    >
+                      <source src="/neon-data-pathway.mp4" type="video/mp4" />
+                      <source src="/2025-07-14T00-25-19_a_neon_data_pathway_1753819819664.mov" type="video/quicktime" />
+                      <img 
+                        src="/video-fallback.png" 
+                        alt="Process Active" 
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                    </video>
+                  </div>
+                  <p className="text-sm text-gray-600 font-medium">Processes</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                    <video 
+                      className="w-full h-32 object-cover"
+                      controls
+                      muted
+                      loop
+                      autoPlay
+                    >
+                      <source src="/data-analytics-video.mp4" type="video/mp4" />
+                      <img 
+                        src="/video-fallback.png" 
+                        alt="Data Analytics" 
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                    </video>
+                  </div>
+                  <p className="text-sm text-gray-600 font-medium">Datasets</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-full rounded-lg shadow-md mb-2 overflow-hidden">
+                    <video 
+                      className="w-full h-32 object-cover"
+                      controls
+                      muted
+                      loop
+                      autoPlay
+                    >
+                      <source src="/systems-video.mp4" type="video/mp4" />
+                      <img 
+                        src="/video-fallback.png" 
+                        alt="Systems Online" 
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                    </video>
+                  </div>
+                  <p className="text-sm text-gray-600 font-medium">Systems</p>
+                </div>
               </div>
             </div>
           </div>
