@@ -50,20 +50,25 @@ export class CleanBMCSystem {
     const item = this.items.get(itemName);
     if (!item?.label || !item?.labelMaterial) return;
 
-    // Force visibility
+    // Force visibility at 100% opacity
     item.label.isVisible = true;
     item.label.setEnabled(true);
     
-    // Force material properties
+    // Force material properties for maximum visibility
     item.labelMaterial.alpha = 1.0;
     item.labelMaterial.backFaceCulling = false;
+    item.labelMaterial.useAlphaFromDiffuseTexture = true;
+    item.labelMaterial.disableLighting = false;
     
+    // Set consistent emissive color for readability
     if (item.labelMaterial.emissiveColor) {
       item.labelMaterial.emissiveColor.set(0.7, 0.7, 0.7);
     }
     
-    item.labelMaterial.useAlphaFromDiffuseTexture = true;
-    item.labelMaterial.disableLighting = false;
+    // Ensure diffuse texture visibility
+    if (item.labelMaterial.diffuseTexture) {
+      (item.labelMaterial.diffuseTexture as any).level = 1.0;
+    }
   }
 
   // Set default appearance for an item
@@ -71,12 +76,12 @@ export class CleanBMCSystem {
     const item = this.items.get(itemName);
     if (!item) return;
 
-    // Default color: medium dark grey
-    const defaultColor = new Color3(0.07, 0.07, 0.07);
-    item.material.diffuseColor = defaultColor;
+    // Default: medium dark grey, full opacity, original height
+    item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
     item.material.alpha = 1.0;
     item.mesh.scaling.y = item.originalHeight;
 
+    // Always ensure label visibility
     this.makeLabelVisible(itemName);
   }
 
@@ -91,12 +96,19 @@ export class CleanBMCSystem {
     }
 
     if (isHovered) {
-      // Hover color: bright blue
+      // Hover: bright blue color, keep full opacity and height
       item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+      item.material.alpha = 1.0;
+      item.mesh.scaling.y = item.originalHeight;
     } else {
-      // Back to default
-      this.setDefaultAppearance(itemName);
+      // Back to default: medium dark grey
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      item.material.alpha = 1.0;
+      item.mesh.scaling.y = item.originalHeight;
     }
+    
+    // Always ensure label stays visible
+    this.makeLabelVisible(itemName);
   }
 
   // Handle selection
