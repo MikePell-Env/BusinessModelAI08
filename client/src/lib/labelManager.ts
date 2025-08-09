@@ -46,14 +46,24 @@ export class UnifiedBMCLabelManager {
     const material = this.labelMaterials.get(bmcComponent);
     
     if (label && material) {
+      // Force label visibility
       label.isVisible = true;
-      material.alpha = 1.0;
+      label.setEnabled(true);
       
-      // Ensure material properties are correct for visibility
+      // Ensure material alpha is full
+      material.alpha = 1.0;
+      material.backFaceCulling = false; // Ensure visibility from all angles
+      
+      // Force emissive properties for visibility
       if (material.emissiveTexture) {
-        material.emissiveColor.set(0.8, 0.8, 0.8);
+        material.emissiveColor.set(0.9, 0.9, 0.9); // Brighter
       }
       material.useAlphaFromDiffuseTexture = true;
+      material.needDepthPrePass = false; // Prevent depth issues
+      
+      console.log(`🔧 FORCED visibility for ${bmcComponent} label`);
+    } else {
+      console.warn(`⚠️ Label not found for visibility enforcement: ${bmcComponent}`);
     }
   }
   
@@ -92,12 +102,22 @@ export class UnifiedBMCLabelManager {
     
     allLabels.forEach(label => {
       label.isVisible = true;
-      if (label.material && (label.material as any).alpha !== undefined) {
-        (label.material as any).alpha = 1.0;
+      label.setEnabled(true);
+      
+      if (label.material) {
+        const material = label.material as any;
+        if (material.alpha !== undefined) {
+          material.alpha = 1.0;
+        }
+        if (material.emissiveColor && material.emissiveTexture) {
+          material.emissiveColor.set(0.9, 0.9, 0.9);
+        }
+        material.backFaceCulling = false;
+        material.useAlphaFromDiffuseTexture = true;
       }
     });
     
-    console.log(`🔧 Forced visibility for ${allLabels.length} labels`);
+    console.log(`🔧 EMERGENCY: Forced visibility for ${allLabels.length} labels by pattern`);
   }
 
   /**

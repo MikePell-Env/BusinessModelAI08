@@ -404,6 +404,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // UNIFIED: Ensure all BMC labels remain visible after all material changes
     labelManagerRef.current.ensureAllLabelsVisible();
+    
+    // EMERGENCY: Force visibility by pattern as backup
+    labelManagerRef.current.forceAllLabelsVisibleByPattern("Label");
   };
 
   // Handle background click to clear selection
