@@ -2244,8 +2244,37 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡ Double-click detected on Revenue Streams`);
               
-              // Ensure object is selected first using unified BMC system
-              handleBMCObjectClick("Revenue Streams");
+              // Ensure object is selected first
+              if (!((mesh as any).isClicked)) {
+                // Handle selecting a new object while another is already selected
+                const previouslySelectedObject = getSelectedObject();
+                
+                // Clear any other selections first
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  if (otherMesh !== mesh) {
+                    (otherMesh as any).isClicked = false;
+                    
+                    // Restore other objects to original colors
+                    if ((otherMesh as any).hasTexture) {
+                      material.emissiveColor = new Color3(0, 0, 0);
+                    } else {
+                      if (material.baseColor) {
+                        material.baseColor = (otherMesh as any).originalColor;
+                      }
+                      material.diffuseColor = (otherMesh as any).originalColor;
+                    }
+                  }
+                });
+                
+                // Apply height state for previous selection
+                if (previouslySelectedObject) {
+                  console.log(`📏 Flattening previously selected ${previouslySelectedObject}`);
+                }
+                
+                // REMOVED: Old selection logic - now handled by BMC system
+                
+                applyBMCVisualState();
+              }
               
               // Show panel (Revenue Streams content would come from getSectionContent)
               const sectionContent = getSectionContent("Revenue Streams");
@@ -2463,8 +2492,37 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡ Double-click detected on Cost Structure`);
               
-              // Ensure object is selected first using unified BMC system
-              handleBMCObjectClick("Cost Structure");
+              // Ensure object is selected first
+              if (!((mesh as any).isClicked)) {
+                // Handle selecting a new object while another is already selected
+                const previouslySelectedObject = getSelectedObject();
+                
+                // Clear any other selections first
+                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
+                  if (otherMesh !== mesh) {
+                    (otherMesh as any).isClicked = false;
+                    
+                    // Restore other objects to original colors
+                    if ((otherMesh as any).hasTexture) {
+                      material.emissiveColor = new Color3(0, 0, 0);
+                    } else {
+                      if (material.baseColor) {
+                        material.baseColor = (otherMesh as any).originalColor;
+                      }
+                      material.diffuseColor = (otherMesh as any).originalColor;
+                    }
+                  }
+                });
+                
+                // Apply height state for previous selection
+                if (previouslySelectedObject) {
+                  console.log(`📏 Flattening previously selected ${previouslySelectedObject}`);
+                }
+                
+                // REMOVED: Old selection logic - now handled by BMC system
+                
+                applyBMCVisualState();
+              }
               
               // Show panel (Cost Structure content would come from getSectionContent)
               const sectionContent = getSectionContent("Cost Structure");
