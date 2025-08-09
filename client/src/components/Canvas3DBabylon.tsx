@@ -777,9 +777,47 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       console.log(`✅ Internal label (2x larger, medium grey) on ground plane at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
     };
+
+    // Add "External" label on the right side of the ground plane
+    const createExternalLabel = () => {
+      // Position on the right side, mirroring Internal label placement
+      // Based on diagram: External should be positioned below Revenue Streams area
+      
+      const externalLabelPlane = MeshBuilder.CreatePlane("externalLabel", {
+        width: 5.0,   // Same size as Internal label
+        height: 1.6   // Same height as Internal label
+      }, scene);
+      
+      // Position on ground plane on the right side
+      // Revenue Streams is at (-0.221, 0.1, -10.5), so External should be to the right
+      externalLabelPlane.position.x = 5.0;   // Right side (positive X, mirroring Internal at -5.0)
+      externalLabelPlane.position.y = 0.001; // Directly on ground plane surface
+      externalLabelPlane.position.z = -6.2;  // Same Z as Internal for alignment
+      
+      // Rotate to lie flat on the ground
+      externalLabelPlane.rotation.x = Math.PI / 2;
+      
+      // Create material with the External blue label at 50% transparency
+      const externalLabelMaterial = new StandardMaterial("externalLabelMat", scene);
+      const externalLabelTexture = new Texture("/textures/Labels_external_blue.png", scene);
+      externalLabelTexture.hasAlpha = true;
+      
+      externalLabelMaterial.diffuseTexture = externalLabelTexture;
+      externalLabelMaterial.emissiveTexture = externalLabelTexture;
+      externalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for blue label
+      externalLabelMaterial.alpha = 0.5; // 50% transparency
+      externalLabelMaterial.useAlphaFromDiffuseTexture = true;
+      externalLabelMaterial.disableLighting = true;
+      
+      externalLabelPlane.material = externalLabelMaterial;
+      externalLabelPlane.isPickable = false;
+      
+      console.log(`✅ External label positioned on right side at (${externalLabelPlane.position.x}, ${externalLabelPlane.position.y}, ${externalLabelPlane.position.z})`);
+    };
     
-    // Create the Internal label
+    // Create the Internal and External labels
     createInternalLabel();
+    createExternalLabel();
     
 
     
