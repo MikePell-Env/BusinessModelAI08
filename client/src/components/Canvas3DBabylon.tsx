@@ -402,11 +402,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       (mesh as any).isClicked = isSelected;
     });
     
-    // UNIFIED: Ensure all BMC labels remain visible after all material changes
-    labelManagerRef.current.ensureAllLabelsVisible();
-    
-    // EMERGENCY: Force visibility by pattern as backup
-    labelManagerRef.current.forceAllLabelsVisibleByPattern("Label");
+    // LABELS: Keep all labels fully visible and independent of selection state
+    if (sceneRef.current) {
+      sceneRef.current.meshes.forEach((mesh: any) => {
+        if (mesh.name && (mesh.name.includes('Label') || mesh.name.includes('label'))) {
+          mesh.isVisible = true;
+          mesh.setEnabled(true);
+          if (mesh.material) {
+            mesh.material.alpha = 1.0;
+            mesh.material.backFaceCulling = false;
+            if (mesh.material.emissiveColor && mesh.material.emissiveTexture) {
+              mesh.material.emissiveColor.set(0.9, 0.9, 0.9);
+            }
+          }
+        }
+      });
+    }
   };
 
   // Handle background click to clear selection
@@ -1119,7 +1130,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelMaterial.disableLighting = false;
               
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh;
+              labelPlane.parent = null; // Remove parent to prevent material inheritance
               labelPlane.isPickable = false;
               
               // Register with unified BMC label manager
@@ -1166,7 +1177,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelMaterial.disableLighting = false;
               
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh;
+              labelPlane.parent = null; // Remove parent to prevent material inheritance
               labelPlane.isPickable = false;
               
               // Register with unified BMC label manager
@@ -1213,7 +1224,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelMaterial.disableLighting = false;
               
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh;
+              labelPlane.parent = null; // Remove parent to prevent material inheritance
               labelPlane.isPickable = false;
               
               // Register with unified BMC label manager
@@ -1260,7 +1271,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelMaterial.disableLighting = false;
               
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh;
+              labelPlane.parent = null; // Remove parent to prevent material inheritance
               labelPlane.isPickable = false;
               
               // Register with unified BMC label manager  
@@ -1308,7 +1319,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelMaterial.disableLighting = false;
               
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh;
+              labelPlane.parent = null; // Remove parent to prevent material inheritance
               labelPlane.isPickable = false;
               
               // Register with unified BMC label manager
@@ -1356,7 +1367,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelMaterial.disableLighting = false;
               
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh;
+              labelPlane.parent = null; // Remove parent to prevent material inheritance
               labelPlane.isPickable = false;
               
               // Register with unified BMC label manager
@@ -1404,7 +1415,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelMaterial.disableLighting = false;
               
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh;
+              labelPlane.parent = null; // Remove parent to prevent material inheritance
               labelPlane.isPickable = false;
               
               // Register with unified BMC label manager
@@ -2210,8 +2221,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelMaterial.disableLighting = false;
             
             labelPlane.material = labelMaterial;
-            labelPlane.parent = mesh;
+            labelPlane.parent = null; // Remove parent to prevent material inheritance
             labelPlane.isPickable = false;
+            
+            // Position in world space independent of parent
+            const worldPos = mesh.getAbsolutePosition();
+            labelPlane.position.x = worldPos.x + center.x;
+            labelPlane.position.y = worldPos.y + center.y + size.y * 0.6;
+            labelPlane.position.z = worldPos.z + center.z;
             
             // Register with unified BMC label manager
             labelManagerRef.current.registerLabel("RevenueStreams", "Revenue Streams", labelPlane, labelMaterial);
@@ -2394,8 +2411,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelMaterial.disableLighting = false;
             
             labelPlane.material = labelMaterial;
-            labelPlane.parent = mesh;
+            labelPlane.parent = null; // Remove parent to prevent material inheritance
             labelPlane.isPickable = false;
+            
+            // Position in world space independent of parent
+            const worldPos = mesh.getAbsolutePosition();
+            labelPlane.position.x = worldPos.x + center.x;
+            labelPlane.position.y = worldPos.y + center.y + size.y * 0.6;
+            labelPlane.position.z = worldPos.z + center.z;
             
             // Register with unified BMC label manager
             labelManagerRef.current.registerLabel("CostStructure", "Cost Structure", labelPlane, labelMaterial);
