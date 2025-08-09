@@ -494,35 +494,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
   };
   
-  // Restore BMC visual state on view transitions
-  const restoreBMCStateOnViewChange = () => {
-    console.log(`🔄 Restoring BMC state after view change`);
-    
-    // First, sync BMC state manager with legacy Zustand store
+  // Simple function to sync BMC state with legacy store
+  const syncBMCStateWithLegacy = () => {
     const legacySelection = getSelectedObject();
-    const bmcSelection = bmcState.getSelectedObject();
-    
-    console.log(`🔍 Syncing: legacy="${legacySelection}", BMC="${bmcSelection}"`);
-    
-    // Use legacy selection as source of truth for restoration
     if (legacySelection) {
       const bmcComponent = mapSectionNameToBMCComponent(legacySelection);
-      if (bmcComponent) {
+      if (bmcComponent && bmcState.getSelectedObject() !== bmcComponent) {
         bmcState.selectObject(bmcComponent);
-        console.log(`🔗 Synced BMC selection to "${bmcComponent}" from legacy store`);
       }
-    } else if (bmcSelection) {
-      // If no legacy selection but BMC has one, update legacy store
-      const sectionName = mapBMCComponentToSectionName(bmcSelection);
-      setSelectedObject(sectionName);
-      console.log(`🔗 Synced legacy selection to "${sectionName}" from BMC store`);
+    } else if (bmcState.getSelectedObject()) {
+      bmcState.selectObject(null);
     }
-    
-    // Apply visual state based on current BMC state
-    applyBMCVisualState();
-    
-    const finalSelection = bmcState.getSelectedObject();
-    console.log(`✅ BMC state restored: selected="${finalSelection}"`);
   };
   
 
@@ -3094,20 +3076,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
         
-        // Single render and delayed state restoration
-        setTimeout(() => {
-          restoreBMCStateOnViewChange();
-          console.log(`✅ SWITCHED TO 3D TOP VIEW: BMC state restored`);
-        }, 50);
+        // Sync states and apply visuals
+        syncBMCStateWithLegacy();
+        applyBMCVisualState();
+        console.log(`✅ SWITCHED TO 3D TOP VIEW`);
       } else {
         // Switch back to perspective camera  
         scene.activeCamera = perspectiveCamera;
         
-        // Single delayed state restoration
-        setTimeout(() => {
-          restoreBMCStateOnViewChange();
-          console.log(`✅ SWITCHED TO 3D VIEW: BMC state restored`);
-        }, 50);
+        // Sync states and apply visuals
+        syncBMCStateWithLegacy();
+        applyBMCVisualState();
+        console.log(`✅ SWITCHED TO 3D VIEW`);
       }
     }
   }, [isOrthographic]);
@@ -3146,11 +3126,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
       
-      // Single delayed state restoration
-      setTimeout(() => {
-        restoreBMCStateOnViewChange();
-        console.log(`✅ 3D MODE: BMC state restored`);
-      }, 50);
+      // Sync states and apply visuals
+      syncBMCStateWithLegacy();
+      applyBMCVisualState();
+      console.log(`✅ 3D MODE: BMC state applied`);
     } else if (!is3D) {
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
