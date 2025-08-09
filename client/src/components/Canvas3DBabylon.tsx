@@ -745,36 +745,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Add "Internal" label directly on the ground plane near Cost Structure
     const createInternalLabel = () => {
       // Cost Structure is at (-10.1, 0.1, -10.5), Ground plane is at Y=0
-      // Place Internal label on the ground plane, slightly in front of Cost Structure
+      // Place Internal label on the ground plane, moved more to the right
       
       const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
-        width: 2.5,   // Appropriate size for visibility
-        height: 0.8   // Proportional height
+        width: 5.0,   // 2x larger than previous 2.5
+        height: 1.6   // 2x larger than previous 0.8
       }, scene);
       
-      // Position on ground plane near Cost Structure
-      internalLabelPlane.position.x = -8.0;  // Closer to center than Cost Structure
+      // Position on ground plane, moved more to the right
+      internalLabelPlane.position.x = -5.0;  // Moved more to the right (was -8.0)
       internalLabelPlane.position.y = 0.001; // Directly on ground plane surface
       internalLabelPlane.position.z = -6.0;  // In front of Cost Structure for visibility
       
       // Rotate to lie flat on the ground
       internalLabelPlane.rotation.x = Math.PI / 2;
       
-      // Create bright, visible material
+      // Create medium grey material
       const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
       const internalLabelTexture = new Texture("/textures/Labels_internal_1754697296780.png", scene);
       internalLabelTexture.hasAlpha = true;
       
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
-      internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+      internalLabelMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // Medium grey instead of white
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
       internalLabelMaterial.disableLighting = true;
       
       internalLabelPlane.material = internalLabelMaterial;
       internalLabelPlane.isPickable = false;
       
-      console.log(`✅ Internal label on ground plane at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
+      console.log(`✅ Internal label (2x larger, medium grey) on ground plane at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
     };
     
     // Create the Internal label
