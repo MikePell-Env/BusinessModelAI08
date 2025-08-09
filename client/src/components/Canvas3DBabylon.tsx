@@ -1796,11 +1796,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
         console.log("📏 Value Propositions height managed by unified BMC system");
 
-        // Apply standard base color top face to Customer Channels section
-        setTimeout(() => {
-          console.log("🎯 About to apply standard base color to Customer Channels section");
-          applyDarkTopFace("Channels");
-        }, 1500);
+        // REMOVED: Customer Channels special color treatment - now uses unified BMC system like all other objects
 
         // Debug current coordinates to understand proper positioning
         setTimeout(() => {
