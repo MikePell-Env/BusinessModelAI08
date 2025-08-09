@@ -486,9 +486,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // CRITICAL: Preserve label visibility - labels should always be fully visible
       if (mesh.getChildren) {
         mesh.getChildren().forEach((child: any) => {
-          if (child.material && (child.name?.includes('Label') || child.name?.includes('label'))) {
+          // Check for any label-related naming patterns
+          const isLabel = child.name && (
+            child.name.includes('Label') || 
+            child.name.includes('label') ||
+            child.name.includes('customerSegments') ||
+            child.name.includes('keyPartners') ||
+            child.name.includes('customerRelationships') ||
+            child.name.includes('customerChannels') ||
+            child.name.includes('keyActivities') ||
+            child.name.includes('costStructure') ||
+            child.name.includes('revenueStreams')
+          );
+          
+          if (child.material && isLabel) {
             child.material.alpha = 1.0; // Force labels to full opacity
-            console.log(`🏷️ Preserving label visibility for ${child.name}`);
+            console.log(`🏷️ Preserving label visibility for ${child.name} on ${sectionName}`);
           }
         });
       }
