@@ -35,6 +35,7 @@ import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
+import { LabelManager, globalLabelManager } from '@/lib/labelManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -268,6 +269,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Store original heights for each BMC section
   const originalHeightsRef = useRef<{ [sectionName: string]: number }>({});
   
+  // Label manager for unified label handling
+  const labelManagerRef = useRef<LabelManager>(new LabelManager());
+  
   // Transform utilities (safe wrappers around existing functionality)
   const transformUtils = {
     // Get controller for consistent manipulation
@@ -467,16 +471,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Apply opacity to mesh
       material.alpha = targetOpacity;
       
-      // FIXED APPROACH: Use mesh.getChildren() to access labels
-      // Force all child labels to stay visible regardless of parent changes
-      if (mesh.getChildren) {
-        mesh.getChildren().forEach((child: any) => {
-          if (child.material && child.name && child.name.includes("Label")) {
-            child.material.alpha = 1.0;
-            child.isVisible = true;
-          }
-        });
-      }
+      // REFACTORED: Use dedicated label manager for consistent visibility
+      labelManagerRef.current.forceAllLabelsVisibleByPattern("Label");
       
       // Apply height
       mesh.scaling.y = targetHeight;
@@ -695,6 +691,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Set active camera based on mode
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
+    
+    // Initialize label manager with scene
+    labelManagerRef.current.setScene(scene);
 
     // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
@@ -1200,6 +1199,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
+              // Register with label manager
+              labelManagerRef.current.registerLabel("customerSegmentsLabel", labelPlane, labelMaterial);
+              
               console.log(`✅ Customer Segments label plane created`);
             }
             
@@ -1243,6 +1245,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.material = labelMaterial;
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
+              
+              // Register with label manager
+              labelManagerRef.current.registerLabel("keyPartnersLabel", labelPlane, labelMaterial);
               
               console.log(`✅ Key Partners label plane created`);
             }
@@ -1288,6 +1293,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
+              // Register with label manager
+              labelManagerRef.current.registerLabel("customerRelationshipsLabel", labelPlane, labelMaterial);
+              
               console.log(`✅ Customer Relationships label plane created`);
             }
             
@@ -1331,6 +1339,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.material = labelMaterial;
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
+              
+              // Register with label manager
+              labelManagerRef.current.registerLabel("customerChannelsLabel", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Channels label plane created`);
             }
@@ -1377,6 +1388,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
+              // Register with label manager
+              labelManagerRef.current.registerLabel("keyActivitiesLabel", labelPlane, labelMaterial);
+              
               console.log(`✅ Key Activities label plane created`);
             }
             
@@ -1421,6 +1435,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.material = labelMaterial;
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
+              
+              // Register with label manager
+              labelManagerRef.current.registerLabel("keyResourcesLabel", labelPlane, labelMaterial);
               
               console.log(`✅ Key Resources label plane created`);
             }
