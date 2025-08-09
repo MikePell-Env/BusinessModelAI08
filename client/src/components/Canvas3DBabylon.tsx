@@ -937,7 +937,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           2: { color: new Color3(0.07, 0.07, 0.07), name: "Customer Segments" },      // Medium Dark Grey
           3: { color: new Color3(0.07, 0.07, 0.07), name: "Key Resources" },          // Medium Dark Grey
           4: { color: new Color3(0.07, 0.07, 0.07), name: "Key Activities" },         // Medium Dark Grey
-          5: { color: new Color3(0.07, 0.07, 0.07), name: "Customer Channels" },      // Medium Dark Grey
+          5: { color: new Color3(0.07, 0.07, 0.07), name: "Channels" },      // Medium Dark Grey
           6: { color: new Color3(0.07, 0.07, 0.07), name: "Customer Relationships" }, // Medium Dark Grey
           7: { color: new Color3(0.07, 0.07, 0.07), name: "Cost Structure" },         // Fallback - Medium Dark Grey
           8: { color: new Color3(0.07, 0.07, 0.07), name: "Revenue Streams" },        // Fallback - Medium Dark Grey
@@ -1116,8 +1116,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`✅ Customer Relationships label plane created`);
             }
             
-            if (sectionName === "Customer Channels") {
-              console.log(`🏷️ Creating floating label for Customer Channels mesh (index ${index})`);
+            if (sectionName === "Channels") {
+              console.log(`🏷️ Creating floating label for Channels mesh (index ${index})`);
               
               // Get mesh bounds for positioning
               const boundingInfo = mesh.getBoundingInfo();
@@ -1127,9 +1127,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Create label plane with 50% taller height and slightly larger overall
               const labelWidth = size.x * 0.65; // Slightly larger than 0.6
               const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger than calculated height
-              console.log(`Customer Channels Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              console.log(`Channels Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
-              const labelPlane = MeshBuilder.CreatePlane("customerChannelsLabel", {
+              const labelPlane = MeshBuilder.CreatePlane("channelsLabel", {
                 width: labelWidth,   // Slightly larger width
                 height: labelHeight  // 50% taller to reduce squishing
               }, scene);
@@ -1143,7 +1143,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.rotation.x = Math.PI / 2;
               
               // Create bright material for white text
-              const labelMaterial = new StandardMaterial("customerChannelsLabelMat", scene);
+              const labelMaterial = new StandardMaterial("channelsLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_CustomerChannels.png", scene);
               labelTexture.hasAlpha = true;
               
@@ -1158,10 +1158,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.isPickable = false;
               
               // Register with clean system
-              cleanBMCRef.current.registerItem("Customer Channels", mesh, sectionMaterial, mesh.scaling.y);
-              cleanBMCRef.current.addLabel("Customer Channels", labelPlane, labelMaterial);
+              cleanBMCRef.current.registerItem("Channels", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Channels", labelPlane, labelMaterial);
               
-              console.log(`✅ Customer Channels label plane created`);
+              console.log(`✅ Channels label plane created`);
             }
             
             // Add floating label planes for Key Activities section
