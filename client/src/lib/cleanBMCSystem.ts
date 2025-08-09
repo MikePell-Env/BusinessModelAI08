@@ -55,6 +55,12 @@ export class CleanBMCSystem {
 
     console.log(`🔧 Making label visible for: ${itemName}, current alpha: ${item.labelMaterial.alpha}`);
     
+    // CRITICAL: Remove label from parent to prevent opacity inheritance
+    if (item.label.parent) {
+      console.log(`🔗 Detaching ${itemName} label from parent to prevent opacity inheritance`);
+      item.label.parent = null;
+    }
+    
     // FORCE label visibility - NEVER change opacity from 100%
     item.label.isVisible = true;
     item.label.setEnabled(true);
@@ -81,7 +87,10 @@ export class CleanBMCSystem {
       (item.labelMaterial.diffuseTexture as any).hasAlpha = true;
     }
     
-    console.log(`✅ Label ${itemName} visibility enforced: alpha=${item.labelMaterial.alpha}, visible=${item.label.isVisible}, enabled=${item.label.isEnabled()}`);
+    // CRITICAL: Override any inherited opacity
+    (item.label as any).visibility = 1.0;
+    
+    console.log(`✅ Label ${itemName} visibility enforced: alpha=${item.labelMaterial.alpha}, visible=${item.label.isVisible}, enabled=${item.label.isEnabled()}, parent=${item.label.parent}`);
   }
 
   // Set default appearance for an item
