@@ -34,6 +34,7 @@ import {
 import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
+import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -240,7 +241,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const orthoCameraRef = useRef<FreeCamera | null>(null);
   const rootMeshRef = useRef<AbstractMesh | null>(null);
-  const { saveCamera3DState, getCamera3DState, is3D, isOrthographic, setSelectedObject, getSelectedObject, setOriginalHeights, getOriginalHeights } = useCanvas();
+  const { 
+    saveCamera3DState, 
+    getCamera3DState, 
+    is3D, 
+    isOrthographic, 
+    setSelectedObject, 
+    getSelectedObject, 
+    setOriginalHeights, 
+    getOriginalHeights,
+    // New BMC State Manager methods
+    selectBMCObject,
+    getBMCSelectedObject,
+    bmcState
+  } = useCanvas();
   
   // Unified transformation system for all BMC objects
   const unifiedTransformRef = useRef<UnifiedBMCTransformSystem>(new UnifiedBMCTransformSystem());
@@ -303,6 +317,146 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         };
       });
       return state;
+    }
+  };
+
+  // BMC Section Name Mapping: Convert between display names and BMC component names
+  const mapSectionNameToBMCComponent = (sectionName: string): BMCComponentName | null => {
+    const nameMapping: { [key: string]: BMCComponentName } = {
+      'Key Partners': 'KeyPartners',
+      'Key Activities': 'KeyActivities', 
+      'Key Resources': 'KeyResources',
+      'Value Propositions': 'ValueProposition',
+      'Customer Relationships': 'CustomerRelationships',
+      'Channels': 'CustomerChannels',
+      'Customer Segments': 'CustomerSegments',
+      'Cost Structure': 'CostStructure',
+      'Revenue Streams': 'RevenueStreams'
+    };
+    return nameMapping[sectionName] || null;
+  };
+
+  const mapBMCComponentToSectionName = (componentName: BMCComponentName): string => {
+    const nameMapping: { [key in BMCComponentName]: string } = {
+      'KeyPartners': 'Key Partners',
+      'KeyActivities': 'Key Activities', 
+      'KeyResources': 'Key Resources',
+      'ValueProposition': 'Value Propositions',
+      'CustomerRelationships': 'Customer Relationships',
+      'CustomerChannels': 'Channels',
+      'CustomerSegments': 'Customer Segments',
+      'CostStructure': 'Cost Structure',
+      'RevenueStreams': 'Revenue Streams'
+    };
+    return nameMapping[componentName];
+  };
+
+  // New BMC Selection System using our state architecture
+  const handleBMCObjectClick = (sectionName: string) => {
+    const bmcComponent = mapSectionNameToBMCComponent(sectionName);
+    if (!bmcComponent) {
+      console.warn(`⚠️ Unknown section name: ${sectionName}`);
+      return;
+    }
+
+    console.log(`🎯 BMC CLICK: "${sectionName}" -> "${bmcComponent}"`);
+    
+    const currentSelection = getBMCSelectedObject();
+    
+    if (currentSelection === bmcComponent) {
+      // Clicking on already selected object - deselect it
+      console.log(`🔄 DESELECTING: "${bmcComponent}"`);
+      selectBMCObject(null);
+      applyBMCVisualState();
+    } else {
+      // Selecting new object (or first selection)
+      console.log(`🎯 SELECTING: "${bmcComponent}" (previous: "${currentSelection}")`);
+      selectBMCObject(bmcComponent);
+      applyBMCVisualState();
+    }
+  };
+
+  // Apply visual state based on BMC state manager
+  const applyBMCVisualState = () => {
+    const selectedComponent = getBMCSelectedObject();
+    
+    console.log(`🎨 APPLYING BMC VISUAL STATE: selected="${selectedComponent}"`);
+    
+    contentPanelsRef.current.forEach(({ mesh, material }) => {
+      const sectionName = (mesh as any).bmcSectionName;
+      const bmcComponent = mapSectionNameToBMCComponent(sectionName);
+      
+      if (!bmcComponent) return;
+      
+      const isSelected = (bmcComponent === selectedComponent);
+      
+      if (isSelected) {
+        // Selected object - bright blue, full opacity, normal height
+        const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+        
+        if ((mesh as any).hasTexture) {
+          material.emissiveColor = brightBlueColor.scale(0.3);
+        } else {
+          if (material.baseColor) {
+            material.baseColor = brightBlueColor;
+          }
+          material.diffuseColor = brightBlueColor;
+        }
+        (mesh as any).isClicked = true;
+        material.alpha = 1.0;
+        
+        // Update BMC state manager with visual state
+        bmcState.updateVisualState(bmcComponent, {
+          isSelected: true,
+          opacity: 1.0
+        });
+        bmcState.updateTransformState(bmcComponent, {
+          currentHeight: bmcState.getObjectState(bmcComponent)?.transform.originalHeight || 1.0
+        });
+        
+        console.log(`🔵 "${sectionName}" selected (blue)`);
+      } else {
+        // Non-selected objects - original color, 50% opacity, flattened height
+        if ((mesh as any).hasTexture) {
+          material.emissiveColor = new Color3(0, 0, 0);
+        } else {
+          if (material.baseColor) {
+            material.baseColor = (mesh as any).originalColor;
+          }
+          material.diffuseColor = (mesh as any).originalColor;
+        }
+        (mesh as any).isClicked = false;
+        material.alpha = selectedComponent ? 0.5 : 1.0;
+        
+        // Update BMC state manager with visual state
+        bmcState.updateVisualState(bmcComponent, {
+          isSelected: false,
+          opacity: selectedComponent ? 0.5 : 1.0
+        });
+        bmcState.updateTransformState(bmcComponent, {
+          currentHeight: selectedComponent ? 
+            (bmcState.getObjectState(bmcComponent)?.transform.originalHeight || 1.0) * 0.5 : 
+            (bmcState.getObjectState(bmcComponent)?.transform.originalHeight || 1.0)
+        });
+        
+        console.log(`⚪ "${sectionName}" ${selectedComponent ? 'dimmed' : 'normal'}`);
+      }
+    });
+    
+    // Apply height changes
+    applyHeightState();
+  };
+
+  // Handle background click to clear selection
+  const handleBackgroundClick = () => {
+    const currentSelection = getBMCSelectedObject();
+    if (currentSelection) {
+      console.log(`🌍 Background click: Clearing selection "${currentSelection}"`);
+      selectBMCObject(null);
+      applyBMCVisualState();
+      
+      // Also update legacy state for backward compatibility
+      setSelectedObject(null);
     }
   };
   
@@ -436,6 +590,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Format content as bullet points
     return section.content.map(item => `• ${item}`).join('\n');
   };
+
+  // BMC Selection State Restoration (runs after scene initialization)
+  const restoreBMCSelectionState = () => {
+    const selectedComponent = getBMCSelectedObject();
+    
+    if (selectedComponent) {
+      console.log(`🔄 RESTORING BMC SELECTION: "${selectedComponent}" for view mode change`);
+      
+      // Apply visual state based on current BMC selection
+      applyBMCVisualState();
+      
+      // Also update legacy state for backward compatibility
+      const sectionName = mapBMCComponentToSectionName(selectedComponent);
+      setSelectedObject(sectionName);
+    } else {
+      console.log(`🔄 No BMC selection to restore`);
+    }
+  };
+
+  // Restore selection state when view mode changes or scene is ready
+  useEffect(() => {
+    // Wait for contentPanelsRef to be populated before restoring state
+    const restoreTimer = setTimeout(() => {
+      if (contentPanelsRef.current.length > 0) {
+        restoreBMCSelectionState();
+      }
+    }, 1000); // Give time for models to load and be registered
+
+    return () => clearTimeout(restoreTimer);
+  }, [is3D, isOrthographic]); // Trigger when view mode changes
   
   // GUI state removed since labels are no longer used
 
@@ -630,49 +814,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Add click detection to ground for clearing selections
     ground.actionManager = new ActionManager(scene);
     ground.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-      // Clear any active selection when clicking on empty space
-      const hasActiveSelection = getSelectedObject();
-      if (hasActiveSelection) {
-        console.log(`🌍 Background click: Clearing selection and restoring all objects`);
-        
-        // Clear selection state
-        setSelectedObject(null);
-        
-        // Restore all BMC objects to their original state and heights
-        if (contentPanelsRef.current) {
-          contentPanelsRef.current.forEach(({ mesh, material, panel }) => {
-            // Clear click state
-            (mesh as any).isClicked = false;
-            
-            // Hide content panel
-            if (panel) {
-              panel.isVisible = false;
-            }
-            
-            // Restore original colors
-            if ((mesh as any).hasTexture) {
-              material.emissiveColor = new Color3(0, 0, 0);
-            } else {
-              if (material.baseColor) {
-                material.baseColor = (mesh as any).originalColor;
-              }
-              material.diffuseColor = (mesh as any).originalColor;
-            }
-            
-            // Restore full opacity
-            material.alpha = 1.0;
-          });
-        }
-        
-        // Restore all objects to original heights using the adjust function
-        if (adjustBMCSection && getOriginalHeights) {
-          const originalHeights = getOriginalHeights();
-          Object.entries(originalHeights).forEach(([sectionName, originalHeight]) => {
-            adjustBMCSection(sectionName, { height: originalHeight });
-          });
-          console.log(`📏 Background click: All objects restored to original heights`);
-        }
-      }
+      // Use new BMC background click handler
+      handleBackgroundClick();
     }));
 
     // Create extruded border rails on all sides
@@ -2001,61 +2144,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`⚡ Double-click: ${sectionName} selected and panel shown`);
             }));
             
-            // Click - first click selects without panel, second click deselects (panels only on double-click)
+            // Click - use new BMC selection system
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              const isCurrentlyClicked = (mesh as any).isClicked;
-              const isCurrentlySelected = getSelectedObject() === sectionName;
-              
-              if (isCurrentlyClicked && isCurrentlySelected) {
-                // Second click on already selected object - deselect (no panel on single click)
-                updateMeshClickUnselect();
-                updateContentPanel(false);
-                console.log(`🔓 Click released: ${sectionName} deselected, panel hidden`);
-              } else if (isCurrentlyClicked) {
-                // Unclick - restore mesh and hide content panel
-                updateMeshClickUnselect();
-                updateContentPanel(false);
-                
-                console.log(`🔓 Click released: ${sectionName} restored, all objects full opacity, panel hidden`);
-              } else {
-                // First click on unselected object - select without showing panel
-                const previouslySelectedObject = getSelectedObject();
-                
-                // Close all other panels first and reset their visual states
-                contentPanelsRef.current.forEach(({ panel, mesh: otherMesh, material }) => {
-                  if (otherMesh !== mesh && panel.isVisible) {
-                    panel.isVisible = false;
-                    
-                    // Properly restore other mesh based on whether it has texture
-                    if ((otherMesh as any).hasTexture) {
-                      // For textured mesh, remove emissive glow
-                      material.emissiveColor = new Color3(0, 0, 0);
-                    } else {
-                      // For non-textured mesh, restore base color and diffuseColor
-                      if (material.baseColor) {
-                        material.baseColor = (otherMesh as any).originalColor;
-                      }
-                      material.diffuseColor = (otherMesh as any).originalColor;
-                    }
-                    
-                    (otherMesh as any).isClicked = false;
-                  }
-                });
-                
-                // If there was a previously selected object, flatten it
-                if (previouslySelectedObject && adjustBMCSection) {
-                  adjustBMCSection(previouslySelectedObject, { height: 0.1 });
-                  console.log(`📏 Flattening previously selected ${previouslySelectedObject} (height: 0.1)`);
-                }
-                
-                // Save selected object state FIRST so applyHeightState knows what's selected
-                setSelectedObject(sectionName);
-                
-                // Select this mesh but DON'T show content panel yet
-                updateMeshClickSelect();
-                
-                console.log(`🔒 Selected: ${sectionName} blue selected, others 50% opacity, panels only on double-click`);
-              }
+              // Use new BMC object click handler
+              handleBMCObjectClick(sectionName);
             }));
             
             // Now configure close button functionality with access to refactored functions
@@ -2356,77 +2448,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             }));
             
-            // Add selection (click) behavior for Revenue Streams (unified with main BMC)
+            // Add selection (click) behavior for Revenue Streams using new BMC system
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              const isCurrentlyClicked = (mesh as any).isClicked;
-              const isCurrentlySelected = getSelectedObject() === "Revenue Streams";
-              
-              console.log(`🎯 CLICK DETECTED on Revenue Streams - isClicked: ${isCurrentlyClicked}, isSelected: ${isCurrentlySelected}`);
-              
-              if (isCurrentlyClicked && isCurrentlySelected) {
-                // Already selected - deselect and restore all objects
-                console.log(`🔓 DESELECT: Revenue Streams - restoring all objects`);
-                
-                // Clear selection state
-                setSelectedObject(null);
-                (mesh as any).isClicked = false;
-                
-                // Restore original colors and heights for all objects
-                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                  // Restore original colors
-                  if ((otherMesh as any).hasTexture) {
-                    material.emissiveColor = new Color3(0, 0, 0);
-                  } else {
-                    if (material.baseColor) {
-                      material.baseColor = (otherMesh as any).originalColor;
-                    }
-                    material.diffuseColor = (otherMesh as any).originalColor;
-                  }
-                  
-                  // Full opacity and clear click states
-                  material.alpha = 1.0;
-                  (otherMesh as any).isClicked = false;
-                });
-                
-                // Restore heights using the existing applyHeightState function
-                applyHeightState();
-                
-              } else {
-                // Not selected - select and highlight
-                console.log(`🔒 SELECT: Revenue Streams - highlighting in blue, others 50% opacity`);
-                
-                // Clear any other selections first
-                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                  if (otherMesh !== mesh) {
-                    (otherMesh as any).isClicked = false;
-                    
-                    // Restore other objects to original colors
-                    if ((otherMesh as any).hasTexture) {
-                      material.emissiveColor = new Color3(0, 0, 0);
-                    } else {
-                      if (material.baseColor) {
-                        material.baseColor = (otherMesh as any).originalColor;
-                      }
-                      material.diffuseColor = (otherMesh as any).originalColor;
-                    }
-                  }
-                });
-                
-                // Set this object as selected (bright blue, full opacity)
-                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
-                sectionMaterial.diffuseColor = brightBlueColor;
-                (mesh as any).isClicked = true;
-                setSelectedObject("Revenue Streams");
-                
-                // Apply selection opacity: selected = 100%, others = 50%
-                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                  const isSelectedObject = otherMesh === mesh;
-                  material.alpha = isSelectedObject ? 1.0 : 0.5;
-                });
-                
-                // Apply height state (selected at original height, others flattened)
-                applyHeightState();
-              }
+              // Use new BMC object click handler
+              handleBMCObjectClick("Revenue Streams");
             }));
 
             // Double-click to show panel directly (Revenue Streams)
@@ -2674,77 +2699,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             }));
             
-            // Add selection (click) behavior for Cost Structure (unified with main BMC and Revenue Streams)
+            // Add selection (click) behavior for Cost Structure using new BMC system
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              const isCurrentlyClicked = (mesh as any).isClicked;
-              const isCurrentlySelected = getSelectedObject() === "Cost Structure";
-              
-              console.log(`🎯 CLICK DETECTED on Cost Structure - isClicked: ${isCurrentlyClicked}, isSelected: ${isCurrentlySelected}`);
-              
-              if (isCurrentlyClicked && isCurrentlySelected) {
-                // Already selected - deselect and restore all objects
-                console.log(`🔓 DESELECT: Cost Structure - restoring all objects`);
-                
-                // Clear selection state
-                setSelectedObject(null);
-                (mesh as any).isClicked = false;
-                
-                // Restore original colors and heights for all objects
-                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                  // Restore original colors
-                  if ((otherMesh as any).hasTexture) {
-                    material.emissiveColor = new Color3(0, 0, 0);
-                  } else {
-                    if (material.baseColor) {
-                      material.baseColor = (otherMesh as any).originalColor;
-                    }
-                    material.diffuseColor = (otherMesh as any).originalColor;
-                  }
-                  
-                  // Full opacity and clear click states
-                  material.alpha = 1.0;
-                  (otherMesh as any).isClicked = false;
-                });
-                
-                // Restore heights using the existing applyHeightState function
-                applyHeightState();
-                
-              } else {
-                // Not selected - select and highlight
-                console.log(`🔒 SELECT: Cost Structure - highlighting in blue, others 50% opacity`);
-                
-                // Clear any other selections first
-                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                  if (otherMesh !== mesh) {
-                    (otherMesh as any).isClicked = false;
-                    
-                    // Restore other objects to original colors
-                    if ((otherMesh as any).hasTexture) {
-                      material.emissiveColor = new Color3(0, 0, 0);
-                    } else {
-                      if (material.baseColor) {
-                        material.baseColor = (otherMesh as any).originalColor;
-                      }
-                      material.diffuseColor = (otherMesh as any).originalColor;
-                    }
-                  }
-                });
-                
-                // Set this object as selected (bright blue, full opacity)
-                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
-                sectionMaterial.diffuseColor = brightBlueColor;
-                (mesh as any).isClicked = true;
-                setSelectedObject("Cost Structure");
-                
-                // Apply selection opacity: selected = 100%, others = 50%
-                contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
-                  const isSelectedObject = otherMesh === mesh;
-                  material.alpha = isSelectedObject ? 1.0 : 0.5;
-                });
-                
-                // Apply height state (selected at original height, others flattened)
-                applyHeightState();
-              }
+              // Use new BMC object click handler
+              handleBMCObjectClick("Cost Structure");
             }));
 
             // Double-click to show panel directly (Cost Structure)
@@ -3013,6 +2971,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const height = transformNode.scaling.y;
             originalHeights[sectionName] = height;
             console.log(`📏 ORIGINAL: ${sectionName} = ${height}`);
+            
+            // Initialize BMC object state
+            const bmcComponent = mapSectionNameToBMCComponent(sectionName);
+            if (bmcComponent) {
+              bmcState.initializeObject(bmcComponent, {
+                originalHeight: height,
+                currentHeight: height,
+                position: mesh.position.clone(),
+                scale: mesh.scaling.clone()
+              });
+              console.log(`🔧 BMC State: Initialized "${bmcComponent}" with height ${height}`);
+            }
           }
         });
         
