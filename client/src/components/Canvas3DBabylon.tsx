@@ -440,6 +440,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       let finalOpacity: number;
       let finalHeight: number;
       
+      // Check if there's ANY selection at all (either BMC state or legacy state)
+      const legacySelected = getSelectedObject();
+      const hasAnySelection = selectedComponent || legacySelected;
+      
       if (isSelected) {
         // Selected object: bright blue, full opacity, full height
         finalColor = new Color3(0.0, 0.3, 0.8); // Bright blue
@@ -450,13 +454,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         finalColor = new Color3(0.0, 0.3, 0.8); // Bright blue
         finalOpacity = 1.0;
         finalHeight = objectState.transform.originalHeight;
-      } else if (selectedComponent) {
+      } else if (hasAnySelection) {
         // Non-selected when something else is selected: grey, 50% opacity, flattened
         finalColor = new Color3(0.07, 0.07, 0.07); // Dark grey
         finalOpacity = 0.5;
         finalHeight = 0.1; // Very flat
       } else {
-        // No selection: all objects full state
+        // No selection anywhere: all objects full state
         finalColor = new Color3(0.07, 0.07, 0.07); // Dark grey
         finalOpacity = 1.0;
         finalHeight = objectState.transform.originalHeight;
