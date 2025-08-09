@@ -2111,13 +2111,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).isClicked = false;
             (mesh as any).hasTexture = false; // Revenue Streams uses solid color
             
-            // Register with unified transformation system
-            unifiedTransformRef.current.registerObject("Revenue Streams", {
-              mesh: mesh,
-              sectionName: "Revenue Streams",
-              objectType: 'separate_glb',
-              rootMesh: revenueRootMesh
-            });
+            // REMOVED: Unified transformation system registration - simplified for reliability
             
             // Create content panel for consistency (hidden)
             const revenueContentPanel = new Rectangle(`revenueStreamsContentPanel`);
@@ -2298,13 +2292,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             (mesh as any).isClicked = false;
             (mesh as any).hasTexture = false; // Cost Structure uses solid color
             
-            // Register with unified transformation system
-            unifiedTransformRef.current.registerObject("Cost Structure", {
-              mesh: mesh,
-              sectionName: "Cost Structure",
-              objectType: 'separate_glb',
-              rootMesh: costRootMesh
-            });
+            // REMOVED: Unified transformation system registration - simplified for reliability
             
             // Create content panel for consistency (hidden)
             const costContentPanel = new Rectangle(`costStructureContentPanel`);
