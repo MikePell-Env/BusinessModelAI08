@@ -13,18 +13,37 @@ interface AccessToken {
 }
 
 class MicrosoftAuthService {
-  private authConfig: AuthConfig;
+  private authConfig: AuthConfig | null = null;
   private cachedToken: AccessToken | null = null;
   private graphClient: Client | null = null;
+  private isConfigured = false;
 
   constructor() {
-    this.authConfig = {
-      clientId: process.env.MICROSOFT_CLIENT_ID!,
-      clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
-      tenantId: process.env.MICROSOFT_TENANT_ID!,
-    };
+    try {
+      const clientId = process.env.MICROSOFT_CLIENT_ID;
+      const clientSecret = process.env.MICROSOFT_CLIENT_SECRET;
+      const tenantId = process.env.MICROSOFT_TENANT_ID;
 
-    if (!this.authConfig.clientId || !this.authConfig.clientSecret || !this.authConfig.tenantId) {
+      if (clientId && clientSecret && tenantId) {
+        this.authConfig = {
+          clientId,
+          clientSecret,
+          tenantId,
+        };
+        this.isConfigured = true;
+        console.log('Microsoft Graph authentication configured successfully');
+      } else {
+        console.log('Microsoft Graph authentication not configured - Microsoft features will be unavailable');
+        this.isConfigured = false;
+      }
+    } catch (error) {
+      console.warn('Failed to initialize Microsoft authentication:', error);
+      this.isConfigured = false;
+    }
+  }
+
+  private checkConfiguration(): void {
+    if (!this.isConfigured || !this.authConfig) {
       throw new Error('Microsoft authentication credentials not configured. Please set MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET, and MICROSOFT_TENANT_ID environment variables.');
     }
   }
@@ -33,6 +52,8 @@ class MicrosoftAuthService {
    * Get a valid access token for Microsoft Graph API
    */
   async getAccessToken(): Promise<string> {
+    this.checkConfiguration();
+    
     // Check if we have a valid cached token
     if (this.cachedToken && this.cachedToken.expiresAt > new Date()) {
       return this.cachedToken.token;
@@ -41,9 +62,9 @@ class MicrosoftAuthService {
     try {
       // Create Azure Identity credential
       const credential = new ClientSecretCredential(
-        this.authConfig.tenantId,
-        this.authConfig.clientId,
-        this.authConfig.clientSecret
+        this.authConfig!.tenantId,
+        this.authConfig!.clientId,
+        this.authConfig!.clientSecret
       );
 
       // Get access token for Microsoft Graph
@@ -62,7 +83,7 @@ class MicrosoftAuthService {
       return tokenResponse.token;
     } catch (error) {
       console.error('Microsoft Graph authentication failed:', error);
-      throw new Error(`Microsoft Graph authentication failed: ${error.message}`);
+      throw new Error(`Microsoft Graph authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -87,6 +108,13 @@ class MicrosoftAuthService {
    * Test the Microsoft Graph connection
    */
   async testConnection(): Promise<{ success: boolean; message: string; appInfo?: any }> {
+    if (!this.isConfigured) {
+      return {
+        success: false,
+        message: 'Microsoft Graph authentication not configured. Please set MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET, and MICROSOFT_TENANT_ID environment variables.'
+      };
+    }
+
     try {
       // Just test token acquisition without making Graph API calls
       const token = await this.getAccessToken();
@@ -97,8 +125,8 @@ class MicrosoftAuthService {
           message: 'Microsoft Graph authentication successful - token acquired',
           appInfo: {
             tokenLength: token.length,
-            tenantId: this.authConfig.tenantId.substring(0, 8) + '...',
-            clientId: this.authConfig.clientId.substring(0, 8) + '...'
+            tenantId: this.authConfig!.tenantId.substring(0, 8) + '...',
+            clientId: this.authConfig!.clientId.substring(0, 8) + '...'
           }
         };
       } else {
@@ -159,13 +187,13 @@ class MicrosoftAuthService {
 
       return {
         organization: organization.value[0],
-        tenantId: this.authConfig.tenantId
+        tenantId: this.authConfig!.tenantId
       };
     } catch (error) {
       console.error('Failed to get organizational context:', error);
       return {
         organization: { displayName: 'Your Organization' },
-        tenantId: this.authConfig.tenantId
+        tenantId: this.authConfig!.tenantId
       };
     }
   }
