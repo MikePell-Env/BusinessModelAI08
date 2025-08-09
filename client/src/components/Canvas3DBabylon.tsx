@@ -441,11 +441,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         finalColor = new Color3(0.0, 0.3, 0.8);
         finalOpacity = 1.0;
         finalHeight = objectState.transform.originalHeight;
-      } else if (isHovered) {
-        // Hovered: bright blue, full opacity, full height
+      } else if (isHovered && !selectedComponent) {
+        // Hovered AND nothing else selected: bright blue, full opacity, full height
         finalColor = new Color3(0.0, 0.3, 0.8);
         finalOpacity = 1.0;
         finalHeight = objectState.transform.originalHeight;
+      } else if (isHovered && selectedComponent) {
+        // Hovered BUT something else is selected: bright blue, keep flattened height
+        finalColor = new Color3(0.0, 0.3, 0.8);
+        finalOpacity = 0.5; // Keep dimmed opacity
+        finalHeight = 0.1; // Keep flattened - don't change height on hover
       } else if (selectedComponent) {
         // Not selected but something else is: grey, dimmed, flat
         finalColor = new Color3(0.07, 0.07, 0.07);
