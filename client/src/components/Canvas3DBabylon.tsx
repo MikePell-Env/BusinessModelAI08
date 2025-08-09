@@ -748,8 +748,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Place Internal label on the ground plane, moved more to the right
       
       const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
-        width: 5.0,   // 2x larger than previous 2.5
-        height: 1.6   // 2x larger than previous 0.8
+        width: 4.0,   // Reduced by 20% (was 5.0)
+        height: 1.28  // Reduced by 20% (was 1.6)
       }, scene);
       
       // Position on ground plane, moved more to the right
@@ -768,7 +768,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
       internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for blue label
-      internalLabelMaterial.alpha = 0.5; // 50% transparency
+      internalLabelMaterial.alpha = 0.25; // 25% transparency (50% more transparent)
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
       internalLabelMaterial.disableLighting = true;
       
@@ -784,8 +784,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Based on diagram: External should be positioned below Revenue Streams area
       
       const externalLabelPlane = MeshBuilder.CreatePlane("externalLabel", {
-        width: 5.0,   // Same size as Internal label
-        height: 1.6   // Same height as Internal label
+        width: 4.0,   // Reduced by 20% (was 5.0)
+        height: 1.28  // Reduced by 20% (was 1.6)
       }, scene);
       
       // Position on ground plane on the right side
@@ -805,7 +805,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       externalLabelMaterial.diffuseTexture = externalLabelTexture;
       externalLabelMaterial.emissiveTexture = externalLabelTexture;
       externalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for blue label
-      externalLabelMaterial.alpha = 0.5; // 50% transparency
+      externalLabelMaterial.alpha = 0.25; // 25% transparency (50% more transparent)
       externalLabelMaterial.useAlphaFromDiffuseTexture = true;
       externalLabelMaterial.disableLighting = true;
       
