@@ -80,6 +80,7 @@ export const useCanvas = create<CanvasState>()(
       
       // Use BMC State Manager for view switching
       const newViewMode: ViewMode = is3D ? 'view2D' : 'view3DPerspective';
+      console.log(`🎛️ useCanvas.toggleView: Switching to ${newViewMode}`);
       bmcState.switchView(newViewMode);
       
       setTimeout(() => {
@@ -93,6 +94,7 @@ export const useCanvas = create<CanvasState>()(
       
       // Use BMC State Manager for orthographic view switching
       const newViewMode: ViewMode = isOrtho ? 'view3DOrthographic' : 'view3DPerspective';
+      console.log(`🎛️ useCanvas.setOrthographicView: Switching to ${newViewMode}`);
       bmcState.switchView(newViewMode);
       
       setTimeout(() => {
