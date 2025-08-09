@@ -1924,27 +1924,35 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Separate functions for mesh and label interactions
             const updateMeshHoverEnter = () => {
-              // For textured meshes, use emissive color to create blue glow effect
-              // For non-textured meshes, change base color
-              const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+              const bmcComponent = mapSectionNameToBMCComponent(sectionName);
+              const selectedComponent = getBMCSelectedObject();
               
-              if ((mesh as any).hasTexture) {
-                // For textured mesh, use emissive color to add blue glow while preserving texture
-                sectionMaterial.emissiveColor = brightBlueColor.scale(0.3); // Subtle blue glow
-                console.log(`💡 Textured mesh hover: ${sectionName} - adding blue emissive glow`);
-              } else {
-                // For non-textured mesh, update both baseColor and diffuseColor for visibility
-                if (sectionMaterial.baseColor) {
-                  sectionMaterial.baseColor = brightBlueColor;
+              // Only apply hover if this object is not currently selected
+              if (bmcComponent && selectedComponent !== bmcComponent) {
+                // For textured meshes, use emissive color to create blue glow effect
+                // For non-textured meshes, change base color
+                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
+                
+                if ((mesh as any).hasTexture) {
+                  // For textured mesh, use emissive color to add blue glow while preserving texture
+                  sectionMaterial.emissiveColor = brightBlueColor.scale(0.3); // Subtle blue glow
+                  console.log(`💡 Textured mesh hover: ${sectionName} - adding blue emissive glow`);
+                } else {
+                  // For non-textured mesh, update both baseColor and diffuseColor for visibility
+                  if (sectionMaterial.baseColor) {
+                    sectionMaterial.baseColor = brightBlueColor;
+                  }
+                  sectionMaterial.diffuseColor = brightBlueColor;
+                  console.log(`💡 Standard mesh hover: ${sectionName} - changing base color and diffuseColor`);
                 }
-                sectionMaterial.diffuseColor = brightBlueColor;
-                console.log(`💡 Standard mesh hover: ${sectionName} - changing base color and diffuseColor`);
+                
+                // Keep all objects at 100% opacity during hover
+                contentPanelsRef.current.forEach(({ material }) => {
+                  material.alpha = 1.0; // 100% opacity
+                });
+              } else if (selectedComponent === bmcComponent) {
+                console.log(`🔒 Hover blocked: ${sectionName} is already selected`);
               }
-              
-              // Keep all objects at 100% opacity during hover
-              contentPanelsRef.current.forEach(({ material }) => {
-                material.alpha = 1.0; // 100% opacity
-              });
             };
             
             const updateLabelHoverEnter = () => {
@@ -1974,24 +1982,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }));
             
             const updateMeshHoverExit = () => {
-              // Restore hovered object to original state
-              if ((mesh as any).hasTexture) {
-                // For textured mesh, remove emissive glow
-                sectionMaterial.emissiveColor = new Color3(0, 0, 0); // No emissive
-                console.log(`🔄 Textured mesh hover exit: ${sectionName} - removing emissive glow`);
-              } else {
-                // For non-textured mesh, restore both baseColor and diffuseColor
-                if (sectionMaterial.baseColor) {
-                  sectionMaterial.baseColor = (mesh as any).originalColor;
-                }
-                sectionMaterial.diffuseColor = (mesh as any).originalColor;
-                console.log(`🔄 Standard mesh hover exit: ${sectionName} - restoring base color and diffuseColor`);
-              }
+              const bmcComponent = mapSectionNameToBMCComponent(sectionName);
+              const selectedComponent = getBMCSelectedObject();
               
-              // Restore all other BMC objects to full opacity
-              contentPanelsRef.current.forEach(({ material }) => {
-                material.alpha = 1.0; // Full opacity
-              });
+              // Only restore hover state if this object is not currently selected
+              if (bmcComponent && selectedComponent !== bmcComponent) {
+                // Restore hovered object to original state
+                if ((mesh as any).hasTexture) {
+                  // For textured mesh, remove emissive glow
+                  sectionMaterial.emissiveColor = new Color3(0, 0, 0); // No emissive
+                  console.log(`🔄 Textured mesh hover exit: ${sectionName} - removing emissive glow`);
+                } else {
+                  // For non-textured mesh, restore both baseColor and diffuseColor
+                  if (sectionMaterial.baseColor) {
+                    sectionMaterial.baseColor = (mesh as any).originalColor;
+                  }
+                  sectionMaterial.diffuseColor = (mesh as any).originalColor;
+                  console.log(`🔄 Standard mesh hover exit: ${sectionName} - restoring base color and diffuseColor`);
+                }
+                
+                // Restore opacity based on BMC selection state
+                applyBMCVisualState();
+              } else if (selectedComponent === bmcComponent) {
+                console.log(`🔒 Hover exit blocked: ${sectionName} is selected, maintaining blue state`);
+              }
             };
             
             const updateLabelHoverExit = () => {
