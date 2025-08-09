@@ -4,6 +4,7 @@
  */
 
 import { AbstractMesh, StandardMaterial, Color3 } from '@babylonjs/core';
+import { BMCComponentName } from '@/types/bmcState';
 
 interface BMCItem {
   mesh: AbstractMesh;
@@ -16,7 +17,21 @@ interface BMCItem {
 
 export class CleanBMCSystem {
   private items = new Map<string, BMCItem>();
-  private selectedItem: string | null = null;
+  // REMOVED: private selectedItem - BMC State Manager is the single source of truth
+  private bmcStateManager: any = null; // Will be injected
+  
+  // Inject BMC State Manager dependency
+  setBMCStateManager(bmcStateManager: any) {
+    this.bmcStateManager = bmcStateManager;
+    
+    // Subscribe to state changes from BMC State Manager
+    if (bmcStateManager && bmcStateManager.addStateListener) {
+      bmcStateManager.addStateListener(() => {
+        console.log("🔄 CleanBMCSystem received state change notification, updating visuals");
+        this.updateAllVisuals();
+      });
+    }
+  }
 
   // Register a BMC item (mesh + material + original height)
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
@@ -101,6 +116,59 @@ export class CleanBMCSystem {
     console.log(`✅ Label ${itemName} visibility enforced: visibility=${item.label.visibility}, alpha=${item.labelMaterial.alpha}, renderingGroup=${item.label.renderingGroupId}`);
   }
 
+  // Selection methods that delegate to BMC State Manager
+  selectObject(name: string | null) {
+    if (this.bmcStateManager) {
+      // Convert name to BMCComponentName format if needed
+      const componentName = this.convertNameToBMCComponent(name);
+      this.bmcStateManager.selectObject(componentName);
+      console.log(`🎯 CleanBMCSystem: Delegated selection to BMC State Manager: ${name} -> ${componentName}`);
+    } else {
+      console.warn("BMC State Manager not injected into CleanBMCSystem");
+    }
+  }
+
+  getSelectedObject(): string | null {
+    if (this.bmcStateManager) {
+      const selected = this.bmcStateManager.getSelectedObject();
+      return this.convertBMCComponentToName(selected);
+    }
+    return null;
+  }
+
+  // Helper methods to convert between name formats
+  private convertNameToBMCComponent(name: string | null): BMCComponentName | null {
+    if (!name) return null;
+    const nameMapping: { [key: string]: BMCComponentName } = {
+      'Key Partners': 'KeyPartners',
+      'Key Activities': 'KeyActivities', 
+      'Key Resources': 'KeyResources',
+      'Value Propositions': 'ValueProposition',
+      'Customer Relationships': 'CustomerRelationships',
+      'Channels': 'CustomerChannels',
+      'Customer Segments': 'CustomerSegments',
+      'Cost Structure': 'CostStructure',
+      'Revenue Streams': 'RevenueStreams'
+    };
+    return nameMapping[name] || null;
+  }
+
+  private convertBMCComponentToName(componentName: BMCComponentName | null): string | null {
+    if (!componentName) return null;
+    const nameMapping: { [key in BMCComponentName]: string } = {
+      'KeyPartners': 'Key Partners',
+      'KeyActivities': 'Key Activities', 
+      'KeyResources': 'Key Resources',
+      'ValueProposition': 'Value Propositions',
+      'CustomerRelationships': 'Customer Relationships',
+      'CustomerChannels': 'Channels',
+      'CustomerSegments': 'Customer Segments',
+      'CostStructure': 'Cost Structure',
+      'RevenueStreams': 'Revenue Streams'
+    };
+    return nameMapping[componentName] || null;
+  }
+
   // Set default appearance for an item
   private setDefaultAppearance(itemName: string) {
     const item = this.items.get(itemName);
@@ -117,7 +185,7 @@ export class CleanBMCSystem {
 
   // Handle hover
   onHover(itemName: string, isHovered: boolean) {
-    if (this.selectedItem) return; // No hover when selected
+    if (this.getSelectedObject()) return; // No hover when selected
 
     const item = this.items.get(itemName);
     if (!item) {
@@ -141,30 +209,29 @@ export class CleanBMCSystem {
     this.makeLabelVisible(itemName);
   }
 
-  // Handle selection
+  // Handle selection - delegate to BMC State Manager
   onSelect(itemName: string) {
-    const currentSelection = this.selectedItem;
+    const currentSelection = this.getSelectedObject();
     
     if (currentSelection === itemName) {
-      // Deselect - restore ALL objects to default state
-      this.selectedItem = null;
-      this.restoreAllToDefault();
+      // Deselect - delegate to BMC State Manager
+      this.selectObject(null);
       console.log(`Deselected: ${itemName}`);
     } else {
-      // Select new
-      this.selectedItem = itemName;
-      this.updateAllVisuals();
+      // Select new - delegate to BMC State Manager
+      this.selectObject(itemName);
       console.log(`Selected: ${itemName}`);
     }
   }
 
-  // Update all visual states based on current selection
-  private updateAllVisuals() {
-    console.log(`🎨 Updating all visuals, selected: ${this.selectedItem}`);
+  // Update all visual states based on current selection from BMC State Manager
+  updateAllVisuals() {
+    const selectedItem = this.getSelectedObject();
+    console.log(`🎨 Updating all visuals, selected: ${selectedItem}`);
     
     this.items.forEach((item, name) => {
       console.log(`🎨 Processing ${name}:`, {
-        isSelected: name === this.selectedItem,
+        isSelected: name === selectedItem,
         hasLabel: !!item.label,
         hasMaterial: !!item.labelMaterial,
         currentAlpha: item.labelMaterial?.alpha
@@ -173,13 +240,13 @@ export class CleanBMCSystem {
       // ALWAYS update labels FIRST to ensure they stay visible
       this.makeLabelVisible(name);
       
-      if (name === this.selectedItem) {
+      if (name === selectedItem) {
         // Selected: bright blue, full height, full opacity
         item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
         item.material.alpha = 1.0;
         item.mesh.scaling.y = item.originalHeight;
         console.log(`🔵 ${name} SELECTED: blue, height=${item.originalHeight}`);
-      } else if (this.selectedItem) {
+      } else if (selectedItem) {
         // Others when selected: dim object, flattened object - BUT LABELS STAY 100%
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
         item.material.alpha = 0.5; // Only affects the 3D object, NOT the label
@@ -200,8 +267,7 @@ export class CleanBMCSystem {
 
   // Clear selection - restore all objects to original state
   clearSelection() {
-    this.selectedItem = null;
-    this.restoreAllToDefault();
+    this.selectObject(null);
   }
 
   // Restore all objects to original material, height, and opacity
