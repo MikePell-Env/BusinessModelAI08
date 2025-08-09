@@ -58,7 +58,7 @@ const CanvasBlock: React.FC<{
 );
 
 export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) => {
-  const { hasImportedFromPowerPoint, getSelectedObject, setSelectedObject } = useCanvas();
+  const { hasImportedFromPowerPoint, getSelectedObject, selectBMCObject } = useCanvas();
   
   if (!canvas) return null;
   
@@ -67,15 +67,15 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
   // Helper function to map section titles to their names used in 3D view
   const getSectionName = (title: string): string => {
     const mapping: { [key: string]: string } = {
-      'Key Partners': 'Key Partners',
-      'Key Activities': 'Key Activities', 
-      'Key Resources': 'Key Resources',
-      'Value Propositions': 'Value Propositions',
-      'Customer Relationships': 'Customer Relationships',
-      'Customer Channels': 'Channels',
-      'Customer Segments': 'Customer Segments',
-      'Cost Structure': 'Cost Structure',
-      'Revenue Streams': 'Revenue Streams'
+      'Key Partners': 'KeyPartners',
+      'Key Activities': 'KeyActivities', 
+      'Key Resources': 'KeyResources',
+      'Value Propositions': 'ValueProposition',
+      'Customer Relationships': 'CustomerRelationships',
+      'Customer Channels': 'CustomerChannels',
+      'Customer Segments': 'CustomerSegments',
+      'Cost Structure': 'CostStructure',
+      'Revenue Streams': 'RevenueStreams'
     };
     return mapping[title] || title;
   };
@@ -84,15 +84,15 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
     const sectionName = getSectionName(sectionTitle);
     const isCurrentlySelected = selectedObject === sectionName;
     
-    // Toggle selection: if already selected, deselect; otherwise select
-    setSelectedObject(isCurrentlySelected ? null : sectionName);
+    // Toggle selection using unified BMC system
+    selectBMCObject(isCurrentlySelected ? null : sectionName);
     console.log(`📋 2D View: ${isCurrentlySelected ? 'Deselected' : 'Selected'} "${sectionName}"`);
   };
 
   const handleBackgroundClick = (e: React.MouseEvent) => {
     // Only clear selection if clicking the background (not on any card)
     if (e.target === e.currentTarget) {
-      setSelectedObject(null);
+      selectBMCObject(null);
       console.log('📋 2D View: Cleared selection (background click)');
     }
   };

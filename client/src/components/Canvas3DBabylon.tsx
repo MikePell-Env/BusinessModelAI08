@@ -243,8 +243,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Store all content panels for closing functionality
   const contentPanelsRef = useRef<any[]>([]);
   
-  // Unified BMC label manager
+  // Unified BMC label manager - inject BMC State Manager
   const cleanBMCRef = useRef<CleanBMCSystem>(cleanBMCSystem);
+  
+  // Inject BMC State Manager into CleanBMCSystem on first render
+  useEffect(() => {
+    cleanBMCRef.current.setBMCStateManager(bmcState);
+    console.log("🔗 Injected BMC State Manager into CleanBMCSystem");
+  }, []);
   
   // REMOVED: Legacy transform utilities - now handled by unified BMC system
 
@@ -1760,10 +1766,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`⚡ Double-click: ${sectionName} selected and panel shown`);
             }));
             
-            // Click - use new BMC selection system
+            // Click - use unified BMC selection system
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              // Use new BMC object click handler
-              handleBMCObjectClick(sectionName);
+              // Delegate to CleanBMCSystem which delegates to BMC State Manager
+              cleanBMCRef.current.onSelect(sectionName);
             }));
             
             // Now configure close button functionality with access to refactored functions
