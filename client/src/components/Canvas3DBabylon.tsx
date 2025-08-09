@@ -413,93 +413,65 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log(`🔄 HOVER EXIT: ${sectionName}`);
   };
 
-  // COMPLETELY UNIFIED: Single source of truth using only BMC state manager
+  // SIMPLIFIED VISUAL STATE: Focus only on core requirements
   const applyBMCVisualState = () => {
     const selectedComponent = bmcState.getSelectedObject();
-    console.log(`🎨 APPLYING VISUAL STATE: Selected="${selectedComponent}"`);
     
     contentPanelsRef.current.forEach(({ mesh, material }) => {
       const sectionName = (mesh as any).bmcSectionName;
       const bmcComponent = mapSectionNameToBMCComponent(sectionName);
       
-      console.log(`🔍 PROCESSING: sectionName="${sectionName}" → bmcComponent="${bmcComponent}"`);
-      
-      if (!bmcComponent) {
-        console.log(`❌ SKIPPING: No BMC component mapping for "${sectionName}"`);
-        return;
-      }
+      if (!bmcComponent) return;
       
       const objectState = bmcState.getObjectState(bmcComponent);
-      if (!objectState) {
-        console.log(`❌ SKIPPING: No object state for "${bmcComponent}"`);
-        return;
-      }
+      if (!objectState) return;
       
       const isSelected = objectState.visual.isSelected;
       const isHovered = objectState.visual.isHovered;
-      console.log(`📊 ${bmcComponent} (${sectionName}): selected=${isSelected}, hovered=${isHovered}, globalSelected=${selectedComponent}`);
       
-      // SIMPLE LOGIC: Only use BMC state
-      let finalColor: Color3;
-      let finalOpacity: number;
-      let finalHeight: number;
+      // SIMPLE STATE LOGIC
+      let targetColor: Color3;
+      let targetOpacity: number;
+      let targetHeight: number;
       
       if (isSelected) {
-        // Selected: bright blue, full opacity, full height
-        finalColor = new Color3(0.0, 0.3, 0.8);
-        finalOpacity = 1.0;
-        finalHeight = objectState.transform.originalHeight;
+        // Selected object: bright blue, full opacity, full height
+        targetColor = new Color3(0.0, 0.3, 0.8);
+        targetOpacity = 1.0;
+        targetHeight = objectState.transform.originalHeight;
       } else if (isHovered && !selectedComponent) {
-        // Hovered AND nothing else selected: bright blue, full opacity, full height
-        finalColor = new Color3(0.0, 0.3, 0.8);
-        finalOpacity = 1.0;
-        finalHeight = objectState.transform.originalHeight;
-      } else if (isHovered && selectedComponent) {
-        // Hovered BUT something else is selected: bright blue, keep flattened height
-        finalColor = new Color3(0.0, 0.3, 0.8);
-        finalOpacity = 0.5; // Keep dimmed opacity
-        finalHeight = 0.1; // Keep flattened - don't change height on hover
+        // Hovered with nothing selected: bright blue, keep everything else normal
+        targetColor = new Color3(0.0, 0.3, 0.8);
+        targetOpacity = 1.0;
+        targetHeight = objectState.transform.originalHeight;
       } else if (selectedComponent) {
-        // Not selected but something else is: grey, dimmed, flat
-        finalColor = new Color3(0.07, 0.07, 0.07);
-        finalOpacity = 0.5;
-        finalHeight = 0.1;
+        // Something else is selected: grey, dimmed, flattened
+        targetColor = new Color3(0.07, 0.07, 0.07);
+        targetOpacity = 0.5;
+        targetHeight = 0.1;
       } else {
-        // Nothing selected: grey, full opacity, full height
-        finalColor = new Color3(0.07, 0.07, 0.07);
-        finalOpacity = 1.0;
-        finalHeight = objectState.transform.originalHeight;
+        // Default state: grey, full opacity, full height
+        targetColor = new Color3(0.07, 0.07, 0.07);
+        targetOpacity = 1.0;
+        targetHeight = objectState.transform.originalHeight;
       }
       
-      // Apply visuals
+      // Apply color
       if ((mesh as any).hasTexture) {
-        material.emissiveColor = finalColor.scale(0.3);
+        material.emissiveColor = targetColor.scale(0.3);
       } else {
-        if (material.baseColor) material.baseColor = finalColor;
-        material.diffuseColor = finalColor;
+        if (material.baseColor) material.baseColor = targetColor;
+        material.diffuseColor = targetColor;
       }
       
-      // CRITICAL: Don't affect labels at all - preserve them completely
-      if ((mesh as any).name && ((mesh as any).name.includes('Label') || (mesh as any).name.includes('label'))) {
-        // This IS a label - don't change its alpha at all
-        console.log(`🏷️ SKIPPING alpha change for label: ${(mesh as any).name}`);
-      } else {
-        // Normal mesh - apply alpha
-        material.alpha = finalOpacity;
-      }
+      // Apply opacity (mesh only, NOT children)
+      material.alpha = targetOpacity;
       
-      mesh.scaling.y = finalHeight;
+      // Apply height
+      mesh.scaling.y = targetHeight;
+      
+      // Set click state
       (mesh as any).isClicked = isSelected;
-      
-      // Also preserve all child labels
-      if (mesh.getChildren) {
-        mesh.getChildren().forEach((child: any) => {
-          if (child.material) {
-            child.material.alpha = 1.0; // Force ALL child objects to full opacity (labels are children)
-            console.log(`🏷️ Preserving child visibility: ${child.name} on ${sectionName}`);
-          }
-        });
-      }
     });
   };
 
