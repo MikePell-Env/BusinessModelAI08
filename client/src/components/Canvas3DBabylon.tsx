@@ -2972,14 +2972,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             originalHeights[sectionName] = height;
             console.log(`📏 ORIGINAL: ${sectionName} = ${height}`);
             
-            // Initialize BMC object state
+            // Initialize BMC object transform state
             const bmcComponent = mapSectionNameToBMCComponent(sectionName);
             if (bmcComponent) {
-              bmcState.initializeObject(bmcComponent, {
+              bmcState.updateTransformState(bmcComponent, {
                 originalHeight: height,
                 currentHeight: height,
                 position: mesh.position.clone(),
-                scale: mesh.scaling.clone()
+                scaling: mesh.scaling.clone()
               });
               console.log(`🔧 BMC State: Initialized "${bmcComponent}" with height ${height}`);
             }
