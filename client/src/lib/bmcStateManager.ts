@@ -79,9 +79,6 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
   // ============================================================================
 
   switchView(newView: ViewMode): void {
-    console.log(`🔄 BMC State Manager: Switching from ${this.currentView} to ${newView}`);
-    console.log(`🔄 BMC State Manager: Current selection before switch: ${this.activeSelection}`);
-    
     // Save current view state before switching
     this.saveCurrentViewState();
     
@@ -91,42 +88,32 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
     // Restore state for new view
     this.restoreViewState(newView);
     
-    console.log(`🔄 BMC State Manager: Selection after switch: ${this.activeSelection}`);
-    
     this.notifyStateChange();
   }
 
   saveCurrentViewState(): void {
     const currentViewState = this.viewStates.get(this.currentView);
     if (!currentViewState) {
-      console.log(`⚠️ BMC State Manager: No state found for view ${this.currentView}`);
       return;
     }
 
     // Update selection in current view state
     currentViewState.selectedObject = this.activeSelection;
     currentViewState.lastSaved = Date.now();
-    
-    console.log(`💾 BMC State Manager: Saved state for ${this.currentView}, selection: ${this.activeSelection}`);
   }
 
   restoreViewState(view: ViewMode): void {
     const viewState = this.viewStates.get(view);
     if (!viewState) {
-      console.log(`⚠️ BMC State Manager: No state found for view ${view}`);
       return;
     }
 
     // Restore selection if preservation is enabled
     if (this.globalSettings.preserveSelectionOnViewChange) {
       this.activeSelection = viewState.selectedObject;
-      console.log(`📥 BMC State Manager: Restored selection: ${this.activeSelection} for view ${view}`);
     } else {
       this.activeSelection = null;
-      console.log(`📥 BMC State Manager: Cleared selection for view ${view} (preservation disabled)`);
     }
-    
-    console.log(`✅ BMC State Manager: Restored state for ${view}, final selection: ${this.activeSelection}`);
   }
 
   // ============================================================================

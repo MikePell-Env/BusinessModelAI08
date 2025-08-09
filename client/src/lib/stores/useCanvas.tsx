@@ -75,48 +75,26 @@ export const useCanvas = create<CanvasState>()(
     },
     
     toggleView: () => {
-      const { is3D, bmcState } = get();
-      set({ isTransitioning: true });
-      
-      // Use BMC State Manager for view switching
-      const newViewMode: ViewMode = is3D ? 'view2D' : 'view3DPerspective';
-      console.log(`🎛️ useCanvas.toggleView: Switching to ${newViewMode}`);
-      console.log(`🎛️ useCanvas.toggleView: bmcState available:`, !!bmcState);
-      console.log(`🎛️ useCanvas.toggleView: bmcState.switchView method:`, typeof bmcState?.switchView);
-      
-      if (bmcState && typeof bmcState.switchView === 'function') {
-        bmcState.switchView(newViewMode);
-      } else {
-        console.error('❌ useCanvas.toggleView: BMC State Manager or switchView method not available');
-      }
+      set((state) => ({ 
+        is3D: !state.is3D,
+        isOrthographic: false,
+        isTransitioning: true 
+      }));
       
       setTimeout(() => {
-        set({ is3D: !is3D, isOrthographic: false, isTransitioning: false });
+        set({ isTransitioning: false });
       }, 300);
     },
     
     setOrthographicView: (isOrtho: boolean) => {
-      const { bmcState } = get();
-      set({ isTransitioning: true });
-      
-      // Use BMC State Manager for orthographic view switching
-      const newViewMode: ViewMode = isOrtho ? 'view3DOrthographic' : 'view3DPerspective';
-      console.log(`🎛️ useCanvas.setOrthographicView: Switching to ${newViewMode}`);
-      console.log(`🎛️ useCanvas.setOrthographicView: bmcState available:`, !!bmcState);
-      console.log(`🎛️ useCanvas.setOrthographicView: bmcState.switchView method:`, typeof bmcState?.switchView);
-      
-      if (bmcState && typeof bmcState.switchView === 'function') {
-        bmcState.switchView(newViewMode);
-      } else {
-        console.error('❌ useCanvas.setOrthographicView: BMC State Manager or switchView method not available');
-      }
+      set({ 
+        is3D: true,
+        isOrthographic: isOrtho,
+        isTransitioning: true 
+      });
       
       setTimeout(() => {
-        set({ 
-          is3D: true, // Always in 3D when orthographic
-          isOrthographic: isOrtho, 
-          isTransitioning: false 
-        });
+        set({ isTransitioning: false });
       }, 300);
     },
     
