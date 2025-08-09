@@ -74,16 +74,7 @@ export const HomePage: React.FC = () => {
           {/* Left Column - Main Content - Centered in available space, with right margin for fixed video column */}
           <div className="flex-1 px-8 flex justify-center" style={{ marginRight: '320px' }}>
             <div className="w-full max-w-4xl">
-              <div className="text-center">
-                <h1 className="text-2xl font-semibold text-gray-900 mb-1">
-                  Welcome to our working demo site!
-                </h1>
-                <p className="text-lg text-gray-600 mb-16">
-                  (all real tech, no smoke and mirrors)
-                </p>
-              </div>
-
-              {/* Demo Info Banner */}
+              {/* Demo Info Banner - moved to top */}
               <div className="bg-blue-500 text-white p-6 rounded-lg mb-16">
                 <p className="text-lg leading-tight">
                   <strong>DEMO:</strong> Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
