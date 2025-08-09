@@ -328,7 +328,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       'Key Resources': 'KeyResources',
       'Value Propositions': 'ValueProposition',
       'Customer Relationships': 'CustomerRelationships',
-      'Customer Channels': 'CustomerChannels',  // Fixed: was 'Channels'
+      'Channels': 'CustomerChannels',  // GLB mesh name is "Channels"
       'Customer Segments': 'CustomerSegments',
       'Cost Structure': 'CostStructure',
       'Revenue Streams': 'RevenueStreams'
@@ -343,7 +343,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       'KeyResources': 'Key Resources',
       'ValueProposition': 'Value Propositions',
       'CustomerRelationships': 'Customer Relationships',
-      'CustomerChannels': 'Customer Channels',  // Fixed: was 'Channels'
+      'CustomerChannels': 'Channels',  // GLB mesh name is "Channels"
       'CustomerSegments': 'Customer Segments',
       'CostStructure': 'Cost Structure',
       'RevenueStreams': 'Revenue Streams'
