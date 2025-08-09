@@ -248,9 +248,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   
   // Inject BMC State Manager into CleanBMCSystem on first render
   useEffect(() => {
+    console.log("🔗 Injecting BMC State Manager into CleanBMCSystem...");
+    console.log("🔗 bmcState:", bmcState);
+    console.log("🔗 cleanBMCRef.current:", cleanBMCRef.current);
+    
     cleanBMCRef.current.setBMCStateManager(bmcState);
-    console.log("🔗 Injected BMC State Manager into CleanBMCSystem");
-  }, []);
+    console.log("🔗 Injection complete");
+  }, [bmcState]);
   
   // REMOVED: Legacy transform utilities - now handled by unified BMC system
 
@@ -1768,6 +1772,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Click - use unified BMC selection system
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`🎯 3D Click on: ${sectionName}`);
               // Delegate to CleanBMCSystem which delegates to BMC State Manager
               cleanBMCRef.current.onSelect(sectionName);
             }));

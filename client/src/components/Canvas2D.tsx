@@ -84,8 +84,11 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
     const sectionName = getSectionName(sectionTitle);
     const isCurrentlySelected = selectedObject === sectionName;
     
+    console.log(`🎯 2D Click on: ${sectionTitle} -> ${sectionName}`);
+    console.log(`🎯 Currently selected: ${selectedObject}, isCurrentlySelected: ${isCurrentlySelected}`);
+    
     // Toggle selection using unified BMC system
-    selectBMCObject(isCurrentlySelected ? null : sectionName);
+    selectBMCObject(isCurrentlySelected ? null : sectionName as any);
     console.log(`📋 2D View: ${isCurrentlySelected ? 'Deselected' : 'Selected'} "${sectionName}"`);
   };
 
