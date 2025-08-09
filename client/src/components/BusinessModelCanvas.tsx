@@ -70,8 +70,6 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
   }, [loadCanvas, setError, pendingPowerPointFile, setPendingPowerPointFile, canvas]);
 
   const handleToggleView = () => {
-    console.log(`🎛️ BusinessModelCanvas.handleToggleView: Switching to ${is3D ? '2D' : '3D'} view`);
-    alert(`Button clicked! Switching to ${is3D ? '2D' : '3D'} view`); // Temporary alert to verify button works
     toggleView();
   };
 
@@ -133,10 +131,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
         </Button>
 
         <Button
-          onClick={() => {
-            console.log('🎛️ BusinessModelCanvas: Switching to 3D Top View');
-            setOrthographicView(true);
-          }}
+          onClick={() => setOrthographicView(true)}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
             isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
@@ -148,10 +143,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
         </Button>
 
         <Button
-          onClick={() => {
-            console.log('🎛️ BusinessModelCanvas: Switching to 3D View');
-            setOrthographicView(false);
-          }}
+          onClick={() => setOrthographicView(false)}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
             is3D && !isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
