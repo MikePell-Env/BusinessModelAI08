@@ -70,7 +70,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
   }, [loadCanvas, setError, pendingPowerPointFile, setPendingPowerPointFile, canvas]);
 
   const handleToggleView = () => {
-    console.log(`Switching to ${is3D ? '2D' : '3D'} view`);
+    console.log(`🎛️ BusinessModelCanvas.handleToggleView: Switching to ${is3D ? '2D' : '3D'} view`);
     toggleView();
   };
 
@@ -120,8 +120,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       {/* Fixed View Controls - positioned below header */}
       <div className="fixed top-20 left-4 z-40 flex space-x-2">
         <Button
-          onClick={() => !is3D || handleToggleView()}
-          disabled={isTransitioning || !is3D}
+          onClick={handleToggleView}
+          disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
             !is3D ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
@@ -132,7 +132,10 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
         </Button>
 
         <Button
-          onClick={() => setOrthographicView(true)}
+          onClick={() => {
+            console.log('🎛️ BusinessModelCanvas: Switching to 3D Top View');
+            setOrthographicView(true);
+          }}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
             isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
@@ -144,7 +147,10 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
         </Button>
 
         <Button
-          onClick={() => setOrthographicView(false)}
+          onClick={() => {
+            console.log('🎛️ BusinessModelCanvas: Switching to 3D View');
+            setOrthographicView(false);
+          }}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
             is3D && !isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
