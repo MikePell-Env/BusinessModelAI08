@@ -444,18 +444,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const legacySelected = getSelectedObject();
       const hasAnySelection = selectedComponent || legacySelected;
       
-      if (isSelected) {
-        // Selected object: bright blue, full opacity, full height
+      // Check if THIS object is currently selected (either by BMC or legacy)
+      const thisObjectSelected = isSelected || (legacySelected === sectionName);
+      
+      if (thisObjectSelected) {
+        // THIS object is selected: bright blue, full opacity, full height
         finalColor = new Color3(0.0, 0.3, 0.8); // Bright blue
         finalOpacity = 1.0;
         finalHeight = objectState.transform.originalHeight;
-      } else if (isHovered) {
-        // Hovered object: bright blue, full opacity, full height
+      } else if (isHovered && !hasAnySelection) {
+        // Hovered but no selection exists: bright blue, full opacity, full height
         finalColor = new Color3(0.0, 0.3, 0.8); // Bright blue
         finalOpacity = 1.0;
         finalHeight = objectState.transform.originalHeight;
       } else if (hasAnySelection) {
-        // Non-selected when something else is selected: grey, 50% opacity, flattened
+        // Something else is selected: grey, 50% opacity, flattened
         finalColor = new Color3(0.07, 0.07, 0.07); // Dark grey
         finalOpacity = 0.5;
         finalHeight = 0.1; // Very flat
@@ -483,7 +486,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Sync legacy state for compatibility
       (mesh as any).isClicked = isSelected;
       
-      console.log(`🔧 ${sectionName}: selected=${isSelected}, hovered=${isHovered}, opacity=${finalOpacity}, height=${finalHeight}`);
+      console.log(`🔧 ${sectionName}: thisSelected=${thisObjectSelected}, BMCSelected=${isSelected}, legacySelected=${legacySelected === sectionName}, hovered=${isHovered}, opacity=${finalOpacity}, height=${finalHeight}`);
     });
   };
 
@@ -501,12 +504,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Simple function to sync BMC state with legacy store
   const syncBMCStateWithLegacy = () => {
     const legacySelection = getSelectedObject();
+    const bmcSelection = bmcState.getSelectedObject();
+    
+    console.log(`🔄 SYNC: legacy="${legacySelection}", BMC="${bmcSelection}"`);
+    
     if (legacySelection) {
       const bmcComponent = mapSectionNameToBMCComponent(legacySelection);
-      if (bmcComponent && bmcState.getSelectedObject() !== bmcComponent) {
+      if (bmcComponent && bmcSelection !== bmcComponent) {
+        console.log(`🔗 Syncing BMC to legacy: "${bmcComponent}"`);
         bmcState.selectObject(bmcComponent);
       }
-    } else if (bmcState.getSelectedObject()) {
+    } else if (bmcSelection) {
+      console.log(`🔗 Clearing BMC selection to match legacy`);
       bmcState.selectObject(null);
     }
   };
