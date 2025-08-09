@@ -748,26 +748,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Place Internal label on the ground plane, moved more to the right
       
       const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
-        width: 5.0,   // 2x larger than previous 2.5
-        height: 1.6   // 2x larger than previous 0.8
+        width: 4.0,   // Reduced by 20% from 5.0
+        height: 1.28  // Reduced by 20% from 1.6
       }, scene);
       
-      // Position on ground plane, moved more to the right
-      internalLabelPlane.position.x = -5.0;  // Moved more to the right (was -8.0)
-      internalLabelPlane.position.y = 0.001; // Directly on ground plane surface
-      internalLabelPlane.position.z = -6.0;  // In front of Cost Structure for visibility
+      // Position on ground plane, moved down a little
+      internalLabelPlane.position.x = -5.0;  // Same X position
+      internalLabelPlane.position.y = 0.001; // Same Y (on ground plane)
+      internalLabelPlane.position.z = -4.8;  // Moved down/closer (was -6.0)
       
       // Rotate to lie flat on the ground
       internalLabelPlane.rotation.x = Math.PI / 2;
       
-      // Create medium grey material
+      // Create material for blue Internal label
       const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
-      const internalLabelTexture = new Texture("/textures/Labels_internal_1754697296780.png", scene);
+      const internalLabelTexture = new Texture("/textures/Labels_internal_blue_1754698192082.png", scene);
       internalLabelTexture.hasAlpha = true;
       
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
-      internalLabelMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // Medium grey instead of white
+      internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for blue label
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
       internalLabelMaterial.disableLighting = true;
       
