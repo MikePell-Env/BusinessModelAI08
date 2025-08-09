@@ -422,10 +422,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const sectionName = (mesh as any).bmcSectionName;
       const bmcComponent = mapSectionNameToBMCComponent(sectionName);
       
-      if (!bmcComponent) return;
+      console.log(`🔍 PROCESSING: sectionName="${sectionName}" → bmcComponent="${bmcComponent}"`);
+      
+      if (!bmcComponent) {
+        console.log(`❌ SKIPPING: No BMC component mapping for "${sectionName}"`);
+        return;
+      }
       
       const objectState = bmcState.getObjectState(bmcComponent);
-      if (!objectState) return;
+      if (!objectState) {
+        console.log(`❌ SKIPPING: No object state for "${bmcComponent}"`);
+        return;
+      }
       
       const isSelected = objectState.visual.isSelected;
       const isHovered = objectState.visual.isHovered;
