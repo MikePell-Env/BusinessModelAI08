@@ -1698,7 +1698,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelContainer.linkWithMesh(mesh);
             labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
             
-            // Hide the label by making it invisible - DISABLED UNTIL MAIN TITLE IMPLEMENTED
+            // Hide the label by making it invisible
             labelContainer.isVisible = false;
             
             // Create content panel for click events (initially hidden)
@@ -2481,8 +2481,57 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`⚡ Double-click: Revenue Streams selected and ready for panel display`);
             }));
 
-            // LABELS DISABLED - Revenue Streams floating label creation disabled until main title implemented
-            // console.log(`🏷️ Revenue Streams label creation DISABLED`);
+            // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
+            console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
+            
+            // Get mesh bounds for positioning
+            const boundingInfo = mesh.getBoundingInfo();
+            const center = boundingInfo.boundingBox.center;
+            const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+            
+            // Create label plane with proper aspect ratio to prevent vertical squishing
+            const labelWidth = size.x * 0.65; // Same as Customer Channels
+            const labelHeight = (labelWidth * 0.25) * 2.0; // Doubled height to prevent squishing
+            console.log(`Revenue Streams Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+            console.log(`🔍 Revenue Streams mesh center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
+            console.log(`🔍 Revenue Streams mesh size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
+            
+            const labelPlane = MeshBuilder.CreatePlane("revenueStreamsLabel", {
+              width: labelWidth,
+              height: labelHeight
+            }, scene);
+            
+            // Center the label horizontally and vertically within the top face of the Revenue Streams object
+            labelPlane.position.x = center.x; // Center horizontally
+            labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
+            labelPlane.position.z = center.z; // Center vertically (Z-axis)
+            
+            // Rotate to be flat on top and then 90 degrees counterclockwise to read properly
+            labelPlane.rotation.x = Math.PI / 2;
+            labelPlane.rotation.y = -Math.PI / 2; // 90 degrees counterclockwise for proper text orientation
+            
+            // Create bright material for white text (same as Customer Channels)
+            const labelMaterial = new StandardMaterial("revenueStreamsLabelMat", scene);
+            const labelTexture = new Texture("/textures/Label_RevenueStreams.png", scene);
+            labelTexture.hasAlpha = true;
+            
+            labelMaterial.diffuseTexture = labelTexture;
+            labelMaterial.emissiveTexture = labelTexture;
+            labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+            labelMaterial.useAlphaFromDiffuseTexture = true;
+            labelMaterial.disableLighting = false;
+            
+            labelPlane.material = labelMaterial;
+            labelPlane.parent = mesh;
+            labelPlane.isPickable = false;
+            
+            // Apply proportional scaling - reduced by 20% from the 2x size
+            labelPlane.scaling = new Vector3(1.6, 2.08, 1.0); // 80% of 2x size (2.0 * 0.8 = 1.6, 2.6 * 0.8 = 2.08)
+            
+            console.log(`✅ Revenue Streams label plane created at position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+            console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
+            console.log(`🔍 Label scale: (${labelPlane.scaling.x.toFixed(3)}, ${labelPlane.scaling.y.toFixed(3)}, ${labelPlane.scaling.z.toFixed(3)})`);
+            console.log(`🔍 Label dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}`);
             
             console.log(`🎨 Revenue Streams Mesh ${index}: ${mesh.name || 'unnamed'} configured`);
           }
@@ -2750,8 +2799,57 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`⚡ Double-click: Cost Structure selected and ready for panel display`);
             }));
 
-            // LABELS DISABLED - Cost Structure floating label creation disabled until main title implemented
-            // console.log(`🏷️ Cost Structure label creation DISABLED`);
+            // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
+            console.log(`🏷️ Creating floating label for Cost Structure mesh (index ${index})`);
+            
+            // Get mesh bounds for positioning
+            const boundingInfo = mesh.getBoundingInfo();
+            const center = boundingInfo.boundingBox.center;
+            const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+            
+            // Create label plane with same dimensions as Revenue Streams
+            const labelWidth = size.x * 0.65;
+            const labelHeight = (labelWidth * 0.25) * 2.0;
+            console.log(`Cost Structure Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+            console.log(`🔍 Cost Structure mesh center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
+            console.log(`🔍 Cost Structure mesh size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
+            
+            const labelPlane = MeshBuilder.CreatePlane("costStructureLabel", {
+              width: labelWidth,
+              height: labelHeight
+            }, scene);
+            
+            // Center the label horizontally and vertically within the top face of the Cost Structure object
+            labelPlane.position.x = center.x; // Center horizontally
+            labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
+            labelPlane.position.z = center.z; // Center vertically (Z-axis)
+            
+            // Rotate to be flat on top and then 90 degrees counterclockwise (same as Revenue Streams)
+            labelPlane.rotation.x = Math.PI / 2;
+            labelPlane.rotation.y = -Math.PI / 2; // 90 degrees counterclockwise for proper text orientation
+            
+            // Create material with Cost Structure label texture
+            const labelMaterial = new StandardMaterial("costStructureLabelMat", scene);
+            const labelTexture = new Texture("/textures/Label_CostStructure_1754477996199.png", scene);
+            labelTexture.hasAlpha = true;
+            
+            labelMaterial.diffuseTexture = labelTexture;
+            labelMaterial.emissiveTexture = labelTexture;
+            labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+            labelMaterial.useAlphaFromDiffuseTexture = true;
+            labelMaterial.disableLighting = false;
+            
+            labelPlane.material = labelMaterial;
+            labelPlane.parent = mesh;
+            labelPlane.isPickable = false;
+            
+            // Apply same proportional scaling as Revenue Streams
+            labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
+            
+            console.log(`✅ Cost Structure label plane created at position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+            console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
+            console.log(`🔍 Label scale: (${labelPlane.scaling.x.toFixed(3)}, ${labelPlane.scaling.y.toFixed(3)}, ${labelPlane.scaling.z.toFixed(3)})`);
+            console.log(`🔍 Label dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}`);
             
             console.log(`🎨 Cost Structure Mesh ${index}: ${mesh.name || 'unnamed'} configured`);
           }
@@ -3141,7 +3239,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       {/* Header - positioned below button group */}
       <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10 text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{canvas.name}</h1>
-        {/* Subtitle "Business Model canvas imported from..." disabled */}
+        <p className="text-gray-600">{canvas.description}</p>
       </div>
       
       <canvas
