@@ -742,20 +742,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Create GUI for 3D billboard labels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
     
-    // Add "Internal" label directly below Cost Structure on the ground plane
+    // Add "Internal" label directly on the ground plane near Cost Structure
     const createInternalLabel = () => {
-      // Cost Structure is positioned at (-10.1, 0.1, -10.5)
-      // Place Internal label directly below it on the ground plane
+      // Cost Structure is at (-10.1, 0.1, -10.5), Ground plane is at Y=0
+      // Place Internal label on the ground plane, slightly in front of Cost Structure
       
       const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
-        width: 3.0,   // Large enough to be clearly visible
-        height: 1.0   // Proportional height
+        width: 2.5,   // Appropriate size for visibility
+        height: 0.8   // Proportional height
       }, scene);
       
-      // Position directly below Cost Structure object
-      internalLabelPlane.position.x = -10.1; // Same X as Cost Structure
-      internalLabelPlane.position.y = 0.05;  // Just above ground plane
-      internalLabelPlane.position.z = -8.5;  // Slightly closer to center than Cost Structure (-10.5)
+      // Position on ground plane near Cost Structure
+      internalLabelPlane.position.x = -8.0;  // Closer to center than Cost Structure
+      internalLabelPlane.position.y = 0.001; // Directly on ground plane surface
+      internalLabelPlane.position.z = -6.0;  // In front of Cost Structure for visibility
       
       // Rotate to lie flat on the ground
       internalLabelPlane.rotation.x = Math.PI / 2;
@@ -767,15 +767,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
-      internalLabelMaterial.emissiveColor = new Color3(1.2, 1.2, 1.2); // Extra bright
+      internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
       internalLabelMaterial.disableLighting = true;
       
       internalLabelPlane.material = internalLabelMaterial;
       internalLabelPlane.isPickable = false;
       
-      console.log(`✅ Internal label positioned below Cost Structure at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
-      console.log(`📍 Cost Structure reference position: (-10.1, 0.1, -10.5)`);
+      console.log(`✅ Internal label on ground plane at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
     };
     
     // Create the Internal label
