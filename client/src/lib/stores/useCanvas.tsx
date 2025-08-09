@@ -18,6 +18,12 @@ interface CanvasState {
     radius: number;
   } | null;
   selectedObjectName: string | null;
+  // Per-view selection state for more robust preservation
+  selectionState: {
+    view2D: string | null;
+    view3DPerspective: string | null;
+    view3DOrthographic: string | null;
+  };
   originalHeights: { [sectionName: string]: number };
   pendingPowerPointFile: File | null;
   
@@ -35,6 +41,10 @@ interface CanvasState {
   getCamera3DState: () => { alpha: number; beta: number; radius: number; } | null;
   setSelectedObject: (objectName: string | null) => void;
   getSelectedObject: () => string | null;
+  // Enhanced selection state management
+  saveSelectionForCurrentView: () => void;
+  restoreSelectionForCurrentView: () => void;
+  getCurrentViewKey: () => string;
   setOriginalHeights: (heights: { [sectionName: string]: number }) => void;
   getOriginalHeights: () => { [sectionName: string]: number };
   setPendingPowerPointFile: (file: File | null) => void;
@@ -53,6 +63,12 @@ export const useCanvas = create<CanvasState>()(
     hasImportedFromPowerPoint: false,
     camera3DState: null,
     selectedObjectName: null,
+    // Per-view selection state for robust preservation
+    selectionState: {
+      view2D: null,
+      view3DPerspective: null,
+      view3DOrthographic: null,
+    },
     originalHeights: {},
     pendingPowerPointFile: null,
     
@@ -66,14 +82,24 @@ export const useCanvas = create<CanvasState>()(
     
     toggleView: () => {
       const { is3D } = get();
+      // Save current selection for current view before switching
+      get().saveSelectionForCurrentView();
+      
       set({ isTransitioning: true });
       
       setTimeout(() => {
         set({ is3D: !is3D, isOrthographic: false, isTransitioning: false });
+        // Restore selection for new view after transition
+        setTimeout(() => {
+          get().restoreSelectionForCurrentView();
+        }, 50);
       }, 300);
     },
     
     setOrthographicView: (isOrtho: boolean) => {
+      // Save current selection for current view before switching
+      get().saveSelectionForCurrentView();
+      
       set({ isTransitioning: true });
       
       setTimeout(() => {
@@ -82,6 +108,10 @@ export const useCanvas = create<CanvasState>()(
           isOrthographic: isOrtho, 
           isTransitioning: false 
         });
+        // Restore selection for new view after transition
+        setTimeout(() => {
+          get().restoreSelectionForCurrentView();
+        }, 50);
       }, 300);
     },
     
@@ -132,10 +162,48 @@ export const useCanvas = create<CanvasState>()(
     
     setSelectedObject: (objectName: string | null) => {
       set({ selectedObjectName: objectName });
+      // Also save to current view when setting selection
+      get().saveSelectionForCurrentView();
     },
     
     getSelectedObject: () => {
       return get().selectedObjectName;
+    },
+    
+    // Enhanced selection state management methods
+    getCurrentViewKey: () => {
+      const { is3D, isOrthographic } = get();
+      if (!is3D) return 'view2D';
+      return isOrthographic ? 'view3DOrthographic' : 'view3DPerspective';
+    },
+    
+    saveSelectionForCurrentView: () => {
+      const { selectedObjectName, selectionState } = get();
+      const viewKey = get().getCurrentViewKey();
+      
+      console.log(`💾 STORE: Saving selection "${selectedObjectName}" for ${viewKey}`);
+      
+      set({
+        selectionState: {
+          ...selectionState,
+          [viewKey]: selectedObjectName
+        }
+      });
+    },
+    
+    restoreSelectionForCurrentView: () => {
+      const { selectionState } = get();
+      const viewKey = get().getCurrentViewKey();
+      const savedSelection = selectionState[viewKey as keyof typeof selectionState];
+      
+      console.log(`🔄 STORE: Restoring selection "${savedSelection}" for ${viewKey}`);
+      
+      set({ selectedObjectName: savedSelection });
+      
+      // Trigger a custom event that the 3D component can listen to
+      window.dispatchEvent(new CustomEvent('selectionRestored', { 
+        detail: { selection: savedSelection, viewKey } 
+      }));
     },
     
     setOriginalHeights: (heights: { [sectionName: string]: number }) => {
