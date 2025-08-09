@@ -1030,7 +1030,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Create StandardMaterial with PBR-compatible properties for hover behavior
             const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene) as any;
             
-            // Use very dark black color with subtle shine
+            // Use very dark black color with subtle shine - CONSISTENT with Cost/Revenue
             sectionMaterial.diffuseColor = baseColor;
             sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
             sectionMaterial.specularPower = 32;
@@ -1076,7 +1076,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = false;
               
@@ -1124,7 +1124,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = false;
               
@@ -1172,7 +1172,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = false;
               
@@ -1220,7 +1220,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = false;
               
@@ -1269,7 +1269,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = false;
               
@@ -1318,7 +1318,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = false;
               
@@ -1367,7 +1367,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = false;
               
@@ -2174,7 +2174,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             labelMaterial.diffuseTexture = labelTexture;
             labelMaterial.emissiveTexture = labelTexture;
-            labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+            labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
             labelMaterial.useAlphaFromDiffuseTexture = true;
             labelMaterial.disableLighting = false;
             
@@ -2359,7 +2359,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             labelMaterial.diffuseTexture = labelTexture;
             labelMaterial.emissiveTexture = labelTexture;
-            labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+            labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
             labelMaterial.useAlphaFromDiffuseTexture = true;
             labelMaterial.disableLighting = false;
             
