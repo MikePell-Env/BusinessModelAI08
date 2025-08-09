@@ -2198,45 +2198,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               mesh.isPickable = true;
             }
             
-            // Hover enter behavior (unified with main BMC sections)
+            // Unified hover handlers using BMC state manager
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              console.log(`🎯 HOVER DETECTED on Revenue Streams`);
-              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
-              
-              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
-                // Apply bright blue hover color (unified with main BMC)
-                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
-                sectionMaterial.diffuseColor = brightBlueColor;
-                
-                // Keep ALL objects at 100% opacity during hover (unified behavior)
-                contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 1.0; // 100% opacity like main BMC sections
-                });
-                
-                console.log(`💡 Hover enter: Revenue Streams bright blue, all objects 100% opacity (unified)`);
-              } else {
-                console.log(`🚫 Hover enter: Revenue Streams blocked - object selected or clicked`);
-              }
+              handleBMCObjectHoverEnter("Revenue Streams");
             }));
             
-            // Hover exit behavior (unified with main BMC sections)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              console.log(`🎯 HOVER EXIT DETECTED on Revenue Streams`);
-              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
-              
-              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
-                // Restore original color (unified behavior)
-                sectionMaterial.diffuseColor = (mesh as any).originalColor;
-                
-                // Maintain all objects at full opacity (unified with main BMC)
-                contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 1.0; // Full opacity maintained
-                });
-                
-                console.log(`🔄 Hover exit: Revenue Streams restored, all objects full opacity (unified)`);
-              } else {
-                console.log(`🚫 Hover exit: Revenue Streams blocked - maintaining visual state`);
-              }
+              handleBMCObjectHoverExit("Revenue Streams");
             }));
             
             // Add selection (click) behavior for Revenue Streams using new BMC system
@@ -2417,45 +2385,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               mesh.isPickable = true;
             }
             
-            // Hover enter behavior (unified with main BMC sections and Revenue Streams)
+            // Unified hover handlers using BMC state manager
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              console.log(`🎯 HOVER DETECTED on Cost Structure`);
-              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
-              
-              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
-                // Apply bright blue hover color (unified with main BMC)
-                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
-                sectionMaterial.diffuseColor = brightBlueColor;
-                
-                // Keep ALL objects at 100% opacity during hover (unified behavior)
-                contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 1.0; // 100% opacity like main BMC sections
-                });
-                
-                console.log(`💡 Hover enter: Cost Structure bright blue, all objects 100% opacity (unified)`);
-              } else {
-                console.log(`🚫 Hover enter: Cost Structure blocked - object selected or clicked`);
-              }
+              handleBMCObjectHoverEnter("Cost Structure");
             }));
             
-            // Hover exit behavior (unified with main BMC sections and Revenue Streams)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              console.log(`🎯 HOVER EXIT DETECTED on Cost Structure`);
-              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
-              
-              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
-                // Restore original color (unified behavior)
-                sectionMaterial.diffuseColor = (mesh as any).originalColor;
-                
-                // Maintain all objects at full opacity (unified with main BMC)
-                contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 1.0; // Full opacity maintained
-                });
-                
-                console.log(`🔄 Hover exit: Cost Structure restored, all objects full opacity (unified)`);
-              } else {
-                console.log(`🚫 Hover exit: Cost Structure blocked - maintaining visual state`);
-              }
+              handleBMCObjectHoverExit("Cost Structure");
             }));
             
             // Add selection (click) behavior for Cost Structure using new BMC system
@@ -2890,15 +2826,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
       
-      // Sync states and apply visuals
-      
-      applyBMCVisualState();
-      console.log(`✅ 3D MODE: BMC state applied`);
+      // Small delay to ensure scene is ready, then restore visual state
+      setTimeout(() => {
+        applyBMCVisualState();
+        console.log(`✅ 3D MODE: BMC state applied`);
+      }, 100);
     } else if (!is3D) {
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
     }
   }, [is3D, applyBMCVisualState]);
+
+  // Handle restoration when switching between 3D View and 3D Top View
+  useEffect(() => {
+    if (is3D && sceneRef.current) {
+      const selectedObject = getSelectedObject();
+      console.log(`🔄 3D VIEW TRANSITION: ${isOrthographic ? '3D Top' : '3D View'}, selection="${selectedObject}"`);
+      
+      // Small delay to ensure camera switch is complete, then restore visual state
+      setTimeout(() => {
+        applyBMCVisualState();
+        console.log(`✅ 3D TRANSITION: BMC state restored for ${isOrthographic ? '3D Top' : '3D View'}`);
+      }, 150);
+    }
+  }, [isOrthographic, is3D, applyBMCVisualState]);
 
 
 
