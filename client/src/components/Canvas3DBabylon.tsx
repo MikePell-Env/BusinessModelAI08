@@ -2499,27 +2499,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // REMOVED: Emergency label fix - CleanBMCSystem handles all label visibility
     
-    // Clear selections immediately to ensure hover works
-    setTimeout(() => {
-      clearAllSelections();
-    }, 1000);
+    // DISABLED: Don't clear selections automatically - interferes with view switching
+    // setTimeout(() => {
+    //   clearAllSelections();
+    // }, 1000);
     
     // REMOVED: Emergency label fix interval - CleanBMCSystem handles all label visibility
     
-    // Only restore selection state if user explicitly had something selected and heights are available
-    // This prevents blocking hover behavior on initial load
-    setTimeout(() => {
-      const existingSelection = getSelectedObject();
-      const hasHeights = Object.keys(getOriginalHeights()).length > 0;
-      
-      // Only restore if there's a clear user selection and we have height data
-      if (existingSelection && hasHeights) {
-        console.log("🔄 Initial load: Restoring user selection:", existingSelection);
-        // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
-      } else {
-        console.log("🔄 Initial load: No selection to restore, hover behavior ready");
-      }
-    }, 2500);
+    // DISABLED: Don't automatically clear/restore selections - interferes with view switching
+    // setTimeout(() => {
+    //   const existingSelection = getSelectedObject();
+    //   const hasHeights = Object.keys(getOriginalHeights()).length > 0;
+    //   
+    //   // Only restore if there's a clear user selection and we have height data
+    //   if (existingSelection && hasHeights) {
+    //     console.log("🔄 Initial load: Restoring user selection:", existingSelection);
+    //     // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
+    //   } else {
+    //     console.log("🔄 Initial load: No selection to restore, hover behavior ready");
+    //   }
+    // }, 2500);
 
     // Start the render loop with safety check
     let isDisposed = false;
