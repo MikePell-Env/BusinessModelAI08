@@ -167,7 +167,7 @@ export class PowerPointImporter {
     };
 
     let canvasName = 'Imported Business Model Canvas';
-    let canvasDescription = 'Business model canvas imported from PowerPoint';
+    let canvasDescription = 'Business model canvas';
 
     // For single slide format, we expect one slide with multiple text boxes
     if (slides.length === 1) {
