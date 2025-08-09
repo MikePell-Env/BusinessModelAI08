@@ -297,78 +297,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log(`HOVER EXIT: ${sectionName}`);
   };
 
-  // UNIFIED BMC VISUAL STATE: Integration with label management
-  const applyBMCVisualState = () => {
-    const selectedComponent = bmcState.getSelectedObject();
-    
-    contentPanelsRef.current.forEach(({ mesh, material }) => {
-      const sectionName = (mesh as any).bmcSectionName;
-      const bmcComponent = mapSectionNameToBMCComponent(sectionName);
-      
-      if (!bmcComponent) return;
-      
-      const objectState = bmcState.getObjectState(bmcComponent);
-      if (!objectState) return;
-      
-      const isSelected = objectState.visual.isSelected;
-      const isHovered = objectState.visual.isHovered;
-      
-      // SIMPLE STATE LOGIC
-      let targetColor: Color3;
-      let targetOpacity: number;
-      let targetHeight: number;
-      
-      if (isSelected) {
-        // Selected object: bright blue, full opacity, full height
-        targetColor = new Color3(0.0, 0.3, 0.8);
-        targetOpacity = 1.0;
-        targetHeight = objectState.transform.originalHeight;
-      } else if (isHovered && !selectedComponent) {
-        // Hovered with nothing selected: bright blue, keep everything else normal
-        targetColor = new Color3(0.0, 0.3, 0.8);
-        targetOpacity = 1.0;
-        targetHeight = objectState.transform.originalHeight;
-      } else if (selectedComponent) {
-        // Something else is selected: grey, dimmed, flattened
-        targetColor = new Color3(0.07, 0.07, 0.07);
-        targetOpacity = 0.5;
-        targetHeight = 0.1;
-      } else {
-        // Default state: grey, full opacity, full height
-        targetColor = new Color3(0.07, 0.07, 0.07);
-        targetOpacity = 1.0;
-        targetHeight = objectState.transform.originalHeight;
-      }
-      
-      // Apply color
-      if ((mesh as any).hasTexture) {
-        material.emissiveColor = targetColor.scale(0.3);
-      } else {
-        if (material.baseColor) material.baseColor = targetColor;
-        material.diffuseColor = targetColor;
-      }
-      
-      // Apply opacity to mesh
-      material.alpha = targetOpacity;
-      
-      // Apply height
-      mesh.scaling.y = targetHeight;
-      
-      // Set click state
-      (mesh as any).isClicked = isSelected;
-    });
-    
-    // Force all labels visible with clean system
-    cleanBMCRef.current.forceAllLabelsVisible();
-  };
+  // REMOVED: Old applyBMCVisualState function - CleanBMCSystem handles all visual states
 
   // Handle background click to clear selection
   const handleBackgroundClick = () => {
-    const currentSelection = bmcState.getSelectedObject();
-    if (currentSelection) {
-      bmcState.selectObject(null);
-      applyBMCVisualState();
-    }
+    console.log('Background clicked - clearing selection');
+    cleanBMCRef.current.clearSelection();
+    setSelectedObject(null);
   };
   
   // REMOVED: Sync function caused infinite loops - legacy store no longer needed
@@ -407,19 +342,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     return section.content.map(item => `• ${item}`).join('\n');
   };
 
-  // BMC Selection State Restoration (runs after scene initialization)
-  const restoreBMCSelectionState = () => {
-    const selectedComponent = bmcState.getSelectedObject();
-    
-    if (selectedComponent) {
-      console.log(`🔄 RESTORING BMC SELECTION: "${selectedComponent}" for view mode change`);
-      
-      // Apply visual state based on current BMC selection
-      applyBMCVisualState();
-    } else {
-      console.log(`🔄 No BMC selection to restore`);
-    }
-  };
+  // REMOVED: Old restoration function - CleanBMCSystem handles this automatically
 
   // Restore selection state when view mode changes or scene is ready
   useEffect(() => {
@@ -1752,15 +1675,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Add to panels array for global closing
             contentPanelsRef.current.push({ panel: contentPanel, mesh, material: sectionMaterial });
             
-            // Initialize BMC state manager with this object's original height
-            const bmcComponent = mapSectionNameToBMCComponent(sectionName);
-            if (bmcComponent) {
-              const currentHeight = mesh.scaling.y;
-              bmcState.updateTransformState(bmcComponent, { 
-                originalHeight: currentHeight,
-                currentHeight: currentHeight 
-              });
-            }
+            // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
             // Enable pointer events for this mesh with proper setup
             mesh.actionManager = new ActionManager(scene);
@@ -2088,12 +2003,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               material: sectionMaterial 
             });
             
-            // Initialize BMC state for Revenue Streams
-            const currentHeight = mesh.scaling.y;
-            bmcState.updateTransformState('RevenueStreams', { 
-              originalHeight: currentHeight,
-              currentHeight: currentHeight 
-            });
+            // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
             // Create action manager for hover interactions
             if (!mesh.actionManager) {
@@ -2273,12 +2183,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               material: sectionMaterial 
             });
             
-            // Initialize BMC state for Cost Structure
-            const currentHeight = mesh.scaling.y;
-            bmcState.updateTransformState('CostStructure', { 
-              originalHeight: currentHeight,
-              currentHeight: currentHeight 
-            });
+            // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
             // Create action manager for hover interactions
             if (!mesh.actionManager) {
