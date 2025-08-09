@@ -755,7 +755,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Position on ground plane, moved more to the right
       internalLabelPlane.position.x = -5.0;  // Moved more to the right (was -8.0)
       internalLabelPlane.position.y = 0.001; // Directly on ground plane surface
-      internalLabelPlane.position.z = -5.8;  // Very small adjustment down (0.2 units) to align bottom edge
+      internalLabelPlane.position.z = -5.6;  // Move in positive Z direction (down on screen) to align with red line
       
       // Rotate to lie flat on the ground
       internalLabelPlane.rotation.x = Math.PI / 2;
