@@ -68,23 +68,23 @@ export class CleanBMCSystem {
     item.labelMaterial.useAlphaFromDiffuseTexture = true;
     item.labelMaterial.disableLighting = false;
     
-    // CRITICAL: Force material transparency mode to OPAQUE to prevent blending
-    (item.labelMaterial as any).transparencyMode = 0; // Material.MATERIAL_OPAQUE = 0
+    // CRITICAL: Use ALPHATEST mode to enable PNG transparency while staying opaque
+    (item.labelMaterial as any).transparencyMode = 1; // Material.MATERIAL_ALPHATEST = 1
     
     // Force maximum brightness for visibility
     if (item.labelMaterial.emissiveColor) {
       item.labelMaterial.emissiveColor.set(1.0, 1.0, 1.0); // Full white for maximum visibility
     }
     
-    // Force diffuse color to white for better visibility
-    if (item.labelMaterial.diffuseColor) {
-      item.labelMaterial.diffuseColor.set(1.0, 1.0, 1.0);
-    }
+    // Keep original diffuse color - don't override to white (breaks PNG transparency)
+    // item.labelMaterial.diffuseColor should remain as originally set
     
-    // Ensure texture visibility
+    // Ensure PNG transparency works correctly
     if (item.labelMaterial.diffuseTexture) {
       (item.labelMaterial.diffuseTexture as any).level = 1.0;
       (item.labelMaterial.diffuseTexture as any).hasAlpha = true;
+      // Critical: Enable alpha from diffuse texture for PNG transparency
+      item.labelMaterial.useAlphaFromDiffuseTexture = true;
     }
     
     // Use higher rendering group to ensure labels render on top
