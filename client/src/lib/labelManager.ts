@@ -1,15 +1,17 @@
 /**
- * Dedicated Label Management System
+ * Unified BMC Label Management System
  * 
- * This manager ensures labels remain visible and independent of parent mesh material changes.
- * It provides a unified interface for all label operations across the BMC system.
+ * Integrates with BMC state management to ensure labels remain visible
+ * and consistent across all view modes and selection states.
  */
 
 import { AbstractMesh, StandardMaterial, Scene } from '@babylonjs/core';
+import { BMCComponentName } from '@/types/bmcState';
 
-export class LabelManager {
-  private labels: Map<string, AbstractMesh> = new Map();
-  private labelMaterials: Map<string, StandardMaterial> = new Map();
+export class UnifiedBMCLabelManager {
+  private labels: Map<BMCComponentName, AbstractMesh> = new Map();
+  private labelMaterials: Map<BMCComponentName, StandardMaterial> = new Map();
+  private sectionNameMapping: Map<string, BMCComponentName> = new Map();
   private scene: Scene | null = null;
 
   constructor(scene?: Scene) {
@@ -23,24 +25,25 @@ export class LabelManager {
   }
 
   /**
-   * Register a label with the manager
+   * Register a label with unified BMC component mapping
    */
-  registerLabel(labelName: string, labelMesh: AbstractMesh, material: StandardMaterial) {
-    this.labels.set(labelName, labelMesh);
-    this.labelMaterials.set(labelName, material);
+  registerLabel(bmcComponent: BMCComponentName, sectionName: string, labelMesh: AbstractMesh, material: StandardMaterial) {
+    this.labels.set(bmcComponent, labelMesh);
+    this.labelMaterials.set(bmcComponent, material);
+    this.sectionNameMapping.set(sectionName, bmcComponent);
     
     // Ensure label is always visible
-    this.ensureLabelVisibility(labelName);
+    this.ensureLabelVisibility(bmcComponent);
     
-    console.log(`📋 Label registered: ${labelName}`);
+    console.log(`📋 BMC Label registered: ${bmcComponent} (${sectionName})`);
   }
 
   /**
-   * Ensure a specific label remains visible
+   * Ensure a specific BMC component label remains visible
    */
-  ensureLabelVisibility(labelName: string) {
-    const label = this.labels.get(labelName);
-    const material = this.labelMaterials.get(labelName);
+  ensureLabelVisibility(bmcComponent: BMCComponentName) {
+    const label = this.labels.get(bmcComponent);
+    const material = this.labelMaterials.get(bmcComponent);
     
     if (label && material) {
       label.isVisible = true;
@@ -53,13 +56,20 @@ export class LabelManager {
       material.useAlphaFromDiffuseTexture = true;
     }
   }
+  
+  /**
+   * Get BMC component from section name
+   */
+  getBMCComponentFromSection(sectionName: string): BMCComponentName | null {
+    return this.sectionNameMapping.get(sectionName) || null;
+  }
 
   /**
-   * Ensure ALL registered labels remain visible
+   * Ensure ALL registered BMC labels remain visible
    */
   ensureAllLabelsVisible() {
-    this.labels.forEach((label, labelName) => {
-      this.ensureLabelVisibility(labelName);
+    this.labels.forEach((label, bmcComponent) => {
+      this.ensureLabelVisibility(bmcComponent);
     });
   }
 
@@ -106,5 +116,5 @@ export class LabelManager {
   }
 }
 
-// Global label manager instance
-export const globalLabelManager = new LabelManager();
+// Global unified BMC label manager instance
+export const globalBMCLabelManager = new UnifiedBMCLabelManager();
