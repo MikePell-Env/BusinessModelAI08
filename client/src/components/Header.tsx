@@ -2,9 +2,11 @@ import React from 'react';
 
 interface HeaderProps {
   onNavigateHome?: () => void;
+  onNavigateExplore?: () => void;
+  currentPage?: 'home' | 'explore';
 }
 
-export const Header: React.FC<HeaderProps> = ({ onNavigateHome }) => {
+export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplore, currentPage = 'home' }) => {
   return (
     <header className="bg-black text-white py-4 relative z-50">
       <div className="w-full flex justify-between items-center px-8">
@@ -20,6 +22,14 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome }) => {
         
         {/* Navigation menu - right aligned */}
         <nav className="flex items-center space-x-8">
+          <button
+            onClick={onNavigateHome}
+            className={`hover:text-gray-300 transition-colors text-sm font-medium ${
+              currentPage === 'home' ? 'text-blue-400' : 'text-white'
+            }`}
+          >
+            Home
+          </button>
           <a 
             href="#about" 
             className="text-white hover:text-gray-300 transition-colors text-sm font-medium"
@@ -32,6 +42,14 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome }) => {
           >
             Team
           </a>
+          <button
+            onClick={onNavigateExplore}
+            className={`hover:text-gray-300 transition-colors text-sm font-medium ${
+              currentPage === 'explore' ? 'text-blue-400' : 'text-white'
+            }`}
+          >
+            Explore
+          </button>
           <a 
             href="#contact" 
             className="text-white hover:text-gray-300 transition-colors text-sm font-medium"
