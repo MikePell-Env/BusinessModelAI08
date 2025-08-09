@@ -186,13 +186,6 @@ export const HomePage: React.FC = () => {
             
             {/* Content with left padding for spacing from line */}
             <div className="pl-8 pr-8">
-              {/* Header text */}
-              <div className="mb-8">
-                <p className="text-lg text-gray-700 leading-relaxed">
-                  Use Envisioners to bring these aspects of your business to life...
-                </p>
-              </div>
-              
               {/* Video sections */}
               <div className="space-y-6">
                 <div className="text-center">
@@ -254,6 +247,13 @@ export const HomePage: React.FC = () => {
                     </video>
                   </div>
                   <p className="text-sm text-gray-600 font-medium">Systems</p>
+                </div>
+                
+                {/* Use Envisioners message - moved down and smaller font */}
+                <div className="mt-8 pt-4">
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Use Envisioners to bring these aspects of your business to life...
+                  </p>
                 </div>
               </div>
             </div>
