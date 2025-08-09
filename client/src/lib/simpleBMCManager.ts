@@ -46,6 +46,10 @@ export class SimpleBMCManager {
 
   // Select an object (or null to deselect all)
   selectObject(objectName: string | null) {
+    if (objectName && !this.objects.has(objectName)) {
+      console.error(`🚫 SimpleBMCManager: Cannot select object "${objectName}". Available objects:`, Array.from(this.objects.keys()));
+      return;
+    }
     this.selectedObject = objectName;
     this.updateAllVisualStates();
     console.log(`🎯 Selected: ${objectName || 'none'}`);
@@ -137,7 +141,10 @@ export class SimpleBMCManager {
     if (this.selectedObject) return; // No hover when something is selected
 
     const obj = this.objects.get(objectName);
-    if (!obj) return;
+    if (!obj) {
+      console.error(`🚫 SimpleBMCManager: Cannot find object "${objectName}". Available objects:`, Array.from(this.objects.keys()));
+      return;
+    }
 
     if (isHovered) {
       // Hover: bright blue, others stay normal
