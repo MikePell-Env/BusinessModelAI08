@@ -174,6 +174,7 @@ export const useCanvas = create<CanvasState>()(
     },
     
     switchBMCView: (viewMode: ViewMode) => {
+      console.log(`🔄 useCanvas.switchBMCView called with: ${viewMode}`);
       const { bmcState } = get();
       bmcState.switchView(viewMode);
       
