@@ -635,12 +635,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       if (hasActiveSelection) {
         console.log(`🌍 Background click: Clearing selection and restoring all objects`);
         
-        // Clear selection state for all views
+        // Clear selection state
         setSelectedObject(null);
-        
-        // Also clear all per-view selections to ensure clean state
-        const { saveSelectionForCurrentView } = useCanvas.getState();
-        saveSelectionForCurrentView(); // This will save null to current view
         
         // Restore all BMC objects to their original state and heights
         if (contentPanelsRef.current) {
@@ -3194,18 +3190,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       });
       
-      // Ensure selection state is restored after orthographic view changes
-      const selectedObject = getSelectedObject();
-      if (selectedObject) {
-        console.log(`🔄 ORTHOGRAPHIC CHANGE: Restoring selection "${selectedObject}"`);
-        // Small delay to ensure the camera transition is complete
-        setTimeout(() => {
-          restoreSelectedObjectState();
-          console.log(`✅ ORTHOGRAPHIC: Selection "${selectedObject}" restored after camera switch`);
-        }, 150);
-      }
+
     }
-  }, [isOrthographic, getSelectedObject, restoreSelectedObjectState]);
+  }, [isOrthographic]);
 
   // Handle restoration when entering 3D mode - optimized for smooth transitions
   useEffect(() => {
@@ -3232,28 +3219,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
   }, [is3D, getSelectedObject, getOriginalHeights, restoreSelectedObjectState]);
 
-  // Listen for selection restoration events from the store
-  useEffect(() => {
-    const handleSelectionRestored = (event: CustomEvent) => {
-      const { selection, viewKey } = event.detail;
-      console.log(`🎯 SELECTION RESTORED EVENT: "${selection}" for ${viewKey}`);
-      
-      // Only restore if we're in 3D mode and have a scene
-      if (is3D && sceneRef.current) {
-        // Small delay to ensure the view transition is complete
-        setTimeout(() => {
-          restoreSelectedObjectState();
-          console.log(`✅ EVENT: Selection "${selection}" restored via event for ${viewKey}`);
-        }, 100);
-      }
-    };
 
-    window.addEventListener('selectionRestored', handleSelectionRestored as EventListener);
-    
-    return () => {
-      window.removeEventListener('selectionRestored', handleSelectionRestored as EventListener);
-    };
-  }, [is3D, restoreSelectedObjectState]);
 
   // Save camera state when switching away from 3D view
   useEffect(() => {
