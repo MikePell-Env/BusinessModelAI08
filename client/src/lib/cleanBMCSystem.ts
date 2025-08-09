@@ -38,7 +38,7 @@ export class CleanBMCSystem {
     if (item) {
       item.label = labelMesh;
       item.labelMaterial = labelMaterial;
-      this.makeLabeLVisible(itemName);
+      this.makeLabelVisible(itemName);
       console.log(`✓ Added label to: ${itemName}`);
     } else {
       console.error(`Cannot add label - item not found: ${itemName}`);
@@ -46,7 +46,7 @@ export class CleanBMCSystem {
   }
 
   // Make a label always visible
-  private makeLabeLVisible(itemName: string) {
+  private makeLabelVisible(itemName: string) {
     const item = this.items.get(itemName);
     if (!item?.label || !item?.labelMaterial) return;
 
@@ -77,7 +77,7 @@ export class CleanBMCSystem {
     item.material.alpha = 1.0;
     item.mesh.scaling.y = item.originalHeight;
 
-    this.makeLabeLVisible(itemName);
+    this.makeLabelVisible(itemName);
   }
 
   // Handle hover
@@ -135,7 +135,7 @@ export class CleanBMCSystem {
       }
       
       // Always keep labels visible
-      this.makeLabeLVisible(name);
+      this.makeLabelVisible(name);
     });
   }
 
@@ -148,7 +148,7 @@ export class CleanBMCSystem {
   // Force all labels visible
   forceAllLabelsVisible() {
     this.items.forEach((item, name) => {
-      this.makeLabeLVisible(name);
+      this.makeLabelVisible(name);
     });
   }
 
