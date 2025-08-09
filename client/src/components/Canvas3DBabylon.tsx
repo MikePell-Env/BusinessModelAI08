@@ -348,8 +348,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   useEffect(() => {
     // Only restore when entering 3D mode after models are loaded
     if (is3D && contentPanelsRef.current.length > 0) {
-      
-      applyBMCVisualState();
+      // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
     }
   }, [is3D]); // Only trigger when entering/leaving 3D mode
   
@@ -2476,7 +2475,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Clear selection state using unified BMC system
       bmcState.selectObject(null);
-      applyBMCVisualState();
+      // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
       
       console.log("✅ All selections cleared, hover behavior enabled");
     };
@@ -2550,7 +2549,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Only restore if there's a clear user selection and we have height data
       if (existingSelection && hasHeights) {
         console.log("🔄 Initial load: Restoring user selection:", existingSelection);
-        applyBMCVisualState();
+        // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
       } else {
         console.log("🔄 Initial load: No selection to restore, hover behavior ready");
       }
@@ -2619,7 +2618,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Apply visual state after camera switch
         setTimeout(() => {
           
-          applyBMCVisualState();
+          // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
         }, 10);
         
         console.log(`✅ SWITCHED TO 3D TOP VIEW`);
@@ -2630,7 +2629,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Apply visual state after camera switch
         setTimeout(() => {
           
-          applyBMCVisualState();
+          // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
         }, 10);
         
         console.log(`✅ SWITCHED TO 3D VIEW`);
@@ -2674,14 +2673,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Small delay to ensure scene is ready, then restore visual state
       setTimeout(() => {
-        applyBMCVisualState();
+        // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
         console.log(`✅ 3D MODE: BMC state applied`);
       }, 100);
     } else if (!is3D) {
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
     }
-  }, [is3D, applyBMCVisualState]);
+  }, [is3D]);
 
   // Handle restoration when switching between 3D View and 3D Top View
   useEffect(() => {
@@ -2691,11 +2690,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Small delay to ensure camera switch is complete, then restore visual state
       setTimeout(() => {
-        applyBMCVisualState();
+        // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
         console.log(`✅ 3D TRANSITION: BMC state restored for ${isOrthographic ? '3D Top' : '3D View'}`);
       }, 150);
     }
-  }, [isOrthographic, is3D, applyBMCVisualState]);
+  }, [isOrthographic, is3D]);
 
 
 
