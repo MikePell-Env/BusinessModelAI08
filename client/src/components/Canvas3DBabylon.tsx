@@ -374,10 +374,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log(`🎯 SELECTED: "${bmcComponent}"`);
     }
     
-    // Update legacy store for compatibility
-    const selected = bmcState.getSelectedObject();
-    const selectedSectionName = selected ? mapBMCComponentToSectionName(selected) : null;
-    setSelectedObject(selectedSectionName);
+    // Legacy store removed to prevent infinite loops
     
     // Apply all visual changes
     applyBMCVisualState();
@@ -481,17 +478,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const currentSelection = bmcState.getSelectedObject();
     if (currentSelection) {
       bmcState.selectObject(null);
-      setSelectedObject(null);
       applyBMCVisualState();
     }
   };
   
-  // Simple sync: Legacy store follows BMC state
-  const syncLegacyWithBMC = () => {
-    const bmcSelection = bmcState.getSelectedObject();
-    const legacySectionName = bmcSelection ? mapBMCComponentToSectionName(bmcSelection) : null;
-    setSelectedObject(legacySectionName);
-  };
+  // REMOVED: Sync function caused infinite loops - legacy store no longer needed
   
 
   
@@ -549,7 +540,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   useEffect(() => {
     // Only restore when entering 3D mode after models are loaded
     if (is3D && contentPanelsRef.current.length > 0) {
-      syncLegacyWithBMC();
+      
       applyBMCVisualState();
     }
   }, [is3D]); // Only trigger when entering/leaving 3D mode
@@ -2964,7 +2955,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Apply visual state after camera switch
         setTimeout(() => {
-          syncLegacyWithBMC();
+          
           applyBMCVisualState();
         }, 10);
         
@@ -2975,7 +2966,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Apply visual state after camera switch
         setTimeout(() => {
-          syncLegacyWithBMC();
+          
           applyBMCVisualState();
         }, 10);
         
@@ -3019,7 +3010,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
       
       // Sync states and apply visuals
-      syncLegacyWithBMC();
+      
       applyBMCVisualState();
       console.log(`✅ 3D MODE: BMC state applied`);
     } else if (!is3D) {
