@@ -35,7 +35,7 @@ import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
-import { LabelManager, globalLabelManager } from '@/lib/labelManager';
+import { UnifiedBMCLabelManager, globalBMCLabelManager } from '@/lib/labelManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -269,8 +269,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Store original heights for each BMC section
   const originalHeightsRef = useRef<{ [sectionName: string]: number }>({});
   
-  // Label manager for unified label handling
-  const labelManagerRef = useRef<LabelManager>(new LabelManager());
+  // Unified BMC label manager
+  const labelManagerRef = useRef<UnifiedBMCLabelManager>(new UnifiedBMCLabelManager());
   
   // Transform utilities (safe wrappers around existing functionality)
   const transformUtils = {
@@ -417,7 +417,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log(`🔄 HOVER EXIT: ${sectionName}`);
   };
 
-  // SIMPLIFIED VISUAL STATE: Focus only on core requirements
+  // UNIFIED BMC VISUAL STATE: Integration with label management
   const applyBMCVisualState = () => {
     const selectedComponent = bmcState.getSelectedObject();
     
@@ -471,15 +471,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Apply opacity to mesh
       material.alpha = targetOpacity;
       
-      // REFACTORED: Use dedicated label manager for consistent visibility
-      labelManagerRef.current.forceAllLabelsVisibleByPattern("Label");
-      
       // Apply height
       mesh.scaling.y = targetHeight;
       
       // Set click state
       (mesh as any).isClicked = isSelected;
     });
+    
+    // UNIFIED: Ensure all BMC labels remain visible after all material changes
+    labelManagerRef.current.ensureAllLabelsVisible();
   };
 
   // Handle background click to clear selection
@@ -1199,8 +1199,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with label manager
-              labelManagerRef.current.registerLabel("customerSegmentsLabel", labelPlane, labelMaterial);
+              // Register with unified BMC label manager
+              labelManagerRef.current.registerLabel("CustomerSegments", "Customer Segments", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Segments label plane created`);
             }
@@ -1246,8 +1246,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with label manager
-              labelManagerRef.current.registerLabel("keyPartnersLabel", labelPlane, labelMaterial);
+              // Register with unified BMC label manager
+              labelManagerRef.current.registerLabel("KeyPartners", "Key Partners", labelPlane, labelMaterial);
               
               console.log(`✅ Key Partners label plane created`);
             }
@@ -1293,8 +1293,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with label manager
-              labelManagerRef.current.registerLabel("customerRelationshipsLabel", labelPlane, labelMaterial);
+              // Register with unified BMC label manager
+              labelManagerRef.current.registerLabel("CustomerRelationships", "Customer Relationships", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Relationships label plane created`);
             }
@@ -1340,8 +1340,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with label manager
-              labelManagerRef.current.registerLabel("customerChannelsLabel", labelPlane, labelMaterial);
+              // Register with unified BMC label manager  
+              labelManagerRef.current.registerLabel("CustomerChannels", "Channels", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Channels label plane created`);
             }
@@ -1388,8 +1388,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with label manager
-              labelManagerRef.current.registerLabel("keyActivitiesLabel", labelPlane, labelMaterial);
+              // Register with unified BMC label manager
+              labelManagerRef.current.registerLabel("KeyActivities", "Key Activities", labelPlane, labelMaterial);
               
               console.log(`✅ Key Activities label plane created`);
             }
@@ -1436,8 +1436,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with label manager
-              labelManagerRef.current.registerLabel("keyResourcesLabel", labelPlane, labelMaterial);
+              // Register with unified BMC label manager
+              labelManagerRef.current.registerLabel("KeyResources", "Key Resources", labelPlane, labelMaterial);
               
               console.log(`✅ Key Resources label plane created`);
             }
@@ -1483,6 +1483,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.material = labelMaterial;
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
+              
+              // Register with unified BMC label manager
+              labelManagerRef.current.registerLabel("ValueProposition", "Value Propositions", labelPlane, labelMaterial);
               
               console.log(`✅ Value Propositions label plane created`);
               
