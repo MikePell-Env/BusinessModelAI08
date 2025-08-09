@@ -360,24 +360,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return;
     }
 
-    console.log(`🎯 CLICK: "${sectionName}"`);
-    
-    const currentSelection = getBMCSelectedObject();
+    const currentSelection = bmcState.getSelectedObject();
     
     if (currentSelection === bmcComponent) {
       // Deselect current object
       bmcState.selectObject(null);
-      console.log(`🔄 DESELECTED: "${bmcComponent}"`);
     } else {
       // Select new object
       bmcState.selectObject(bmcComponent);
-      console.log(`🎯 SELECTED: "${bmcComponent}"`);
     }
     
-    // Legacy store removed to prevent infinite loops
-    
-    // Apply all visual changes
-    applyBMCVisualState();
+    // Force visual update after state change
+    setTimeout(() => applyBMCVisualState(), 0);
   };
   
   // Simplified hover handlers using BMC state manager
@@ -419,26 +413,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // COMPLETELY UNIFIED: Single source of truth using only BMC state manager
   const applyBMCVisualState = () => {
     const selectedComponent = bmcState.getSelectedObject();
-    console.log(`🎨 APPLYING VISUAL STATE: Selected="${selectedComponent}", Objects in ref=${contentPanelsRef.current.length}`);
     
     contentPanelsRef.current.forEach(({ mesh, material }) => {
       const sectionName = (mesh as any).bmcSectionName;
       const bmcComponent = mapSectionNameToBMCComponent(sectionName);
       
-      if (!bmcComponent) {
-        console.warn(`⚠️ No BMC component for section: ${sectionName}`);
-        return;
-      }
+      if (!bmcComponent) return;
       
       const objectState = bmcState.getObjectState(bmcComponent);
-      if (!objectState) {
-        console.warn(`⚠️ No object state for: ${bmcComponent}`);
-        return;
-      }
+      if (!objectState) return;
       
       const isSelected = objectState.visual.isSelected;
       const isHovered = objectState.visual.isHovered;
-      console.log(`📊 ${bmcComponent}: selected=${isSelected}, hovered=${isHovered}`);
       
       // SIMPLE LOGIC: Only use BMC state
       let finalColor: Color3;
@@ -468,8 +454,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
       
       // Apply visuals
-      console.log(`🎨 Applying to ${bmcComponent}: color=${finalColor.toString()}, opacity=${finalOpacity}, height=${finalHeight}`);
-      
       if ((mesh as any).hasTexture) {
         material.emissiveColor = finalColor.scale(0.3);
       } else {
@@ -530,7 +514,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // BMC Selection State Restoration (runs after scene initialization)
   const restoreBMCSelectionState = () => {
-    const selectedComponent = getBMCSelectedObject();
+    const selectedComponent = bmcState.getSelectedObject();
     
     if (selectedComponent) {
       console.log(`🔄 RESTORING BMC SELECTION: "${selectedComponent}" for view mode change`);
@@ -1846,6 +1830,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Add to panels array for global closing
             contentPanelsRef.current.push({ panel: contentPanel, mesh, material: sectionMaterial });
             
+            // Initialize BMC state manager with this object's original height
+            const bmcComponent = mapSectionNameToBMCComponent(sectionName);
+            if (bmcComponent) {
+              const currentHeight = mesh.scaling.y;
+              bmcState.updateTransformState(bmcComponent, { 
+                originalHeight: currentHeight,
+                currentHeight: currentHeight 
+              });
+            }
+            
             // Enable pointer events for this mesh with proper setup
             mesh.actionManager = new ActionManager(scene);
             mesh.isPickable = true; // Ensure mesh is pickable for hover/click
@@ -2250,6 +2244,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               material: sectionMaterial 
             });
             
+            // Initialize BMC state for Revenue Streams
+            const currentHeight = mesh.scaling.y;
+            bmcState.updateTransformState('RevenueStreams', { 
+              originalHeight: currentHeight,
+              currentHeight: currentHeight 
+            });
+            
             // Create action manager for hover interactions
             if (!mesh.actionManager) {
               mesh.actionManager = new ActionManager(scene);
@@ -2499,6 +2500,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               panel: costContentPanel, 
               mesh: mesh as any, 
               material: sectionMaterial 
+            });
+            
+            // Initialize BMC state for Cost Structure
+            const currentHeight = mesh.scaling.y;
+            bmcState.updateTransformState('CostStructure', { 
+              originalHeight: currentHeight,
+              currentHeight: currentHeight 
             });
             
             // Create action manager for hover interactions
