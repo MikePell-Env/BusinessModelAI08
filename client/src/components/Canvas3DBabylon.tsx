@@ -419,18 +419,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // COMPLETELY UNIFIED: Single source of truth using only BMC state manager
   const applyBMCVisualState = () => {
     const selectedComponent = bmcState.getSelectedObject();
+    console.log(`🎨 APPLYING VISUAL STATE: Selected="${selectedComponent}", Objects in ref=${contentPanelsRef.current.length}`);
     
     contentPanelsRef.current.forEach(({ mesh, material }) => {
       const sectionName = (mesh as any).bmcSectionName;
       const bmcComponent = mapSectionNameToBMCComponent(sectionName);
       
-      if (!bmcComponent) return;
+      if (!bmcComponent) {
+        console.warn(`⚠️ No BMC component for section: ${sectionName}`);
+        return;
+      }
       
       const objectState = bmcState.getObjectState(bmcComponent);
-      if (!objectState) return;
+      if (!objectState) {
+        console.warn(`⚠️ No object state for: ${bmcComponent}`);
+        return;
+      }
       
       const isSelected = objectState.visual.isSelected;
       const isHovered = objectState.visual.isHovered;
+      console.log(`📊 ${bmcComponent}: selected=${isSelected}, hovered=${isHovered}`);
       
       // SIMPLE LOGIC: Only use BMC state
       let finalColor: Color3;
@@ -460,6 +468,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
       
       // Apply visuals
+      console.log(`🎨 Applying to ${bmcComponent}: color=${finalColor.toString()}, opacity=${finalOpacity}, height=${finalHeight}`);
+      
       if ((mesh as any).hasTexture) {
         material.emissiveColor = finalColor.scale(0.3);
       } else {
