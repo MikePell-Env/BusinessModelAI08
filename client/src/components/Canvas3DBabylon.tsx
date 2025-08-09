@@ -752,15 +752,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         height: 1.6   // 2x larger than previous 0.8
       }, scene);
       
-      // Position on ground plane, moved more to the right
+      // Position on ground plane, moved more to the right and down slightly
       internalLabelPlane.position.x = -5.0;  // Moved more to the right (was -8.0)
       internalLabelPlane.position.y = 0.001; // Directly on ground plane surface
-      internalLabelPlane.position.z = -6.0;  // In front of Cost Structure for visibility
+      internalLabelPlane.position.z = -5.0;  // Moved down slightly (was -6.0)
       
       // Rotate to lie flat on the ground
       internalLabelPlane.rotation.x = Math.PI / 2;
       
-      // Create material with the new blue Internal label
+      // Create material with the new blue Internal label at 50% transparency
       const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
       const internalLabelTexture = new Texture("/textures/Labels_internal_blue.png", scene);
       internalLabelTexture.hasAlpha = true;
@@ -768,6 +768,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
       internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for blue label
+      internalLabelMaterial.alpha = 0.5; // 50% transparency
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
       internalLabelMaterial.disableLighting = true;
       
