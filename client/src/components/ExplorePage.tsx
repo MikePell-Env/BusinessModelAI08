@@ -9,13 +9,13 @@ import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
 import { powerpointParser } from '@/utils/powerpointParser';
 
-interface HomePageProps {
+interface ExplorePageProps {
   onNavigateHome?: () => void;
   onNavigateExplore?: () => void;
   currentPage?: 'home' | 'explore';
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateExplore, currentPage }) => {
+export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavigateExplore, currentPage }) => {
   const [showCanvas, setShowCanvas] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [loading, setLoading] = useState(false);
