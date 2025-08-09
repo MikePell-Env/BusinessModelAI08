@@ -55,17 +55,21 @@ export class CleanBMCSystem {
 
     console.log(`🔧 Making label visible for: ${itemName}, current alpha: ${item.labelMaterial.alpha}`);
     
-    // KEEP labels parented for proper positioning - fix opacity inheritance differently
-    
     // FORCE label visibility - NEVER change opacity from 100%
     item.label.isVisible = true;
     item.label.setEnabled(true);
     
-    // CRITICAL: Always keep label at 100% opacity regardless of object state
+    // CRITICAL: Override parent visibility inheritance using Babylon.js proper method
+    item.label.visibility = 1.0; // Force full visibility regardless of parent
+    
+    // CRITICAL: Always keep label material at 100% opacity
     item.labelMaterial.alpha = 1.0;
     item.labelMaterial.backFaceCulling = false;
     item.labelMaterial.useAlphaFromDiffuseTexture = true;
     item.labelMaterial.disableLighting = false;
+    
+    // CRITICAL: Force material transparency mode to OPAQUE to prevent blending
+    (item.labelMaterial as any).transparencyMode = 0; // Material.MATERIAL_OPAQUE = 0
     
     // Force maximum brightness for visibility
     if (item.labelMaterial.emissiveColor) {
@@ -83,13 +87,10 @@ export class CleanBMCSystem {
       (item.labelMaterial.diffuseTexture as any).hasAlpha = true;
     }
     
-    // CRITICAL: Force label visibility to override parent opacity inheritance
-    (item.label as any).visibility = 1.0;
+    // Use higher rendering group to ensure labels render on top
+    item.label.renderingGroupId = 1; // Render after 3D objects (which are in group 0)
     
-    // Additional fix: Set renderingGroupId to render labels after objects
-    item.label.renderingGroupId = 1;
-    
-    console.log(`✅ Label ${itemName} visibility enforced: alpha=${item.labelMaterial.alpha}, visible=${item.label.isVisible}, enabled=${item.label.isEnabled()}, parent=${item.label.parent}`);
+    console.log(`✅ Label ${itemName} visibility enforced: visibility=${item.label.visibility}, alpha=${item.labelMaterial.alpha}, renderingGroup=${item.label.renderingGroupId}`);
   }
 
   // Set default appearance for an item
