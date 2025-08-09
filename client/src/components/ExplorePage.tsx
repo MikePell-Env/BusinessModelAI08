@@ -71,109 +71,98 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavi
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-16 relative">
+    <div className="min-h-screen bg-gray-200 relative">
       <Header onNavigateHome={onNavigateHome} onNavigateExplore={onNavigateExplore} currentPage={currentPage} />
 
       {/* Main Content */}
-      <main className="py-12 relative">
-        <div className="flex">
-          {/* Main Content - Full width without right margin */}
-          <div className="flex-1 px-8 flex justify-center">
-            <div className="w-full max-w-4xl">
-              {/* Selection Section */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-                  <strong>Select</strong> how you want to get to the "moment of clarity" to make decisions:
-                </h2>
-
-              <div className="grid grid-cols-3 gap-6">
-                {/* Option 1 - Import Office Files */}
-                <div className="text-center">
-                  <div className="bg-white p-6 rounded-lg shadow-md border border-blue-500 hover:border-blue-600 transition-colors relative h-full flex flex-col">
-                    {/* Number 1 in top left */}
-                    <div className="absolute top-4 left-4 bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
-                      1
-                    </div>
-                    
-                    {/* Office Icons in center - flexible space */}
-                    <div className="flex items-center justify-center space-x-2 flex-grow mt-8">
-                      <img 
-                        src="/powerpoint-icon.webp" 
-                        alt="PowerPoint" 
-                        className="w-16 h-16"
-                      />
-                      <img 
-                        src="/excel-icon.webp" 
-                        alt="Excel" 
-                        className="w-16 h-16"
-                      />
-                    </div>
-                    
-                    {/* Button at bottom */}
-                    <Button 
-                      onClick={handleDirectImport}
-                      disabled={loading}
-                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2 mt-4"
-                    >
-                      {loading ? 'Processing...' : 'Import Office file...'}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Option 2 - Ask Copilot (Disabled) */}
-                <div className="text-center opacity-50">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
-                    {/* Number 2 in top left */}
-                    <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
-                      2
-                    </div>
-                    
-                    {/* Copilot Icon in center - flexible space */}
-                    <div className="flex items-center justify-center flex-grow mt-8">
-                      <img 
-                        src="/copilot-logo.png" 
-                        alt="Microsoft Copilot" 
-                        className="w-16 h-16"
-                      />
-                    </div>
-                    
-                    {/* Button at bottom */}
-                    <Button 
-                      disabled
-                      className="w-full bg-gray-200 text-gray-500 hover:bg-gray-200 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
-                    >
-                      Ask Copilot AI...
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Option 3 - Dev API (Disabled) */}
-                <div className="text-center opacity-50">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
-                    {/* Number 3 in top left */}
-                    <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
-                      3
-                    </div>
-                    
-                    {/* AI Foundry Icon in center - flexible space */}
-                    <div className="flex items-center justify-center flex-grow mt-8">
-                      <img 
-                        src="/ai-foundry-icon.png" 
-                        alt="AI Foundry" 
-                        className="w-16 h-16"
-                      />
-                    </div>
-                    
-                    {/* Button at bottom */}
-                    <Button 
-                      disabled
-                      className="w-full bg-gray-200 text-gray-500 hover:bg-gray-200 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
-                    >
-                      Dev? Use MCP API...
-                    </Button>
+      <main className="bg-gray-200 min-h-screen py-12 relative">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="flex gap-8">
+            {/* Left Column - Company Info */}
+            <div className="flex-1">
+              <div className="bg-white rounded-lg shadow-sm p-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">
+                  Company Name, Inc.
+                </h1>
+                
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                    SUMMARY
+                  </h2>
+                  <div className="space-y-4 text-gray-700 leading-relaxed">
+                    <p>
+                      Explore any of these aspects of the business model. Explore any of these aspects of the 
+                      business model. Explore any of these aspects of the business model. Explore any of 
+                      these aspects of the business model.
+                    </p>
+                    <p>
+                      Explore any of these aspects of the business model. Explore any of these aspects of the 
+                      business model. Explore any of these aspects of the business model. Explore any of 
+                      these aspects of the business model.
+                    </p>
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Right Column - Analysis Tools */}
+            <div className="w-80">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  EXPLORE
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">
+                  Select any of these aspects of the organization's business model:
+                </p>
+
+                <div className="space-y-6">
+                  {/* SWOT Analysis */}
+                  <div className="text-center">
+                    <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-4 mb-3 h-24 flex items-center justify-center">
+                      {/* Simple SWOT grid icon */}
+                      <div className="grid grid-cols-2 gap-1 w-12 h-12">
+                        <div className="bg-gray-400 rounded-sm"></div>
+                        <div className="bg-gray-400 rounded-sm"></div>
+                        <div className="bg-gray-400 rounded-sm"></div>
+                        <div className="bg-gray-400 rounded-sm"></div>
+                      </div>
+                    </div>
+                    <p className="font-medium text-gray-800">SWOT Analysis</p>
+                  </div>
+
+                  {/* Business Model Canvas */}
+                  <div className="text-center">
+                    <button
+                      onClick={() => setShowCanvas(true)}
+                      className="w-full bg-gray-50 border-2 border-gray-300 hover:border-blue-500 rounded-lg p-4 mb-3 h-24 flex items-center justify-center transition-colors"
+                    >
+                      {/* Simple canvas grid icon */}
+                      <div className="w-12 h-8 border-2 border-gray-400 rounded relative">
+                        <div className="absolute inset-1 grid grid-cols-3 gap-0.5">
+                          <div className="bg-gray-300 rounded-sm"></div>
+                          <div className="bg-gray-300 rounded-sm"></div>
+                          <div className="bg-gray-300 rounded-sm"></div>
+                        </div>
+                      </div>
+                    </button>
+                    <p className="font-medium text-gray-800">Business Model Canvas</p>
+                  </div>
+
+                  {/* Financials */}
+                  <div className="text-center">
+                    <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-4 mb-3 h-24 flex items-center justify-center">
+                      {/* Simple bar chart icon */}
+                      <div className="flex items-end space-x-1 h-8">
+                        <div className="w-2 h-3 bg-gray-400 rounded-sm"></div>
+                        <div className="w-2 h-5 bg-gray-400 rounded-sm"></div>
+                        <div className="w-2 h-4 bg-gray-400 rounded-sm"></div>
+                        <div className="w-2 h-6 bg-gray-400 rounded-sm"></div>
+                        <div className="w-2 h-8 bg-gray-400 rounded-sm"></div>
+                      </div>
+                    </div>
+                    <p className="font-medium text-gray-800">Financials</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -181,43 +170,13 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavi
       </main>
 
       {/* Footer - Fixed to bottom */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 z-10">
+      <footer className="fixed bottom-0 left-0 right-0 bg-gray-200 py-4 z-10">
         <div className="max-w-7xl mx-auto px-8 text-center text-gray-500 text-sm">
           Copyright © 2025 Envisioner, Inc. All Rights Reserved.
         </div>
       </footer>
 
-      {/* Hidden file input for direct PowerPoint import */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".pptx,.ppt"
-        onChange={handleFileChange}
-        className="hidden"
-      />
 
-      {/* PowerPoint Importer Modal */}
-      {showImporter && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Import PowerPoint File</h3>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowImporter(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </Button>
-            </div>
-            <PowerPointImporter 
-              onImportSuccess={handleImportSuccess}
-              onCancel={() => setShowImporter(false)}
-            />
-          </div>
-        </div>
-      )}
 
       {/* AI Chat Component */}
       <AIChat />
