@@ -2213,6 +2213,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
+            // Register with unified BMC label manager
+            labelManagerRef.current.registerLabel("RevenueStreams", "Revenue Streams", labelPlane, labelMaterial);
+            
             // Apply proportional scaling - reduced by 20% from the 2x size
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0); // 80% of 2x size (2.0 * 0.8 = 1.6, 2.6 * 0.8 = 2.08)
             
@@ -2393,6 +2396,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.material = labelMaterial;
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
+            
+            // Register with unified BMC label manager
+            labelManagerRef.current.registerLabel("CostStructure", "Cost Structure", labelPlane, labelMaterial);
             
             // Apply same proportional scaling as Revenue Streams
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
@@ -2623,7 +2629,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           mesh.name.includes('keyResourcesLabel') ||
           mesh.name.includes('valuePropositionsLabel') ||
           mesh.name.includes('customerRelationshipsLabel') ||
-          mesh.name.includes('customerChannelsLabel')
+          mesh.name.includes('customerChannelsLabel') ||
+          mesh.name.includes('revenueStreamsLabel') ||
+          mesh.name.includes('costStructureLabel')
         )
       );
 
