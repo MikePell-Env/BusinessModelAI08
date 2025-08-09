@@ -282,8 +282,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // New BMC Selection System using our state architecture
   // Simplified click handler using BMC state manager
   const handleBMCObjectClick = (sectionName: string) => {
+    console.log(`🖱️ CLICK: ${sectionName}`);
     cleanBMCRef.current.onSelect(sectionName);
-    console.log(`CLICK: ${sectionName}`);
+    
+    // Force all labels visible immediately after selection
+    setTimeout(() => {
+      console.log(`🚨 Post-click label enforcement for: ${sectionName}`);
+      cleanBMCRef.current.forceAllLabelsVisible();
+    }, 100);
   };
   
   // Clean hover handlers
