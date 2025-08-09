@@ -464,8 +464,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         material.diffuseColor = targetColor;
       }
       
-      // Apply opacity (mesh only, NOT children)
+      // Apply opacity to mesh
       material.alpha = targetOpacity;
+      
+      // CRITICAL: Compensate for Babylon.js alpha inheritance on child labels
+      if (mesh.getChildren) {
+        mesh.getChildren().forEach((child: any) => {
+          if (child.material && child.material.alpha !== undefined) {
+            // Labels need to compensate for parent alpha by using inverse multiplier
+            child.material.alpha = 1.0 / targetOpacity; // If parent is 0.5, child becomes 2.0 → effective 1.0
+            child.material.alpha = Math.min(child.material.alpha, 1.0); // Cap at 1.0 max
+          }
+        });
+      }
       
       // Apply height
       mesh.scaling.y = targetHeight;
