@@ -35,7 +35,7 @@ import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
-import { SimpleBMCManager, simpleBMCManager } from '@/lib/simpleBMCManager';
+import { CleanBMCSystem, cleanBMCSystem } from '@/lib/cleanBMCSystem';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -244,7 +244,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const contentPanelsRef = useRef<any[]>([]);
   
   // Unified BMC label manager
-  const bmcManagerRef = useRef<SimpleBMCManager>(simpleBMCManager);
+  const cleanBMCRef = useRef<CleanBMCSystem>(cleanBMCSystem);
   
   // REMOVED: Legacy transform utilities - now handled by unified BMC system
 
@@ -282,29 +282,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // New BMC Selection System using our state architecture
   // Simplified click handler using BMC state manager
   const handleBMCObjectClick = (sectionName: string) => {
-    const currentSelection = bmcManagerRef.current.getSelectedObject();
-    console.log(`🎯 CLICK: "${sectionName}", current="${currentSelection}"`);
-    
-    if (currentSelection === sectionName) {
-      // Deselect current object
-      console.log(`🔄 DESELECTING: "${sectionName}"`);
-      bmcManagerRef.current.selectObject(null);
-    } else {
-      // Select new object
-      console.log(`🎯 SELECTING: "${sectionName}"`);
-      bmcManagerRef.current.selectObject(sectionName);
-    }
+    cleanBMCRef.current.onSelect(sectionName);
+    console.log(`CLICK: ${sectionName}`);
   };
   
-  // Simple hover handlers using new BMC manager
+  // Clean hover handlers
   const handleBMCObjectHoverEnter = (sectionName: string) => {
-    bmcManagerRef.current.setHoverState(sectionName, true);
-    console.log(`💡 HOVER ENTER: ${sectionName}`);
+    cleanBMCRef.current.onHover(sectionName, true);
+    console.log(`HOVER ENTER: ${sectionName}`);
   };
   
   const handleBMCObjectHoverExit = (sectionName: string) => {
-    bmcManagerRef.current.setHoverState(sectionName, false);
-    console.log(`🔄 HOVER EXIT: ${sectionName}`);
+    cleanBMCRef.current.onHover(sectionName, false);
+    console.log(`HOVER EXIT: ${sectionName}`);
   };
 
   // UNIFIED BMC VISUAL STATE: Integration with label management
@@ -368,7 +358,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       (mesh as any).isClicked = isSelected;
     });
     
-    // This function is now unused - SimpleBMCManager handles visual state
+    // Force all labels visible with clean system
+    cleanBMCRef.current.forceAllLabelsVisible();
   };
 
   // Handle background click to clear selection
@@ -1084,9 +1075,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register BMC object with simple manager
-              bmcManagerRef.current.registerObject("Customer Segments", mesh, sectionMaterial, mesh.scaling.y);
-              bmcManagerRef.current.registerLabel("Customer Segments", labelPlane, labelMaterial);
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Customer Segments", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Customer Segments", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Segments label plane created`);
             }
@@ -1132,9 +1123,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register BMC object with simple manager
-              bmcManagerRef.current.registerObject("Key Partners", mesh, sectionMaterial, mesh.scaling.y);
-              bmcManagerRef.current.registerLabel("Key Partners", labelPlane, labelMaterial);
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Key Partners", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Key Partners", labelPlane, labelMaterial);
               
               console.log(`✅ Key Partners label plane created`);
             }
@@ -1180,9 +1171,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register BMC object with simple manager
-              bmcManagerRef.current.registerObject("Customer Relationships", mesh, sectionMaterial, mesh.scaling.y);
-              bmcManagerRef.current.registerLabel("Customer Relationships", labelPlane, labelMaterial);
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Customer Relationships", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Customer Relationships", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Relationships label plane created`);
             }
@@ -1228,9 +1219,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register BMC object with simple manager
-              bmcManagerRef.current.registerObject("Customer Channels", mesh, sectionMaterial, mesh.scaling.y);
-              bmcManagerRef.current.registerLabel("Customer Channels", labelPlane, labelMaterial);
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Customer Channels", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Customer Channels", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Channels label plane created`);
             }
@@ -1277,9 +1268,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register BMC object with simple manager
-              bmcManagerRef.current.registerObject("Key Activities", mesh, sectionMaterial, mesh.scaling.y);
-              bmcManagerRef.current.registerLabel("Key Activities", labelPlane, labelMaterial);
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Key Activities", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Key Activities", labelPlane, labelMaterial);
               
               console.log(`✅ Key Activities label plane created`);
             }
@@ -1326,9 +1317,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register BMC object with simple manager
-              bmcManagerRef.current.registerObject("Key Resources", mesh, sectionMaterial, mesh.scaling.y);
-              bmcManagerRef.current.registerLabel("Key Resources", labelPlane, labelMaterial);
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Key Resources", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Key Resources", labelPlane, labelMaterial);
               
               console.log(`✅ Key Resources label plane created`);
             }
@@ -1375,9 +1366,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register BMC object with simple manager
-              bmcManagerRef.current.registerObject("Value Propositions", mesh, sectionMaterial, mesh.scaling.y);
-              bmcManagerRef.current.registerLabel("Value Propositions", labelPlane, labelMaterial);
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Value Propositions", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Value Propositions", labelPlane, labelMaterial);
               
               console.log(`✅ Value Propositions label plane created`);
               
@@ -2182,9 +2173,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Register BMC object with simple manager
-            bmcManagerRef.current.registerObject("Revenue Streams", mesh, sectionMaterial, mesh.scaling.y);
-            bmcManagerRef.current.registerLabel("Revenue Streams", labelPlane, labelMaterial);
+            // Register with clean system
+            cleanBMCRef.current.registerItem("Revenue Streams", mesh, sectionMaterial, mesh.scaling.y);
+            cleanBMCRef.current.addLabel("Revenue Streams", labelPlane, labelMaterial);
             
             // Apply proportional scaling - reduced by 20% from the 2x size
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0); // 80% of 2x size (2.0 * 0.8 = 1.6, 2.6 * 0.8 = 2.08)
@@ -2367,9 +2358,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Register BMC object with simple manager
-            bmcManagerRef.current.registerObject("Cost Structure", mesh, sectionMaterial, mesh.scaling.y);
-            bmcManagerRef.current.registerLabel("Cost Structure", labelPlane, labelMaterial);
+            // Register with clean system
+            cleanBMCRef.current.registerItem("Cost Structure", mesh, sectionMaterial, mesh.scaling.y);
+            cleanBMCRef.current.addLabel("Cost Structure", labelPlane, labelMaterial);
             
             // Apply same proportional scaling as Revenue Streams
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
