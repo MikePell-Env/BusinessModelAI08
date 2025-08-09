@@ -375,7 +375,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
     
     // Update legacy store for compatibility
-    selectBMCObject(getBMCSelectedObject());
+    const selected = bmcState.getSelectedObject();
+    const selectedSectionName = selected ? mapBMCComponentToSectionName(selected) : null;
+    setSelectedObject(selectedSectionName);
     
     // Apply all visual changes
     applyBMCVisualState();
@@ -417,11 +419,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log(`🔄 HOVER EXIT: ${sectionName}`);
   };
 
-  // Unified visual state application using ONLY BMC state manager
+  // COMPLETELY UNIFIED: Single source of truth using only BMC state manager
   const applyBMCVisualState = () => {
-    const selectedComponent = getBMCSelectedObject();
-    
-    console.log(`🎨 UNIFIED BMC VISUAL STATE: selected="${selectedComponent}"`);
+    const selectedComponent = bmcState.getSelectedObject();
     
     contentPanelsRef.current.forEach(({ mesh, material }) => {
       const sectionName = (mesh as any).bmcSectionName;
@@ -435,193 +435,69 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const isSelected = objectState.visual.isSelected;
       const isHovered = objectState.visual.isHovered;
       
-      // UNIFIED LOGIC: Determine visual properties based on selection state
+      // SIMPLE LOGIC: Only use BMC state
       let finalColor: Color3;
       let finalOpacity: number;
       let finalHeight: number;
       
-      // Check if there's ANY selection at all (either BMC state or legacy state)
-      const legacySelected = getSelectedObject();
-      const hasAnySelection = selectedComponent || legacySelected;
-      
-      // Check if THIS object is currently selected (either by BMC or legacy)
-      const thisObjectSelected = isSelected || (legacySelected === sectionName);
-      
-      if (thisObjectSelected) {
-        // THIS object is selected: bright blue, full opacity, full height
-        finalColor = new Color3(0.0, 0.3, 0.8); // Bright blue
+      if (isSelected) {
+        // Selected: bright blue, full opacity, full height
+        finalColor = new Color3(0.0, 0.3, 0.8);
         finalOpacity = 1.0;
         finalHeight = objectState.transform.originalHeight;
-      } else if (isHovered && !hasAnySelection) {
-        // Hovered but no selection exists: bright blue, full opacity, full height
-        finalColor = new Color3(0.0, 0.3, 0.8); // Bright blue
+      } else if (isHovered) {
+        // Hovered: bright blue, full opacity, full height
+        finalColor = new Color3(0.0, 0.3, 0.8);
         finalOpacity = 1.0;
         finalHeight = objectState.transform.originalHeight;
-      } else if (hasAnySelection) {
-        // Something else is selected: grey, 50% opacity, flattened
-        finalColor = new Color3(0.07, 0.07, 0.07); // Dark grey
+      } else if (selectedComponent) {
+        // Not selected but something else is: grey, dimmed, flat
+        finalColor = new Color3(0.07, 0.07, 0.07);
         finalOpacity = 0.5;
-        finalHeight = 0.1; // Very flat
+        finalHeight = 0.1;
       } else {
-        // No selection anywhere: all objects full state
-        finalColor = new Color3(0.07, 0.07, 0.07); // Dark grey
+        // Nothing selected: grey, full opacity, full height
+        finalColor = new Color3(0.07, 0.07, 0.07);
         finalOpacity = 1.0;
         finalHeight = objectState.transform.originalHeight;
       }
       
-      // Apply color based on texture type
+      // Apply visuals
       if ((mesh as any).hasTexture) {
         material.emissiveColor = finalColor.scale(0.3);
       } else {
-        if (material.baseColor) {
-          material.baseColor = finalColor;
-        }
+        if (material.baseColor) material.baseColor = finalColor;
         material.diffuseColor = finalColor;
       }
       
-      // Apply unified properties
       material.alpha = finalOpacity;
       mesh.scaling.y = finalHeight;
-      
-      // Sync legacy state for compatibility
       (mesh as any).isClicked = isSelected;
-      
-      console.log(`🔧 ${sectionName}: thisSelected=${thisObjectSelected}, BMCSelected=${isSelected}, legacySelected=${legacySelected === sectionName}, hovered=${isHovered}, opacity=${finalOpacity}, height=${finalHeight}`);
     });
   };
 
   // Handle background click to clear selection
   const handleBackgroundClick = () => {
-    const currentSelection = getBMCSelectedObject();
+    const currentSelection = bmcState.getSelectedObject();
     if (currentSelection) {
-      console.log(`🌍 Background click: Clearing selection "${currentSelection}"`);
       bmcState.selectObject(null);
-      selectBMCObject(null);
+      setSelectedObject(null);
       applyBMCVisualState();
     }
   };
   
-  // Simple function to sync BMC state with legacy store
-  const syncBMCStateWithLegacy = () => {
-    const legacySelection = getSelectedObject();
+  // Simple sync: Legacy store follows BMC state
+  const syncLegacyWithBMC = () => {
     const bmcSelection = bmcState.getSelectedObject();
-    
-    console.log(`🔄 SYNC: legacy="${legacySelection}", BMC="${bmcSelection}"`);
-    
-    if (legacySelection) {
-      const bmcComponent = mapSectionNameToBMCComponent(legacySelection);
-      if (bmcComponent && bmcSelection !== bmcComponent) {
-        console.log(`🔗 Syncing BMC to legacy: "${bmcComponent}"`);
-        bmcState.selectObject(bmcComponent);
-      }
-    } else if (bmcSelection) {
-      console.log(`🔗 Clearing BMC selection to match legacy`);
-      bmcState.selectObject(null);
-    }
+    const legacySectionName = bmcSelection ? mapBMCComponentToSectionName(bmcSelection) : null;
+    setSelectedObject(legacySectionName);
   };
   
 
   
-  // SIMPLIFIED: Single function to apply correct heights based on current selection state
-  const applyHeightState = () => {
-    const selectedObjectName = getSelectedObject();
-    const storedHeights = getOriginalHeights();
-    
-    // Skip if heights not loaded yet
-    if (Object.keys(storedHeights).length === 0) {
-      console.log("📏 SKIP: No stored heights available yet");
-      return;
-    }
-    
-    console.log(`📏 APPLY: Selection="${selectedObjectName}", Available heights:`, Object.keys(storedHeights));
-    
-    contentPanelsRef.current.forEach(({ mesh }) => {
-      const sectionName = (mesh as any).bmcSectionName;
-      if (!sectionName) return;
-      
-      let targetHeight;
-      if (!selectedObjectName) {
-        // Rule: No selection = all objects at original height
-        targetHeight = storedHeights[sectionName];
-      } else if (sectionName === selectedObjectName) {
-        // Rule: Selected object at original height
-        targetHeight = storedHeights[sectionName];
-      } else {
-        // Rule: Non-selected objects flattened
-        targetHeight = 0.1;
-      }
-      
-      if (targetHeight !== undefined) {
-        // Apply height directly to the mesh scaling since transform nodes were removed
-        mesh.scaling.y = targetHeight;
-        console.log(`📏 ${sectionName}: ${targetHeight} (${!selectedObjectName ? 'no-selection' : sectionName === selectedObjectName ? 'selected' : 'flattened'})`);
-      }
-    });
-  };
+  // REMOVED: Old height logic - now handled by applyBMCVisualState
 
-  // Simple state restoration that mirrors the working click selection logic
-  const restoreSelectedObjectState = () => {
-    const selectedObjectName = getSelectedObject();
-    console.log(`🔄 VIEW SWITCH: Restoring selection "${selectedObjectName}"`);
-    
-    if (!selectedObjectName) {
-      // No selection - restore all to normal state
-      contentPanelsRef.current.forEach(({ mesh, material }) => {
-        (mesh as any).isClicked = false;
-        material.alpha = 1.0;
-        
-        if ((mesh as any).hasTexture) {
-          material.emissiveColor = new Color3(0, 0, 0);
-        } else {
-          if (material.baseColor) {
-            material.baseColor = (mesh as any).originalColor;
-          }
-          material.diffuseColor = (mesh as any).originalColor;
-        }
-      });
-      console.log(`🔄 No selection - all objects normal`);
-      return;
-    }
-    
-    // Apply height state for selected vs unselected objects
-    applyHeightState();
-    
-    // Apply visual state using the same logic as click selection
-    contentPanelsRef.current.forEach(({ mesh, material }) => {
-      const sectionName = (mesh as any).bmcSectionName;
-      
-      if (sectionName === selectedObjectName) {
-        // Selected object - apply blue highlighting (same as click logic)
-        const brightBlueColor = new Color3(0.0, 0.3, 0.8);
-        
-        if ((mesh as any).hasTexture) {
-          material.emissiveColor = brightBlueColor.scale(0.3);
-        } else {
-          if (material.baseColor) {
-            material.baseColor = brightBlueColor;
-          }
-          material.diffuseColor = brightBlueColor;
-        }
-        (mesh as any).isClicked = true;
-        material.alpha = 1.0;
-        console.log(`🔵 "${sectionName}" selected (blue)`);
-      } else {
-        // Non-selected objects - original color, 50% opacity
-        if ((mesh as any).hasTexture) {
-          material.emissiveColor = new Color3(0, 0, 0);
-        } else {
-          if (material.baseColor) {
-            material.baseColor = (mesh as any).originalColor;
-          }
-          material.diffuseColor = (mesh as any).originalColor;
-        }
-        (mesh as any).isClicked = false;
-        material.alpha = 0.5;
-      }
-    });
-    
-    console.log(`✅ Selection "${selectedObjectName}" restored`);
-  };
+  // REMOVED: Old restore logic - now handled by applyBMCVisualState
 
   // Helper function to get section content from canvas data
   const getSectionContent = (sectionName: string): string => {
@@ -673,7 +549,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   useEffect(() => {
     // Only restore when entering 3D mode after models are loaded
     if (is3D && contentPanelsRef.current.length > 0) {
-      syncBMCStateWithLegacy();
+      syncLegacyWithBMC();
       applyBMCVisualState();
     }
   }, [is3D]); // Only trigger when entering/leaving 3D mode
@@ -3086,22 +2962,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
         
-        // Apply visual state after camera switch to preserve selection
+        // Apply visual state after camera switch
         setTimeout(() => {
-          syncBMCStateWithLegacy();
+          syncLegacyWithBMC();
           applyBMCVisualState();
-        }, 10); // Minimal delay just for camera switch
+        }, 10);
         
         console.log(`✅ SWITCHED TO 3D TOP VIEW`);
       } else {
         // Switch back to perspective camera
         scene.activeCamera = perspectiveCamera;
         
-        // Apply visual state after camera switch to preserve selection
+        // Apply visual state after camera switch
         setTimeout(() => {
-          syncBMCStateWithLegacy();
+          syncLegacyWithBMC();
           applyBMCVisualState();
-        }, 10); // Minimal delay just for camera switch
+        }, 10);
         
         console.log(`✅ SWITCHED TO 3D VIEW`);
       }
@@ -3143,7 +3019,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
       
       // Sync states and apply visuals
-      syncBMCStateWithLegacy();
+      syncLegacyWithBMC();
       applyBMCVisualState();
       console.log(`✅ 3D MODE: BMC state applied`);
     } else if (!is3D) {
