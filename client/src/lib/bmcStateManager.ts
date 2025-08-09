@@ -161,25 +161,26 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
 
     // Update visual state for selection
     objectState.visual.isSelected = isSelected;
-    objectState.visual.opacity = isSelected ? 1.0 : 1.0;
+    objectState.visual.opacity = 1.0; // Selected object always full opacity
+    objectState.transform.currentHeight = objectState.transform.originalHeight; // Selected object always full height
     objectState.lastUpdated = Date.now();
     objectState.isDirty = true;
 
-    this.log(`Updated selection state for ${sectionName}: ${isSelected}`);
+    this.log(`Updated selection state for ${sectionName}: ${isSelected}, height: ${objectState.transform.currentHeight}`);
   }
 
   private updateNonSelectedObjects(selectedObject: BMCComponentName): void {
     const currentViewState = this.viewStates.get(this.currentView);
     if (!currentViewState) return;
 
-    // Dim all other objects when one is selected
+    // Dim and flatten all other objects when one is selected
     BMC_COMPONENTS.forEach(componentName => {
       if (componentName !== selectedObject) {
         const objectState = currentViewState.objectStates.get(componentName);
         if (objectState) {
           objectState.visual.isSelected = false;
-          objectState.visual.opacity = 0.5; // Dimmed
-          objectState.transform.currentHeight = objectState.transform.originalHeight * 0.5; // Flattened
+          objectState.visual.opacity = 0.5; // Dimmed to 50%
+          objectState.transform.currentHeight = 0.1; // Very flat for non-selected objects
           objectState.lastUpdated = Date.now();
           objectState.isDirty = true;
         }
