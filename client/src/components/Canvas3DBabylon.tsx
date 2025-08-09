@@ -742,44 +742,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Create GUI for 3D billboard labels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
     
-    // Add "Internal" label to the ground plane (positioned in lower-left corner within ground bounds)
+    // Add "Internal" label directly on the ground plane surface
     const createInternalLabel = () => {
-      // Ground plane dimensions: width=20, height=14, centered at (0,0,0)
-      // Ground bounds: X from -10 to +10, Z from -7 to +7
-      // Lower-left corner as seen from top view: X negative (left), Z positive (lower)
+      // Ground plane: CreateGround({ width: 20, height: 14 }) centered at (0,0,0)
+      // Ground extends: X from -10 to +10, Z from -7 to +7
+      // For lower-left as seen from top: X = left (negative), Z = bottom (positive)
       
-      // Create label plane for "Internal" 
+      // Create larger, more visible label plane 
       const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
-        width: 2.0,  // Smaller width to fit within ground bounds
-        height: 0.6  // Height proportional to text
+        width: 4.0,   // Much larger for visibility
+        height: 1.5   // Proportional height
       }, scene);
       
-      // Position in lower-left corner within ground plane bounds
-      // X: -8 (left side, within -10 to +10 range)
-      // Z: 5.5 (lower area, within -7 to +7 range)
-      internalLabelPlane.position.x = -8.0; // Left side within ground bounds
-      internalLabelPlane.position.y = 0.01; // Just above ground plane to prevent z-fighting
-      internalLabelPlane.position.z = 5.5;  // Lower area within ground bounds
+      // Position in the actual lower-left area of the ground plane
+      // Based on ground center (0,0,0) and dimensions 20x14:
+      internalLabelPlane.position.x = -6.0;  // Left side (negative X)
+      internalLabelPlane.position.y = 0.02;  // Slightly above ground to avoid z-fighting
+      internalLabelPlane.position.z = 4.0;   // Bottom area (positive Z towards viewer)
       
-      // Rotate to be flat on the ground
+      // Rotate to lie flat on the ground (90 degrees around X axis)
       internalLabelPlane.rotation.x = Math.PI / 2;
       
-      // Create material with the Internal label texture
+      // Create bright, visible material
       const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
       const internalLabelTexture = new Texture("/textures/Labels_internal_1754697296780.png", scene);
       internalLabelTexture.hasAlpha = true;
       
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
-      internalLabelMaterial.emissiveColor = new Color3(0.9, 0.9, 0.9); // Bright visibility
+      internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
-      internalLabelMaterial.disableLighting = false;
+      internalLabelMaterial.disableLighting = true; // Ensure always visible
       
       internalLabelPlane.material = internalLabelMaterial;
-      internalLabelPlane.isPickable = false; // Not interactive
+      internalLabelPlane.isPickable = false;
       
-      console.log(`✅ Internal label plane created within ground bounds at position (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
-      console.log(`📏 Ground plane bounds: X(-10 to +10), Z(-7 to +7), Label at X: ${internalLabelPlane.position.x}, Z: ${internalLabelPlane.position.z}`);
+      console.log(`✅ Internal label created at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z}) with size ${internalLabelPlane.getBoundingInfo().boundingBox.maximum.subtract(internalLabelPlane.getBoundingInfo().boundingBox.minimum)}`);
     };
     
     // Create the Internal label
