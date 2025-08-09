@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { BusinessModelCanvas, ChatMessage, CanvasUpdateRequest } from "@/types/canvas";
+import { bmcStateManager } from "@/lib/bmcStateManager";
+import { BMCComponentName, ViewMode } from "@/types/bmcState";
 
 interface CanvasState {
   canvas: BusinessModelCanvas | null;
@@ -19,6 +21,8 @@ interface CanvasState {
   } | null;
   selectedObjectName: string | null;
   originalHeights: { [sectionName: string]: number };
+  // New BMC State Manager integration
+  bmcState: typeof bmcStateManager;
   pendingPowerPointFile: File | null;
   
   // Actions
@@ -35,6 +39,11 @@ interface CanvasState {
   getCamera3DState: () => { alpha: number; beta: number; radius: number; } | null;
   setSelectedObject: (objectName: string | null) => void;
   getSelectedObject: () => string | null;
+  // New BMC State Manager methods
+  selectBMCObject: (componentName: BMCComponentName | null) => void;
+  getBMCSelectedObject: () => BMCComponentName | null;
+  switchBMCView: (viewMode: ViewMode) => void;
+  getCurrentBMCView: () => ViewMode;
   setOriginalHeights: (heights: { [sectionName: string]: number }) => void;
   getOriginalHeights: () => { [sectionName: string]: number };
   setPendingPowerPointFile: (file: File | null) => void;
@@ -55,6 +64,7 @@ export const useCanvas = create<CanvasState>()(
     selectedObjectName: null,
     originalHeights: {},
     pendingPowerPointFile: null,
+    bmcState: bmcStateManager,
     
     loadCanvas: (canvas, isFromPowerPoint = false) => {
       set({ 
@@ -65,8 +75,12 @@ export const useCanvas = create<CanvasState>()(
     },
     
     toggleView: () => {
-      const { is3D } = get();
+      const { is3D, bmcState } = get();
       set({ isTransitioning: true });
+      
+      // Use BMC State Manager for view switching
+      const newViewMode: ViewMode = is3D ? 'view2D' : 'view3DPerspective';
+      bmcState.switchView(newViewMode);
       
       setTimeout(() => {
         set({ is3D: !is3D, isOrthographic: false, isTransitioning: false });
@@ -74,7 +88,12 @@ export const useCanvas = create<CanvasState>()(
     },
     
     setOrthographicView: (isOrtho: boolean) => {
+      const { bmcState } = get();
       set({ isTransitioning: true });
+      
+      // Use BMC State Manager for orthographic view switching
+      const newViewMode: ViewMode = isOrtho ? 'view3DOrthographic' : 'view3DPerspective';
+      bmcState.switchView(newViewMode);
       
       setTimeout(() => {
         set({ 
@@ -136,6 +155,42 @@ export const useCanvas = create<CanvasState>()(
     
     getSelectedObject: () => {
       return get().selectedObjectName;
+    },
+    
+    // New BMC State Manager integration methods
+    selectBMCObject: (componentName: BMCComponentName | null) => {
+      const { bmcState } = get();
+      bmcState.selectObject(componentName);
+      // Also update legacy state for backward compatibility
+      set({ selectedObjectName: componentName });
+    },
+    
+    getBMCSelectedObject: () => {
+      const { bmcState } = get();
+      return bmcState.getSelectedObject();
+    },
+    
+    switchBMCView: (viewMode: ViewMode) => {
+      const { bmcState } = get();
+      bmcState.switchView(viewMode);
+      
+      // Update Zustand state to match
+      switch (viewMode) {
+        case 'view2D':
+          set({ is3D: false, isOrthographic: false });
+          break;
+        case 'view3DPerspective':
+          set({ is3D: true, isOrthographic: false });
+          break;
+        case 'view3DOrthographic':
+          set({ is3D: true, isOrthographic: true });
+          break;
+      }
+    },
+    
+    getCurrentBMCView: () => {
+      const { bmcState } = get();
+      return bmcState.currentView;
     },
     
     setOriginalHeights: (heights: { [sectionName: string]: number }) => {
