@@ -416,11 +416,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // SIMPLIFIED VISUAL STATE: Focus only on core requirements
   const applyBMCVisualState = () => {
     const selectedComponent = bmcState.getSelectedObject();
-    console.log(`🔍 DEBUG: applyBMCVisualState - selectedComponent: ${selectedComponent}`);
-    console.log(`🔍 DEBUG: contentPanelsRef.current has ${contentPanelsRef.current?.length || 0} panels`);
     
-    contentPanelsRef.current.forEach(({ mesh, material }, index) => {
-      console.log(`🔍 DEBUG: Processing panel ${index}: mesh=${mesh.name}, bmcSectionName=${(mesh as any).bmcSectionName}`);
+    contentPanelsRef.current.forEach(({ mesh, material }) => {
       const sectionName = (mesh as any).bmcSectionName;
       const bmcComponent = mapSectionNameToBMCComponent(sectionName);
       
@@ -470,18 +467,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Apply opacity to mesh
       material.alpha = targetOpacity;
       
-      // CRITICAL: Force all child materials (labels) to stay visible
-      // Key Partners works because its labels maintain full alpha - copy this exact behavior
-      if (mesh.getChildren) {
-        mesh.getChildren().forEach((child: any) => {
-          if (child.material && child.name && child.name.includes("Label")) {
-            // Copy exactly what Key Partners does: set to full opacity and ensure visibility
-            child.material.alpha = 1.0;
-            child.isVisible = true;
-            console.log(`🔧 Fixed label visibility for child: ${child.name}`);
+      // NUCLEAR OPTION: Completely decouple labels from parent mesh
+      // Make labels independent of any parent material changes
+      const allLabels = scene.meshes.filter(m => m.name && m.name.includes("Label"));
+      allLabels.forEach((label: any) => {
+        if (label.material) {
+          label.material.alpha = 1.0;
+          label.isVisible = true;
+          // Make label completely independent - no parent influence
+          if (label.parent) {
+            const originalPosition = label.getAbsolutePosition().clone();
+            label.parent = null; // Detach from parent
+            label.position = originalPosition; // Maintain position
           }
-        });
-      }
+        }
+      });
       
       // Apply height
       mesh.scaling.y = targetHeight;
