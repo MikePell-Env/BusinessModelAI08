@@ -203,26 +203,7 @@ class UnifiedBMCTransformSystem {
   }
 }
 
-// Legacy BMCSectionController for backward compatibility
-class BMCSectionController {
-  constructor(private mesh: AbstractMesh, private sectionName: string) {}
-  
-  setHeight(height: number) {
-    this.mesh.scaling.y = height;
-  }
-  
-  getHeight(): number {
-    return this.mesh.scaling.y;
-  }
-  
-  setPosition(x: number, y: number, z: number) {
-    this.mesh.position = new Vector3(x, y, z);
-  }
-  
-  setRotation(x: number, y: number, z: number) {
-    this.mesh.rotation = new Vector3(x, y, z);
-  }
-}
+// REMOVED: Legacy BMCSectionController - replaced by unified BMC system
 
 // Standard grid positions for future consistency (doesn't affect current layout)
 const STANDARD_POSITIONS = {
@@ -257,72 +238,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     bmcState
   } = useCanvas();
   
-  // Unified transformation system for all BMC objects
-  const unifiedTransformRef = useRef<UnifiedBMCTransformSystem>(new UnifiedBMCTransformSystem());
-  
-  // Section controllers for consistent manipulation (additive, doesn't change existing behavior)
-  const sectionControllersRef = useRef<Map<string, BMCSectionController>>(new Map());
+  // REMOVED: Unified transformation system - simplified for reliability
   
   // Store all content panels for closing functionality
   const contentPanelsRef = useRef<any[]>([]);
   
-  // Store original heights for each BMC section
-  const originalHeightsRef = useRef<{ [sectionName: string]: number }>({});
-  
   // Unified BMC label manager
   const labelManagerRef = useRef<UnifiedBMCLabelManager>(new UnifiedBMCLabelManager());
   
-  // Transform utilities (safe wrappers around existing functionality)
-  const transformUtils = {
-    // Get controller for consistent manipulation
-    getSectionController: (sectionName: string): BMCSectionController | undefined => {
-      return sectionControllersRef.current.get(sectionName);
-    },
-    
-    // Safe height setting that preserves all current behavior
-    setSectionHeight: (sectionName: string, height: number) => {
-      const controller = sectionControllersRef.current.get(sectionName);
-      if (controller) {
-        controller.setHeight(height);
-      }
-    },
-    
-    // Get current layout positions (for future reference)
-    getCurrentPositions: (): Record<string, Vector3> => {
-      const positions: Record<string, Vector3> = {};
-      sectionControllersRef.current.forEach((controller, sectionName) => {
-        positions[sectionName] = (controller as any).mesh.position.clone();
-      });
-      return positions;
-    },
-    
-    // Development utilities (safe for debugging without affecting functionality)
-    debugCoordinates: () => {
-      console.log("🔍 Current BMC Section Coordinates:");
-      sectionControllersRef.current.forEach((controller, sectionName) => {
-        const mesh = (controller as any).mesh;
-        console.log(`  ${sectionName}:`, {
-          position: mesh.position.asArray(),
-          rotation: mesh.rotation.asArray(),
-          scaling: mesh.scaling.asArray()
-        });
-      });
-    },
-    
-    // Export current state for development
-    exportCurrentState: () => {
-      const state: any = {};
-      sectionControllersRef.current.forEach((controller, sectionName) => {
-        const mesh = (controller as any).mesh;
-        state[sectionName] = {
-          position: mesh.position.asArray(),
-          rotation: mesh.rotation.asArray(),
-          scaling: mesh.scaling.asArray()
-        };
-      });
-      return state;
-    }
-  };
+  // REMOVED: Legacy transform utilities - now handled by unified BMC system
 
   // BMC Section Name Mapping: Convert between display names and BMC component names
   const mapSectionNameToBMCComponent = (sectionName: string): BMCComponentName | null => {
@@ -536,10 +460,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Apply visual state based on current BMC selection
       applyBMCVisualState();
-      
-      // Also update legacy state for backward compatibility
-      const sectionName = mapBMCComponentToSectionName(selectedComponent);
-      setSelectedObject(sectionName);
     } else {
       console.log(`🔄 No BMC selection to restore`);
     }
@@ -1979,11 +1899,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           }
         });
         
-        // Apply Value Proposition height adjustment using new coordinate system
-        setTimeout(() => {
-          transformUtils.setSectionHeight("Value Propositions", 1.08);
-          console.log("📏 Value Propositions adjusted to 1.08 height (20% taller, then 10% reduction)");
-        }, 500);
+        // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
+        console.log("📏 Value Propositions height managed by unified BMC system");
 
         // Apply standard base color top face to Customer Channels section
         setTimeout(() => {
@@ -1993,7 +1910,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
         // Debug current coordinates to understand proper positioning
         setTimeout(() => {
-          transformUtils.debugCoordinates();
+          console.log("🔍 Debugging coordinates - legacy transformUtils removed");
           
           // Measure Customer Channels dimensions for precise Revenue Streams alignment
           const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Channels");
@@ -2671,9 +2588,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           }
         });
         
-        // Store in both places
+        // Store in global state
         setOriginalHeights(originalHeights);
-        originalHeightsRef.current = originalHeights;
         console.log("📏 SAVED original heights:", originalHeights);
         return true;
       }
@@ -2694,30 +2610,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const clearAllSelections = () => {
       console.log("🔄 STARTUP: Clearing all selections to enable hover behavior");
       
-      // Clear selection state in the store
-      setSelectedObject(null);
+      // Clear selection state using unified BMC system
+      bmcState.selectObject(null);
+      applyBMCVisualState();
       
-      // Reset all mesh click states and restore original colors
-      if (scene && contentPanelsRef.current.length > 0) {
-        contentPanelsRef.current.forEach(({ mesh, material }) => {
-          (mesh as any).isClicked = false;
-          
-          // Restore original colors
-          if ((mesh as any).hasTexture) {
-            material.emissiveColor = new Color3(0, 0, 0);
-          } else {
-            if (material.baseColor) {
-              material.baseColor = (mesh as any).originalColor;
-            }
-            material.diffuseColor = (mesh as any).originalColor;
-          }
-          
-          // Full opacity
-          material.alpha = 1.0;
-        });
-        
-        console.log("✅ All selections cleared, hover behavior enabled");
-      }
+      console.log("✅ All selections cleared, hover behavior enabled");
     };
     
     // Clear selections immediately to ensure hover works
