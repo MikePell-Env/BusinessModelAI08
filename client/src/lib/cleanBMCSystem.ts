@@ -116,9 +116,9 @@ export class CleanBMCSystem {
     const currentSelection = this.selectedItem;
     
     if (currentSelection === itemName) {
-      // Deselect
+      // Deselect - restore ALL objects to default state
       this.selectedItem = null;
-      this.setDefaultAppearance(itemName);
+      this.restoreAllToDefault();
       console.log(`Deselected: ${itemName}`);
     } else {
       // Select new
@@ -151,10 +151,23 @@ export class CleanBMCSystem {
     });
   }
 
-  // Clear selection
+  // Clear selection - restore all objects to original state
   clearSelection() {
     this.selectedItem = null;
-    this.updateAllVisuals();
+    this.restoreAllToDefault();
+  }
+
+  // Restore all objects to original material, height, and opacity
+  private restoreAllToDefault() {
+    this.items.forEach((item, name) => {
+      // Original material: medium dark grey, 100% opacity, original height
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      item.material.alpha = 1.0;
+      item.mesh.scaling.y = item.originalHeight;
+      
+      // Always ensure label visibility
+      this.makeLabelVisible(name);
+    });
   }
 
   // Force all labels visible
