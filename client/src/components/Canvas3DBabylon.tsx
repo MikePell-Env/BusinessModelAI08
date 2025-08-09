@@ -3017,7 +3017,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
     }
-  }, [is3D, syncLegacyWithBMC, applyBMCVisualState]);
+  }, [is3D, applyBMCVisualState]);
 
 
 
