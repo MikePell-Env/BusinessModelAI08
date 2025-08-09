@@ -352,6 +352,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   };
 
   // New BMC Selection System using our state architecture
+  // Simplified click handler using BMC state manager
   const handleBMCObjectClick = (sectionName: string) => {
     const bmcComponent = mapSectionNameToBMCComponent(sectionName);
     if (!bmcComponent) {
@@ -359,28 +360,57 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return;
     }
 
-    console.log(`🎯 BMC CLICK: "${sectionName}" -> "${bmcComponent}"`);
+    console.log(`🎯 CLICK: "${sectionName}"`);
     
     const currentSelection = getBMCSelectedObject();
     
     if (currentSelection === bmcComponent) {
-      // Clicking on already selected object - deselect it
-      console.log(`🔄 DESELECTING: "${bmcComponent}"`);
-      selectBMCObject(null);
-      applyBMCVisualState();
+      // Deselect current object
+      bmcState.selectObject(null);
+      console.log(`🔄 DESELECTED: "${bmcComponent}"`);
     } else {
-      // Selecting new object (or first selection)
-      console.log(`🎯 SELECTING: "${bmcComponent}" (previous: "${currentSelection}")`);
-      selectBMCObject(bmcComponent);
-      applyBMCVisualState();
+      // Select new object
+      bmcState.selectObject(bmcComponent);
+      console.log(`🎯 SELECTED: "${bmcComponent}"`);
     }
+    
+    // Update legacy store for compatibility
+    selectBMCObject(getBMCSelectedObject());
+    
+    // Apply all visual changes
+    applyBMCVisualState();
+  };
+  
+  // Simplified hover handlers using BMC state manager
+  const handleBMCObjectHoverEnter = (sectionName: string) => {
+    const bmcComponent = mapSectionNameToBMCComponent(sectionName);
+    if (!bmcComponent) return;
+    
+    const objectState = bmcState.getObjectState(bmcComponent);
+    if (!objectState || objectState.visual.isSelected) return; // Don't hover if selected
+    
+    bmcState.updateVisualState(bmcComponent, { isHovered: true });
+    applyBMCVisualState();
+    console.log(`💡 HOVER ENTER: ${sectionName}`);
+  };
+  
+  const handleBMCObjectHoverExit = (sectionName: string) => {
+    const bmcComponent = mapSectionNameToBMCComponent(sectionName);
+    if (!bmcComponent) return;
+    
+    const objectState = bmcState.getObjectState(bmcComponent);
+    if (!objectState || objectState.visual.isSelected) return; // Don't change if selected
+    
+    bmcState.updateVisualState(bmcComponent, { isHovered: false });
+    applyBMCVisualState();
+    console.log(`🔄 HOVER EXIT: ${sectionName}`);
   };
 
-  // Apply visual state based on BMC state manager
+  // Unified visual state application using ONLY BMC state manager
   const applyBMCVisualState = () => {
     const selectedComponent = getBMCSelectedObject();
     
-    console.log(`🎨 APPLYING BMC VISUAL STATE: selected="${selectedComponent}"`);
+    console.log(`🎨 UNIFIED BMC VISUAL STATE: selected="${selectedComponent}"`);
     
     contentPanelsRef.current.forEach(({ mesh, material }) => {
       const sectionName = (mesh as any).bmcSectionName;
@@ -388,68 +418,43 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       if (!bmcComponent) return;
       
-      const isSelected = (bmcComponent === selectedComponent);
+      const objectState = bmcState.getObjectState(bmcComponent);
+      if (!objectState) return;
       
+      const isSelected = objectState.visual.isSelected;
+      const isHovered = objectState.visual.isHovered;
+      
+      // Determine final color: selected > hovered > original
+      let finalColor: Color3;
       if (isSelected) {
-        // Selected object - bright blue, full opacity, normal height
-        const brightBlueColor = new Color3(0.0, 0.3, 0.8);
-        
-        console.log(`🔧 APPLYING BLUE to "${sectionName}": hasTexture=${!!(mesh as any).hasTexture}, material type=${material.getClassName()}`);
-        
-        if ((mesh as any).hasTexture) {
-          material.emissiveColor = brightBlueColor.scale(0.3);
-          console.log(`  💡 Set emissiveColor: ${material.emissiveColor.r}, ${material.emissiveColor.g}, ${material.emissiveColor.b}`);
-        } else {
-          if (material.baseColor) {
-            material.baseColor = brightBlueColor;
-            console.log(`  🎨 Set baseColor: ${material.baseColor.r}, ${material.baseColor.g}, ${material.baseColor.b}`);
-          }
-          material.diffuseColor = brightBlueColor;
-          console.log(`  🌟 Set diffuseColor: ${material.diffuseColor.r}, ${material.diffuseColor.g}, ${material.diffuseColor.b}`);
-        }
-        (mesh as any).isClicked = true;
-        material.alpha = 1.0;
-        
-        // Update BMC state manager with visual state
-        bmcState.updateVisualState(bmcComponent, {
-          isSelected: true,
-          opacity: 1.0
-        });
-        bmcState.updateTransformState(bmcComponent, {
-          currentHeight: bmcState.getObjectState(bmcComponent)?.transform.originalHeight || 1.0
-        });
-        
-        console.log(`🔵 "${sectionName}" selected (blue)`);
+        finalColor = objectState.visual.selectedColor; // Bright blue
+      } else if (isHovered) {
+        finalColor = objectState.visual.hoverColor; // Bright blue  
       } else {
-        // Non-selected objects - original color, 50% opacity, flattened height
-        if ((mesh as any).hasTexture) {
-          material.emissiveColor = new Color3(0, 0, 0);
-        } else {
-          if (material.baseColor) {
-            material.baseColor = (mesh as any).originalColor;
-          }
-          material.diffuseColor = (mesh as any).originalColor;
-        }
-        (mesh as any).isClicked = false;
-        material.alpha = selectedComponent ? 0.5 : 1.0;
-        
-        // Update BMC state manager with visual state
-        bmcState.updateVisualState(bmcComponent, {
-          isSelected: false,
-          opacity: selectedComponent ? 0.5 : 1.0
-        });
-        bmcState.updateTransformState(bmcComponent, {
-          currentHeight: selectedComponent ? 
-            (bmcState.getObjectState(bmcComponent)?.transform.originalHeight || 1.0) * 0.5 : 
-            (bmcState.getObjectState(bmcComponent)?.transform.originalHeight || 1.0)
-        });
-        
-        console.log(`⚪ "${sectionName}" ${selectedComponent ? 'dimmed' : 'normal'}`);
+        finalColor = objectState.visual.baseColor; // Original grey
       }
+      
+      // Apply color based on texture type
+      if ((mesh as any).hasTexture) {
+        material.emissiveColor = finalColor.scale(0.3);
+      } else {
+        if (material.baseColor) {
+          material.baseColor = finalColor;
+        }
+        material.diffuseColor = finalColor;
+      }
+      
+      // Apply opacity
+      material.alpha = objectState.visual.opacity;
+      
+      // Apply height
+      mesh.scaling.y = objectState.transform.currentHeight;
+      
+      // Sync legacy state for compatibility
+      (mesh as any).isClicked = isSelected;
+      
+      console.log(`🔧 ${sectionName}: selected=${isSelected}, hovered=${isHovered}, opacity=${objectState.visual.opacity}, height=${objectState.transform.currentHeight}`);
     });
-    
-    // Apply height changes
-    applyHeightState();
   };
 
   // Handle background click to clear selection
@@ -457,12 +462,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const currentSelection = getBMCSelectedObject();
     if (currentSelection) {
       console.log(`🌍 Background click: Clearing selection "${currentSelection}"`);
+      bmcState.selectObject(null);
       selectBMCObject(null);
       applyBMCVisualState();
-      
-      // Also update legacy state for backward compatibility
-      setSelectedObject(null);
     }
+  };
+  
+  // Restore BMC visual state on view transitions
+  const restoreBMCStateOnViewChange = () => {
+    console.log(`🔄 Restoring BMC state after view change`);
+    
+    // Get current selection from BMC state manager
+    const selectedComponent = bmcState.getSelectedObject();
+    
+    // Apply visual state based on current BMC state
+    applyBMCVisualState();
+    
+    console.log(`✅ BMC state restored: selected="${selectedComponent}"`);
   };
   
 
@@ -619,7 +635,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Wait for contentPanelsRef to be populated before restoring state
     const restoreTimer = setTimeout(() => {
       if (contentPanelsRef.current.length > 0) {
-        restoreBMCSelectionState();
+        restoreBMCStateOnViewChange();
       }
     }, 1000); // Give time for models to load and be registered
 
@@ -1922,118 +1938,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.isPickable = true; // Ensure mesh is pickable for hover/click
             console.log(`🎯 ${sectionName}: ActionManager and pickable state enabled`);
             
-            // Separate functions for mesh and label interactions
-            const updateMeshHoverEnter = () => {
-              const bmcComponent = mapSectionNameToBMCComponent(sectionName);
-              const selectedComponent = getBMCSelectedObject();
-              
-              // Only apply hover if this object is not currently selected
-              if (bmcComponent && selectedComponent !== bmcComponent) {
-                // For textured meshes, use emissive color to create blue glow effect
-                // For non-textured meshes, change base color
-                const brightBlueColor = new Color3(0.0, 0.3, 0.8);
-                
-                if ((mesh as any).hasTexture) {
-                  // For textured mesh, use emissive color to add blue glow while preserving texture
-                  sectionMaterial.emissiveColor = brightBlueColor.scale(0.3); // Subtle blue glow
-                  console.log(`💡 Textured mesh hover: ${sectionName} - adding blue emissive glow`);
-                } else {
-                  // For non-textured mesh, update both baseColor and diffuseColor for visibility
-                  if (sectionMaterial.baseColor) {
-                    sectionMaterial.baseColor = brightBlueColor;
-                  }
-                  sectionMaterial.diffuseColor = brightBlueColor;
-                  console.log(`💡 Standard mesh hover: ${sectionName} - changing base color and diffuseColor`);
-                }
-                
-                // Keep all objects at 100% opacity during hover
-                contentPanelsRef.current.forEach(({ material }) => {
-                  material.alpha = 1.0; // 100% opacity
-                });
-              } else if (selectedComponent === bmcComponent) {
-                console.log(`🔒 Hover blocked: ${sectionName} is already selected`);
-              }
-            };
-            
-            const updateLabelHoverEnter = () => {
-              // Make label blue background (less bright)
-              const labelContainer = (mesh as any).labelContainer;
-              if (labelContainer) {
-                labelContainer.background = "rgba(0, 77, 204, 1.0)"; // Less bright blue
-              }
-            };
-            
-            // Hover enter - respect BMC selection state
+            // Unified hover handlers using BMC state manager
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              console.log(`🎯 HOVER DETECTED on ${sectionName}`);
-              const bmcComponent = mapSectionNameToBMCComponent(sectionName);
-              const selectedComponent = getBMCSelectedObject();
-              
-              if (!selectedComponent && bmcComponent) {
-                // No object selected - allow hover
-                updateMeshHoverEnter();
-                updateLabelHoverEnter();
-                console.log(`💡 Hover enter: ${sectionName} bright blue, all objects 100% opacity`);
-              } else if (selectedComponent === bmcComponent) {
-                console.log(`🔒 Hover enter: ${sectionName} already selected - maintaining selected state`);
-              } else {
-                console.log(`🚫 Hover enter: ${sectionName} blocked - another object is selected`);
-              }
+              handleBMCObjectHoverEnter(sectionName);
             }));
             
-            const updateMeshHoverExit = () => {
-              const bmcComponent = mapSectionNameToBMCComponent(sectionName);
-              const selectedComponent = getBMCSelectedObject();
-              
-              // Only restore hover state if this object is not currently selected
-              if (bmcComponent && selectedComponent !== bmcComponent) {
-                // Restore hovered object to original state
-                if ((mesh as any).hasTexture) {
-                  // For textured mesh, remove emissive glow
-                  sectionMaterial.emissiveColor = new Color3(0, 0, 0); // No emissive
-                  console.log(`🔄 Textured mesh hover exit: ${sectionName} - removing emissive glow`);
-                } else {
-                  // For non-textured mesh, restore both baseColor and diffuseColor
-                  if (sectionMaterial.baseColor) {
-                    sectionMaterial.baseColor = (mesh as any).originalColor;
-                  }
-                  sectionMaterial.diffuseColor = (mesh as any).originalColor;
-                  console.log(`🔄 Standard mesh hover exit: ${sectionName} - restoring base color and diffuseColor`);
-                }
-                
-                // Restore opacity based on BMC selection state
-                applyBMCVisualState();
-              } else if (selectedComponent === bmcComponent) {
-                console.log(`🔒 Hover exit blocked: ${sectionName} is selected, maintaining blue state`);
-              }
-            };
-            
-            const updateLabelHoverExit = () => {
-              // Restore label background
-              const labelContainer = (mesh as any).labelContainer;
-              if (labelContainer) {
-                labelContainer.background = "rgba(0, 0, 0, 0.7)"; // Original dark background
-              }
-            };
-            
-            // Hover exit - respect BMC selection state
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              console.log(`🎯 HOVER EXIT DETECTED on ${sectionName}`);
-              const bmcComponent = mapSectionNameToBMCComponent(sectionName);
-              const selectedComponent = getBMCSelectedObject();
-              
-              if (!selectedComponent && bmcComponent) {
-                // No object selected - restore hover state
-                updateMeshHoverExit();
-                updateLabelHoverExit();
-                console.log(`🔄 Hover exit: ${sectionName} restored, all objects full opacity`);
-              } else if (selectedComponent === bmcComponent) {
-                console.log(`🔒 Hover exit: ${sectionName} selected - maintaining selected state`);
-                // Re-apply BMC visual state to ensure selection stays
-                applyBMCVisualState();
-              } else {
-                console.log(`🚫 Hover exit: ${sectionName} blocked - another object is selected`);
-              }
+              handleBMCObjectHoverExit(sectionName);
             }));
             
             const updateMeshClickSelect = () => {
@@ -3146,17 +3057,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         scene.activeCamera = orthoCamera;
         scene.render();
         
-        const selectedObject = getSelectedObject();
-        restoreSelectedObjectState();
-        console.log(`✅ SWITCHED TO 3D TOP VIEW: Selection "${selectedObject}" highlighting restored`);
+        restoreBMCStateOnViewChange();
+        console.log(`✅ SWITCHED TO 3D TOP VIEW: BMC state restored`);
       } else {
         // Switch back to perspective camera and restore state immediately  
         scene.activeCamera = perspectiveCamera;
         scene.render();
         
-        const selectedObject = getSelectedObject();
-        restoreSelectedObjectState();
-        console.log(`✅ SWITCHED TO 3D VIEW: Selection "${selectedObject}" highlighting restored`);
+        restoreBMCStateOnViewChange();
+        console.log(`✅ SWITCHED TO 3D VIEW: BMC state restored`);
       }
     }
   }, [isOrthographic]);
@@ -3198,15 +3107,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Force render and restore state in next frame for smooth transition
       sceneRef.current.render();
       requestAnimationFrame(() => {
-        const storedHeights = getOriginalHeights();
-        if (Object.keys(storedHeights).length > 0) {
-          restoreSelectedObjectState();
-          console.log(`✅ 3D MODE: Selection "${selectedObject}" highlighting restored with heights`);
-        } else {
-          // Even without stored heights, still try to restore selection state
-          restoreSelectedObjectState();
-          console.log(`✅ 3D MODE: Selection "${selectedObject}" highlighting restored (no stored heights)`);
-        }
+        restoreBMCStateOnViewChange();
+        console.log(`✅ 3D MODE: BMC state restored`);
       });
     } else if (!is3D) {
       const selectedObject = getSelectedObject();
