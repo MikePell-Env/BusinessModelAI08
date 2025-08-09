@@ -22,14 +22,18 @@ export class CleanBMCSystem {
   
   // Inject BMC State Manager dependency
   setBMCStateManager(bmcStateManager: any) {
+    console.log("🔗 CleanBMCSystem.setBMCStateManager called with:", bmcStateManager);
     this.bmcStateManager = bmcStateManager;
     
     // Subscribe to state changes from BMC State Manager
     if (bmcStateManager && bmcStateManager.addStateListener) {
+      console.log("🔗 Adding state listener to BMC State Manager");
       bmcStateManager.addStateListener(() => {
         console.log("🔄 CleanBMCSystem received state change notification, updating visuals");
         this.updateAllVisuals();
       });
+    } else {
+      console.warn("⚠️ BMC State Manager missing addStateListener method:", bmcStateManager);
     }
   }
 
@@ -118,13 +122,17 @@ export class CleanBMCSystem {
 
   // Selection methods that delegate to BMC State Manager
   selectObject(name: string | null) {
+    console.log(`🎯 CleanBMCSystem.selectObject called with: ${name}`);
+    console.log(`🎯 BMC State Manager available: ${!!this.bmcStateManager}`);
+    
     if (this.bmcStateManager) {
       // Convert name to BMCComponentName format if needed
       const componentName = this.convertNameToBMCComponent(name);
+      console.log(`🎯 Converting ${name} -> ${componentName}`);
       this.bmcStateManager.selectObject(componentName);
       console.log(`🎯 CleanBMCSystem: Delegated selection to BMC State Manager: ${name} -> ${componentName}`);
     } else {
-      console.warn("BMC State Manager not injected into CleanBMCSystem");
+      console.warn("⚠️ BMC State Manager not injected into CleanBMCSystem");
     }
   }
 

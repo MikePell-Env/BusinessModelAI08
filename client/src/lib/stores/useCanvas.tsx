@@ -159,10 +159,13 @@ export const useCanvas = create<CanvasState>()(
     
     // New BMC State Manager integration methods
     selectBMCObject: (componentName: BMCComponentName | null) => {
+      console.log(`🎯 useCanvas.selectBMCObject called with: ${componentName}`);
       const { bmcState } = get();
+      console.log(`🎯 BMC State available: ${!!bmcState}`);
       bmcState.selectObject(componentName);
       // Also update legacy state for backward compatibility
       set({ selectedObjectName: componentName });
+      console.log(`🎯 Updated legacy selectedObjectName to: ${componentName}`);
     },
     
     getBMCSelectedObject: () => {
