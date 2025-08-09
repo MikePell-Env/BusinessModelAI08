@@ -154,7 +154,7 @@ export class PowerPointParser {
     return this.createCanvasFromMapping(
       canvasData,
       canvasName,
-      `Business model canvas imported from ${filename}`
+      'Business model canvas'
     );
   }
 

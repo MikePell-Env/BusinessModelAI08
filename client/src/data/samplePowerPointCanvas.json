@@ -1,7 +1,7 @@
 {
   "id": "powerpoint-sample-001",
   "name": "TechCorp AI Platform - Business Model Canvas",
-  "description": "Sample business model canvas imported from PowerPoint format demonstrating the import functionality",
+  "description": "Sample business model canvas demonstrating the import functionality",
   "keyPartners": {
     "id": "key-partners",
     "title": "Key Partners",
