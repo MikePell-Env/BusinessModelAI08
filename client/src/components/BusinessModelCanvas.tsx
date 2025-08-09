@@ -71,6 +71,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
 
   const handleToggleView = () => {
     console.log(`🎛️ BusinessModelCanvas.handleToggleView: Switching to ${is3D ? '2D' : '3D'} view`);
+    alert(`Button clicked! Switching to ${is3D ? '2D' : '3D'} view`); // Temporary alert to verify button works
     toggleView();
   };
 
