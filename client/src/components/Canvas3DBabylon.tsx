@@ -3086,15 +3086,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         scene.activeCamera = orthoCamera;
         scene.render();
         
-        restoreBMCStateOnViewChange();
-        console.log(`✅ SWITCHED TO 3D TOP VIEW: BMC state restored`);
+        // Add delay to ensure camera switch completes before state restoration
+        setTimeout(() => {
+          restoreBMCStateOnViewChange();
+          console.log(`✅ SWITCHED TO 3D TOP VIEW: BMC state restored`);
+        }, 100);
       } else {
         // Switch back to perspective camera and restore state immediately  
         scene.activeCamera = perspectiveCamera;
         scene.render();
         
-        restoreBMCStateOnViewChange();
-        console.log(`✅ SWITCHED TO 3D VIEW: BMC state restored`);
+        // Add delay to ensure camera switch completes before state restoration
+        setTimeout(() => {
+          restoreBMCStateOnViewChange();
+          console.log(`✅ SWITCHED TO 3D VIEW: BMC state restored`);
+        }, 100);
       }
     }
   }, [isOrthographic]);
@@ -3133,12 +3139,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
       
-      // Force render and restore state in next frame for smooth transition
+      // Force render and restore state with proper timing
       sceneRef.current.render();
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         restoreBMCStateOnViewChange();
         console.log(`✅ 3D MODE: BMC state restored`);
-      });
+      }, 150); // Slightly longer delay for entering 3D mode
     } else if (!is3D) {
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
