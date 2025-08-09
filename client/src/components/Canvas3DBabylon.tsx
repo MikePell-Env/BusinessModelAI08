@@ -661,7 +661,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Wait for contentPanelsRef to be populated before restoring state
     const restoreTimer = setTimeout(() => {
       if (contentPanelsRef.current.length > 0) {
-        restoreBMCStateOnViewChange();
+        syncBMCStateWithLegacy();
+        applyBMCVisualState();
       }
     }, 1000); // Give time for models to load and be registered
 
