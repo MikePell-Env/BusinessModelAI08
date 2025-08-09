@@ -486,17 +486,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // CRITICAL: Preserve label visibility - labels should always be fully visible
       if (mesh.getChildren) {
         mesh.getChildren().forEach((child: any) => {
-          // Check for any label-related naming patterns
+          // Check for any label-related naming patterns (exact names from the code)
           const isLabel = child.name && (
             child.name.includes('Label') || 
             child.name.includes('label') ||
-            child.name.includes('customerSegments') ||
-            child.name.includes('keyPartners') ||
-            child.name.includes('customerRelationships') ||
-            child.name.includes('customerChannels') ||
-            child.name.includes('keyActivities') ||
-            child.name.includes('costStructure') ||
-            child.name.includes('revenueStreams')
+            child.name === 'customerSegmentsLabel' ||
+            child.name === 'keyPartnersLabel' ||
+            child.name === 'customerRelationshipsLabel' ||
+            child.name === 'customerChannelsLabel' ||
+            child.name === 'keyActivitiesLabel' ||
+            child.name === 'keyResourcesLabel' ||
+            child.name === 'valuePropositionsLabel' ||
+            child.name === 'costStructureLabel' ||
+            child.name === 'revenueStreamsLabel'
           );
           
           if (child.material && isLabel) {
