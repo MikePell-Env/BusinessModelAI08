@@ -71,20 +71,22 @@ export class CleanBMCSystem {
     // CRITICAL: Use ALPHATEST mode to enable PNG transparency while staying opaque
     (item.labelMaterial as any).transparencyMode = 1; // Material.MATERIAL_ALPHATEST = 1
     
-    // Force maximum brightness for visibility
-    if (item.labelMaterial.emissiveColor) {
-      item.labelMaterial.emissiveColor.set(1.0, 1.0, 1.0); // Full white for maximum visibility
-    }
+    // REMOVE emissive override that may interfere with PNG texture rendering
+    // Keep original emissive settings to avoid texture corruption
     
     // Keep original diffuse color - don't override to white (breaks PNG transparency)
     // item.labelMaterial.diffuseColor should remain as originally set
     
-    // Ensure PNG transparency works correctly
+    // Ensure PNG texture renders correctly without interference
     if (item.labelMaterial.diffuseTexture) {
       (item.labelMaterial.diffuseTexture as any).level = 1.0;
       (item.labelMaterial.diffuseTexture as any).hasAlpha = true;
       // Critical: Enable alpha from diffuse texture for PNG transparency
       item.labelMaterial.useAlphaFromDiffuseTexture = true;
+      
+      // Ensure texture filtering doesn't corrupt pixels
+      (item.labelMaterial.diffuseTexture as any).wrapU = 1; // CLAMP
+      (item.labelMaterial.diffuseTexture as any).wrapV = 1; // CLAMP
     }
     
     // Use higher rendering group to ensure labels render on top
