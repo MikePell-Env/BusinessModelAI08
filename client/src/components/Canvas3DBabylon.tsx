@@ -1882,7 +1882,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               setSelectedObject(sectionName);
               
               // Apply height state (selected at original height, others flattened)
-              applyHeightState();
+              applyBMCVisualState();
               
               // Set opacity states
               contentPanelsRef.current.forEach(({ mesh: otherMesh, material }) => {
@@ -2345,7 +2345,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   material.alpha = isSelectedObject ? 1.0 : 0.5;
                 });
                 
-                applyHeightState();
+                applyBMCVisualState();
               }
               
               // Show panel (Revenue Streams content would come from getSectionContent)
@@ -2596,7 +2596,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   material.alpha = isSelectedObject ? 1.0 : 0.5;
                 });
                 
-                applyHeightState();
+                applyBMCVisualState();
               }
               
               // Show panel (Cost Structure content would come from getSectionContent)
@@ -2897,7 +2897,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Only restore if there's a clear user selection and we have height data
       if (existingSelection && hasHeights) {
         console.log("🔄 Initial load: Restoring user selection:", existingSelection);
-        restoreSelectedObjectState();
+        applyBMCVisualState();
       } else {
         console.log("🔄 Initial load: No selection to restore, hover behavior ready");
       }
@@ -3026,7 +3026,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
     }
-  }, [is3D, getSelectedObject, getOriginalHeights, restoreSelectedObjectState]);
+  }, [is3D, syncLegacyWithBMC, applyBMCVisualState]);
 
 
 
