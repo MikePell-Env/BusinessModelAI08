@@ -35,7 +35,7 @@ import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
-import { UnifiedBMCLabelManager, globalBMCLabelManager } from '@/lib/labelManager';
+import { SimpleBMCManager, simpleBMCManager } from '@/lib/simpleBMCManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -244,7 +244,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const contentPanelsRef = useRef<any[]>([]);
   
   // Unified BMC label manager
-  const labelManagerRef = useRef<UnifiedBMCLabelManager>(new UnifiedBMCLabelManager());
+  const bmcManagerRef = useRef<SimpleBMCManager>(simpleBMCManager);
   
   // REMOVED: Legacy transform utilities - now handled by unified BMC system
 
@@ -402,22 +402,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       (mesh as any).isClicked = isSelected;
     });
     
-    // LABELS: Keep all labels fully visible and independent of selection state
-    if (sceneRef.current) {
-      sceneRef.current.meshes.forEach((mesh: any) => {
-        if (mesh.name && (mesh.name.includes('Label') || mesh.name.includes('label'))) {
-          mesh.isVisible = true;
-          mesh.setEnabled(true);
-          if (mesh.material) {
-            mesh.material.alpha = 1.0;
-            mesh.material.backFaceCulling = false;
-            if (mesh.material.emissiveColor && mesh.material.emissiveTexture) {
-              mesh.material.emissiveColor.set(0.9, 0.9, 0.9);
-            }
-          }
-        }
-      });
-    }
+    // Simple system: just force all labels visible
+    bmcManagerRef.current.forceAllLabelsVisible();
   };
 
   // Handle background click to clear selection
@@ -627,7 +613,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
     
     // Initialize label manager with scene
-    labelManagerRef.current.setScene(scene);
+    // Simple BMC manager doesn't need scene setup
 
     // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
     const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
@@ -1133,8 +1119,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with unified BMC label manager
-              labelManagerRef.current.registerLabel("CustomerSegments", "Customer Segments", labelPlane, labelMaterial);
+              // Register with simple BMC manager
+              bmcManagerRef.current.registerLabel("CustomerSegments", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Segments label plane created`);
             }
@@ -1180,8 +1166,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with unified BMC label manager
-              labelManagerRef.current.registerLabel("KeyPartners", "Key Partners", labelPlane, labelMaterial);
+              // Register with simple BMC manager
+              bmcManagerRef.current.registerLabel("KeyPartners", labelPlane, labelMaterial);
               
               console.log(`✅ Key Partners label plane created`);
             }
@@ -1227,8 +1213,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with unified BMC label manager
-              labelManagerRef.current.registerLabel("CustomerRelationships", "Customer Relationships", labelPlane, labelMaterial);
+              // Register with simple BMC manager
+              bmcManagerRef.current.registerLabel("CustomerRelationships", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Relationships label plane created`);
             }
@@ -1274,8 +1260,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with unified BMC label manager  
-              labelManagerRef.current.registerLabel("CustomerChannels", "Channels", labelPlane, labelMaterial);
+              // Register with simple BMC manager  
+              bmcManagerRef.current.registerLabel("CustomerChannels", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Channels label plane created`);
             }
@@ -1322,8 +1308,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with unified BMC label manager
-              labelManagerRef.current.registerLabel("KeyActivities", "Key Activities", labelPlane, labelMaterial);
+              // Register with simple BMC manager
+              bmcManagerRef.current.registerLabel("KeyActivities", labelPlane, labelMaterial);
               
               console.log(`✅ Key Activities label plane created`);
             }
@@ -1370,8 +1356,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with unified BMC label manager
-              labelManagerRef.current.registerLabel("KeyResources", "Key Resources", labelPlane, labelMaterial);
+              // Register with simple BMC manager
+              bmcManagerRef.current.registerLabel("KeyResources", labelPlane, labelMaterial);
               
               console.log(`✅ Key Resources label plane created`);
             }
@@ -1418,8 +1404,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with unified BMC label manager
-              labelManagerRef.current.registerLabel("ValueProposition", "Value Propositions", labelPlane, labelMaterial);
+              // Register with simple BMC manager
+              bmcManagerRef.current.registerLabel("ValueProposition", labelPlane, labelMaterial);
               
               console.log(`✅ Value Propositions label plane created`);
               
@@ -2224,8 +2210,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Register with unified BMC label manager
-            labelManagerRef.current.registerLabel("RevenueStreams", "Revenue Streams", labelPlane, labelMaterial);
+            // Register with simple BMC manager
+            bmcManagerRef.current.registerLabel("RevenueStreams", labelPlane, labelMaterial);
             
             // Apply proportional scaling - reduced by 20% from the 2x size
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0); // 80% of 2x size (2.0 * 0.8 = 1.6, 2.6 * 0.8 = 2.08)
@@ -2408,8 +2394,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Register with unified BMC label manager
-            labelManagerRef.current.registerLabel("CostStructure", "Cost Structure", labelPlane, labelMaterial);
+            // Register with simple BMC manager
+            bmcManagerRef.current.registerLabel("CostStructure", labelPlane, labelMaterial);
             
             // Apply same proportional scaling as Revenue Streams
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
