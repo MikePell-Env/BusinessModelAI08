@@ -1279,14 +1279,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Rotate to be flat on top
               labelPlane.rotation.x = Math.PI / 2;
               
-              // Create bright material for white text
+              // Create material for PNG texture - avoid emissive texture conflicts
               const labelMaterial = new StandardMaterial("valuePropositionsLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_ValueProposition.png", scene);
               labelTexture.hasAlpha = true;
               
               labelMaterial.diffuseTexture = labelTexture;
-              labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
+              // REMOVED emissive texture/color that was causing texture corruption
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = false;
               
