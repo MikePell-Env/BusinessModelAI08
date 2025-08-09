@@ -389,6 +389,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const objectState = bmcState.getObjectState(bmcComponent);
     if (!objectState || objectState.visual.isSelected) return; // Don't hover if selected
     
+    // Clear hover state from all other objects first
+    BMC_COMPONENTS.forEach(component => {
+      if (component !== bmcComponent) {
+        const otherState = bmcState.getObjectState(component);
+        if (otherState && otherState.visual.isHovered) {
+          bmcState.updateVisualState(component, { isHovered: false });
+        }
+      }
+    });
+    
+    // Set hover state on this object
     bmcState.updateVisualState(bmcComponent, { isHovered: true });
     applyBMCVisualState();
     console.log(`💡 HOVER ENTER: ${sectionName}`);
@@ -472,13 +483,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const restoreBMCStateOnViewChange = () => {
     console.log(`🔄 Restoring BMC state after view change`);
     
-    // Get current selection from BMC state manager
-    const selectedComponent = bmcState.getSelectedObject();
+    // First, sync BMC state manager with legacy Zustand store
+    const legacySelection = getSelectedObject();
+    const bmcSelection = bmcState.getSelectedObject();
+    
+    console.log(`🔍 Syncing: legacy="${legacySelection}", BMC="${bmcSelection}"`);
+    
+    // Use legacy selection as source of truth for restoration
+    if (legacySelection) {
+      const bmcComponent = mapSectionNameToBMCComponent(legacySelection);
+      if (bmcComponent) {
+        bmcState.selectObject(bmcComponent);
+        console.log(`🔗 Synced BMC selection to "${bmcComponent}" from legacy store`);
+      }
+    } else if (bmcSelection) {
+      // If no legacy selection but BMC has one, update legacy store
+      const sectionName = mapBMCComponentToSectionName(bmcSelection);
+      setSelectedObject(sectionName);
+      console.log(`🔗 Synced legacy selection to "${sectionName}" from BMC store`);
+    }
     
     // Apply visual state based on current BMC state
     applyBMCVisualState();
     
-    console.log(`✅ BMC state restored: selected="${selectedComponent}"`);
+    const finalSelection = bmcState.getSelectedObject();
+    console.log(`✅ BMC state restored: selected="${finalSelection}"`);
   };
   
 
