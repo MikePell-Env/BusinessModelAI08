@@ -89,8 +89,14 @@ export class CleanBMCSystem {
       (item.labelMaterial.diffuseTexture as any).wrapV = 1; // CLAMP
     }
     
-    // Use higher rendering group to ensure labels render on top
-    item.label.renderingGroupId = 1; // Render after 3D objects (which are in group 0)
+    // CRITICAL: Labels must participate in normal depth testing, not render on top
+    item.label.renderingGroupId = 0; // Same group as 3D objects for proper occlusion
+    
+    // Enable proper depth testing for labels
+    if (item.labelMaterial) {
+      item.labelMaterial.needDepthPrePass = false; // Normal depth testing
+      (item.labelMaterial as any).depthFunction = 515; // Engine.LEQUAL for normal depth testing
+    }
     
     console.log(`✅ Label ${itemName} visibility enforced: visibility=${item.label.visibility}, alpha=${item.labelMaterial.alpha}, renderingGroup=${item.label.renderingGroupId}`);
   }
