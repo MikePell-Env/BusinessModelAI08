@@ -3239,7 +3239,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       {/* Header - positioned below button group */}
       <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10 text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{canvas.name}</h1>
-        <p className="text-gray-600">{canvas.description}</p>
       </div>
       
       <canvas
