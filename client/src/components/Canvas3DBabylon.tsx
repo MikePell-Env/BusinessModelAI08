@@ -2521,7 +2521,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Clean up on unmount
     return () => {
       isDisposed = true;
-      clearInterval(labelFixInterval);
+      // REMOVED: clearInterval(labelFixInterval) - CleanBMCSystem handles all label visibility
       
       // Save perspective camera state before disposing (only from perspective camera)
       if (cameraRef.current && !isOrthographic) {
