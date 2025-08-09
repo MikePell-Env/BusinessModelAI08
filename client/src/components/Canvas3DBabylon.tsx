@@ -467,21 +467,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Apply opacity to mesh
       material.alpha = targetOpacity;
       
-      // NUCLEAR OPTION: Completely decouple labels from parent mesh
-      // Make labels independent of any parent material changes
-      const allLabels = scene.meshes.filter(m => m.name && m.name.includes("Label"));
-      allLabels.forEach((label: any) => {
-        if (label.material) {
-          label.material.alpha = 1.0;
-          label.isVisible = true;
-          // Make label completely independent - no parent influence
-          if (label.parent) {
-            const originalPosition = label.getAbsolutePosition().clone();
-            label.parent = null; // Detach from parent
-            label.position = originalPosition; // Maintain position
+      // FIXED APPROACH: Use mesh.getChildren() to access labels
+      // Force all child labels to stay visible regardless of parent changes
+      if (mesh.getChildren) {
+        mesh.getChildren().forEach((child: any) => {
+          if (child.material && child.name && child.name.includes("Label")) {
+            child.material.alpha = 1.0;
+            child.isVisible = true;
           }
-        }
-      });
+        });
+      }
       
       // Apply height
       mesh.scaling.y = targetHeight;
