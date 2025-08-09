@@ -479,31 +479,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         material.diffuseColor = finalColor;
       }
       
-      material.alpha = finalOpacity;
+      // CRITICAL: Don't affect labels at all - preserve them completely
+      if ((mesh as any).name && ((mesh as any).name.includes('Label') || (mesh as any).name.includes('label'))) {
+        // This IS a label - don't change its alpha at all
+        console.log(`🏷️ SKIPPING alpha change for label: ${(mesh as any).name}`);
+      } else {
+        // Normal mesh - apply alpha
+        material.alpha = finalOpacity;
+      }
+      
       mesh.scaling.y = finalHeight;
       (mesh as any).isClicked = isSelected;
       
-      // CRITICAL: Preserve label visibility - labels should always be fully visible
+      // Also preserve all child labels
       if (mesh.getChildren) {
         mesh.getChildren().forEach((child: any) => {
-          // Check for any label-related naming patterns (exact names from the code)
-          const isLabel = child.name && (
-            child.name.includes('Label') || 
-            child.name.includes('label') ||
-            child.name === 'customerSegmentsLabel' ||
-            child.name === 'keyPartnersLabel' ||
-            child.name === 'customerRelationshipsLabel' ||
-            child.name === 'customerChannelsLabel' ||
-            child.name === 'keyActivitiesLabel' ||
-            child.name === 'keyResourcesLabel' ||
-            child.name === 'valuePropositionsLabel' ||
-            child.name === 'costStructureLabel' ||
-            child.name === 'revenueStreamsLabel'
-          );
-          
-          if (child.material && isLabel) {
-            child.material.alpha = 1.0; // Force labels to full opacity
-            console.log(`🏷️ Preserving label visibility for ${child.name} on ${sectionName}`);
+          if (child.material) {
+            child.material.alpha = 1.0; // Force ALL child objects to full opacity (labels are children)
+            console.log(`🏷️ Preserving child visibility: ${child.name} on ${sectionName}`);
           }
         });
       }
