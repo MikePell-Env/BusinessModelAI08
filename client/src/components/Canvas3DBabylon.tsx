@@ -394,13 +394,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Selected object - bright blue, full opacity, normal height
         const brightBlueColor = new Color3(0.0, 0.3, 0.8);
         
+        console.log(`🔧 APPLYING BLUE to "${sectionName}": hasTexture=${!!(mesh as any).hasTexture}, material type=${material.getClassName()}`);
+        
         if ((mesh as any).hasTexture) {
           material.emissiveColor = brightBlueColor.scale(0.3);
+          console.log(`  💡 Set emissiveColor: ${material.emissiveColor.r}, ${material.emissiveColor.g}, ${material.emissiveColor.b}`);
         } else {
           if (material.baseColor) {
             material.baseColor = brightBlueColor;
+            console.log(`  🎨 Set baseColor: ${material.baseColor.r}, ${material.baseColor.g}, ${material.baseColor.b}`);
           }
           material.diffuseColor = brightBlueColor;
+          console.log(`  🌟 Set diffuseColor: ${material.diffuseColor.r}, ${material.diffuseColor.g}, ${material.diffuseColor.b}`);
         }
         (mesh as any).isClicked = true;
         material.alpha = 1.0;
