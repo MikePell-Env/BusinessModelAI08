@@ -760,14 +760,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Rotate to lie flat on the ground
       internalLabelPlane.rotation.x = Math.PI / 2;
       
-      // Create medium grey material
+      // Create material with the new blue Internal label
       const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
-      const internalLabelTexture = new Texture("/textures/Labels_internal_1754697296780.png", scene);
+      const internalLabelTexture = new Texture("/textures/Labels_internal_blue.png", scene);
       internalLabelTexture.hasAlpha = true;
       
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
-      internalLabelMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // Medium grey instead of white
+      internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for blue label
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
       internalLabelMaterial.disableLighting = true;
       
