@@ -3070,12 +3070,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           perspectiveCamera.radius
         );
         
-        // Switch to orthographic camera - NO visual updates during switch
+        // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
+        
+        // Apply visual state after camera switch to preserve selection
+        setTimeout(() => {
+          syncBMCStateWithLegacy();
+          applyBMCVisualState();
+        }, 10); // Minimal delay just for camera switch
+        
         console.log(`✅ SWITCHED TO 3D TOP VIEW`);
       } else {
-        // Switch back to perspective camera - NO visual updates during switch
+        // Switch back to perspective camera
         scene.activeCamera = perspectiveCamera;
+        
+        // Apply visual state after camera switch to preserve selection
+        setTimeout(() => {
+          syncBMCStateWithLegacy();
+          applyBMCVisualState();
+        }, 10); // Minimal delay just for camera switch
+        
         console.log(`✅ SWITCHED TO 3D VIEW`);
       }
     }
