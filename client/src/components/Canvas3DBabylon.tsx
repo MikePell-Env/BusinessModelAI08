@@ -2583,8 +2583,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Apply visual state after camera switch
         setTimeout(() => {
-          
-          // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
+          console.log(`🔄 Triggering visual update for 3D TOP VIEW switch`);
+          cleanBMCRef.current.updateAllVisuals();
         }, 10);
         
         console.log(`✅ SWITCHED TO 3D TOP VIEW`);
@@ -2594,8 +2594,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Apply visual state after camera switch
         setTimeout(() => {
-          
-          // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
+          console.log(`🔄 Triggering visual update for 3D VIEW switch`);
+          cleanBMCRef.current.updateAllVisuals();
         }, 10);
         
         console.log(`✅ SWITCHED TO 3D VIEW`);
@@ -2639,7 +2639,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Small delay to ensure scene is ready, then restore visual state
       setTimeout(() => {
-        // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
+        console.log(`🔄 Triggering visual update for ENTERING 3D MODE`);
+        cleanBMCRef.current.updateAllVisuals();
         console.log(`✅ 3D MODE: BMC state applied`);
       }, 100);
     } else if (!is3D) {
@@ -2656,7 +2657,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Small delay to ensure camera switch is complete, then restore visual state
       setTimeout(() => {
-        // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
+        console.log(`🔄 Triggering visual update for 3D VIEW TRANSITION`);
+        cleanBMCRef.current.updateAllVisuals();
         console.log(`✅ 3D TRANSITION: BMC state restored for ${isOrthographic ? '3D Top' : '3D View'}`);
       }, 150);
     }
