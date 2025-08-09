@@ -1955,17 +1955,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             };
             
-            // Hover enter - only if not clicked AND no other object is currently selected
+            // Hover enter - respect BMC selection state
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              console.log(`🎯 HOVER DETECTED on ${sectionName}`); // Debug logging
-              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
+              console.log(`🎯 HOVER DETECTED on ${sectionName}`);
+              const bmcComponent = mapSectionNameToBMCComponent(sectionName);
+              const selectedComponent = getBMCSelectedObject();
               
-              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
+              if (!selectedComponent && bmcComponent) {
+                // No object selected - allow hover
                 updateMeshHoverEnter();
                 updateLabelHoverEnter();
                 console.log(`💡 Hover enter: ${sectionName} bright blue, all objects 100% opacity`);
-              } else if ((mesh as any).isClicked) {
-                console.log(`🔒 Hover enter: ${sectionName} already clicked - maintaining selected state`);
+              } else if (selectedComponent === bmcComponent) {
+                console.log(`🔒 Hover enter: ${sectionName} already selected - maintaining selected state`);
               } else {
                 console.log(`🚫 Hover enter: ${sectionName} blocked - another object is selected`);
               }
@@ -2000,17 +2002,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             };
             
-            // Hover exit - only restore if not clicked AND no other object is selected
+            // Hover exit - respect BMC selection state
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              console.log(`🎯 HOVER EXIT DETECTED on ${sectionName}`); // Debug logging
-              const isAnyObjectClicked = contentPanelsRef.current.some(({ mesh: otherMesh }) => (otherMesh as any).isClicked);
+              console.log(`🎯 HOVER EXIT DETECTED on ${sectionName}`);
+              const bmcComponent = mapSectionNameToBMCComponent(sectionName);
+              const selectedComponent = getBMCSelectedObject();
               
-              if (!(mesh as any).isClicked && !isAnyObjectClicked) {
+              if (!selectedComponent && bmcComponent) {
+                // No object selected - restore hover state
                 updateMeshHoverExit();
                 updateLabelHoverExit();
                 console.log(`🔄 Hover exit: ${sectionName} restored, all objects full opacity`);
-              } else if ((mesh as any).isClicked) {
-                console.log(`🔒 Hover exit: ${sectionName} clicked - maintaining visual state`);
+              } else if (selectedComponent === bmcComponent) {
+                console.log(`🔒 Hover exit: ${sectionName} selected - maintaining selected state`);
+                // Re-apply BMC visual state to ensure selection stays
+                applyBMCVisualState();
               } else {
                 console.log(`🚫 Hover exit: ${sectionName} blocked - another object is selected`);
               }
