@@ -112,16 +112,24 @@ export class SimpleBMCManager {
     obj.label.isVisible = true;
     obj.label.setEnabled(true);
 
-    // Force label material to be fully opaque and bright
+    // Force label material to be fully opaque with correct brightness
     obj.labelMaterial.alpha = 1.0;
     obj.labelMaterial.backFaceCulling = false;
     
     if (obj.labelMaterial.emissiveColor && obj.labelMaterial.emissiveTexture) {
-      obj.labelMaterial.emissiveColor.set(0.9, 0.9, 0.9);
+      // Set moderate emissive for good visibility - NOT too bright
+      obj.labelMaterial.emissiveColor.set(0.7, 0.7, 0.7);
+    }
+    
+    // Force diffuse texture alpha to be fully visible
+    if (obj.labelMaterial.diffuseTexture) {
+      (obj.labelMaterial.diffuseTexture as any).level = 1.0;
     }
     
     obj.labelMaterial.useAlphaFromDiffuseTexture = true;
     obj.labelMaterial.disableLighting = false;
+    
+    console.log(`🏷️ Label forced visible for: ${objectName}`);
   }
 
   // Set hover state for an object
