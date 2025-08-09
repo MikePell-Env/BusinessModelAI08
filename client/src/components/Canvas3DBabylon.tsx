@@ -416,8 +416,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // SIMPLIFIED VISUAL STATE: Focus only on core requirements
   const applyBMCVisualState = () => {
     const selectedComponent = bmcState.getSelectedObject();
+    console.log(`🔍 DEBUG: applyBMCVisualState - selectedComponent: ${selectedComponent}`);
+    console.log(`🔍 DEBUG: contentPanelsRef.current has ${contentPanelsRef.current?.length || 0} panels`);
     
-    contentPanelsRef.current.forEach(({ mesh, material }) => {
+    contentPanelsRef.current.forEach(({ mesh, material }, index) => {
+      console.log(`🔍 DEBUG: Processing panel ${index}: mesh=${mesh.name}, bmcSectionName=${(mesh as any).bmcSectionName}`);
       const sectionName = (mesh as any).bmcSectionName;
       const bmcComponent = mapSectionNameToBMCComponent(sectionName);
       
