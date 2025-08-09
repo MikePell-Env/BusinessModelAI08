@@ -768,7 +768,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
       internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for blue label
-      internalLabelMaterial.alpha = 0.25; // 25% transparency (50% more transparent)
+      internalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
       internalLabelMaterial.disableLighting = true;
       
@@ -805,7 +805,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       externalLabelMaterial.diffuseTexture = externalLabelTexture;
       externalLabelMaterial.emissiveTexture = externalLabelTexture;
       externalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for blue label
-      externalLabelMaterial.alpha = 0.25; // 25% transparency (50% more transparent)
+      externalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
       externalLabelMaterial.useAlphaFromDiffuseTexture = true;
       externalLabelMaterial.disableLighting = true;
       
