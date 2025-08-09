@@ -1008,7 +1008,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           2: { color: new Color3(0.07, 0.07, 0.07), name: "Customer Segments" },      // Medium Dark Grey
           3: { color: new Color3(0.07, 0.07, 0.07), name: "Key Resources" },          // Medium Dark Grey
           4: { color: new Color3(0.07, 0.07, 0.07), name: "Key Activities" },         // Medium Dark Grey
-          5: { color: new Color3(0.07, 0.07, 0.07), name: "Channels" },               // Medium Dark Grey
+          5: { color: new Color3(0.07, 0.07, 0.07), name: "Customer Channels" },      // Medium Dark Grey
           6: { color: new Color3(0.07, 0.07, 0.07), name: "Customer Relationships" }, // Medium Dark Grey
           7: { color: new Color3(0.07, 0.07, 0.07), name: "Cost Structure" },         // Fallback - Medium Dark Grey
           8: { color: new Color3(0.07, 0.07, 0.07), name: "Revenue Streams" },        // Fallback - Medium Dark Grey
@@ -1187,7 +1187,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`✅ Customer Relationships label plane created`);
             }
             
-            if (sectionName === "Channels") {
+            if (sectionName === "Customer Channels") {
               console.log(`🏷️ Creating floating label for Customer Channels mesh (index ${index})`);
               
               // Get mesh bounds for positioning
@@ -1229,8 +1229,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.isPickable = false;
               
               // Register BMC object with simple manager
-              bmcManagerRef.current.registerObject("Channels", mesh, sectionMaterial, mesh.scaling.y);
-              bmcManagerRef.current.registerLabel("Channels", labelPlane, labelMaterial);
+              bmcManagerRef.current.registerObject("Customer Channels", mesh, sectionMaterial, mesh.scaling.y);
+              bmcManagerRef.current.registerLabel("Customer Channels", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Channels label plane created`);
             }
