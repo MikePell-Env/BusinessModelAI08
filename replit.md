@@ -9,8 +9,8 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes (January 2025)
 - **App Navigation Enhancement**: Added new "Explore" page as exact copy of Home page structure
 - **Header Navigation**: Added 4-button navigation with Home/About/Team/Explore/Contact layout
-- **Content Cleanup**: Removed demo blue box and 3 video elements from Home page for cleaner layout
-- **Page Structure**: Both Home and Explore pages now use full-width layout without right column
+- **Content Cleanup**: Explore page has demo blue box and 3 video elements removed for cleaner layout
+- **Page Structure**: Home page unchanged, Explore page uses full-width layout without right column
 
 ## System Architecture
 The application employs a full-stack monorepo architecture, separating client and server concerns.
