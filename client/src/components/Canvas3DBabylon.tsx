@@ -2608,10 +2608,63 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log("✅ All selections cleared, hover behavior enabled");
     };
     
+    // EMERGENCY LABEL FIX: Force all labels visible periodically
+    const emergencyLabelFix = () => {
+      if (!scene) return;
+      
+      // Find all label meshes by name patterns
+      const labelMeshes = scene.meshes.filter((mesh: any) => 
+        mesh.name && (
+          mesh.name.includes('Label') || 
+          mesh.name.includes('label') ||
+          mesh.name.includes('customerSegmentsLabel') ||
+          mesh.name.includes('keyPartnersLabel') ||
+          mesh.name.includes('keyActivitiesLabel') ||
+          mesh.name.includes('keyResourcesLabel') ||
+          mesh.name.includes('valuePropositionsLabel') ||
+          mesh.name.includes('customerRelationshipsLabel') ||
+          mesh.name.includes('customerChannelsLabel')
+        )
+      );
+
+      let fixCount = 0;
+      labelMeshes.forEach((labelMesh: any) => {
+        if (!labelMesh.isVisible || (labelMesh.material && labelMesh.material.alpha < 1.0)) {
+          // Force visibility
+          labelMesh.isVisible = true;
+          labelMesh.setEnabled(true);
+          
+          // Force material properties
+          if (labelMesh.material) {
+            labelMesh.material.alpha = 1.0;
+            labelMesh.material.backFaceCulling = false;
+            
+            if (labelMesh.material.emissiveColor && labelMesh.material.emissiveTexture) {
+              labelMesh.material.emissiveColor.set(0.9, 0.9, 0.9);
+            }
+            
+            labelMesh.material.useAlphaFromDiffuseTexture = true;
+            labelMesh.material.disableLighting = false;
+          }
+          fixCount++;
+        }
+      });
+
+      if (fixCount > 0) {
+        console.log(`🚨 EMERGENCY FIXED: ${fixCount} labels were invisible and have been restored`);
+      }
+    };
+    
     // Clear selections immediately to ensure hover works
     setTimeout(() => {
       clearAllSelections();
     }, 1000);
+    
+    // Run emergency label fix every 2 seconds to catch invisible labels
+    const labelFixInterval = setInterval(emergencyLabelFix, 2000);
+    
+    // Initial emergency fix after 3 seconds
+    setTimeout(emergencyLabelFix, 3000);
     
     // Only restore selection state if user explicitly had something selected and heights are available
     // This prevents blocking hover behavior on initial load
@@ -2639,6 +2692,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Clean up on unmount
     return () => {
       isDisposed = true;
+      clearInterval(labelFixInterval);
       
       // Save perspective camera state before disposing (only from perspective camera)
       if (cameraRef.current && !isOrthographic) {
