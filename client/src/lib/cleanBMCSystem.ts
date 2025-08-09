@@ -48,8 +48,13 @@ export class CleanBMCSystem {
   // Make a label always visible at 100% opacity - NEVER change label opacity
   private makeLabelVisible(itemName: string) {
     const item = this.items.get(itemName);
-    if (!item?.label || !item?.labelMaterial) return;
+    if (!item?.label || !item?.labelMaterial) {
+      console.warn(`⚠️ Cannot make label visible - missing label or material for: ${itemName}`);
+      return;
+    }
 
+    console.log(`🔧 Making label visible for: ${itemName}, current alpha: ${item.labelMaterial.alpha}`);
+    
     // FORCE label visibility - NEVER change opacity from 100%
     item.label.isVisible = true;
     item.label.setEnabled(true);
@@ -75,6 +80,8 @@ export class CleanBMCSystem {
       (item.labelMaterial.diffuseTexture as any).level = 1.0;
       (item.labelMaterial.diffuseTexture as any).hasAlpha = true;
     }
+    
+    console.log(`✅ Label ${itemName} visibility enforced: alpha=${item.labelMaterial.alpha}, visible=${item.label.isVisible}, enabled=${item.label.isEnabled()}`);
   }
 
   // Set default appearance for an item
@@ -136,7 +143,16 @@ export class CleanBMCSystem {
 
   // Update all visual states based on current selection
   private updateAllVisuals() {
+    console.log(`🎨 Updating all visuals, selected: ${this.selectedItem}`);
+    
     this.items.forEach((item, name) => {
+      console.log(`🎨 Processing ${name}:`, {
+        isSelected: name === this.selectedItem,
+        hasLabel: !!item.label,
+        hasMaterial: !!item.labelMaterial,
+        currentAlpha: item.labelMaterial?.alpha
+      });
+      
       // ALWAYS update labels FIRST to ensure they stay visible
       this.makeLabelVisible(name);
       
@@ -145,16 +161,19 @@ export class CleanBMCSystem {
         item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
         item.material.alpha = 1.0;
         item.mesh.scaling.y = item.originalHeight;
+        console.log(`🔵 ${name} SELECTED: blue, height=${item.originalHeight}`);
       } else if (this.selectedItem) {
         // Others when selected: dim object, flattened object - BUT LABELS STAY 100%
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
         item.material.alpha = 0.5; // Only affects the 3D object, NOT the label
         item.mesh.scaling.y = 0.1;
+        console.log(`⚫ ${name} dimmed: grey, height=0.1, LABEL SHOULD STAY VISIBLE`);
       } else {
         // Default state
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
         item.material.alpha = 1.0;
         item.mesh.scaling.y = item.originalHeight;
+        console.log(`🔘 ${name} default: grey, height=${item.originalHeight}`);
       }
       
       // CRITICAL: Force label visibility again after any material changes
@@ -184,11 +203,14 @@ export class CleanBMCSystem {
     });
   }
 
-  // Force all labels visible
+  // Force all labels visible with debug logging
   forceAllLabelsVisible() {
+    console.log(`🚨 FORCE ALL LABELS VISIBLE - Processing ${this.items.size} items`);
     this.items.forEach((item, name) => {
+      console.log(`🚨 Forcing visibility for: ${name}`);
       this.makeLabelVisible(name);
     });
+    console.log(`🚨 FORCE COMPLETE`);
   }
 
   // Get all registered items
