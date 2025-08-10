@@ -490,105 +490,88 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     orthoCamera.minZ = 0.1;
     orthoCamera.maxZ = 100;
     
-    // Configure orthographic camera for constrained interaction
+    // Disable rotation controls for pure top-down view
     orthoCamera.inputs.clear();
     
-    // Add custom input for mouse wheel zoom and constrained panning
-    const orthoInput = {
-      camera: orthoCamera,
-      getClassName: () => "OrthographicConstrainedInput",
+    // Add direct event handlers for orthographic camera controls
+    let orthoEventHandlers: any = null;
+    
+    const setupOrthoControls = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
       
-      attachControl: (noPreventDefault?: boolean) => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+      // Mouse wheel zoom
+      const onWheel = (event: WheelEvent) => {
+        event.preventDefault();
+        const delta = event.deltaY > 0 ? 1.1 : 0.9;
+        const currentSize = orthoCamera.orthoTop || 8.5;
+        const newSize = Math.max(2, Math.min(15, currentSize * delta)); // Constrain zoom range
         
-        // Mouse wheel zoom
-        const onWheel = (event: WheelEvent) => {
-          event.preventDefault();
-          const delta = event.deltaY > 0 ? 1.1 : 0.9;
-          const currentSize = orthoCamera.orthoTop || 8.5;
-          const newSize = Math.max(2, Math.min(15, currentSize * delta)); // Constrain zoom range
-          
-          // Update orthographic bounds while maintaining aspect ratio
-          const aspectRatio = canvas.width / canvas.height;
-          if (aspectRatio > 1) {
-            orthoCamera.orthoTop = newSize;
-            orthoCamera.orthoBottom = -newSize;
-            orthoCamera.orthoLeft = -newSize * aspectRatio;
-            orthoCamera.orthoRight = newSize * aspectRatio;
-          } else {
-            orthoCamera.orthoTop = newSize / aspectRatio;
-            orthoCamera.orthoBottom = -newSize / aspectRatio;
-            orthoCamera.orthoLeft = -newSize;
-            orthoCamera.orthoRight = newSize;
-          }
-        };
-        
-        // Mouse drag for constrained panning (left/right only)
-        let isDragging = false;
-        let lastX = 0;
-        
-        const onMouseDown = (event: MouseEvent) => {
-          if (event.button === 0) { // Left mouse button
-            isDragging = true;
-            lastX = event.clientX;
-            event.preventDefault();
-          }
-        };
-        
-        const onMouseMove = (event: MouseEvent) => {
-          if (!isDragging) return;
-          
-          const deltaX = event.clientX - lastX;
-          const sensitivity = 0.01;
-          const translation = deltaX * sensitivity;
-          
-          // Move camera left/right only (X-axis translation)
-          orthoCamera.position.x -= translation;
-          
+        // Update orthographic bounds while maintaining aspect ratio
+        const aspectRatio = canvas.width / canvas.height;
+        if (aspectRatio > 1) {
+          orthoCamera.orthoTop = newSize;
+          orthoCamera.orthoBottom = -newSize;
+          orthoCamera.orthoLeft = -newSize * aspectRatio;
+          orthoCamera.orthoRight = newSize * aspectRatio;
+        } else {
+          orthoCamera.orthoTop = newSize / aspectRatio;
+          orthoCamera.orthoBottom = -newSize / aspectRatio;
+          orthoCamera.orthoLeft = -newSize;
+          orthoCamera.orthoRight = newSize;
+        }
+      };
+      
+      // Mouse drag for constrained panning (left/right only)
+      let isDragging = false;
+      let lastX = 0;
+      
+      const onMouseDown = (event: MouseEvent) => {
+        if (event.button === 0) { // Left mouse button
+          isDragging = true;
           lastX = event.clientX;
           event.preventDefault();
-        };
-        
-        const onMouseUp = (event: MouseEvent) => {
-          isDragging = false;
-        };
-        
-        canvas.addEventListener('wheel', onWheel, { passive: false });
-        canvas.addEventListener('mousedown', onMouseDown);
-        canvas.addEventListener('mousemove', onMouseMove);
-        canvas.addEventListener('mouseup', onMouseUp);
-        canvas.addEventListener('mouseleave', onMouseUp); // Stop dragging if mouse leaves canvas
-        
-        // Store event listeners for cleanup
-        (orthoInput as any)._wheelHandler = onWheel;
-        (orthoInput as any)._mouseDownHandler = onMouseDown;
-        (orthoInput as any)._mouseMoveHandler = onMouseMove;
-        (orthoInput as any)._mouseUpHandler = onMouseUp;
-      },
-      
-      detachControl: () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        
-        if ((orthoInput as any)._wheelHandler) {
-          canvas.removeEventListener('wheel', (orthoInput as any)._wheelHandler);
-          canvas.removeEventListener('mousedown', (orthoInput as any)._mouseDownHandler);
-          canvas.removeEventListener('mousemove', (orthoInput as any)._mouseMoveHandler);
-          canvas.removeEventListener('mouseup', (orthoInput as any)._mouseUpHandler);
-          canvas.removeEventListener('mouseleave', (orthoInput as any)._mouseUpHandler);
         }
-      },
+      };
       
-      checkInputs: () => {
-        // No continuous input checking needed for this implementation
-      }
+      const onMouseMove = (event: MouseEvent) => {
+        if (!isDragging) return;
+        
+        const deltaX = event.clientX - lastX;
+        const sensitivity = 0.01;
+        const translation = deltaX * sensitivity;
+        
+        // Move camera left/right only (X-axis translation)
+        orthoCamera.position.x -= translation;
+        
+        lastX = event.clientX;
+        event.preventDefault();
+      };
+      
+      const onMouseUp = (event: MouseEvent) => {
+        isDragging = false;
+      };
+      
+      canvas.addEventListener('wheel', onWheel, { passive: false });
+      canvas.addEventListener('mousedown', onMouseDown);
+      canvas.addEventListener('mousemove', onMouseMove);
+      canvas.addEventListener('mouseup', onMouseUp);
+      canvas.addEventListener('mouseleave', onMouseUp);
+      
+      // Store handlers for cleanup
+      orthoEventHandlers = {
+        wheel: onWheel,
+        mousedown: onMouseDown,
+        mousemove: onMouseMove,
+        mouseup: onMouseUp,
+        canvas: canvas
+      };
+      
+      console.log("🎯 Orthographic camera controls configured (zoom + constrained panning)");
     };
     
-    // Add the custom input to the camera
-    orthoCamera.inputs.add(orthoInput);
-    
-    console.log("🎯 Orthographic camera configured with zoom and constrained panning");
+    // Setup controls when camera is active
+    setupOrthoControls();
     
     // Store camera references
     cameraRef.current = perspectiveCamera;
@@ -2774,6 +2757,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     return () => {
       isDisposed = true;
       // REMOVED: clearInterval(labelFixInterval) - CleanBMCSystem handles all label visibility
+      
+      // Clean up orthographic camera event handlers
+      if (orthoEventHandlers && orthoEventHandlers.canvas) {
+        const canvas = orthoEventHandlers.canvas;
+        canvas.removeEventListener('wheel', orthoEventHandlers.wheel);
+        canvas.removeEventListener('mousedown', orthoEventHandlers.mousedown);
+        canvas.removeEventListener('mousemove', orthoEventHandlers.mousemove);
+        canvas.removeEventListener('mouseup', orthoEventHandlers.mouseup);
+        canvas.removeEventListener('mouseleave', orthoEventHandlers.mouseup);
+        orthoEventHandlers = null;
+      }
       
       // Save perspective camera state before disposing (only from perspective camera)
       if (cameraRef.current && !isOrthographic) {
