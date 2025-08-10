@@ -555,11 +555,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     groundMaterial.alpha = 0.5; // 50% opacity
     ground.material = groundMaterial;
 
-    // Add click detection to ground for clearing selections
+    // Add click detection to ground for clearing selections and closing panels
     ground.actionManager = new ActionManager(scene);
     ground.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-      // Use new BMC background click handler
-      handleBackgroundClick();
+      console.log('Ground clicked - clearing selection and closing billboard panel');
+      
+      // Clear BMC selection
+      cleanBMCRef.current.clearSelection();
+      
+      // Close billboard panel if it exists
+      if (currentBillboardPanel) {
+        advancedTexture.removeControl(currentBillboardPanel);
+        currentBillboardPanel = null;
+        billboardPanelRef.current = null;
+        console.log("❌ Billboard panel closed by ground click");
+      }
     }));
 
     // Create extruded border rails on all sides
@@ -652,46 +662,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
     
-    // Add global pointer observer to detect double-clicks outside of GUI panels
-    scene.onPointerObservable.add((pointerInfo) => {
-      if (pointerInfo.type === PointerEventTypes.POINTERDOUBLETAP) {
-        // Check if we have a billboard panel open
-        if (currentBillboardPanel) {
-          // Check if the double-click was on a BMC mesh or background
-          const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
-          const isBMCMesh = pickedMesh && (pickedMesh as any).bmcSectionName;
-          
-          // If double-click is outside current panel area, close it immediately
-          if (pickedMesh?.name === "ground" || !pickedMesh || pickedMesh.name === "__root__" || isBMCMesh) {
-            advancedTexture.removeControl(currentBillboardPanel);
-            currentBillboardPanel = null;
-            billboardPanelRef.current = null;
-            console.log("❌ Billboard panel closed by double-click outside panel");
-          }
-        }
-      }
-      
-      // Also handle single clicks for background clearing
-      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-        // Check if we have a billboard panel open
-        if (currentBillboardPanel) {
-          // Check if the click was on background only (not BMC mesh)
-          const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
-          const isBMCMesh = pickedMesh && (pickedMesh as any).bmcSectionName;
-          
-          // If click is on background/ground only, close the panel
-          if (!isBMCMesh && pointerInfo.pickInfo?.hit) {
-            if (pickedMesh?.name === "ground" || !pickedMesh || pickedMesh.name === "__root__") {
-              advancedTexture.removeControl(currentBillboardPanel);
-              currentBillboardPanel = null;
-              billboardPanelRef.current = null;
-              cleanBMCRef.current.clearSelection();
-              console.log("❌ Billboard panel closed by click outside panel");
-            }
-          }
-        }
-      }
-    });
+    // Background click handling for panel closure (simplified approach)
+    // Using ActionManager on ground mesh instead of scene-level observer to avoid camera conflicts
     
     // Function to create billboarded content panel
     const createBillboardPanel = (sectionName: string, worldPosition: Vector3) => {
