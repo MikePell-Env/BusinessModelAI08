@@ -657,6 +657,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
     
+    // Add global pointer observer to detect clicks outside of GUI panels
+    scene.onPointerObservable.add((pointerInfo) => {
+      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+        // Check if we have a billboard panel open
+        if (currentBillboardPanel) {
+          // Check if the click was on a BMC mesh or GUI element
+          const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
+          const isBMCMesh = pickedMesh && (pickedMesh as any).bmcSectionName;
+          
+          // If click is not on a BMC mesh or GUI, close the panel
+          if (!isBMCMesh && pointerInfo.pickInfo?.hit) {
+            // Additional check: make sure it's a background/ground click
+            if (pickedMesh?.name === "ground" || !pickedMesh || pickedMesh.name === "__root__") {
+              advancedTexture.removeControl(currentBillboardPanel);
+              currentBillboardPanel = null;
+              billboardPanelRef.current = null;
+              cleanBMCRef.current.clearSelection();
+              console.log("❌ Billboard panel closed by click outside panel");
+            }
+          }
+        }
+      }
+    });
+    
     // Function to create billboarded content panel
     const createBillboardPanel = (sectionName: string, worldPosition: Vector3) => {
       // Remove existing panel if any
@@ -702,8 +726,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       panel.thickness = 2;
       panel.background = "white";
       
-      // Position panel to the right of the 3D object
-      panel.leftInPixels = 50; // Offset from object
+      // Position panel closer to the 3D object
+      panel.leftInPixels = 20; // Closer offset from object
       panel.topInPixels = -panel.heightInPixels / 2;
       
       // Create header with section title
@@ -723,22 +747,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       headerRect.addControl(titleText);
       
       // Create close button
-      const closeButton = new Rectangle();
-      closeButton.widthInPixels = 30;
-      closeButton.heightInPixels = 30;
-      closeButton.cornerRadius = 15;
-      closeButton.color = "#dc3545";
-      closeButton.background = "#dc3545";
+      const closeButton = new TextBlock();
+      closeButton.text = "X";
+      closeButton.color = "#666666"; // Gray color
+      closeButton.fontSize = 16;
+      closeButton.fontWeight = "bold";
+      closeButton.widthInPixels = 20;
+      closeButton.heightInPixels = 20;
       closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-      closeButton.leftInPixels = -15;
-      closeButton.topInPixels = -panel.heightInPixels / 2 + 22;
-      
-      const closeText = new TextBlock();
-      closeText.text = "✕";
-      closeText.color = "white";
-      closeText.fontSize = 14;
-      closeText.fontWeight = "bold";
-      closeButton.addControl(closeText);
+      closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      closeButton.leftInPixels = -10;
+      closeButton.topInPixels = 5;
+      closeButton.isPointerBlocker = true;
       
       // Create content area with bullet points
       const contentText = new TextBlock();
@@ -759,14 +779,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       panel.addControl(closeButton);
       panel.addControl(contentText);
       
-      // Make panel billboard (always face camera)
+      // Make panel clickable to prevent background clicks from closing it
+      panel.isPointerBlocker = true;
+      
+      // Make panel billboard (always face camera) positioned closer to object
       const billboardTransform = new TransformNode("billboardTransform", scene);
       billboardTransform.position = worldPosition.clone();
-      billboardTransform.position.y += 2; // Offset above object
+      billboardTransform.position.y += 1; // Closer offset above object
       
       // Connect GUI to 3D position
       panel.linkWithMesh(billboardTransform);
-      panel.linkOffsetY = -50; // Slight vertical offset
+      panel.linkOffsetY = -30; // Closer vertical offset
       
       // Close button functionality
       closeButton.onPointerClickObservable.add(() => {
@@ -1932,15 +1955,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`⚡ Double-click: ${sectionName} billboard panel created and object selected`);
             }));
             
-            // Click - use unified BMC selection system and show billboard panel
+            // Click - use unified BMC selection system (no billboard panel on single click)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
               console.log(`🎯 3D Click on: ${sectionName}`);
-              
-              // Get mesh world position for billboard placement
-              const meshWorldPosition = mesh.getAbsolutePosition();
-              
-              // Create billboard panel with section content
-              createBillboardPanel(sectionName, meshWorldPosition);
               
               // Delegate to CleanBMCSystem which delegates to BMC State Manager
               cleanBMCRef.current.onSelect(sectionName);
@@ -2205,12 +2222,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
               console.log(`🎯 3D Click on: Revenue Streams`);
               
-              // Get mesh world position for billboard placement
-              const meshWorldPosition = mesh.getAbsolutePosition();
-              
-              // Create billboard panel with section content
-              createBillboardPanel("Revenue Streams", meshWorldPosition);
-              
               // Use new BMC object click handler
               handleBMCObjectClick("Revenue Streams");
             }));
@@ -2397,12 +2408,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Add selection (click) behavior for Cost Structure using new BMC system
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
               console.log(`🎯 3D Click on: Cost Structure`);
-              
-              // Get mesh world position for billboard placement
-              const meshWorldPosition = mesh.getAbsolutePosition();
-              
-              // Create billboard panel with section content
-              createBillboardPanel("Cost Structure", meshWorldPosition);
               
               // Use new BMC object click handler
               handleBMCObjectClick("Cost Structure");
