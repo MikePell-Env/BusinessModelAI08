@@ -1895,12 +1895,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const handleDoubleClick = () => {
               console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON ${sectionName} ⚡⚡`);
               
-              // First ensure object is selected and all others are deselected
-              if (cleanBMCRef.current) {
-                cleanBMCRef.current.onSelect(sectionName);
-                console.log(`✅ Object ${sectionName} selected via double-click - all others deselected`);
-              }
-              
               // Close any existing panel first
               if (currentBillboardPanel) {
                 advancedTexture.removeControl(currentBillboardPanel);
@@ -1909,13 +1903,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log("❌ Previous billboard panel closed by new double-click");
               }
               
+              // STEP 1: Ensure object is selected and all others are deselected
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect(sectionName);
+                console.log(`✅ Object ${sectionName} selected via double-click - all others deselected`);
+              }
+              
               // Get mesh world position for billboard placement
               const meshWorldPosition = mesh.getAbsolutePosition();
               console.log(`🎯 Mesh position for panel: ${meshWorldPosition.x.toFixed(2)}, ${meshWorldPosition.y.toFixed(2)}, ${meshWorldPosition.z.toFixed(2)}`);
               
-              // Create billboard panel with section content
+              // STEP 2: Create billboard panel with section content
               console.log(`🚀 About to create billboard panel for: ${sectionName}`);
               createBillboardPanel(sectionName, meshWorldPosition);
+              
+              // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation
+              // Panel creation might interfere with visual state, so re-apply selection
+              setTimeout(() => {
+                if (cleanBMCRef.current) {
+                  cleanBMCRef.current.onSelect(sectionName);
+                  console.log(`🔄 Re-applied selection highlighting for ${sectionName} after panel creation`);
+                }
+              }, 50); // Small delay to let panel creation complete
               
               console.log(`⚡ Double-click: ${sectionName} selected and billboard panel created`);
             };
@@ -2185,12 +2194,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const handleRevenueDoubleClick = () => {
               console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON Revenue Streams ⚡⚡`);
               
-              // First ensure object is selected and all others are deselected
-              if (cleanBMCRef.current) {
-                cleanBMCRef.current.onSelect("Revenue Streams");
-                console.log(`✅ Object Revenue Streams selected via double-click - all others deselected`);
-              }
-              
               // Close any existing panel first
               if (currentBillboardPanel) {
                 advancedTexture.removeControl(currentBillboardPanel);
@@ -2199,13 +2202,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log("❌ Previous billboard panel closed by new double-click");
               }
               
+              // STEP 1: Ensure object is selected and all others are deselected
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Revenue Streams");
+                console.log(`✅ Object Revenue Streams selected via double-click - all others deselected`);
+              }
+              
               // Get mesh world position for billboard placement
               const meshWorldPosition = mesh.getAbsolutePosition();
               console.log(`🎯 Revenue Streams mesh position: ${meshWorldPosition.x.toFixed(2)}, ${meshWorldPosition.y.toFixed(2)}, ${meshWorldPosition.z.toFixed(2)}`);
               
-              // Create billboard panel with section content
+              // STEP 2: Create billboard panel with section content
               console.log(`🚀 About to create billboard panel for Revenue Streams`);
               createBillboardPanel("Revenue Streams", meshWorldPosition);
+              
+              // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation
+              setTimeout(() => {
+                if (cleanBMCRef.current) {
+                  cleanBMCRef.current.onSelect("Revenue Streams");
+                  console.log(`🔄 Re-applied selection highlighting for Revenue Streams after panel creation`);
+                }
+              }, 50);
               
               console.log(`⚡ Revenue Streams billboard panel creation completed`);
             };
@@ -2388,12 +2405,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const handleCostDoubleClick = () => {
               console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON Cost Structure ⚡⚡`);
               
-              // First ensure object is selected and all others are deselected
-              if (cleanBMCRef.current) {
-                cleanBMCRef.current.onSelect("Cost Structure");
-                console.log(`✅ Object Cost Structure selected via double-click - all others deselected`);
-              }
-              
               // Close any existing panel first
               if (currentBillboardPanel) {
                 advancedTexture.removeControl(currentBillboardPanel);
@@ -2402,13 +2413,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log("❌ Previous billboard panel closed by new double-click");
               }
               
+              // STEP 1: Ensure object is selected and all others are deselected
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Cost Structure");
+                console.log(`✅ Object Cost Structure selected via double-click - all others deselected`);
+              }
+              
               // Get mesh world position for billboard placement
               const meshWorldPosition = mesh.getAbsolutePosition();
               console.log(`🎯 Cost Structure mesh position: ${meshWorldPosition.x.toFixed(2)}, ${meshWorldPosition.y.toFixed(2)}, ${meshWorldPosition.z.toFixed(2)}`);
               
-              // Create billboard panel with section content
+              // STEP 2: Create billboard panel with section content
               console.log(`🚀 About to create billboard panel for Cost Structure`);
               createBillboardPanel("Cost Structure", meshWorldPosition);
+              
+              // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation
+              setTimeout(() => {
+                if (cleanBMCRef.current) {
+                  cleanBMCRef.current.onSelect("Cost Structure");
+                  console.log(`🔄 Re-applied selection highlighting for Cost Structure after panel creation`);
+                }
+              }, 50);
               
               console.log(`⚡ Cost Structure billboard panel creation completed`);
             };
