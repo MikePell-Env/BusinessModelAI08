@@ -1868,6 +1868,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager = new ActionManager(scene);
             mesh.isPickable = true; // Ensure mesh is pickable for hover/click
             console.log(`🎯 ${sectionName}: ActionManager and pickable state enabled`);
+            console.log(`🎯 ${sectionName}: Mesh ready for double-click detection`);
+            console.log(`🔍 ${sectionName}: Mesh isPickable=${mesh.isPickable}, has ActionManager=${!!mesh.actionManager}`);
             
             // Unified hover handlers using BMC state manager
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
@@ -1914,7 +1916,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Click - use unified BMC selection system (no billboard panel on single click)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯 3D Click on: ${sectionName}`);
+              console.log(`🎯🎯 SINGLE CLICK DETECTED ON ${sectionName} 🎯🎯`);
               
               // Delegate to CleanBMCSystem which delegates to BMC State Manager
               cleanBMCRef.current.onSelect(sectionName);
