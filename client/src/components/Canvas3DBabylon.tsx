@@ -224,6 +224,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const orthoCameraRef = useRef<FreeCamera | null>(null);
   const rootMeshRef = useRef<AbstractMesh | null>(null);
+  const orthoEventHandlersRef = useRef<any>(null);
   const { 
     saveCamera3DState, 
     getCamera3DState, 
@@ -493,8 +494,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Disable rotation controls for pure top-down view
     orthoCamera.inputs.clear();
     
-    // Add direct event handlers for orthographic camera controls
-    let orthoEventHandlers: any = null;
+    // Add direct event handlers for orthographic camera controls (using ref for cross-useEffect access)
     
     const setupOrthoControls = () => {
       const canvas = canvasRef.current;
@@ -564,8 +564,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       canvas.addEventListener('mouseup', onMouseUp, true); // Use capture phase
       canvas.addEventListener('mouseleave', onMouseUp, true); // Use capture phase
       
-      // Store handlers for cleanup
-      orthoEventHandlers = {
+      // Store handlers for cleanup in ref
+      orthoEventHandlersRef.current = {
         wheel: onWheel,
         mousedown: onMouseDown,
         mousemove: onMouseMove,
@@ -2765,14 +2765,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // REMOVED: clearInterval(labelFixInterval) - CleanBMCSystem handles all label visibility
       
       // Clean up orthographic camera event handlers
-      if (orthoEventHandlers && orthoEventHandlers.canvas) {
-        const canvas = orthoEventHandlers.canvas;
-        canvas.removeEventListener('wheel', orthoEventHandlers.wheel);
-        canvas.removeEventListener('mousedown', orthoEventHandlers.mousedown, true);
-        canvas.removeEventListener('mousemove', orthoEventHandlers.mousemove, true);
-        canvas.removeEventListener('mouseup', orthoEventHandlers.mouseup, true);
-        canvas.removeEventListener('mouseleave', orthoEventHandlers.mouseup, true);
-        orthoEventHandlers = null;
+      if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
+        const canvas = orthoEventHandlersRef.current.canvas;
+        canvas.removeEventListener('wheel', orthoEventHandlersRef.current.wheel);
+        canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+        canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
+        canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+        canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+        orthoEventHandlersRef.current = null;
       }
       
       // Save perspective camera state before disposing (only from perspective camera)
@@ -2823,19 +2823,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         scene.activeCamera = orthoCamera;
         
         // Re-setup orthographic controls when switching to 3D Top view
-        if (orthoEventHandlers && orthoEventHandlers.canvas) {
-          const canvas = orthoEventHandlers.canvas;
+        if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
+          const canvas = orthoEventHandlersRef.current.canvas;
           // Remove old handlers first
-          canvas.removeEventListener('mousedown', orthoEventHandlers.mousedown, true);
-          canvas.removeEventListener('mousemove', orthoEventHandlers.mousemove, true);
-          canvas.removeEventListener('mouseup', orthoEventHandlers.mouseup, true);
-          canvas.removeEventListener('mouseleave', orthoEventHandlers.mouseup, true);
+          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+          canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
+          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
           
           // Re-add handlers to ensure they're active
-          canvas.addEventListener('mousedown', orthoEventHandlers.mousedown, true);
-          canvas.addEventListener('mousemove', orthoEventHandlers.mousemove, true);
-          canvas.addEventListener('mouseup', orthoEventHandlers.mouseup, true);
-          canvas.addEventListener('mouseleave', orthoEventHandlers.mouseup, true);
+          canvas.addEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+          canvas.addEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
+          canvas.addEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+          canvas.addEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
           
           console.log("🎯 Orthographic controls re-activated for 3D Top view");
         }
@@ -2850,12 +2850,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.log(`✅ SWITCHED TO 3D TOP VIEW`);
       } else {
         // Disable orthographic controls when switching away
-        if (orthoEventHandlers && orthoEventHandlers.canvas) {
-          const canvas = orthoEventHandlers.canvas;
-          canvas.removeEventListener('mousedown', orthoEventHandlers.mousedown, true);
-          canvas.removeEventListener('mousemove', orthoEventHandlers.mousemove, true);
-          canvas.removeEventListener('mouseup', orthoEventHandlers.mouseup, true);
-          canvas.removeEventListener('mouseleave', orthoEventHandlers.mouseup, true);
+        if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
+          const canvas = orthoEventHandlersRef.current.canvas;
+          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+          canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
+          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
           
           console.log("🎯 Orthographic controls disabled for 3D View");
         }
