@@ -30,6 +30,7 @@ The application employs a full-stack monorepo architecture, separating client an
 - **3D Interaction System**: Implements consistent single-click selection (highlighting selected object, fading others) and double-click to display content panels. Hover effects are consistent across all BMC objects. State restoration logic ensures selection persistence across view transitions.
 - **Unified BMC Management Architecture**: Integrates all BMC components (state management, label visibility, material handling) under a single architecture for consistent visual state changes and label preservation.
 - **Data-Driven Animation Architecture**: Planned system to replace hardcoded animations with a scalable data-binding engine, supporting real-time data integration from Microsoft Office documents and business metrics. This involves a unified animation manager, color transition system, and data binding foundation.
+- **Material Management System Design**: Identified critical material system flaws - scattered material creation, no reuse, inconsistent material types, hardcoded texture paths. Designed unified BabylonMaterialManager with material presets (wood, metal, plastic, glass), texture atlas system, and data-driven material binding for business visualizations.
 - **Deployment Strategy**: Frontend built with Vite to `dist/public`, backend bundled with ESBuild to `dist/index.js`. Utilizes environment variables for database connection and AI API keys. Drizzle ORM manages database schema and migrations.
 
 ## External Dependencies
@@ -59,3 +60,41 @@ The application employs a full-stack monorepo architecture, separating client an
 
 ### Other Integrations
 - **PowerPoint Import**: Utilizes JSZip and XML parsing for importing content from PowerPoint files, with enhanced text extraction and content filtering.
+
+## Material Management System Architecture
+
+### Current Material System Problems (January 10, 2025)
+**Identified Issues:**
+- Scattered material creation throughout 3,076 lines of Canvas3DBabylon.tsx
+- No material reuse - each object creates individual material instances (memory inefficient)
+- Inconsistent material types - mix of StandardMaterial and PBRMetallicRoughnessMaterial
+- Hardcoded texture paths scattered throughout code ("/textures/Label_CustomerSegments.png")
+- No material preset system for business visualization looks (wood, metal, plastic, glass)
+- Difficult to apply consistent visual themes across BMC objects
+- Previous wood texture implementation required complex texture mapping
+
+### Available Texture Resources
+**Basic Textures:** wood.jpg, grass.png, sand.jpg, asphalt.png, sky.png
+**Label Textures:** Complete set of BMC section labels with transparency
+**Grid Overlays:** Ground patterns and divider textures
+
+### BabylonMaterialManager Architecture
+**Core Features:**
+- Material preset system with business visualization themes
+- Texture atlas management for GPU performance optimization
+- Data-driven material binding for real-time business metrics visualization
+- Material caching and memory management
+- Smooth material transitions integrated with animation system
+
+**Implementation Phases:**
+1. **Material Manager Foundation** (30 minutes): Caching system, preset library, texture atlas
+2. **Animation Integration** (15 minutes): Real-time material property changes based on business data
+3. **Advanced Effects** (Future): Procedural materials, shader-based data flow visualization
+
+**Business Material Themes:**
+- High Performance: Polished metal materials
+- Medium Performance: Clean plastic materials
+- Low Performance: Rough wood textures requiring improvement
+- Growth Areas: Transparent glass materials
+- Cost Centers: Soft fabric textures
+- Revenue Generators: Shiny metallic finishes
