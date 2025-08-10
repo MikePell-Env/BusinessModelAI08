@@ -718,10 +718,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         height: 10.0  // Reduced height to fit within ground plane with equal margins
       }, scene);
       
-      // Position to center within ground plane with equal top/bottom margins
+      // Position slid up toward the top of the ground plane
       verticalDividerPlane.position.x = 0.0;   // Center line (X=0)
       verticalDividerPlane.position.y = 0.001; // Directly on ground plane surface
-      verticalDividerPlane.position.z = -3.0;  // Adjusted to center with equal margins top/bottom
+      verticalDividerPlane.position.z = -1.5;  // Moved up toward top (more negative Z)
       
       // Rotate to lie flat on the ground
       verticalDividerPlane.rotation.x = Math.PI / 2;
