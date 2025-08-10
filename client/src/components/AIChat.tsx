@@ -151,18 +151,22 @@ export const AIChat: React.FC = () => {
         console.log('🔄 Current view state:', { is3D, isOrthographic });
         
         // Switch to 3D View mode using the proper method
-        console.log('🔄 Calling switchBMCView with view3DPerspective...');
+        console.log('🔄 Calling toggleView as primary method...');
+        toggleView();
+        
+        // Alternative: try switchBMCView if toggleView doesn't work
+        console.log('🔄 Also calling switchBMCView with view3DPerspective...');
         switchBMCView('view3DPerspective');
         
-        // Immediately check if the view switched
+        // Check if the view switched after a short delay
         setTimeout(() => {
-          console.log('🔍 Checking if view switched...');
-          // Force view switch using toggleView as backup if needed
+          console.log('🔍 Checking if view switched... Current is3D:', is3D);
           if (!is3D) {
-            console.log('⚠️ switchBMCView failed, using toggleView as backup...');
-            toggleView();
+            console.log('⚠️ View switch may have failed, current state is still 2D');
+          } else {
+            console.log('✅ Successfully switched to 3D View!');
           }
-        }, 200);
+        }, 300);
         
         // Add a system message to indicate the action
         const systemMessage: ChatMessage = {
