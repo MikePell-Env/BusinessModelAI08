@@ -531,7 +531,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           isDragging = true;
           lastX = event.clientX;
           event.preventDefault();
-          console.log(`🖱️ Ortho pan started at X: ${event.clientX}`);
+          event.stopPropagation();
+          console.log(`🖱️ Ortho pan started at X: ${event.clientX}, camera.x: ${orthoCamera.position.x.toFixed(3)}`);
         }
       };
       
@@ -543,12 +544,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const translation = deltaX * sensitivity;
         
         // Move camera left/right only (X-axis translation)
+        const oldX = orthoCamera.position.x;
         orthoCamera.position.x -= translation;
         
-        console.log(`🖱️ Ortho panning: deltaX=${deltaX}, translation=${translation.toFixed(3)}, camera.x=${orthoCamera.position.x.toFixed(3)}`);
+        // Also update the target for proper panning behavior
+        const target = orthoCamera.getTarget();
+        target.x -= translation;
+        orthoCamera.setTarget(target);
+        
+        console.log(`🖱️ Ortho panning: deltaX=${deltaX}, translation=${translation.toFixed(3)}, camera.x=${oldX.toFixed(3)} -> ${orthoCamera.position.x.toFixed(3)}, target.x=${target.x.toFixed(3)}`);
         
         lastX = event.clientX;
         event.preventDefault();
+        event.stopPropagation();
       };
       
       const onMouseUp = (event: MouseEvent) => {
