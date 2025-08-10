@@ -237,6 +237,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // New BMC State Manager methods
     selectBMCObject,
     getBMCSelectedObject,
+    getCurrentBMCView,
     bmcState
   } = useCanvas();
   
@@ -255,6 +256,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     cleanBMCRef.current.setBMCStateManager(bmcState);
     console.log("🔗 Injection complete");
+    
+    // Force sync current selection state after injection
+    const currentSelection = bmcState.getSelectedObject();
+    if (currentSelection) {
+      console.log(`🔄 Syncing initial selection state: ${currentSelection}`);
+      setTimeout(() => {
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.updateAllVisuals();
+          console.log(`✅ Initial visual state synced for: ${currentSelection}`);
+        }
+      }, 100);
+    }
   }, [bmcState]);
   
   // REMOVED: Legacy transform utilities - now handled by unified BMC system
@@ -364,6 +377,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // REMOVED: Old restoration useEffect - CleanBMCSystem handles state automatically
   
   // GUI state removed since labels are no longer used
+
+  // Sync CleanBMCSystem when BMC view changes to ensure selection state persists
+  useEffect(() => {
+    if (cleanBMCRef.current && bmcState) {
+      const currentSelection = bmcState.getSelectedObject();
+      if (currentSelection) {
+        console.log(`🔄 View changed - syncing selection state: ${currentSelection}`);
+        setTimeout(() => {
+          if (cleanBMCRef.current) {
+            cleanBMCRef.current.updateAllVisuals();
+            console.log(`✅ Selection state synced after view change: ${currentSelection}`);
+          }
+        }, 500); // Longer delay to ensure 3D scene is ready
+      }
+    }
+  }, [getCurrentBMCView()]); // Trigger when view changes
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
