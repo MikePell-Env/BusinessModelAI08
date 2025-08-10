@@ -3124,8 +3124,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{canvas.name}</h1>
       </div>
       
-      {/* Quick Animation Demo Controls */}
-      <div className="absolute top-4 right-4 z-10 bg-black/90 text-white p-4 rounded-lg shadow-lg">
+      {/* Quick Animation Demo Controls - HIDDEN */}
+      <div className="absolute top-4 right-4 z-10 bg-black/90 text-white p-4 rounded-lg shadow-lg hidden">
         <div className="text-sm font-semibold mb-3 text-center">🎬 Animation Demos</div>
         <div className="flex flex-col space-y-2">
           <button 
