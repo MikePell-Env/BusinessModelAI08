@@ -19,7 +19,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
   const [showCanvas, setShowCanvas] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { loadCanvas } = useCanvas();
+  const { loadCanvas, toggleChat } = useCanvas();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Listen for Envisioner activation events
@@ -159,6 +159,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                     
                     {/* Button at bottom */}
                     <Button 
+                      onClick={toggleChat}
                       className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2 mt-4"
                     >
                       Ask Copilot...
