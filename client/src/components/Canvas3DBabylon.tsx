@@ -693,11 +693,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Function to create billboarded content panel
     const createBillboardPanel = (sectionName: string, worldPosition: Vector3) => {
+      console.log(`🚀🚀 CREATING BILLBOARD PANEL FOR: ${sectionName} 🚀🚀`);
+      
       // Remove existing panel if any
       if (currentBillboardPanel) {
         advancedTexture.removeControl(currentBillboardPanel);
         currentBillboardPanel = null;
         billboardPanelRef.current = null;
+        console.log("❌ Removed existing panel");
       }
       
       // Get section content from canvas data
@@ -715,17 +718,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         };
         
         const key = mapping[name];
+        console.log(`🔍 Looking for section ${name} with key ${key}`);
         if (key && canvas[key]) {
+          console.log(`✅ Found section data for ${name}:`, canvas[key]);
           return canvas[key];
         }
+        console.log(`❌ No section data found for ${name}`);
         return null;
       };
       
       const sectionData = getSectionData(sectionName);
       if (!sectionData || typeof sectionData === 'string' || !sectionData.content || sectionData.content.length === 0) {
-        console.log(`No content available for ${sectionName}`);
+        console.log(`❌ No content available for ${sectionName} - sectionData:`, sectionData);
         return;
       }
+      
+      console.log(`✅ Section data found for ${sectionName}, creating panel...`);
       
       // Create main panel container
       const panel = new Rectangle();
@@ -820,7 +828,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       currentBillboardPanel = panel;
       billboardPanelRef.current = panel;
       
-      console.log(`✅ Billboard panel created for ${sectionName} with ${(sectionData as CanvasElement).content.length} bullet points`);
+      console.log(`✅✅ BILLBOARD PANEL CREATED SUCCESSFULLY FOR ${sectionName} ✅✅`);
+      console.log(`📍 Panel position: (${worldPosition.x.toFixed(2)}, ${worldPosition.y.toFixed(2)}, ${worldPosition.z.toFixed(2)})`);
+      console.log(`📏 Panel size: ${panel.widthInPixels}x${panel.heightInPixels}px`);
+      console.log(`🎯 Panel should now be visible on screen with ${(sectionData as CanvasElement).content.length} bullet points!`);
     };
     
     // Add "Internal" label directly on the ground plane near Cost Structure
@@ -1875,7 +1886,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Double-click to show billboard panel directly
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
-              console.log(`⚡ Double-click detected on ${sectionName}`);
+              console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON ${sectionName} ⚡⚡`);
               
               // Close any existing panel first
               if (currentBillboardPanel) {
@@ -1887,8 +1898,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Get mesh world position for billboard placement
               const meshWorldPosition = mesh.getAbsolutePosition();
+              console.log(`🎯 Mesh position for panel: ${meshWorldPosition.x.toFixed(2)}, ${meshWorldPosition.y.toFixed(2)}, ${meshWorldPosition.z.toFixed(2)}`);
               
               // Create billboard panel with section content
+              console.log(`🚀 About to create billboard panel for: ${sectionName}`);
               createBillboardPanel(sectionName, meshWorldPosition);
               
               // Also ensure object is selected
@@ -1896,7 +1909,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 cleanBMCRef.current.onSelect(sectionName);
               }
               
-              console.log(`⚡ Double-click: ${sectionName} billboard panel created and object selected`);
+              console.log(`⚡ Double-click: ${sectionName} billboard panel creation completed`);
             }));
             
             // Click - use unified BMC selection system (no billboard panel on single click)
