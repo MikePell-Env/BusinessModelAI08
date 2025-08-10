@@ -6,6 +6,8 @@ import { useCanvas } from '@/lib/stores/useCanvas';
 import { ChatMessage } from '@/types/canvas';
 import { Send, X, Minimize2 } from 'lucide-react';
 import { AIServiceIndicator } from './AIServiceIndicator';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // Debug configuration - set to true to show service indicators
 const DEBUG_SHOW_SERVICE_INFO = false;
@@ -208,7 +210,40 @@ export const AIChat: React.FC = () => {
                           : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {message.content}
+                      {message.role === 'user' ? (
+                        message.content
+                      ) : (
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          className="prose prose-sm max-w-none text-gray-800"
+                          components={{
+                            h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2 text-gray-900" {...props} />,
+                            h2: ({node, ...props}) => <h2 className="text-base font-bold mb-2 text-gray-900" {...props} />,
+                            h3: ({node, ...props}) => <h3 className="text-sm font-bold mb-1 text-gray-900" {...props} />,
+                            h4: ({node, ...props}) => <h4 className="text-sm font-semibold mb-1 text-gray-900" {...props} />,
+                            p: ({node, ...props}) => <p className="mb-2 leading-relaxed" {...props} />,
+                            ul: ({node, ...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+                            ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+                            li: ({node, ...props}) => <li className="leading-relaxed" {...props} />,
+                            strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                            em: ({node, ...props}) => <em className="italic" {...props} />,
+                            code: ({node, inline, ...props}) => 
+                              inline ? (
+                                <code className="bg-gray-200 px-1 py-0.5 rounded text-xs font-mono" {...props} />
+                              ) : (
+                                <code className="block bg-gray-200 p-2 rounded text-xs font-mono overflow-x-auto" {...props} />
+                              ),
+                            blockquote: ({node, ...props}) => (
+                              <blockquote className="border-l-4 border-gray-300 pl-3 ml-2 italic text-gray-700" {...props} />
+                            ),
+                            a: ({node, ...props}) => (
+                              <a className="text-blue-600 hover:text-blue-800 underline" {...props} />
+                            ),
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      )}
                     </div>
                   </div>
                 ))}
