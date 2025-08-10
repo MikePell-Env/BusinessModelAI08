@@ -715,7 +715,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
         width: 0.02,  // Ultra-thin width (2px equivalent)
-        height: 8.0   // Height to span main BMC area (excluding Cost/Revenue at bottom)
+        height: 14.0  // Increased height to span full main BMC area
       }, scene);
       
       // Position in center of main BMC area (not extending into Cost/Revenue sections)
