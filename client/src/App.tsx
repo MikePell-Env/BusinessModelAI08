@@ -87,7 +87,11 @@ function App() {
       {azureConfigured === true && (
         <div className="fixed bottom-4 right-4 bg-green-100 border border-green-300 rounded-lg p-3 w-72 z-50">
           <div className="flex items-center">
-            <div className="w-8 h-8 mr-3 flex-shrink-0"></div>
+            <img 
+              src="/copilot-logo.png" 
+              alt="Microsoft Copilot" 
+              className="w-8 h-8 mr-3 flex-shrink-0"
+            />
             <div>
               <p className="text-sm text-green-800 mb-1">
                 <strong>🔒 Microsoft Copilot Active</strong>
