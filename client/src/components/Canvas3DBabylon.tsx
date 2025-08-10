@@ -237,7 +237,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // New BMC State Manager methods
     selectBMCObject,
     getBMCSelectedObject,
-    getCurrentBMCView,
+
     bmcState
   } = useCanvas();
   
@@ -378,21 +378,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   
   // GUI state removed since labels are no longer used
 
-  // Sync CleanBMCSystem when BMC view changes to ensure selection state persists
+  // Sync CleanBMCSystem when view changes - safer approach without getCurrentBMCView dependency
   useEffect(() => {
-    if (cleanBMCRef.current && bmcState) {
+    if (cleanBMCRef.current && bmcState && (is3D || isOrthographic)) {
       const currentSelection = bmcState.getSelectedObject();
       if (currentSelection) {
-        console.log(`🔄 View changed - syncing selection state: ${currentSelection}`);
+        console.log(`🔄 3D View activated - syncing selection state: ${currentSelection}`);
         setTimeout(() => {
           if (cleanBMCRef.current) {
             cleanBMCRef.current.updateAllVisuals();
-            console.log(`✅ Selection state synced after view change: ${currentSelection}`);
+            console.log(`✅ Selection state synced for 3D view: ${currentSelection}`);
           }
-        }, 500); // Longer delay to ensure 3D scene is ready
+        }, 1000); // Longer delay to ensure 3D scene is fully ready
       }
     }
-  }, [getCurrentBMCView()]); // Trigger when view changes
+  }, [is3D, isOrthographic]); // Trigger when switching to 3D views
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
