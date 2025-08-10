@@ -161,7 +161,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                     <Button 
                       className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2 mt-4"
                     >
-                      Ask Copilot AI...
+                      Ask Copilot...
                     </Button>
                   </div>
                 </div>
