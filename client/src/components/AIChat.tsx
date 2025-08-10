@@ -213,36 +213,44 @@ export const AIChat: React.FC = () => {
                       {message.role === 'user' ? (
                         message.content
                       ) : (
-                        <ReactMarkdown 
-                          remarkPlugins={[remarkGfm]}
-                          className="prose prose-sm max-w-none text-gray-800"
-                          components={{
-                            h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2 text-gray-900" {...props} />,
-                            h2: ({node, ...props}) => <h2 className="text-base font-bold mb-2 text-gray-900" {...props} />,
-                            h3: ({node, ...props}) => <h3 className="text-sm font-bold mb-1 text-gray-900" {...props} />,
-                            h4: ({node, ...props}) => <h4 className="text-sm font-semibold mb-1 text-gray-900" {...props} />,
-                            p: ({node, ...props}) => <p className="mb-2 leading-relaxed" {...props} />,
-                            ul: ({node, ...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
-                            ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
-                            li: ({node, ...props}) => <li className="leading-relaxed" {...props} />,
-                            strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
-                            em: ({node, ...props}) => <em className="italic" {...props} />,
-                            code: ({node, inline, ...props}) => 
-                              inline ? (
-                                <code className="bg-gray-200 px-1 py-0.5 rounded text-xs font-mono" {...props} />
-                              ) : (
-                                <code className="block bg-gray-200 p-2 rounded text-xs font-mono overflow-x-auto" {...props} />
+                        <div className="prose prose-sm max-w-none text-gray-800">
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              h1: ({...props}) => <h1 className="text-lg font-bold mb-2 text-gray-900" {...props} />,
+                              h2: ({...props}) => <h2 className="text-base font-bold mb-2 text-gray-900" {...props} />,
+                              h3: ({...props}) => <h3 className="text-sm font-bold mb-1 text-gray-900" {...props} />,
+                              h4: ({...props}) => <h4 className="text-sm font-semibold mb-1 text-gray-900" {...props} />,
+                              p: ({...props}) => <p className="mb-2 leading-relaxed" {...props} />,
+                              ul: ({...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+                              ol: ({...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+                              li: ({...props}) => <li className="leading-relaxed" {...props} />,
+                              strong: ({...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                              em: ({...props}) => <em className="italic" {...props} />,
+                              code: ({...props}) => {
+                                const { children, className, ...rest } = props;
+                                const isInline = !className || !className.includes('language-');
+                                return isInline ? (
+                                  <code className="bg-gray-200 px-1 py-0.5 rounded text-xs font-mono" {...rest}>
+                                    {children}
+                                  </code>
+                                ) : (
+                                  <code className="block bg-gray-200 p-2 rounded text-xs font-mono overflow-x-auto" {...rest}>
+                                    {children}
+                                  </code>
+                                );
+                              },
+                              blockquote: ({...props}) => (
+                                <blockquote className="border-l-4 border-gray-300 pl-3 ml-2 italic text-gray-700" {...props} />
                               ),
-                            blockquote: ({node, ...props}) => (
-                              <blockquote className="border-l-4 border-gray-300 pl-3 ml-2 italic text-gray-700" {...props} />
-                            ),
-                            a: ({node, ...props}) => (
-                              <a className="text-blue-600 hover:text-blue-800 underline" {...props} />
-                            ),
-                          }}
-                        >
-                          {message.content}
-                        </ReactMarkdown>
+                              a: ({...props}) => (
+                                <a className="text-blue-600 hover:text-blue-800 underline" {...props} />
+                              ),
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
                       )}
                     </div>
                   </div>
