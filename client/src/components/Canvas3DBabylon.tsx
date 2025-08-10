@@ -756,13 +756,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
     
-    // Background click handling for panel closure
-    // Set up scene-level click detection for closing panels when clicking away
+    // Enhanced click handling for panel management
+    let lastClickTime = 0;
+    let lastClickedMesh: AbstractMesh | null = null;
+    
     scene.onPointerDown = (info) => {
       // Only handle left clicks
       if (info.button !== 0) return;
       
-      // Check if click hit any BMC mesh
+      const currentTime = Date.now();
       const pickedMesh = scene.pick(scene.pointerX, scene.pointerY);
       
       if (pickedMesh.hit) {
@@ -777,16 +779,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           (cleanBMCRef.current && cleanBMCRef.current.isRegisteredMesh(hitMesh))
         );
         
-        if (!isBMCMesh && currentBillboardPanel) {
+        if (isBMCMesh && currentBillboardPanel) {
+          // Check if clicking on a different BMC object than the one with the open panel
+          const isDoubleClick = (currentTime - lastClickTime < 300) && (hitMesh === lastClickedMesh);
+          
+          if (!isDoubleClick) {
+            // Single click on different BMC object - close existing panel
+            console.log('🖱️ Single click on different BMC object - closing existing panel');
+            handleBackgroundClick();
+          }
+          // Note: Double-clicks will be handled by the ActionManager.OnDoublePickTrigger
+        } else if (!isBMCMesh && currentBillboardPanel) {
           // Clicked outside BMC objects - close panel
           console.log('🖱️ Click detected outside BMC objects - closing panel');
           handleBackgroundClick();
         }
+        
+        lastClickedMesh = hitMesh;
       } else if (currentBillboardPanel) {
         // No mesh hit at all - close panel
         console.log('🖱️ Click detected on empty space - closing panel');
         handleBackgroundClick();
+        lastClickedMesh = null;
       }
+      
+      lastClickTime = currentTime;
     };
     
     // Function to create billboarded content panel

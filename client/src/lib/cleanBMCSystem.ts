@@ -311,7 +311,7 @@ export class CleanBMCSystem {
 
   // Check if a mesh is registered in the system
   isRegisteredMesh(mesh: AbstractMesh): boolean {
-    for (const item of this.items.values()) {
+    for (const [key, item] of this.items.entries()) {
       if (item.mesh === mesh) {
         return true;
       }
