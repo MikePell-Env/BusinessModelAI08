@@ -137,18 +137,7 @@ export const AIChat: React.FC = () => {
   };
 
   if (!isChatOpen) {
-    return (
-      <button
-        onClick={toggleChat}
-        className="fixed bottom-[104px] right-[260px] w-8 h-8 shadow-lg z-[60] bg-transparent border-0 rounded-lg p-0 cursor-pointer hover:scale-110 transition-all"
-      >
-        <img 
-          src="/copilot-logo.png" 
-          alt="Microsoft Copilot" 
-          className="w-full h-full object-contain"
-        />
-      </button>
-    );
+    return null; // Hide the floating toggle button to avoid duplicate Copilot icons
   }
 
   return (
