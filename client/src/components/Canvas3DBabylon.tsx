@@ -655,8 +655,38 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
     
-    // Scene-level pointer handling for reliable double-click detection
+    // Scene-level pointer handling for reliable double-click detection and panel management
     scene.onPointerDown = (evt, pickResult) => {
+      // First check if we clicked inside an open billboard panel
+      if (currentBillboardPanel) {
+        // Get the pointer coordinates
+        const pointerX = scene.pointerX;
+        const pointerY = scene.pointerY;
+        
+        // Check if click is inside the panel bounds
+        const panelLeft = currentBillboardPanel.leftInPixels || 0;
+        const panelTop = currentBillboardPanel.topInPixels || 0;
+        const panelWidth = currentBillboardPanel.widthInPixels || 0;
+        const panelHeight = currentBillboardPanel.heightInPixels || 0;
+        
+        const clickInsidePanel = (
+          pointerX >= panelLeft && 
+          pointerX <= panelLeft + panelWidth &&
+          pointerY >= panelTop && 
+          pointerY <= panelTop + panelHeight
+        );
+        
+        if (!clickInsidePanel) {
+          // Click is outside panel - close it
+          advancedTexture.removeControl(currentBillboardPanel);
+          currentBillboardPanel = null;
+          billboardPanelRef.current = null;
+          cleanBMCRef.current.clearSelection();
+          console.log("❌ Billboard panel closed by click outside panel");
+          return; // Don't process further clicks when closing panel
+        }
+      }
+      
       if (pickResult.hit && pickResult.pickedMesh) {
         const pickedMesh = pickResult.pickedMesh;
         const bmcSectionName = (pickedMesh as any).bmcSectionName;
@@ -706,16 +736,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`⚡ Double-click: ${bmcSectionName} billboard panel creation completed`);
           }
         } else {
-          // Clicked on non-BMC mesh - handle background cleanup
+          // Clicked on non-BMC mesh - close panel if open
           if (currentBillboardPanel) {
-            if (pickedMesh.name === "ground" || !pickedMesh || pickedMesh.name === "__root__") {
-              advancedTexture.removeControl(currentBillboardPanel);
-              currentBillboardPanel = null;
-              billboardPanelRef.current = null;
-              cleanBMCRef.current.clearSelection();
-              console.log("❌ Billboard panel closed by click outside panel");
-            }
+            advancedTexture.removeControl(currentBillboardPanel);
+            currentBillboardPanel = null;
+            billboardPanelRef.current = null;
+            cleanBMCRef.current.clearSelection();
+            console.log("❌ Billboard panel closed by click on non-BMC mesh");
           }
+        }
+      } else {
+        // Clicked on empty space - close panel if open
+        if (currentBillboardPanel) {
+          advancedTexture.removeControl(currentBillboardPanel);
+          currentBillboardPanel = null;
+          billboardPanelRef.current = null;
+          cleanBMCRef.current.clearSelection();
+          console.log("❌ Billboard panel closed by click on empty space");
         }
       }
     };
