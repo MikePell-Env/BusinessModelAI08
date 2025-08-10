@@ -714,14 +714,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Based on BMC layout: center line should run between left side (Internal) and right side (External)
       
       const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
-        width: 0.4,   // Very thin width for vertical divider line
-        height: 12.0  // Long height to span from top to bottom of ground plane
+        width: 0.02,  // Ultra-thin width (2px equivalent)
+        height: 8.0   // Height to fit within ground plane boundaries only
       }, scene);
       
-      // Position in center of ground plane
+      // Position in center of ground plane, within boundaries
       verticalDividerPlane.position.x = 0.0;   // Center line (X=0)
       verticalDividerPlane.position.y = 0.001; // Directly on ground plane surface
-      verticalDividerPlane.position.z = -6.2;  // Same Z as Internal/External for alignment
+      verticalDividerPlane.position.z = -2.5;  // Center of ground plane (not extending beyond)
       
       // Rotate to lie flat on the ground
       verticalDividerPlane.rotation.x = Math.PI / 2;
