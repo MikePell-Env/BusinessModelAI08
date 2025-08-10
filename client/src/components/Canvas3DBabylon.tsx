@@ -491,15 +491,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     orthoCamera.maxZ = 100;
     
     // Disable rotation controls for pure top-down view
-    // DON'T clear inputs - this may be causing the blank screen issue
-    // orthoCamera.inputs.clear();
-    
-    // Instead, disable specific inputs while keeping basic functionality
-    orthoCamera.inputs.removeByType("FreeCameraKeyboardMoveInput");
-    orthoCamera.inputs.removeByType("FreeCameraMouseInput");
-    orthoCamera.inputs.removeByType("FreeCameraTouchInput");
-    
-    console.log("🎯 Orthographic camera inputs configured for top view");
+    orthoCamera.inputs.clear();
     
     // Store camera references
     cameraRef.current = perspectiveCamera;
