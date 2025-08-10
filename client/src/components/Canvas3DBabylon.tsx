@@ -360,13 +360,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // REMOVED: Old restoration function - CleanBMCSystem handles this automatically
 
-  // Restore selection state when view mode changes or scene is ready
-  useEffect(() => {
-    // Only restore when entering 3D mode after models are loaded
-    if (is3D && contentPanelsRef.current.length > 0) {
-      // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
-    }
-  }, [is3D]); // Only trigger when entering/leaving 3D mode
+  // REMOVED: Old restoration useEffect - CleanBMCSystem handles state automatically
   
   // GUI state removed since labels are no longer used
 
