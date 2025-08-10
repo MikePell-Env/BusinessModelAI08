@@ -3081,13 +3081,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
   }, [is3D, saveCamera3DState]);
 
-  // Demo functions for quick wins (exposed globally for testing)
+  // Keep console functions available as backup
   React.useEffect(() => {
     (window as any).bmcAnimationDemo = {
-      // Color sequence demo
       runColorSequence: async () => {
         if (animationManagerRef.current) {
-          console.log('🎨 Running BMC Color Sequence Demo...');
           await animationManagerRef.current.createColorSequence([
             { section: "Value Propositions", color: "#00ff00", duration: 2000 },
             { section: "Customer Segments", color: "#0066ff", duration: 1500 },
@@ -3095,34 +3093,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             { section: "Revenue Streams", color: "#ffff00", duration: 1200 },
             { section: "Cost Structure", color: "#ff0066", duration: 1500 }
           ]);
-          console.log('🎨 Color sequence complete!');
         }
       },
-      
-      // Business theme demo
       applyBusinessThemes: () => {
         if (animationManagerRef.current) {
-          console.log('🎭 Applying Business Performance Themes...');
           animationManagerRef.current.applyBusinessTheme("Value Propositions", "high");
           animationManagerRef.current.applyBusinessTheme("Customer Segments", "medium");
           animationManagerRef.current.applyBusinessTheme("Key Partners", "low");
           animationManagerRef.current.applyBusinessTheme("Revenue Streams", "revenue");
           animationManagerRef.current.applyBusinessTheme("Cost Structure", "cost");
-          console.log('🎭 Business themes applied!');
         }
       },
-      
-      // Data binding demo
       startDataBinding: () => {
         if (animationManagerRef.current) {
-          console.log('🔗 Starting data-driven color animation...');
           animationManagerRef.current.bindColorToData("Revenue Streams", {
             sectionId: "Revenue Streams",
             dataField: "revenue.growth",
             colorRange: ["#ff0000", "#00ff00"],
             updateFrequency: 1000
           });
-          console.log('🔗 Data binding active - Revenue Streams will animate based on simulated data');
         }
       }
     };
@@ -3136,12 +3125,84 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       </div>
       
       {/* Quick Animation Demo Controls */}
-      <div className="absolute top-4 right-4 z-10 bg-black/80 text-white p-3 rounded-lg">
-        <div className="text-sm font-semibold mb-2">🎬 Animation Demos</div>
-        <div className="text-xs space-y-1">
-          <div>Console: <code>bmcAnimationDemo.runColorSequence()</code></div>
-          <div>Console: <code>bmcAnimationDemo.applyBusinessThemes()</code></div>
-          <div>Console: <code>bmcAnimationDemo.startDataBinding()</code></div>
+      <div className="absolute top-4 right-4 z-10 bg-black/90 text-white p-4 rounded-lg shadow-lg">
+        <div className="text-sm font-semibold mb-3 text-center">🎬 Animation Demos</div>
+        <div className="flex flex-col space-y-2">
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🎨 Running BMC Color Sequence Demo...');
+                animationManagerRef.current.createColorSequence([
+                  { section: "Value Propositions", color: "#00ff00", duration: 2000 },
+                  { section: "Customer Segments", color: "#0066ff", duration: 1500 },
+                  { section: "Key Partners", color: "#ff6600", duration: 1800 },
+                  { section: "Revenue Streams", color: "#ffff00", duration: 1200 },
+                  { section: "Cost Structure", color: "#ff0066", duration: 1500 }
+                ]).then(() => console.log('🎨 Color sequence complete!'));
+              }
+            }}
+            className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Color Sequence
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🎭 Applying Business Performance Themes...');
+                animationManagerRef.current.applyBusinessTheme("Value Propositions", "high");
+                animationManagerRef.current.applyBusinessTheme("Customer Segments", "medium");
+                animationManagerRef.current.applyBusinessTheme("Key Partners", "low");
+                animationManagerRef.current.applyBusinessTheme("Revenue Streams", "revenue");
+                animationManagerRef.current.applyBusinessTheme("Cost Structure", "cost");
+                console.log('🎭 Business themes applied!');
+              }
+            }}
+            className="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Business Themes
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🔗 Starting data-driven color animation...');
+                animationManagerRef.current.bindColorToData("Revenue Streams", {
+                  sectionId: "Revenue Streams",
+                  dataField: "revenue.growth",
+                  colorRange: ["#ff0000", "#00ff00"],
+                  updateFrequency: 1000
+                });
+                console.log('🔗 Data binding active - Revenue Streams will animate based on simulated data');
+              }
+            }}
+            className="bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Data Binding
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🔄 Clearing all animations...');
+                animationManagerRef.current.clearAllAnimations();
+                // Reset materials to default
+                const scene = sceneRef.current;
+                if (scene) {
+                  scene.meshes.forEach(mesh => {
+                    if ((mesh as any).bmcSectionName && materialManagerRef.current) {
+                      const defaultMaterial = materialManagerRef.current.getMaterial(`default_${mesh.name}`);
+                      (mesh as Mesh).material = defaultMaterial;
+                    }
+                  });
+                }
+                console.log('🔄 All animations cleared, materials reset');
+              }
+            }}
+            className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Reset All
+          </button>
         </div>
       </div>
       
