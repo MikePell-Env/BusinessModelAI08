@@ -147,32 +147,75 @@ export const AIChat: React.FC = () => {
       );
       
       if (isEnvisionerRequest) {
-        console.log('🎯 Envisioner request detected! Switching to 3D View...');
-        console.log('🔄 Current view state:', { is3D, isOrthographic });
+        console.log('🎯 Envisioner request detected! Opening Business Model Canvas...');
         
-        // Switch to 3D View mode using the proper method
-        console.log('🔄 Calling toggleView as primary method...');
+        // Load sample canvas data if none exists
+        if (!canvas) {
+          console.log('📄 Loading sample canvas data...');
+          const sampleCanvas = {
+            id: 'sample-canvas',
+            name: 'Sample Business Model Canvas',
+            description: 'A comprehensive business model canvas for demonstration',
+            keyPartners: {
+              title: 'Key Partners',
+              content: ['Technology providers', 'Strategic alliances', 'Distribution partners']
+            },
+            keyActivities: {
+              title: 'Key Activities',
+              content: ['Product development', 'Marketing campaigns', 'Customer support']
+            },
+            keyResources: {
+              title: 'Key Resources',
+              content: ['Technical expertise', 'Brand reputation', 'Intellectual property']
+            },
+            valuePropositions: {
+              title: 'Value Propositions',
+              content: ['Innovative solutions', 'Cost-effective services', 'Superior customer experience']
+            },
+            customerRelationships: {
+              title: 'Customer Relationships',
+              content: ['Personal assistance', 'Self-service platforms', 'Automated services']
+            },
+            channels: {
+              title: 'Channels',
+              content: ['Direct sales', 'Online platforms', 'Partner networks']
+            },
+            customerSegments: {
+              title: 'Customer Segments',
+              content: ['Small businesses', 'Enterprise clients', 'Individual consumers']
+            },
+            costStructure: {
+              title: 'Cost Structure',
+              content: ['Development costs', 'Marketing expenses', 'Operational overhead']
+            },
+            revenueStreams: {
+              title: 'Revenue Streams',
+              content: ['Subscription fees', 'One-time purchases', 'Service contracts']
+            },
+            lastModified: new Date().toISOString()
+          };
+          updateCanvas(sampleCanvas);
+        }
+        
+        // Set the 3D view state immediately
+        console.log('🔄 Setting 3D view state...');
         toggleView();
-        
-        // Alternative: try switchBMCView if toggleView doesn't work
-        console.log('🔄 Also calling switchBMCView with view3DPerspective...');
         switchBMCView('view3DPerspective');
         
-        // Check if the view switched after a short delay
-        setTimeout(() => {
-          console.log('🔍 Checking if view switched... Current is3D:', is3D);
-          if (!is3D) {
-            console.log('⚠️ View switch may have failed, current state is still 2D');
-          } else {
-            console.log('✅ Successfully switched to 3D View!');
-          }
-        }, 300);
+        // Navigate to the canvas view by triggering a canvas navigation event
+        console.log('🚀 Triggering navigation to canvas view...');
+        window.dispatchEvent(new CustomEvent('openEnvisioner', { 
+          detail: { 
+            view: '3D',
+            canvas: canvas || 'sample'
+          } 
+        }));
         
         // Add a system message to indicate the action
         const systemMessage: ChatMessage = {
           id: `system-${Date.now()}`,
           role: 'assistant',
-          content: '🎯 **Envisioner activated!** Switching to 3D View to explore your business model canvas in an immersive environment.',
+          content: '🎯 **Envisioner activated!** Opening 3D Business Model Canvas view.',
           timestamp: new Date()
         };
         
