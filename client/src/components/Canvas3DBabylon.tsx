@@ -756,19 +756,49 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
     
-    // Background click handling for panel closure (simplified approach)
-    // Using ActionManager on ground mesh instead of scene-level observer to avoid camera conflicts
+    // Background click handling for panel closure
+    // Set up scene-level click detection for closing panels when clicking away
+    scene.onPointerDown = (info) => {
+      // Only handle left clicks
+      if (info.button !== 0) return;
+      
+      // Check if click hit any BMC mesh
+      const pickedMesh = scene.pick(scene.pointerX, scene.pointerY);
+      
+      if (pickedMesh.hit) {
+        const hitMesh = pickedMesh.pickedMesh;
+        console.log(`🎯 Click detected on mesh: ${hitMesh?.name}`);
+        
+        // Check if clicked mesh is a BMC object
+        const isBMCMesh = hitMesh && (
+          hitMesh.name.includes('BMC_') || 
+          hitMesh.name.includes('Revenue') ||
+          hitMesh.name.includes('Cost') ||
+          (cleanBMCRef.current && cleanBMCRef.current.isRegisteredMesh(hitMesh))
+        );
+        
+        if (!isBMCMesh && currentBillboardPanel) {
+          // Clicked outside BMC objects - close panel
+          console.log('🖱️ Click detected outside BMC objects - closing panel');
+          handleBackgroundClick();
+        }
+      } else if (currentBillboardPanel) {
+        // No mesh hit at all - close panel
+        console.log('🖱️ Click detected on empty space - closing panel');
+        handleBackgroundClick();
+      }
+    };
     
     // Function to create billboarded content panel
     const createBillboardPanel = (sectionName: string, worldPosition: Vector3) => {
       console.log(`🚀🚀 CREATING BILLBOARD PANEL FOR: ${sectionName} 🚀🚀`);
       
-      // Remove existing panel if any
+      // Remove existing panel if any (panel refresh functionality)
       if (currentBillboardPanel) {
         advancedTexture.removeControl(currentBillboardPanel);
         currentBillboardPanel = null;
         billboardPanelRef.current = null;
-        console.log("❌ Removed existing panel");
+        console.log(`🔄 Refreshing panel content - removed existing panel to show ${sectionName}`);
       }
       
       // Get section content from canvas data
