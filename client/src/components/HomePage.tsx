@@ -90,7 +90,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
               {/* Selection Section */}
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-                  <strong>Select</strong> how you want to get to the "moment of clarity" to make decisions:
+                  <strong className="font-bold">Select</strong> how you want to get to the "moment of clarity" to make decisions:
                 </h2>
 
               <div className="grid grid-cols-3 gap-6">
