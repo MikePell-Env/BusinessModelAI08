@@ -23,7 +23,8 @@ import {
   AbstractMesh,
   Matrix,
   TransformNode,
-  LinesMesh
+  LinesMesh,
+  PointerEventTypes
 } from '@babylonjs/core';
 import { 
   AdvancedDynamicTexture,
@@ -315,8 +316,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // REMOVED: Old applyBMCVisualState function - CleanBMCSystem handles all visual states
 
-  // Handle background click to clear selection
-  const handleBackgroundClick = () => {
+  // Handle background click to clear selection (will be updated inside useEffect)
+  let handleBackgroundClick = () => {
     console.log('Background clicked - clearing selection');
     cleanBMCRef.current.clearSelection();
     // REMOVED: setSelectedObject(null) - CleanBMCSystem manages all state
@@ -632,8 +633,162 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       scene.environmentIntensity = 0.5; // Moderate for PBR materials to work
     }
 
-    // Create GUI for 3D billboard labels
+    // Create GUI for 3D billboard labels and content panels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    
+    // Store reference to current billboard panel for cleanup
+    let currentBillboardPanel: any = null;
+    
+    // Store references for background click handler
+    const billboardPanelRef = { current: null as any };
+    billboardPanelRef.current = currentBillboardPanel;
+    
+    // Update background click handler to have access to billboard panel
+    handleBackgroundClick = () => {
+      console.log('Background clicked - clearing selection and closing billboard panel');
+      cleanBMCRef.current.clearSelection();
+      
+      // Close billboard panel if it exists
+      if (currentBillboardPanel) {
+        advancedTexture.removeControl(currentBillboardPanel);
+        currentBillboardPanel = null;
+        billboardPanelRef.current = null;
+        console.log("❌ Billboard panel closed by background click");
+      }
+    };
+    
+    // Function to create billboarded content panel
+    const createBillboardPanel = (sectionName: string, worldPosition: Vector3) => {
+      // Remove existing panel if any
+      if (currentBillboardPanel) {
+        advancedTexture.removeControl(currentBillboardPanel);
+        currentBillboardPanel = null;
+        billboardPanelRef.current = null;
+      }
+      
+      // Get section content from canvas data
+      const getSectionData = (name: string) => {
+        const mapping: { [key: string]: keyof BusinessModelCanvas } = {
+          'Key Partners': 'keyPartners',
+          'Key Activities': 'keyActivities',
+          'Key Resources': 'keyResources',
+          'Value Propositions': 'valuePropositions',
+          'Customer Relationships': 'customerRelationships',
+          'Channels': 'channels',
+          'Customer Segments': 'customerSegments',
+          'Cost Structure': 'costStructure',
+          'Revenue Streams': 'revenueStreams'
+        };
+        
+        const key = mapping[name];
+        if (key && canvas[key]) {
+          return canvas[key];
+        }
+        return null;
+      };
+      
+      const sectionData = getSectionData(sectionName);
+      if (!sectionData || typeof sectionData === 'string' || !sectionData.content || sectionData.content.length === 0) {
+        console.log(`No content available for ${sectionName}`);
+        return;
+      }
+      
+      // Create main panel container
+      const panel = new Rectangle();
+      panel.widthInPixels = 400;
+      panel.heightInPixels = Math.min(500, 80 + (sectionData as CanvasElement).content.length * 25); // Dynamic height
+      panel.cornerRadius = 10;
+      panel.color = "#333333";
+      panel.thickness = 2;
+      panel.background = "white";
+      
+      // Position panel to the right of the 3D object
+      panel.leftInPixels = 50; // Offset from object
+      panel.topInPixels = -panel.heightInPixels / 2;
+      
+      // Create header with section title
+      const headerRect = new Rectangle();
+      headerRect.widthInPixels = panel.widthInPixels - 4;
+      headerRect.heightInPixels = 40;
+      headerRect.topInPixels = -panel.heightInPixels / 2 + 22;
+      headerRect.background = "#f8f9fa";
+      headerRect.color = "#dee2e6";
+      headerRect.thickness = 1;
+      
+      const titleText = new TextBlock();
+      titleText.text = sectionName;
+      titleText.color = "#333333";
+      titleText.fontSize = 16;
+      titleText.fontWeight = "bold";
+      headerRect.addControl(titleText);
+      
+      // Create close button
+      const closeButton = new Rectangle();
+      closeButton.widthInPixels = 30;
+      closeButton.heightInPixels = 30;
+      closeButton.cornerRadius = 15;
+      closeButton.color = "#dc3545";
+      closeButton.background = "#dc3545";
+      closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      closeButton.leftInPixels = -15;
+      closeButton.topInPixels = -panel.heightInPixels / 2 + 22;
+      
+      const closeText = new TextBlock();
+      closeText.text = "✕";
+      closeText.color = "white";
+      closeText.fontSize = 14;
+      closeText.fontWeight = "bold";
+      closeButton.addControl(closeText);
+      
+      // Create content area with bullet points
+      const contentText = new TextBlock();
+      const bulletPoints = (sectionData as CanvasElement).content.map((item: string) => `• ${item}`).join('\n');
+      contentText.text = bulletPoints;
+      contentText.color = "#333333";
+      contentText.fontSize = 12;
+      contentText.textWrapping = true;
+      contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+      contentText.paddingLeft = "15px";
+      contentText.paddingRight = "15px";
+      contentText.paddingTop = "50px";
+      contentText.paddingBottom = "15px";
+      
+      // Add controls to panel
+      panel.addControl(headerRect);
+      panel.addControl(closeButton);
+      panel.addControl(contentText);
+      
+      // Make panel billboard (always face camera)
+      const billboardTransform = new TransformNode("billboardTransform", scene);
+      billboardTransform.position = worldPosition.clone();
+      billboardTransform.position.y += 2; // Offset above object
+      
+      // Connect GUI to 3D position
+      panel.linkWithMesh(billboardTransform);
+      panel.linkOffsetY = -50; // Slight vertical offset
+      
+      // Close button functionality
+      closeButton.onPointerClickObservable.add(() => {
+        if (currentBillboardPanel) {
+          advancedTexture.removeControl(currentBillboardPanel);
+          currentBillboardPanel = null;
+          billboardPanelRef.current = null;
+          
+          // Clear selection when panel is closed
+          if (cleanBMCRef.current) {
+            cleanBMCRef.current.clearSelection();
+          }
+        }
+      });
+      
+      // Add panel to UI
+      advancedTexture.addControl(panel);
+      currentBillboardPanel = panel;
+      billboardPanelRef.current = panel;
+      
+      console.log(`✅ Billboard panel created for ${sectionName} with ${(sectionData as CanvasElement).content.length} bullet points`);
+    };
     
     // Add "Internal" label directly on the ground plane near Cost Structure
     const createInternalLabel = () => {
@@ -1759,57 +1914,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
             };
             
-            // Double-click to show panel directly
+            // Double-click to show billboard panel directly
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡ Double-click detected on ${sectionName}`);
               
-              // Ensure object is selected first
-              if (!((mesh as any).isClicked)) {
-                // Handle selecting a new object while another is already selected
-                const previouslySelectedObject = getSelectedObject();
-                
-                // Close all other panels first and reset their visual states
-                contentPanelsRef.current.forEach(({ panel, mesh: otherMesh, material }) => {
-                  if (otherMesh !== mesh && panel.isVisible) {
-                    panel.isVisible = false;
-                    
-                    // Properly restore other mesh based on whether it has texture
-                    if ((otherMesh as any).hasTexture) {
-                      // For textured mesh, remove emissive glow
-                      material.emissiveColor = new Color3(0, 0, 0);
-                    } else {
-                      // For non-textured mesh, restore base color and diffuseColor
-                      if (material.baseColor) {
-                        material.baseColor = (otherMesh as any).originalColor;
-                      }
-                      material.diffuseColor = (otherMesh as any).originalColor;
-                    }
-                    
-                    (otherMesh as any).isClicked = false;
-                  }
-                });
-                
-                // If there was a previously selected object, flatten it
-                if (previouslySelectedObject && adjustBMCSection) {
-                  adjustBMCSection(previouslySelectedObject, { height: 0.1 });
-                  console.log(`📏 Flattening previously selected ${previouslySelectedObject} (height: 0.1)`);
-                }
-                
-                // Save selected object state FIRST so applyHeightState knows what's selected
-                // REMOVED: setSelectedObject - CleanBMCSystem manages state
-                
-                // REMOVED: Old click select - now handled by BMC system
+              // Get mesh world position for billboard placement
+              const meshWorldPosition = mesh.getAbsolutePosition();
+              
+              // Create billboard panel with section content
+              createBillboardPanel(sectionName, meshWorldPosition);
+              
+              // Also ensure object is selected
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect(sectionName);
               }
               
-              // Show panel regardless of selection state
-              const sectionContent = getSectionContent(sectionName);
-              updateContentPanel(true, sectionContent);
-              console.log(`⚡ Double-click: ${sectionName} selected and panel shown`);
+              console.log(`⚡ Double-click: ${sectionName} billboard panel created and object selected`);
             }));
             
-            // Click - use unified BMC selection system
+            // Click - use unified BMC selection system and show billboard panel
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
               console.log(`🎯 3D Click on: ${sectionName}`);
+              
+              // Get mesh world position for billboard placement
+              const meshWorldPosition = mesh.getAbsolutePosition();
+              
+              // Create billboard panel with section content
+              createBillboardPanel(sectionName, meshWorldPosition);
+              
               // Delegate to CleanBMCSystem which delegates to BMC State Manager
               cleanBMCRef.current.onSelect(sectionName);
             }));
@@ -2071,6 +2203,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Add selection (click) behavior for Revenue Streams using new BMC system
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`🎯 3D Click on: Revenue Streams`);
+              
+              // Get mesh world position for billboard placement
+              const meshWorldPosition = mesh.getAbsolutePosition();
+              
+              // Create billboard panel with section content
+              createBillboardPanel("Revenue Streams", meshWorldPosition);
+              
               // Use new BMC object click handler
               handleBMCObjectClick("Revenue Streams");
             }));
@@ -2079,13 +2219,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡ Double-click detected on Revenue Streams`);
               
-              // Ensure object is selected first using unified BMC system
-              handleBMCObjectClick("Revenue Streams");
+              // Get mesh world position for billboard placement
+              const meshWorldPosition = mesh.getAbsolutePosition();
               
-              // Show panel (Revenue Streams content would come from getSectionContent)
-              const sectionContent = getSectionContent("Revenue Streams");
-              // Note: Revenue Streams may not have content panels yet, but this prepares for future implementation
-              console.log(`⚡ Double-click: Revenue Streams selected and ready for panel display`);
+              // Create billboard panel with section content
+              createBillboardPanel("Revenue Streams", meshWorldPosition);
+              
+              // Also ensure object is selected
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Revenue Streams");
+              }
+              
+              console.log(`⚡ Double-click: Revenue Streams billboard panel created and object selected`);
             }));
 
             // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
@@ -2251,6 +2396,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Add selection (click) behavior for Cost Structure using new BMC system
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`🎯 3D Click on: Cost Structure`);
+              
+              // Get mesh world position for billboard placement
+              const meshWorldPosition = mesh.getAbsolutePosition();
+              
+              // Create billboard panel with section content
+              createBillboardPanel("Cost Structure", meshWorldPosition);
+              
               // Use new BMC object click handler
               handleBMCObjectClick("Cost Structure");
             }));
@@ -2259,13 +2412,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡ Double-click detected on Cost Structure`);
               
-              // Ensure object is selected first using unified BMC system
-              handleBMCObjectClick("Cost Structure");
+              // Get mesh world position for billboard placement
+              const meshWorldPosition = mesh.getAbsolutePosition();
               
-              // Show panel (Cost Structure content would come from getSectionContent)
-              const sectionContent = getSectionContent("Cost Structure");
-              // Note: Cost Structure may not have content panels yet, but this prepares for future implementation
-              console.log(`⚡ Double-click: Cost Structure selected and ready for panel display`);
+              // Create billboard panel with section content
+              createBillboardPanel("Cost Structure", meshWorldPosition);
+              
+              // Also ensure object is selected
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Cost Structure");
+              }
+              
+              console.log(`⚡ Double-click: Cost Structure billboard panel created and object selected`);
             }));
 
             // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
