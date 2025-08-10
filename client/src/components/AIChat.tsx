@@ -304,7 +304,7 @@ export const AIChat: React.FC = () => {
                 {isProcessing && (
                   <div className="flex justify-start">
                     <div className="bg-gray-100 text-gray-800 p-3 rounded-lg text-sm max-w-[80%]">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 mb-2">
                         <img 
                           src="/copilot-logo.png" 
                           alt="Microsoft Copilot" 
@@ -313,8 +313,8 @@ export const AIChat: React.FC = () => {
                         <span className="text-gray-600">Microsoft Copilot is thinking</span>
                         <span className="text-blue-500 font-mono w-6">{typingDots}</span>
                       </div>
-                      <div className="mt-2 h-1 bg-gray-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full animate-pulse"></div>
+                      <div className="relative h-1 bg-gray-300 rounded-full overflow-hidden">
+                        <div className="absolute top-0 left-0 h-full bg-blue-500 rounded-full animate-loading-bar w-full"></div>
                       </div>
                     </div>
                   </div>
