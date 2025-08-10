@@ -153,7 +153,7 @@ export class CleanBMCSystem {
       'Key Resources': 'KeyResources',
       'Value Propositions': 'ValueProposition',
       'Customer Relationships': 'CustomerRelationships',
-      'Channels': 'CustomerChannels',
+      'CustomerChannels': 'CustomerChannels',
       'Customer Segments': 'CustomerSegments',
       'Cost Structure': 'CostStructure',
       'Revenue Streams': 'RevenueStreams'
@@ -169,7 +169,7 @@ export class CleanBMCSystem {
       'KeyResources': 'Key Resources',
       'ValueProposition': 'Value Propositions',
       'CustomerRelationships': 'Customer Relationships',
-      'CustomerChannels': 'Channels',
+      'CustomerChannels': 'CustomerChannels',
       'CustomerSegments': 'Customer Segments',
       'CostStructure': 'Cost Structure',
       'RevenueStreams': 'Revenue Streams'
@@ -311,7 +311,8 @@ export class CleanBMCSystem {
 
   // Check if a mesh is registered in the system
   isRegisteredMesh(mesh: AbstractMesh): boolean {
-    for (const [key, item] of this.items.entries()) {
+    const items = Array.from(this.items.values());
+    for (const item of items) {
       if (item.mesh === mesh) {
         return true;
       }

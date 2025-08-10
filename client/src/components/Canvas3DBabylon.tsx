@@ -267,7 +267,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       'Key Resources': 'KeyResources',
       'Value Propositions': 'ValueProposition',
       'Customer Relationships': 'CustomerRelationships',
-      'Channels': 'CustomerChannels',  // GLB mesh name is "Channels"
+      'CustomerChannels': 'CustomerChannels',  // GLB mesh name is "CustomerChannels"
       'Customer Segments': 'CustomerSegments',
       'Cost Structure': 'CostStructure',
       'Revenue Streams': 'RevenueStreams'
@@ -282,7 +282,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       'KeyResources': 'Key Resources',
       'ValueProposition': 'Value Propositions',
       'CustomerRelationships': 'Customer Relationships',
-      'CustomerChannels': 'Channels',  // GLB mesh name is "Channels"
+      'CustomerChannels': 'CustomerChannels',  // GLB mesh name is "CustomerChannels"
       'CustomerSegments': 'Customer Segments',
       'CostStructure': 'Cost Structure',
       'RevenueStreams': 'Revenue Streams'
@@ -339,7 +339,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       "Key Activities": "keyActivities", 
       "Key Resources": "keyResources",
       "Customer Relationships": "customerRelationships",
-      "Channels": "channels",
+      "CustomerChannels": "channels",
       "Customer Segments": "customerSegments",
       "Cost Structure": "costStructure",
       "Revenue Streams": "revenueStreams"
@@ -826,7 +826,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           'Key Resources': 'keyResources',
           'Value Propositions': 'valuePropositions',
           'Customer Relationships': 'customerRelationships',
-          'Channels': 'channels',
+          'CustomerChannels': 'channels',
           'Customer Segments': 'customerSegments',
           'Cost Structure': 'costStructure',
           'Revenue Streams': 'revenueStreams'
@@ -1274,7 +1274,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       { color: new Color3(0.9, 0.9, 0.3), name: "Key Activities" },         // Yellow (was Customer Relationships position)
       { color: new Color3(0.9, 0.3, 0.3), name: "Key Resources" },          // Red
       { color: new Color3(0.8, 0.4, 0.9), name: "Customer Relationships" }, // Purple (was Customer Segments position)
-      { color: new Color3(0.6, 0.9, 0.9), name: "Channels" },               // Cyan
+      { color: new Color3(0.6, 0.9, 0.9), name: "CustomerChannels" },               // Cyan
       { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
     ];
 
@@ -1310,7 +1310,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           2: { color: new Color3(0.07, 0.07, 0.07), name: "Customer Segments" },      // Medium Dark Grey
           3: { color: new Color3(0.07, 0.07, 0.07), name: "Key Resources" },          // Medium Dark Grey
           4: { color: new Color3(0.07, 0.07, 0.07), name: "Key Activities" },         // Medium Dark Grey
-          5: { color: new Color3(0.07, 0.07, 0.07), name: "Channels" },      // Medium Dark Grey
+          5: { color: new Color3(0.07, 0.07, 0.07), name: "CustomerChannels" },      // Medium Dark Grey
           6: { color: new Color3(0.07, 0.07, 0.07), name: "Customer Relationships" }, // Medium Dark Grey
           7: { color: new Color3(0.07, 0.07, 0.07), name: "Cost Structure" },         // Fallback - Medium Dark Grey
           8: { color: new Color3(0.07, 0.07, 0.07), name: "Revenue Streams" },        // Fallback - Medium Dark Grey
@@ -1489,8 +1489,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`✅ Customer Relationships label plane created`);
             }
             
-            if (sectionName === "Channels") {
-              console.log(`🏷️ Creating floating label for Channels mesh (index ${index})`);
+            if (sectionName === "CustomerChannels") {
+              console.log(`🏷️ Creating floating label for CustomerChannels mesh (index ${index})`);
               
               // Get mesh bounds for positioning
               const boundingInfo = mesh.getBoundingInfo();
@@ -1500,9 +1500,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // Create label plane with 50% taller height and slightly larger overall
               const labelWidth = size.x * 0.65; // Slightly larger than 0.6
               const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger than calculated height
-              console.log(`Channels Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              console.log(`CustomerChannels Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
-              const labelPlane = MeshBuilder.CreatePlane("channelsLabel", {
+              const labelPlane = MeshBuilder.CreatePlane("customerChannelsLabel", {
                 width: labelWidth,   // Slightly larger width
                 height: labelHeight  // 50% taller to reduce squishing
               }, scene);
@@ -1516,7 +1516,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.rotation.x = Math.PI / 2;
               
               // Create bright material for white text
-              const labelMaterial = new StandardMaterial("channelsLabelMat", scene);
+              const labelMaterial = new StandardMaterial("customerChannelsLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_CustomerChannels.png", scene);
               labelTexture.hasAlpha = true;
               
@@ -1531,10 +1531,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.isPickable = false;
               
               // Register with clean system
-              cleanBMCRef.current.registerItem("Channels", mesh, sectionMaterial, mesh.scaling.y);
-              cleanBMCRef.current.addLabel("Channels", labelPlane, labelMaterial);
+              cleanBMCRef.current.registerItem("CustomerChannels", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("CustomerChannels", labelPlane, labelMaterial);
               
-              console.log(`✅ Channels label plane created`);
+              console.log(`✅ CustomerChannels label plane created`);
             }
             
             // Add floating label planes for Key Activities section
@@ -2083,7 +2083,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           console.log("🔍 Debugging coordinates - legacy transformUtils removed");
           
           // Measure Customer Channels dimensions for precise Revenue Streams alignment
-          const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Channels");
+          const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "CustomerChannels");
           if (channelsMesh) {
             const boundingInfo = channelsMesh.getBoundingInfo();
             const worldMatrix = channelsMesh.getWorldMatrix();
@@ -2255,7 +2255,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(7.7, 8, 8);
         
-        console.log(`📦 Revenue Streams positioned at (-0.533, 0.1, -10.5) - aligned with Customer Channels left edge`);
+        console.log(`📦 Revenue Streams positioned at (-0.221, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
         // Apply basic material and label to Revenue Streams mesh  
         console.log(`🔍 Revenue Streams meshes found: ${result.meshes.length}`);
