@@ -3192,17 +3192,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               if (animationManagerRef.current) {
                 console.log('🔄 Clearing all animations...');
                 animationManagerRef.current.clearAllAnimations();
-                // Reset materials to default
+                
+                // Reset materials to safe defaults
                 const scene = sceneRef.current;
                 if (scene) {
                   scene.meshes.forEach(mesh => {
-                    if ((mesh as any).bmcSectionName && materialManagerRef.current) {
-                      const defaultMaterial = materialManagerRef.current.getMaterial(`default_${mesh.name}`);
+                    if (mesh.name.includes('BMC') || mesh.name.includes('Customer') || 
+                        mesh.name.includes('Value') || mesh.name.includes('Key') ||
+                        mesh.name.includes('Revenue') || mesh.name.includes('Cost')) {
+                      
+                      // Create safe default material
+                      const defaultMaterial = new StandardMaterial(`reset_${mesh.name}`, scene);
+                      defaultMaterial.diffuseColor = new Color3(0.07, 0.07, 0.07); // Original dark grey
+                      defaultMaterial.emissiveColor = new Color3(0.01, 0.01, 0.01); // Slight glow for visibility
+                      defaultMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+                      defaultMaterial.backFaceCulling = false;
+                      defaultMaterial.alpha = 1.0;
+                      
                       (mesh as Mesh).material = defaultMaterial;
+                      mesh.isVisible = true;
+                      mesh.setEnabled(true);
                     }
                   });
                 }
-                console.log('🔄 All animations cleared, materials reset');
+                console.log('🔄 All animations cleared, materials safely reset');
               }
             }}
             className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-xs font-medium transition-colors"

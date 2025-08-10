@@ -227,23 +227,67 @@ export class BabylonMaterialManager {
     return material;
   }
 
-  // Quick business material access
-  public getBusinessMaterial(type: 'metal' | 'wood' | 'plastic' | 'glass' | 'fabric' | 'gold'): Material | null {
-    try {
-      const timestamp = Date.now();
-      switch (type) {
-        case 'metal': return this.getMaterial(`business_metal_${timestamp}`, 'high_performance');
-        case 'plastic': return this.getMaterial(`business_plastic_${timestamp}`, 'medium_performance');
-        case 'wood': return this.getMaterial(`business_wood_${timestamp}`, 'needs_improvement');
-        case 'glass': return this.getMaterial(`business_glass_${timestamp}`, 'growth_area');
-        case 'fabric': return this.getMaterial(`business_fabric_${timestamp}`, 'cost_center');
-        case 'gold': return this.getMaterial(`business_gold_${timestamp}`, 'revenue_generator');
-        default: return null;
-      }
-    } catch (error) {
-      console.error(`Failed to get business material: ${type}`, error);
-      return null;
+  // Quick business material access with safe defaults
+  public getBusinessMaterial(type: 'metal' | 'wood' | 'plastic' | 'glass' | 'fabric' | 'gold'): StandardMaterial {
+    const materialName = `business_${type}_${Date.now()}`;
+    const material = new StandardMaterial(materialName, this.scene);
+    
+    // Ensure material is always visible with safe defaults
+    material.alpha = 1.0; // Fully opaque
+    material.backFaceCulling = false; // Show both sides
+    material.specularColor = new Color3(0.3, 0.3, 0.3);
+    material.specularPower = 32;
+    
+    // Add slight emissive to ensure visibility even without perfect lighting
+    const emissiveStrength = 0.1;
+    
+    switch (type) {
+      case 'metal':
+        // High performance metallic blue-gray
+        material.diffuseColor = new Color3(0.6, 0.7, 0.8);
+        material.emissiveColor = new Color3(0.05, 0.07, 0.1);
+        material.specularColor = new Color3(0.8, 0.8, 0.9);
+        material.specularPower = 64;
+        break;
+        
+      case 'plastic':
+        // Medium performance clean plastic
+        material.diffuseColor = new Color3(0.5, 0.6, 0.7);
+        material.emissiveColor = new Color3(0.05, 0.06, 0.07);
+        break;
+        
+      case 'wood':
+        // Low performance wood brown
+        material.diffuseColor = new Color3(0.6, 0.4, 0.2);
+        material.emissiveColor = new Color3(0.06, 0.04, 0.02);
+        material.specularPower = 16;
+        break;
+        
+      case 'glass':
+        // Growth area translucent green
+        material.diffuseColor = new Color3(0.7, 0.9, 0.7);
+        material.emissiveColor = new Color3(0.07, 0.09, 0.07);
+        material.alpha = 0.85; // Slightly transparent but visible
+        break;
+        
+      case 'fabric':
+        // Cost center matte fabric
+        material.diffuseColor = new Color3(0.7, 0.5, 0.5);
+        material.emissiveColor = new Color3(0.07, 0.05, 0.05);
+        material.specularPower = 8;
+        break;
+        
+      case 'gold':
+        // Revenue generator bright gold
+        material.diffuseColor = new Color3(1.0, 0.8, 0.2);
+        material.emissiveColor = new Color3(0.15, 0.12, 0.03);
+        material.specularColor = new Color3(1.0, 0.9, 0.4);
+        material.specularPower = 64;
+        break;
     }
+    
+    console.log(`✅ Created safe business material: ${type} (${materialName})`);
+    return material;
   }
 
   public dispose(): void {

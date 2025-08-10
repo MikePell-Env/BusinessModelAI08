@@ -173,13 +173,41 @@ export class BabylonAnimationManager {
     }
 
     meshes.forEach(mesh => {
-      if ((mesh as Mesh).material && this.materialManager) {
-        const material = this.materialManager.getBusinessMaterial(materialType);
-        if (material) {
+      if (this.materialManager && (mesh as Mesh).material) {
+        try {
+          // Store original state
+          const originalVisibility = mesh.isVisible;
+          const originalEnabled = mesh.isEnabled();
+          
+          // Get safe business material
+          const material = this.materialManager.getBusinessMaterial(materialType);
+          
+          // Ensure mesh has proper normals before applying material
+          if (!(mesh as any).geometry?.getNormalsData?.()) {
+            try {
+              (mesh as any).createNormals?.(true);
+            } catch (e) {
+              console.warn(`Could not create normals for ${mesh.name}:`, e);
+            }
+          }
+          
+          // Apply material safely
           (mesh as Mesh).material = material;
+          
+          // Restore visibility
+          mesh.isVisible = originalVisibility;
+          mesh.setEnabled(originalEnabled);
+          
           console.log(`✅ Applied ${materialType} material to ${mesh.name}`);
-        } else {
-          console.warn(`❌ Failed to get ${materialType} material for ${mesh.name}`);
+        } catch (error) {
+          console.error(`❌ Failed to apply ${materialType} material to ${mesh.name}:`, error);
+          
+          // Fallback: create a simple visible material
+          const fallbackMaterial = new StandardMaterial(`fallback_${mesh.name}`, this.scene);
+          fallbackMaterial.diffuseColor = new Color3(0.5, 0.5, 0.5);
+          fallbackMaterial.emissiveColor = new Color3(0.1, 0.1, 0.1);
+          fallbackMaterial.backFaceCulling = false;
+          (mesh as Mesh).material = fallbackMaterial;
         }
       }
     });
