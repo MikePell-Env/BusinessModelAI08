@@ -636,10 +636,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const billboardPanelRef = { current: null as any };
     billboardPanelRef.current = currentBillboardPanel;
     
-    // Double-click detection system (more reliable than OnDoublePickTrigger)
-    let lastClickTime = 0;
-    let lastClickedMesh: any = null;
-    const DOUBLE_CLICK_THRESHOLD = 500; // 500ms
+    // Using official Babylon.js OnDoublePickTrigger (approved method)
     
     // Update background click handler to have access to billboard panel
     handleBackgroundClick = () => {
@@ -1891,9 +1888,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old updateContentPanel function - replaced by createBillboardPanel
             
-            // Custom double-click detection (more reliable than OnDoublePickTrigger)
-            const handleDoubleClick = () => {
-              console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON ${sectionName} ⚡⚡`);
+            // Single click handler for selection
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`🎯 Single click on ${sectionName} - delegating to BMC system`);
+              cleanBMCRef.current.onSelect(sectionName);
+            }));
+            
+            // Official Babylon.js double-click handler (approved method)
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON ${sectionName} (Official Babylon.js method) ⚡⚡`);
               
               // Close any existing panel first
               if (currentBillboardPanel) {
@@ -1918,40 +1921,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               createBillboardPanel(sectionName, meshWorldPosition);
               
               // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation
-              // Panel creation might interfere with visual state, so re-apply selection
               setTimeout(() => {
                 if (cleanBMCRef.current) {
                   cleanBMCRef.current.onSelect(sectionName);
                   console.log(`🔄 Re-applied selection highlighting for ${sectionName} after panel creation`);
                 }
-              }, 50); // Small delay to let panel creation complete
+              }, 50);
               
               console.log(`⚡ Double-click: ${sectionName} selected and billboard panel created`);
-            };
-            
-            // Click - with double-click detection and unified BMC selection system
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯🎯 CLICK DETECTED ON ${sectionName} 🎯🎯`);
-              
-              const currentTime = Date.now();
-              
-              // Check for double-click
-              if (lastClickedMesh === mesh && (currentTime - lastClickTime) < DOUBLE_CLICK_THRESHOLD) {
-                console.log(`⚡ Double-click detected on ${sectionName}!`);
-                handleDoubleClick();
-                // Reset to prevent triple-click issues
-                lastClickTime = 0;
-                lastClickedMesh = null;
-                return;
-              }
-              
-              // Single click - update tracking and handle normally
-              lastClickTime = currentTime;
-              lastClickedMesh = mesh;
-              
-              console.log(`🎯 Single click on ${sectionName} - delegating to BMC system`);
-              // Delegate to CleanBMCSystem which delegates to BMC State Manager
-              cleanBMCRef.current.onSelect(sectionName);
             }));
             
             // REMOVED: Old close button functionality - now handled by billboard panel system
@@ -2190,9 +2167,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               handleBMCObjectHoverExit("Revenue Streams");
             }));
             
-            // Custom double-click detection for Revenue Streams
-            const handleRevenueDoubleClick = () => {
-              console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON Revenue Streams ⚡⚡`);
+            // Single click handler for Revenue Streams
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`🎯 Single click on Revenue Streams - delegating to BMC system`);
+              handleBMCObjectClick("Revenue Streams");
+            }));
+            
+            // Official Babylon.js double-click handler for Revenue Streams
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON Revenue Streams (Official Babylon.js method) ⚡⚡`);
               
               // Close any existing panel first
               if (currentBillboardPanel) {
@@ -2225,29 +2208,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }, 50);
               
               console.log(`⚡ Revenue Streams billboard panel creation completed`);
-            };
-
-            // Click with double-click detection for Revenue Streams
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯🎯 CLICK DETECTED ON Revenue Streams 🎯🎯`);
-              
-              const currentTime = Date.now();
-              
-              // Check for double-click
-              if (lastClickedMesh === mesh && (currentTime - lastClickTime) < DOUBLE_CLICK_THRESHOLD) {
-                console.log(`⚡ Double-click detected on Revenue Streams!`);
-                handleRevenueDoubleClick();
-                lastClickTime = 0;
-                lastClickedMesh = null;
-                return;
-              }
-              
-              // Single click - update tracking and handle normally
-              lastClickTime = currentTime;
-              lastClickedMesh = mesh;
-              
-              console.log(`🎯 Single click on Revenue Streams - delegating to BMC system`);
-              handleBMCObjectClick("Revenue Streams");
             }));
 
             // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
@@ -2401,9 +2361,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               handleBMCObjectHoverExit("Cost Structure");
             }));
             
-            // Custom double-click detection for Cost Structure
-            const handleCostDoubleClick = () => {
-              console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON Cost Structure ⚡⚡`);
+            // Single click handler for Cost Structure
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`🎯 Single click on Cost Structure - delegating to BMC system`);
+              handleBMCObjectClick("Cost Structure");
+            }));
+            
+            // Official Babylon.js double-click handler for Cost Structure
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON Cost Structure (Official Babylon.js method) ⚡⚡`);
               
               // Close any existing panel first
               if (currentBillboardPanel) {
@@ -2436,29 +2402,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }, 50);
               
               console.log(`⚡ Cost Structure billboard panel creation completed`);
-            };
-
-            // Click with double-click detection for Cost Structure
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯🎯 CLICK DETECTED ON Cost Structure 🎯🎯`);
-              
-              const currentTime = Date.now();
-              
-              // Check for double-click
-              if (lastClickedMesh === mesh && (currentTime - lastClickTime) < DOUBLE_CLICK_THRESHOLD) {
-                console.log(`⚡ Double-click detected on Cost Structure!`);
-                handleCostDoubleClick();
-                lastClickTime = 0;
-                lastClickedMesh = null;
-                return;
-              }
-              
-              // Single click - update tracking and handle normally
-              lastClickTime = currentTime;
-              lastClickedMesh = mesh;
-              
-              console.log(`🎯 Single click on Cost Structure - delegating to BMC system`);
-              handleBMCObjectClick("Cost Structure");
             }));
 
             // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
