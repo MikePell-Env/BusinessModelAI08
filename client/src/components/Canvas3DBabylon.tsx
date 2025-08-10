@@ -2033,6 +2033,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON ${sectionName} (Official Babylon.js method) ⚡⚡`);
               
+              // Check if this object is already selected
+              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+              const isAlreadySelected = currentlySelected === sectionName;
+              
+              console.log(`🔍 Double-click on ${sectionName}: currently selected = ${currentlySelected}, isAlreadySelected = ${isAlreadySelected}`);
+              
               // Close any existing panel first
               if (currentBillboardPanel) {
                 advancedTexture.removeControl(currentBillboardPanel);
@@ -2041,10 +2047,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log("❌ Previous billboard panel closed by new double-click");
               }
               
-              // STEP 1: Ensure object is selected and all others are deselected
-              if (cleanBMCRef.current) {
+              // STEP 1: Ensure object is selected (but don't deselect if already selected)
+              if (cleanBMCRef.current && !isAlreadySelected) {
                 cleanBMCRef.current.onSelect(sectionName);
                 console.log(`✅ Object ${sectionName} selected via double-click - all others deselected`);
+              } else if (isAlreadySelected) {
+                console.log(`✅ Object ${sectionName} already selected - preserving selection highlighting for double-click`);
               }
               
               // Get mesh world position for billboard placement
@@ -2055,7 +2063,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`🚀 About to create billboard panel for: ${sectionName}`);
               createBillboardPanel(sectionName, meshWorldPosition);
               
-              // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation
+              // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation (always, regardless of previous state)
               setTimeout(() => {
                 if (cleanBMCRef.current) {
                   cleanBMCRef.current.onSelect(sectionName);
@@ -2063,7 +2071,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 }
               }, 50);
               
-              console.log(`⚡ Double-click: ${sectionName} selected and billboard panel created`);
+              console.log(`⚡ Double-click: ${sectionName} panel created with selection preserved`);
             }));
             
             // REMOVED: Old close button functionality - now handled by billboard panel system
