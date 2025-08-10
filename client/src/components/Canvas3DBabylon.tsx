@@ -715,13 +715,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
         width: 0.02,  // Ultra-thin width (2px equivalent)
-        height: 14.0  // Increased height to span full main BMC area
+        height: 10.0  // Reduced height to fit within ground plane with equal margins
       }, scene);
       
-      // Position in center of main BMC area (not extending into Cost/Revenue sections)
+      // Position to center within ground plane with equal top/bottom margins
       verticalDividerPlane.position.x = 0.0;   // Center line (X=0)
       verticalDividerPlane.position.y = 0.001; // Directly on ground plane surface
-      verticalDividerPlane.position.z = -1.0;  // Centered in main BMC area (above Cost/Revenue sections)
+      verticalDividerPlane.position.z = -3.0;  // Adjusted to center with equal margins top/bottom
       
       // Rotate to lie flat on the ground
       verticalDividerPlane.rotation.x = Math.PI / 2;
