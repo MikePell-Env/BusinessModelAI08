@@ -1,81 +1,61 @@
 # Business Model Canvas Visualization Application
 
 ## Overview
-This project is a web application designed for creating and visualizing business model canvases. It integrates AI-powered assistance for business analysis, offering both 2D and interactive 3D visualization modes. The core purpose is to provide a comprehensive tool for business strategizing, combining modern web technologies with advanced visualization and AI capabilities. The application features a unified transformation system for all BMC objects with consistent hover and selection behaviors across main BMC sections, Revenue Streams, and Cost Structure components.
+This project is a web application for creating and visualizing business model canvases, enhanced with AI-powered assistance for business analysis. It offers both 2D and interactive 3D visualization modes to provide a comprehensive tool for business strategizing. Key capabilities include a unified transformation system for all BMC objects with consistent hover and selection behaviors across main BMC sections, Revenue Streams, and Cost Structure components. The application aims to combine modern web technologies with advanced visualization and AI capabilities.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
-
-## Recent Changes (January 2025)
-- **App Navigation Enhancement**: Added new "Explore" page as exact copy of Home page structure
-- **Header Navigation**: Added 4-button navigation with Home/About/Team/Explore/Contact layout
-- **Content Cleanup**: Explore page has demo blue box and 3 video elements removed for cleaner layout
-- **Page Structure**: Home page unchanged, Explore page uses full-width layout without right column
-- **Explore Page Redesign**: Updated to match provided design reference with professional two-column layout:
-  - Left column: Company name, summary content in white card
-  - Right column: Three analysis tools (SWOT, Business Model Canvas, Financials) with simple icons
-  - Gray background, clean typography, Business Model Canvas clickable to launch 3D viewer
-- **AI Assistant Performance Optimization**: Reduced response times from 17+ seconds to 4-6 seconds by switching to gpt-4o-mini model, reducing token limits, and optimizing system prompts
-- **Microsoft Copilot Progress Indicator**: Added authentic animated horizontal blue progress bar with typing dots and pulsing logo for better user experience during AI processing
-- **Envisioner Integration (January 10, 2025)**: Implemented intelligent voice-activated 3D view switching where users can say "open an envisioner" in the AI chat to automatically navigate to and launch the 3D Business Model Canvas view. Uses custom event system for cross-component communication and loads sample data when needed.
 
 ## System Architecture
 The application employs a full-stack monorepo architecture, separating client and server concerns.
 
 ### Frontend Architecture
-- **Framework**: React with TypeScript, using Vite for efficient build processes.
-- **UI Framework**: Radix UI components styled with Tailwind CSS for a modern and responsive user interface.
-- **3D Rendering**: React Three Fiber with Three.js (for initial concepts) and Babylon.js for advanced 3D canvas visualizations. The Babylon.js implementation supports GLB model integration, dual camera modes (Perspective 3D View and orthographic 3D Top View with persistent camera states), dynamic height management for visual interaction, interactive selection with content panels, hover effects, and billboard labels.
-- **State Management**: Zustand for managing client-side application state.
+- **Framework**: React with TypeScript, using Vite.
+- **UI Framework**: Radix UI components styled with Tailwind CSS.
+- **3D Rendering**: React Three Fiber with Three.js (initial concepts) and Babylon.js for advanced 3D canvas visualizations. The Babylon.js implementation supports GLB model integration, dual camera modes (Perspective 3D View and orthographic 3D Top View with persistent camera states), dynamic height management, interactive selection with content panels, hover effects, and billboard labels.
+- **State Management**: Zustand for client-side application state.
 - **Data Fetching**: TanStack Query for server state management and data synchronization.
 
 ### Backend Architecture
 - **Server Framework**: Express.js with TypeScript.
-- **Database**: PostgreSQL, accessed via Drizzle ORM for type-safe database interactions.
-- **AI Integration**: OpenAI API (specifically GPT-4o) is used for business model analysis and chat functionality. Microsoft Copilot services are integrated with fallback mechanisms.
-- **Session Management**: In-memory session storage (MemStorage class) with provisions for database persistence.
+- **Database**: PostgreSQL, accessed via Drizzle ORM.
+- **AI Integration**: OpenAI API (GPT-4o) for business model analysis and chat functionality.
+- **Session Management**: In-memory session storage.
 
-### Key Components
-- **Canvas Visualization System**: Features a traditional 2D grid-based canvas and an advanced 3D system. The 3D system supports professional GLB models, dynamic object height manipulation, and an interactive selection system. View switching between 2D, 3D View, and 3D Top modes is seamless with state persistence.
-- **AI Chat Integration**: Utilizes GPT-4o for insights and recommendations, providing a real-time conversational interface that is context-aware of the current canvas state.
-- **Data Management**: Employs shared TypeScript types for consistent data structures across the stack. Canvas elements are defined for the nine core business model canvas sections, with sample data loaded from JSON and a structure supporting canvas metadata and version control via timestamps.
-
-### Technical Architecture Details
-- **3D Visualization System (Babylon.js Implementation)**: Uses a single comprehensive GLB model (`BMC_blender_09_complete_1753576063858.glb`) with 7 interactive sections. It incorporates a transform node hierarchy for granular control, a height management system that reads actual GLB transform node scaling values, and semi-gloss black PBR materials with blue selection highlights. Camera system includes dual modes with persistent state. Billboard labels are camera-facing PNG textures.
-- **Unified Transformation System (January 2025)**: Implemented comprehensive coordinate system management with UnifiedBMCTransformSystem class. Handles complex coordinate reversals, different object types (main BMC vs separate GLBs), and provides consistent APIs for height, position, and scaling control. Includes debug utilities and coordinate system documentation. Maintains backward compatibility with existing BMCSectionController.
-- **State Management Architecture**: Relies on Zustand stores for canvas data, view modes, chat history, 3D camera positions, and object selection states. Includes persistent camera state and coordination of selection timing between UI state and 3D object manipulations.
-- **Coordinate System & Orientation Management**: Addresses GLB model orientation issues from Blender exports by applying a 180° Y-axis rotation in orthographic top view, with corresponding camera compensation.
-- **3D Interaction System (Updated January 2025)**: Click behavior modified for optimal usability: single click selects object (blue highlight, others 50% opacity), second single click deselects object. Content panels now display only on double-click in 3D View and 3D Top View modes. Background click detection clears selections and restores all objects to original state and heights. Objects use medium dark grey base color (0.07, 0.07, 0.07) with bright blue hover (0.0, 0.3, 0.8) for optimal visibility. Selected object highlighting is consistently maintained across all view transitions (2D ↔ 3D View ↔ 3D Top View) through state restoration logic that preserves selection across view switches. Content panels have maximum z-index (9999) ensuring proper layering above all elements.
-- **Additional BMC Sections (January 2025)**: Added separate GLB model instances for Revenue Streams and Cost Structure sections positioned below the main BMC model. Revenue Streams (X: -0.221, width: 7.7) aligned with Customer Channels left edge. Cost Structure (X: -10.1, width: 8.0) positioned in lower left area spanning from Key Partners to Key Resources alignment. Both objects use identical material properties, label formatting (90° counterclockwise rotation, 1.6x2.08 scaling), and interaction setup as main BMC sections.
-- **Unified Interaction System (January 2025)**: Implemented consistent hover and selection behaviors across all BMC objects (main BMC sections, Revenue Streams, Cost Structure). Hover behavior: objects turn bright blue (#0066CC) while all objects maintain 100% opacity. Selection behavior: selected object stays bright blue, others fade to 50% opacity and flatten in height. Cross-object coordination ensures only one object can be selected at a time. All interactions include detailed console logging for debugging.
-- **Unified BMC Management Architecture (January 2025 - MAJOR REFACTOR)**: Implemented comprehensive unified system integrating all BMC components (state management, label visibility, material handling) under single architecture. Created UnifiedBMCLabelManager that maps section names to BMC component types and ensures consistent label visibility across all selection states. Eliminated competing systems by consolidating contentPanelsRef, bmcStateManager, and label handling into unified workflow. All visual state changes now flow through single applyBMCVisualState function with guaranteed label preservation.
-- **Label Visibility Fix (January 2025)**: Resolved critical issue where labels became faint during object selection due to parent-child opacity inheritance in Babylon.js. Solution: Used Material.MATERIAL_ALPHATEST transparency mode to enable PNG transparency while preventing unwanted alpha blending, combined with individual mesh.visibility = 1.0 override and renderingGroupId = 1 for proper rendering order. Key lesson: Always research framework documentation thoroughly before implementing fixes.
-- **Deployment Strategy**: Frontend built with Vite to `dist/public`, backend bundled with ESBuild to `dist/index.js`. Utilizes environment variables for database connection (`DATABASE_URL`) and AI API keys. Drizzle ORM manages database schema and migrations.
+### Key Components & Technical Details
+- **Canvas Visualization System**: Features traditional 2D grid and an advanced 3D system. The 3D system uses a single GLB model with 7 interactive sections, supports dynamic object height manipulation, and an interactive selection system. View switching between 2D, 3D View, and 3D Top modes is seamless with state persistence. Additional GLB instances are used for Revenue Streams and Cost Structure sections.
+- **AI Chat Integration**: Utilizes GPT-4o for insights and recommendations, providing a real-time, context-aware conversational interface. Intelligent voice-activated 3D view switching is implemented through custom event systems.
+- **Data Management**: Employs shared TypeScript types for consistent data structures. Canvas elements are defined for the nine core BMC sections, with sample data loaded from JSON and support for canvas metadata and version control.
+- **Unified Transformation System**: Manages coordinate systems for various object types, ensuring consistent height, position, and scaling control across all BMC components.
+- **3D Interaction System**: Implements consistent single-click selection (highlighting selected object, fading others) and double-click to display content panels. Hover effects are consistent across all BMC objects. State restoration logic ensures selection persistence across view transitions.
+- **Unified BMC Management Architecture**: Integrates all BMC components (state management, label visibility, material handling) under a single architecture for consistent visual state changes and label preservation.
+- **Data-Driven Animation Architecture**: Planned system to replace hardcoded animations with a scalable data-binding engine, supporting real-time data integration from Microsoft Office documents and business metrics. This involves a unified animation manager, color transition system, and data binding foundation.
+- **Deployment Strategy**: Frontend built with Vite to `dist/public`, backend bundled with ESBuild to `dist/index.js`. Utilizes environment variables for database connection and AI API keys. Drizzle ORM manages database schema and migrations.
 
 ## External Dependencies
 
 ### Core Dependencies
 - **@neondatabase/serverless**: PostgreSQL database connectivity.
-- **drizzle-orm**: Type-safe ORM for database operations.
-- **openai**: OpenAI API client for AI chat and analysis.
+- **drizzle-orm**: Type-safe ORM.
+- **openai**: OpenAI API client.
 - **@radix-ui/***: UI component library.
 - **@react-three/fiber**: 3D rendering library for React.
 - **@babylonjs/core**: Core Babylon.js library for 3D rendering.
 - **zustand**: State management library.
 
 ### Development Tools
-- **Vite**: Fast build tool and development server.
+- **Vite**: Build tool and development server.
 - **TypeScript**: Language for type-safe development.
 - **Tailwind CSS**: Utility-first CSS framework.
-- **ESBuild**: Bundler for optimizing production builds.
+- **ESBuild**: Bundler for production builds.
 
 ### AI/Cloud Services
 - **OpenAI API**: Primary AI service for generative capabilities.
-- **Microsoft Copilot**: Integrated for enhanced business analysis and insights, leveraging Azure AI Foundry.
-- **Microsoft Graph API**: Used for potential future integration and authentication.
+- **Microsoft Copilot**: Integrated for enhanced business analysis and insights.
+- **Microsoft Graph API**: For potential future integration and authentication.
 
 ### Database
 - **PostgreSQL**: Relational database for persistent storage.
 
 ### Other Integrations
-- **PowerPoint Import**: Utilizes JSZip and XML parsing for importing content from PowerPoint files. Features enhanced paragraph-based text extraction to preserve complete bullet points and strict content filtering for Revenue Streams to prevent financial projection data contamination.
+- **PowerPoint Import**: Utilizes JSZip and XML parsing for importing content from PowerPoint files, with enhanced text extraction and content filtering.
