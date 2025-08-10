@@ -140,11 +140,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                   </div>
                 </div>
 
-                {/* Option 2 - Ask Copilot (Disabled) */}
-                <div className="text-center opacity-50">
-                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
+                {/* Option 2 - Ask Copilot (Enabled) */}
+                <div className="text-center">
+                  <div className="bg-white p-6 rounded-lg shadow-md border border-blue-500 hover:border-blue-600 transition-colors relative h-full flex flex-col">
                     {/* Number 2 in top left */}
-                    <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                    <div className="absolute top-4 left-4 bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       2
                     </div>
                     
@@ -159,8 +159,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                     
                     {/* Button at bottom */}
                     <Button 
-                      disabled
-                      className="w-full bg-gray-200 text-gray-500 hover:bg-gray-200 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
+                      className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2 mt-4"
                     >
                       Ask Copilot AI...
                     </Button>
@@ -189,7 +188,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                       disabled
                       className="w-full bg-gray-200 text-gray-500 hover:bg-gray-200 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
                     >
-                      Dev? Use MCP API...
+                      MCP API
                     </Button>
                   </div>
                 </div>
