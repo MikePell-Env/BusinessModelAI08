@@ -559,10 +559,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       };
       
       canvas.addEventListener('wheel', onWheel, { passive: false });
-      canvas.addEventListener('mousedown', onMouseDown);
-      canvas.addEventListener('mousemove', onMouseMove);
-      canvas.addEventListener('mouseup', onMouseUp);
-      canvas.addEventListener('mouseleave', onMouseUp);
+      canvas.addEventListener('mousedown', onMouseDown, true); // Use capture phase
+      canvas.addEventListener('mousemove', onMouseMove, true); // Use capture phase  
+      canvas.addEventListener('mouseup', onMouseUp, true); // Use capture phase
+      canvas.addEventListener('mouseleave', onMouseUp, true); // Use capture phase
       
       // Store handlers for cleanup
       orthoEventHandlers = {
@@ -2768,10 +2768,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       if (orthoEventHandlers && orthoEventHandlers.canvas) {
         const canvas = orthoEventHandlers.canvas;
         canvas.removeEventListener('wheel', orthoEventHandlers.wheel);
-        canvas.removeEventListener('mousedown', orthoEventHandlers.mousedown);
-        canvas.removeEventListener('mousemove', orthoEventHandlers.mousemove);
-        canvas.removeEventListener('mouseup', orthoEventHandlers.mouseup);
-        canvas.removeEventListener('mouseleave', orthoEventHandlers.mouseup);
+        canvas.removeEventListener('mousedown', orthoEventHandlers.mousedown, true);
+        canvas.removeEventListener('mousemove', orthoEventHandlers.mousemove, true);
+        canvas.removeEventListener('mouseup', orthoEventHandlers.mouseup, true);
+        canvas.removeEventListener('mouseleave', orthoEventHandlers.mouseup, true);
         orthoEventHandlers = null;
       }
       
@@ -2822,6 +2822,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
         
+        // Re-setup orthographic controls when switching to 3D Top view
+        if (orthoEventHandlers && orthoEventHandlers.canvas) {
+          const canvas = orthoEventHandlers.canvas;
+          // Remove old handlers first
+          canvas.removeEventListener('mousedown', orthoEventHandlers.mousedown, true);
+          canvas.removeEventListener('mousemove', orthoEventHandlers.mousemove, true);
+          canvas.removeEventListener('mouseup', orthoEventHandlers.mouseup, true);
+          canvas.removeEventListener('mouseleave', orthoEventHandlers.mouseup, true);
+          
+          // Re-add handlers to ensure they're active
+          canvas.addEventListener('mousedown', orthoEventHandlers.mousedown, true);
+          canvas.addEventListener('mousemove', orthoEventHandlers.mousemove, true);
+          canvas.addEventListener('mouseup', orthoEventHandlers.mouseup, true);
+          canvas.addEventListener('mouseleave', orthoEventHandlers.mouseup, true);
+          
+          console.log("🎯 Orthographic controls re-activated for 3D Top view");
+        }
+        
         // Apply visual state after camera switch
         setTimeout(() => {
           if (cleanBMCRef.current) {
@@ -2831,6 +2849,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         console.log(`✅ SWITCHED TO 3D TOP VIEW`);
       } else {
+        // Disable orthographic controls when switching away
+        if (orthoEventHandlers && orthoEventHandlers.canvas) {
+          const canvas = orthoEventHandlers.canvas;
+          canvas.removeEventListener('mousedown', orthoEventHandlers.mousedown, true);
+          canvas.removeEventListener('mousemove', orthoEventHandlers.mousemove, true);
+          canvas.removeEventListener('mouseup', orthoEventHandlers.mouseup, true);
+          canvas.removeEventListener('mouseleave', orthoEventHandlers.mouseup, true);
+          
+          console.log("🎯 Orthographic controls disabled for 3D View");
+        }
+        
         // Switch back to perspective camera
         scene.activeCamera = perspectiveCamera;
         
