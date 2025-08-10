@@ -15,6 +15,9 @@ Preferred communication style: Simple, everyday language.
   - Left column: Company name, summary content in white card
   - Right column: Three analysis tools (SWOT, Business Model Canvas, Financials) with simple icons
   - Gray background, clean typography, Business Model Canvas clickable to launch 3D viewer
+- **AI Assistant Performance Optimization**: Reduced response times from 17+ seconds to 4-6 seconds by switching to gpt-4o-mini model, reducing token limits, and optimizing system prompts
+- **Microsoft Copilot Progress Indicator**: Added authentic animated horizontal blue progress bar with typing dots and pulsing logo for better user experience during AI processing
+- **Envisioner Integration (January 10, 2025)**: Implemented intelligent voice-activated 3D view switching where users can say "open an envisioner" in the AI chat to automatically navigate to and launch the 3D Business Model Canvas view. Uses custom event system for cross-component communication and loads sample data when needed.
 
 ## System Architecture
 The application employs a full-stack monorepo architecture, separating client and server concerns.
