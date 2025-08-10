@@ -137,20 +137,7 @@ export const AIChat: React.FC = () => {
   };
 
   if (!isChatOpen) {
-    return (
-      <div className="fixed bottom-6 right-6 z-[9999]">
-        <Button
-          onClick={toggleChat}
-          className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 shadow-lg flex items-center justify-center"
-        >
-          <img 
-            src="/copilot-logo.png" 
-            alt="Microsoft Copilot" 
-            className="w-8 h-8"
-          />
-        </Button>
-      </div>
-    );
+    return null;
   }
 
   return (
