@@ -707,10 +707,47 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       console.log(`✅ External label positioned on right side at (${externalLabelPlane.position.x}, ${externalLabelPlane.position.y}, ${externalLabelPlane.position.z})`);
     };
+
+    // Add vertical divider label in the center of the ground plane, running top to bottom
+    const createVerticalDividerLabel = () => {
+      // Position in the center of the ground plane (X=0), running from top to bottom
+      // Based on BMC layout: center line should run between left side (Internal) and right side (External)
+      
+      const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
+        width: 0.4,   // Very thin width for vertical divider line
+        height: 12.0  // Long height to span from top to bottom of ground plane
+      }, scene);
+      
+      // Position in center of ground plane
+      verticalDividerPlane.position.x = 0.0;   // Center line (X=0)
+      verticalDividerPlane.position.y = 0.001; // Directly on ground plane surface
+      verticalDividerPlane.position.z = -6.2;  // Same Z as Internal/External for alignment
+      
+      // Rotate to lie flat on the ground
+      verticalDividerPlane.rotation.x = Math.PI / 2;
+      
+      // Create material with the vertical divider grey label at 50% transparency
+      const verticalDividerMaterial = new StandardMaterial("verticalDividerMat", scene);
+      const verticalDividerTexture = new Texture("/textures/Labels_vertical_divider.png", scene);
+      verticalDividerTexture.hasAlpha = true;
+      
+      verticalDividerMaterial.diffuseTexture = verticalDividerTexture;
+      verticalDividerMaterial.emissiveTexture = verticalDividerTexture;
+      verticalDividerMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
+      verticalDividerMaterial.alpha = 0.3; // 30% opacity (same as Internal/External)
+      verticalDividerMaterial.useAlphaFromDiffuseTexture = true;
+      verticalDividerMaterial.disableLighting = true;
+      
+      verticalDividerPlane.material = verticalDividerMaterial;
+      verticalDividerPlane.isPickable = false;
+      
+      console.log(`✅ Vertical divider label (grey) on ground plane at center (${verticalDividerPlane.position.x}, ${verticalDividerPlane.position.y}, ${verticalDividerPlane.position.z})`);
+    };
     
-    // Create the Internal and External labels
+    // Create the Internal, External, and Vertical Divider labels
     createInternalLabel();
     createExternalLabel();
+    createVerticalDividerLabel();
     
 
     
