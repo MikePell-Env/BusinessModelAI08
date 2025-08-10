@@ -140,7 +140,7 @@ export const AIChat: React.FC = () => {
         (userMessageLower.includes('open') && userMessageLower.includes('envisioner')) ||
         (userMessageLower.includes('launch') && userMessageLower.includes('envisioner')) ||
         (userMessageLower.includes('start') && userMessageLower.includes('envisioner')) ||
-        (responseMessageLower.includes('opening') && responseMessageLower.includes('envisioner')) ||
+        (responseMessageLower.includes('opening envisioner')) ||
         (responseMessageLower.includes('launch') && responseMessageLower.includes('envisioner'))
       );
       
@@ -149,6 +149,13 @@ export const AIChat: React.FC = () => {
         
         // Switch to 3D View mode using the proper method
         switchBMCView('view3DPerspective');
+        
+        // Replace the long AI response with just the activation message
+        const lastMessage = chatMessages[chatMessages.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant') {
+          // Update the last assistant message to just show activation
+          lastMessage.content = 'Opening Envisioner now...';
+        }
         
         // Add a system message to indicate the action
         const systemMessage: ChatMessage = {
@@ -160,7 +167,7 @@ export const AIChat: React.FC = () => {
         
         setTimeout(() => {
           addChatMessage(systemMessage);
-        }, 500);
+        }, 100);
       } else {
         console.log('ℹ️ No Envisioner keywords detected');
       }

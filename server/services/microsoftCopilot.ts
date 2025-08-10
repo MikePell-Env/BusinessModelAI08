@@ -113,10 +113,12 @@ async function tryAzureOpenAI(request: CopilotChatRequest): Promise<CopilotChatR
 
 Business Context: ${request.canvas.name || 'Business Model Canvas'} - ${request.canvas.description || 'No description'}
 
-Key Areas: Value Creation, Delivery, Capture, Strategic Fit, Market Validation
-Microsoft Technologies: Azure, Microsoft 365, Power Platform, Teams, Dynamics 365
+SPECIAL INSTRUCTIONS:
+- If user asks to "open an envisioner" or similar, respond ONLY with: "Opening Envisioner now..."
+- For all other queries, provide concise, actionable insights and recommendations. Keep responses focused and brief.
 
-Provide concise, actionable insights and recommendations. Keep responses focused and brief.`
+Key Areas: Value Creation, Delivery, Capture, Strategic Fit, Market Validation
+Microsoft Technologies: Azure, Microsoft 365, Power Platform, Teams, Dynamics 365`
           },
           ...request.chatHistory.map(msg => ({
             role: msg.role,
@@ -167,7 +169,9 @@ async function fallbackToOpenAI(request: CopilotChatRequest): Promise<CopilotCha
 
 Business Context: ${request.canvas.name || 'Business Model Canvas'} - ${request.canvas.description || 'No description'}
 
-Provide concise, actionable insights and recommendations. Keep responses focused and brief.`
+SPECIAL INSTRUCTIONS:
+- If user asks to "open an envisioner" or similar, respond ONLY with: "Opening Envisioner now..."
+- For all other queries, provide concise, actionable insights and recommendations. Keep responses focused and brief.`
         },
         ...request.chatHistory.map(msg => ({
           role: msg.role as 'user' | 'assistant',
