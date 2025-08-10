@@ -3193,7 +3193,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log('🔄 Clearing all animations...');
                 animationManagerRef.current.clearAllAnimations();
                 
-                // Reset materials to safe defaults
+                // Reset materials to original materials preserving labels
                 const scene = sceneRef.current;
                 if (scene) {
                   scene.meshes.forEach(mesh => {
@@ -3201,17 +3201,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                         mesh.name.includes('Value') || mesh.name.includes('Key') ||
                         mesh.name.includes('Revenue') || mesh.name.includes('Cost')) {
                       
-                      // Create safe default material
-                      const defaultMaterial = new StandardMaterial(`reset_${mesh.name}`, scene);
-                      defaultMaterial.diffuseColor = new Color3(0.07, 0.07, 0.07); // Original dark grey
-                      defaultMaterial.emissiveColor = new Color3(0.01, 0.01, 0.01); // Slight glow for visibility
-                      defaultMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
-                      defaultMaterial.backFaceCulling = false;
-                      defaultMaterial.alpha = 1.0;
+                      // Restore original material if available, otherwise create safe default
+                      if ((mesh as any)._originalMaterial) {
+                        (mesh as Mesh).material = (mesh as any)._originalMaterial;
+                        console.log(`🔄 Restored original material for ${mesh.name}`);
+                      } else {
+                        // Create safe default material
+                        const defaultMaterial = new StandardMaterial(`reset_${mesh.name}`, scene);
+                        defaultMaterial.diffuseColor = new Color3(0.07, 0.07, 0.07); // Original dark grey
+                        defaultMaterial.emissiveColor = new Color3(0.01, 0.01, 0.01); // Slight glow for visibility
+                        defaultMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+                        defaultMaterial.backFaceCulling = false;
+                        defaultMaterial.alpha = 1.0;
+                        
+                        (mesh as Mesh).material = defaultMaterial;
+                      }
                       
-                      (mesh as Mesh).material = defaultMaterial;
                       mesh.isVisible = true;
                       mesh.setEnabled(true);
+                      
+                      // Ensure labels are visible after reset
+                      const labelChildren = mesh.getChildren().filter(child => 
+                        child.name.includes('Label') || child.name.includes('label')
+                      );
+                      
+                      labelChildren.forEach(labelPlane => {
+                        labelPlane.isVisible = true;
+                        labelPlane.setEnabled(true);
+                      });
                     }
                   });
                 }
