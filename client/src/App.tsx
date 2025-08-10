@@ -85,7 +85,7 @@ function App() {
       )}
 
       {azureConfigured === true && (
-        <div className="fixed bottom-20 right-4 bg-green-100 border border-green-300 rounded-lg p-3 w-72 z-50">
+        <div className="fixed bottom-4 right-4 bg-green-100 border border-green-300 rounded-lg p-3 w-72 z-50">
           <div className="flex items-center">
             <div className="w-8 h-8 mr-3 flex-shrink-0"></div>
             <div>
@@ -101,7 +101,7 @@ function App() {
       )}
 
       {azureConfigured === false && (
-        <div className="fixed bottom-20 right-4 bg-blue-100 border border-blue-300 rounded-lg p-3 w-72 z-50">
+        <div className="fixed bottom-4 right-4 bg-blue-100 border border-blue-300 rounded-lg p-3 w-72 z-50">
           <div className="flex items-start">
             <img 
               src="/copilot-logo.png" 
