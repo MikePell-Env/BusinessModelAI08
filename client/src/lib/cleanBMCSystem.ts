@@ -308,6 +308,16 @@ export class CleanBMCSystem {
   getAllItems(): string[] {
     return Array.from(this.items.keys());
   }
+
+  // Check if a mesh is registered in the system
+  isRegisteredMesh(mesh: AbstractMesh): boolean {
+    for (const item of this.items.values()) {
+      if (item.mesh === mesh) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 // Global instance
