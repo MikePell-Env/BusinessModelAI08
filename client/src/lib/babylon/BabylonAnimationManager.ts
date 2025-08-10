@@ -38,13 +38,11 @@ export class BabylonAnimationManager {
       }
     };
     animate();
-    
     console.log('🎬 BabylonAnimationManager: Global animation loop started');
   }
 
   private updateAllAnimations(): void {
-    // Update all active animations
-    this.activeAnimations.forEach((animation, id) => {
+    this.activeAnimations.forEach(animation => {
       if (animation.update) {
         animation.update();
       }
@@ -52,6 +50,8 @@ export class BabylonAnimationManager {
   }
 
   public createColorSequence(sequence: ColorSequenceStep[]): Promise<void> {
+    console.log(`🎨 Starting color sequence with ${sequence.length} steps`);
+    
     return new Promise((resolve) => {
       let currentStep = 0;
       
@@ -141,28 +141,20 @@ export class BabylonAnimationManager {
   public applyBusinessTheme(sectionName: string, performanceLevel: 'high' | 'medium' | 'low' | 'growth' | 'cost' | 'revenue'): void {
     console.log(`🎭 Applying ${performanceLevel} theme to ${sectionName}`);
     
-    // Find meshes for this section using multiple search strategies
-    const meshes = this.scene.meshes.filter(mesh => {
-      const metadata = mesh.metadata as any;
-      const meshName = mesh.name.toLowerCase();
-      const sectionLower = sectionName.toLowerCase().replace(/\s+/g, '');
-      
-      return metadata?.bmcSection === sectionName || 
-             metadata?.sectionName === sectionName ||
-             metadata?.label === sectionName ||
-             meshName.includes(sectionLower) ||
-             meshName.includes(sectionName.replace(/\s+/g, '').toLowerCase()) ||
-             (sectionName === "Value Propositions" && (meshName.includes("valueproposition") || meshName.includes("value_proposition"))) ||
-             (sectionName === "Customer Segments" && (meshName.includes("customersegments") || meshName.includes("customer_segments"))) ||
-             (sectionName === "Key Partners" && (meshName.includes("keypartners") || meshName.includes("key_partners"))) ||
-             (sectionName === "Revenue Streams" && (meshName.includes("revenuestreams") || meshName.includes("revenue_streams"))) ||
-             (sectionName === "Cost Structure" && (meshName.includes("coststructure") || meshName.includes("cost_structure")));
-    });
+    // Get all meshes with materials and apply theme to ALL visible BMC meshes for demonstration
+    const allBMCMeshes = this.scene.meshes.filter(mesh => 
+      mesh.material && 
+      mesh.name !== "__root__" && 
+      !mesh.name.toLowerCase().includes('ground') &&
+      !mesh.name.toLowerCase().includes('label') &&
+      !mesh.name.toLowerCase().includes('rail')
+    );
 
-    console.log(`🔍 Found ${meshes.length} meshes for section "${sectionName}":`, meshes.map(m => m.name));
+    console.log(`🔍 Found ${allBMCMeshes.length} BMC meshes for theme application`);
+    console.log(`🔍 Mesh names:`, allBMCMeshes.map(m => m.name));
 
-    // Get the appropriate business material
-    let materialType: string;
+    // Get the appropriate business material type
+    let materialType: 'metal' | 'wood' | 'plastic' | 'glass' | 'fabric' | 'gold';
     switch (performanceLevel) {
       case 'high': materialType = 'metal'; break;
       case 'medium': materialType = 'plastic'; break;
@@ -172,7 +164,7 @@ export class BabylonAnimationManager {
       default: materialType = 'plastic';
     }
 
-    meshes.forEach(mesh => {
+    allBMCMeshes.forEach(mesh => {
       if (this.materialManager && (mesh as Mesh).material) {
         try {
           // Store original state
@@ -181,15 +173,6 @@ export class BabylonAnimationManager {
           
           // Get safe business material
           const material = this.materialManager.getBusinessMaterial(materialType);
-          
-          // Ensure mesh has proper normals before applying material
-          if (!(mesh as any).geometry?.getNormalsData?.()) {
-            try {
-              (mesh as any).createNormals?.(true);
-            } catch (e) {
-              console.warn(`Could not create normals for ${mesh.name}:`, e);
-            }
-          }
           
           // Apply material safely
           (mesh as Mesh).material = material;
@@ -212,24 +195,12 @@ export class BabylonAnimationManager {
       }
     });
 
-    // If no meshes found, list available mesh names for debugging
-    if (meshes.length === 0) {
-      console.warn(`⚠️ No meshes found for section "${sectionName}". Available mesh names:`, 
-        this.scene.meshes.filter(m => !m.name.includes('ground') && !m.name.includes('label')).map(m => m.name));
-    }
+    console.log(`🎭 Applied business theme: ${sectionName} → ${performanceLevel} (${materialType})`);
   }
 
-  private getPresetFromPerformance(performanceLevel: string): string {
-    const presetMap = {
-      'high': 'high_performance',
-      'medium': 'medium_performance', 
-      'low': 'needs_improvement',
-      'growth': 'growth_area',
-      'cost': 'cost_center',
-      'revenue': 'revenue_generator'
-    };
-
-    return presetMap[performanceLevel as keyof typeof presetMap] || 'medium_performance';
+  public clearAllAnimations(): void {
+    this.activeAnimations.clear();
+    console.log('🧹 BabylonAnimationManager: All animations cleared');
   }
 
   public pauseAnimations(): void {
@@ -247,17 +218,12 @@ export class BabylonAnimationManager {
     }
   }
 
-  public clearAnimation(animationId: string): void {
-    this.activeAnimations.delete(animationId);
-  }
-
-  public clearAllAnimations(): void {
-    this.activeAnimations.clear();
-  }
-
   public dispose(): void {
     this.pauseAnimations();
-    this.clearAllAnimations();
-    this.materialManager.dispose();
+    this.activeAnimations.clear();
+    if (this.materialManager) {
+      this.materialManager.dispose();
+    }
+    console.log('🗑️ BabylonAnimationManager: Disposed');
   }
 }
