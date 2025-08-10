@@ -1900,7 +1900,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Official Babylon.js double-click handler (approved method)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON ${sectionName} (Official Babylon.js method) ⚡⚡`);
-              console.log(`🎯 Camera mode: ${scene.activeCamera?.name}, isOrthographic: ${isOrthographic}`);
               
               // Close any existing panel first
               if (currentBillboardPanel) {
@@ -2753,13 +2752,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
         
-        // CRITICAL: Ensure pointer events work in orthographic mode
-        // Re-enable scene-level pointer handling for mesh interactions
-        if (!scene.actionManager) {
-          scene.actionManager = new ActionManager(scene);
-          console.log("🎯 Re-enabled scene ActionManager for 3D Top view");
-        }
-        
         // Apply visual state after camera switch
         setTimeout(() => {
           if (cleanBMCRef.current) {
@@ -2767,7 +2759,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           }
         }, 10);
         
-        console.log(`✅ SWITCHED TO 3D TOP VIEW - ActionManager status: ${!!scene.actionManager}`);
+        console.log(`✅ SWITCHED TO 3D TOP VIEW`);
       } else {
         // Switch back to perspective camera
         scene.activeCamera = perspectiveCamera;
