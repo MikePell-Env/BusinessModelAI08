@@ -157,38 +157,47 @@ export const AIChat: React.FC = () => {
             name: 'Sample Business Model Canvas',
             description: 'A comprehensive business model canvas for demonstration',
             keyPartners: {
+              id: 'kp-1',
               title: 'Key Partners',
               content: ['Technology providers', 'Strategic alliances', 'Distribution partners']
             },
             keyActivities: {
+              id: 'ka-1',
               title: 'Key Activities',
               content: ['Product development', 'Marketing campaigns', 'Customer support']
             },
             keyResources: {
+              id: 'kr-1',
               title: 'Key Resources',
               content: ['Technical expertise', 'Brand reputation', 'Intellectual property']
             },
             valuePropositions: {
+              id: 'vp-1',
               title: 'Value Propositions',
               content: ['Innovative solutions', 'Cost-effective services', 'Superior customer experience']
             },
             customerRelationships: {
+              id: 'cr-1',
               title: 'Customer Relationships',
               content: ['Personal assistance', 'Self-service platforms', 'Automated services']
             },
             channels: {
+              id: 'ch-1',
               title: 'Channels',
               content: ['Direct sales', 'Online platforms', 'Partner networks']
             },
             customerSegments: {
+              id: 'cs-1',
               title: 'Customer Segments',
               content: ['Small businesses', 'Enterprise clients', 'Individual consumers']
             },
             costStructure: {
+              id: 'cost-1',
               title: 'Cost Structure',
               content: ['Development costs', 'Marketing expenses', 'Operational overhead']
             },
             revenueStreams: {
+              id: 'rev-1',
               title: 'Revenue Streams',
               content: ['Subscription fees', 'One-time purchases', 'Service contracts']
             },
