@@ -137,7 +137,7 @@ export const AIChat: React.FC = () => {
           responseMessageLower.includes('launch') && responseMessageLower.includes('envisioner')) {
         
         // Switch to 3D View mode
-        switchBMCView('3D View');
+        toggleView();
         
         // Add a system message to indicate the action
         const systemMessage: ChatMessage = {

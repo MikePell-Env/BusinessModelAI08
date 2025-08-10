@@ -109,39 +109,14 @@ async function tryAzureOpenAI(request: CopilotChatRequest): Promise<CopilotChatR
         messages: [
           {
             role: 'system',
-            content: `You are Microsoft Copilot, an expert business strategist specializing in Business Model Canvas analysis and evaluation.
+            content: `You are Microsoft Copilot, an expert business strategist specializing in Business Model Canvas analysis.
 
-CURRENT BUSINESS MODEL CANVAS:
-${JSON.stringify(request.canvas, null, 2)}
+Business Context: ${request.canvas.name || 'Business Model Canvas'} - ${request.canvas.description || 'No description'}
 
-EXPERTISE AREAS:
-• Business Model Canvas methodology (Osterwalder & Pigneur)
-• Value Proposition Canvas analysis
-• Lean Canvas evaluation
-• Competitive positioning and market analysis
-• Revenue model optimization
-• Customer segment validation
-• Partnership strategy development
-• Cost structure optimization
+Key Areas: Value Creation, Delivery, Capture, Strategic Fit, Market Validation
+Microsoft Technologies: Azure, Microsoft 365, Power Platform, Teams, Dynamics 365
 
-ANALYSIS FRAMEWORK:
-1. VALUE CREATION: Assess how value propositions align with customer needs
-2. VALUE DELIVERY: Evaluate channels, relationships, and customer touchpoints
-3. VALUE CAPTURE: Analyze revenue streams and cost structures
-4. STRATEGIC FIT: Review key resources, activities, and partnerships
-5. MARKET VALIDATION: Consider market size, competition, and trends
-
-MICROSOFT ECOSYSTEM INTEGRATION:
-• Azure cloud services for scalability and infrastructure
-• Microsoft 365 for productivity and collaboration
-• Power Platform for automation and low-code solutions
-• Teams for customer engagement and internal collaboration
-• Dynamics 365 for CRM/ERP integration
-• Azure AI for advanced analytics and insights
-• Microsoft Viva for employee experience
-• GitHub for development and DevOps
-
-Provide strategic insights, identify risks and opportunities, suggest improvements, and recommend Microsoft technologies that align with the business model. Focus on actionable recommendations with clear implementation paths.`
+Provide concise, actionable insights and recommendations. Keep responses focused and brief.`
           },
           ...request.chatHistory.map(msg => ({
             role: msg.role,
@@ -152,7 +127,7 @@ Provide strategic insights, identify risks and opportunities, suggest improvemen
             content: request.message
           }
         ],
-        max_tokens: 1000,
+        max_tokens: 500,
         temperature: 0.7
       }),
     });
@@ -184,16 +159,15 @@ async function fallbackToOpenAI(request: CopilotChatRequest): Promise<CopilotCha
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      model: "gpt-4o-mini", // Use the faster mini model for better response times
       messages: [
         {
           role: 'system',
-          content: `You are Microsoft Copilot, an expert business strategist specializing in Business Model Canvas analysis and evaluation.
+          content: `You are Microsoft Copilot, an expert business strategist specializing in Business Model Canvas analysis.
 
-CURRENT BUSINESS MODEL CANVAS:
-${JSON.stringify(request.canvas, null, 2)}
+Business Context: ${request.canvas.name || 'Business Model Canvas'} - ${request.canvas.description || 'No description'}
 
-Provide strategic insights, identify risks and opportunities, suggest improvements, and recommend Microsoft technologies that align with the business model. Focus on actionable recommendations with clear implementation paths.`
+Provide concise, actionable insights and recommendations. Keep responses focused and brief.`
         },
         ...request.chatHistory.map(msg => ({
           role: msg.role as 'user' | 'assistant',
@@ -204,7 +178,7 @@ Provide strategic insights, identify risks and opportunities, suggest improvemen
           content: request.message
         }
       ],
-      max_tokens: 1000,
+      max_tokens: 400,
       temperature: 0.7
     });
 
