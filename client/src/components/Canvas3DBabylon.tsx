@@ -803,10 +803,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       console.log(`✅ Section data found for ${sectionName}, creating panel...`);
       
+      // Calculate proper height based on content
+      const bulletPoints = (sectionData as CanvasElement).content.map((item: string) => `• ${item}`).join('\n');
+      const lineHeight = 18; // More realistic line height for 12px font
+      const padding = 80; // Header (40px) + top/bottom padding (40px)
+      const averageCharsPerLine = 45; // Approximate chars that fit in 400px width
+      
+      // Calculate total lines needed including text wrapping
+      let totalLines = 0;
+      (sectionData as CanvasElement).content.forEach((item: string) => {
+        const bulletText = `• ${item}`;
+        const linesForThisItem = Math.ceil(bulletText.length / averageCharsPerLine);
+        totalLines += Math.max(1, linesForThisItem); // At least 1 line per item
+      });
+      
+      const calculatedHeight = padding + (totalLines * lineHeight);
+      const maxHeight = Math.min(600, calculatedHeight); // Allow up to 600px height
+      
+      console.log(`📏 Panel height calculation: ${totalLines} lines × ${lineHeight}px + ${padding}px padding = ${calculatedHeight}px (max: ${maxHeight}px)`);
+      
       // Create main panel container
       const panel = new Rectangle();
       panel.widthInPixels = 400;
-      panel.heightInPixels = Math.min(500, 80 + (sectionData as CanvasElement).content.length * 25); // Dynamic height
+      panel.heightInPixels = maxHeight;
       panel.cornerRadius = 10;
       panel.color = "#333333";
       panel.thickness = 2;
@@ -848,10 +867,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Create content area with bullet points
       const contentText = new TextBlock();
-      const bulletPoints = (sectionData as CanvasElement).content.map((item: string) => `• ${item}`).join('\n');
       contentText.text = bulletPoints;
       contentText.color = "#333333";
       contentText.fontSize = 12;
+      contentText.lineSpacing = 2; // Add some line spacing for better readability
       contentText.textWrapping = true;
       contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
       contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
@@ -859,6 +878,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       contentText.paddingRight = "15px";
       contentText.paddingTop = "50px";
       contentText.paddingBottom = "15px";
+      
+      // Make content area take full available height
+      contentText.heightInPixels = maxHeight - 40; // Subtract header height
       
       // Add controls to panel
       panel.addControl(headerRect);
