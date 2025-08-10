@@ -657,18 +657,35 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
     
-    // Add global pointer observer to detect clicks outside of GUI panels
+    // Add global pointer observer to detect double-clicks outside of GUI panels
     scene.onPointerObservable.add((pointerInfo) => {
-      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+      if (pointerInfo.type === PointerEventTypes.POINTERDOUBLETAP) {
         // Check if we have a billboard panel open
         if (currentBillboardPanel) {
-          // Check if the click was on a BMC mesh or GUI element
+          // Check if the double-click was on a BMC mesh or background
           const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
           const isBMCMesh = pickedMesh && (pickedMesh as any).bmcSectionName;
           
-          // If click is not on a BMC mesh or GUI, close the panel
+          // If double-click is outside current panel area, close it immediately
+          if (pickedMesh?.name === "ground" || !pickedMesh || pickedMesh.name === "__root__" || isBMCMesh) {
+            advancedTexture.removeControl(currentBillboardPanel);
+            currentBillboardPanel = null;
+            billboardPanelRef.current = null;
+            console.log("❌ Billboard panel closed by double-click outside panel");
+          }
+        }
+      }
+      
+      // Also handle single clicks for background clearing
+      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+        // Check if we have a billboard panel open
+        if (currentBillboardPanel) {
+          // Check if the click was on background only (not BMC mesh)
+          const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
+          const isBMCMesh = pickedMesh && (pickedMesh as any).bmcSectionName;
+          
+          // If click is on background/ground only, close the panel
           if (!isBMCMesh && pointerInfo.pickInfo?.hit) {
-            // Additional check: make sure it's a background/ground click
             if (pickedMesh?.name === "ground" || !pickedMesh || pickedMesh.name === "__root__") {
               advancedTexture.removeControl(currentBillboardPanel);
               currentBillboardPanel = null;
@@ -1941,6 +1958,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡ Double-click detected on ${sectionName}`);
               
+              // Close any existing panel first
+              if (currentBillboardPanel) {
+                advancedTexture.removeControl(currentBillboardPanel);
+                currentBillboardPanel = null;
+                billboardPanelRef.current = null;
+                console.log("❌ Previous billboard panel closed by new double-click");
+              }
+              
               // Get mesh world position for billboard placement
               const meshWorldPosition = mesh.getAbsolutePosition();
               
@@ -2230,6 +2255,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡ Double-click detected on Revenue Streams`);
               
+              // Close any existing panel first
+              if (currentBillboardPanel) {
+                advancedTexture.removeControl(currentBillboardPanel);
+                currentBillboardPanel = null;
+                billboardPanelRef.current = null;
+                console.log("❌ Previous billboard panel closed by new double-click");
+              }
+              
               // Get mesh world position for billboard placement
               const meshWorldPosition = mesh.getAbsolutePosition();
               
@@ -2416,6 +2449,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Double-click to show panel directly (Cost Structure)
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡ Double-click detected on Cost Structure`);
+              
+              // Close any existing panel first
+              if (currentBillboardPanel) {
+                advancedTexture.removeControl(currentBillboardPanel);
+                currentBillboardPanel = null;
+                billboardPanelRef.current = null;
+                console.log("❌ Previous billboard panel closed by new double-click");
+              }
               
               // Get mesh world position for billboard placement
               const meshWorldPosition = mesh.getAbsolutePosition();
