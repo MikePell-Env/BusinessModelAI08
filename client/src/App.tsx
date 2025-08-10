@@ -2,12 +2,14 @@ import React, { Suspense, useState, useEffect } from "react";
 import { HomePage } from "./components/HomePage";
 import { ExplorePage } from "./components/ExplorePage";
 import { AzureCredentialSetup } from "./components/AzureCredentialSetup";
+import { useCanvas } from "./lib/stores/useCanvas";
 import "@fontsource/inter";
 
 function App() {
   const [currentPage, setCurrentPage] = useState<'home' | 'explore'>('home');
   const [azureConfigured, setAzureConfigured] = useState<boolean | null>(null);
   const [showCredentialSetup, setShowCredentialSetup] = useState(false);
+  const { toggleChat } = useCanvas();
 
   useEffect(() => {
     // Check Azure OpenAI status on app load
@@ -90,7 +92,9 @@ function App() {
             <img 
               src="/copilot-logo.png" 
               alt="Microsoft Copilot" 
-              className="w-8 h-8 mr-3 flex-shrink-0"
+              className="w-8 h-8 mr-3 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={toggleChat}
+              title="Click to open AI Assistant"
             />
             <div>
               <p className="text-sm text-green-800 mb-1">

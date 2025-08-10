@@ -19,7 +19,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
   const [showCanvas, setShowCanvas] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { loadCanvas, toggleChat } = useCanvas();
+  const { loadCanvas } = useCanvas();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // When canvas is shown, render the BusinessModelCanvas component
@@ -127,11 +127,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                   </div>
                 </div>
 
-                {/* Option 2 - Ask Copilot */}
-                <div className="text-center">
-                  <div className="bg-white p-6 rounded-lg shadow-md border border-green-500 hover:border-green-600 transition-colors relative h-full flex flex-col">
+                {/* Option 2 - Ask Copilot (Disabled) */}
+                <div className="text-center opacity-50">
+                  <div className="bg-white p-6 rounded-lg shadow-md border-2 border-gray-200 relative h-full flex flex-col">
                     {/* Number 2 in top left */}
-                    <div className="absolute top-4 left-4 bg-green-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                    <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                       2
                     </div>
                     
@@ -140,15 +140,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                       <img 
                         src="/copilot-logo.png" 
                         alt="Microsoft Copilot" 
-                        className="w-16 h-16 cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={toggleChat}
+                        className="w-16 h-16"
                       />
                     </div>
                     
                     {/* Button at bottom */}
                     <Button 
-                      onClick={toggleChat}
-                      className="w-full bg-green-500 text-white hover:bg-green-600 border border-green-500 rounded-lg py-2 mt-4"
+                      disabled
+                      className="w-full bg-gray-200 text-gray-500 hover:bg-gray-200 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
                     >
                       Ask Copilot AI...
                     </Button>
