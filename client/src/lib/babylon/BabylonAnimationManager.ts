@@ -139,9 +139,9 @@ export class BabylonAnimationManager {
   }
 
   public applyBusinessTheme(sectionName: string, performanceLevel: 'high' | 'medium' | 'low' | 'growth' | 'cost' | 'revenue'): void {
-    console.log(`🎭 Applying ${performanceLevel} theme to ${sectionName}`);
+    console.log(`🎭 Applying different materials to each BMC object`);
     
-    // Get all meshes with materials and apply theme to ALL visible BMC meshes for demonstration
+    // Get all meshes with materials
     const allBMCMeshes = this.scene.meshes.filter(mesh => 
       mesh.material && 
       mesh.name !== "__root__" && 
@@ -150,26 +150,27 @@ export class BabylonAnimationManager {
       !mesh.name.toLowerCase().includes('rail')
     );
 
-    console.log(`🔍 Found ${allBMCMeshes.length} BMC meshes for theme application`);
-    console.log(`🔍 Mesh names:`, allBMCMeshes.map(m => m.name));
+    console.log(`🔍 Found ${allBMCMeshes.length} BMC meshes for themed materials`);
+    
+    // Define different materials for each mesh to showcase variety
+    const materialThemes: Array<'metal' | 'wood' | 'plastic' | 'glass' | 'fabric' | 'gold'> = [
+      'metal',    // High performance metallic blue-gray
+      'plastic',  // Medium performance clean blue-white
+      'wood',     // Low performance brown
+      'glass',    // Growth area translucent green
+      'fabric',   // Cost center matte reddish-brown
+      'gold',     // Revenue generator bright gold
+    ];
 
-    // Get the appropriate business material type
-    let materialType: 'metal' | 'wood' | 'plastic' | 'glass' | 'fabric' | 'gold';
-    switch (performanceLevel) {
-      case 'high': materialType = 'metal'; break;
-      case 'medium': materialType = 'plastic'; break;
-      case 'low': materialType = 'wood'; break;
-      case 'revenue': materialType = 'gold'; break;
-      case 'cost': materialType = 'fabric'; break;
-      default: materialType = 'plastic';
-    }
-
-    allBMCMeshes.forEach(mesh => {
+    allBMCMeshes.forEach((mesh, index) => {
       if (this.materialManager && (mesh as Mesh).material) {
         try {
           // Store original state
           const originalVisibility = mesh.isVisible;
           const originalEnabled = mesh.isEnabled();
+          
+          // Cycle through different material types for each mesh
+          const materialType = materialThemes[index % materialThemes.length];
           
           // Get safe business material
           const material = this.materialManager.getBusinessMaterial(materialType);
@@ -181,9 +182,9 @@ export class BabylonAnimationManager {
           mesh.isVisible = originalVisibility;
           mesh.setEnabled(originalEnabled);
           
-          console.log(`✅ Applied ${materialType} material to ${mesh.name}`);
+          console.log(`✅ Applied ${materialType} material to ${mesh.name} (index ${index})`);
         } catch (error) {
-          console.error(`❌ Failed to apply ${materialType} material to ${mesh.name}:`, error);
+          console.error(`❌ Failed to apply material to ${mesh.name}:`, error);
           
           // Fallback: create a simple visible material
           const fallbackMaterial = new StandardMaterial(`fallback_${mesh.name}`, this.scene);
@@ -195,7 +196,8 @@ export class BabylonAnimationManager {
       }
     });
 
-    console.log(`🎭 Applied business theme: ${sectionName} → ${performanceLevel} (${materialType})`);
+    console.log(`🎭 Applied different business materials to each BMC object:`);
+    console.log(`🎭 Metal (blue-gray) → Plastic (clean blue) → Wood (brown) → Glass (green) → Fabric (reddish) → Gold (bright)`);
   }
 
   public clearAllAnimations(): void {
