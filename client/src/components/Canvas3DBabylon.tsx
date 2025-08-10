@@ -653,14 +653,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Rotate to lie flat on the ground
       internalLabelPlane.rotation.x = Math.PI / 2;
       
-      // Create material with the new blue Internal label at 50% transparency
+      // Create material with the new grey Internal label at 50% transparency
       const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
-      const internalLabelTexture = new Texture("/textures/Labels_internal_blue.png", scene);
+      const internalLabelTexture = new Texture("/textures/Labels_internal_grey.png", scene);
       internalLabelTexture.hasAlpha = true;
       
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
-      internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for blue label
+      internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
       internalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
       internalLabelMaterial.disableLighting = true;
@@ -668,7 +668,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       internalLabelPlane.material = internalLabelMaterial;
       internalLabelPlane.isPickable = false;
       
-      console.log(`✅ Internal label (2x larger, medium grey) on ground plane at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
+      console.log(`✅ Internal label (grey) on ground plane at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
     };
 
     // Add "External" label on the right side of the ground plane
@@ -690,14 +690,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Rotate to lie flat on the ground
       externalLabelPlane.rotation.x = Math.PI / 2;
       
-      // Create material with the External blue label at 50% transparency
+      // Create material with the External grey label at 50% transparency
       const externalLabelMaterial = new StandardMaterial("externalLabelMat", scene);
-      const externalLabelTexture = new Texture("/textures/Labels_external_blue.png", scene);
+      const externalLabelTexture = new Texture("/textures/Labels_external_grey.png", scene);
       externalLabelTexture.hasAlpha = true;
       
       externalLabelMaterial.diffuseTexture = externalLabelTexture;
       externalLabelMaterial.emissiveTexture = externalLabelTexture;
-      externalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for blue label
+      externalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
       externalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
       externalLabelMaterial.useAlphaFromDiffuseTexture = true;
       externalLabelMaterial.disableLighting = true;
