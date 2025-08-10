@@ -132,12 +132,23 @@ export const AIChat: React.FC = () => {
       const userMessageLower = originalMessage.toLowerCase();
       const responseMessageLower = data.response.toLowerCase();
       
-      if (userMessageLower.includes('open') && userMessageLower.includes('envisioner') ||
-          responseMessageLower.includes('opening') && responseMessageLower.includes('envisioner') ||
-          responseMessageLower.includes('launch') && responseMessageLower.includes('envisioner')) {
+      console.log('🔍 Checking for Envisioner keywords...');
+      console.log('User message:', userMessageLower);
+      console.log('AI response:', responseMessageLower);
+      
+      const isEnvisionerRequest = (
+        (userMessageLower.includes('open') && userMessageLower.includes('envisioner')) ||
+        (userMessageLower.includes('launch') && userMessageLower.includes('envisioner')) ||
+        (userMessageLower.includes('start') && userMessageLower.includes('envisioner')) ||
+        (responseMessageLower.includes('opening') && responseMessageLower.includes('envisioner')) ||
+        (responseMessageLower.includes('launch') && responseMessageLower.includes('envisioner'))
+      );
+      
+      if (isEnvisionerRequest) {
+        console.log('🎯 Envisioner request detected! Switching to 3D View...');
         
-        // Switch to 3D View mode
-        toggleView();
+        // Switch to 3D View mode using the proper method
+        switchBMCView('view3DPerspective');
         
         // Add a system message to indicate the action
         const systemMessage: ChatMessage = {
@@ -150,6 +161,8 @@ export const AIChat: React.FC = () => {
         setTimeout(() => {
           addChatMessage(systemMessage);
         }, 500);
+      } else {
+        console.log('ℹ️ No Envisioner keywords detected');
       }
 
       // Apply any canvas updates from AI response
