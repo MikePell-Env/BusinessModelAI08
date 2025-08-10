@@ -241,8 +241,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   
   // REMOVED: Unified transformation system - simplified for reliability
   
-  // Store all content panels for closing functionality
-  const contentPanelsRef = useRef<any[]>([]);
+  // REMOVED: Old content panels system - now using clean billboard panel system
   
   // Unified BMC label manager - inject BMC State Manager
   const cleanBMCRef = useRef<CleanBMCSystem>(cleanBMCSystem);
@@ -1854,73 +1853,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Hide the label by making it invisible
             labelContainer.isVisible = false;
             
-            // Create content panel for click events (initially hidden)
-            const contentPanel = new Rectangle(`contentPanel_${index}`);
-            contentPanel.widthInPixels = 320;
-            contentPanel.heightInPixels = 240;
-            contentPanel.cornerRadius = 12;
-            contentPanel.color = "white";
-            contentPanel.thickness = 2;
-            contentPanel.background = "rgba(255, 255, 255, 0.95)";
-            contentPanel.isVisible = false; // Initially hidden
-            contentPanel.zIndex = 9999; // Maximum z-index to ensure BMC panels always draw on top of all other elements
-            
-            // Create title text at top of panel
-            const titleText = new TextBlock(`titleText_${index}`, sectionName);
-            titleText.color = "black";
-            titleText.fontSize = "14px";
-            titleText.fontWeight = "bold";
-            titleText.fontFamily = "Arial, sans-serif";
-            titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-            titleText.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-            titleText.paddingTop = "8px";
-            titleText.height = "25px";
-            
-            // Create close button (just X text, no box)
-            const closeButton = new TextBlock(`closeButton_${index}`, "X");
-            closeButton.color = "grey";
-            closeButton.fontSize = "16px";
-            closeButton.fontWeight = "bold";
-            closeButton.fontFamily = "Arial, sans-serif";
-            closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-            closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-            closeButton.topInPixels = 8;
-            closeButton.leftInPixels = -12;
-            closeButton.widthInPixels = 20;
-            closeButton.heightInPixels = 20;
-            closeButton.isPointerBlocker = true;
-            
-            // Create content text area (below title)
-            const contentText = new TextBlock(`contentText_${index}`, "");
-            contentText.color = "black";
-            contentText.fontSize = "13px"; // Slightly larger
-            contentText.fontFamily = "Arial, sans-serif";
-            contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-            contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-            contentText.paddingTop = "45px"; // Below title
-            contentText.paddingLeft = "15px";
-            contentText.paddingRight = "15px";
-            contentText.paddingBottom = "15px";
-            contentText.textWrapping = true;
-            
-            contentPanel.addControl(titleText);
-            contentPanel.addControl(closeButton);
-            contentPanel.addControl(contentText);
-            advancedTexture.addControl(contentPanel);
-            
-            // Position content panel above the label at moderate height
-            contentPanel.linkWithMesh(mesh);
-            contentPanel.linkOffsetY = `-${(labelHeight + 2.8) * 50}px`; // Moderately above the label for good visibility
-            
-            // Close button will be configured after interaction functions are defined
-            
-            // Store references for hover and click effects
+            // REMOVED: Old content panel system - replaced by new billboard panel system
+            // Store references for mesh identification
             (mesh as any).labelContainer = labelContainer;
-            (mesh as any).contentPanel = contentPanel;
-            (mesh as any).contentText = contentText;
-            
-            // Add to panels array for global closing
-            contentPanelsRef.current.push({ panel: contentPanel, mesh, material: sectionMaterial });
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
@@ -1942,17 +1877,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old click unselect function - replaced by unified BMC system
             
-            const updateContentPanel = (show: boolean, sectionContent?: string) => {
-              const contentPanel = (mesh as any).contentPanel;
-              const contentText = (mesh as any).contentText;
-              
-              if (show && contentText && contentPanel && sectionContent) {
-                contentText.text = sectionContent;
-                contentPanel.isVisible = true;
-              } else if (contentPanel) {
-                contentPanel.isVisible = false;
-              }
-            };
+            // REMOVED: Old updateContentPanel function - replaced by createBillboardPanel
             
             // Double-click to show billboard panel directly
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
@@ -1988,16 +1913,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.onSelect(sectionName);
             }));
             
-            // Now configure close button functionality with access to refactored functions
-            closeButton.onPointerClickObservable.add(() => {
-              // Clear selected object state FIRST so applyHeightState knows nothing is selected
-              // REMOVED: setSelectedObject - CleanBMCSystem manages state
-              
-              // REMOVED: Old click unselect - now handled by BMC system
-              updateContentPanel(false);
-              
-              console.log(`❌ Close button: ${sectionName} panel closed, mesh restored, all objects full opacity`);
-            });
+            // REMOVED: Old close button functionality - now handled by billboard panel system
             
             console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - ${sectionName} - Interactive color: ${baseColor.r.toFixed(2)}, ${baseColor.g.toFixed(2)}, ${baseColor.b.toFixed(2)}`);
             sectionIndex++;
@@ -2214,17 +2130,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Unified transformation system registration - simplified for reliability
             
-            // Create content panel for consistency (hidden)
-            const revenueContentPanel = new Rectangle(`revenueStreamsContentPanel`);
-            revenueContentPanel.isVisible = false;
-            advancedTexture.addControl(revenueContentPanel);
-            
-            // Add to contentPanelsRef for coordinated hover behavior
-            contentPanelsRef.current.push({ 
-              panel: revenueContentPanel, 
-              mesh: mesh as any, 
-              material: sectionMaterial 
-            });
+            // REMOVED: Old content panel system - Revenue Streams uses new billboard panel system
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
@@ -2409,17 +2315,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Unified transformation system registration - simplified for reliability
             
-            // Create content panel for consistency (hidden)
-            const costContentPanel = new Rectangle(`costStructureContentPanel`);
-            costContentPanel.isVisible = false;
-            advancedTexture.addControl(costContentPanel);
-            
-            // Add to contentPanelsRef for coordinated hover behavior
-            contentPanelsRef.current.push({ 
-              panel: costContentPanel, 
-              mesh: mesh as any, 
-              material: sectionMaterial 
-            });
+            // REMOVED: Old content panel system - Cost Structure uses new billboard panel system
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
@@ -2678,7 +2574,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         return true;
       }
       
-      if (scene && scene.meshes && contentPanelsRef.current.length > 0) {
+      if (scene && scene.meshes) {
         const originalHeights: { [sectionName: string]: number } = {};
         
         // Read each mesh's current transform node scaling.y as the original height
