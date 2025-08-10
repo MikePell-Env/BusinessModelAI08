@@ -183,7 +183,7 @@ export const AIChat: React.FC = () => {
             },
             channels: {
               id: 'ch-1',
-              title: 'Channels',
+              title: 'Customer Channels',
               content: ['Direct sales', 'Online platforms', 'Partner networks']
             },
             customerSegments: {
