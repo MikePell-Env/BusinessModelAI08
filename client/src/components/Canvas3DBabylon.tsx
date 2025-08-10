@@ -2052,7 +2052,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 cleanBMCRef.current.onSelect(sectionName);
                 console.log(`✅ Object ${sectionName} selected via double-click - all others deselected`);
               } else if (isAlreadySelected) {
-                console.log(`✅ Object ${sectionName} already selected - preserving selection highlighting for double-click`);
+                console.log(`✅ Object ${sectionName} already selected - preserving blue highlighting, skipping re-selection`);
+                // Don't call onSelect again - it would clear and re-apply selection unnecessarily
               }
               
               // Get mesh world position for billboard placement
@@ -2063,11 +2064,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`🚀 About to create billboard panel for: ${sectionName}`);
               createBillboardPanel(sectionName, meshWorldPosition);
               
-              // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation (always, regardless of previous state)
+              // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation (only if needed)
               setTimeout(() => {
                 if (cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect(sectionName);
-                  console.log(`🔄 Re-applied selection highlighting for ${sectionName} after panel creation`);
+                  // Only re-select if this was a fresh selection, not if it was already selected
+                  if (!isAlreadySelected) {
+                    cleanBMCRef.current.onSelect(sectionName);
+                    console.log(`🔄 Re-applied selection highlighting for ${sectionName} after panel creation`);
+                  } else {
+                    // Just ensure the visual state is applied without going through full selection cycle
+                    cleanBMCRef.current.updateAllVisuals();
+                    console.log(`🔄 Updated visuals for already-selected ${sectionName} after panel creation`);
+                  }
                 }
               }, 50);
               
