@@ -718,10 +718,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         height: 13.0  // Increased height to extend more toward top
       }, scene);
       
-      // Position adjusted to keep bottom position fixed while extending top
+      // Position to keep bottom fixed while extending toward positive Z (top in view)
       verticalDividerPlane.position.x = 0.0;   // Center line (X=0)
       verticalDividerPlane.position.y = 0.001; // Directly on ground plane surface
-      verticalDividerPlane.position.z = -3.0;  // Adjusted center position for taller divider
+      verticalDividerPlane.position.z = 0.0;   // Adjusted to extend toward positive Z (top)
       
       // Rotate to lie flat on the ground
       verticalDividerPlane.rotation.x = Math.PI / 2;
