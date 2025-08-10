@@ -30,6 +30,7 @@ export const AIChat: React.FC = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [lastServiceInfo, setLastServiceInfo] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [typingDots, setTypingDots] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -38,7 +39,24 @@ export const AIChat: React.FC = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [chatMessages]);
+  }, [chatMessages, isProcessing]);
+
+  // Animated typing indicator effect
+  useEffect(() => {
+    if (isProcessing) {
+      const interval = setInterval(() => {
+        setTypingDots(prev => {
+          if (prev === '') return '.';
+          if (prev === '.') return '..';
+          if (prev === '..') return '...';
+          return '';
+        });
+      }, 500);
+      return () => clearInterval(interval);
+    } else {
+      setTypingDots('');
+    }
+  }, [isProcessing]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) {
@@ -281,6 +299,27 @@ export const AIChat: React.FC = () => {
                     </div>
                   </div>
                 ))}
+                
+                {/* Copilot-style typing indicator */}
+                {isProcessing && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 text-gray-800 p-3 rounded-lg text-sm max-w-[80%]">
+                      <div className="flex items-center space-x-2">
+                        <img 
+                          src="/copilot-logo.png" 
+                          alt="Microsoft Copilot" 
+                          className="w-4 h-4 animate-pulse"
+                        />
+                        <span className="text-gray-600">Microsoft Copilot is thinking</span>
+                        <span className="text-blue-500 font-mono w-6">{typingDots}</span>
+                      </div>
+                      <div className="mt-2 h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full animate-pulse"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div ref={messagesEndRef} />
               </div>
             )}
