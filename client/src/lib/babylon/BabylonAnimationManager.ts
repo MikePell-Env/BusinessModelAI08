@@ -141,7 +141,7 @@ export class BabylonAnimationManager {
   public applyBusinessTheme(sectionName: string, performanceLevel: 'high' | 'medium' | 'low' | 'growth' | 'cost' | 'revenue'): void {
     console.log(`🎭 Applying ${performanceLevel} theme to ${sectionName}`);
     
-    // Get all meshes with materials, but preserve labels
+    // Get all meshes with materials and apply theme to ALL visible BMC meshes for demonstration
     const allBMCMeshes = this.scene.meshes.filter(mesh => 
       mesh.material && 
       mesh.name !== "__root__" && 
@@ -151,6 +151,7 @@ export class BabylonAnimationManager {
     );
 
     console.log(`🔍 Found ${allBMCMeshes.length} BMC meshes for theme application`);
+    console.log(`🔍 Mesh names:`, allBMCMeshes.map(m => m.name));
 
     // Get the appropriate business material type
     let materialType: 'metal' | 'wood' | 'plastic' | 'glass' | 'fabric' | 'gold';
@@ -166,42 +167,21 @@ export class BabylonAnimationManager {
     allBMCMeshes.forEach(mesh => {
       if (this.materialManager && (mesh as Mesh).material) {
         try {
-          // Store original state and material
+          // Store original state
           const originalVisibility = mesh.isVisible;
           const originalEnabled = mesh.isEnabled();
-          const originalMaterial = (mesh as Mesh).material;
-          
-          // Store reference to original material on mesh for restoration
-          if (!(mesh as any)._originalMaterial) {
-            (mesh as any)._originalMaterial = originalMaterial;
-          }
           
           // Get safe business material
-          const themeMaterial = this.materialManager.getBusinessMaterial(materialType);
+          const material = this.materialManager.getBusinessMaterial(materialType);
           
-          // Create a hybrid material that preserves label textures on top faces
-          // For now, just apply business theme and ensure labels stay visible
-          (mesh as Mesh).material = themeMaterial;
+          // Apply material safely
+          (mesh as Mesh).material = material;
           
           // Restore visibility
           mesh.isVisible = originalVisibility;
           mesh.setEnabled(originalEnabled);
           
-          // Ensure label planes are still visible after material change
-          const labelChildren = mesh.getChildren().filter(child => 
-            child.name.includes('Label') || child.name.includes('label')
-          );
-          
-          labelChildren.forEach(labelPlane => {
-            if (labelPlane.material) {
-              labelPlane.isVisible = true;
-              labelPlane.setEnabled(true);
-              // Bring labels forward slightly to ensure they show above new material
-              labelPlane.position.y = Math.max(labelPlane.position.y, 0.1);
-            }
-          });
-          
-          console.log(`✅ Applied ${materialType} material to ${mesh.name}, preserved ${labelChildren.length} labels`);
+          console.log(`✅ Applied ${materialType} material to ${mesh.name}`);
         } catch (error) {
           console.error(`❌ Failed to apply ${materialType} material to ${mesh.name}:`, error);
           
