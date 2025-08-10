@@ -21,7 +21,9 @@ export const AIChat: React.FC = () => {
     toggleChat,
     updateCanvas,
     setLoading,
-    setError
+    setError,
+    toggleView,
+    switchBMCView
   } = useCanvas();
   
   const [inputValue, setInputValue] = useState('');
@@ -107,6 +109,30 @@ export const AIChat: React.FC = () => {
       };
 
       addChatMessage(assistantMessage);
+
+      // Check if the user is asking to open an "Envisioner" and switch to 3D View
+      const userMessageLower = originalMessage.toLowerCase();
+      const responseMessageLower = data.response.toLowerCase();
+      
+      if (userMessageLower.includes('open') && userMessageLower.includes('envisioner') ||
+          responseMessageLower.includes('opening') && responseMessageLower.includes('envisioner') ||
+          responseMessageLower.includes('launch') && responseMessageLower.includes('envisioner')) {
+        
+        // Switch to 3D View mode
+        switchBMCView('3D View');
+        
+        // Add a system message to indicate the action
+        const systemMessage: ChatMessage = {
+          id: `system-${Date.now()}`,
+          role: 'assistant',
+          content: '🎯 **Envisioner activated!** Switching to 3D View to explore your business model canvas in an immersive environment.',
+          timestamp: new Date()
+        };
+        
+        setTimeout(() => {
+          addChatMessage(systemMessage);
+        }, 500);
+      }
 
       // Apply any canvas updates from AI response
       if (data.canvasUpdates) {
