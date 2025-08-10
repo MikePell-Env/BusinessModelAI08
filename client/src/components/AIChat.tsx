@@ -17,6 +17,8 @@ export const AIChat: React.FC = () => {
     chatMessages,
     isChatOpen,
     canvas,
+    is3D,
+    isOrthographic,
     addChatMessage,
     toggleChat,
     updateCanvas,
@@ -146,16 +148,21 @@ export const AIChat: React.FC = () => {
       
       if (isEnvisionerRequest) {
         console.log('🎯 Envisioner request detected! Switching to 3D View...');
+        console.log('🔄 Current view state:', { is3D, isOrthographic });
         
         // Switch to 3D View mode using the proper method
+        console.log('🔄 Calling switchBMCView with view3DPerspective...');
         switchBMCView('view3DPerspective');
         
-        // Replace the long AI response with just the activation message
-        const lastMessage = chatMessages[chatMessages.length - 1];
-        if (lastMessage && lastMessage.role === 'assistant') {
-          // Update the last assistant message to just show activation
-          lastMessage.content = 'Opening Envisioner now...';
-        }
+        // Immediately check if the view switched
+        setTimeout(() => {
+          console.log('🔍 Checking if view switched...');
+          // Force view switch using toggleView as backup if needed
+          if (!is3D) {
+            console.log('⚠️ switchBMCView failed, using toggleView as backup...');
+            toggleView();
+          }
+        }, 200);
         
         // Add a system message to indicate the action
         const systemMessage: ChatMessage = {
