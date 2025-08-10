@@ -237,7 +237,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // New BMC State Manager methods
     selectBMCObject,
     getBMCSelectedObject,
-
     bmcState
   } = useCanvas();
   
