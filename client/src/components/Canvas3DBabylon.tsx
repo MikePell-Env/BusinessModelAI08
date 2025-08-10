@@ -3148,8 +3148,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           
           <button 
             onClick={() => {
-              if (animationManagerRef.current) {
+              if (animationManagerRef.current && materialManagerRef.current) {
                 console.log('🎭 Applying Business Performance Themes...');
+                
+                // Debug: List all available meshes
+                const allMeshes = sceneRef.current?.meshes || [];
+                console.log('🔍 Available meshes:', allMeshes.map(m => ({ name: m.name, metadata: m.metadata })));
+                
+                // Apply themes to each section
                 animationManagerRef.current.applyBusinessTheme("Value Propositions", "high");
                 animationManagerRef.current.applyBusinessTheme("Customer Segments", "medium");
                 animationManagerRef.current.applyBusinessTheme("Key Partners", "low");

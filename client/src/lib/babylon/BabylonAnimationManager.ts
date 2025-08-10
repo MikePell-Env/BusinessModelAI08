@@ -139,20 +139,56 @@ export class BabylonAnimationManager {
   }
 
   public applyBusinessTheme(sectionName: string, performanceLevel: 'high' | 'medium' | 'low' | 'growth' | 'cost' | 'revenue'): void {
-    const materialKey = this.materialManager.applyBusinessTheme(sectionName, performanceLevel);
-    const material = this.materialManager.getMaterial(materialKey, this.getPresetFromPerformance(performanceLevel));
+    console.log(`🎭 Applying ${performanceLevel} theme to ${sectionName}`);
     
-    // Apply to section meshes
-    const meshes = this.scene.meshes.filter(mesh => 
-      mesh.name.includes(sectionName) || 
-      (mesh as any).bmcSectionName === sectionName
-    );
-
-    meshes.forEach(mesh => {
-      (mesh as Mesh).material = material;
+    // Find meshes for this section using multiple search strategies
+    const meshes = this.scene.meshes.filter(mesh => {
+      const metadata = mesh.metadata as any;
+      const meshName = mesh.name.toLowerCase();
+      const sectionLower = sectionName.toLowerCase().replace(/\s+/g, '');
+      
+      return metadata?.bmcSection === sectionName || 
+             metadata?.sectionName === sectionName ||
+             metadata?.label === sectionName ||
+             meshName.includes(sectionLower) ||
+             meshName.includes(sectionName.replace(/\s+/g, '').toLowerCase()) ||
+             (sectionName === "Value Propositions" && (meshName.includes("valueproposition") || meshName.includes("value_proposition"))) ||
+             (sectionName === "Customer Segments" && (meshName.includes("customersegments") || meshName.includes("customer_segments"))) ||
+             (sectionName === "Key Partners" && (meshName.includes("keypartners") || meshName.includes("key_partners"))) ||
+             (sectionName === "Revenue Streams" && (meshName.includes("revenuestreams") || meshName.includes("revenue_streams"))) ||
+             (sectionName === "Cost Structure" && (meshName.includes("coststructure") || meshName.includes("cost_structure")));
     });
 
-    console.log(`🎭 Applied business theme: ${sectionName} → ${performanceLevel}`);
+    console.log(`🔍 Found ${meshes.length} meshes for section "${sectionName}":`, meshes.map(m => m.name));
+
+    // Get the appropriate business material
+    let materialType: string;
+    switch (performanceLevel) {
+      case 'high': materialType = 'metal'; break;
+      case 'medium': materialType = 'plastic'; break;
+      case 'low': materialType = 'wood'; break;
+      case 'revenue': materialType = 'gold'; break;
+      case 'cost': materialType = 'fabric'; break;
+      default: materialType = 'plastic';
+    }
+
+    meshes.forEach(mesh => {
+      if ((mesh as Mesh).material && this.materialManager) {
+        const material = this.materialManager.getBusinessMaterial(materialType);
+        if (material) {
+          (mesh as Mesh).material = material;
+          console.log(`✅ Applied ${materialType} material to ${mesh.name}`);
+        } else {
+          console.warn(`❌ Failed to get ${materialType} material for ${mesh.name}`);
+        }
+      }
+    });
+
+    // If no meshes found, list available mesh names for debugging
+    if (meshes.length === 0) {
+      console.warn(`⚠️ No meshes found for section "${sectionName}". Available mesh names:`, 
+        this.scene.meshes.filter(m => !m.name.includes('ground') && !m.name.includes('label')).map(m => m.name));
+    }
   }
 
   private getPresetFromPerformance(performanceLevel: string): string {

@@ -227,6 +227,25 @@ export class BabylonMaterialManager {
     return material;
   }
 
+  // Quick business material access
+  public getBusinessMaterial(type: 'metal' | 'wood' | 'plastic' | 'glass' | 'fabric' | 'gold'): Material | null {
+    try {
+      const timestamp = Date.now();
+      switch (type) {
+        case 'metal': return this.getMaterial(`business_metal_${timestamp}`, 'high_performance');
+        case 'plastic': return this.getMaterial(`business_plastic_${timestamp}`, 'medium_performance');
+        case 'wood': return this.getMaterial(`business_wood_${timestamp}`, 'needs_improvement');
+        case 'glass': return this.getMaterial(`business_glass_${timestamp}`, 'growth_area');
+        case 'fabric': return this.getMaterial(`business_fabric_${timestamp}`, 'cost_center');
+        case 'gold': return this.getMaterial(`business_gold_${timestamp}`, 'revenue_generator');
+        default: return null;
+      }
+    } catch (error) {
+      console.error(`Failed to get business material: ${type}`, error);
+      return null;
+    }
+  }
+
   public dispose(): void {
     // Clean up materials and textures
     this.materialCache.forEach(material => material.dispose());
