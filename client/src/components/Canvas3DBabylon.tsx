@@ -2141,13 +2141,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Single click handler for Revenue Streams
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯 Single click on Revenue Streams - delegating to BMC system`);
+              console.log(`🎯🎯🎯 SINGLE CLICK DETECTED ON Revenue Streams mesh (${mesh.name}) 🎯🎯🎯`);
+              console.log(`🔍 Revenue Streams mesh isPickable: ${mesh.isPickable}, ActionManager exists: ${!!mesh.actionManager}`);
               handleBMCObjectClick("Revenue Streams");
             }));
             
             // Official Babylon.js double-click handler for Revenue Streams
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
-              console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON Revenue Streams (Official Babylon.js method) ⚡⚡`);
+              console.log(`⚡⚡⚡⚡⚡ DOUBLE-CLICK DETECTED ON Revenue Streams mesh (${mesh.name}) ⚡⚡⚡⚡⚡`);
+              console.log(`🔍 ActionManager.OnDoublePickTrigger fired for Revenue Streams`);
               
               // Close any existing panel first
               if (currentBillboardPanel) {
@@ -2335,13 +2337,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Single click handler for Cost Structure
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯 Single click on Cost Structure - delegating to BMC system`);
+              console.log(`🎯🎯🎯 SINGLE CLICK DETECTED ON Cost Structure mesh (${mesh.name}) 🎯🎯🎯`);
+              console.log(`🔍 Cost Structure mesh isPickable: ${mesh.isPickable}, ActionManager exists: ${!!mesh.actionManager}`);
               handleBMCObjectClick("Cost Structure");
             }));
             
             // Official Babylon.js double-click handler for Cost Structure
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
-              console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON Cost Structure (Official Babylon.js method) ⚡⚡`);
+              console.log(`⚡⚡⚡⚡⚡ DOUBLE-CLICK DETECTED ON Cost Structure mesh (${mesh.name}) ⚡⚡⚡⚡⚡`);
+              console.log(`🔍 ActionManager.OnDoublePickTrigger fired for Cost Structure`);
               
               // Close any existing panel first
               if (currentBillboardPanel) {
