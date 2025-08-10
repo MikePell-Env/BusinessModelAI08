@@ -712,10 +712,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON ${bmcSectionName} ⚡⚡`);
             
-            // First ensure object is selected (this must happen before panel creation)
+            // First ensure object is selected and all others are deselected
             if (cleanBMCRef.current) {
               cleanBMCRef.current.onSelect(bmcSectionName);
-              console.log(`✅ Object ${bmcSectionName} selected via double-click`);
+              console.log(`✅ Object ${bmcSectionName} selected via double-click - all others deselected`);
             }
             
             // Close any existing panel first
