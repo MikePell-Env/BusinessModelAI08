@@ -22,6 +22,19 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
   const { loadCanvas } = useCanvas();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Listen for Envisioner activation events
+  React.useEffect(() => {
+    const handleOpenEnvisioner = (event: CustomEvent) => {
+      console.log('📢 Received openEnvisioner event:', event.detail);
+      setShowCanvas(true);
+    };
+    
+    window.addEventListener('openEnvisioner', handleOpenEnvisioner as EventListener);
+    return () => {
+      window.removeEventListener('openEnvisioner', handleOpenEnvisioner as EventListener);
+    };
+  }, []);
+
   // When canvas is shown, render the BusinessModelCanvas component
   if (showCanvas) {
     return <BusinessModelCanvas onNavigateHome={() => setShowCanvas(false)} />;
