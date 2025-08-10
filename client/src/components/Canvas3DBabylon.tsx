@@ -712,6 +712,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON ${bmcSectionName} ⚡⚡`);
             
+            // First ensure object is selected (this must happen before panel creation)
+            if (cleanBMCRef.current) {
+              cleanBMCRef.current.onSelect(bmcSectionName);
+              console.log(`✅ Object ${bmcSectionName} selected via double-click`);
+            }
+            
             // Close any existing panel first
             if (currentBillboardPanel) {
               advancedTexture.removeControl(currentBillboardPanel);
@@ -728,12 +734,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`🚀 About to create billboard panel for: ${bmcSectionName}`);
             createBillboardPanel(bmcSectionName, meshWorldPosition);
             
-            // Also ensure object is selected
-            if (cleanBMCRef.current) {
-              cleanBMCRef.current.onSelect(bmcSectionName);
-            }
-            
-            console.log(`⚡ Double-click: ${bmcSectionName} billboard panel creation completed`);
+            console.log(`⚡ Double-click: ${bmcSectionName} selected and billboard panel created`);
           }
         } else {
           // Clicked on non-BMC mesh - close panel if open
