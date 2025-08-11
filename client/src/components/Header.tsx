@@ -42,14 +42,6 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplor
           >
             Team
           </a>
-          <button
-            onClick={onNavigateExplore}
-            className={`hover:text-gray-300 transition-colors text-sm font-medium ${
-              currentPage === 'explore' ? 'text-blue-400' : 'text-white'
-            }`}
-          >
-            Explore
-          </button>
           <a 
             href="#contact" 
             className="text-white hover:text-gray-300 transition-colors text-sm font-medium"

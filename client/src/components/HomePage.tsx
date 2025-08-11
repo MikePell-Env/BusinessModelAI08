@@ -103,7 +103,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
               {/* Selection Section */}
               <div className="mb-8">
                 <h2 className="text-xl text-gray-800 mb-4 text-center">
-                  <strong className="font-bold">Select</strong> how you want to start deeply exploring a business model:
+                  <strong className="font-bold">Select</strong> how you want to explore a business model:
                 </h2>
 
               <div className="grid grid-cols-3 gap-6">
