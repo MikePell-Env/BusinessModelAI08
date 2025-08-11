@@ -107,7 +107,7 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
       onClick={handleBackgroundClick}
     >
       {/* Header - centered horizontally in upper area */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+      <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-10">
         <h1 className="text-xl font-medium text-gray-900">{canvas.name}</h1>
       </div>
 
