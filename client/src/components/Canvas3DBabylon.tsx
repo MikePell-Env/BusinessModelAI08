@@ -2301,8 +2301,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           if (mesh.name !== "__root__") {
             console.log(`✅ Processing non-root Revenue Streams mesh ${index}: ${mesh.name}`);
             
-            // Create material for Revenue Streams mesh - British Racing Green
-            const baseColor = new Color3(0.0, 0.26, 0.15); // British Racing Green RGB(0, 66, 37)
+            // Create material for Revenue Streams mesh - Darker British Racing Green
+            const baseColor = new Color3(0.0, 0.20, 0.12); // Darker British Racing Green
             const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene);
             sectionMaterial.diffuseColor = baseColor;
             sectionMaterial.specularColor = new Color3(0.1, 0.3, 0.2); // Slightly green specular
@@ -2497,8 +2497,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           if (mesh.name !== "__root__") {
             console.log(`✅ Processing non-root Cost Structure mesh ${index}: ${mesh.name}`);
             
-            // Create material for Cost Structure mesh - Deep Red
-            const baseColor = new Color3(0.55, 0.0, 0.0); // Deep Red RGB(139, 0, 0)
+            // Create material for Cost Structure mesh - Darker Red
+            const baseColor = new Color3(0.45, 0.0, 0.0); // Darker Red
             const sectionMaterial = new StandardMaterial(`costStructure_${index}`, scene);
             sectionMaterial.diffuseColor = baseColor;
             sectionMaterial.specularColor = new Color3(0.3, 0.1, 0.1); // Slightly red specular
