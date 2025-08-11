@@ -2497,8 +2497,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           if (mesh.name !== "__root__") {
             console.log(`✅ Processing non-root Cost Structure mesh ${index}: ${mesh.name}`);
             
-            // Create material for Cost Structure mesh - Darker Red
-            const baseColor = new Color3(0.45, 0.0, 0.0); // Darker Red
+            // Create material for Cost Structure mesh - Deeper Red
+            const baseColor = new Color3(0.35, 0.0, 0.0); // Deeper Red
             const sectionMaterial = new StandardMaterial(`costStructure_${index}`, scene);
             sectionMaterial.diffuseColor = baseColor;
             sectionMaterial.specularColor = new Color3(0.3, 0.1, 0.1); // Slightly red specular
