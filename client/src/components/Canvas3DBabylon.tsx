@@ -3120,8 +3120,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   return (
     <div className={`w-full h-full ${isTransitioning ? 'opacity-50' : ''} relative`}>
       {/* Header - centered horizontally in upper area */}
-      <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-10">
-        <h1 className="text-xl font-medium text-gray-900">{canvas.name}</h1>
+      <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-10">
+        <h1 className="text-xl font-medium text-gray-900" style={{ fontFamily: 'Segoe UI, sans-serif' }}>{canvas.name}</h1>
       </div>
       
       {/* Quick Animation Demo Controls - HIDDEN */}
