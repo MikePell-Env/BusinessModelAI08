@@ -211,10 +211,10 @@ export class CleanBMCSystem {
       // Hover: brighten specific colors for Cost Structure and Revenue Streams
       if (itemName === "Cost Structure") {
         // Brighten deep red
-        item.material.diffuseColor = new Color3(0.85, 0.2, 0.2); // Bright red
+        item.material.diffuseColor = new Color3(0.9, 0.3, 0.3); // Bright red
       } else if (itemName === "Revenue Streams") {
         // Brighten British racing green
-        item.material.diffuseColor = new Color3(0.2, 0.55, 0.35); // Bright green
+        item.material.diffuseColor = new Color3(0.25, 0.7, 0.45); // Bright green
       } else {
         // Default bright blue for other objects
         item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
@@ -275,9 +275,9 @@ export class CleanBMCSystem {
       if (name === selectedItem) {
         // Selected: brighten specific colors for Cost Structure and Revenue Streams
         if (name === "Cost Structure") {
-          item.material.diffuseColor = new Color3(0.85, 0.2, 0.2); // Bright red
+          item.material.diffuseColor = new Color3(1.0, 0.4, 0.4); // Much brighter red
         } else if (name === "Revenue Streams") {
-          item.material.diffuseColor = new Color3(0.2, 0.55, 0.35); // Bright green
+          item.material.diffuseColor = new Color3(0.3, 0.8, 0.5); // Much brighter green
         } else {
           item.material.diffuseColor = new Color3(0.0, 0.3, 0.8); // Default bright blue
         }
