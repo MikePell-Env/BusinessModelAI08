@@ -37,12 +37,6 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplor
             About
           </a>
           <a 
-            href="#team" 
-            className="text-white hover:text-gray-300 transition-colors text-sm font-medium"
-          >
-            Team
-          </a>
-          <a 
             href="#contact" 
             className="text-white hover:text-gray-300 transition-colors text-sm font-medium"
           >
