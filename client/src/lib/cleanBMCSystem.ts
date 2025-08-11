@@ -185,10 +185,13 @@ export class CleanBMCSystem {
     // Set specific colors for Cost Structure and Revenue Streams, default grey for others
     if (itemName === "Cost Structure") {
       item.material.diffuseColor = new Color3(0.55, 0.0, 0.0); // Deep red
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
     } else if (itemName === "Revenue Streams") {
       item.material.diffuseColor = new Color3(0.0, 0.26, 0.15); // British racing green
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
     } else {
       item.material.diffuseColor = new Color3(0.07, 0.07, 0.07); // Default grey
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
     }
     item.material.alpha = 1.0;
     item.mesh.scaling.y = item.originalHeight;
@@ -208,16 +211,17 @@ export class CleanBMCSystem {
     }
 
     if (isHovered) {
-      // Hover: brighten specific colors for Cost Structure and Revenue Streams
+      // Hover: brighten specific colors using emissive color for brightness without reflectivity
       if (itemName === "Cost Structure") {
-        // Brighten deep red
-        item.material.diffuseColor = new Color3(0.9, 0.3, 0.3); // Bright red
+        item.material.diffuseColor = new Color3(0.55, 0.0, 0.0); // Keep original deep red
+        item.material.emissiveColor = new Color3(0.2, 0.0, 0.0); // Add red glow for brightness
       } else if (itemName === "Revenue Streams") {
-        // Brighten British racing green
-        item.material.diffuseColor = new Color3(0.25, 0.7, 0.45); // Bright green
+        item.material.diffuseColor = new Color3(0.0, 0.26, 0.15); // Keep original British racing green
+        item.material.emissiveColor = new Color3(0.0, 0.1, 0.05); // Add green glow for brightness
       } else {
         // Default bright blue for other objects
         item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive for default
       }
       item.material.alpha = 1.0;
       item.mesh.scaling.y = item.originalHeight;
@@ -226,12 +230,15 @@ export class CleanBMCSystem {
       if (itemName === "Cost Structure") {
         // Restore deep red
         item.material.diffuseColor = new Color3(0.55, 0.0, 0.0);
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
       } else if (itemName === "Revenue Streams") {
         // Restore British racing green
         item.material.diffuseColor = new Color3(0.0, 0.26, 0.15);
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
       } else {
         // Default medium dark grey for other objects
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
       }
       item.material.alpha = 1.0;
       item.mesh.scaling.y = item.originalHeight;
@@ -273,13 +280,16 @@ export class CleanBMCSystem {
       this.makeLabelVisible(name);
       
       if (name === selectedItem) {
-        // Selected: brighten specific colors for Cost Structure and Revenue Streams
+        // Selected: brighten specific colors using emissive color for brightness without reflectivity
         if (name === "Cost Structure") {
-          item.material.diffuseColor = new Color3(1.0, 0.4, 0.4); // Much brighter red
+          item.material.diffuseColor = new Color3(0.55, 0.0, 0.0); // Keep original deep red
+          item.material.emissiveColor = new Color3(0.3, 0.0, 0.0); // Add red glow for brightness
         } else if (name === "Revenue Streams") {
-          item.material.diffuseColor = new Color3(0.3, 0.8, 0.5); // Much brighter green
+          item.material.diffuseColor = new Color3(0.0, 0.26, 0.15); // Keep original British racing green
+          item.material.emissiveColor = new Color3(0.0, 0.15, 0.08); // Add green glow for brightness
         } else {
           item.material.diffuseColor = new Color3(0.0, 0.3, 0.8); // Default bright blue
+          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive for default
         }
         item.material.alpha = 1.0;
         item.mesh.scaling.y = item.originalHeight;
@@ -294,10 +304,13 @@ export class CleanBMCSystem {
         // Default state - restore original colors
         if (name === "Cost Structure") {
           item.material.diffuseColor = new Color3(0.55, 0.0, 0.0); // Deep red
+          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
         } else if (name === "Revenue Streams") {
           item.material.diffuseColor = new Color3(0.0, 0.26, 0.15); // British racing green
+          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
         } else {
           item.material.diffuseColor = new Color3(0.07, 0.07, 0.07); // Default grey
+          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
         }
         item.material.alpha = 1.0;
         item.mesh.scaling.y = item.originalHeight;
@@ -323,10 +336,13 @@ export class CleanBMCSystem {
       // Set specific colors for Cost Structure and Revenue Streams, default grey for others
       if (name === "Cost Structure") {
         item.material.diffuseColor = new Color3(0.55, 0.0, 0.0); // Deep red
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
       } else if (name === "Revenue Streams") {
         item.material.diffuseColor = new Color3(0.0, 0.26, 0.15); // British racing green
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
       } else {
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07); // Default grey
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
       }
       item.material.alpha = 1.0;
       item.mesh.scaling.y = item.originalHeight;
