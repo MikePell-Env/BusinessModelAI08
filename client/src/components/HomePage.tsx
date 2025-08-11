@@ -103,7 +103,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
               {/* Selection Section - Dialog Box Container */}
               <div className="mb-8">
                 {/* Dialog Box Container with white background and shadow */}
-                <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-300">
+                <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-700">
                   <h2 className="text-xl text-gray-800 mb-6 text-left">
                     <strong className="font-bold">Select</strong> how you want to get to the "moment of clarity" to make decisions:
                   </h2>
