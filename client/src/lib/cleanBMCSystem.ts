@@ -182,8 +182,14 @@ export class CleanBMCSystem {
     const item = this.items.get(itemName);
     if (!item) return;
 
-    // Default: medium dark grey, full opacity, original height
-    item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+    // Set specific colors for Cost Structure and Revenue Streams, default grey for others
+    if (itemName === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.55, 0.0, 0.0); // Deep red
+    } else if (itemName === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.0, 0.26, 0.15); // British racing green
+    } else {
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07); // Default grey
+    }
     item.material.alpha = 1.0;
     item.mesh.scaling.y = item.originalHeight;
 
@@ -202,13 +208,31 @@ export class CleanBMCSystem {
     }
 
     if (isHovered) {
-      // Hover: bright blue color, keep full opacity and height
-      item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+      // Hover: brighten specific colors for Cost Structure and Revenue Streams
+      if (itemName === "Cost Structure") {
+        // Brighten deep red
+        item.material.diffuseColor = new Color3(0.85, 0.2, 0.2); // Bright red
+      } else if (itemName === "Revenue Streams") {
+        // Brighten British racing green
+        item.material.diffuseColor = new Color3(0.2, 0.55, 0.35); // Bright green
+      } else {
+        // Default bright blue for other objects
+        item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+      }
       item.material.alpha = 1.0;
       item.mesh.scaling.y = item.originalHeight;
     } else {
-      // Back to default: medium dark grey
-      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      // Back to original colors
+      if (itemName === "Cost Structure") {
+        // Restore deep red
+        item.material.diffuseColor = new Color3(0.55, 0.0, 0.0);
+      } else if (itemName === "Revenue Streams") {
+        // Restore British racing green
+        item.material.diffuseColor = new Color3(0.0, 0.26, 0.15);
+      } else {
+        // Default medium dark grey for other objects
+        item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      }
       item.material.alpha = 1.0;
       item.mesh.scaling.y = item.originalHeight;
     }
@@ -249,11 +273,17 @@ export class CleanBMCSystem {
       this.makeLabelVisible(name);
       
       if (name === selectedItem) {
-        // Selected: bright blue, full height, full opacity
-        item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+        // Selected: brighten specific colors for Cost Structure and Revenue Streams
+        if (name === "Cost Structure") {
+          item.material.diffuseColor = new Color3(0.85, 0.2, 0.2); // Bright red
+        } else if (name === "Revenue Streams") {
+          item.material.diffuseColor = new Color3(0.2, 0.55, 0.35); // Bright green
+        } else {
+          item.material.diffuseColor = new Color3(0.0, 0.3, 0.8); // Default bright blue
+        }
         item.material.alpha = 1.0;
         item.mesh.scaling.y = item.originalHeight;
-        console.log(`🔵 ${name} SELECTED: blue, height=${item.originalHeight}`);
+        console.log(`🔵 ${name} SELECTED: brightened color, height=${item.originalHeight}`);
       } else if (selectedItem) {
         // Others when selected: dim object, flattened object - BUT LABELS STAY 100%
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
@@ -261,11 +291,17 @@ export class CleanBMCSystem {
         item.mesh.scaling.y = 0.1;
         console.log(`⚫ ${name} dimmed: grey, height=0.1, LABEL SHOULD STAY VISIBLE`);
       } else {
-        // Default state
-        item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+        // Default state - restore original colors
+        if (name === "Cost Structure") {
+          item.material.diffuseColor = new Color3(0.55, 0.0, 0.0); // Deep red
+        } else if (name === "Revenue Streams") {
+          item.material.diffuseColor = new Color3(0.0, 0.26, 0.15); // British racing green
+        } else {
+          item.material.diffuseColor = new Color3(0.07, 0.07, 0.07); // Default grey
+        }
         item.material.alpha = 1.0;
         item.mesh.scaling.y = item.originalHeight;
-        console.log(`🔘 ${name} default: grey, height=${item.originalHeight}`);
+        console.log(`🔘 ${name} default: original color, height=${item.originalHeight}`);
       }
       
       // CRITICAL: Force label visibility again after any material changes
@@ -284,8 +320,14 @@ export class CleanBMCSystem {
       // FIRST: Force label visibility before changing anything
       this.makeLabelVisible(name);
       
-      // Original material: medium dark grey, 100% opacity, original height
-      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      // Set specific colors for Cost Structure and Revenue Streams, default grey for others
+      if (name === "Cost Structure") {
+        item.material.diffuseColor = new Color3(0.55, 0.0, 0.0); // Deep red
+      } else if (name === "Revenue Streams") {
+        item.material.diffuseColor = new Color3(0.0, 0.26, 0.15); // British racing green
+      } else {
+        item.material.diffuseColor = new Color3(0.07, 0.07, 0.07); // Default grey
+      }
       item.material.alpha = 1.0;
       item.mesh.scaling.y = item.originalHeight;
       
