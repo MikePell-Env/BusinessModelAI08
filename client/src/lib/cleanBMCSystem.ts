@@ -184,7 +184,7 @@ export class CleanBMCSystem {
 
     // Set specific colors for Cost Structure and Revenue Streams, default grey for others
     if (itemName === "Cost Structure") {
-      item.material.diffuseColor = new Color3(0.45, 0.0, 0.0); // Darker red
+      item.material.diffuseColor = new Color3(0.35, 0.0, 0.0); // Deeper red
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
     } else if (itemName === "Revenue Streams") {
       item.material.diffuseColor = new Color3(0.0, 0.20, 0.12); // Darker British racing green
@@ -213,7 +213,7 @@ export class CleanBMCSystem {
     if (isHovered) {
       // Hover: brighten specific colors using emissive color for brightness without reflectivity
       if (itemName === "Cost Structure") {
-        item.material.diffuseColor = new Color3(0.45, 0.0, 0.0); // Keep darker red base
+        item.material.diffuseColor = new Color3(0.35, 0.0, 0.0); // Keep deeper red base
         item.material.emissiveColor = new Color3(0.2, 0.0, 0.0); // Add red glow for brightness
       } else if (itemName === "Revenue Streams") {
         item.material.diffuseColor = new Color3(0.0, 0.20, 0.12); // Keep darker British racing green base
@@ -228,8 +228,8 @@ export class CleanBMCSystem {
     } else {
       // Back to original colors
       if (itemName === "Cost Structure") {
-        // Restore darker red
-        item.material.diffuseColor = new Color3(0.45, 0.0, 0.0);
+        // Restore deeper red
+        item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
       } else if (itemName === "Revenue Streams") {
         // Restore darker British racing green
@@ -282,7 +282,7 @@ export class CleanBMCSystem {
       if (name === selectedItem) {
         // Selected: brighten specific colors using emissive color for brightness without reflectivity
         if (name === "Cost Structure") {
-          item.material.diffuseColor = new Color3(0.45, 0.0, 0.0); // Keep darker red base
+          item.material.diffuseColor = new Color3(0.35, 0.0, 0.0); // Keep deeper red base
           item.material.emissiveColor = new Color3(0.3, 0.0, 0.0); // Add red glow for brightness
         } else if (name === "Revenue Streams") {
           item.material.diffuseColor = new Color3(0.0, 0.20, 0.12); // Keep darker British racing green base
@@ -303,7 +303,7 @@ export class CleanBMCSystem {
       } else {
         // Default state - restore original colors
         if (name === "Cost Structure") {
-          item.material.diffuseColor = new Color3(0.45, 0.0, 0.0); // Darker red
+          item.material.diffuseColor = new Color3(0.35, 0.0, 0.0); // Deeper red
           item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
         } else if (name === "Revenue Streams") {
           item.material.diffuseColor = new Color3(0.0, 0.20, 0.12); // Darker British racing green
@@ -335,7 +335,7 @@ export class CleanBMCSystem {
       
       // Set specific colors for Cost Structure and Revenue Streams, default grey for others
       if (name === "Cost Structure") {
-        item.material.diffuseColor = new Color3(0.45, 0.0, 0.0); // Darker red
+        item.material.diffuseColor = new Color3(0.35, 0.0, 0.0); // Deeper red
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
       } else if (name === "Revenue Streams") {
         item.material.diffuseColor = new Color3(0.0, 0.20, 0.12); // Darker British racing green
