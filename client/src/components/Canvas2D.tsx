@@ -106,9 +106,9 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
       style={{ backgroundColor: '#e9ecef' }}
       onClick={handleBackgroundClick}
     >
-      {/* Header - positioned below button group */}
-      <div className="mb-6 text-center pt-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{canvas.name}</h1>
+      {/* Header - positioned in upper right */}
+      <div className="absolute top-20 right-8 z-10">
+        <h1 className="text-sm font-medium text-gray-900">{canvas.name}</h1>
       </div>
 
       {/* Business Model Canvas Grid */}
