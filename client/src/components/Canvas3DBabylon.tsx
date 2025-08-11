@@ -411,13 +411,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     let scene: Scene | null = null;
 
     try {
-      // Initialize engine with compatibility settings to avoid shader issues
+      // Initialize engine with high-quality settings for clear label rendering
       engine = new Engine(canvasElement, true, {
         preserveDrawingBuffer: true,
         stencil: true,
-        disableWebGL2Support: true, // Force WebGL 1.0 for better compatibility
-        forceSRGBBufferSupportState: false // Disable SRGB for compatibility
-      }, false);
+        antialias: true, // Enable anti-aliasing for smoother edges
+        adaptToDeviceRatio: true, // Use device pixel ratio for crisp rendering
+        powerPreference: "high-performance" // Request high-performance GPU
+      }, true); // Enable adaptive quality
       
       if (!engine) {
         throw new Error('Engine creation returned null');
