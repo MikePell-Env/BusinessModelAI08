@@ -22,16 +22,24 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
   const { loadCanvas, toggleChat } = useCanvas();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Listen for Envisioner activation events
+  // Listen for Envisioner activation events and file import triggers
   React.useEffect(() => {
     const handleOpenEnvisioner = (event: CustomEvent) => {
       console.log('📢 Received openEnvisioner event:', event.detail);
       setShowCanvas(true);
     };
     
+    const handleTriggerFileImport = () => {
+      console.log('📂 Received triggerFileImport event - opening file picker');
+      handleDirectImport();
+    };
+    
     window.addEventListener('openEnvisioner', handleOpenEnvisioner as EventListener);
+    window.addEventListener('triggerFileImport', handleTriggerFileImport as EventListener);
+    
     return () => {
       window.removeEventListener('openEnvisioner', handleOpenEnvisioner as EventListener);
+      window.removeEventListener('triggerFileImport', handleTriggerFileImport as EventListener);
     };
   }, []);
 
