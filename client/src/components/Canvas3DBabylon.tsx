@@ -526,19 +526,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           } else {
             console.log(`❌ Failed to create text plane for Value Propositions`);
           }
-        } else {
-          // Fallback: create a simple test text plane at origin for visibility testing
-          console.log(`🧪 Creating fallback test text plane at origin...`);
-          const testPlane = MeshBuilder.CreatePlane('testBulletText', { size: 3 }, scene);
-          testPlane.position = new Vector3(0, 2, 0); // High above origin
-          
-          const testMaterial = new StandardMaterial('testTextMat', scene);
-          testMaterial.diffuseColor = new Color3(1, 0, 0); // Bright red for visibility
-          testMaterial.emissiveColor = new Color3(0.5, 0, 0);
-          testPlane.material = testMaterial;
-          
-          bulletTextPlanesRef.current.set('TEST', testPlane);
-          console.log(`🧪 Test plane created at:`, testPlane.position);
         }
       }
     } else {
@@ -550,17 +537,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
   };
 
-  // Expose toggle function for testing (temporary)
+  // Expose toggle function for manual testing
   useEffect(() => {
     (window as any).toggleBulletText = toggleBulletText;
-    // Auto-test the function once on load for debugging
-    if (sceneRef.current && !showBulletText) {
-      console.log('🧪 Auto-testing bullet text function...');
-      setTimeout(() => {
-        console.log('🧪 Triggering auto-test now...');
-        toggleBulletText();
-      }, 5000); // Give scene more time to load
-    }
     return () => {
       delete (window as any).toggleBulletText;
     };
