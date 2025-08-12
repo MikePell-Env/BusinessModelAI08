@@ -417,7 +417,7 @@ export const AIChat: React.FC = () => {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Message Copilot"
-                  className="pr-10 placeholder:text-gray-500" // Add right padding and medium grey placeholder
+                  className="pr-10 placeholder:text-gray-400" // Add right padding and light grey placeholder
                 />
                 <button
                   onClick={() => {
