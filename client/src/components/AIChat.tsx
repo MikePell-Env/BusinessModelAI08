@@ -416,7 +416,7 @@ export const AIChat: React.FC = () => {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask about your business model..."
+                  placeholder="Message Copilot"
                   className="pr-10" // Add right padding to make room for the plus icon
                 />
                 <button
