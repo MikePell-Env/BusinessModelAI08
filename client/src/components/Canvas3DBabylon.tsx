@@ -945,9 +945,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
     
-    // Enhanced click handling for panel management
+    // Enhanced click handling for panel management with improved double-click detection
     let lastClickTime = 0;
     let lastClickedMesh: AbstractMesh | null = null;
+    let clickCount = 0;
+    let clickTimeout: NodeJS.Timeout | null = null;
     
     scene.onPointerDown = (info) => {
       // Only handle left clicks
@@ -968,31 +970,105 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           (cleanBMCRef.current && cleanBMCRef.current.isRegisteredMesh(hitMesh))
         );
         
-        if (isBMCMesh && currentBillboardPanel) {
-          // Check if clicking on a different BMC object than the one with the open panel
-          const isDoubleClick = (currentTime - lastClickTime < 300) && (hitMesh === lastClickedMesh);
+        if (isBMCMesh) {
+          // Enhanced double-click detection with improved reliability
+          const isSameMesh = lastClickedMesh === hitMesh;
+          const timeDiff = currentTime - lastClickTime;
+          const isWithinDoubleClickTime = timeDiff < 400; // Reduced from 500ms for more responsive feel
           
-          if (!isDoubleClick) {
-            // Single click on different BMC object - close existing panel
-            console.log('🖱️ Single click on different BMC object - closing existing panel');
-            handleBackgroundClick();
+          if (isSameMesh && isWithinDoubleClickTime) {
+            clickCount++;
+            console.log(`🔍 Click count: ${clickCount}, time diff: ${timeDiff}ms`);
+            
+            if (clickCount === 2) {
+              // Double click detected - handle immediately
+              console.log(`⚡⚡ DOUBLE-CLICK DETECTED via enhanced detection for ${hitMesh?.name} ⚡⚡`);
+              
+              // Clear any pending timeout
+              if (clickTimeout) {
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+              }
+              
+              // Get section name
+              let sectionName = '';
+              if (hitMesh.name.includes('BMC_')) {
+                // Extract section name from BMC mesh
+                const meshName = hitMesh.name.replace('BMC_', '');
+                sectionName = mapBMCComponentToSectionName(meshName as BMCComponentName);
+              } else if (hitMesh.name.includes('Revenue')) {
+                sectionName = 'Revenue Streams';
+              } else if (hitMesh.name.includes('Cost')) {
+                sectionName = 'Cost Structure';
+              }
+              
+              if (sectionName) {
+                // Close any existing panel first
+                if (currentBillboardPanel) {
+                  advancedTexture.removeControl(currentBillboardPanel);
+                  currentBillboardPanel = null;
+                  billboardPanelRef.current = null;
+                  console.log("❌ Previous billboard panel closed by enhanced double-click");
+                }
+                
+                // Ensure object is selected
+                if (cleanBMCRef.current) {
+                  cleanBMCRef.current.onSelect(sectionName);
+                  console.log(`✅ Object ${sectionName} selected via enhanced double-click`);
+                }
+                
+                // Create billboard panel
+                const meshWorldPosition = hitMesh.getAbsolutePosition();
+                console.log(`🚀 Creating billboard panel for ${sectionName} via enhanced detection`);
+                createBillboardPanel(sectionName, meshWorldPosition);
+              }
+              
+              // Reset click tracking
+              clickCount = 0;
+              lastClickTime = 0;
+              lastClickedMesh = null;
+              return;
+            }
+          } else {
+            // First click or different mesh - reset counter
+            clickCount = 1;
+            
+            // Clear any existing timeout
+            if (clickTimeout) {
+              clearTimeout(clickTimeout);
+            }
+            
+            // Set timeout for single click handling
+            clickTimeout = setTimeout(() => {
+              if (clickCount === 1) {
+                // Single click handling
+                console.log('🖱️ Single click confirmed - closing existing panel if any');
+                if (currentBillboardPanel) {
+                  handleBackgroundClick();
+                }
+              }
+              clickCount = 0;
+              clickTimeout = null;
+            }, 400);
           }
-          // Note: Double-clicks will be handled by the ActionManager.OnDoublePickTrigger
+          
+          lastClickedMesh = hitMesh;
+          lastClickTime = currentTime;
+          
         } else if (!isBMCMesh && currentBillboardPanel) {
           // Clicked outside BMC objects - close panel
           console.log('🖱️ Click detected outside BMC objects - closing panel');
           handleBackgroundClick();
+          clickCount = 0;
+          lastClickedMesh = null;
         }
-        
-        lastClickedMesh = hitMesh;
       } else if (currentBillboardPanel) {
         // No mesh hit at all - close panel
         console.log('🖱️ Click detected on empty space - closing panel');
         handleBackgroundClick();
+        clickCount = 0;
         lastClickedMesh = null;
       }
-      
-      lastClickTime = currentTime;
     };
     
     // Function to create billboarded content panel
@@ -1043,7 +1119,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const bulletPoints = (sectionData as CanvasElement).content.map((item: string) => `• ${item}`).join('\n');
       const lineHeight = 18; // More realistic line height for 12px font
       const padding = 80; // Header (40px) + top/bottom padding (40px)
-      const averageCharsPerLine = 45; // Approximate chars that fit in 400px width
+      const averageCharsPerLine = 65; // Approximate chars that fit in 600px width
       
       // Calculate total lines needed including text wrapping
       let totalLines = 0;
@@ -1054,15 +1130,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       });
       
       const calculatedHeight = padding + (totalLines * lineHeight);
-      const maxHeight = Math.min(600, calculatedHeight); // Allow up to 600px height
+      const maxHeight = Math.min(800, calculatedHeight); // Allow up to 800px height for larger content
       
       console.log(`📏 Panel height calculation: ${totalLines} lines × ${lineHeight}px + ${padding}px padding = ${calculatedHeight}px (max: ${maxHeight}px)`);
       
-      // Create main panel container
+      // Create main panel container - larger size for better visibility
       const panel = new Rectangle();
-      panel.widthInPixels = 400;
-      panel.heightInPixels = maxHeight;
-      panel.cornerRadius = 10;
+      panel.widthInPixels = 600; // Increased from 400 to 600 for better visibility
+      panel.heightInPixels = Math.max(400, maxHeight); // Minimum 400px height
+      panel.cornerRadius = 12;
       panel.color = "#333333";
       panel.thickness = 2;
       panel.background = "white";
