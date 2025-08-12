@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { ChatMessage } from '@/types/canvas';
-import { Send, X, Minimize2 } from 'lucide-react';
+import { Send, X, Minimize2, Plus } from 'lucide-react';
 import { AIServiceIndicator } from './AIServiceIndicator';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -411,13 +411,25 @@ export const AIChat: React.FC = () => {
           {/* Input - Fixed at absolute bottom */}
           <div className="border-t border-gray-200 p-4 bg-white rounded-b-lg">
             <div className="flex space-x-2">
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about your business model..."
-                className="flex-1"
-              />
+              <div className="relative flex-1">
+                <Input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask about your business model..."
+                  className="pr-10" // Add right padding to make room for the plus icon
+                />
+                <button
+                  onClick={() => {
+                    // Handle plus icon click - you can customize this action
+                    console.log('Plus icon clicked');
+                  }}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
+                  type="button"
+                >
+                  <Plus className="h-4 w-4 text-gray-500 hover:text-gray-700" />
+                </button>
+              </div>
               <Button 
                 onClick={handleSendMessage} 
                 size="icon" 
