@@ -377,6 +377,12 @@ export class CleanBMCSystem {
     }
     return false;
   }
+
+  // Get mesh for a BMC item
+  getMesh(itemName: string): AbstractMesh | null {
+    const item = this.items.get(itemName);
+    return item?.mesh || null;
+  }
 }
 
 // Global instance

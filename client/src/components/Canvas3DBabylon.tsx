@@ -379,16 +379,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // Create bullet text plane for BMC section content
   const createBulletTextPlane = (sectionName: string, mesh: AbstractMesh, scene: Scene) => {
-    if (!canvas || !showBulletText) return null;
+    console.log(`🎯 createBulletTextPlane called for ${sectionName}`);
+    console.log(`🎯 canvas available:`, !!canvas);
+    console.log(`🎯 showBulletText:`, showBulletText);
+    console.log(`🎯 mesh:`, mesh?.name || 'NO MESH');
+    
+    if (!canvas || !showBulletText) {
+      console.log(`❌ Early return: canvas=${!!canvas}, showBulletText=${showBulletText}`);
+      return null;
+    }
 
     // Get content for the section
     let content: string[] = [];
     switch (sectionName) {
       case 'Value Propositions':
         content = canvas.valuePropositions?.content || [];
+        console.log(`📋 Value Propositions content:`, content);
         break;
       // Add other sections later
       default:
+        console.log(`❌ Unsupported section: ${sectionName}`);
         return null;
     }
 
@@ -455,23 +465,37 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Position text plane on top of the mesh, slightly elevated
     textPlane.position = mesh.position.clone();
-    textPlane.position.y = mesh.position.y + (mesh.scaling.y / 2) + 0.05;
+    textPlane.position.y = mesh.position.y + (mesh.scaling.y / 2) + 0.1; // Higher elevation
     textPlane.rotation.x = Math.PI / 2; // Lay flat on top
+    console.log(`📍 Text plane positioned at:`, textPlane.position);
+    console.log(`📍 Mesh position:`, mesh.position);
+    console.log(`📍 Mesh scaling:`, mesh.scaling);
     
-    // Create material
+    // Create material - make it very visible
     const textMaterial = new StandardMaterial(`bulletTextMat_${sectionName}`, scene);
     textMaterial.diffuseTexture = dynamicTexture;
     textMaterial.emissiveTexture = dynamicTexture;
-    textMaterial.emissiveColor = new Color3(0.6, 0.6, 0.6);
+    textMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Bright white for visibility
     textMaterial.useAlphaFromDiffuseTexture = true;
     textMaterial.disableLighting = true;
     textMaterial.backFaceCulling = false;
+    textMaterial.alpha = 1.0; // Ensure full opacity
     
     textPlane.material = textMaterial;
     textPlane.isPickable = false;
     textPlane.parent = mesh;
+    textPlane.setEnabled(true); // Ensure it's enabled
+    textPlane.isVisible = true; // Ensure it's visible
     
     console.log(`✅ Bullet text plane created for ${sectionName}`);
+    console.log(`📊 Text plane details:`, {
+      name: textPlane.name,
+      position: textPlane.position,
+      isVisible: textPlane.isVisible,
+      isEnabled: textPlane.isEnabled(),
+      parent: textPlane.parent?.name,
+      materialAlpha: textMaterial.alpha
+    });
     return textPlane;
   };
 
@@ -485,19 +509,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Create bullet text for existing meshes
       const scene = sceneRef.current;
       if (scene) {
-        // Find Value Propositions mesh and add bullet text - try different possible names
-        const valuePropMesh = scene.getMeshByName('Value_Propositions') || 
-                              scene.getMeshByName('ValuePropositions') ||
-                              scene.getMeshByName('Value Propositions');
+        // Find Value Propositions mesh using the CleanBMCSystem registry
+        const valuePropMesh = cleanBMCRef.current.getMesh('Value Propositions');
         console.log('🔍 Looking for Value Propositions mesh:', valuePropMesh ? 'FOUND' : 'NOT FOUND');
         if (!valuePropMesh) {
           console.log('🔍 Available meshes:', scene.meshes.map(m => m.name));
         }
         if (valuePropMesh) {
+          console.log(`🎯 Found mesh for Value Propositions:`, valuePropMesh.name);
+          console.log(`📍 Mesh position:`, valuePropMesh.position);
+          console.log(`📏 Mesh scaling:`, valuePropMesh.scaling);
           const textPlane = createBulletTextPlane('Value Propositions', valuePropMesh, scene);
           if (textPlane) {
+            console.log(`💾 Storing text plane:`, textPlane.name);
             bulletTextPlanesRef.current.set('Value Propositions', textPlane);
+          } else {
+            console.log(`❌ Failed to create text plane for Value Propositions`);
           }
+        } else {
+          // Fallback: create a simple test text plane at origin for visibility testing
+          console.log(`🧪 Creating fallback test text plane at origin...`);
+          const testPlane = MeshBuilder.CreatePlane('testBulletText', { size: 3 }, scene);
+          testPlane.position = new Vector3(0, 2, 0); // High above origin
+          
+          const testMaterial = new StandardMaterial('testTextMat', scene);
+          testMaterial.diffuseColor = new Color3(1, 0, 0); // Bright red for visibility
+          testMaterial.emissiveColor = new Color3(0.5, 0, 0);
+          testPlane.material = testMaterial;
+          
+          bulletTextPlanesRef.current.set('TEST', testPlane);
+          console.log(`🧪 Test plane created at:`, testPlane.position);
         }
       }
     } else {
@@ -512,6 +553,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Expose toggle function for testing (temporary)
   useEffect(() => {
     (window as any).toggleBulletText = toggleBulletText;
+    // Auto-test the function once on load for debugging
+    if (sceneRef.current && !showBulletText) {
+      console.log('🧪 Auto-testing bullet text function...');
+      setTimeout(() => {
+        console.log('🧪 Triggering auto-test now...');
+        toggleBulletText();
+      }, 5000); // Give scene more time to load
+    }
     return () => {
       delete (window as any).toggleBulletText;
     };
