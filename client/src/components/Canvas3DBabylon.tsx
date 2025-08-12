@@ -1871,6 +1871,85 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.addLabel("Value Propositions", labelPlane, labelMaterial);
               
               console.log(`✅ Value Propositions label plane created`);
+
+              // Add bullet text content directly on the mesh
+              if (canvas?.valuePropositions?.content && canvas.valuePropositions.content.length > 0) {
+                const bulletText = canvas.valuePropositions.content.map(item => `• ${item}`).join('\n');
+                
+                // Create dynamic texture for bullet text
+                const textureSize = 512;
+                const dynamicTexture = new DynamicTexture(`valuePropBulletText`, textureSize, scene, false);
+                const context = dynamicTexture.getContext();
+                
+                // Clear with transparent background
+                context.clearRect(0, 0, textureSize, textureSize);
+                
+                // Set text properties
+                context.fillStyle = '#2d3748';
+                context.font = '18px Arial';
+                (context as any).textAlign = 'left';
+                (context as any).textBaseline = 'top';
+                
+                // Draw text with word wrapping
+                const maxWidth = textureSize - 40;
+                const lineHeight = 22;
+                const lines = bulletText.split('\n');
+                let y = 20;
+                
+                lines.forEach(line => {
+                  const words = line.split(' ');
+                  let currentLine = '';
+                  
+                  words.forEach(word => {
+                    const testLine = currentLine + word + ' ';
+                    const metrics = context.measureText(testLine);
+                    
+                    if (metrics.width > maxWidth && currentLine !== '') {
+                      context.fillText(currentLine.trim(), 20, y);
+                      y += lineHeight;
+                      currentLine = word + ' ';
+                    } else {
+                      currentLine = testLine;
+                    }
+                  });
+                  
+                  if (currentLine.trim() !== '') {
+                    context.fillText(currentLine.trim(), 20, y);
+                    y += lineHeight;
+                  }
+                });
+                
+                dynamicTexture.update();
+                
+                // Create bullet text plane
+                const bulletTextPlane = MeshBuilder.CreatePlane("valuePropBulletText", { 
+                  size: 1.8,
+                  sideOrientation: 2 
+                }, scene);
+                
+                // Position on top of the mesh
+                bulletTextPlane.position = mesh.position.clone();
+                bulletTextPlane.position.y = mesh.position.y + (mesh.scaling.y / 2) + 0.08;
+                bulletTextPlane.rotation.x = Math.PI / 2;
+                
+                // Create material
+                const bulletMaterial = new StandardMaterial(`valuePropBulletMat`, scene);
+                bulletMaterial.diffuseTexture = dynamicTexture;
+                bulletMaterial.emissiveTexture = dynamicTexture;
+                bulletMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+                bulletMaterial.useAlphaFromDiffuseTexture = true;
+                bulletMaterial.disableLighting = true;
+                bulletMaterial.backFaceCulling = false;
+                bulletMaterial.alpha = 1.0;
+                
+                bulletTextPlane.material = bulletMaterial;
+                bulletTextPlane.isPickable = false;
+                bulletTextPlane.parent = mesh;
+                bulletTextPlane.setEnabled(true);
+                bulletTextPlane.isVisible = true;
+                
+                console.log(`✅ Value Propositions bullet text added`);
+              }
               
               // Add pulsating green stroke animation to the top edge of Value Propositions cylinder
               const createPulsatingEdge = () => {
