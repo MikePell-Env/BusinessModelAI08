@@ -417,12 +417,12 @@ export const AIChat: React.FC = () => {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Message Copilot"
-                  className="pr-10" // Add right padding to make room for the plus icon
+                  className="pr-10 placeholder:text-gray-500" // Add right padding and medium grey placeholder
                 />
                 <button
                   onClick={() => {
-                    // Handle plus icon click - you can customize this action
-                    console.log('Plus icon clicked');
+                    // Trigger the same file import as "Import Office file..." button
+                    window.dispatchEvent(new CustomEvent('triggerFileImport'));
                   }}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
                   type="button"
