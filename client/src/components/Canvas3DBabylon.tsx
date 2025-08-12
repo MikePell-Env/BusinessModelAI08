@@ -392,10 +392,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         return null;
     }
 
-    if (content.length === 0) return null;
+    if (content.length === 0) {
+      console.log(`❌ No content available for ${sectionName}`);
+      return null;
+    }
 
     // Format content as bullet points
     const bulletText = content.map(item => `• ${item}`).join('\n');
+    console.log(`📝 Creating bullet text for ${sectionName}:`, bulletText);
     
     // Create dynamic texture for text
     const textureSize = 512;
@@ -408,8 +412,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Set text properties - small readable font
     context.fillStyle = '#2d3748'; // Dark grey text
     context.font = '20px Arial'; // Small font size
-    context.textAlign = 'left';
-    context.textBaseline = 'top';
+    (context as any).textAlign = 'left';
+    (context as any).textBaseline = 'top';
     
     // Draw text with word wrapping
     const maxWidth = textureSize - 40; // Leave margin
@@ -474,14 +478,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Toggle bullet text display
   const toggleBulletText = () => {
     const newState = !showBulletText;
+    console.log(`🔄 Toggling bullet text: ${showBulletText} → ${newState}`);
     setShowBulletText(newState);
     
     if (newState) {
       // Create bullet text for existing meshes
       const scene = sceneRef.current;
       if (scene) {
-        // Find Value Propositions mesh and add bullet text
-        const valuePropMesh = scene.getMeshByName('Value_Propositions');
+        // Find Value Propositions mesh and add bullet text - try different possible names
+        const valuePropMesh = scene.getMeshByName('Value_Propositions') || 
+                              scene.getMeshByName('ValuePropositions') ||
+                              scene.getMeshByName('Value Propositions');
+        console.log('🔍 Looking for Value Propositions mesh:', valuePropMesh ? 'FOUND' : 'NOT FOUND');
+        if (!valuePropMesh) {
+          console.log('🔍 Available meshes:', scene.meshes.map(m => m.name));
+        }
         if (valuePropMesh) {
           const textPlane = createBulletTextPlane('Value Propositions', valuePropMesh, scene);
           if (textPlane) {
