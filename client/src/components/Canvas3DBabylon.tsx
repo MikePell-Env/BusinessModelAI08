@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { 
   Engine, 
   Scene, 
@@ -229,6 +229,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const orthoEventHandlersRef = useRef<any>(null);
   const animationManagerRef = useRef<BabylonAnimationManager | null>(null);
   const materialManagerRef = useRef<BabylonMaterialManager | null>(null);
+  const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
+  const [showBulletText, setShowBulletText] = useState(false);
   const { 
     saveCamera3DState, 
     getCamera3DState, 
@@ -374,6 +376,135 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Format content as bullet points
     return section.content.map(item => `• ${item}`).join('\n');
   };
+
+  // Create bullet text plane for BMC section content
+  const createBulletTextPlane = (sectionName: string, mesh: AbstractMesh, scene: Scene) => {
+    if (!canvas || !showBulletText) return null;
+
+    // Get content for the section
+    let content: string[] = [];
+    switch (sectionName) {
+      case 'Value Propositions':
+        content = canvas.valuePropositions?.content || [];
+        break;
+      // Add other sections later
+      default:
+        return null;
+    }
+
+    if (content.length === 0) return null;
+
+    // Format content as bullet points
+    const bulletText = content.map(item => `• ${item}`).join('\n');
+    
+    // Create dynamic texture for text
+    const textureSize = 512;
+    const dynamicTexture = new DynamicTexture(`bulletText_${sectionName}`, textureSize, scene, false);
+    const context = dynamicTexture.getContext();
+    
+    // Clear with transparent background
+    context.clearRect(0, 0, textureSize, textureSize);
+    
+    // Set text properties - small readable font
+    context.fillStyle = '#2d3748'; // Dark grey text
+    context.font = '20px Arial'; // Small font size
+    context.textAlign = 'left';
+    context.textBaseline = 'top';
+    
+    // Draw text with word wrapping
+    const maxWidth = textureSize - 40; // Leave margin
+    const lineHeight = 24;
+    const lines = bulletText.split('\n');
+    let y = 20;
+    
+    lines.forEach(line => {
+      // Simple word wrapping
+      const words = line.split(' ');
+      let currentLine = '';
+      
+      words.forEach(word => {
+        const testLine = currentLine + word + ' ';
+        const metrics = context.measureText(testLine);
+        
+        if (metrics.width > maxWidth && currentLine !== '') {
+          context.fillText(currentLine.trim(), 20, y);
+          y += lineHeight;
+          currentLine = word + ' ';
+        } else {
+          currentLine = testLine;
+        }
+      });
+      
+      if (currentLine.trim() !== '') {
+        context.fillText(currentLine.trim(), 20, y);
+        y += lineHeight;
+      }
+    });
+    
+    dynamicTexture.update();
+    
+    // Create text plane
+    const textPlane = MeshBuilder.CreatePlane(`bulletTextPlane_${sectionName}`, { 
+      size: 2.0, 
+      sideOrientation: 2 
+    }, scene);
+    
+    // Position text plane on top of the mesh, slightly elevated
+    textPlane.position = mesh.position.clone();
+    textPlane.position.y = mesh.position.y + (mesh.scaling.y / 2) + 0.05;
+    textPlane.rotation.x = Math.PI / 2; // Lay flat on top
+    
+    // Create material
+    const textMaterial = new StandardMaterial(`bulletTextMat_${sectionName}`, scene);
+    textMaterial.diffuseTexture = dynamicTexture;
+    textMaterial.emissiveTexture = dynamicTexture;
+    textMaterial.emissiveColor = new Color3(0.6, 0.6, 0.6);
+    textMaterial.useAlphaFromDiffuseTexture = true;
+    textMaterial.disableLighting = true;
+    textMaterial.backFaceCulling = false;
+    
+    textPlane.material = textMaterial;
+    textPlane.isPickable = false;
+    textPlane.parent = mesh;
+    
+    console.log(`✅ Bullet text plane created for ${sectionName}`);
+    return textPlane;
+  };
+
+  // Toggle bullet text display
+  const toggleBulletText = () => {
+    const newState = !showBulletText;
+    setShowBulletText(newState);
+    
+    if (newState) {
+      // Create bullet text for existing meshes
+      const scene = sceneRef.current;
+      if (scene) {
+        // Find Value Propositions mesh and add bullet text
+        const valuePropMesh = scene.getMeshByName('Value_Propositions');
+        if (valuePropMesh) {
+          const textPlane = createBulletTextPlane('Value Propositions', valuePropMesh, scene);
+          if (textPlane) {
+            bulletTextPlanesRef.current.set('Value Propositions', textPlane);
+          }
+        }
+      }
+    } else {
+      // Remove all bullet text planes
+      bulletTextPlanesRef.current.forEach((plane, name) => {
+        plane.dispose();
+      });
+      bulletTextPlanesRef.current.clear();
+    }
+  };
+
+  // Expose toggle function for testing (temporary)
+  useEffect(() => {
+    (window as any).toggleBulletText = toggleBulletText;
+    return () => {
+      delete (window as any).toggleBulletText;
+    };
+  }, [showBulletText]);
 
   // REMOVED: Old restoration function - CleanBMCSystem handles this automatically
 
