@@ -708,8 +708,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (event.button === 0) { // Left mouse button
           isDragging = true;
           lastX = event.clientX;
-          // Don't prevent default on mousedown - let click events through
-          console.log(`🖱️ Ortho pan ready at X: ${event.clientX}, camera.x: ${orthoCamera.position.x.toFixed(3)}`);
+          event.preventDefault();
+          event.stopPropagation();
+          console.log(`🖱️ Ortho pan started at X: ${event.clientX}, camera.x: ${orthoCamera.position.x.toFixed(3)}`);
         }
       };
       
@@ -745,10 +746,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       };
       
       canvas.addEventListener('wheel', onWheel, { passive: false });
-      canvas.addEventListener('mousedown', onMouseDown, false); // Don't capture mousedown
-      canvas.addEventListener('mousemove', onMouseMove, true); // Capture for drag
-      canvas.addEventListener('mouseup', onMouseUp, false); // Don't capture mouseup
-      canvas.addEventListener('mouseleave', onMouseUp, false); // Don't capture
+      canvas.addEventListener('mousedown', onMouseDown, true); // Use capture phase
+      canvas.addEventListener('mousemove', onMouseMove, true); // Use capture phase  
+      canvas.addEventListener('mouseup', onMouseUp, true); // Use capture phase
+      canvas.addEventListener('mouseleave', onMouseUp, true); // Use capture phase
       
       // Store handlers for cleanup in ref
       orthoEventHandlersRef.current = {
@@ -934,99 +935,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
     
-    // Immediate response click handling using onPointerObservable (Babylon.js best practice)
-    let lastClickTime = 0;
-    let lastClickedMesh: AbstractMesh | null = null;
-    
+    // Background click handler for panels only
     scene.onPointerObservable.add((pointerInfo) => {
       if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-        const currentTime = Date.now();
-        console.log(`🖱️ Click detected at ${currentTime}`);
-        
         if (pointerInfo.pickInfo?.hit) {
           const hitMesh = pointerInfo.pickInfo.pickedMesh;
-          console.log(`🎯 Mesh hit: ${hitMesh?.name}, isPickable: ${hitMesh?.isPickable}`);
-          
-          // Check if BMC object
           const isBMCMesh = hitMesh && (
             hitMesh.name.includes('BMC_') || 
             hitMesh.name.includes('Revenue') ||
             hitMesh.name.includes('Cost')
           );
           
-          console.log(`🔍 Is BMC mesh: ${isBMCMesh}, mesh name: ${hitMesh?.name}`);
-          
-          if (isBMCMesh) {
-            // Get section name
-            let sectionName = '';
-            if (hitMesh.name.includes('BMC_')) {
-              const meshName = hitMesh.name.replace('BMC_', '');
-              sectionName = mapBMCComponentToSectionName(meshName as BMCComponentName);
-            } else if (hitMesh.name.includes('Revenue')) {
-              sectionName = 'Revenue Streams';
-            } else if (hitMesh.name.includes('Cost')) {
-              sectionName = 'Cost Structure';
-            }
-            
-            if (sectionName) {
-              const isSameMesh = lastClickedMesh === hitMesh;
-              const timeDiff = currentTime - lastClickTime;
-              const isDoubleClick = isSameMesh && timeDiff < 300;
-              
-              if (isDoubleClick) {
-                // Double-click: open panel immediately
-                const currentlySelected = cleanBMCRef.current?.getSelectedObject();
-                const isAlreadySelected = currentlySelected === sectionName;
-                
-                // Close existing panel
-                if (currentBillboardPanel) {
-                  advancedTexture.removeControl(currentBillboardPanel);
-                  currentBillboardPanel = null;
-                  billboardPanelRef.current = null;
-                }
-                
-                // Select only if not already selected
-                if (!isAlreadySelected && cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect(sectionName);
-                }
-                
-                // Create panel
-                const meshWorldPosition = hitMesh.getAbsolutePosition();
-                createBillboardPanel(sectionName, meshWorldPosition);
-                
-                lastClickedMesh = null;
-                lastClickTime = 0;
-              } else {
-                // Single click: immediate selection (no timeout delay)
-                console.log(`✅ Single click detected on ${sectionName} - selecting immediately`);
-                if (cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect(sectionName);
-                  console.log(`✅ Selection applied to ${sectionName}`);
-                } else {
-                  console.log(`❌ cleanBMCRef.current is null - cannot select`);
-                }
-                
-                // Close any existing panel
-                if (currentBillboardPanel) {
-                  handleBackgroundClick();
-                }
-                
-                // Store for potential double-click
-                lastClickedMesh = hitMesh;
-                lastClickTime = currentTime;
-              }
-            }
-          } else if (currentBillboardPanel) {
-            // Background click - close panel
-            console.log(`🌍 Background click on non-BMC object: ${hitMesh?.name}`);
+          if (!isBMCMesh && currentBillboardPanel) {
             handleBackgroundClick();
           }
-        } else {
-          console.log(`🌍 Empty space click - no mesh hit`);
-          if (currentBillboardPanel) {
-            // Empty space click - close panel
-            handleBackgroundClick();
-          }
+        } else if (currentBillboardPanel) {
+          handleBackgroundClick();
         }
       }
     });
@@ -2258,7 +2182,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old updateContentPanel function - replaced by createBillboardPanel
             
-            // ActionManager only used for hover - clicks handled by unified scene handler
+            // Single click for immediate selection
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect(sectionName);
+              }
+            }));
+            
+            // Double-click for panel
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+              const isAlreadySelected = currentlySelected === sectionName;
+              
+              if (currentBillboardPanel) {
+                advancedTexture.removeControl(currentBillboardPanel);
+                currentBillboardPanel = null;
+                billboardPanelRef.current = null;
+              }
+              
+              if (!isAlreadySelected && cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect(sectionName);
+              }
+              
+              const meshWorldPosition = mesh.getAbsolutePosition();
+              createBillboardPanel(sectionName, meshWorldPosition);
+            }));
             
             // REMOVED: Old close button functionality - now handled by billboard panel system
             
@@ -2496,7 +2444,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               handleBMCObjectHoverExit("Revenue Streams");
             }));
             
-            // ActionManager only used for hover - clicks handled by unified scene handler
+            // Single click for immediate selection
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Revenue Streams");
+              }
+            }));
+            
+            // Double-click for panel
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+              const isAlreadySelected = currentlySelected === "Revenue Streams";
+              
+              if (currentBillboardPanel) {
+                advancedTexture.removeControl(currentBillboardPanel);
+                currentBillboardPanel = null;
+                billboardPanelRef.current = null;
+              }
+              
+              if (!isAlreadySelected && cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Revenue Streams");
+              }
+              
+              const meshWorldPosition = mesh.getAbsolutePosition();
+              createBillboardPanel("Revenue Streams", meshWorldPosition);
+            }));
 
             // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
             console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
@@ -2649,7 +2621,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               handleBMCObjectHoverExit("Cost Structure");
             }));
             
-            // ActionManager only used for hover - clicks handled by unified scene handler
+            // Single click for immediate selection
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Cost Structure");
+              }
+            }));
+            
+            // Double-click for panel
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+              const isAlreadySelected = currentlySelected === "Cost Structure";
+              
+              if (currentBillboardPanel) {
+                advancedTexture.removeControl(currentBillboardPanel);
+                currentBillboardPanel = null;
+                billboardPanelRef.current = null;
+              }
+              
+              if (!isAlreadySelected && cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Cost Structure");
+              }
+              
+              const meshWorldPosition = mesh.getAbsolutePosition();
+              createBillboardPanel("Cost Structure", meshWorldPosition);
+            }));
 
             // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
             console.log(`🏷️ Creating floating label for Cost Structure mesh (index ${index})`);
@@ -2958,10 +2954,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
         const canvas = orthoEventHandlersRef.current.canvas;
         canvas.removeEventListener('wheel', orthoEventHandlersRef.current.wheel);
-        canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, false);
+        canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
         canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-        canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, false);
-        canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, false);
+        canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+        canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
         orthoEventHandlersRef.current = null;
       }
       
@@ -3030,16 +3026,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
           const canvas = orthoEventHandlersRef.current.canvas;
           // Remove old handlers first
-          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, false);
+          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
           canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, false);
-          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, false);
+          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
           
           // Re-add handlers to ensure they're active
-          canvas.addEventListener('mousedown', orthoEventHandlersRef.current.mousedown, false);
+          canvas.addEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
           canvas.addEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.addEventListener('mouseup', orthoEventHandlersRef.current.mouseup, false);
-          canvas.addEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, false);
+          canvas.addEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+          canvas.addEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
           
           console.log("🎯 Orthographic controls re-activated for 3D Top view");
         }
