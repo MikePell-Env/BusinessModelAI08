@@ -1002,6 +1002,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
               
               if (sectionName) {
+                // Check if this object is already selected
+                const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+                const isAlreadySelected = currentlySelected === sectionName;
+                
                 // Close any existing panel first
                 if (currentBillboardPanel) {
                   advancedTexture.removeControl(currentBillboardPanel);
@@ -1010,10 +1014,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   console.log("❌ Previous billboard panel closed by universal double-click");
                 }
                 
-                // Ensure object is selected
-                if (cleanBMCRef.current) {
+                // Only trigger selection if not already selected (prevents flashing/height updates)
+                if (!isAlreadySelected && cleanBMCRef.current) {
                   cleanBMCRef.current.onSelect(sectionName);
                   console.log(`✅ Object ${sectionName} selected via universal double-click`);
+                } else if (isAlreadySelected) {
+                  console.log(`✅ Object ${sectionName} already selected - preserving state, just opening panel`);
                 }
                 
                 // Create billboard panel
@@ -2322,12 +2328,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log("❌ Previous billboard panel closed by new double-click");
               }
               
-              // STEP 1: Ensure object is selected (but don't deselect if already selected)
+              // STEP 1: Only trigger selection if not already selected (prevents flashing/height updates)
               if (cleanBMCRef.current && !isAlreadySelected) {
                 cleanBMCRef.current.onSelect(sectionName);
                 console.log(`✅ Object ${sectionName} selected via double-click - all others deselected`);
               } else if (isAlreadySelected) {
-                console.log(`✅ Object ${sectionName} already selected - preserving blue highlighting, skipping re-selection`);
+                console.log(`✅ Object ${sectionName} already selected - preserving state, just opening panel`);
                 // Don't call onSelect again - it would clear and re-apply selection unnecessarily
               }
               
@@ -2606,6 +2612,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`🔍 ActionManager.OnDoublePickTrigger fired for Revenue Streams`);
               console.log(`🎯 Mesh isPickable: ${mesh.isPickable}, ActionManager exists: ${!!mesh.actionManager}`);
               
+              // Check if Revenue Streams is already selected
+              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+              const isAlreadySelected = currentlySelected === "Revenue Streams";
+              
               // Close any existing panel first
               if (currentBillboardPanel) {
                 advancedTexture.removeControl(currentBillboardPanel);
@@ -2614,10 +2624,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log("❌ Previous billboard panel closed by new double-click");
               }
               
-              // STEP 1: Ensure object is selected and all others are deselected
-              if (cleanBMCRef.current) {
+              // STEP 1: Only trigger selection if not already selected (prevents flashing/height updates)
+              if (cleanBMCRef.current && !isAlreadySelected) {
                 cleanBMCRef.current.onSelect("Revenue Streams");
                 console.log(`✅ Object Revenue Streams selected via double-click - all others deselected`);
+              } else if (isAlreadySelected) {
+                console.log(`✅ Revenue Streams already selected - preserving state, just opening panel`);
               }
               
               // Get mesh world position for billboard placement
@@ -2803,6 +2815,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`🔍 ActionManager.OnDoublePickTrigger fired for Cost Structure`);
               console.log(`🎯 Mesh isPickable: ${mesh.isPickable}, ActionManager exists: ${!!mesh.actionManager}`);
               
+              // Check if Cost Structure is already selected
+              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+              const isAlreadySelected = currentlySelected === "Cost Structure";
+              
               // Close any existing panel first
               if (currentBillboardPanel) {
                 advancedTexture.removeControl(currentBillboardPanel);
@@ -2811,10 +2827,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 console.log("❌ Previous billboard panel closed by new double-click");
               }
               
-              // STEP 1: Ensure object is selected and all others are deselected
-              if (cleanBMCRef.current) {
+              // STEP 1: Only trigger selection if not already selected (prevents flashing/height updates)
+              if (cleanBMCRef.current && !isAlreadySelected) {
                 cleanBMCRef.current.onSelect("Cost Structure");
                 console.log(`✅ Object Cost Structure selected via double-click - all others deselected`);
+              } else if (isAlreadySelected) {
+                console.log(`✅ Cost Structure already selected - preserving state, just opening panel`);
               }
               
               // Get mesh world position for billboard placement
