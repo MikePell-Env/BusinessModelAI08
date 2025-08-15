@@ -934,102 +934,90 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
     
-    // Enhanced click handling for panel management with improved double-click detection
+    // Immediate response click handling using onPointerObservable (Babylon.js best practice)
     let lastClickTime = 0;
     let lastClickedMesh: AbstractMesh | null = null;
-    let clickCount = 0;
-    let clickTimeout: NodeJS.Timeout | null = null;
     
-    // Single unified handler for all clicks (single and double)
-    scene.onPointerDown = (info) => {
-      if (info.button !== 0) return; // Only left clicks
-      
-      const currentTime = Date.now();
-      const pickedMesh = scene.pick(scene.pointerX, scene.pointerY);
-      
-      if (pickedMesh.hit) {
-        const hitMesh = pickedMesh.pickedMesh;
+    scene.onPointerObservable.add((pointerInfo) => {
+      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+        const currentTime = Date.now();
         
-        // Check if BMC object
-        const isBMCMesh = hitMesh && (
-          hitMesh.name.includes('BMC_') || 
-          hitMesh.name.includes('Revenue') ||
-          hitMesh.name.includes('Cost')
-        );
-        
-        if (isBMCMesh) {
-          // Get section name
-          let sectionName = '';
-          if (hitMesh.name.includes('BMC_')) {
-            const meshName = hitMesh.name.replace('BMC_', '');
-            sectionName = mapBMCComponentToSectionName(meshName as BMCComponentName);
-          } else if (hitMesh.name.includes('Revenue')) {
-            sectionName = 'Revenue Streams';
-          } else if (hitMesh.name.includes('Cost')) {
-            sectionName = 'Cost Structure';
-          }
+        if (pointerInfo.pickInfo?.hit) {
+          const hitMesh = pointerInfo.pickInfo.pickedMesh;
           
-          if (sectionName) {
-            const isSameMesh = lastClickedMesh === hitMesh;
-            const timeDiff = currentTime - lastClickTime;
-            const isDoubleClick = isSameMesh && timeDiff < 400 && timeDiff > 50;
+          // Check if BMC object
+          const isBMCMesh = hitMesh && (
+            hitMesh.name.includes('BMC_') || 
+            hitMesh.name.includes('Revenue') ||
+            hitMesh.name.includes('Cost')
+          );
+          
+          if (isBMCMesh) {
+            // Get section name
+            let sectionName = '';
+            if (hitMesh.name.includes('BMC_')) {
+              const meshName = hitMesh.name.replace('BMC_', '');
+              sectionName = mapBMCComponentToSectionName(meshName as BMCComponentName);
+            } else if (hitMesh.name.includes('Revenue')) {
+              sectionName = 'Revenue Streams';
+            } else if (hitMesh.name.includes('Cost')) {
+              sectionName = 'Cost Structure';
+            }
             
-            if (isDoubleClick) {
-              // Double-click: open panel
-              if (clickTimeout) {
-                clearTimeout(clickTimeout);
-                clickTimeout = null;
-              }
+            if (sectionName) {
+              const isSameMesh = lastClickedMesh === hitMesh;
+              const timeDiff = currentTime - lastClickTime;
+              const isDoubleClick = isSameMesh && timeDiff < 300;
               
-              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
-              const isAlreadySelected = currentlySelected === sectionName;
-              
-              // Close existing panel
-              if (currentBillboardPanel) {
-                advancedTexture.removeControl(currentBillboardPanel);
-                currentBillboardPanel = null;
-                billboardPanelRef.current = null;
-              }
-              
-              // Select only if not already selected
-              if (!isAlreadySelected && cleanBMCRef.current) {
-                cleanBMCRef.current.onSelect(sectionName);
-              }
-              
-              // Create panel
-              const meshWorldPosition = hitMesh.getAbsolutePosition();
-              createBillboardPanel(sectionName, meshWorldPosition);
-              
-              lastClickedMesh = null;
-              lastClickTime = 0;
-            } else {
-              // First click: prepare for potential double-click
-              lastClickedMesh = hitMesh;
-              lastClickTime = currentTime;
-              
-              if (clickTimeout) clearTimeout(clickTimeout);
-              
-              // Single-click timeout
-              clickTimeout = setTimeout(() => {
+              if (isDoubleClick) {
+                // Double-click: open panel immediately
+                const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+                const isAlreadySelected = currentlySelected === sectionName;
+                
+                // Close existing panel
+                if (currentBillboardPanel) {
+                  advancedTexture.removeControl(currentBillboardPanel);
+                  currentBillboardPanel = null;
+                  billboardPanelRef.current = null;
+                }
+                
+                // Select only if not already selected
+                if (!isAlreadySelected && cleanBMCRef.current) {
+                  cleanBMCRef.current.onSelect(sectionName);
+                }
+                
+                // Create panel
+                const meshWorldPosition = hitMesh.getAbsolutePosition();
+                createBillboardPanel(sectionName, meshWorldPosition);
+                
+                lastClickedMesh = null;
+                lastClickTime = 0;
+              } else {
+                // Single click: immediate selection (no timeout delay)
                 if (cleanBMCRef.current) {
                   cleanBMCRef.current.onSelect(sectionName);
                 }
+                
+                // Close any existing panel
                 if (currentBillboardPanel) {
                   handleBackgroundClick();
                 }
-                clickTimeout = null;
-              }, 400);
+                
+                // Store for potential double-click
+                lastClickedMesh = hitMesh;
+                lastClickTime = currentTime;
+              }
             }
+          } else if (currentBillboardPanel) {
+            // Background click - close panel
+            handleBackgroundClick();
           }
         } else if (currentBillboardPanel) {
-          // Background click - close panel
+          // Empty space click - close panel
           handleBackgroundClick();
         }
-      } else if (currentBillboardPanel) {
-        // Empty space click - close panel
-        handleBackgroundClick();
       }
-    };
+    });
     
     // Function to create billboarded content panel
     const createBillboardPanel = (sectionName: string, worldPosition: Vector3) => {
