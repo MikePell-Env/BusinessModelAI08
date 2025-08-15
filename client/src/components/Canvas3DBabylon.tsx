@@ -951,6 +951,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     let clickCount = 0;
     let clickTimeout: NodeJS.Timeout | null = null;
     
+    // Universal double-click handler that works across all view modes
     scene.onPointerDown = (info) => {
       // Only handle left clicks
       if (info.button !== 0) return;
@@ -971,22 +972,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         );
         
         if (isBMCMesh) {
-          // Let ActionManager handle clicks first, but track for fallback
-          lastClickedMesh = hitMesh;
-          lastClickTime = currentTime;
-          
-          // Enhanced double-click detection as fallback for meshes without ActionManager
+          // Enhanced universal double-click detection that works in all view modes
           const isSameMesh = lastClickedMesh === hitMesh;
           const timeDiff = currentTime - lastClickTime;
-          const isWithinDoubleClickTime = timeDiff < 400;
+          const isWithinDoubleClickTime = timeDiff < 350 && timeDiff > 50; // Reduced window, avoid single click noise
           
-          // Only handle double-click if mesh doesn't have ActionManager (fallback)
-          if (!hitMesh.actionManager && isSameMesh && isWithinDoubleClickTime) {
+          if (isSameMesh && isWithinDoubleClickTime) {
             clickCount++;
-            console.log(`🔍 Fallback double-click count: ${clickCount}, time diff: ${timeDiff}ms`);
+            console.log(`🔍 Universal double-click count: ${clickCount}, time diff: ${timeDiff}ms`);
             
             if (clickCount === 2) {
-              console.log(`⚡⚡ FALLBACK DOUBLE-CLICK DETECTED for ${hitMesh?.name} ⚡⚡`);
+              console.log(`⚡⚡ UNIVERSAL DOUBLE-CLICK DETECTED for ${hitMesh?.name} ⚡⚡`);
+              
+              // Clear any pending timeout
+              if (clickTimeout) {
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+              }
               
               // Get section name
               let sectionName = '';
@@ -1005,44 +1007,51 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   advancedTexture.removeControl(currentBillboardPanel);
                   currentBillboardPanel = null;
                   billboardPanelRef.current = null;
-                  console.log("❌ Previous billboard panel closed by fallback double-click");
+                  console.log("❌ Previous billboard panel closed by universal double-click");
                 }
                 
                 // Ensure object is selected
                 if (cleanBMCRef.current) {
                   cleanBMCRef.current.onSelect(sectionName);
-                  console.log(`✅ Object ${sectionName} selected via fallback double-click`);
+                  console.log(`✅ Object ${sectionName} selected via universal double-click`);
                 }
                 
                 // Create billboard panel
                 const meshWorldPosition = hitMesh.getAbsolutePosition();
-                console.log(`🚀 Creating billboard panel for ${sectionName} via fallback detection`);
+                console.log(`🚀 Creating billboard panel for ${sectionName} via universal detection`);
                 createBillboardPanel(sectionName, meshWorldPosition);
               }
               
               // Reset click tracking
               clickCount = 0;
+              lastClickTime = 0;
+              lastClickedMesh = null;
               return;
             }
-          } else if (!hitMesh.actionManager) {
-            // First click on mesh without ActionManager
+          } else {
+            // First click or different mesh - reset counter
             clickCount = 1;
             
+            // Clear any existing timeout
+            if (clickTimeout) {
+              clearTimeout(clickTimeout);
+            }
+            
             // Set timeout for single click handling
-            setTimeout(() => {
+            clickTimeout = setTimeout(() => {
               if (clickCount === 1) {
-                console.log('🖱️ Single click confirmed on mesh without ActionManager');
+                console.log('🖱️ Single click confirmed - closing existing panel if any');
                 if (currentBillboardPanel) {
                   handleBackgroundClick();
                 }
               }
               clickCount = 0;
-            }, 400);
-          } else {
-            // Mesh has ActionManager - let it handle the clicks
-            console.log(`🎯 Mesh ${hitMesh?.name} has ActionManager - delegating to it`);
-            clickCount = 0; // Reset any pending clicks
+              clickTimeout = null;
+            }, 350);
           }
+          
+          lastClickedMesh = hitMesh;
+          lastClickTime = currentTime;
           
         } else if (!isBMCMesh && currentBillboardPanel) {
           // Clicked outside BMC objects - close panel
@@ -1148,7 +1157,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const titleText = new TextBlock();
       titleText.text = sectionName;
       titleText.color = "#333333";
-      titleText.fontSize = 16;
+      
+      // Scale title font for high DPI displays
+      const titleDevicePixelRatio = window.devicePixelRatio || 1;
+      const baseTitleSize = 18; // Increased base title size
+      titleText.fontSize = Math.round(baseTitleSize * Math.min(titleDevicePixelRatio, 2));
       titleText.fontWeight = "bold";
       headerRect.addControl(titleText);
       
@@ -1166,19 +1179,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       closeButton.topInPixels = 5;
       closeButton.isPointerBlocker = true;
       
-      // Create content area with bullet points
+      // Create content area with bullet points - improved font rendering for high DPI
       const contentText = new TextBlock();
       contentText.text = bulletPoints;
       contentText.color = "#333333";
-      contentText.fontSize = 12;
-      contentText.lineSpacing = 2; // Add some line spacing for better readability
+      
+      // Calculate appropriate font size based on device pixel ratio for crisp rendering
+      const contentDevicePixelRatio = window.devicePixelRatio || 1;
+      const baseFontSize = 14; // Increased base size
+      contentText.fontSize = Math.round(baseFontSize * Math.min(contentDevicePixelRatio, 2)); // Cap scaling at 2x
+      
+      contentText.lineSpacing = 4; // Increased line spacing for better readability
       contentText.textWrapping = true;
       contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
       contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-      contentText.paddingLeft = "15px";
-      contentText.paddingRight = "15px";
+      contentText.paddingLeft = "20px";
+      contentText.paddingRight = "20px";
       contentText.paddingTop = "50px";
-      contentText.paddingBottom = "15px";
+      contentText.paddingBottom = "20px";
       
       // Make content area take full available height
       contentText.heightInPixels = maxHeight - 40; // Subtract header height
