@@ -941,9 +941,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     scene.onPointerObservable.add((pointerInfo) => {
       if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
         const currentTime = Date.now();
+        console.log(`🖱️ Click detected at ${currentTime}`);
         
         if (pointerInfo.pickInfo?.hit) {
           const hitMesh = pointerInfo.pickInfo.pickedMesh;
+          console.log(`🎯 Mesh hit: ${hitMesh?.name}, isPickable: ${hitMesh?.isPickable}`);
           
           // Check if BMC object
           const isBMCMesh = hitMesh && (
@@ -951,6 +953,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             hitMesh.name.includes('Revenue') ||
             hitMesh.name.includes('Cost')
           );
+          
+          console.log(`🔍 Is BMC mesh: ${isBMCMesh}, mesh name: ${hitMesh?.name}`);
           
           if (isBMCMesh) {
             // Get section name
@@ -994,8 +998,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 lastClickTime = 0;
               } else {
                 // Single click: immediate selection (no timeout delay)
+                console.log(`✅ Single click detected on ${sectionName} - selecting immediately`);
                 if (cleanBMCRef.current) {
                   cleanBMCRef.current.onSelect(sectionName);
+                  console.log(`✅ Selection applied to ${sectionName}`);
+                } else {
+                  console.log(`❌ cleanBMCRef.current is null - cannot select`);
                 }
                 
                 // Close any existing panel
@@ -1010,11 +1018,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }
           } else if (currentBillboardPanel) {
             // Background click - close panel
+            console.log(`🌍 Background click on non-BMC object: ${hitMesh?.name}`);
             handleBackgroundClick();
           }
-        } else if (currentBillboardPanel) {
-          // Empty space click - close panel
-          handleBackgroundClick();
+        } else {
+          console.log(`🌍 Empty space click - no mesh hit`);
+          if (currentBillboardPanel) {
+            // Empty space click - close panel
+            handleBackgroundClick();
+          }
         }
       }
     });
