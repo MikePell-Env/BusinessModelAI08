@@ -708,9 +708,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (event.button === 0) { // Left mouse button
           isDragging = true;
           lastX = event.clientX;
-          event.preventDefault();
-          event.stopPropagation();
-          console.log(`🖱️ Ortho pan started at X: ${event.clientX}, camera.x: ${orthoCamera.position.x.toFixed(3)}`);
+          // Don't prevent default on mousedown - let click events through
+          console.log(`🖱️ Ortho pan ready at X: ${event.clientX}, camera.x: ${orthoCamera.position.x.toFixed(3)}`);
         }
       };
       
@@ -733,6 +732,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.log(`🖱️ Ortho panning: deltaX=${deltaX}, translation=${translation.toFixed(3)}, camera.x=${oldX.toFixed(3)} -> ${orthoCamera.position.x.toFixed(3)}, target.x=${target.x.toFixed(3)}`);
         
         lastX = event.clientX;
+        // Only prevent default during actual drag movement
         event.preventDefault();
         event.stopPropagation();
       };
@@ -745,10 +745,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       };
       
       canvas.addEventListener('wheel', onWheel, { passive: false });
-      canvas.addEventListener('mousedown', onMouseDown, true); // Use capture phase
-      canvas.addEventListener('mousemove', onMouseMove, true); // Use capture phase  
-      canvas.addEventListener('mouseup', onMouseUp, true); // Use capture phase
-      canvas.addEventListener('mouseleave', onMouseUp, true); // Use capture phase
+      canvas.addEventListener('mousedown', onMouseDown, false); // Don't capture mousedown
+      canvas.addEventListener('mousemove', onMouseMove, true); // Capture for drag
+      canvas.addEventListener('mouseup', onMouseUp, false); // Don't capture mouseup
+      canvas.addEventListener('mouseleave', onMouseUp, false); // Don't capture
       
       // Store handlers for cleanup in ref
       orthoEventHandlersRef.current = {
@@ -2958,10 +2958,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
         const canvas = orthoEventHandlersRef.current.canvas;
         canvas.removeEventListener('wheel', orthoEventHandlersRef.current.wheel);
-        canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+        canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, false);
         canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-        canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-        canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+        canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, false);
+        canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, false);
         orthoEventHandlersRef.current = null;
       }
       
@@ -3030,16 +3030,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
           const canvas = orthoEventHandlersRef.current.canvas;
           // Remove old handlers first
-          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, false);
           canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, false);
+          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, false);
           
           // Re-add handlers to ensure they're active
-          canvas.addEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+          canvas.addEventListener('mousedown', orthoEventHandlersRef.current.mousedown, false);
           canvas.addEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.addEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-          canvas.addEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+          canvas.addEventListener('mouseup', orthoEventHandlersRef.current.mouseup, false);
+          canvas.addEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, false);
           
           console.log("🎯 Orthographic controls re-activated for 3D Top view");
         }
@@ -3056,10 +3056,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Disable orthographic controls when switching away
         if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
           const canvas = orthoEventHandlersRef.current.canvas;
-          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, false);
           canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, false);
+          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, false);
           
           console.log("🎯 Orthographic controls disabled for 3D View");
         }
