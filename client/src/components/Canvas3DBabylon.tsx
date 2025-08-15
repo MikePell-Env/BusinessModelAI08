@@ -308,18 +308,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     return nameMapping[componentName];
   };
 
-  // New BMC Selection System using our state architecture
-  // Simplified click handler using BMC state manager
-  const handleBMCObjectClick = (sectionName: string) => {
-    console.log(`🖱️ CLICK: ${sectionName}`);
-    cleanBMCRef.current.onSelect(sectionName);
-    
-    // Force all labels visible immediately after selection
-    setTimeout(() => {
-      console.log(`🚨 Post-click label enforcement for: ${sectionName}`);
-      cleanBMCRef.current.forceAllLabelsVisible();
-    }, 100);
-  };
+  // Removed old handleBMCObjectClick - using direct cleanBMCRef.current.onSelect calls
   
   // Clean hover handlers
   const handleBMCObjectHoverEnter = (sectionName: string) => {
@@ -951,17 +940,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     let clickCount = 0;
     let clickTimeout: NodeJS.Timeout | null = null;
     
-    // Universal double-click handler that works across all view modes
+    // Simplified universal double-click handler - only handles background clicks
     scene.onPointerDown = (info) => {
       // Only handle left clicks
       if (info.button !== 0) return;
       
-      const currentTime = Date.now();
       const pickedMesh = scene.pick(scene.pointerX, scene.pointerY);
       
       if (pickedMesh.hit) {
         const hitMesh = pickedMesh.pickedMesh;
-        console.log(`🎯 Click detected on mesh: ${hitMesh?.name}`);
         
         // Check if clicked mesh is a BMC object
         const isBMCMesh = hitMesh && (
@@ -971,107 +958,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           (cleanBMCRef.current && cleanBMCRef.current.isRegisteredMesh(hitMesh))
         );
         
-        if (isBMCMesh) {
-          // Enhanced universal double-click detection that works in all view modes
-          const isSameMesh = lastClickedMesh === hitMesh;
-          const timeDiff = currentTime - lastClickTime;
-          const isWithinDoubleClickTime = timeDiff < 500 && timeDiff > 20; // More forgiving window
-          
-          if (isSameMesh && isWithinDoubleClickTime) {
-            clickCount++;
-            console.log(`🔍 Universal double-click count: ${clickCount}, time diff: ${timeDiff}ms`);
-            
-            if (clickCount === 2) {
-              console.log(`⚡⚡ UNIVERSAL DOUBLE-CLICK DETECTED for ${hitMesh?.name} ⚡⚡`);
-              
-              // Clear any pending timeout
-              if (clickTimeout) {
-                clearTimeout(clickTimeout);
-                clickTimeout = null;
-              }
-              
-              // Get section name
-              let sectionName = '';
-              if (hitMesh.name.includes('BMC_')) {
-                const meshName = hitMesh.name.replace('BMC_', '');
-                sectionName = mapBMCComponentToSectionName(meshName as BMCComponentName);
-              } else if (hitMesh.name.includes('Revenue')) {
-                sectionName = 'Revenue Streams';
-              } else if (hitMesh.name.includes('Cost')) {
-                sectionName = 'Cost Structure';
-              }
-              
-              if (sectionName) {
-                // Check if this object is already selected
-                const currentlySelected = cleanBMCRef.current?.getSelectedObject();
-                const isAlreadySelected = currentlySelected === sectionName;
-                
-                // Close any existing panel first
-                if (currentBillboardPanel) {
-                  advancedTexture.removeControl(currentBillboardPanel);
-                  currentBillboardPanel = null;
-                  billboardPanelRef.current = null;
-                  console.log("❌ Previous billboard panel closed by universal double-click");
-                }
-                
-                // Only trigger selection if not already selected (prevents flashing/height updates)
-                if (!isAlreadySelected && cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect(sectionName);
-                  console.log(`✅ Object ${sectionName} selected via universal double-click`);
-                } else if (isAlreadySelected) {
-                  console.log(`✅ Object ${sectionName} already selected - preserving state, just opening panel`);
-                }
-                
-                // Create billboard panel
-                const meshWorldPosition = hitMesh.getAbsolutePosition();
-                console.log(`🚀 Creating billboard panel for ${sectionName} via universal detection`);
-                createBillboardPanel(sectionName, meshWorldPosition);
-              }
-              
-              // Reset click tracking
-              clickCount = 0;
-              lastClickTime = 0;
-              lastClickedMesh = null;
-              return;
-            }
-          } else {
-            // First click or different mesh - reset counter
-            clickCount = 1;
-            
-            // Clear any existing timeout
-            if (clickTimeout) {
-              clearTimeout(clickTimeout);
-            }
-            
-            // Set timeout for single click handling
-            clickTimeout = setTimeout(() => {
-              if (clickCount === 1) {
-                console.log('🖱️ Single click confirmed - closing existing panel if any');
-                if (currentBillboardPanel) {
-                  handleBackgroundClick();
-                }
-              }
-              clickCount = 0;
-              clickTimeout = null;
-            }, 500);
-          }
-          
-          lastClickedMesh = hitMesh;
-          lastClickTime = currentTime;
-          
-        } else if (!isBMCMesh && currentBillboardPanel) {
+        if (!isBMCMesh && currentBillboardPanel) {
           // Clicked outside BMC objects - close panel
           console.log('🖱️ Click detected outside BMC objects - closing panel');
           handleBackgroundClick();
-          clickCount = 0;
-          lastClickedMesh = null;
         }
       } else if (currentBillboardPanel) {
         // No mesh hit at all - close panel
         console.log('🖱️ Click detected on empty space - closing panel');
         handleBackgroundClick();
-        clickCount = 0;
-        lastClickedMesh = null;
       }
     };
     
@@ -2305,7 +2200,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Single click handler for selection
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
               console.log(`🎯 Single click on ${sectionName} - delegating to BMC system`);
-              cleanBMCRef.current.onSelect(sectionName);
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect(sectionName);
+              }
             }));
             
             // Official Babylon.js double-click handler (approved method) - ENHANCED FOR RELIABILITY
@@ -2331,7 +2228,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // STEP 1: Only trigger selection if not already selected (prevents flashing/height updates)
               if (cleanBMCRef.current && !isAlreadySelected) {
                 cleanBMCRef.current.onSelect(sectionName);
-                console.log(`✅ Object ${sectionName} selected via double-click - all others deselected`);
+                console.log(`✅ Object ${sectionName} selected via ActionManager double-click`);
               } else if (isAlreadySelected) {
                 console.log(`✅ Object ${sectionName} already selected - preserving state, just opening panel`);
                 // Don't call onSelect again - it would clear and re-apply selection unnecessarily
@@ -2345,20 +2242,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`🚀 About to create billboard panel for: ${sectionName}`);
               createBillboardPanel(sectionName, meshWorldPosition);
               
-              // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation (only if needed)
-              setTimeout(() => {
-                if (cleanBMCRef.current) {
-                  // Only re-select if this was a fresh selection, not if it was already selected
-                  if (!isAlreadySelected) {
-                    cleanBMCRef.current.onSelect(sectionName);
-                    console.log(`🔄 Re-applied selection highlighting for ${sectionName} after panel creation`);
-                  } else {
-                    // Just ensure the visual state is applied without going through full selection cycle
-                    cleanBMCRef.current.updateAllVisuals();
-                    console.log(`🔄 Updated visuals for already-selected ${sectionName} after panel creation`);
-                  }
-                }
-              }, 50);
+              // No need for timeout - panel creation doesn't affect selection state
               
               console.log(`⚡ Double-click: ${sectionName} panel created with selection preserved`);
             }));
@@ -2601,9 +2485,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Single click handler for Revenue Streams
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯🎯🎯 SINGLE CLICK DETECTED ON Revenue Streams mesh (${mesh.name}) 🎯🎯🎯`);
-              console.log(`🔍 Revenue Streams mesh isPickable: ${mesh.isPickable}, ActionManager exists: ${!!mesh.actionManager}`);
-              handleBMCObjectClick("Revenue Streams");
+              console.log(`🎯 Single click on Revenue Streams`);
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Revenue Streams");
+              }
             }));
             
             // Official Babylon.js double-click handler for Revenue Streams - ENHANCED FOR RELIABILITY
@@ -2627,7 +2512,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // STEP 1: Only trigger selection if not already selected (prevents flashing/height updates)
               if (cleanBMCRef.current && !isAlreadySelected) {
                 cleanBMCRef.current.onSelect("Revenue Streams");
-                console.log(`✅ Object Revenue Streams selected via double-click - all others deselected`);
+                console.log(`✅ Object Revenue Streams selected via ActionManager double-click`);
               } else if (isAlreadySelected) {
                 console.log(`✅ Revenue Streams already selected - preserving state, just opening panel`);
               }
@@ -2804,9 +2689,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Single click handler for Cost Structure
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯🎯🎯 SINGLE CLICK DETECTED ON Cost Structure mesh (${mesh.name}) 🎯🎯🎯`);
-              console.log(`🔍 Cost Structure mesh isPickable: ${mesh.isPickable}, ActionManager exists: ${!!mesh.actionManager}`);
-              handleBMCObjectClick("Cost Structure");
+              console.log(`🎯 Single click on Cost Structure`);
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Cost Structure");
+              }
             }));
             
             // Official Babylon.js double-click handler for Cost Structure - ENHANCED FOR RELIABILITY
@@ -2830,7 +2716,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               // STEP 1: Only trigger selection if not already selected (prevents flashing/height updates)
               if (cleanBMCRef.current && !isAlreadySelected) {
                 cleanBMCRef.current.onSelect("Cost Structure");
-                console.log(`✅ Object Cost Structure selected via double-click - all others deselected`);
+                console.log(`✅ Object Cost Structure selected via ActionManager double-click`);
               } else if (isAlreadySelected) {
                 console.log(`✅ Cost Structure already selected - preserving state, just opening panel`);
               }
