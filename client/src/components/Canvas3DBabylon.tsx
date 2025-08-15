@@ -975,7 +975,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           // Enhanced universal double-click detection that works in all view modes
           const isSameMesh = lastClickedMesh === hitMesh;
           const timeDiff = currentTime - lastClickTime;
-          const isWithinDoubleClickTime = timeDiff < 350 && timeDiff > 50; // Reduced window, avoid single click noise
+          const isWithinDoubleClickTime = timeDiff < 500 && timeDiff > 20; // More forgiving window
           
           if (isSameMesh && isWithinDoubleClickTime) {
             clickCount++;
@@ -1047,7 +1047,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               }
               clickCount = 0;
               clickTimeout = null;
-            }, 350);
+            }, 500);
           }
           
           lastClickedMesh = hitMesh;
@@ -1127,8 +1127,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         totalLines += Math.max(1, linesForThisItem); // At least 1 line per item
       });
       
-      const calculatedHeight = padding + (totalLines * lineHeight);
-      const maxHeight = Math.min(800, calculatedHeight); // Allow up to 800px height for larger content
+      const calculatedHeight = padding + (totalLines * lineHeight) + 60; // Add extra padding to prevent cropping
+      const maxHeight = Math.min(800, Math.max(450, calculatedHeight)); // Minimum 450px height, up to 800px
       
       console.log(`📏 Panel height calculation: ${totalLines} lines × ${lineHeight}px + ${padding}px padding = ${calculatedHeight}px (max: ${maxHeight}px)`);
       
@@ -1148,8 +1148,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Create header with section title
       const headerRect = new Rectangle();
       headerRect.widthInPixels = panel.widthInPixels - 4;
-      headerRect.heightInPixels = 40;
-      headerRect.topInPixels = -panel.heightInPixels / 2 + 22;
+      headerRect.heightInPixels = 50; // Increased header height
+      headerRect.topInPixels = -panel.heightInPixels / 2 + 27; // Adjusted position
       headerRect.background = "#f8f9fa";
       headerRect.color = "#dee2e6";
       headerRect.thickness = 1;
@@ -1189,17 +1189,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const baseFontSize = 14; // Increased base size
       contentText.fontSize = Math.round(baseFontSize * Math.min(contentDevicePixelRatio, 2)); // Cap scaling at 2x
       
-      contentText.lineSpacing = 4; // Increased line spacing for better readability
+      contentText.lineSpacing = 6; // More line spacing for better readability
       contentText.textWrapping = true;
       contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
       contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
       contentText.paddingLeft = "20px";
       contentText.paddingRight = "20px";
-      contentText.paddingTop = "50px";
-      contentText.paddingBottom = "20px";
+      contentText.paddingTop = "60px"; // More top padding to avoid header overlap
+      contentText.paddingBottom = "30px"; // More bottom padding to prevent cropping
       
-      // Make content area take full available height
-      contentText.heightInPixels = maxHeight - 40; // Subtract header height
+      // Make content area take full available height with proper spacing
+      contentText.heightInPixels = maxHeight - 20; // Leave more room to prevent cropping
+      contentText.topInPixels = 25; // Move content down from header
       
       // Add controls to panel
       panel.addControl(headerRect);
