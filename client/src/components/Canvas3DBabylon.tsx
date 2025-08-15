@@ -971,29 +971,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         );
         
         if (isBMCMesh) {
-          // Enhanced double-click detection with improved reliability
+          // Let ActionManager handle clicks first, but track for fallback
+          lastClickedMesh = hitMesh;
+          lastClickTime = currentTime;
+          
+          // Enhanced double-click detection as fallback for meshes without ActionManager
           const isSameMesh = lastClickedMesh === hitMesh;
           const timeDiff = currentTime - lastClickTime;
-          const isWithinDoubleClickTime = timeDiff < 400; // Reduced from 500ms for more responsive feel
+          const isWithinDoubleClickTime = timeDiff < 400;
           
-          if (isSameMesh && isWithinDoubleClickTime) {
+          // Only handle double-click if mesh doesn't have ActionManager (fallback)
+          if (!hitMesh.actionManager && isSameMesh && isWithinDoubleClickTime) {
             clickCount++;
-            console.log(`🔍 Click count: ${clickCount}, time diff: ${timeDiff}ms`);
+            console.log(`🔍 Fallback double-click count: ${clickCount}, time diff: ${timeDiff}ms`);
             
             if (clickCount === 2) {
-              // Double click detected - handle immediately
-              console.log(`⚡⚡ DOUBLE-CLICK DETECTED via enhanced detection for ${hitMesh?.name} ⚡⚡`);
-              
-              // Clear any pending timeout
-              if (clickTimeout) {
-                clearTimeout(clickTimeout);
-                clickTimeout = null;
-              }
+              console.log(`⚡⚡ FALLBACK DOUBLE-CLICK DETECTED for ${hitMesh?.name} ⚡⚡`);
               
               // Get section name
               let sectionName = '';
               if (hitMesh.name.includes('BMC_')) {
-                // Extract section name from BMC mesh
                 const meshName = hitMesh.name.replace('BMC_', '');
                 sectionName = mapBMCComponentToSectionName(meshName as BMCComponentName);
               } else if (hitMesh.name.includes('Revenue')) {
@@ -1008,52 +1005,44 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                   advancedTexture.removeControl(currentBillboardPanel);
                   currentBillboardPanel = null;
                   billboardPanelRef.current = null;
-                  console.log("❌ Previous billboard panel closed by enhanced double-click");
+                  console.log("❌ Previous billboard panel closed by fallback double-click");
                 }
                 
                 // Ensure object is selected
                 if (cleanBMCRef.current) {
                   cleanBMCRef.current.onSelect(sectionName);
-                  console.log(`✅ Object ${sectionName} selected via enhanced double-click`);
+                  console.log(`✅ Object ${sectionName} selected via fallback double-click`);
                 }
                 
                 // Create billboard panel
                 const meshWorldPosition = hitMesh.getAbsolutePosition();
-                console.log(`🚀 Creating billboard panel for ${sectionName} via enhanced detection`);
+                console.log(`🚀 Creating billboard panel for ${sectionName} via fallback detection`);
                 createBillboardPanel(sectionName, meshWorldPosition);
               }
               
               // Reset click tracking
               clickCount = 0;
-              lastClickTime = 0;
-              lastClickedMesh = null;
               return;
             }
-          } else {
-            // First click or different mesh - reset counter
+          } else if (!hitMesh.actionManager) {
+            // First click on mesh without ActionManager
             clickCount = 1;
             
-            // Clear any existing timeout
-            if (clickTimeout) {
-              clearTimeout(clickTimeout);
-            }
-            
             // Set timeout for single click handling
-            clickTimeout = setTimeout(() => {
+            setTimeout(() => {
               if (clickCount === 1) {
-                // Single click handling
-                console.log('🖱️ Single click confirmed - closing existing panel if any');
+                console.log('🖱️ Single click confirmed on mesh without ActionManager');
                 if (currentBillboardPanel) {
                   handleBackgroundClick();
                 }
               }
               clickCount = 0;
-              clickTimeout = null;
             }, 400);
+          } else {
+            // Mesh has ActionManager - let it handle the clicks
+            console.log(`🎯 Mesh ${hitMesh?.name} has ActionManager - delegating to it`);
+            clickCount = 0; // Reset any pending clicks
           }
-          
-          lastClickedMesh = hitMesh;
-          lastClickTime = currentTime;
           
         } else if (!isBMCMesh && currentBillboardPanel) {
           // Clicked outside BMC objects - close panel
@@ -2294,9 +2283,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.onSelect(sectionName);
             }));
             
-            // Official Babylon.js double-click handler (approved method)
+            // Official Babylon.js double-click handler (approved method) - ENHANCED FOR RELIABILITY
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON ${sectionName} (Official Babylon.js method) ⚡⚡`);
+              console.log(`🎯 ActionManager double-click triggered for mesh: ${mesh.name}`);
+              console.log(`🔍 Current view mode when double-click fired`);
               
               // Check if this object is already selected
               const currentlySelected = cleanBMCRef.current?.getSelectedObject();
@@ -2590,10 +2581,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               handleBMCObjectClick("Revenue Streams");
             }));
             
-            // Official Babylon.js double-click handler for Revenue Streams
+            // Official Babylon.js double-click handler for Revenue Streams - ENHANCED FOR RELIABILITY
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡⚡⚡⚡⚡ DOUBLE-CLICK DETECTED ON Revenue Streams mesh (${mesh.name}) ⚡⚡⚡⚡⚡`);
               console.log(`🔍 ActionManager.OnDoublePickTrigger fired for Revenue Streams`);
+              console.log(`🎯 Mesh isPickable: ${mesh.isPickable}, ActionManager exists: ${!!mesh.actionManager}`);
               
               // Close any existing panel first
               if (currentBillboardPanel) {
@@ -2786,10 +2778,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               handleBMCObjectClick("Cost Structure");
             }));
             
-            // Official Babylon.js double-click handler for Cost Structure
+            // Official Babylon.js double-click handler for Cost Structure - ENHANCED FOR RELIABILITY
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
               console.log(`⚡⚡⚡⚡⚡ DOUBLE-CLICK DETECTED ON Cost Structure mesh (${mesh.name}) ⚡⚡⚡⚡⚡`);
               console.log(`🔍 ActionManager.OnDoublePickTrigger fired for Cost Structure`);
+              console.log(`🎯 Mesh isPickable: ${mesh.isPickable}, ActionManager exists: ${!!mesh.actionManager}`);
               
               // Close any existing panel first
               if (currentBillboardPanel) {
