@@ -940,11 +940,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     let clickCount = 0;
     let clickTimeout: NodeJS.Timeout | null = null;
     
-    // Simplified universal double-click handler - only handles background clicks
+    // Universal handler for all object interactions (single/double clicks, background clicks)
     scene.onPointerDown = (info) => {
       // Only handle left clicks
       if (info.button !== 0) return;
       
+      const currentTime = Date.now();
       const pickedMesh = scene.pick(scene.pointerX, scene.pointerY);
       
       if (pickedMesh.hit) {
@@ -958,15 +959,123 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           (cleanBMCRef.current && cleanBMCRef.current.isRegisteredMesh(hitMesh))
         );
         
-        if (!isBMCMesh && currentBillboardPanel) {
+        if (isBMCMesh) {
+          // Handle BMC object clicks
+          const isSameMesh = lastClickedMesh === hitMesh;
+          const timeDiff = currentTime - lastClickTime;
+          const isWithinDoubleClickTime = timeDiff < 500 && timeDiff > 20;
+          
+          if (isSameMesh && isWithinDoubleClickTime) {
+            // Double-click detected
+            clickCount++;
+            console.log(`Double-click count: ${clickCount}, time diff: ${timeDiff}ms`);
+            
+            if (clickCount === 2) {
+              console.log(`Double-click detected on ${hitMesh?.name}`);
+              
+              // Clear any pending timeout
+              if (clickTimeout) {
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+              }
+              
+              // Get section name
+              let sectionName = '';
+              if (hitMesh.name.includes('BMC_')) {
+                const meshName = hitMesh.name.replace('BMC_', '');
+                sectionName = mapBMCComponentToSectionName(meshName as BMCComponentName);
+              } else if (hitMesh.name.includes('Revenue')) {
+                sectionName = 'Revenue Streams';
+              } else if (hitMesh.name.includes('Cost')) {
+                sectionName = 'Cost Structure';
+              }
+              
+              if (sectionName) {
+                // Check if already selected to prevent flashing
+                const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+                const isAlreadySelected = currentlySelected === sectionName;
+                
+                // Close any existing panel first
+                if (currentBillboardPanel) {
+                  advancedTexture.removeControl(currentBillboardPanel);
+                  currentBillboardPanel = null;
+                  billboardPanelRef.current = null;
+                  console.log("Previous panel closed");
+                }
+                
+                // Only trigger selection if not already selected
+                if (!isAlreadySelected && cleanBMCRef.current) {
+                  cleanBMCRef.current.onSelect(sectionName);
+                  console.log(`Object ${sectionName} selected`);
+                } else if (isAlreadySelected) {
+                  console.log(`Object ${sectionName} already selected - just opening panel`);
+                }
+                
+                // Create billboard panel
+                const meshWorldPosition = hitMesh.getAbsolutePosition();
+                createBillboardPanel(sectionName, meshWorldPosition);
+              }
+              
+              // Reset click tracking
+              clickCount = 0;
+              lastClickTime = 0;
+              lastClickedMesh = null;
+              return;
+            }
+          } else {
+            // First click or different mesh
+            clickCount = 1;
+            
+            // Clear any existing timeout
+            if (clickTimeout) {
+              clearTimeout(clickTimeout);
+            }
+            
+            // Set timeout for single click handling
+            clickTimeout = setTimeout(() => {
+              if (clickCount === 1) {
+                console.log('Single click confirmed');
+                // Get section name for single click
+                let sectionName = '';
+                if (hitMesh.name.includes('BMC_')) {
+                  const meshName = hitMesh.name.replace('BMC_', '');
+                  sectionName = mapBMCComponentToSectionName(meshName as BMCComponentName);
+                } else if (hitMesh.name.includes('Revenue')) {
+                  sectionName = 'Revenue Streams';
+                } else if (hitMesh.name.includes('Cost')) {
+                  sectionName = 'Cost Structure';
+                }
+                
+                if (sectionName && cleanBMCRef.current) {
+                  cleanBMCRef.current.onSelect(sectionName);
+                }
+                
+                // Close any existing panel on single click
+                if (currentBillboardPanel) {
+                  handleBackgroundClick();
+                }
+              }
+              clickCount = 0;
+              clickTimeout = null;
+            }, 500);
+          }
+          
+          lastClickedMesh = hitMesh;
+          lastClickTime = currentTime;
+          
+        } else if (currentBillboardPanel) {
           // Clicked outside BMC objects - close panel
-          console.log('🖱️ Click detected outside BMC objects - closing panel');
+          console.log('Click detected outside BMC objects - closing panel');
           handleBackgroundClick();
+          clickCount = 0;
+          lastClickedMesh = null;
         }
       } else if (currentBillboardPanel) {
         // No mesh hit at all - close panel
-        console.log('🖱️ Click detected on empty space - closing panel');
+        console.log('Click detected on empty space - closing panel');
         handleBackgroundClick();
+        clickCount = 0;
+        lastClickedMesh = null;
       }
     };
     
@@ -2197,55 +2306,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old updateContentPanel function - replaced by createBillboardPanel
             
-            // Single click handler for selection
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯 Single click on ${sectionName} - delegating to BMC system`);
-              if (cleanBMCRef.current) {
-                cleanBMCRef.current.onSelect(sectionName);
-              }
-            }));
-            
-            // Official Babylon.js double-click handler (approved method) - ENHANCED FOR RELIABILITY
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
-              console.log(`⚡⚡ DOUBLE-CLICK DETECTED ON ${sectionName} (Official Babylon.js method) ⚡⚡`);
-              console.log(`🎯 ActionManager double-click triggered for mesh: ${mesh.name}`);
-              console.log(`🔍 Current view mode when double-click fired`);
-              
-              // Check if this object is already selected
-              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
-              const isAlreadySelected = currentlySelected === sectionName;
-              
-              console.log(`🔍 Double-click on ${sectionName}: currently selected = ${currentlySelected}, isAlreadySelected = ${isAlreadySelected}`);
-              
-              // Close any existing panel first
-              if (currentBillboardPanel) {
-                advancedTexture.removeControl(currentBillboardPanel);
-                currentBillboardPanel = null;
-                billboardPanelRef.current = null;
-                console.log("❌ Previous billboard panel closed by new double-click");
-              }
-              
-              // STEP 1: Only trigger selection if not already selected (prevents flashing/height updates)
-              if (cleanBMCRef.current && !isAlreadySelected) {
-                cleanBMCRef.current.onSelect(sectionName);
-                console.log(`✅ Object ${sectionName} selected via ActionManager double-click`);
-              } else if (isAlreadySelected) {
-                console.log(`✅ Object ${sectionName} already selected - preserving state, just opening panel`);
-                // Don't call onSelect again - it would clear and re-apply selection unnecessarily
-              }
-              
-              // Get mesh world position for billboard placement
-              const meshWorldPosition = mesh.getAbsolutePosition();
-              console.log(`🎯 Mesh position for panel: ${meshWorldPosition.x.toFixed(2)}, ${meshWorldPosition.y.toFixed(2)}, ${meshWorldPosition.z.toFixed(2)}`);
-              
-              // STEP 2: Create billboard panel with section content
-              console.log(`🚀 About to create billboard panel for: ${sectionName}`);
-              createBillboardPanel(sectionName, meshWorldPosition);
-              
-              // No need for timeout - panel creation doesn't affect selection state
-              
-              console.log(`⚡ Double-click: ${sectionName} panel created with selection preserved`);
-            }));
+            // Removed individual ActionManager handlers - using universal scene handler
             
             // REMOVED: Old close button functionality - now handled by billboard panel system
             
@@ -2483,58 +2544,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               handleBMCObjectHoverExit("Revenue Streams");
             }));
             
-            // Single click handler for Revenue Streams
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯 Single click on Revenue Streams`);
-              if (cleanBMCRef.current) {
-                cleanBMCRef.current.onSelect("Revenue Streams");
-              }
-            }));
-            
-            // Official Babylon.js double-click handler for Revenue Streams - ENHANCED FOR RELIABILITY
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
-              console.log(`⚡⚡⚡⚡⚡ DOUBLE-CLICK DETECTED ON Revenue Streams mesh (${mesh.name}) ⚡⚡⚡⚡⚡`);
-              console.log(`🔍 ActionManager.OnDoublePickTrigger fired for Revenue Streams`);
-              console.log(`🎯 Mesh isPickable: ${mesh.isPickable}, ActionManager exists: ${!!mesh.actionManager}`);
-              
-              // Check if Revenue Streams is already selected
-              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
-              const isAlreadySelected = currentlySelected === "Revenue Streams";
-              
-              // Close any existing panel first
-              if (currentBillboardPanel) {
-                advancedTexture.removeControl(currentBillboardPanel);
-                currentBillboardPanel = null;
-                billboardPanelRef.current = null;
-                console.log("❌ Previous billboard panel closed by new double-click");
-              }
-              
-              // STEP 1: Only trigger selection if not already selected (prevents flashing/height updates)
-              if (cleanBMCRef.current && !isAlreadySelected) {
-                cleanBMCRef.current.onSelect("Revenue Streams");
-                console.log(`✅ Object Revenue Streams selected via ActionManager double-click`);
-              } else if (isAlreadySelected) {
-                console.log(`✅ Revenue Streams already selected - preserving state, just opening panel`);
-              }
-              
-              // Get mesh world position for billboard placement
-              const meshWorldPosition = mesh.getAbsolutePosition();
-              console.log(`🎯 Revenue Streams mesh position: ${meshWorldPosition.x.toFixed(2)}, ${meshWorldPosition.y.toFixed(2)}, ${meshWorldPosition.z.toFixed(2)}`);
-              
-              // STEP 2: Create billboard panel with section content
-              console.log(`🚀 About to create billboard panel for Revenue Streams`);
-              createBillboardPanel("Revenue Streams", meshWorldPosition);
-              
-              // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation
-              setTimeout(() => {
-                if (cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect("Revenue Streams");
-                  console.log(`🔄 Re-applied selection highlighting for Revenue Streams after panel creation`);
-                }
-              }, 50);
-              
-              console.log(`⚡ Revenue Streams billboard panel creation completed`);
-            }));
+            // Removed individual ActionManager handlers - using universal scene handler
 
             // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
             console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
@@ -2687,58 +2697,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               handleBMCObjectHoverExit("Cost Structure");
             }));
             
-            // Single click handler for Cost Structure
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🎯 Single click on Cost Structure`);
-              if (cleanBMCRef.current) {
-                cleanBMCRef.current.onSelect("Cost Structure");
-              }
-            }));
-            
-            // Official Babylon.js double-click handler for Cost Structure - ENHANCED FOR RELIABILITY
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
-              console.log(`⚡⚡⚡⚡⚡ DOUBLE-CLICK DETECTED ON Cost Structure mesh (${mesh.name}) ⚡⚡⚡⚡⚡`);
-              console.log(`🔍 ActionManager.OnDoublePickTrigger fired for Cost Structure`);
-              console.log(`🎯 Mesh isPickable: ${mesh.isPickable}, ActionManager exists: ${!!mesh.actionManager}`);
-              
-              // Check if Cost Structure is already selected
-              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
-              const isAlreadySelected = currentlySelected === "Cost Structure";
-              
-              // Close any existing panel first
-              if (currentBillboardPanel) {
-                advancedTexture.removeControl(currentBillboardPanel);
-                currentBillboardPanel = null;
-                billboardPanelRef.current = null;
-                console.log("❌ Previous billboard panel closed by new double-click");
-              }
-              
-              // STEP 1: Only trigger selection if not already selected (prevents flashing/height updates)
-              if (cleanBMCRef.current && !isAlreadySelected) {
-                cleanBMCRef.current.onSelect("Cost Structure");
-                console.log(`✅ Object Cost Structure selected via ActionManager double-click`);
-              } else if (isAlreadySelected) {
-                console.log(`✅ Cost Structure already selected - preserving state, just opening panel`);
-              }
-              
-              // Get mesh world position for billboard placement
-              const meshWorldPosition = mesh.getAbsolutePosition();
-              console.log(`🎯 Cost Structure mesh position: ${meshWorldPosition.x.toFixed(2)}, ${meshWorldPosition.y.toFixed(2)}, ${meshWorldPosition.z.toFixed(2)}`);
-              
-              // STEP 2: Create billboard panel with section content
-              console.log(`🚀 About to create billboard panel for Cost Structure`);
-              createBillboardPanel("Cost Structure", meshWorldPosition);
-              
-              // STEP 3: CRITICAL - Re-ensure selection highlighting after panel creation
-              setTimeout(() => {
-                if (cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect("Cost Structure");
-                  console.log(`🔄 Re-applied selection highlighting for Cost Structure after panel creation`);
-                }
-              }, 50);
-              
-              console.log(`⚡ Cost Structure billboard panel creation completed`);
-            }));
+            // Removed individual ActionManager handlers - using universal scene handler
 
             // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
             console.log(`🏷️ Creating floating label for Cost Structure mesh (index ${index})`);
