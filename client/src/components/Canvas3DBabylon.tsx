@@ -702,17 +702,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Mouse drag for constrained panning (left/right and horizontal translation with Shift)
       let isDragging = false;
+      let isShiftPressed = false;
       let lastX = 0;
       let lastY = 0;
+      
+      // Track Shift key state globally
+      const onKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Shift') {
+          isShiftPressed = true;
+          console.log(`⌨️ Shift key pressed - horizontal translation mode enabled`);
+        }
+      };
+      
+      const onKeyUp = (event: KeyboardEvent) => {
+        if (event.key === 'Shift') {
+          isShiftPressed = false;
+          console.log(`⌨️ Shift key released - back to normal panning mode`);
+        }
+      };
       
       const onMouseDown = (event: MouseEvent) => {
         if (event.button === 0) { // Left mouse button
           isDragging = true;
           lastX = event.clientX;
           lastY = event.clientY;
+          isShiftPressed = event.shiftKey; // Capture initial shift state
           event.preventDefault();
           event.stopPropagation();
-          console.log(`🖱️ Ortho pan started at X: ${event.clientX}, Y: ${event.clientY}, shift: ${event.shiftKey}, camera.x: ${orthoCamera.position.x.toFixed(3)}, camera.z: ${orthoCamera.position.z.toFixed(3)}`);
+          console.log(`🖱️ Ortho pan started at X: ${event.clientX}, Y: ${event.clientY}, shift: ${isShiftPressed}, camera.x: ${orthoCamera.position.x.toFixed(3)}, camera.z: ${orthoCamera.position.z.toFixed(3)}`);
         }
       };
       
@@ -723,7 +740,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const deltaY = event.clientY - lastY;
         const sensitivity = 0.02; // Sensitivity for camera movement
         
-        if (event.shiftKey) {
+        // Check both event.shiftKey and our tracked state
+        const isShiftMode = event.shiftKey || isShiftPressed;
+        
+        if (isShiftMode) {
           // Shift + drag: Horizontal translation (move camera forward/backward along Z-axis)
           const translationZ = -deltaY * sensitivity; // Negative for intuitive movement
           
@@ -765,6 +785,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         isDragging = false;
       };
       
+      // Add keyboard event listeners to window for Shift key detection
+      window.addEventListener('keydown', onKeyDown, true);
+      window.addEventListener('keyup', onKeyUp, true);
+      
       canvas.addEventListener('wheel', onWheel, { passive: false });
       canvas.addEventListener('mousedown', onMouseDown, true); // Use capture phase
       canvas.addEventListener('mousemove', onMouseMove, true); // Use capture phase  
@@ -777,6 +801,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         mousedown: onMouseDown,
         mousemove: onMouseMove,
         mouseup: onMouseUp,
+        keydown: onKeyDown,
+        keyup: onKeyUp,
         canvas: canvas
       };
       
@@ -2978,6 +3004,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
         canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
         canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+        
+        // Clean up keyboard event listeners
+        if (orthoEventHandlersRef.current.keydown && orthoEventHandlersRef.current.keyup) {
+          window.removeEventListener('keydown', orthoEventHandlersRef.current.keydown, true);
+          window.removeEventListener('keyup', orthoEventHandlersRef.current.keyup, true);
+        }
+        
         orthoEventHandlersRef.current = null;
       }
       
@@ -3051,11 +3084,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
           canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
           
+          // Remove keyboard handlers
+          if (orthoEventHandlersRef.current.keydown && orthoEventHandlersRef.current.keyup) {
+            window.removeEventListener('keydown', orthoEventHandlersRef.current.keydown, true);
+            window.removeEventListener('keyup', orthoEventHandlersRef.current.keyup, true);
+          }
+          
           // Re-add handlers to ensure they're active
           canvas.addEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
           canvas.addEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
           canvas.addEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
           canvas.addEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+          
+          // Re-add keyboard handlers
+          if (orthoEventHandlersRef.current.keydown && orthoEventHandlersRef.current.keyup) {
+            window.addEventListener('keydown', orthoEventHandlersRef.current.keydown, true);
+            window.addEventListener('keyup', orthoEventHandlersRef.current.keyup, true);
+          }
           
           console.log("🎯 Orthographic controls re-activated for 3D Top view");
         }
