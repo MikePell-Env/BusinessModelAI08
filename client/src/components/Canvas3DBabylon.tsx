@@ -700,17 +700,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       };
       
-      // Mouse drag for constrained panning (left/right only)
+      // Mouse drag for constrained panning (left/right and horizontal translation with Shift)
       let isDragging = false;
       let lastX = 0;
+      let lastY = 0;
       
       const onMouseDown = (event: MouseEvent) => {
         if (event.button === 0) { // Left mouse button
           isDragging = true;
           lastX = event.clientX;
+          lastY = event.clientY;
           event.preventDefault();
           event.stopPropagation();
-          console.log(`🖱️ Ortho pan started at X: ${event.clientX}, camera.x: ${orthoCamera.position.x.toFixed(3)}`);
+          console.log(`🖱️ Ortho pan started at X: ${event.clientX}, Y: ${event.clientY}, shift: ${event.shiftKey}, camera.x: ${orthoCamera.position.x.toFixed(3)}, camera.z: ${orthoCamera.position.z.toFixed(3)}`);
         }
       };
       
@@ -718,21 +720,39 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (!isDragging) return;
         
         const deltaX = event.clientX - lastX;
-        const sensitivity = 0.02; // Increased sensitivity
-        const translation = deltaX * sensitivity;
+        const deltaY = event.clientY - lastY;
+        const sensitivity = 0.02; // Sensitivity for camera movement
         
-        // Move camera left/right only (X-axis translation)
-        const oldX = orthoCamera.position.x;
-        orthoCamera.position.x -= translation;
-        
-        // Also update the target for proper panning behavior
-        const target = orthoCamera.getTarget();
-        target.x -= translation;
-        orthoCamera.setTarget(target);
-        
-        console.log(`🖱️ Ortho panning: deltaX=${deltaX}, translation=${translation.toFixed(3)}, camera.x=${oldX.toFixed(3)} -> ${orthoCamera.position.x.toFixed(3)}, target.x=${target.x.toFixed(3)}`);
+        if (event.shiftKey) {
+          // Shift + drag: Horizontal translation (move camera forward/backward along Z-axis)
+          const translationZ = -deltaY * sensitivity; // Negative for intuitive movement
+          
+          const oldZ = orthoCamera.position.z;
+          orthoCamera.position.z += translationZ;
+          
+          // Also update the target for proper panning behavior
+          const target = orthoCamera.getTarget();
+          target.z += translationZ;
+          orthoCamera.setTarget(target);
+          
+          console.log(`🖱️ Shift+drag horizontal translation: deltaY=${deltaY}, translationZ=${translationZ.toFixed(3)}, camera.z=${oldZ.toFixed(3)} -> ${orthoCamera.position.z.toFixed(3)}, target.z=${target.z.toFixed(3)}`);
+        } else {
+          // Normal drag: Left/right panning (X-axis translation)
+          const translationX = deltaX * sensitivity;
+          
+          const oldX = orthoCamera.position.x;
+          orthoCamera.position.x -= translationX;
+          
+          // Also update the target for proper panning behavior
+          const target = orthoCamera.getTarget();
+          target.x -= translationX;
+          orthoCamera.setTarget(target);
+          
+          console.log(`🖱️ Normal drag panning: deltaX=${deltaX}, translationX=${translationX.toFixed(3)}, camera.x=${oldX.toFixed(3)} -> ${orthoCamera.position.x.toFixed(3)}, target.x=${target.x.toFixed(3)}`);
+        }
         
         lastX = event.clientX;
+        lastY = event.clientY;
         // Only prevent default during actual drag movement
         event.preventDefault();
         event.stopPropagation();
