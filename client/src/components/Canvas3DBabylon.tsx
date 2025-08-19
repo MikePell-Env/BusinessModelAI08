@@ -706,22 +706,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       let lastY = 0;
       
       const onMouseDown = (event: MouseEvent) => {
+        console.log(`🖱️ MouseDown detected: button=${event.button}, clientX=${event.clientX}, clientY=${event.clientY}, shiftKey=${event.shiftKey}`);
         if (event.button === 0) { // Left mouse button
           isDragging = true;
           lastX = event.clientX;
           lastY = event.clientY;
           event.preventDefault();
           event.stopPropagation();
-          console.log(`🖱️ Ortho pan started at X: ${event.clientX}, Y: ${event.clientY}, shift: ${event.shiftKey}, camera.x: ${orthoCamera.position.x.toFixed(3)}, camera.z: ${orthoCamera.position.z.toFixed(3)}`);
+          console.log(`🖱️ ✅ ORTHO DRAG STARTED: X=${event.clientX}, Y=${event.clientY}, shift=${event.shiftKey}, camera.x=${orthoCamera.position.x.toFixed(3)}, camera.z=${orthoCamera.position.z.toFixed(3)}`);
         }
       };
       
       const onMouseMove = (event: MouseEvent) => {
-        if (!isDragging) return;
+        if (!isDragging) {
+          console.log(`🖱️ MouseMove but not dragging - ignoring`);
+          return;
+        }
         
         const deltaX = event.clientX - lastX;
         const deltaY = event.clientY - lastY;
         const sensitivity = 0.02;
+        
+        console.log(`🖱️ MouseMove: deltaX=${deltaX}, deltaY=${deltaY}, shiftKey=${event.shiftKey}`);
         
         // Use event.shiftKey directly for reliable Shift detection
         if (event.shiftKey) {
@@ -735,7 +741,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           target.z += translationZ;
           orthoCamera.setTarget(target);
           
-          console.log(`🖱️ SHIFT+DRAG HORIZONTAL: deltaY=${deltaY}, translationZ=${translationZ.toFixed(3)}, camera.z=${oldZ.toFixed(3)} -> ${orthoCamera.position.z.toFixed(3)}`);
+          console.log(`🖱️ ✨ SHIFT+DRAG HORIZONTAL: deltaY=${deltaY}, translationZ=${translationZ.toFixed(3)}, camera.z=${oldZ.toFixed(3)} -> ${orthoCamera.position.z.toFixed(3)}`);
         } else {
           // Normal drag: Left/right panning (X-axis)
           const translationX = deltaX * sensitivity;
@@ -3073,10 +3079,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Disable orthographic controls when switching away
         if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
           const canvas = orthoEventHandlersRef.current.canvas;
-          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, false);
+          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
           canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, false);
-          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, false);
+          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
           
           console.log("🎯 Orthographic controls disabled for 3D View");
         }
