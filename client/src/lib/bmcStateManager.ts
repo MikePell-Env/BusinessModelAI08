@@ -1,4 +1,5 @@
 import { useCanvas } from '@/lib/stores/useCanvas';
+import { Vector3 } from '@babylonjs/core';
 import { 
   BMCStateManager, 
   BMCStateOperations, 
@@ -60,7 +61,7 @@ export class UnifiedBMCStateManager implements BMCStateManager, BMCStateOperatio
         alpha: store.camera3DState.alpha,
         beta: store.camera3DState.beta,
         radius: store.camera3DState.radius,
-        target: { x: 0, y: 0, z: 0 }
+        target: Vector3.Zero()
       } : DEFAULT_CAMERA_STATE,
       objectStates: store.objectStates,
       viewSettings: {
@@ -244,7 +245,7 @@ export class UnifiedBMCStateManager implements BMCStateManager, BMCStateOperatio
       alpha: cameraState.alpha,
       beta: cameraState.beta,
       radius: cameraState.radius,
-      target: { x: 0, y: 0, z: 0 }
+      target: Vector3.Zero()
     };
   }
 
@@ -314,6 +315,16 @@ export const useBMCState = () => {
     currentView: store.currentView,
     objectStates: store.objectStates,
     resetAllObjects: store.resetAllObjects,
+
+    // Transform state management
+    updateTransformState: (objectName: BMCComponentName, updates: Partial<BMCTransformState>) => {
+      const objectState = store.getObjectState(objectName);
+      if (objectState) {
+        store.updateObjectState(objectName, {
+          transform: { ...objectState.transform, ...updates }
+        });
+      }
+    },
 
     // Undo/Redo functionality
     undo: store.undo,
