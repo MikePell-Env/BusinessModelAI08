@@ -1,3 +1,4 @@
+import { useCanvas } from '@/lib/stores/useCanvas';
 import { 
   BMCStateManager, 
   BMCStateOperations, 
@@ -9,69 +10,77 @@ import {
   BMCUIState,
   BMCCameraState,
   ViewMode,
-  BMC_COMPONENTS,
-  createBMCObjectState,
-  createBMCViewState,
   DEFAULT_CAMERA_STATE
 } from '@/types/bmcState';
 
 /**
- * Centralized BMC State Manager Implementation
+ * Simplified BMC State Manager that delegates to the unified Zustand store
  * 
- * This class provides a unified interface for managing all BMC object states
- * across different view modes. It ensures consistency and proper state preservation
- * when switching between 2D, 3D Perspective, and 3D Orthographic views.
+ * This class provides a familiar interface while using the unified state system
+ * underneath. It acts as a bridge between the old BMC state manager API
+ * and the new unified store.
  */
-export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations {
-  public currentView: ViewMode = 'view2D';
-  public activeSelection: BMCComponentName | null = null;
-  public viewStates: Map<ViewMode, BMCViewState> = new Map();
-  
-  public globalSettings = {
-    transitionDuration: 300,
-    preserveSelectionOnViewChange: true,
-    autoSaveInterval: 5000
-  };
-
+export class UnifiedBMCStateManager implements BMCStateManager, BMCStateOperations {
   private stateListeners: Set<(state: BMCStateManager) => void> = new Set();
   private debugMode = false;
 
   constructor(enableDebug = false) {
     this.debugMode = enableDebug;
-    this.initializeViews();
-    this.log('BMC State Manager initialized');
+    this.log('Unified BMC State Manager initialized');
+  }
+
+  // Delegate to unified store
+  private getStore() {
+    return useCanvas.getState();
   }
 
   // ============================================================================
-  // INITIALIZATION
+  // BMC STATE MANAGER INTERFACE IMPLEMENTATION
   // ============================================================================
 
-  private initializeViews(): void {
-    // Initialize all three view states
-    const viewModes: ViewMode[] = ['view2D', 'view3DPerspective', 'view3DOrthographic'];
-    
-    viewModes.forEach(viewMode => {
-      const viewState = createBMCViewState(viewMode);
-      
-      // Initialize all BMC components for this view
-      BMC_COMPONENTS.forEach(componentName => {
-        const objectType = this.getObjectType(componentName);
-        const objectState = createBMCObjectState(componentName, objectType);
-        viewState.objectStates.set(componentName, objectState);
-      });
-      
-      this.viewStates.set(viewMode, viewState);
-    });
-
-    this.log('All view states initialized');
+  get currentView(): ViewMode {
+    return this.getStore().currentView;
   }
 
-  private getObjectType(componentName: BMCComponentName): 'main_bmc' | 'separate_glb' {
-    // Revenue Streams and Cost Structure are separate GLB files
-    if (componentName === 'RevenueStreams' || componentName === 'CostStructure') {
-      return 'separate_glb';
-    }
-    return 'main_bmc';
+  get activeSelection(): BMCComponentName | null {
+    return this.getStore().selectedObject;
+  }
+
+  get viewStates(): Map<ViewMode, BMCViewState> {
+    // This is now managed internally by the unified store
+    // Return a simplified representation for compatibility
+    const store = this.getStore();
+    const viewStates = new Map<ViewMode, BMCViewState>();
+
+    // Create a mock view state for the current view
+    const currentViewState: BMCViewState = {
+      viewMode: store.currentView,
+      selectedObject: store.selectedObject,
+      cameraState: store.camera3DState ? {
+        alpha: store.camera3DState.alpha,
+        beta: store.camera3DState.beta,
+        radius: store.camera3DState.radius,
+        target: { x: 0, y: 0, z: 0 }
+      } : DEFAULT_CAMERA_STATE,
+      objectStates: store.objectStates,
+      viewSettings: {
+        showLabels: true,
+        showContentPanels: false,
+        enableInteractions: true
+      },
+      lastSaved: store.lastStateUpdate
+    };
+
+    viewStates.set(store.currentView, currentViewState);
+    return viewStates;
+  }
+
+  get globalSettings() {
+    return {
+      transitionDuration: 300,
+      preserveSelectionOnViewChange: true,
+      autoSaveInterval: 5000
+    };
   }
 
   // ============================================================================
@@ -79,41 +88,19 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
   // ============================================================================
 
   switchView(newView: ViewMode): void {
-    // Save current view state before switching
-    this.saveCurrentViewState();
-    
-    // Update current view
-    this.currentView = newView;
-    
-    // Restore state for new view
-    this.restoreViewState(newView);
-    
+    this.log(`Switching view to: ${newView}`);
+    this.getStore().switchView(newView);
     this.notifyStateChange();
   }
 
   saveCurrentViewState(): void {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) {
-      return;
-    }
-
-    // Update selection in current view state
-    currentViewState.selectedObject = this.activeSelection;
-    currentViewState.lastSaved = Date.now();
+    // The unified store handles persistence automatically
+    this.log('Current view state saved automatically by unified store');
   }
 
   restoreViewState(view: ViewMode): void {
-    const viewState = this.viewStates.get(view);
-    if (!viewState) {
-      return;
-    }
-
-    // Restore selection if preservation is enabled
-    if (this.globalSettings.preserveSelectionOnViewChange) {
-      this.activeSelection = viewState.selectedObject;
-    } else {
-      this.activeSelection = null;
-    }
+    // The unified store handles this automatically when switching views
+    this.log(`View state for ${view} restored automatically`);
   }
 
   // ============================================================================
@@ -122,70 +109,17 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
 
   selectObject(sectionName: BMCComponentName | null): void {
     this.log(`Selecting object: ${sectionName}`);
-    
-    // Clear previous selection
-    if (this.activeSelection) {
-      this.updateObjectSelection(this.activeSelection, false);
-    }
-    
-    // Set new selection
-    this.activeSelection = sectionName;
-    
-    if (sectionName) {
-      this.updateObjectSelection(sectionName, true);
-      
-      // Update other objects to show selection state (dimmed, etc.)
-      this.updateNonSelectedObjects(sectionName);
-    } else {
-      // No selection - restore all objects to normal state
-      this.resetAllObjects();
-    }
-    
+    this.getStore().selectObject(sectionName);
     this.notifyStateChange();
   }
 
-  private updateObjectSelection(sectionName: BMCComponentName, isSelected: boolean): void {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) return;
-
-    const objectState = currentViewState.objectStates.get(sectionName);
-    if (!objectState) return;
-
-    // Update visual state for selection
-    objectState.visual.isSelected = isSelected;
-    objectState.visual.opacity = 1.0; // Selected object always full opacity
-    objectState.transform.currentHeight = objectState.transform.originalHeight; // Selected object always full height
-    objectState.lastUpdated = Date.now();
-    objectState.isDirty = true;
-
-    this.log(`Updated selection state for ${sectionName}: ${isSelected}, height: ${objectState.transform.currentHeight}`);
-  }
-
-  private updateNonSelectedObjects(selectedObject: BMCComponentName): void {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) return;
-
-    // Dim and flatten all other objects when one is selected
-    BMC_COMPONENTS.forEach(componentName => {
-      if (componentName !== selectedObject) {
-        const objectState = currentViewState.objectStates.get(componentName);
-        if (objectState) {
-          objectState.visual.isSelected = false;
-          objectState.visual.opacity = 0.5; // Dimmed to 50%
-          objectState.transform.currentHeight = 0.1; // Very flat for non-selected objects
-          objectState.lastUpdated = Date.now();
-          objectState.isDirty = true;
-        }
-      }
-    });
-  }
-
   getSelectedObject(): BMCComponentName | null {
-    return this.activeSelection;
+    return this.getStore().selectedObject;
   }
 
   clearSelection(): void {
-    this.selectObject(null);
+    this.getStore().clearSelection();
+    this.notifyStateChange();
   }
 
   // ============================================================================
@@ -193,48 +127,54 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
   // ============================================================================
 
   updateVisualState(sectionName: BMCComponentName, updates: Partial<BMCVisualState>): void {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) return;
+    this.log(`Updating visual state for ${sectionName}`);
+    const store = this.getStore();
+    const objectState = store.getObjectState(sectionName);
 
-    const objectState = currentViewState.objectStates.get(sectionName);
-    if (!objectState) return;
-
-    Object.assign(objectState.visual, updates);
-    objectState.lastUpdated = Date.now();
-    objectState.isDirty = true;
-
-    this.log(`Updated visual state for ${sectionName}`);
-    this.notifyStateChange();
+    if (objectState) {
+      const updatedState = {
+        ...objectState,
+        visual: { ...objectState.visual, ...updates },
+        lastUpdated: Date.now(),
+        isDirty: true
+      };
+      store.updateObjectState(sectionName, updatedState);
+      this.notifyStateChange();
+    }
   }
 
   updateTransformState(sectionName: BMCComponentName, updates: Partial<BMCTransformState>): void {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) return;
+    this.log(`Updating transform state for ${sectionName}`);
+    const store = this.getStore();
+    const objectState = store.getObjectState(sectionName);
 
-    const objectState = currentViewState.objectStates.get(sectionName);
-    if (!objectState) return;
-
-    Object.assign(objectState.transform, updates);
-    objectState.lastUpdated = Date.now();
-    objectState.isDirty = true;
-
-    this.log(`Updated transform state for ${sectionName}`);
-    this.notifyStateChange();
+    if (objectState) {
+      const updatedState = {
+        ...objectState,
+        transform: { ...objectState.transform, ...updates },
+        lastUpdated: Date.now(),
+        isDirty: true
+      };
+      store.updateObjectState(sectionName, updatedState);
+      this.notifyStateChange();
+    }
   }
 
   updateUIState(sectionName: BMCComponentName, updates: Partial<BMCUIState>): void {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) return;
+    this.log(`Updating UI state for ${sectionName}`);
+    const store = this.getStore();
+    const objectState = store.getObjectState(sectionName);
 
-    const objectState = currentViewState.objectStates.get(sectionName);
-    if (!objectState) return;
-
-    Object.assign(objectState.ui, updates);
-    objectState.lastUpdated = Date.now();
-    objectState.isDirty = true;
-
-    this.log(`Updated UI state for ${sectionName}`);
-    this.notifyStateChange();
+    if (objectState) {
+      const updatedState = {
+        ...objectState,
+        ui: { ...objectState.ui, ...updates },
+        lastUpdated: Date.now(),
+        isDirty: true
+      };
+      store.updateObjectState(sectionName, updatedState);
+      this.notifyStateChange();
+    }
   }
 
   // ============================================================================
@@ -242,61 +182,33 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
   // ============================================================================
 
   resetAllObjects(): void {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) return;
-
-    BMC_COMPONENTS.forEach(componentName => {
-      const objectState = currentViewState.objectStates.get(componentName);
-      if (objectState) {
-        // Reset to normal state
-        objectState.visual.isSelected = false;
-        objectState.visual.isHovered = false;
-        objectState.visual.opacity = 1.0;
-        objectState.transform.currentHeight = objectState.transform.originalHeight;
-        objectState.ui.contentPanelVisible = false;
-        objectState.lastUpdated = Date.now();
-        objectState.isDirty = true;
-      }
-    });
-
-    this.log('Reset all objects to normal state');
+    this.log('Resetting all objects');
+    this.getStore().resetAllObjects();
     this.notifyStateChange();
   }
 
   setAllOpacity(opacity: number, except?: BMCComponentName): void {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) return;
+    this.log(`Setting opacity ${opacity} for all objects except ${except}`);
+    const store = this.getStore();
+    const objectStates = store.getAllObjectStates();
 
-    BMC_COMPONENTS.forEach(componentName => {
+    objectStates.forEach((objectState, componentName) => {
       if (componentName !== except) {
-        const objectState = currentViewState.objectStates.get(componentName);
-        if (objectState) {
-          objectState.visual.opacity = opacity;
-          objectState.lastUpdated = Date.now();
-          objectState.isDirty = true;
-        }
+        this.updateVisualState(componentName, { opacity });
       }
     });
-
-    this.log(`Set opacity ${opacity} for all objects except ${except}`);
-    this.notifyStateChange();
   }
 
   restoreAllOriginalHeights(): void {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) return;
+    this.log('Restoring all original heights');
+    const store = this.getStore();
+    const objectStates = store.getAllObjectStates();
 
-    BMC_COMPONENTS.forEach(componentName => {
-      const objectState = currentViewState.objectStates.get(componentName);
-      if (objectState) {
-        objectState.transform.currentHeight = objectState.transform.originalHeight;
-        objectState.lastUpdated = Date.now();
-        objectState.isDirty = true;
-      }
+    objectStates.forEach((objectState, componentName) => {
+      this.updateTransformState(componentName, {
+        currentHeight: objectState.transform.originalHeight
+      });
     });
-
-    this.log('Restored all original heights');
-    this.notifyStateChange();
   }
 
   // ============================================================================
@@ -304,19 +216,15 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
   // ============================================================================
 
   getObjectState(sectionName: BMCComponentName): BMCObjectState | null {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) return null;
-
-    return currentViewState.objectStates.get(sectionName) || null;
+    return this.getStore().getObjectState(sectionName);
   }
 
   getAllObjectStates(): Map<BMCComponentName, BMCObjectState> {
-    const currentViewState = this.viewStates.get(this.currentView);
-    return currentViewState?.objectStates || new Map();
+    return this.getStore().getAllObjectStates();
   }
 
   isObjectSelected(sectionName: BMCComponentName): boolean {
-    return this.activeSelection === sectionName;
+    return this.getStore().selectedObject === sectionName;
   }
 
   // ============================================================================
@@ -324,16 +232,20 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
   // ============================================================================
 
   saveCameraState(state: BMCCameraState): void {
-    const currentViewState = this.viewStates.get(this.currentView);
-    if (!currentViewState) return;
-
-    currentViewState.cameraState = { ...state };
-    this.log(`Saved camera state for ${this.currentView}`);
+    this.log('Saving camera state');
+    this.getStore().saveCamera3DState(state.alpha, state.beta, state.radius);
   }
 
   getCameraState(): BMCCameraState | null {
-    const currentViewState = this.viewStates.get(this.currentView);
-    return currentViewState?.cameraState || null;
+    const cameraState = this.getStore().camera3DState;
+    if (!cameraState) return null;
+
+    return {
+      alpha: cameraState.alpha,
+      beta: cameraState.beta,
+      radius: cameraState.radius,
+      target: { x: 0, y: 0, z: 0 }
+    };
   }
 
   // ============================================================================
@@ -364,28 +276,53 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
 
   private log(message: string): void {
     if (this.debugMode) {
-      console.log(`[BMC State Manager] ${message}`);
+      console.log(`[Unified BMC State Manager] ${message}`);
     }
   }
 
   public enableDebug(enabled = true): void {
     this.debugMode = enabled;
+    this.getStore().enableDebugMode(enabled);
   }
 
   public getDebugInfo(): any {
+    const store = this.getStore();
     return {
       currentView: this.currentView,
       activeSelection: this.activeSelection,
-      viewStates: Array.from(this.viewStates.entries()).map(([view, state]) => ({
-        view,
-        selectedObject: state.selectedObject,
-        objectCount: state.objectStates.size,
-        lastSaved: state.lastSaved
-      })),
-      globalSettings: this.globalSettings
+      stateMetrics: store.getStateMetrics(),
+      objectStatesCount: store.getAllObjectStates().size,
+      canUndo: store.canUndo(),
+      canRedo: store.canRedo(),
+      debugMode: this.debugMode
     };
   }
 }
 
-// Export singleton instance
-export const bmcStateManager = new BMCStateManagerImpl(true); // Enable debug mode
+// Export singleton instance that uses the unified store
+export const bmcStateManager = new UnifiedBMCStateManager(true);
+
+// Export hooks for React components
+export const useBMCState = () => {
+  const store = useCanvas();
+
+  return {
+    // Direct access to unified store methods
+    selectObject: store.selectObject,
+    getSelectedObject: store.getSelectedObject,
+    switchView: store.switchView,
+    currentView: store.currentView,
+    objectStates: store.objectStates,
+    resetAllObjects: store.resetAllObjects,
+
+    // Undo/Redo functionality
+    undo: store.undo,
+    redo: store.redo,
+    canUndo: store.canUndo,
+    canRedo: store.canRedo,
+
+    // Debugging
+    getStateMetrics: store.getStateMetrics,
+    enableDebugMode: store.enableDebugMode
+  };
+};
