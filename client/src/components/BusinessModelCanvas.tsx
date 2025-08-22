@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { Canvas2D } from './Canvas2D';
-import Canvas3DBabylon from './Canvas3DBabylon';
+import { Canvas3DBabylon } from './Canvas3DBabylon';
 import { AIChat } from './AIChat';
 import { Header } from './Header';
 import { MicrosoftStackStatus } from './MicrosoftStackStatus';
@@ -22,25 +22,17 @@ interface BusinessModelCanvasProps {
 export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavigateHome }) => {
   const {
     canvas,
-    currentView,
+    is3D,
+    isOrthographic,
     isTransitioning,
     error,
     loadCanvas,
-    switchView,
+    toggleView,
     setOrthographicView,
     setError,
     pendingPowerPointFile,
     setPendingPowerPointFile
   } = useCanvas();
-  
-  // Derived properties
-  const is3D = currentView !== 'view2D';
-  const isOrthographic = currentView === 'view3DOrthographic';
-  
-  const toggleView = () => {
-    const newView = currentView === 'view2D' ? 'view3DPerspective' : 'view2D';
-    switchView(newView);
-  };
   
 
 
