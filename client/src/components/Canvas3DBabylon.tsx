@@ -816,14 +816,6 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
 
     // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
-    
-    // Add a simple test cube to verify 3D rendering is working
-    const testCube = MeshBuilder.CreateBox("testCube", { size: 2 }, scene);
-    testCube.position = new Vector3(0, 1, 0);
-    const testMaterial = new StandardMaterial("testMat", scene);
-    testMaterial.diffuseColor = new Color3(1, 0, 0); // Red color
-    testCube.material = testMaterial;
-    console.log("🔴 Test cube created at position (0, 1, 0) with red color");
 
     // Create dynamic texture for powder blue grid pattern with white lines
     const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
@@ -1458,10 +1450,36 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
       { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
     ];
 
+    // Test with a simpler model first to verify loading works
+    console.log("🔄 Testing model loading with simple geometry...");
+    SceneLoader.ImportMeshAsync("", "/geometries/", "heart.gltf", scene).then((testResult) => {
+      console.log("✅ Test model loading successful:", testResult.meshes.length, "meshes");
+      if (testResult.meshes.length > 0) {
+        testResult.meshes[0].position = new Vector3(-5, 1, 0);
+        testResult.meshes[0].scaling = new Vector3(0.5, 0.5, 0.5);
+        console.log("💖 Heart test model positioned at (-5, 1, 0)");
+      }
+    }).catch((error) => {
+      console.error("❌ Test model loading failed:", error);
+    });
+    
     // Load complete BMC GLB model with individual section coloring
+    console.log("🔄 Starting BMC model loading...");
     SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", scene).then((result) => {
+      console.log("🔄 BMC model loading completed!");
+      console.log("📊 Result details:", {
+        meshes: result.meshes.length,
+        particleSystems: result.particleSystems.length,
+        skeletons: result.skeletons.length
+      });
+      
       if (result.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${result.meshes.length} meshes`);
+        
+        // Log all mesh names for debugging
+        result.meshes.forEach((mesh, index) => {
+          console.log(`🔍 Mesh ${index}: ${mesh.name}, visible: ${mesh.isVisible}, enabled: ${mesh.isEnabled()}`);
+        });
 
         const rootMesh = result.meshes[0];
         rootMeshRef.current = rootMesh;
@@ -2397,6 +2415,8 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
       }
     }).catch((error) => {
       console.error("❌ Failed to load BMC model:", error);
+      console.error("❌ Error details:", error.message);
+      console.error("❌ Stack trace:", error.stack);
     });
 
     // Load Revenue Streams as separate GLB model positioned below Customer Channels
