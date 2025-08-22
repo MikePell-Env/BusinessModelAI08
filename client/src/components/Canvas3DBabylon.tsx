@@ -816,6 +816,14 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
 
     // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
+    
+    // Add a simple test cube to verify 3D rendering is working
+    const testCube = MeshBuilder.CreateBox("testCube", { size: 2 }, scene);
+    testCube.position = new Vector3(0, 1, 0);
+    const testMaterial = new StandardMaterial("testMat", scene);
+    testMaterial.diffuseColor = new Color3(1, 0, 0); // Red color
+    testCube.material = testMaterial;
+    console.log("🔴 Test cube created at position (0, 1, 0) with red color");
 
     // Create dynamic texture for powder blue grid pattern with white lines
     const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
