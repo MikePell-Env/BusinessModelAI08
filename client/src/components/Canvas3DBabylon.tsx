@@ -313,15 +313,23 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
 
   // Removed old handleBMCObjectClick - using direct cleanBMCRef.current.onSelect calls
 
-  // Clean hover handlers
+  // Clean hover handlers with better error handling
   const handleBMCObjectHoverEnter = (sectionName: string) => {
-    cleanBMCRef.current.onHover(sectionName, true);
-    console.log(`HOVER ENTER: ${sectionName}`);
+    console.log(`🔍 HOVER ENTER: ${sectionName}`);
+    if (cleanBMCRef.current) {
+      cleanBMCRef.current.onHover(sectionName, true);
+    } else {
+      console.warn("⚠️ cleanBMCRef.current is null in hover enter");
+    }
   };
 
   const handleBMCObjectHoverExit = (sectionName: string) => {
-    cleanBMCRef.current.onHover(sectionName, false);
-    console.log(`HOVER EXIT: ${sectionName}`);
+    console.log(`🔍 HOVER EXIT: ${sectionName}`);
+    if (cleanBMCRef.current) {
+      cleanBMCRef.current.onHover(sectionName, false);
+    } else {
+      console.warn("⚠️ cleanBMCRef.current is null in hover exit");
+    }
   };
 
   // REMOVED: Old applyBMCVisualState function - CleanBMCSystem handles all visual states
@@ -1450,19 +1458,6 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
       { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
     ];
 
-    // Test with a simpler model first to verify loading works
-    console.log("🔄 Testing model loading with simple geometry...");
-    SceneLoader.ImportMeshAsync("", "/geometries/", "heart.gltf", scene).then((testResult) => {
-      console.log("✅ Test model loading successful:", testResult.meshes.length, "meshes");
-      if (testResult.meshes.length > 0) {
-        testResult.meshes[0].position = new Vector3(-5, 1, 0);
-        testResult.meshes[0].scaling = new Vector3(0.5, 0.5, 0.5);
-        console.log("💖 Heart test model positioned at (-5, 1, 0)");
-      }
-    }).catch((error) => {
-      console.error("❌ Test model loading failed:", error);
-    });
-    
     // Load complete BMC GLB model with individual section coloring
     console.log("🔄 Starting BMC model loading...");
     SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", scene).then((result) => {
@@ -1484,18 +1479,16 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
         const rootMesh = result.meshes[0];
         rootMeshRef.current = rootMesh;
 
-        // Position moved down by one row on ground plane
-        rootMesh.position = new Vector3(0, 0.1, 0.9);
+        // Position at origin slightly above ground
+        rootMesh.position = new Vector3(0, 0.2, 0);
 
         // Keep model at normal rotation for all views
         rootMesh.rotation = Vector3.Zero();
 
-        // Position logging removed for better performance
-
         // Start with visible scale
-        rootMesh.scaling = new Vector3(8, 8, 8);
-
-        console.log(`📦 BMC model positioned at origin with scale 8.0`);
+        rootMesh.scaling = new Vector3(5, 5, 5);
+        
+        console.log(`📍 BMC model positioned at (0, 0.2, 0) with scale 5.0`);
 
         // Corrected BMC section mapping - based on user feedback that specific labels need to swap
         // Current observation: Key Activities label is where Customer Relationships should be
@@ -2157,6 +2150,13 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
 
+            // Ensure mesh is visible and enabled
+            mesh.isVisible = true;
+            mesh.setEnabled(true);
+            
+            console.log(`✅ BMC Mesh ${sectionName} setup: visible=${mesh.isVisible}, enabled=${mesh.isEnabled()}, material=${!!mesh.material}`);
+            console.log(`📍 BMC Mesh ${sectionName} position: (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
+
             // Store original color and material for hover/click effects
             (mesh as any).originalColor = baseColor.clone();
             (mesh as any).originalMaterial = sectionMaterial;
@@ -2222,8 +2222,12 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
 
             // Single click for immediate selection
             mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`🎯 CLICK: ${sectionName}`);
               if (cleanBMCRef.current) {
                 cleanBMCRef.current.onSelect(sectionName);
+                console.log(`✅ Selection handled for ${sectionName}`);
+              } else {
+                console.warn("⚠️ cleanBMCRef.current is null in click handler");
               }
             }));
 
@@ -2457,6 +2461,12 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
             sectionMaterial.specularPower = 32;
             mesh.material = sectionMaterial;
 
+            // Ensure mesh is visible and enabled
+            mesh.isVisible = true;
+            mesh.setEnabled(true);
+            
+            console.log(`✅ Revenue Streams mesh setup: visible=${mesh.isVisible}, enabled=${mesh.isEnabled()}, material=${!!mesh.material}`);
+
             // Store section name for interactions and original properties 
             (mesh as any).bmcSectionName = "Revenue Streams";
             (mesh as any).originalColor = baseColor.clone();
@@ -2633,6 +2643,12 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioni
             sectionMaterial.specularColor = new Color3(0.3, 0.1, 0.1); // Slightly red specular
             sectionMaterial.specularPower = 32;
             mesh.material = sectionMaterial;
+
+            // Ensure mesh is visible and enabled
+            mesh.isVisible = true;
+            mesh.setEnabled(true);
+            
+            console.log(`✅ Cost Structure mesh setup: visible=${mesh.isVisible}, enabled=${mesh.isEnabled()}, material=${!!mesh.material}`);
 
             // Store section name for interactions and original properties 
             (mesh as any).bmcSectionName = "Cost Structure";
