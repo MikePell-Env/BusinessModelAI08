@@ -41,8 +41,8 @@ import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { BabylonMaterialManager } from '@/lib/babylon/BabylonMaterialManager';
 
 // Import unified state management hooks
-import { useBMCState } from '@/lib/stores/useBMCState';
-import { useLegacyCanvas } from '@/lib/stores/useLegacyCanvas';
+import { useBMCState } from '@/lib/bmcStateManager';
+import { useLegacyCanvas } from '@/lib/stores/useCanvas';
 
 
 interface Canvas3DBabylonProps {
