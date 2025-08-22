@@ -58,7 +58,7 @@ const CanvasBlock: React.FC<{
 );
 
 export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) => {
-  const { hasImportedFromPowerPoint, getSelectedObject, selectObject } = useCanvas();
+  const { hasImportedFromPowerPoint, getSelectedObject, selectBMCObject } = useCanvas();
   
   if (!canvas) return null;
   
@@ -88,14 +88,14 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
     console.log(`🎯 Currently selected: ${selectedObject}, isCurrentlySelected: ${isCurrentlySelected}`);
     
     // Toggle selection using unified BMC system
-    selectObject(isCurrentlySelected ? null : sectionName as any);
+    selectBMCObject(isCurrentlySelected ? null : sectionName as any);
     console.log(`📋 2D View: ${isCurrentlySelected ? 'Deselected' : 'Selected'} "${sectionName}"`);
   };
 
   const handleBackgroundClick = (e: React.MouseEvent) => {
     // Only clear selection if clicking the background (not on any card)
     if (e.target === e.currentTarget) {
-      selectObject(null);
+      selectBMCObject(null);
       console.log('📋 2D View: Cleared selection (background click)');
     }
   };
