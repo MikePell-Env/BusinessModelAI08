@@ -61,12 +61,12 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
   const { hasImportedFromPowerPoint, getSelectedObject, selectBMCObject } = useCanvas();
   const [translateX, setTranslateX] = React.useState(0);
   const [isDragging, setIsDragging] = React.useState(false);
-  const [dragStart, setDragStart] = React.useState({ x: 0, startTranslateX: 0 });
-  
+  const [dragStart, setDragStart] = React.useState({ x: 0, y: 0, startTranslateX: 0 });
+
   if (!canvas) return null;
-  
+
   const selectedObject = getSelectedObject();
-  
+
   // Helper function to map section titles to their names used in 3D view
   const getSectionName = (title: string): string => {
     const mapping: { [key: string]: string } = {
@@ -82,14 +82,14 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
     };
     return mapping[title] || title;
   };
-  
+
   const handleSectionSelect = (sectionTitle: string) => {
     const sectionName = getSectionName(sectionTitle);
     const isCurrentlySelected = selectedObject === sectionName;
-    
+
     console.log(`🎯 2D Click on: ${sectionTitle} -> ${sectionName}`);
     console.log(`🎯 Currently selected: ${selectedObject}, isCurrentlySelected: ${isCurrentlySelected}`);
-    
+
     // Toggle selection using unified BMC system
     selectBMCObject(isCurrentlySelected ? null : sectionName as any);
     console.log(`📋 2D View: ${isCurrentlySelected ? 'Deselected' : 'Selected'} "${sectionName}"`);
@@ -105,46 +105,61 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 0) { // Left mouse button only
+      e.preventDefault();
+      e.stopPropagation();
       setIsDragging(false); // Reset drag state
       setDragStart({ 
         x: e.clientX, 
-        startTranslateX: translateX 
+        y: e.clientY,
+        startTranslateX: translateX
       });
-      console.log('🖱️ 2D View: Mouse down at', e.clientX);
+      console.log('🖱️ 2D View: Mouse down at', e.clientX, e.clientY, 'current translateX:', translateX);
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (e.buttons === 1) { // Left mouse button is pressed
+      e.preventDefault();
+      e.stopPropagation();
       const deltaX = e.clientX - dragStart.x;
       const newTranslateX = dragStart.startTranslateX + deltaX;
-      
-      // Constrain horizontal translation to reasonable bounds
-      const constrainedTranslateX = Math.max(-800, Math.min(800, newTranslateX));
-      
+
+      // Apply constraints to prevent dragging too far
+      const maxTranslateX = 200; // Allow some right movement
+      const minTranslateX = -800; // Allow left movement to see all cards
+      const constrainedTranslateX = Math.max(minTranslateX, Math.min(maxTranslateX, newTranslateX));
+
       setTranslateX(constrainedTranslateX);
-      
-      // Mark as dragging if moved more than 5 pixels
-      if (Math.abs(deltaX) > 5) {
+
+      // Mark as dragging if moved more than 2 pixels (more sensitive)
+      if (Math.abs(deltaX) > 2) {
         setIsDragging(true);
       }
-      
-      console.log(`🖱️ 2D View: Horizontal drag - deltaX: ${deltaX}, translateX: ${constrainedTranslateX}`);
+
+      console.log('🖱️ 2D View: Dragging, deltaX:', deltaX, 'newTranslateX:', constrainedTranslateX);
     }
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     // Reset drag state after a short delay to allow click detection
     setTimeout(() => {
       setIsDragging(false);
-    }, 100);
+    }, 50);
     console.log('🖱️ 2D View: Mouse up, was dragging:', isDragging);
   };
 
   return (
     <div 
       className="w-full h-full p-6 select-none"
-      style={{ backgroundColor: '#e9ecef', cursor: isDragging ? 'grabbing' : 'grab' }}
+      style={{ 
+        backgroundColor: '#e9ecef', 
+        cursor: isDragging ? 'grabbing' : 'grab',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        touchAction: 'none'
+      }}
       onClick={handleBackgroundClick}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -200,7 +215,7 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
           isSelected={selectedObject === getSectionName(canvas.customerSegments.title)}
           onSelect={() => handleSectionSelect(canvas.customerSegments.title)}
         />
-        
+
         {/* Row 2 */}
         <CanvasBlock 
           element={canvas.keyResources} 
@@ -216,7 +231,7 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
           isSelected={selectedObject === getSectionName(canvas.channels.title)}
           onSelect={() => handleSectionSelect(canvas.channels.title)}
         />
-        
+
         {/* Row 3 - Bottom boxes with cost structure 20% wider */}
         <CanvasBlock 
           element={canvas.costStructure} 
