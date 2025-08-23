@@ -1,3 +1,4 @@
+
 import { AbstractMesh, Color3, StandardMaterial } from '@babylonjs/core';
 import { BMCStateManagerImpl } from './bmcStateManager';
 
@@ -29,23 +30,13 @@ export class CleanBMCSystem {
   // Set whether we're in top view mode
   setTopViewMode(isTopView: boolean) {
     this.isTopView = isTopView;
-    
-    // CRITICAL FIX: When switching to 3D Top view, immediately flatten ALL objects
-    if (isTopView) {
-      this.items.forEach((item) => {
-        if (item.mesh) {
-          item.mesh.scaling.y = 0.01;
-        }
-      });
-    }
-    
     this.updateAllVisuals();
   }
 
   // Register a BMC item
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
     const baseColor = this.getBaseColor(name);
-    
+
     // Ensure material is assigned
     if (!mesh.material) {
       mesh.material = material;
@@ -58,70 +49,34 @@ export class CleanBMCSystem {
       baseColor: baseColor.clone()
     });
 
-    // CRITICAL FIX: In 3D Top view, immediately flatten the object regardless of state
-    if (this.isTopView) {
-      mesh.scaling.y = 0.01;
-    }
-
     // Initialize with proper state
     this.applyState(name, 'normal');
   }
 
   // Handle selection
   onSelect(sectionName: string) {
-    try {
-      console.log(`🔍 DEBUG: CleanBMC onSelect ENTRY - sectionName: "${sectionName}"`);
-      
-      // Special debugging for Cost Structure
-      if (sectionName === "Cost Structure") {
-        console.log(`🔍 DEBUG: Cost Structure selection process starting...`);
-        console.log(`🔍 DEBUG: Current selectedObject: ${this.selectedObject}`);
-        console.log(`🔍 DEBUG: Items in cleanBMCSystem:`, Array.from(this.items.keys()));
-        console.log(`🔍 DEBUG: bmcStateManager exists:`, !!this.bmcStateManager);
-      }
-    
+    console.log(`🔍 CleanBMC onSelect: ${sectionName}`);
+
     // Toggle selection
-    console.log(`🔍 DEBUG: Before toggle - this.selectedObject: "${this.selectedObject}", sectionName: "${sectionName}"`);
-    console.log(`🔍 DEBUG: Equality check: ${this.selectedObject === sectionName}`);
-    
     if (this.selectedObject === sectionName) {
-      console.log(`🔍 DEBUG: DESELECTING - same object clicked`);
       this.selectedObject = null;
     } else {
-      console.log(`🔍 DEBUG: SELECTING - new object`);
       this.selectedObject = sectionName;
     }
-
-    console.log(`🔍 DEBUG: After toggle - selectedObject: ${this.selectedObject}`);
 
     // Update BMC state manager
     if (this.bmcStateManager) {
       const bmcComponent = this.convertNameToBMCComponent(sectionName);
-      console.log(`🔍 DEBUG: BMC component conversion result: ${sectionName} -> ${bmcComponent}`);
-      
       if (bmcComponent) {
         try {
           this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent as any : null);
-          console.log(`🔍 DEBUG: BMC state manager selectObject called successfully`);
         } catch (e) {
-          console.error('❌ BMC state manager error during selection:', e);
-          console.error('❌ Section name:', sectionName);
-          console.error('❌ BMC component:', bmcComponent);
-          console.error('❌ Selected object:', this.selectedObject);
+          console.error('BMC state manager error:', e);
         }
-      } else {
-        console.warn(`⚠️ Skipping BMC state manager update for unmapped section: ${sectionName}`);
       }
     }
 
-    console.log(`🔍 DEBUG: About to call updateAllVisuals()`);
     this.updateAllVisuals();
-    console.log(`🔍 DEBUG: updateAllVisuals() completed successfully`);
-    } catch (error) {
-      console.error(`❌ CRITICAL ERROR in onSelect("${sectionName}"):`, error);
-      console.error(`❌ Stack:`, error.stack);
-      throw error; // Re-throw to see what's calling this
-    }
   }
 
   // Clear selection
@@ -131,16 +86,31 @@ export class CleanBMCSystem {
       try {
         this.bmcStateManager.selectObject(null);
       } catch (e) {
-        console.error('❌ BMC state manager error during clear selection:', e);
+        console.error('BMC state manager error during clear selection:', e);
       }
     }
     this.updateAllVisuals();
   }
 
-  // Handle hover state
-  onHover(itemName: string | null, isHovering: boolean) {
-    this.hoveredObject = isHovering ? itemName : null;
-    this.updateAllVisuals();
+  // Handle hover state changes
+  onHover(sectionName: string, isHovering: boolean): void {
+    console.log(`🖱️ onHover: ${sectionName}, hovering=${isHovering}`);
+
+    const item = this.items.get(sectionName);
+    if (!item) {
+      return;
+    }
+
+    // Only apply hover effects if no object is selected
+    if (this.selectedObject !== null) {
+      return;
+    }
+
+    if (isHovering) {
+      this.applyState(sectionName, 'hover');
+    } else {
+      this.applyState(sectionName, 'normal');
+    }
   }
 
   // Get selected object
@@ -166,85 +136,86 @@ export class CleanBMCSystem {
     });
   }
 
-  // Main visual update method - simplified
-  public updateAllVisuals(): void {
+  // Main visual update method
+  private updateAllVisuals(): void {
+    console.log(`🎨 updateAllVisuals: mode=${this.isTopView ? '3D Top' : '3D View'}, selected=${this.selectedObject || 'none'}`);
+
     this.items.forEach((item, name) => {
-      if (!item?.mesh || !item?.material) {
-        return;
-      }
-
-      // Determine state
-      let state = 'normal';
       if (this.selectedObject === name) {
-        state = 'selected';
-      } else if (this.selectedObject && this.selectedObject !== name) {
-        state = 'dimmed';
-      } else if (this.hoveredObject === name) {
-        state = 'hover';
+        this.applyState(name, 'selected');
+      } else if (this.selectedObject !== null && !this.isTopView) {
+        // 3D View: Non-selected objects are dimmed
+        this.applyState(name, 'dimmed');
+      } else {
+        // 3D Top View: Non-selected objects stay normal (no dimming)
+        // 3D View with no selection: All objects normal
+        this.applyState(name, 'normal');
       }
-
-      this.applyState(name, state);
     });
   }
 
-  // Simplified state application
+  // State application following documentation rules
   private applyState(name: string, state: string) {
     const item = this.items.get(name);
-    if (!item) return;
+    if (!item || !item.mesh || !item.material) return;
 
     const { mesh, material, originalHeight, baseColor } = item;
 
-    // Always flatten in 3D Top view
+    // Height management - 3D Top: always flattened, 3D View: varies by state
     if (this.isTopView) {
-      mesh.scaling.y = 0.01;
+      // 3D Top View: All objects always use original height (appear flattened)
+      mesh.scaling.y = originalHeight;
     } else {
-      // 3D view behavior
+      // 3D View: Height varies by state
       if (state === 'selected') {
         mesh.scaling.y = originalHeight * 1.4; // Elevated
       } else if (state === 'dimmed') {
         mesh.scaling.y = 0.01; // Flattened
       } else {
-        mesh.scaling.y = originalHeight; // Normal height
+        mesh.scaling.y = originalHeight; // Normal
       }
     }
 
-    // Set colors and opacity
-    material.emissiveColor = Color3.Black();
+    // Base material settings
     material.alpha = 1.0;
 
+    // Apply state-specific colors and effects
     switch (state) {
       case 'selected':
-        material.diffuseColor = baseColor.clone();
+        if (this.isTopView) {
+          // 3D Top View: Bright blue + blue glow
+          material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+          material.emissiveColor = new Color3(0.0, 0.1, 0.2);
+          console.log(`🎨 Applied 3D Top SELECTED: ${name} -> bright blue + glow`);
+        } else {
+          // 3D View: Enhanced original color + elevated
+          material.diffuseColor = baseColor.clone();
+          material.emissiveColor = Color3.Black();
+          console.log(`🎨 Applied 3D SELECTED: ${name} -> original color + elevated`);
+        }
         break;
 
       case 'hover':
-        if (name === "Cost Structure") {
-          material.diffuseColor = new Color3(0.45, 0.05, 0.05);
-        } else if (name === "Revenue Streams") {
-          material.diffuseColor = new Color3(0.0, 0.25, 0.15);
-        } else {
-          material.diffuseColor = new Color3(0.03, 0.18, 0.45);
-        }
+        // Hover: Bright blue (same as selection)
+        material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+        material.emissiveColor = Color3.Black();
+        console.log(`🎨 Applied HOVER: ${name} -> bright blue`);
         break;
 
       case 'dimmed':
-        if (this.isTopView) {
-          // 3D Top: lighter dimmed colors so objects remain visible
-          material.diffuseColor = baseColor.scale(0.7);
-        } else {
-          // 3D view: darker colors and lower opacity
-          if (name === "Cost Structure" || name === "Revenue Streams") {
-            material.diffuseColor = new Color3(0.07, 0.07, 0.07);
-          } else {
-            material.diffuseColor = baseColor.scale(0.5);
-          }
-          material.alpha = 0.3;
-        }
+        // Only applies in 3D View (not 3D Top)
+        material.diffuseColor = baseColor.scale(0.6);
+        material.emissiveColor = Color3.Black();
+        material.alpha = 0.3;
+        console.log(`🎨 Applied DIMMED: ${name} -> darkened + transparent`);
         break;
 
       case 'normal':
       default:
+        // Normal state: Original colors
         material.diffuseColor = baseColor.clone();
+        material.emissiveColor = Color3.Black();
+        console.log(`🎨 Applied NORMAL: ${name} -> original color`);
         break;
     }
   }
@@ -252,11 +223,11 @@ export class CleanBMCSystem {
   // Get base color for section
   private getBaseColor(name: string): Color3 {
     if (name === "Cost Structure") {
-      return new Color3(0.35, 0.0, 0.0);  // Red
+      return new Color3(0.35, 0.0, 0.0);
     } else if (name === "Revenue Streams") {
-      return new Color3(0.0, 0.20, 0.12);  // Green
+      return new Color3(0.0, 0.20, 0.12);
     } else {
-      return new Color3(0.07, 0.07, 0.07);  // Grey
+      return new Color3(0.07, 0.07, 0.07);
     }
   }
 
@@ -273,17 +244,8 @@ export class CleanBMCSystem {
       "Cost Structure": "costStructure",
       "Revenue Streams": "revenueStreams"
     };
-    
-    // Handle exact matches first
-    if (mapping[sectionName]) {
-      return mapping[sectionName];
-    }
-    
-    // Log unmapped section names for debugging
-    console.warn(`⚠️ No mapping found for section: "${sectionName}"`);
-    console.warn('Available mappings:', Object.keys(mapping));
-    
-    return null;
+
+    return mapping[sectionName] || null;
   }
 
   // Get current state for debugging
