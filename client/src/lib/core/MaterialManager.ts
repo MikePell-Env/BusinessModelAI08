@@ -63,7 +63,8 @@ export class MaterialManager {
     
     // Performance optimizations
     material.backFaceCulling = false;
-    material.freeze(); // Freeze for performance until state change needed
+    // DISABLED: Freeze causing crashes after multiple clicks
+    // material.freeze(); // Freeze for performance until state change needed
 
     console.log(`🎨 Created material: ${materialName}`);
     return material;
@@ -154,17 +155,10 @@ export class MaterialManager {
       const material = this.getMaterial(sectionId, state);
       console.log(`🔍 DEBUG MaterialManager: Got material ${material.name}, isFrozen: ${material.isFrozen}`);
       
-      // FIXED: Don't freeze/unfreeze rapidly - causes crashes
-      // Only unfreeze if absolutely necessary
-      const needsUnfreeze = material.isFrozen && mesh.material !== material;
-      console.log(`🔍 DEBUG MaterialManager: needsUnfreeze: ${needsUnfreeze}, current mesh material: ${mesh.material?.name || 'none'}`);
+      // DISABLED: Freeze/unfreeze system causing crashes after multiple clicks
+      // Material assignment without freeze/unfreeze manipulation
+      console.log(`🔍 DEBUG MaterialManager: Applying material ${material.name} to mesh (no freeze/unfreeze)`);
       
-      if (needsUnfreeze) {
-        console.log(`🔍 DEBUG MaterialManager: Unfreezing material ${material.name}`);
-        material.unfreeze();
-      }
-
-      console.log(`🔍 DEBUG MaterialManager: Applying material ${material.name} to mesh`);
       // Apply material
       mesh.material = material;
       
@@ -174,12 +168,6 @@ export class MaterialManager {
 
       // Track current material
       this.sectionMaterialMap.set(sectionId, material.name);
-
-      // FIXED: Only refreeze if we unfroze it
-      if (needsUnfreeze) {
-        console.log(`🔍 DEBUG MaterialManager: Refreezing material ${material.name}`);
-        material.freeze();
-      }
 
       console.log(`🎨 Applied ${state} material to ${sectionId}`);
     } catch (error) {
