@@ -45,35 +45,18 @@ export const Canvas3DBabylonRefactored: React.FC<Canvas3DBabylonRefactoredProps>
     }
   });
 
-  // Initialize camera management - only when scene and canvas are ready
-  const cameraController = React.useMemo(() => {
-    if (!scene || !canvasRef.current) return null;
-    
-    return useCameraController({
-      scene,
-      canvas: canvasRef.current,
-      isOrthographic,
-      camera3DState: getCamera3DState(),
-      onSaveCamera3DState: saveCamera3DState
-    });
-  }, [scene, canvasRef.current, isOrthographic]);
+  // Initialize camera management - always call hook, handle null inside
+  const { perspectiveCamera, orthographicCamera } = useCameraController({
+    scene: scene || null,
+    canvas: canvasRef.current || null,
+    isOrthographic,
+    camera3DState: getCamera3DState(),
+    onSaveCamera3DState: saveCamera3DState
+  });
 
-  const { perspectiveCamera, orthographicCamera } = cameraController || {
-    perspectiveCamera: { current: null },
-    orthographicCamera: { current: null },
-    orthoEventHandlers: { current: null }
-  };
-
-  // Initialize material management - only when scene is ready
-  const materialManager = React.useMemo(() => {
-    if (!scene) return null;
-    return useMaterialManager({ scene });
-  }, [scene]);
-
-  const { setMeshVisualState, setMeshesVisualState } = materialManager || {
-    setMeshVisualState: () => {},
-    setMeshesVisualState: () => {}
-  };
+  // Initialize material management - always call hook, handle null scene inside
+  const materialManager = useMaterialManager({ scene: scene || null });
+  const { setMeshVisualState, setMeshesVisualState } = materialManager;
 
   // Initialize interaction management first - needed by BMC object manager
   const interactionManager = React.useMemo(() => {
