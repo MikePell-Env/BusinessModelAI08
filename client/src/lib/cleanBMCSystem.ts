@@ -219,13 +219,23 @@ export class CleanBMCSystem {
     }
   }
 
-  // HOVER STATE - Light blue
+  // HOVER STATE - Light blue or brightened original color
   private applyHoverState(name: string) {
     const item = this.items.get(name);
     if (!item) return;
 
-    item.material.diffuseColor = new Color3(0.1, 0.4, 0.9);  // Light blue
-    item.material.emissiveColor = new Color3(0.05, 0.05, 0.05);
+    // Color behavior: Cost Structure and Revenue Streams brighten their original colors
+    if (name === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.7, 0.2, 0.2);  // Bright red (original red brightened)
+      item.material.emissiveColor = new Color3(0.1, 0.0, 0.0);  // Red glow
+    } else if (name === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.2, 0.6, 0.4);  // Bright green (original green brightened)
+      item.material.emissiveColor = new Color3(0.0, 0.1, 0.05);  // Green glow
+    } else {
+      item.material.diffuseColor = new Color3(0.1, 0.4, 0.9);  // Light blue for others
+      item.material.emissiveColor = new Color3(0.05, 0.05, 0.05);
+    }
+    
     item.material.alpha = 1.0;
     
     // Height behavior: 3D Top = 0.01 (flattened), 3D View = original height
