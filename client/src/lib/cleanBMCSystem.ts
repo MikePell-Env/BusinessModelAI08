@@ -347,7 +347,7 @@ export class CleanBMCSystem {
       const isSelected = (name === currentSelection);
       const isHovered = (name === this.hoveredObject);
 
-      // Ensure mesh is always visible and enabled
+      // CRITICAL: Always ensure mesh is visible and enabled before any state changes
       item.mesh.isVisible = true;
       item.mesh.setEnabled(true);
 
@@ -362,9 +362,13 @@ export class CleanBMCSystem {
         visualState = 'hover';
       } else if (currentSelection && currentSelection !== name) {
         // CRITICAL DIFFERENCE:
-        // 3D Top (rules 2,4): Other objects NEVER change when something is selected
+        // 3D Top (rules 2,4): Other objects NEVER change when something is selected - ALWAYS normal
         // 3D View (rule 6): Other objects flatten and become 50% opaque
-        visualState = this.isTopView ? 'normal' : 'dimmed';
+        if (this.isTopView) {
+          visualState = 'normal'; // 3D Top: force normal, never dimmed
+        } else {
+          visualState = 'dimmed'; // 3D View: apply dimming
+        }
       } else {
         // Rules 1,4,5,8: No selection = original material, full height, 100% opacity
         visualState = 'normal';
@@ -416,14 +420,20 @@ export class CleanBMCSystem {
           item.material.alpha = 0.5; // 50% opacity
           this.animateHeight(item.mesh, item.originalHeight * 0.01); // flatten to almost nothing
         } else {
-          // Should never reach here - 3D Top always uses 'normal' for non-selected
-          console.error(`⚠️ BUG: Dimmed state in 3D Top for ${name} - forcing normal`);
-          // Force normal state
+          // This should NEVER happen in 3D Top - force to normal state immediately
+          console.error(`⚠️ CRITICAL BUG: Dimmed state in 3D Top for ${name} - forcing normal state`);
+          // Immediately apply normal state
           this.restoreOriginalMaterial(item.material, name);
           item.material.alpha = 1.0;
           item.mesh.scaling.y = item.originalHeight;
           item.mesh.isVisible = true;
           item.mesh.setEnabled(true);
+          // Ensure labels stay visible
+          this.ensureLabelVisibility(name);
+          // Force a re-render to make sure it's visible
+          if (item.mesh.refreshBoundingInfo) {
+            item.mesh.refreshBoundingInfo();
+          }
         }
         break;
 
