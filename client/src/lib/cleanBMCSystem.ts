@@ -249,9 +249,13 @@ export class CleanBMCSystem {
       // Keep labels visible
       this.makeLabelVisible(name, 1.0);
 
-      // Only alert on actual visibility issues
-      if (!item.mesh.isVisible || !item.mesh.isEnabled() || item.material.alpha < 0.1) {
-        console.error(`🚨 CRITICAL: ${name} became invisible!`);
+      // Only alert on actual visibility issues with error handling
+      try {
+        if (!item.mesh.isVisible || !item.mesh.isEnabled() || item.material.alpha < 0.1) {
+          console.error(`🚨 CRITICAL: ${name} became invisible!`);
+        }
+      } catch (error) {
+        console.error(`❌ Error checking visibility for ${name}:`, error);
       }
     });
   }
