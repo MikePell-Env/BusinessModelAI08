@@ -107,8 +107,18 @@ export class SimpleClickHandler {
         case PointerEventTypes.POINTERMOVE:
           this.handlePointerMove(pointerInfo);
           break;
+        default:
+          // Debug: Log other pointer event types to understand what's happening
+          console.log(`🐭 Other pointer event type: ${pointerInfo.type}`);
+          break;
       }
     });
+    
+    // Alternative approach: Use scene.onPointerMove directly for more reliable hover detection
+    this.scene.onPointerMove = (evt) => {
+      const pickInfo = this.scene.pick(evt.offsetX, evt.offsetY);
+      this.handleAlternativePointerMove(pickInfo);
+    };
   }
 
   /**
@@ -224,12 +234,28 @@ export class SimpleClickHandler {
    */
   private handlePointerMove(pointerInfo: any): void {
     // Debug: Log pointer move events for debugging hover
-    console.log(`🐭 Pointer move detected, pickInfo available: ${!!pointerInfo.pickInfo}`);
+    console.log(`🐭 Pointer move detected via onPointerObservable, pickInfo available: ${!!pointerInfo.pickInfo}`);
     
     // Only process hover if we have valid pick info
     if (!pointerInfo.pickInfo) return;
     
-    const pickInfo = pointerInfo.pickInfo;
+    this.processHoverFromPickInfo(pointerInfo.pickInfo);
+  }
+
+  /**
+   * Alternative hover detection using scene.onPointerMove
+   */
+  private handleAlternativePointerMove(pickInfo: any): void {
+    console.log(`🐭 Alternative pointer move detected via scene.onPointerMove, hit: ${pickInfo?.hit}`);
+    this.processHoverFromPickInfo(pickInfo);
+  }
+
+  /**
+   * Process hover logic from pick info (shared by both methods)
+   */
+  private processHoverFromPickInfo(pickInfo: any): void {
+    if (!pickInfo) return;
+    
     let hoveredMesh: AbstractMesh | null = null;
     
     // Only consider registered meshes for hover
