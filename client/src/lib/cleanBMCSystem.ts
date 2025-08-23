@@ -172,8 +172,8 @@ export class CleanBMCSystem {
       } else if (name === this.hoveredObject && !this.isTopView) {
         // HOVER STATE (only in 3D view)
         this.applyHoverState(name);
-      } else if (this.selectedObject && !this.isTopView) {
-        // DIMMED STATE (only in 3D view when something else is selected)
+      } else if (this.selectedObject) {
+        // DIMMED STATE (when something else is selected - works in both views)
         this.applyDimmedState(name);
       } else {
         // NORMAL STATE
