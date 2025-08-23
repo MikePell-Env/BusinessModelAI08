@@ -39,6 +39,8 @@ import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
 import { CleanBMCSystem, cleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { BabylonMaterialManager } from '@/lib/babylon/BabylonMaterialManager';
+import { debugLog } from '@/lib/debug/DebugLogger';
+import { setupDoubleClick } from '@/lib/interactions/DoubleClickHandler';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -88,25 +90,25 @@ class UnifiedBMCTransformSystem {
   // Register objects in the unified system
   registerObject(sectionName: string, descriptor: BMCObjectDescriptor) {
     this.objects.set(sectionName, descriptor);
-    console.log(`🔗 Registered ${sectionName} as ${descriptor.objectType}`);
+    debugLog.verbose('transform', `Registered ${sectionName} as ${descriptor.objectType}`);
   }
   
   // Universal height manipulation (handles different object types)
   setHeight(sectionName: string, height: number): boolean {
     const obj = this.objects.get(sectionName);
     if (!obj) {
-      console.warn(`⚠️ Object not found: ${sectionName}`);
+      debugLog.warn('transform', `Object not found: ${sectionName}`);
       return false;
     }
     
     if (obj.objectType === 'main_bmc' && obj.transformNode) {
       // Main BMC sections use transformNode scaling
       obj.transformNode.scaling.y = height;
-      console.log(`📏 Main BMC: ${sectionName} height set to ${height}`);
+      debugLog.verbose('transform', `Main BMC: ${sectionName} height set to ${height}`);
     } else if (obj.objectType === 'separate_glb') {
       // Separate GLB objects use mesh scaling directly
       obj.mesh.scaling.y = height;
-      console.log(`📏 Separate GLB: ${sectionName} height set to ${height}`);
+      debugLog.verbose('transform', `Separate GLB: ${sectionName} height set to ${height}`);
     }
     return true;
   }
@@ -115,18 +117,18 @@ class UnifiedBMCTransformSystem {
   setPosition(sectionName: string, x: number, y: number, z: number): boolean {
     const obj = this.objects.get(sectionName);
     if (!obj) {
-      console.warn(`⚠️ Object not found: ${sectionName}`);
+      debugLog.warn('transform', `Object not found: ${sectionName}`);
       return false;
     }
     
     if (obj.objectType === 'main_bmc') {
       // Main BMC sections cannot be repositioned individually (part of single mesh)
-      console.warn(`⚠️ Cannot reposition main BMC section: ${sectionName}`);
+      debugLog.warn('transform', `Cannot reposition main BMC section: ${sectionName}`);
       return false;
     } else if (obj.objectType === 'separate_glb' && obj.rootMesh) {
       // Separate GLB objects can be repositioned via root mesh
       obj.rootMesh.position = new Vector3(x, y, z);
-      console.log(`🌍 Separate GLB: ${sectionName} moved to (${x}, ${y}, ${z})`);
+      debugLog.verbose('transform', `Separate GLB: ${sectionName} moved to (${x}, ${y}, ${z})`);
     }
     return true;
   }
@@ -135,16 +137,16 @@ class UnifiedBMCTransformSystem {
   setScale(sectionName: string, x: number, y: number, z: number): boolean {
     const obj = this.objects.get(sectionName);
     if (!obj) {
-      console.warn(`⚠️ Object not found: ${sectionName}`);
+      debugLog.warn('transform', `Object not found: ${sectionName}`);
       return false;
     }
     
     if (obj.objectType === 'main_bmc' && obj.transformNode) {
       obj.transformNode.scaling = new Vector3(x, y, z);
-      console.log(`📐 Main BMC: ${sectionName} scaled to (${x}, ${y}, ${z})`);
+      debugLog.verbose('transform', `Main BMC: ${sectionName} scaled to (${x}, ${y}, ${z})`);
     } else if (obj.objectType === 'separate_glb' && obj.rootMesh) {
       obj.rootMesh.scaling = new Vector3(x, y, z);
-      console.log(`📐 Separate GLB: ${sectionName} scaled to (${x}, ${y}, ${z})`);
+      debugLog.verbose('transform', `Separate GLB: ${sectionName} scaled to (${x}, ${y}, ${z})`);
     }
     return true;
   }
@@ -2216,11 +2218,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const currentTime = Date.now();
               const timeDifference = currentTime - lastClickTime;
               
-              console.log(`🖱️ Click detected on ${sectionName}, time diff: ${timeDifference}ms`);
+              debugLog.critical(`Click detected on ${sectionName}, time diff: ${timeDifference}ms`);
               
               if (timeDifference < doubleClickThreshold && timeDifference > 50) {
                 // Double-click detected
-                console.log(`🖱️🖱️ DOUBLE-CLICK detected on ${sectionName}!`);
+                debugLog.critical(`DOUBLE-CLICK detected on ${sectionName}!`);
                 
                 const currentlySelected = cleanBMCRef.current?.getSelectedObject();
                 const isAlreadySelected = currentlySelected === sectionName;
@@ -2242,7 +2244,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 lastClickTime = 0;
               } else {
                 // Single click - just select
-                console.log(`🖱️ Single click on ${sectionName}`);
+                debugLog.critical(`Single click on ${sectionName}`);
                 if (cleanBMCRef.current) {
                   cleanBMCRef.current.onSelect(sectionName);
                 }
@@ -2496,11 +2498,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const currentTime = Date.now();
               const timeDifference = currentTime - lastClickTimeRevenue;
               
-              console.log(`🖱️ Click detected on Revenue Streams, time diff: ${timeDifference}ms`);
+              debugLog.critical(`Click detected on Revenue Streams, time diff: ${timeDifference}ms`);
               
               if (timeDifference < doubleClickThresholdRevenue && timeDifference > 50) {
                 // Double-click detected
-                console.log(`🖱️🖱️ DOUBLE-CLICK detected on Revenue Streams!`);
+                debugLog.critical(`DOUBLE-CLICK detected on Revenue Streams!`);
                 
                 const currentlySelected = cleanBMCRef.current?.getSelectedObject();
                 const isAlreadySelected = currentlySelected === "Revenue Streams";
@@ -2522,7 +2524,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 lastClickTimeRevenue = 0;
               } else {
                 // Single click - just select
-                console.log(`🖱️ Single click on Revenue Streams`);
+                debugLog.critical(`Single click on Revenue Streams`);
                 if (cleanBMCRef.current) {
                   cleanBMCRef.current.onSelect("Revenue Streams");
                 }
@@ -2691,11 +2693,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const currentTime = Date.now();
               const timeDifference = currentTime - lastClickTimeCost;
               
-              console.log(`🖱️ Click detected on Cost Structure, time diff: ${timeDifference}ms`);
+              debugLog.critical(`Click detected on Cost Structure, time diff: ${timeDifference}ms`);
               
               if (timeDifference < doubleClickThresholdCost && timeDifference > 50) {
                 // Double-click detected
-                console.log(`🖱️🖱️ DOUBLE-CLICK detected on Cost Structure!`);
+                debugLog.critical(`DOUBLE-CLICK detected on Cost Structure!`);
                 
                 const currentlySelected = cleanBMCRef.current?.getSelectedObject();
                 const isAlreadySelected = currentlySelected === "Cost Structure";
@@ -2717,7 +2719,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 lastClickTimeCost = 0;
               } else {
                 // Single click - just select
-                console.log(`🖱️ Single click on Cost Structure`);
+                debugLog.critical(`Single click on Cost Structure`);
                 if (cleanBMCRef.current) {
                   cleanBMCRef.current.onSelect("Cost Structure");
                 }
