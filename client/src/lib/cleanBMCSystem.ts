@@ -51,22 +51,19 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
     
-    // When entering top view, ensure all objects are at proper height
+    // When entering top view, IMMEDIATELY restore ALL heights
     if (isTopView) {
-      console.log(`📐 Entering TOP VIEW - ensuring all heights are correct`);
+      console.log(`📐 Entering TOP VIEW - restoring all heights`);
       this.items.forEach((item, name) => {
-        // Skip Revenue Streams and Cost Structure - they're separate GLB models
-        // that shouldn't have their scaling modified
+        // For Revenue Streams and Cost Structure, ensure they're visible
         if (name === "Revenue Streams" || name === "Cost Structure") {
-          console.log(`⏭️ Skipping height check for separate GLB: ${name}`);
-          return;
-        }
-        
-        // For main BMC items, ensure they're not flattened
-        if (item.mesh.scaling.y < 0.5) {
-          const oldHeight = item.mesh.scaling.y;
+          // These should stay at their original scale
+          item.mesh.scaling.set(1, 1, 1);
+          console.log(`✅ Reset ${name} scaling to (1,1,1)`);
+        } else {
+          // For main BMC items, restore to original height
           item.mesh.scaling.y = item.originalHeight;
-          console.log(`✅ Fixed ${name} height from ${oldHeight} to ${item.originalHeight}`);
+          console.log(`✅ Restored ${name} height to ${item.originalHeight}`);
         }
       });
     }
