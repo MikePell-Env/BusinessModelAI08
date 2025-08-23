@@ -32,7 +32,7 @@ export class CleanBMCSystem {
 
     if (bmcStateManager && bmcStateManager.addStateListener) {
       bmcStateManager.addStateListener(() => {
-        this.updateVisuals();
+        this.updateAllVisuals();
       });
     }
   }
@@ -66,8 +66,8 @@ export class CleanBMCSystem {
       console.log(`🎬 ENTERING 3D VIEW - normal behavior`);
     }
     
-    console.log(`🎬 About to call updateVisuals()`);
-    this.updateVisuals();
+    console.log(`🎬 About to call updateAllVisuals()`);
+    this.updateAllVisuals();
     console.log(`🎬 ======= VIEW MODE CHANGE END =======`);
   }
 
@@ -200,7 +200,7 @@ export class CleanBMCSystem {
       this.hoveredObject = null;
     }
     
-    this.updateVisuals();
+    this.updateAllVisuals();
   }
 
   // Handle selection
@@ -226,8 +226,8 @@ export class CleanBMCSystem {
     }
     
     console.log(`🎯 Current selected after: ${this.getSelectedObject()}`);
-    console.log(`🎯 About to call updateVisuals()`);
-    this.updateVisuals();
+    console.log(`🎯 About to call updateAllVisuals()`);
+    this.updateAllVisuals();
     console.log(`🎯 ======= SELECTION END =======`);
   }
 
@@ -240,8 +240,8 @@ export class CleanBMCSystem {
     console.log(`🎯 ======= CLEAR SELECTION END =======`);
   }
 
-  // THE CORE VISUAL UPDATE - BULLETPROOF SIMPLE
-  private updateVisuals() {
+  // REMOVED OLD updateVisuals() method - using updateAllVisuals() instead
+  private updateVisuals_OLD_REMOVED() {
     const currentSelection = this.getSelectedObject();
     console.log(`🎨 UpdateVisuals START: selection="${currentSelection}", topView=${this.isTopView}, hoveredObject="${this.hoveredObject}"`);
     console.log(`🎨 BMC State Manager exists: ${!!this.bmcStateManager}`);
@@ -381,10 +381,6 @@ export class CleanBMCSystem {
     }
   }
 
-  // Public method for external calls to update visuals
-  updateAllVisuals() {
-    this.updateVisuals();
-  }
 
   // Utility methods
   getAllItems(): string[] {
