@@ -513,8 +513,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Create bullet text for existing meshes
       const scene = sceneRef.current;
       if (scene) {
-        // Find Value Propositions mesh using the CleanBMCSystem registry
-        const valuePropMesh = cleanBMCRef.current.getMesh('Value Propositions');
+        // Find Value Propositions mesh directly from scene
+        const valuePropMesh = scene.meshes.find(m => (m as any).bmcSectionName === 'Value Propositions');
         console.log('🔍 Looking for Value Propositions mesh:', valuePropMesh ? 'FOUND' : 'NOT FOUND');
         if (!valuePropMesh) {
           console.log('🔍 Available meshes:', scene.meshes.map(m => m.name));
@@ -2386,8 +2386,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Register with clean system - use fixed height of 1.6 for Revenue Streams (scaled differently)
-            cleanBMCRef.current.registerItem("Revenue Streams", mesh, sectionMaterial, 1.6);
+            // Register with clean system - use fixed height of 1.0 for all BMC sections
+            cleanBMCRef.current.registerItem("Revenue Streams", mesh, sectionMaterial, 1.0);
             cleanBMCRef.current.addLabel("Revenue Streams", labelPlane, labelMaterial);
             
             // Apply proportional scaling - reduced by 20% from the 2x size
@@ -2527,8 +2527,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Register with clean system - use fixed height of 1.6 for Cost Structure (scaled differently)
-            cleanBMCRef.current.registerItem("Cost Structure", mesh, sectionMaterial, 1.6);
+            // Register with clean system - use fixed height of 1.0 for all BMC sections
+            cleanBMCRef.current.registerItem("Cost Structure", mesh, sectionMaterial, 1.0);
             cleanBMCRef.current.addLabel("Cost Structure", labelPlane, labelMaterial);
             
             // Apply same proportional scaling as Revenue Streams
