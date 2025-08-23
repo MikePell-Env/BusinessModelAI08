@@ -69,6 +69,15 @@ export class CleanBMCSystem {
 
   // Handle selection
   onSelect(sectionName: string) {
+    console.log(`🔍 DEBUG: CleanBMC onSelect called with: ${sectionName}`);
+    
+    // Special debugging for Cost Structure
+    if (sectionName === "Cost Structure") {
+      console.log(`🔍 DEBUG: Cost Structure selection process starting...`);
+      console.log(`🔍 DEBUG: Current selectedObject: ${this.selectedObject}`);
+      console.log(`🔍 DEBUG: Items in cleanBMCSystem:`, Array.from(this.items.keys()));
+    }
+    
     // Toggle selection
     if (this.selectedObject === sectionName) {
       this.selectedObject = null;
@@ -76,12 +85,17 @@ export class CleanBMCSystem {
       this.selectedObject = sectionName;
     }
 
+    console.log(`🔍 DEBUG: New selectedObject: ${this.selectedObject}`);
+
     // Update BMC state manager
     if (this.bmcStateManager) {
       const bmcComponent = this.convertNameToBMCComponent(sectionName);
+      console.log(`🔍 DEBUG: BMC component conversion result: ${sectionName} -> ${bmcComponent}`);
+      
       if (bmcComponent) {
         try {
           this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent as any : null);
+          console.log(`🔍 DEBUG: BMC state manager selectObject called successfully`);
         } catch (e) {
           console.error('❌ BMC state manager error during selection:', e);
           console.error('❌ Section name:', sectionName);
@@ -93,7 +107,13 @@ export class CleanBMCSystem {
       }
     }
 
-    this.updateAllVisuals();
+    console.log(`🔍 DEBUG: About to call updateAllVisuals()`);
+    try {
+      this.updateAllVisuals();
+      console.log(`🔍 DEBUG: updateAllVisuals() completed successfully`);
+    } catch (error) {
+      console.error(`❌ updateAllVisuals error:`, error);
+    }
   }
 
   // Clear selection
