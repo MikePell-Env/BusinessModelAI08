@@ -355,15 +355,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // Helper function to improve label texture quality - removes visual artifacts
   const enhanceLabelTexture = (texture: Texture): void => {
-    // Use nearest neighbor filtering for crisp, pixel-perfect text
-    texture.updateSamplingMode(Texture.NEAREST_SAMPLINGMODE);
+    // Use linear filtering for smooth, anti-aliased text
+    texture.updateSamplingMode(Texture.LINEAR_LINEAR);
     
     // Disable texture wrapping for labels
     texture.wrapU = Texture.CLAMP_ADDRESSMODE;
     texture.wrapV = Texture.CLAMP_ADDRESSMODE;
     
-    // Disable anisotropic filtering which can blur text
-    texture.anisotropicFilteringLevel = 1;
+    // Enable anisotropic filtering for crisp text at all angles
+    texture.anisotropicFilteringLevel = 4;
   };
 
   // Helper function to get section content from canvas data
