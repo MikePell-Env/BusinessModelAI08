@@ -80,7 +80,7 @@ export const useCameraController = ({
     orthoCamera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
 
     // Set orthographic bounds
-    const aspectRatio = canvas.width / canvas.height;
+    const aspectRatio = canvas && canvas.width && canvas.height ? canvas.width / canvas.height : 1;
     const orthoSize = 8.5;
     
     if (aspectRatio > 1) {
@@ -115,7 +115,7 @@ export const useCameraController = ({
       const currentSize = orthoCamera.orthoTop || 8.5;
       const newSize = Math.max(2, Math.min(15, currentSize * delta));
       
-      const aspectRatio = canvas.width / canvas.height;
+      const aspectRatio = canvas && canvas.width && canvas.height ? canvas.width / canvas.height : 1;
       if (aspectRatio > 1) {
         orthoCamera.orthoTop = newSize;
         orthoCamera.orthoBottom = -newSize;
@@ -192,9 +192,13 @@ export const useCameraController = ({
   };
 
   const switchCamera = (useOrthographic: boolean) => {
+    // Don't switch if scene or canvas not ready
+    if (!scene || !canvas) return;
+    
     const perspectiveCamera = perspectiveCameraRef.current;
     const orthoCamera = orthographicCameraRef.current;
     
+    // Don't switch if cameras not initialized yet
     if (!perspectiveCamera || !orthoCamera) return;
 
     if (useOrthographic) {
@@ -238,10 +242,12 @@ export const useCameraController = ({
     };
   }
 
-  // Handle camera switching
+  // Handle camera switching - only after cameras are initialized
   React.useEffect(() => {
-    switchCamera(isOrthographic);
-  }, [isOrthographic]);
+    if (scene && canvas && perspectiveCameraRef.current && orthographicCameraRef.current) {
+      switchCamera(isOrthographic);
+    }
+  }, [isOrthographic, scene, canvas]);
 
   // Cleanup on unmount
   React.useEffect(() => {
