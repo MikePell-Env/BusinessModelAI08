@@ -202,13 +202,16 @@ export const useCameraController = ({
       setupOrthographicControls(orthoCamera);
     } else {
       // Clean up orthographic controls
-      if (orthoEventHandlersRef.current?.canvas) {
+      if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
         const canvas = orthoEventHandlersRef.current.canvas;
-        canvas.removeEventListener('wheel', orthoEventHandlersRef.current.wheel);
-        canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
-        canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-        canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-        canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+        const handlers = orthoEventHandlersRef.current;
+        if (handlers.wheel) canvas.removeEventListener('wheel', handlers.wheel);
+        if (handlers.mousedown) canvas.removeEventListener('mousedown', handlers.mousedown, true);
+        if (handlers.mousemove) canvas.removeEventListener('mousemove', handlers.mousemove, true);
+        if (handlers.mouseup) {
+          canvas.removeEventListener('mouseup', handlers.mouseup, true);
+          canvas.removeEventListener('mouseleave', handlers.mouseup, true);
+        }
       }
       
       scene.activeCamera = perspectiveCamera;
@@ -243,14 +246,16 @@ export const useCameraController = ({
   // Cleanup on unmount
   React.useEffect(() => {
     return () => {
-      if (orthoEventHandlersRef.current?.canvas) {
+      if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
         const canvas = orthoEventHandlersRef.current.canvas;
         const handlers = orthoEventHandlersRef.current;
-        canvas.removeEventListener('wheel', handlers.wheel);
-        canvas.removeEventListener('mousedown', handlers.mousedown, true);
-        canvas.removeEventListener('mousemove', handlers.mousemove, true);
-        canvas.removeEventListener('mouseup', handlers.mouseup, true);
-        canvas.removeEventListener('mouseleave', handlers.mouseup, true);
+        if (handlers.wheel) canvas.removeEventListener('wheel', handlers.wheel);
+        if (handlers.mousedown) canvas.removeEventListener('mousedown', handlers.mousedown, true);
+        if (handlers.mousemove) canvas.removeEventListener('mousemove', handlers.mousemove, true);
+        if (handlers.mouseup) {
+          canvas.removeEventListener('mouseup', handlers.mouseup, true);
+          canvas.removeEventListener('mouseleave', handlers.mouseup, true);
+        }
       }
     };
   }, []);
