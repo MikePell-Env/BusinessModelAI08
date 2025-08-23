@@ -52,20 +52,20 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
 
-    // When entering top view, ensure all objects are visible and FLATTENED
+    // When entering top view, ensure all objects are at FULL HEIGHT
     if (isTopView) {
-      console.log(`📐 Entering TOP VIEW - flattening all objects and ensuring visibility`);
+      console.log(`📐 Entering TOP VIEW - ensuring all objects at FULL HEIGHT`);
       this.items.forEach((item, name) => {
-        // Ensure mesh visibility and material alpha are correct in top view
+        // Ensure mesh visibility and material alpha are correct
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
         if (item.material) {
           item.material.alpha = 1.0;
         }
 
-        // FORCE original height - completely flat in top view
+        // FORCE full height in top view - never flattened
         item.mesh.scaling.y = item.originalHeight;
-        console.log(`📐 TOP VIEW: Flattened ${name} to original height ${item.originalHeight}`);
+        console.log(`📐 TOP VIEW: Set ${name} to full height ${item.originalHeight}`);
 
         // Force labels to be visible
         this.makeLabelVisible(name);
@@ -364,10 +364,10 @@ export class CleanBMCSystem {
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
 
-    // In top view, FORCE original height and skip all height animations
+    // In top view, ALWAYS force full original height
     if (this.isTopView) {
       item.mesh.scaling.y = item.originalHeight;
-      console.log(`📐 TOP VIEW: Forcing ${name} to original height ${item.originalHeight}, no animations`);
+      console.log(`📐 TOP VIEW: Keeping ${name} at full height ${item.originalHeight}`);
     }
 
     switch (state) {
@@ -385,10 +385,13 @@ export class CleanBMCSystem {
         break;
 
       case 'dimmed':
-        // In top view, treat dimmed as normal to prevent disappearing objects
+        // In top view, apply dimmed colors but NEVER change height
         if (this.isTopView) {
-          this.restoreOriginalMaterial(item.material, name);
+          this.applyDimmedEffect(item.material, name);
+          // Force full height - no animation
+          item.mesh.scaling.y = item.originalHeight;
         } else {
+          // In 3D view, apply dimmed effect and flatten
           this.applyDimmedEffect(item.material, name);
           this.animateHeight(item.mesh, item.originalHeight * 0.3);
         }
