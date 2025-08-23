@@ -81,13 +81,18 @@ export class CleanBMCSystem {
       }
     
     // Toggle selection
+    console.log(`🔍 DEBUG: Before toggle - this.selectedObject: "${this.selectedObject}", sectionName: "${sectionName}"`);
+    console.log(`🔍 DEBUG: Equality check: ${this.selectedObject === sectionName}`);
+    
     if (this.selectedObject === sectionName) {
+      console.log(`🔍 DEBUG: DESELECTING - same object clicked`);
       this.selectedObject = null;
     } else {
+      console.log(`🔍 DEBUG: SELECTING - new object`);
       this.selectedObject = sectionName;
     }
 
-    console.log(`🔍 DEBUG: New selectedObject: ${this.selectedObject}`);
+    console.log(`🔍 DEBUG: After toggle - selectedObject: ${this.selectedObject}`);
 
     // Update BMC state manager
     if (this.bmcStateManager) {
