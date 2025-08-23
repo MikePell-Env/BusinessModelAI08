@@ -44,6 +44,7 @@ import { setupDoubleClick } from '@/lib/interactions/DoubleClickHandler';
 import { SceneSetup } from './Canvas3DBabylon/scene/SceneSetup';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
 import { InteractionHandler } from './Canvas3DBabylon/interactions/InteractionHandler';
+import { ViewTransitionManager } from './Canvas3DBabylon/animations/ViewTransitionManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -235,6 +236,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const animationManagerRef = useRef<BabylonAnimationManager | null>(null);
   const materialManagerRef = useRef<BabylonMaterialManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
+  const viewTransitionRef = useRef<ViewTransitionManager | null>(null);
   const [showBulletText, setShowBulletText] = useState(false);
   const { 
     saveCamera3DState, 
@@ -1433,9 +1435,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
     ];
 
-    // Initialize model loader and interaction handler
+    // Initialize model loader, interaction handler, and view transitions
     const modelLoader = new BMCModelLoader(scene);
     const interactionHandler = new InteractionHandler(scene);
+    const viewTransitionManager = new ViewTransitionManager(scene);
+    
+    // Store reference for later use
+    viewTransitionRef.current = viewTransitionManager;
     
     // Set CleanBMC reference for the interaction handler
     interactionHandler.setCleanBMC(cleanBMCRef.current);
@@ -2925,8 +2931,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           perspectiveCamera.radius
         );
         
-        // Switch to orthographic camera
-        scene.activeCamera = orthoCamera;
+        // Smooth transition to orthographic camera
+        if (viewTransitionRef.current) {
+          viewTransitionRef.current.transitionToCamera(perspectiveCamera, orthoCamera, {
+            duration: 600,
+            easing: true
+          });
+        } else {
+          // Fallback to instant switch
+          scene.activeCamera = orthoCamera;
+        }
         
         // Re-setup orthographic controls when switching to 3D Top view
         if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
@@ -2966,8 +2980,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           console.log("🎯 Orthographic controls disabled for 3D View");
         }
         
-        // Switch back to perspective camera
-        scene.activeCamera = perspectiveCamera;
+        // Smooth transition back to perspective camera
+        if (viewTransitionRef.current) {
+          viewTransitionRef.current.transitionToCamera(orthoCamera, perspectiveCamera, {
+            duration: 600,
+            easing: true
+          });
+        } else {
+          // Fallback to instant switch
+          scene.activeCamera = perspectiveCamera;
+        }
         
         // Apply visual state after camera switch
         setTimeout(() => {
