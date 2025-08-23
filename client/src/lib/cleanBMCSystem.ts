@@ -114,6 +114,9 @@ export class CleanBMCSystem {
     const actualOriginalHeight = mesh.scaling.y;
     console.log(`📏 Registering ${name} with ACTUAL height=${actualOriginalHeight} (ignoring passed ${originalHeight})`);
 
+    // Set renderingGroupId for proper occlusion
+    mesh.renderingGroupId = 1; // BMC objects render after labels (occlude them)
+
     this.items.set(name, {
       mesh,
       material,
@@ -151,12 +154,12 @@ export class CleanBMCSystem {
     item.label.setEnabled(true);
     item.label.visibility = 1.0;
     item.labelMaterial.alpha = 1.0;
-    item.labelMaterial.backFaceCulling = true; // Enable backface culling for proper occlusion
+    item.labelMaterial.backFaceCulling = false;
     item.labelMaterial.useAlphaFromDiffuseTexture = true;
-    item.labelMaterial.disableLighting = true; // Labels should not be affected by lighting
+    item.labelMaterial.disableLighting = false;
     
-    // Enable depth writing for proper occlusion
-    item.labelMaterial.disableDepthWrite = false;
+    // Set renderingGroupId to same as BMC objects for proper occlusion
+    item.label.renderingGroupId = 0; // Same group as BMC objects
 
     // Use ALPHATEST mode for PNG transparency
     (item.labelMaterial as any).transparencyMode = 1;
