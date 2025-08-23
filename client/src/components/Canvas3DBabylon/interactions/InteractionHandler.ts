@@ -113,9 +113,14 @@ export class InteractionHandler {
           // Single click
           debugLog.critical(`Single click on ${sectionName}`);
           
-          // Handle selection with toggle behavior via CleanBMC
+          // DEBUG: Log current state before selection
           if (this.cleanBMC) {
+            console.log(`🔍 DEBUG: Before selection - Current selected: ${this.cleanBMC.getSelectedObject()}`);
+            console.log(`🔍 DEBUG: About to select: ${sectionName}`);
+            
             this.cleanBMC.onSelect(sectionName);
+            
+            console.log(`🔍 DEBUG: After selection - New selected: ${this.cleanBMC.getSelectedObject()}`);
           }
           
           // Trigger single-click callback

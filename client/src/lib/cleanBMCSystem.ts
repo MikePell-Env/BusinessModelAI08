@@ -154,6 +154,8 @@ export class CleanBMCSystem {
   // Handle selection with proper toggle behavior
   onSelect(sectionName: string) {
     console.log(`🎯 CleanBMC: Selection request for "${sectionName}"`);
+    console.log(`🔍 DEBUG: Current selectedObject: "${this.selectedObject}"`);
+    console.log(`🔍 DEBUG: Requesting selection of: "${sectionName}"`);
 
     // Toggle behavior: if clicking on already selected object, deselect it
     if (this.selectedObject === sectionName) {
@@ -164,15 +166,20 @@ export class CleanBMCSystem {
       this.selectedObject = sectionName;
     }
 
+    console.log(`🔍 DEBUG: After selection logic - selectedObject: "${this.selectedObject}"`);
+
     // Update BMC state manager
     if (this.bmcStateManager) {
       const bmcComponent = this.convertNameToBMCComponent(sectionName);
       if (bmcComponent) {
+        console.log(`🔍 DEBUG: Updating BMC state manager with: ${this.selectedObject ? bmcComponent : null}`);
         this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent : null);
       }
     }
 
+    console.log(`🔍 DEBUG: About to call updateAllVisuals...`);
     this.updateAllVisuals();
+    console.log(`🔍 DEBUG: updateAllVisuals completed`);
   }
 
   // Clear selection
@@ -192,11 +199,21 @@ export class CleanBMCSystem {
   private updateAllVisuals(): void {
     console.log(`🎨 updateAllVisuals: updating visuals for ${this.isTopView ? '3D Top' : '3D'} view`);
     console.log(`🎨 Current selection: ${this.selectedObject || 'none'}`);
+    console.log(`🔍 DEBUG: Total items in system: ${this.items.size}`);
 
     this.items.forEach((item, name) => {
+      console.log(`🔍 DEBUG: Processing ${name}...`);
+      
       // CRITICAL: Always ensure basic visibility first
+      const wasVisible = item.mesh.isVisible;
+      const wasEnabled = item.mesh.getEnabled();
+      const currentAlpha = item.material.alpha;
+      const currentHeight = item.mesh.scaling.y;
+      
       item.mesh.isVisible = true;
       item.mesh.setEnabled(true);
+      
+      console.log(`🔍 DEBUG: ${name} - Before: visible=${wasVisible}, enabled=${wasEnabled}, alpha=${currentAlpha}, height=${currentHeight}`);
       
       if (this.isTopView) {
         // 3D TOP VIEW RULES
@@ -225,9 +242,28 @@ export class CleanBMCSystem {
       
       // Keep labels visible
       this.makeLabelVisible(name, 1.0);
+      
+      // CRITICAL DEBUG: Check final state after all operations
+      const finalVisible = item.mesh.isVisible;
+      const finalEnabled = item.mesh.getEnabled();
+      const finalAlpha = item.material.alpha;
+      const finalHeight = item.mesh.scaling.y;
+      
+      console.log(`🔍 DEBUG: ${name} - After: visible=${finalVisible}, enabled=${finalEnabled}, alpha=${finalAlpha}, height=${finalHeight}`);
+      
+      // CRITICAL: Alert if object became invisible
+      if (!finalVisible || !finalEnabled || finalAlpha < 0.1) {
+        console.error(`🚨 CRITICAL: ${name} became invisible! visible=${finalVisible}, enabled=${finalEnabled}, alpha=${finalAlpha}`);
+      }
     });
 
     console.log(`✅ Visual update complete for ${this.isTopView ? '3D Top' : '3D'} view`);
+    
+    // FINAL DEBUG: Report final state of all objects
+    console.log(`🔍 FINAL STATE SUMMARY:`);
+    this.items.forEach((item, name) => {
+      console.log(`  ${name}: visible=${item.mesh.isVisible}, enabled=${item.mesh.getEnabled()}, alpha=${item.material.alpha}`);
+    });
   }
 
   // SIMPLIFIED: Apply selected state
@@ -335,6 +371,10 @@ export class CleanBMCSystem {
   private apply3DTopNormalState(name: string, item: BMCItem) {
     console.log(`🔵 3D Top Normal: ${name} - flattened, 100% opaque, original colors`);
     
+    // CRITICAL: Ensure mesh visibility before any operations
+    item.mesh.isVisible = true;
+    item.mesh.setEnabled(true);
+    
     // Original colors based on section
     if (name === "Cost Structure") {
       item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
@@ -347,22 +387,34 @@ export class CleanBMCSystem {
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     item.material.alpha = 1.0; // 100% opaque
     item.mesh.scaling.y = item.originalHeight; // Flattened (original height in top view is flattened)
+    
+    console.log(`🔍 DEBUG Normal State: ${name} set to visible=${item.mesh.isVisible}, alpha=${item.material.alpha}, height=${item.mesh.scaling.y}`);
   }
 
   // Rule 2: Selected state in 3D Top - bright blue, flattened
   private apply3DTopSelectedState(name: string, item: BMCItem) {
     console.log(`✅ 3D Top Selected: ${name} - bright blue, flattened`);
     
+    // CRITICAL: Ensure mesh visibility before any operations
+    item.mesh.isVisible = true;
+    item.mesh.setEnabled(true);
+    
     // Bright blue for selection
     item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
     item.material.emissiveColor = new Color3(0.0, 0.1, 0.2);
     item.material.alpha = 1.0; // 100% opaque
     item.mesh.scaling.y = item.originalHeight; // Flattened
+    
+    console.log(`🔍 DEBUG Selected State: ${name} set to visible=${item.mesh.isVisible}, alpha=${item.material.alpha}, height=${item.mesh.scaling.y}`);
   }
 
   // Rule 2: Non-selected objects when something is selected - visible but flattened
   private apply3DTopNonSelectedState(name: string, item: BMCItem) {
     console.log(`🔅 3D Top Non-Selected: ${name} - visible, flattened, original colors`);
+    
+    // CRITICAL: Ensure mesh visibility before any operations
+    item.mesh.isVisible = true;
+    item.mesh.setEnabled(true);
     
     // Keep original colors (not dimmed)
     if (name === "Cost Structure") {
@@ -376,6 +428,8 @@ export class CleanBMCSystem {
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     item.material.alpha = 1.0; // 100% opaque (NOT dimmed)
     item.mesh.scaling.y = item.originalHeight; // Flattened
+    
+    console.log(`🔍 DEBUG Non-Selected State: ${name} set to visible=${item.mesh.isVisible}, alpha=${item.material.alpha}, height=${item.mesh.scaling.y}`);
   }
 
   // Helper for height animation (3D View only)
