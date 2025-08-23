@@ -140,6 +140,15 @@ export class SimpleClickHandler {
     
     console.log(`🖱️ Click on ${mesh.name} (${sectionName}), time since last: ${timeSinceLastClick}ms`);
 
+    // CRITICAL DEBUG: Special handling for Cost Structure
+    if (sectionName === "Cost Structure") {
+      console.log(`🔍 DEBUG: Cost Structure click detected!`);
+      console.log(`🔍 DEBUG: Mesh name: ${mesh.name}`);
+      console.log(`🔍 DEBUG: Mesh position: (${mesh.position.x}, ${mesh.position.y}, ${mesh.position.z})`);
+      console.log(`🔍 DEBUG: Mesh visible: ${mesh.isVisible}`);
+      console.log(`🔍 DEBUG: Mesh enabled: ${mesh.isEnabled()}`);
+    }
+
     // Check for double-click
     if (
       timeSinceLastClick < this.doubleClickThreshold && 
@@ -157,7 +166,11 @@ export class SimpleClickHandler {
       
       // Execute double-click callback with section name
       if (this.callbacks.onDoubleClick) {
-        this.callbacks.onDoubleClick(sectionName, mesh, position);
+        try {
+          this.callbacks.onDoubleClick(sectionName, mesh, position);
+        } catch (error) {
+          console.error(`❌ Double-click callback error for ${sectionName}:`, error);
+        }
       }
       
       // Reset click tracking
@@ -178,7 +191,11 @@ export class SimpleClickHandler {
         console.log(`🖱️ Single-click confirmed for ${mesh.name} (${sectionName})`);
         
         if (this.callbacks.onSingleClick) {
-          this.callbacks.onSingleClick(sectionName, mesh);
+          try {
+            this.callbacks.onSingleClick(sectionName, mesh);
+          } catch (error) {
+            console.error(`❌ Single-click callback error for ${sectionName}:`, error);
+          }
         }
         
         this.singleClickTimer = null;
