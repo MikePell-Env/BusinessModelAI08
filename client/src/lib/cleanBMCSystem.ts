@@ -2,6 +2,21 @@ import { AbstractMesh, Color3, StandardMaterial, Mesh } from '@babylonjs/core';
 import { BMCStateManager } from '../types/bmcState';
 import { ViewTransitionManager } from '../components/Canvas3DBabylon/animations/ViewTransitionManager';
 
+// Assuming debugLog is available globally or imported from a utility file
+// For this example, let's mock it if it's not provided in the context
+const debugLog = {
+  info: (...args: any[]) => {
+    // console.log('INFO:', ...args);
+  },
+  warn: (...args: any[]) => {
+    // console.warn('WARN:', ...args);
+  },
+  error: (...args: any[]) => {
+    // console.error('ERROR:', ...args);
+  }
+};
+
+
 interface BMCItem {
   mesh: AbstractMesh;
   material: StandardMaterial;
@@ -187,12 +202,12 @@ export class CleanBMCSystem {
   clearSelection() {
     console.log(`🎯 CleanBMC: Clearing all selections`);
     this.selectedObject = null;
-    
+
     // Update BMC state manager
     if (this.bmcStateManager) {
       this.bmcStateManager.selectObject(null);
     }
-    
+
     this.updateAllVisuals();
   }
 
@@ -208,7 +223,7 @@ export class CleanBMCSystem {
       // Ensure basic visibility without excessive logging
       item.mesh.isVisible = true;
       item.mesh.setEnabled(true);
-      
+
       if (this.isTopView) {
         // 3D TOP VIEW RULES
         if (!this.selectedObject) {
@@ -230,10 +245,10 @@ export class CleanBMCSystem {
           this.applyNormalState(name, item);
         }
       }
-      
+
       // Keep labels visible
       this.makeLabelVisible(name, 1.0);
-      
+
       // Only alert on actual visibility issues
       if (!item.mesh.isVisible || !item.mesh.isEnabled() || item.material.alpha < 0.1) {
         console.error(`🚨 CRITICAL: ${name} became invisible!`);
@@ -288,8 +303,12 @@ export class CleanBMCSystem {
     console.log(`🔅 Applying DIMMED state to ${name}`);
 
     // CRITICAL: Always ensure visibility first
-    item.mesh.isVisible = true;
-    item.mesh.setEnabled(true);
+    const wasVisible = item.mesh.isVisible;
+    const wasEnabled = item.mesh.isEnabled();
+    const currentAlpha = item.mesh.material?.alpha || 1;
+    debugLog.info('visual', 
+            `🔍 DEBUG: ${name} - Before: visible=${item.mesh.isVisible}, enabled=${item.mesh.isEnabled()}, alpha=${currentAlpha}, height=${item.mesh.scaling.y}`
+          );
 
     // Darker colors for dimmed
     if (name === "Cost Structure") {
@@ -312,6 +331,10 @@ export class CleanBMCSystem {
 
     // Keep labels visible
     this.makeLabelVisible(name, 0.7);
+
+    debugLog.info('visual', 
+            `🔍 DEBUG: ${name} - After: visible=${item.mesh.isVisible}, enabled=${item.mesh.isEnabled()}, alpha=${item.mesh.material?.alpha || 1}, height=${item.mesh.scaling.y}`
+          );
   }
 
   // SIMPLIFIED: Apply normal state
@@ -346,7 +369,7 @@ export class CleanBMCSystem {
   private apply3DTopNormalState(name: string, item: BMCItem) {
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
-    
+
     // Original colors based on section
     if (name === "Cost Structure") {
       item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
@@ -355,7 +378,7 @@ export class CleanBMCSystem {
     } else {
       item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
     }
-    
+
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     item.material.alpha = 1.0;
     item.mesh.scaling.y = item.originalHeight;
@@ -365,7 +388,7 @@ export class CleanBMCSystem {
   private apply3DTopSelectedState(name: string, item: BMCItem) {
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
-    
+
     // Bright blue for selection
     item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
     item.material.emissiveColor = new Color3(0.0, 0.1, 0.2);
@@ -377,7 +400,7 @@ export class CleanBMCSystem {
   private apply3DTopNonSelectedState(name: string, item: BMCItem) {
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
-    
+
     // Keep original colors (not dimmed)
     if (name === "Cost Structure") {
       item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
@@ -386,7 +409,7 @@ export class CleanBMCSystem {
     } else {
       item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
     }
-    
+
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     item.material.alpha = 1.0;
     item.mesh.scaling.y = item.originalHeight;
@@ -470,7 +493,7 @@ export class CleanBMCSystem {
     return this.isTopView;
   }
 
-  
+
 }
 
 // Create singleton instance for backward compatibility
