@@ -336,7 +336,7 @@ export class CleanBMCSystem {
 
     this.setMeshColor(item.mesh, selectedColor, item.material);
     this.setMeshEmissive(item.mesh, selectedEmissive, item.material);
-    this.setMeshHeight(item.mesh, item.originalHeight); // This might need adjustment based on desired top-view selected height
+    this.setMeshHeight(item.mesh, 0.01); // Keep flattened in 3D Top view even when selected
     this.setMeshOpacity(item.mesh, 1.0, item.material);
 
     console.log(`✅ Applied 3D Top selected state to: ${item.name}`);
@@ -356,7 +356,7 @@ export class CleanBMCSystem {
 
     this.setMeshColor(item.mesh, item.originalColor || this.getBaseColor(item.name), item.material);
     this.setMeshEmissive(item.mesh, new Color3(0, 0, 0), item.material);
-    this.setMeshHeight(item.mesh, item.originalHeight); // This might need adjustment based on desired top-view normal height
+    this.setMeshHeight(item.mesh, 0.01); // Keep flattened in 3D Top view
     this.setMeshOpacity(item.mesh, 1.0, item.material);
 
     console.log(`✅ Applied 3D Top normal state to: ${item.name}`);
