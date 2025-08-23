@@ -241,8 +241,14 @@ export class CleanBMCSystem {
     const item = this.items.get(name);
     if (!item) return;
 
-    const baseColor = this.getBaseColor(name);
-    item.material.diffuseColor = baseColor.scale(0.5);  // 50% darker
+    // Color behavior: Cost Structure and Revenue Streams use dark grey when flattened in 3D view
+    if (!this.isTopView && (name === "Cost Structure" || name === "Revenue Streams")) {
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);  // Dark grey when flattened
+    } else {
+      const baseColor = this.getBaseColor(name);
+      item.material.diffuseColor = baseColor.scale(0.5);  // 50% darker for others
+    }
+    
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     
     // Height and opacity behavior: 3D Top = 0.01 + 100%, 3D View = 0.01 + 30%
