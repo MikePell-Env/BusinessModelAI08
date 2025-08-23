@@ -447,14 +447,14 @@ export class CleanBMCSystem {
 
   // Helper to apply dimmed effect
   private applyDimmedEffect(material: StandardMaterial, name: string) {
-    // 50% opacity in 3D view, higher in top view
-    material.alpha = this.isTopView ? 0.9 : 0.5;
+    // Only applies to 3D View - 50% opacity
+    material.alpha = 0.5;
     if (name === "Cost Structure") {
       material.diffuseColor = new Color3(0.2, 0.0, 0.0);
     } else if (name === "Revenue Streams") {
       material.diffuseColor = new Color3(0.0, 0.15, 0.10);
     } else {
-      material.diffuseColor = new Color3(0.05, 0.05, 0.05);
+      material.diffuseColor = new Color3(0.15, 0.15, 0.15);
     }
     material.emissiveColor = new Color3(0.0, 0.0, 0.0);
   }
@@ -468,7 +468,8 @@ export class CleanBMCSystem {
       material.diffuseColor = new Color3(0.0, 0.20, 0.12);
       material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     } else {
-      material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      // Regular BMC sections - lighter grey for visibility
+      material.diffuseColor = new Color3(0.3, 0.3, 0.3);
       material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     }
     material.alpha = 1.0;
