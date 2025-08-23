@@ -1444,6 +1444,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Add floating label planes for specific sections
             if (sectionName === "Customer Segments") {
+              // FIX: Ensure bmcSectionName matches exactly what we search for
+              (mesh as any).bmcSectionName = "Customer Segments";
+              
               console.log(`🏷️ Creating floating label for Customer Segments mesh (index ${index})`);
               
               // Get mesh bounds for positioning
