@@ -180,7 +180,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                     <div className="text-center opacity-50">
                       <div className="bg-white p-6 rounded-lg border border-gray-300 relative h-full flex flex-col">
                         {/* Number 3 in top left */}
-                        <div className="absolute top-4 left-4 bg-gray-400 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                        <div className="absolute top-4 left-4 bg-gray-600 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                           3
                         </div>
                         
@@ -196,9 +196,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                         {/* Button at bottom */}
                         <Button 
                           disabled
-                          className="w-full bg-gray-200 text-gray-500 hover:bg-gray-200 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
+                          className="w-full bg-gray-300 text-gray-700 hover:bg-gray-300 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
                         >
-                          Dev? Use MCP API...
+                          Use MCP API
                         </Button>
                       </div>
                     </div>
