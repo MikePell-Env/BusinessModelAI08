@@ -34,120 +34,22 @@ export class ViewTransitionManager {
   }
 
   /**
-   * Smoothly transition between perspective and orthographic cameras
+   * Transition between perspective and orthographic cameras - INSTANT for better performance
    */
   public transitionToCamera(
     fromCamera: ArcRotateCamera | FreeCamera,
     toCamera: ArcRotateCamera | FreeCamera,
     options: CameraTransitionOptions = {}
   ): Promise<void> {
-    const { duration = 800, easing = true } = options;
-    
+    // Instant transition - no animation to avoid choppiness
     return new Promise((resolve) => {
-      debugLog.verbose('animation', `Starting camera transition over ${duration}ms`);
-      
-      // For perspective to orthographic transition
-      if (fromCamera instanceof ArcRotateCamera && toCamera instanceof FreeCamera) {
-        this.transitionPerspectiveToOrtho(fromCamera, toCamera, duration, easing, resolve);
-      }
-      // For orthographic to perspective transition
-      else if (fromCamera instanceof FreeCamera && toCamera instanceof ArcRotateCamera) {
-        this.transitionOrthoToPerspective(fromCamera, toCamera, duration, easing, resolve);
-      }
-      // Same camera type transition
-      else {
-        this.scene.activeCamera = toCamera;
-        resolve();
-      }
+      debugLog.verbose('animation', 'Instant camera transition');
+      this.scene.activeCamera = toCamera;
+      resolve();
     });
   }
 
-  private transitionPerspectiveToOrtho(
-    perspCamera: ArcRotateCamera,
-    orthoCamera: FreeCamera,
-    duration: number,
-    useEasing: boolean,
-    onComplete: () => void
-  ): void {
-    // Create intermediate camera for smooth transition
-    const transitionCamera = new ArcRotateCamera(
-      'transitionCamera',
-      perspCamera.alpha,
-      perspCamera.beta,
-      perspCamera.radius,
-      perspCamera.target.clone(),
-      this.scene
-    );
-    
-    // Set as active camera
-    this.scene.activeCamera = transitionCamera;
-    transitionCamera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
-    
-    // Target values for top-down view
-    const targetAlpha = perspCamera.alpha; // Keep same rotation
-    const targetBeta = 0.01; // Almost straight down
-    const targetRadius = 22; // Height for orthographic view
-    const targetPosition = new Vector3(0, 22, -10); // Final ortho position
-    
-    // Create animations
-    const alphaAnim = this.createAnimation('alpha', targetAlpha, duration, useEasing);
-    const betaAnim = this.createAnimation('beta', targetBeta, duration, useEasing);
-    const radiusAnim = this.createAnimation('radius', targetRadius, duration, useEasing);
-    
-    // Apply animations
-    transitionCamera.animations = [alphaAnim, betaAnim, radiusAnim];
-    
-    // Start animation
-    this.scene.beginAnimation(transitionCamera, 0, 60, false, 1, () => {
-      // Switch to orthographic camera
-      this.scene.activeCamera = orthoCamera;
-      transitionCamera.dispose();
-      debugLog.verbose('animation', 'Transition to orthographic complete');
-      onComplete();
-    });
-  }
-
-  private transitionOrthoToPerspective(
-    orthoCamera: FreeCamera,
-    perspCamera: ArcRotateCamera,
-    duration: number,
-    useEasing: boolean,
-    onComplete: () => void
-  ): void {
-    // Create transition camera starting from ortho-like position
-    const transitionCamera = new ArcRotateCamera(
-      'transitionCamera',
-      perspCamera.alpha,
-      0.01, // Start from top-down
-      22, // Start from ortho height
-      Vector3.Zero(),
-      this.scene
-    );
-    
-    // Set as active camera
-    this.scene.activeCamera = transitionCamera;
-    transitionCamera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
-    
-    // Target values from perspective camera
-    const targetBeta = perspCamera.beta;
-    const targetRadius = perspCamera.radius;
-    
-    // Create animations
-    const betaAnim = this.createAnimation('beta', targetBeta, duration, useEasing);
-    const radiusAnim = this.createAnimation('radius', targetRadius, duration, useEasing);
-    
-    // Apply animations
-    transitionCamera.animations = [betaAnim, radiusAnim];
-    
-    // Start animation
-    this.scene.beginAnimation(transitionCamera, 0, 60, false, 1, () => {
-      // Switch to perspective camera
-      this.scene.activeCamera = perspCamera;
-      transitionCamera.dispose();
-      debugLog.verbose('animation', 'Transition to perspective complete');
-      onComplete();
-    });
-  }
+  // Removed animated transitions - keeping only instant switches for performance
 
   /**
    * Smoothly animate mesh height changes
@@ -193,7 +95,8 @@ export class ViewTransitionManager {
       
       mesh.animations = [heightAnim];
       
-      this.scene.beginAnimation(mesh, 0, 60, false, 60 / (duration / 1000), () => {
+      // Slower animation speed for more noticeable effect
+      this.scene.beginAnimation(mesh, 0, 60, false, 60 / (duration / 1000) * 0.5, () => {
         if (onComplete) onComplete();
         resolve();
       });
