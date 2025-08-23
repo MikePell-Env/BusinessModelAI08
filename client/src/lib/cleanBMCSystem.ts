@@ -151,9 +151,12 @@ export class CleanBMCSystem {
     item.label.setEnabled(true);
     item.label.visibility = 1.0;
     item.labelMaterial.alpha = 1.0;
-    item.labelMaterial.backFaceCulling = false;
+    item.labelMaterial.backFaceCulling = true; // Enable backface culling for proper occlusion
     item.labelMaterial.useAlphaFromDiffuseTexture = true;
-    item.labelMaterial.disableLighting = false;
+    item.labelMaterial.disableLighting = true; // Labels should not be affected by lighting
+    
+    // Enable depth writing for proper occlusion
+    item.labelMaterial.disableDepthWrite = false;
 
     // Use ALPHATEST mode for PNG transparency
     (item.labelMaterial as any).transparencyMode = 1;
