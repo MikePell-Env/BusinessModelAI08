@@ -29,6 +29,7 @@ export class BMCModelLoader {
 
     for (const component of bmcComponents) {
       try {
+        console.log(`🔄 Attempting to load: ${component.file}`);
         const result = await SceneLoader.ImportMeshAsync("", "/models/", component.file, this.scene);
         
         if (result.meshes && result.meshes.length > 0) {
@@ -40,17 +41,25 @@ export class BMCModelLoader {
           // Apply base material
           this.applyBaseMaterial(rootMesh);
           
+          // Register with cleanBMCSystem
+          if (this.cleanBMCSystem) {
+            this.cleanBMCSystem.registerMesh(component.name, rootMesh);
+          }
+          
           meshes.push(rootMesh);
           console.log(`✅ Loaded ${component.name}`);
+        } else {
+          throw new Error('No meshes found in loaded file');
         }
       } catch (error) {
-        console.warn(`⚠️ Could not load ${component.name}:`, error);
+        console.warn(`⚠️ Could not load ${component.name} from ${component.file}:`, error);
         // Create fallback geometry
         const fallbackMesh = this.createFallbackGeometry(component.name, component.position);
         meshes.push(fallbackMesh);
       }
     }
 
+    console.log(`🔄 Loaded ${meshes.length} BMC components`);
     return meshes;
   }
 
@@ -92,11 +101,23 @@ export class BMCModelLoader {
   }
 
   private createFallbackGeometry(name: string, position: Vector3): AbstractMesh {
-    const mesh = MeshBuilder.CreateBox(`BMC_${name}`, { size: 2 }, this.scene);
+    console.log(`🔧 Creating fallback geometry for: ${name}`);
+    const mesh = MeshBuilder.CreateBox(`BMC_${name}`, { 
+      width: 3, 
+      height: 2, 
+      depth: 1.5 
+    }, this.scene);
     mesh.position = position;
+    mesh.name = `BMC_${name}`;
     (mesh as any).bmcSectionName = name;
     
     this.applyBaseMaterial(mesh);
+    
+    // Register with cleanBMCSystem
+    if (this.cleanBMCSystem) {
+      this.cleanBMCSystem.registerMesh(name, mesh);
+    }
+    
     return mesh;
   }
 
@@ -111,14 +132,17 @@ export class BMCModelLoader {
   }
 
   setupMainBMCInteractions(meshes: AbstractMesh[], advancedTexture: any, createBillboardPanel: any) {
-    console.log("🔄 Setting up main BMC interactions");
+    console.log(`🔄 Setting up main BMC interactions for ${meshes.length} meshes`);
     
-    meshes.forEach(mesh => {
+    meshes.forEach((mesh, index) => {
       if (mesh && (mesh as any).bmcSectionName) {
         const sectionName = (mesh as any).bmcSectionName;
+        console.log(`🔗 Setting up interactions for: ${sectionName}`);
         
         // Setup action manager
-        mesh.actionManager = new ActionManager(this.scene);
+        if (!mesh.actionManager) {
+          mesh.actionManager = new ActionManager(this.scene);
+        }
         
         // Click handling
         mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
@@ -129,8 +153,12 @@ export class BMCModelLoader {
             
             if (isCurrentlySelected) {
               // Second click - show panel
-              const panel = createBillboardPanel(sectionName, mesh.position, advancedTexture, this.scene);
-              console.log(`📋 Showing panel for ${sectionName}`);
+              try {
+                const panel = createBillboardPanel(sectionName, mesh.position, advancedTexture, this.scene);
+                console.log(`📋 Showing panel for ${sectionName}`);
+              } catch (error) {
+                console.error(`❌ Error creating panel for ${sectionName}:`, error);
+              }
             } else {
               // First click - select
               this.cleanBMCSystem.selectObject(sectionName);
@@ -141,18 +169,26 @@ export class BMCModelLoader {
 
         // Hover effects
         mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+          console.log(`🔍 Hover enter: ${sectionName}`);
           if (this.cleanBMCSystem) {
             this.cleanBMCSystem.onHover(sectionName, true);
           }
         }));
 
         mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+          console.log(`🔍 Hover exit: ${sectionName}`);
           if (this.cleanBMCSystem) {
             this.cleanBMCSystem.onHover(sectionName, false);
           }
         }));
+        
+        console.log(`✅ Interactions set up for: ${sectionName}`);
+      } else {
+        console.warn(`⚠️ Mesh ${index} missing bmcSectionName property`);
       }
     });
+    
+    console.log(`✅ All BMC interactions configured`);
   }
 
   setupRevenueStreamsInteractions(meshes: AbstractMesh[], advancedTexture: any, createBillboardPanel: any) {

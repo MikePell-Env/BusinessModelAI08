@@ -260,6 +260,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
 
+    // Prevent multiple initializations
+    if (engineRef.current || sceneRef.current) {
+      console.log('🔄 Babylon.js already initialized, skipping...');
+      return;
+    }
+
     console.log('🔍 Initializing Babylon.js Canvas3D...');
 
     // WebGL support check
