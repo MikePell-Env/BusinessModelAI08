@@ -1502,10 +1502,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Create StandardMaterial with PBR-compatible properties for hover behavior
             const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene) as any;
             
-            // Use very dark black color with subtle shine - CONSISTENT with Cost/Revenue
+            // Enhanced material with better polish and depth
             sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
-            sectionMaterial.specularPower = 32;
+            sectionMaterial.specularColor = new Color3(0.2, 0.2, 0.2); // Slightly higher for better polish
+            sectionMaterial.specularPower = 64; // Tighter specular for cleaner reflections
+            sectionMaterial.ambientColor = baseColor.scale(0.4); // Add subtle ambient for depth
             
             // Add baseColor property for compatibility with hover behavior
             sectionMaterial.baseColor = baseColor;
@@ -2386,8 +2387,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseColor = new Color3(0.0, 0.20, 0.12); // Darker British Racing Green
             const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene);
             sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.1, 0.3, 0.2); // Slightly green specular
-            sectionMaterial.specularPower = 32;
+            sectionMaterial.specularColor = new Color3(0.2, 0.4, 0.3); // Enhanced green specular
+            sectionMaterial.specularPower = 64; // Tighter specular for cleaner reflections
+            sectionMaterial.ambientColor = baseColor.scale(0.4); // Add subtle ambient for depth
             mesh.material = sectionMaterial;
             
             // Store section name for interactions and original properties 
@@ -2526,8 +2528,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseColor = new Color3(0.35, 0.0, 0.0); // Deeper Red
             const sectionMaterial = new StandardMaterial(`costStructure_${index}`, scene);
             sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.3, 0.1, 0.1); // Slightly red specular
-            sectionMaterial.specularPower = 32;
+            sectionMaterial.specularColor = new Color3(0.4, 0.15, 0.15); // Enhanced red specular
+            sectionMaterial.specularPower = 64; // Tighter specular for cleaner reflections
+            sectionMaterial.ambientColor = baseColor.scale(0.4); // Add subtle ambient for depth
             mesh.material = sectionMaterial;
             
             // Store section name for interactions and original properties 
