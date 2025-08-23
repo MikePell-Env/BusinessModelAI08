@@ -2958,12 +2958,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
       
-      // Small delay to ensure scene is ready, then restore visual state
-      setTimeout(() => {
-        if (cleanBMCRef.current) {
-          cleanBMCRef.current.updateAllVisuals();
-        }
-      }, 100);
+      // Update visuals immediately to prevent white flash
+      if (cleanBMCRef.current) {
+        cleanBMCRef.current.updateAllVisuals();
+      }
     } else if (!is3D) {
       const selectedObject = getSelectedObject();
       console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
@@ -2976,12 +2974,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const selectedObject = getSelectedObject();
       console.log(`🔄 3D VIEW TRANSITION: ${isOrthographic ? '3D Top' : '3D View'}, selection="${selectedObject}"`);
       
-      // Small delay to ensure camera switch is complete, then restore visual state
-      setTimeout(() => {
-        if (cleanBMCRef.current) {
-          cleanBMCRef.current.updateAllVisuals();
-        }
-      }, 150);
+      // Update visuals immediately without delay to prevent white flash
+      if (cleanBMCRef.current) {
+        cleanBMCRef.current.updateAllVisuals();
+      }
     }
   }, [isOrthographic, is3D]);
 
