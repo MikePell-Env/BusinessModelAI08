@@ -364,6 +364,7 @@ export class CleanBMCSystem {
       overallError as Error
     );
   }
+}
 
   // SIMPLIFIED: Apply selected state
   private applySelectedState(name: string, item: BMCItem) {
