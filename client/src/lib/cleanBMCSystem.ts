@@ -29,16 +29,6 @@ export class CleanBMCSystem {
   // Set whether we're in top view mode
   setTopViewMode(isTopView: boolean) {
     this.isTopView = isTopView;
-
-    // CRITICAL FIX: When switching to 3D Top view, immediately flatten ALL objects
-    if (isTopView) {
-      this.items.forEach((item) => {
-        if (item.mesh) {
-          item.mesh.scaling.y = 0.01;
-        }
-      });
-    }
-
     this.updateAllVisuals();
   }
 
@@ -57,11 +47,6 @@ export class CleanBMCSystem {
       originalHeight: mesh.scaling.y,
       baseColor: baseColor.clone()
     });
-
-    // CRITICAL FIX: In 3D Top view, immediately flatten the object regardless of state
-    if (this.isTopView) {
-      mesh.scaling.y = 0.01;
-    }
 
     // Initialize with proper state
     this.applyState(name, 'normal');
@@ -266,50 +251,35 @@ export class CleanBMCSystem {
 
     const { mesh, material, originalHeight, baseColor } = item;
 
-    // Always flatten in 3D Top view
-    if (this.isTopView) {
-      mesh.scaling.y = 0.01;
+    // Height management - keep normal heights to prevent canvas issues
+    if (state === 'selected' && !this.isTopView) {
+      mesh.scaling.y = originalHeight * 1.4; // Elevated only in 3D view
+    } else if (state === 'dimmed' && !this.isTopView) {
+      mesh.scaling.y = 0.01; // Flattened only in 3D view
     } else {
-      // 3D view behavior
-      if (state === 'selected') {
-        mesh.scaling.y = originalHeight * 1.4; // Elevated
-      } else if (state === 'dimmed') {
-        mesh.scaling.y = 0.01; // Flattened
-      } else {
-        mesh.scaling.y = originalHeight; // Normal height
-      }
+      mesh.scaling.y = originalHeight; // Normal height
     }
 
-    // Set colors and opacity
+    // Set colors and opacity - keep it simple
     material.emissiveColor = Color3.Black();
     material.alpha = 1.0;
 
     switch (state) {
       case 'selected':
-        material.diffuseColor = baseColor.clone();
-        break;
-
-      case 'hover':
-        if (name === "Cost Structure") {
-          material.diffuseColor = new Color3(0.45, 0.05, 0.05);
-        } else if (name === "Revenue Streams") {
-          material.diffuseColor = new Color3(0.0, 0.25, 0.15);
+        if (this.isTopView) {
+          material.diffuseColor = new Color3(0.0, 0.3, 0.8); // Blue for selection
         } else {
-          material.diffuseColor = new Color3(0.03, 0.18, 0.45);
+          material.diffuseColor = baseColor.clone();
         }
         break;
 
+      case 'hover':
+        material.diffuseColor = new Color3(0.03, 0.18, 0.45); // Consistent hover blue
+        break;
+
       case 'dimmed':
-        if (this.isTopView) {
-          // 3D Top: lighter dimmed colors so objects remain visible
-          material.diffuseColor = baseColor.scale(0.7);
-        } else {
-          // 3D view: darker colors and lower opacity
-          if (name === "Cost Structure" || name === "Revenue Streams") {
-            material.diffuseColor = new Color3(0.07, 0.07, 0.07);
-          } else {
-            material.diffuseColor = baseColor.scale(0.5);
-          }
+        material.diffuseColor = baseColor.scale(0.6);
+        if (!this.isTopView) {
           material.alpha = 0.3;
         }
         break;
@@ -331,33 +301,31 @@ export class CleanBMCSystem {
 
   // Apply state for selected object in 3D Top view
   private apply3DTopSelectedState(item: BMCItem): void {
-    // Selected object: bright blue, flattened, full opacity
+    // Selected object: bright blue, normal height, full opacity
     this.ensureMaterialValid(item);
     item.material.diffuseColor = new Color3(0.0, 0.3, 0.8); // Bright blue
-    item.material.emissiveColor = new Color3(0.0, 0.1, 0.2); // Slight blue glow
-    item.mesh.scaling.y = item.originalHeight; // Flattened
+    item.material.emissiveColor = Color3.Black(); // No glow to prevent rendering issues
+    item.mesh.scaling.y = item.originalHeight; // Keep normal height
     item.material.alpha = 1.0;
-    item.material.needDepthPrePass = false; // Prevent depth issues
   }
 
   // Apply state for non-selected objects in 3D Top view
   private apply3DTopNonSelectedState(item: BMCItem): void {
-    // Non-selected objects: original colors, flattened, full opacity
+    // Non-selected objects: dimmed colors, normal height, reduced opacity
     this.ensureMaterialValid(item);
-    this.restoreOriginalMaterial(item);
-    item.mesh.scaling.y = item.originalHeight; // Flattened  
-    item.material.alpha = 1.0;
-    item.material.needDepthPrePass = false; // Prevent depth issues
+    item.material.diffuseColor = item.baseColor.scale(0.6); // Dimmed but visible
+    item.material.emissiveColor = Color3.Black();
+    item.mesh.scaling.y = item.originalHeight; // Keep normal height
+    item.material.alpha = 0.7; // Slightly transparent
   }
 
   // Apply state for normal objects in 3D Top view
   private apply3DTopNormalState(item: BMCItem): void {
-    // Normal state: original colors, flattened, full opacity
+    // Normal state: original colors, normal height, full opacity
     this.ensureMaterialValid(item);
     this.restoreOriginalMaterial(item);
-    item.mesh.scaling.y = item.originalHeight; // Flattened
+    item.mesh.scaling.y = item.originalHeight; // Keep normal height
     item.material.alpha = 1.0;
-    item.material.needDepthPrePass = false; // Prevent depth issues
   }
 
   // Apply state for selected object in regular 3D view
