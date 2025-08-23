@@ -747,30 +747,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     groundMaterial.alpha = 0.5; // 50% opacity
     ground.material = groundMaterial;
 
-    // SIMPLIFIED: Single ground click handler to prevent conflicts
-    ground.isPickable = true;
-    ground.actionManager = new ActionManager(scene);
-    ground.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-      console.log('Ground clicked - clearing selection');
-      
-      // Use try-catch to prevent blank canvas on errors
-      try {
-        // Clear BMC selection
-        if (cleanBMCRef.current) {
-          cleanBMCRef.current.clearSelection();
-        }
-        
-        // Close billboard panel if it exists
-        if (currentBillboardPanel) {
-          advancedTexture.removeControl(currentBillboardPanel);
-          currentBillboardPanel = null;
-          billboardPanelRef.current = null;
-          console.log("❌ Billboard panel closed by ground click");
-        }
-      } catch (error) {
-        console.error('Error handling ground click:', error);
-      }
-    }));
+    // Background click handling will be done by InteractionHandler.setupBackgroundClick()
+    ground.isPickable = false; // Prevent individual ground mesh clicks
 
     // Create extruded border rails on all sides
     const railHeight = 0.15; // Reduced from 0.3 to 0.15
@@ -1358,10 +1336,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Set CleanBMC reference for the interaction handler
     interactionHandler.setCleanBMC(cleanBMCRef.current);
     
+    // Setup background click handling for deselection and panel closing
+    interactionHandler.setupBackgroundClick();
+    
     // Register interaction callbacks
     interactionHandler.registerCallbacks({
       onDoubleClick: (sectionName: string, position: Vector3) => {
-        debugLog.critical(`Double-click callback triggered for ${sectionName}`);
+        console.log(`🖱️🖱️ Double-click callback triggered for ${sectionName}`);
+        
+        // Close any existing panel first
+        if (currentBillboardPanel) {
+          advancedTexture.removeControl(currentBillboardPanel);
+          currentBillboardPanel = null;
+          billboardPanelRef.current = null;
+        }
+        
+        // Create new panel
         createBillboardPanel(sectionName, position);
       }
     });

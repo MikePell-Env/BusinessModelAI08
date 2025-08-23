@@ -1,6 +1,6 @@
 /**
  * Interaction Handler for BMC 3D visualization
- * Manages click, double-click, and hover interactions
+ * Follows Babylon.js best practices for ActionManager and material handling
  */
 
 import { 
@@ -8,11 +8,12 @@ import {
   AbstractMesh,
   ActionManager,
   ExecuteCodeAction,
-  Vector3
+  Vector3,
+  StandardMaterial,
+  Engine
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
-import { checkpointSystem } from '@/lib/debug/CheckpointSystem';
 
 interface ClickTimer {
   lastClickTime: number;
@@ -32,9 +33,64 @@ export class InteractionHandler {
   private clickTimers: Map<string, number> = new Map();
   private doubleClickThreshold: number = 300; // milliseconds
   private callbacks: InteractionCallback = {};
+  private sharedActionManager: ActionManager;
+  private meshToSection: Map<AbstractMesh, string> = new Map();
 
   constructor(scene: Scene) {
     this.scene = scene;
+    
+    // BEST PRACTICE: Use single shared ActionManager for all meshes
+    this.sharedActionManager = new ActionManager(scene);
+    this.sharedActionManager.isRecursive = true;
+    this.sharedActionManager.hoverCursor = 'pointer';
+    
+    this.setupGlobalActions();
+    
+    console.log('✅ InteractionHandler initialized with shared ActionManager');
+  }
+
+  /**
+   * Setup global actions that work for all meshes
+   */
+  private setupGlobalActions(): void {
+    // Single click handler for all meshes
+    this.sharedActionManager.registerAction(
+      new ExecuteCodeAction(ActionManager.OnPickTrigger, (evt) => {
+        const mesh = evt.meshUnderPointer;
+        if (!mesh) return;
+        
+        const sectionName = this.meshToSection.get(mesh);
+        if (!sectionName) return;
+        
+        this.handleClick(mesh, sectionName);
+      })
+    );
+
+    // Hover enter for all meshes
+    this.sharedActionManager.registerAction(
+      new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, (evt) => {
+        const mesh = evt.meshUnderPointer;
+        if (!mesh) return;
+        
+        const sectionName = this.meshToSection.get(mesh);
+        if (!sectionName) return;
+        
+        this.handleHoverEnter(sectionName);
+      })
+    );
+
+    // Hover exit for all meshes
+    this.sharedActionManager.registerAction(
+      new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, (evt) => {
+        const mesh = evt.meshUnderPointer;
+        if (!mesh) return;
+        
+        const sectionName = this.meshToSection.get(mesh);
+        if (!sectionName) return;
+        
+        this.handleHoverExit(sectionName);
+      })
+    );
   }
 
   /**
@@ -42,7 +98,7 @@ export class InteractionHandler {
    */
   public setCleanBMC(cleanBMC: CleanBMCSystem): void {
     this.cleanBMC = cleanBMC;
-    debugLog.verbose('interaction', 'CleanBMC reference set');
+    console.log('🔗 CleanBMC reference set');
   }
 
   /**
@@ -50,182 +106,160 @@ export class InteractionHandler {
    */
   public registerCallbacks(callbacks: InteractionCallback): void {
     this.callbacks = { ...this.callbacks, ...callbacks };
-    debugLog.verbose('interaction', 'Interaction callbacks registered');
+    console.log('📋 Interaction callbacks registered');
   }
 
   /**
-   * Setup interactions for a BMC mesh
+   * Setup interactions for a BMC mesh using shared ActionManager
    */
   public setupMeshInteractions(mesh: AbstractMesh, sectionName: string): void {
-    // Ensure mesh has action manager
-    if (!mesh.actionManager) {
-      mesh.actionManager = new ActionManager(this.scene);
-    }
-
-    // Ensure mesh is pickable
+    // BEST PRACTICE: Use shared ActionManager instead of individual ones
+    mesh.actionManager = this.sharedActionManager;
     mesh.isPickable = true;
-
-    // Setup click handling with double-click detection
-    this.setupClickHandling(mesh, sectionName);
-
-    // Setup hover handling
-    this.setupHoverHandling(mesh, sectionName);
-
-    debugLog.verbose('interaction', `Interactions setup for ${sectionName}`);
+    
+    // Store mesh-to-section mapping for event handlers
+    this.meshToSection.set(mesh, sectionName);
+    
+    // BEST PRACTICE: Set proper material transparency mode
+    this.setupMaterialProperties(mesh);
+    
+    console.log(`✅ Interactions setup for ${sectionName} using shared ActionManager`);
   }
 
   /**
-   * Setup click and double-click handling with proper behavior
+   * Setup proper material properties to prevent crashes
    */
-  private setupClickHandling(mesh: AbstractMesh, sectionName: string): void {
-    mesh.actionManager?.registerAction(
-      new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-        const currentTime = Date.now();
-        const lastClickTime = this.clickTimers.get(sectionName) || 0;
-        const timeDifference = currentTime - lastClickTime;
+  private setupMaterialProperties(mesh: AbstractMesh): void {
+    if (mesh.material && mesh.material instanceof StandardMaterial) {
+      const material = mesh.material as StandardMaterial;
+      
+      // BEST PRACTICE: Prevent depth buffer conflicts
+      material.needDepthPrePass = true;
+      material.backFaceCulling = true;
+      
+      // BEST PRACTICE: Use premultiplied alpha for stable transparency
+      material.alphaMode = Engine.ALPHA_PREMULTIPLIED;
+      
+      // Ensure material starts in proper state
+      material.alpha = 1.0;
+      mesh.visibility = 1.0;
+      mesh.isVisible = true;
+      mesh.setEnabled(true);
+    }
+  }
 
-        debugLog.critical(`Click detected on ${sectionName}, time diff: ${timeDifference}ms`);
+  /**
+   * Handle click with proper double-click detection
+   */
+  private handleClick(mesh: AbstractMesh, sectionName: string): void {
+    const currentTime = Date.now();
+    const lastClickTime = this.clickTimers.get(sectionName) || 0;
+    const timeDifference = currentTime - lastClickTime;
 
-        checkpointSystem.createCheckpoint(
-          'InteractionHandler.click', 
-          `Click on ${sectionName}`, 
-          { 
-            selectedObject: this.cleanBMC?.getSelectedObject() || null,
-            hoveredObject: null,
-            isTopView: this.cleanBMC?.getIsTopView() || false,
-            itemCount: 0,
-            visibleItems: [],
-            enabledItems: []
-          },
-          { timeDifference, sectionName }
-        );
+    console.log(`🖱️ Click on ${sectionName}, time diff: ${timeDifference}ms`);
 
-        if (timeDifference < this.doubleClickThreshold && timeDifference > 50) {
-          // Double-click detected
-          debugLog.critical(`DOUBLE-CLICK detected on ${sectionName}!`);
-
-          // Rule 4: Double-click on selected object shows popup panel
-          if (this.cleanBMC && this.cleanBMC.getSelectedObject() === sectionName) {
-            // Trigger double-click callback to show panel
-            if (this.callbacks.onDoubleClick) {
-              const position = mesh.getAbsolutePosition();
-              this.callbacks.onDoubleClick(sectionName, position);
-            }
-          } else {
-            // Double-click on unselected object: first select it, then show panel
-            if (this.cleanBMC) {
-              this.cleanBMC.onSelect(sectionName);
-            }
-            if (this.callbacks.onDoubleClick) {
-              const position = mesh.getAbsolutePosition();
-              this.callbacks.onDoubleClick(sectionName, position);
-            }
-          }
-
-          // Reset timer to prevent triple-clicks
-          this.clickTimers.set(sectionName, 0);
-        } else {
-          // Single click
-          debugLog.critical(`Single click on ${sectionName}`);
-
-          // DEBUG: Log current state before selection
+    if (timeDifference < this.doubleClickThreshold && timeDifference > 50) {
+      // Double-click detected
+      console.log(`🖱️🖱️ Double-click on ${sectionName}`);
+      
+      if (this.callbacks.onDoubleClick) {
+        const position = mesh.getAbsolutePosition();
+        this.callbacks.onDoubleClick(sectionName, position);
+      }
+      
+      // Reset timer to prevent triple-clicks
+      this.clickTimers.set(sectionName, 0);
+    } else {
+      // Single click - schedule action after double-click timeout
+      this.clickTimers.set(sectionName, currentTime);
+      
+      setTimeout(() => {
+        const latestClickTime = this.clickTimers.get(sectionName) || 0;
+        
+        // Only process if this was the last click
+        if (latestClickTime === currentTime) {
+          console.log(`🖱️ Single click processed for ${sectionName}`);
+          
           if (this.cleanBMC) {
-            console.log(`🔍 DEBUG: Before selection - Current selected: ${this.cleanBMC.getSelectedObject()}`);
-            console.log(`🔍 DEBUG: About to select: ${sectionName}`);
-
             this.cleanBMC.onSelect(sectionName);
-
-            console.log(`🔍 DEBUG: After selection - New selected: ${this.cleanBMC.getSelectedObject()}`);
           }
-
-          // Trigger single-click callback
+          
           if (this.callbacks.onSingleClick) {
             this.callbacks.onSingleClick(sectionName);
           }
-
-          // Update click timer
-          this.clickTimers.set(sectionName, currentTime);
         }
-      })
-    );
+      }, this.doubleClickThreshold);
+    }
   }
 
   /**
-   * Setup hover handling
+   * Handle hover enter
    */
-  private setupHoverHandling(mesh: AbstractMesh, sectionName: string): void {
-    // Hover enter
-    mesh.actionManager?.registerAction(
-      new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-        debugLog.verbose('interaction', `Hover enter: ${sectionName}`);
-
-        // Handle hover via CleanBMC
-        if (this.cleanBMC) {
-          this.cleanBMC.onHover(sectionName, true);
-        }
-
-        // Trigger hover enter callback
-        if (this.callbacks.onHoverEnter) {
-          this.callbacks.onHoverEnter(sectionName);
-        }
-      })
-    );
-
-    // Hover exit
-    mesh.actionManager?.registerAction(
-      new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-        debugLog.verbose('interaction', `Hover exit: ${sectionName}`);
-
-        // Handle hover via CleanBMC
-        if (this.cleanBMC) {
-          this.cleanBMC.onHover(sectionName, false);
-        }
-
-        // Trigger hover exit callback
-        if (this.callbacks.onHoverExit) {
-          this.callbacks.onHoverExit(sectionName);
-        }
-      })
-    );
+  private handleHoverEnter(sectionName: string): void {
+    console.log(`🖱️ Hover enter: ${sectionName}`);
+    
+    if (this.cleanBMC) {
+      this.cleanBMC.onHover(sectionName, true);
+    }
+    
+    if (this.callbacks.onHoverEnter) {
+      this.callbacks.onHoverEnter(sectionName);
+    }
   }
 
   /**
-   * Setup background click handler to clear selection
+   * Handle hover exit
    */
-  public setupBackgroundClickHandler(onBackgroundClick: () => void): void {
+  private handleHoverExit(sectionName: string): void {
+    console.log(`🖱️ Hover exit: ${sectionName}`);
+    
+    if (this.cleanBMC) {
+      this.cleanBMC.onHover(sectionName, false);
+    }
+    
+    if (this.callbacks.onHoverExit) {
+      this.callbacks.onHoverExit(sectionName);
+    }
+  }
+
+  /**
+   * Setup background click handling for deselection
+   */
+  public setupBackgroundClick(): void {
+    // Use scene-level pointer observable for background clicks
     this.scene.onPointerObservable.add((pointerInfo) => {
-      if (pointerInfo.type === 1) { // POINTERDOWN
-        const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
-
-        // If no mesh was picked or it's the ground, clear selection
-        if (!pickedMesh || pickedMesh.name === 'ground') {
-          debugLog.verbose('interaction', 'Background clicked - clearing selection');
-
-          // Clear selection via CleanBMC
-          if (this.cleanBMC) {
-            this.cleanBMC.clearSelection();
-          }
-
-          // Trigger callback
-          onBackgroundClick();
+      if (pointerInfo.type === 1 && !pointerInfo.pickInfo?.hit) { // BABYLON.PointerEventTypes.POINTERDOWN
+        console.log('🖱️ Background click - clearing selection');
+        
+        if (this.cleanBMC) {
+          this.cleanBMC.clearSelection();
         }
       }
     });
   }
 
   /**
-   * Set double-click threshold
+   * Clean up resources
    */
-  public setDoubleClickThreshold(threshold: number): void {
-    this.doubleClickThreshold = threshold;
-    debugLog.verbose('interaction', `Double-click threshold set to ${threshold}ms`);
+  public dispose(): void {
+    this.meshToSection.clear();
+    this.clickTimers.clear();
+    
+    if (this.sharedActionManager) {
+      this.sharedActionManager.dispose();
+    }
+    
+    console.log('🧹 InteractionHandler disposed');
   }
 
   /**
-   * Clear all click timers
+   * Get debug info
    */
-  public clearClickTimers(): void {
-    this.clickTimers.clear();
-    debugLog.verbose('interaction', 'All click timers cleared');
+  public getDebugInfo(): any {
+    return {
+      registeredMeshes: this.meshToSection.size,
+      clickTimers: this.clickTimers.size,
+      hasSharedActionManager: !!this.sharedActionManager
+    };
   }
 }
