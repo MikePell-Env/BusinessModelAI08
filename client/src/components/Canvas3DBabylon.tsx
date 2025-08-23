@@ -747,20 +747,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     groundMaterial.alpha = 0.5; // 50% opacity
     ground.material = groundMaterial;
 
-    // Add click detection to ground for clearing selections and closing panels
+    // SIMPLIFIED: Single ground click handler to prevent conflicts
+    ground.isPickable = true;
     ground.actionManager = new ActionManager(scene);
     ground.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-      console.log('Ground clicked - clearing selection and closing billboard panel');
+      console.log('Ground clicked - clearing selection');
       
-      // Clear BMC selection
-      cleanBMCRef.current.clearSelection();
-      
-      // Close billboard panel if it exists
-      if (currentBillboardPanel) {
-        advancedTexture.removeControl(currentBillboardPanel);
-        currentBillboardPanel = null;
-        billboardPanelRef.current = null;
-        console.log("❌ Billboard panel closed by ground click");
+      // Use try-catch to prevent blank canvas on errors
+      try {
+        // Clear BMC selection
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.clearSelection();
+        }
+        
+        // Close billboard panel if it exists
+        if (currentBillboardPanel) {
+          advancedTexture.removeControl(currentBillboardPanel);
+          currentBillboardPanel = null;
+          billboardPanelRef.current = null;
+          console.log("❌ Billboard panel closed by ground click");
+        }
+      } catch (error) {
+        console.error('Error handling ground click:', error);
       }
     }));
 
@@ -854,25 +862,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     };
     
-    // Background click handler for panels only
-    scene.onPointerObservable.add((pointerInfo) => {
-      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-        if (pointerInfo.pickInfo?.hit) {
-          const hitMesh = pointerInfo.pickInfo.pickedMesh;
-          const isBMCMesh = hitMesh && (
-            hitMesh.name.includes('BMC_') || 
-            hitMesh.name.includes('Revenue') ||
-            hitMesh.name.includes('Cost')
-          );
-          
-          if (!isBMCMesh && currentBillboardPanel) {
-            handleBackgroundClick();
-          }
-        } else if (currentBillboardPanel) {
-          handleBackgroundClick();
-        }
-      }
-    });
+    // SIMPLIFIED: Removed duplicate background click handler to prevent conflicts
+    // Ground click handler above already handles background clicks
     
     // Function to create billboarded content panel
     const createBillboardPanel = (sectionName: string, worldPosition: Vector3) => {
