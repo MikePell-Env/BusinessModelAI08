@@ -70,8 +70,9 @@ export class CleanBMCSystem {
 
   // Register a BMC item
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
-    const actualHeight = originalHeight || 1.0;
-    console.log(`📏 Registering ${name} with height=${actualHeight}`);
+    // IMPORTANT: Use the actual current mesh height, not the passed value
+    const actualHeight = mesh.scaling.y;
+    console.log(`📏 Registering ${name} with ACTUAL mesh height=${actualHeight} (passed=${originalHeight})`);
 
     this.items.set(name, {
       mesh,
@@ -80,9 +81,9 @@ export class CleanBMCSystem {
       name
     });
 
-    // Set default appearance
-    this.setDefaultAppearance(name);
-    console.log(`✓ Registered BMC item: ${name}`);
+    // Set default appearance WITHOUT changing height
+    this.setDefaultAppearancePreserveHeight(name);
+    console.log(`✓ Registered BMC item: ${name} with preserved height ${actualHeight}`);
   }
 
   // Add a label to an existing BMC item
@@ -256,7 +257,7 @@ export class CleanBMCSystem {
       item.mesh.scaling.y = item.originalHeight;  // Always original height
     } else {
       item.material.alpha = 0.5;  // Only dim in 3D view
-      this.animateHeight(item.mesh, item.originalHeight * 0.3);
+      this.animateHeight(item.mesh, 0.01);  // Flatten to 0.01
     }
   }
 
@@ -298,6 +299,29 @@ export class CleanBMCSystem {
     } else {
       mesh.scaling.y = targetHeight;
     }
+  }
+
+  // Set default appearance for an item WITHOUT changing height
+  private setDefaultAppearancePreserveHeight(itemName: string) {
+    const item = this.items.get(itemName);
+    if (!item) return;
+
+    console.log(`🎨 Setting default appearance for ${itemName} (preserving height)`);
+    
+    // Set default colors based on section
+    if (itemName === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+    } else if (itemName === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+    } else {
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+    }
+    
+    item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    item.material.alpha = 1.0;
+    // DO NOT change mesh.scaling.y - preserve original height
+    
+    this.makeLabelVisible(itemName);
   }
 
   // Set default appearance for an item
