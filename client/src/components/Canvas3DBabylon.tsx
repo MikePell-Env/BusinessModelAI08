@@ -269,17 +269,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     cleanBMCRef.current.setBMCStateManager(bmcState);
     console.log("🔗 Injection complete");
     
-    // Force sync current selection state after injection
-    const currentSelection = bmcState.getSelectedObject();
-    if (currentSelection) {
-      console.log(`🔄 Syncing initial selection state: ${currentSelection}`);
-      setTimeout(() => {
-        if (cleanBMCRef.current) {
-  
-          console.log(`✅ Initial visual state synced for: ${currentSelection}`);
-        }
-      }, 100);
-    }
+    // DISABLED: Old sync was causing conflicts between dual selection systems
+    // const currentSelection = bmcState.getSelectedObject();
+    // if (currentSelection) {
+    //   console.log(`🔄 Syncing initial selection state: ${currentSelection}`);
+    //   setTimeout(() => {
+    //     if (cleanBMCRef.current) {
+    //
+    //       console.log(`✅ Initial visual state synced for: ${currentSelection}`);
+    //     }
+    //   }, 100);
+    // }
   }, [bmcState]);
   
   // Update CleanBMCSystem when view mode changes
@@ -2738,9 +2738,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const clearAllSelections = () => {
       console.log("🔄 STARTUP: Clearing all selections to enable hover behavior");
       
-      // Clear selection state using unified BMC system
-      bmcState.selectObject(null);
-      // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
+      // FIX: Use ONLY the CleanBMCSystem for selection management
+      cleanBMCRef.current.clearSelection();
+      // REMOVED: bmcState.selectObject - was causing conflicts with CleanBMCSystem
       
       console.log("✅ All selections cleared, hover behavior enabled");
     };
