@@ -6,29 +6,13 @@ This project is a web application for creating and visualizing business model ca
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes
-- **January 23, 2025**: **Modular Architecture Integration** - Successfully deployed modular architecture with fixes:
-  - Fixed React Rules of Hooks violation (removed early returns in hooks)
-  - Fixed "No camera defined" error with fallback camera creation
-  - Fixed TypeScript null safety issues across all modular components
-  - **Status**: Modular architecture is working without crashes
-  - **Issue**: 3D Top view shows ground but BMC objects not visible (positioning problem)
-  - Need to verify BMC object loading and camera positioning for orthographic view
-- **January 15, 2025**: Updated Envisioner logo to new design with proper sizing (h-5) to match original dimensions
-
 ## System Architecture
 The application employs a full-stack monorepo architecture, separating client and server concerns.
 
 ### Frontend Architecture
 - **Framework**: React with TypeScript, using Vite.
 - **UI Framework**: Radix UI components styled with Tailwind CSS.
-- **3D Rendering**: **Modular Babylon.js Architecture** - Advanced 3D canvas visualizations with clean separation of concerns:
-  - **SceneManager**: Scene initialization, lighting, and ground plane creation
-  - **CameraController**: Dual camera modes (Perspective 3D View and orthographic 3D Top View with persistent states)
-  - **InteractionManager**: Click/hover handling, billboard panels, ActionManager integration
-  - **MaterialManager**: Material presets, visual state management, performance optimizations
-  - **BMCObjectManager**: GLB model loading, height management, label creation
-  - **ErrorBoundary**: React error boundaries preventing crashes with graceful fallbacks
+- **3D Rendering**: React Three Fiber with Three.js (initial concepts) and Babylon.js for advanced 3D canvas visualizations. The Babylon.js implementation supports GLB model integration, dual camera modes (Perspective 3D View and orthographic 3D Top View with persistent camera states), dynamic height management, interactive selection with content panels, hover effects, and billboard labels.
 - **State Management**: Zustand for client-side application state.
 - **Data Fetching**: TanStack Query for server state management and data synchronization.
 
