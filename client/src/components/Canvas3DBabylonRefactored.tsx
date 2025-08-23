@@ -54,41 +54,43 @@ export const Canvas3DBabylonRefactored: React.FC<Canvas3DBabylonRefactoredProps>
     onSaveCamera3DState: saveCamera3DState
   });
 
-  // Initialize material management
-  const { setMeshVisualState, setMeshesVisualState } = useMaterialManager({
-    scene: scene!
-  });
+  // Initialize material management - only when scene is ready
+  const materialManager = React.useMemo(() => {
+    if (!scene) return null;
+    return useMaterialManager({ scene });
+  }, [scene]);
 
-  // Initialize BMC object management
-  const { getObject, setObjectHeight, createLabelPlane } = useBMCObjectManager({
-    scene: scene!,
-    onObjectLoaded: (sectionName, mesh) => {
-      console.log(`BMC object loaded: ${sectionName}`);
-      
-      // Register with CleanBMCSystem if available
-      if (cleanBMCRef.current) {
-        // This would need to be adapted based on the actual CleanBMCSystem interface
-      }
-      
-      // Setup interactions for this mesh
-      setupMeshInteraction(mesh, sectionName);
-    },
-    onAllObjectsLoaded: () => {
-      console.log('All BMC objects loaded');
-      initializeCleanBMCSystem();
-    }
-  });
+  const { setMeshVisualState, setMeshesVisualState } = materialManager || {
+    setMeshVisualState: () => {},
+    setMeshesVisualState: () => {}
+  };
 
-  // Initialize interaction management - only when both scene and advanced texture are ready
-  const interactionManager = React.useMemo(() => {
-    if (!scene || !advancedTextureRef.current) return null;
+  // Initialize BMC object management - only when scene is ready
+  const bmcObjectManager = React.useMemo(() => {
+    if (!scene) return null;
     
-    return {
-      setupMeshInteraction: () => {},
-      createBillboardPanel: () => null,
-      closeBillboardPanel: () => {}
-    };
-  }, [scene, advancedTextureRef.current]);
+    return useBMCObjectManager({
+      scene,
+      onObjectLoaded: (sectionName, mesh) => {
+        console.log(`BMC object loaded: ${sectionName}`);
+        
+        // Setup interactions for this mesh when both managers are ready
+        if (interactionManager) {
+          interactionManager.setupMeshInteraction(mesh, sectionName);
+        }
+      },
+      onAllObjectsLoaded: () => {
+        console.log('All BMC objects loaded');
+        initializeCleanBMCSystem();
+      }
+    });
+  }, [scene, interactionManager]);
+
+  const { getObject, setObjectHeight, createLabelPlane } = bmcObjectManager || {
+    getObject: () => undefined,
+    setObjectHeight: () => false,
+    createLabelPlane: () => null as any
+  };
 
   const { setupMeshInteraction, createBillboardPanel, closeBillboardPanel } = interactionManager || {
     setupMeshInteraction: () => {},
