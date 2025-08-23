@@ -303,14 +303,15 @@ export class CleanBMCSystem {
   // Update all visual states based on current selection from BMC State Manager
   updateAllVisuals() {
     const selectedItem = this.getSelectedObject();
-    console.log(`🎨 Updating all visuals, selected: ${selectedItem}`);
+    console.log(`🎨 Updating all visuals, selected: ${selectedItem}, isTopView: ${this.isTopView}`);
     
     this.items.forEach((item, name) => {
       console.log(`🎨 Processing ${name}:`, {
         isSelected: name === selectedItem,
         hasLabel: !!item.label,
         hasMaterial: !!item.labelMaterial,
-        currentAlpha: item.labelMaterial?.alpha
+        currentAlpha: item.labelMaterial?.alpha,
+        isTopView: this.isTopView
       });
       
       // ALWAYS update labels FIRST to ensure they stay visible
@@ -329,21 +330,26 @@ export class CleanBMCSystem {
           item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive for default
         }
         item.material.alpha = 1.0;
-        this.animateHeight(item.mesh, item.originalHeight);
-        console.log(`🔵 ${name} SELECTED: brightened color, height=${item.originalHeight}`);
+        
+        // NO HEIGHT CHANGES IN TOP VIEW - keep objects at their original height
+        if (!this.isTopView) {
+          this.animateHeight(item.mesh, item.originalHeight);
+          console.log(`🔵 ${name} SELECTED: brightened color, height=${item.originalHeight}`);
+        } else {
+          console.log(`🔵 ${name} SELECTED in TOP VIEW: brightened color, height unchanged`);
+        }
       } else if (selectedItem) {
         // Others when selected: dim object
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
         item.material.alpha = 0.5; // Only affects the 3D object, NOT the label
         
-        // Only flatten in 3D View, not in Top View (where flattening makes objects disappear)
+        // Only flatten in 3D View, NOT in Top View
         if (!this.isTopView) {
           this.animateHeight(item.mesh, 0.1);
           console.log(`⚫ ${name} dimmed: grey, height=0.1, LABEL SHOULD STAY VISIBLE`);
         } else {
-          // In top view, keep objects at reduced but visible height
-          this.animateHeight(item.mesh, item.originalHeight * 0.7);
-          console.log(`⚫ ${name} dimmed in TOP VIEW: grey, height=${item.originalHeight * 0.7}`);
+          // In TOP VIEW: NO HEIGHT CHANGES - keep at original height
+          console.log(`⚫ ${name} dimmed in TOP VIEW: grey, height unchanged`);
         }
       } else {
         // Default state - restore original colors
@@ -358,8 +364,14 @@ export class CleanBMCSystem {
           item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
         }
         item.material.alpha = 1.0;
-        this.animateHeight(item.mesh, item.originalHeight);
-        console.log(`🔘 ${name} default: original color, height=${item.originalHeight}`);
+        
+        // NO HEIGHT CHANGES IN TOP VIEW - keep at original height
+        if (!this.isTopView) {
+          this.animateHeight(item.mesh, item.originalHeight);
+          console.log(`🔘 ${name} default: original color, height=${item.originalHeight}`);
+        } else {
+          console.log(`🔘 ${name} default in TOP VIEW: original color, height unchanged`);
+        }
       }
       
       // CRITICAL: Force label visibility again after any material changes
