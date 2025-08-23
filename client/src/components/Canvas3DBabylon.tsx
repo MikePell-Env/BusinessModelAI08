@@ -643,6 +643,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     topViewCamera.lowerBetaLimit = 0.01;  // Keep nearly straight down
     topViewCamera.upperBetaLimit = 0.01;  // Prevent rotation from top view
     
+    // Store as orthoCamera for compatibility with existing code
+    const orthoCamera = topViewCamera;
+    
     // Setup controls for top view camera
     const setupOrthoControls = () => {
       const canvas = canvasRef.current;
@@ -683,7 +686,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Store camera references
     cameraRef.current = perspectiveCamera;
-    orthoCameraRef.current = topViewCamera as any; // Cast to any for compatibility
+    orthoCameraRef.current = orthoCamera as any; // Cast to any for compatibility
     
     // Set active camera based on mode
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
