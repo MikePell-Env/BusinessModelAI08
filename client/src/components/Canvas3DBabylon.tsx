@@ -43,7 +43,7 @@ import { debugLog } from '@/lib/debug/DebugLogger';
 import { setupDoubleClick } from '@/lib/interactions/DoubleClickHandler';
 import { SceneSetup } from './Canvas3DBabylon/scene/SceneSetup';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
-import { InteractionHandler } from './Canvas3DBabylon/interactions/InteractionHandler';
+import { SimpleClickHandler } from './Canvas3DBabylon/interactions/SimpleClickHandler';
 import { ViewTransitionManager } from './Canvas3DBabylon/animations/ViewTransitionManager';
 
 interface Canvas3DBabylonProps {
@@ -760,7 +760,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     groundMaterial.alpha = 0.5; // 50% opacity
     ground.material = groundMaterial;
 
-    // Background click handling will be done by InteractionHandler.setupBackgroundClick()
+    // Background click handling is done by SimpleClickHandler callbacks
     ground.isPickable = false; // Prevent individual ground mesh clicks
 
     // Create extruded border rails on all sides
@@ -1343,22 +1343,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Initialize model loader, interaction handler, and view transitions
     const modelLoader = new BMCModelLoader(scene);
-    const interactionHandler = new InteractionHandler(scene);
+    const clickHandler = new SimpleClickHandler(scene);
     const viewTransitionManager = new ViewTransitionManager(scene);
     
     // Store reference for later use
     viewTransitionRef.current = viewTransitionManager;
     
-    // Set CleanBMC reference for the interaction handler
-    interactionHandler.setCleanBMC(cleanBMCRef.current);
-    
-    // Setup background click handling for deselection and panel closing
-    interactionHandler.setupBackgroundClick();
-    
-    // Register interaction callbacks
-    interactionHandler.registerCallbacks({
-      onDoubleClick: (sectionName: string, position: Vector3) => {
-        console.log(`🖱️🖱️ Double-click callback triggered for ${sectionName}`);
+    // Setup click handler callbacks
+    clickHandler.setCallbacks({
+      onSingleClick: (meshName: string, mesh: AbstractMesh) => {
+        console.log(`🖱️ Single click: ${meshName}`);
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.onSelect(meshName);
+        }
+      },
+      onDoubleClick: (meshName: string, mesh: AbstractMesh, position: Vector3) => {
+        console.log(`🖱️🖱️ Double click: ${meshName}`);
         
         // Close any existing panel first
         if (currentBillboardPanel) {
@@ -1368,7 +1368,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
         
         // Create new panel
-        createBillboardPanel(sectionName, position);
+        const worldPosition = mesh.getAbsolutePosition();
+        createBillboardPanel(meshName, worldPosition);
+      },
+      onHoverEnter: (meshName: string) => {
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.onHover(meshName, true);
+        }
+      },
+      onHoverExit: (meshName: string) => {
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.onHover(meshName, false);
+        }
+      },
+      onBackgroundClick: () => {
+        console.log('🖱️ Background click - clearing selection');
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.clearSelection();
+        }
+        if (currentBillboardPanel) {
+          advancedTexture.removeControl(currentBillboardPanel);
+          currentBillboardPanel = null;
+        }
       }
     });
     
@@ -2106,9 +2127,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Setup interactions using InteractionHandler
-            interactionHandler.setupMeshInteractions(mesh, sectionName);
-            console.log(`🎯 ${sectionName}: Interactions configured via InteractionHandler`);
+            // Setup interactions using SimpleClickHandler
+            clickHandler.registerMesh(mesh);
+            console.log(`🎯 ${sectionName}: Interactions configured via SimpleClickHandler`);
             
             // REMOVED: Old click select function - replaced by unified BMC system
             
@@ -2118,7 +2139,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
-            // All click and double-click handling managed by InteractionHandler
+            // All click and double-click handling managed by SimpleClickHandler
             
             // REMOVED: Old close button functionality - now handled by billboard panel system
             
@@ -2338,13 +2359,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Setup interactions using InteractionHandler
-            interactionHandler.setupMeshInteractions(mesh, "Revenue Streams");
-            console.log(`🎯 Revenue Streams: Interactions configured via InteractionHandler`);
+            // Setup interactions using SimpleClickHandler
+            clickHandler.registerMesh(mesh);
+            console.log(`🎯 Revenue Streams: Interactions configured via SimpleClickHandler`);
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
-            // All click and double-click handling managed by InteractionHandler
+            // All click and double-click handling managed by SimpleClickHandler
 
             // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
             console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
@@ -2480,13 +2501,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Setup interactions using InteractionHandler
-            interactionHandler.setupMeshInteractions(mesh, "Cost Structure");
-            console.log(`🎯 Cost Structure: Interactions configured via InteractionHandler`);
+            // Setup interactions using SimpleClickHandler
+            clickHandler.registerMesh(mesh);
+            console.log(`🎯 Cost Structure: Interactions configured via SimpleClickHandler`);
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
-            // All click and double-click handling managed by InteractionHandler
+            // All click and double-click handling managed by SimpleClickHandler
 
             // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
             console.log(`🏷️ Creating floating label for Cost Structure mesh (index ${index})`);
