@@ -52,18 +52,17 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
 
-    // When entering top view, set all objects to full height (not flat)
+    // When entering top view, restore all objects to their ACTUAL original height
     if (isTopView) {
-      console.log(`📐 Entering TOP VIEW - setting to full heights`);
+      console.log(`📐 Entering TOP VIEW - restoring to actual original heights`);
       this.items.forEach((item, name) => {
-        // Set to full height (same as normal state in 3D view)
-        const fullHeight = item.originalHeight * 2.0;  // Make them clearly visible
-        item.mesh.scaling.y = fullHeight;
+        // Restore to actual original height from when model was loaded
+        item.mesh.scaling.y = item.originalHeight;
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
         item.material.alpha = 1.0;  // Full opacity
         this.makeLabelVisible(name);
-        console.log(`   Set ${name}: height=${fullHeight} (original=${item.originalHeight}), alpha=1.0`);
+        console.log(`   Set ${name}: height=${item.originalHeight} (actual original), alpha=1.0`);
       });
     }
 
@@ -94,18 +93,20 @@ export class CleanBMCSystem {
 
   // Register a BMC item (mesh + material + original height)
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
-    console.log(`📏 Registering ${name} with height=${originalHeight}`);
+    // Use the ACTUAL mesh scaling.y as the true original height
+    const actualOriginalHeight = mesh.scaling.y;
+    console.log(`📏 Registering ${name} with ACTUAL height=${actualOriginalHeight} (ignoring passed ${originalHeight})`);
 
     this.items.set(name, {
       mesh,
       material,
-      originalHeight,
+      originalHeight: actualOriginalHeight,  // Use actual mesh height
       name
     });
 
     // Set default appearance
     this.setDefaultAppearance(name);
-    console.log(`✓ Registered BMC item: ${name} with height ${originalHeight}`);
+    console.log(`✓ Registered BMC item: ${name} with ACTUAL height ${actualOriginalHeight}`);
   }
 
   // Add a label to an existing BMC item
@@ -360,12 +361,11 @@ export class CleanBMCSystem {
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
 
-    // In top view, keep objects at full height (never change heights)
+    // In top view, keep objects at their actual original height (never change heights)
     if (this.isTopView) {
-      // Maintain full height in top view
-      const fullHeight = item.originalHeight * 2.0;
-      item.mesh.scaling.y = fullHeight;
-      console.log(`📐 TOP VIEW: Keeping ${name} at full height ${fullHeight}`);
+      // Maintain actual original height in top view
+      item.mesh.scaling.y = item.originalHeight;
+      console.log(`📐 TOP VIEW: Keeping ${name} at actual original height ${item.originalHeight}`);
     }
 
     switch (state) {
