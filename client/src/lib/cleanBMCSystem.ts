@@ -64,17 +64,8 @@ export class CleanBMCSystem {
       this.selectedObject = sectionName;
     }
 
-    // Update BMC state manager
-    if (this.bmcStateManager) {
-      const bmcComponent = this.convertNameToBMCComponent(sectionName);
-      if (bmcComponent) {
-        try {
-          this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent as any : null);
-        } catch (e) {
-          console.error('BMC state manager error:', e);
-        }
-      }
-    }
+    // REMOVED: BMC state manager calls to prevent dual state management conflicts
+    // Only CleanBMCSystem manages visual state now
 
     this.updateAllVisuals();
   }
@@ -82,13 +73,8 @@ export class CleanBMCSystem {
   // Clear selection
   clearSelection() {
     this.selectedObject = null;
-    if (this.bmcStateManager) {
-      try {
-        this.bmcStateManager.selectObject(null);
-      } catch (e) {
-        console.error('BMC state manager error during clear selection:', e);
-      }
-    }
+    // REMOVED: BMC state manager calls to prevent dual state management conflicts
+    // Only CleanBMCSystem manages visual state now
     this.updateAllVisuals();
   }
 
@@ -145,26 +131,58 @@ export class CleanBMCSystem {
   private updateAllVisuals(): void {
     console.log(`🎨 updateAllVisuals: mode=${this.isTopView ? '3D Top' : '3D View'}, selected=${this.selectedObject || 'none'}`);
 
-    this.items.forEach((item, name) => {
-      if (this.selectedObject === name) {
-        this.applyState(name, 'selected');
-      } else if (this.selectedObject !== null && !this.isTopView) {
-        // 3D View: Non-selected objects are dimmed
-        this.applyState(name, 'dimmed');
-      } else {
-        // 3D Top View: Non-selected objects stay normal (no dimming)
-        // 3D View with no selection: All objects normal
-        this.applyState(name, 'normal');
-      }
-    });
+    try {
+      this.items.forEach((item, name) => {
+        try {
+          if (this.selectedObject === name) {
+            this.applyState(name, 'selected');
+          } else if (this.selectedObject !== null && !this.isTopView) {
+            // 3D View: Non-selected objects are dimmed
+            this.applyState(name, 'dimmed');
+          } else {
+            // 3D Top View: Non-selected objects stay normal (no dimming)
+            // 3D View with no selection: All objects normal
+            this.applyState(name, 'normal');
+          }
+        } catch (error) {
+          console.error(`❌ Error applying visual state to ${name}:`, error);
+          // Continue with other objects even if one fails
+        }
+      });
+    } catch (error) {
+      console.error(`❌ Critical error in updateAllVisuals:`, error);
+      // Attempt recovery by ensuring all objects are visible
+      this.items.forEach((item, name) => {
+        try {
+          if (item.mesh) {
+            item.mesh.setEnabled(true);
+            item.mesh.isVisible = true;
+            if (item.material) {
+              item.material.alpha = 1.0;
+            }
+          }
+        } catch (recoveryError) {
+          console.error(`❌ Recovery failed for ${name}:`, recoveryError);
+        }
+      });
+    }
   }
 
   // State application following documentation rules
   private applyState(name: string, state: string) {
     const item = this.items.get(name);
-    if (!item || !item.mesh || !item.material) return;
+    if (!item || !item.mesh || !item.material) {
+      console.warn(`⚠️ CleanBMC: Cannot apply state ${state} to ${name} - missing item, mesh, or material`);
+      return;
+    }
 
     const { mesh, material, originalHeight, baseColor } = item;
+
+    // Ensure material is still assigned to mesh (prevent material conflicts)
+    if (mesh.material !== material) {
+      console.log(`🔧 CleanBMC: Reassigning material to ${name} to prevent conflicts`);
+      mesh.material = material;
+    }
 
     // Height management - Keep objects at normal heights in both views
     if (state === 'selected' && !this.isTopView) {
@@ -178,8 +196,10 @@ export class CleanBMCSystem {
       mesh.scaling.y = originalHeight; // Normal height
     }
 
-    // Base material settings
+    // Base material settings - always ensure visibility
     material.alpha = 1.0;
+    mesh.setEnabled(true);
+    mesh.isVisible = true;
 
     // Apply state-specific colors and effects
     switch (state) {
@@ -210,7 +230,7 @@ export class CleanBMCSystem {
           material.diffuseColor = baseColor.scale(0.6); // Darkened original color
         }
         material.emissiveColor = Color3.Black();
-        material.alpha = 0.3;
+        material.alpha = 0.7; // Increased from 0.3 to prevent objects from becoming too transparent
         console.log(`🎨 Applied DIMMED: ${name} -> ${(name === "Revenue Streams" || name === "Cost Structure") ? "dark grey" : "darkened"} + transparent`);
         break;
 
