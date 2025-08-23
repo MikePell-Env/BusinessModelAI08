@@ -227,13 +227,13 @@ export class BMCModelLoader {
   handleCameraModeChange(isOrthographic: boolean): void {
     if (this.rootMesh) {
       if (isOrthographic) {
-        // Apply 180° Y-axis rotation for orthographic (3D Top) view
-        this.rootMesh.rotation.y = Math.PI;
-        console.log("🔄 Applied 180° Y-axis rotation for orthographic view");
-      } else {
-        // Reset rotation for perspective view
+        // Reset rotation for orthographic (3D Top) view
         this.rootMesh.rotation.y = 0;
-        console.log("🔄 Reset rotation for perspective view");
+        console.log("🔄 Reset rotation for orthographic view");
+      } else {
+        // Apply 180° Y-axis rotation for perspective view
+        this.rootMesh.rotation.y = Math.PI;
+        console.log("🔄 Applied 180° Y-axis rotation for perspective view");
       }
     }
   }

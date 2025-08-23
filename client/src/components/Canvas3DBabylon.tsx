@@ -360,7 +360,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
 
     // Initialize BMC Model Loader
-    const bmcModelLoader = new BMCModelLoader(scene, bmcState);
+    const bmcModelLoader = new BMCModelLoader(scene, canvas, cleanBMCRef.current);
     bmcModelLoaderRef.current = bmcModelLoader; // Store reference to BMCModelLoader
 
     // Load and setup BMC models
@@ -508,9 +508,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           // cameras.orthographic.orthoBottom = -10;
           // cameras.orthographic.orthoTop = 10;
         }
-        // Apply 180 Y-axis rotation for orthographic view if the loader supports it
+        // Apply rotation for orthographic view if the loader supports it
         if (bmcModelLoaderRef.current) {
-          bmcModelLoaderRef.current.handleCameraModeChange(true);
+          bmcModelLoaderRef.current.handleCameraModeChange(isOrthographic);
         }
       }
 
