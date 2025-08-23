@@ -52,19 +52,15 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
 
-    // When entering top view, restore all objects to their ACTUAL original height
-    if (isTopView) {
-      console.log(`📐 Entering TOP VIEW - restoring to actual original heights`);
-      this.items.forEach((item, name) => {
-        // Restore to actual original height from when model was loaded
-        item.mesh.scaling.y = item.originalHeight;
-        item.mesh.isVisible = true;
-        item.mesh.setEnabled(true);
-        item.material.alpha = 1.0;  // Full opacity
-        this.makeLabelVisible(name);
-        console.log(`   Set ${name}: height=${item.originalHeight} (actual original), alpha=1.0`);
-      });
-    }
+    // Always ensure objects are visible and at proper heights
+    this.items.forEach((item, name) => {
+      item.mesh.scaling.y = item.originalHeight;
+      item.mesh.isVisible = true;
+      item.mesh.setEnabled(true);
+      item.material.alpha = 1.0;
+      this.makeLabelVisible(name);
+      console.log(`   Restored ${name}: height=${item.originalHeight}, alpha=1.0`);
+    });
 
     // Update visuals for the new view mode
     this.updateAllVisuals();
