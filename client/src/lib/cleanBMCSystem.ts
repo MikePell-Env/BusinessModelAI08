@@ -200,17 +200,18 @@ export class CleanBMCSystem {
       console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
       const { mesh, material, originalHeight, baseColor } = item;
 
-    // Height management - Keep objects at normal heights in both views (do this FIRST)
-    if (state === 'selected' && !this.isTopView) {
-      // Only elevate selected objects in 3D View
-      mesh.scaling.y = originalHeight * 1.4; // Elevated
-    } else if (state === 'dimmed' && !this.isTopView) {
-      // Only flatten dimmed objects in 3D View
-      mesh.scaling.y = 0.01; // Flattened
-    } else {
-      // All other cases: keep normal height (including all 3D Top view states)
-      mesh.scaling.y = originalHeight; // Normal height
+    // FIXED: Height management - NO changes in 3D Top view (avoid scaling crashes)
+    if (!this.isTopView) {
+      // Only do height changes in 3D View (not 3D Top)
+      if (state === 'selected') {
+        mesh.scaling.y = originalHeight * 1.4; // Elevated
+      } else if (state === 'dimmed') {
+        mesh.scaling.y = 0.01; // Flattened
+      } else {
+        mesh.scaling.y = originalHeight; // Normal height
+      }
     }
+    // In 3D Top view: skip ALL height changes to prevent crashes
 
     // Base visibility settings - always ensure visibility
     mesh.setEnabled(true);
@@ -222,41 +223,32 @@ export class CleanBMCSystem {
       mesh.material = material;
     }
     
-    // Modify material properties directly based on state
-    material.alpha = 1.0; // Reset alpha first
-
-    // Apply visual state by modifying material properties directly
-    switch (state) {
-      case 'selected':
-        material.diffuseColor = new Color3(0.0, 0.3, 0.8);
-        material.emissiveColor = new Color3(0.0, 0.1, 0.2);
-        if (this.isTopView) {
-          console.log(`🎨 Applied 3D Top SELECTED: ${name} -> bright blue + glow`);
-        } else {
-          console.log(`🎨 Applied 3D SELECTED: ${name} -> bright blue + glow + elevated`);
-        }
-        break;
-      case 'hover':
-        material.diffuseColor = new Color3(0.0, 0.3, 0.8);
-        material.emissiveColor = Color3.Black();
-        console.log(`🎨 Applied HOVER: ${name} -> bright blue`);
-        break;
-      case 'dimmed':
-        if (name === "Revenue Streams" || name === "Cost Structure") {
-          material.diffuseColor = new Color3(0.07, 0.07, 0.07);
-        } else {
-          material.diffuseColor = baseColor.scale(0.6);
-        }
-        material.emissiveColor = Color3.Black();
-        material.alpha = 0.7;
-        console.log(`🎨 Applied DIMMED: ${name} -> ${(name === "Revenue Streams" || name === "Cost Structure") ? "dark grey" : "darkened"} + transparent`);
-        break;
-      case 'normal':
-      default:
-        material.diffuseColor = baseColor.clone();
-        material.emissiveColor = Color3.Black();
-        console.log(`🎨 Applied NORMAL: ${name} -> original color`);
-        break;
+    // FIXED: Simplified material changes - no transparency in 3D Top, reuse colors
+    material.alpha = 1.0; // Always solid - no transparency crashes
+    material.emissiveColor = Color3.Black(); // Always black emission
+    
+    // Apply colors based on state (avoiding new Color3 creation crashes)
+    if (state === 'selected' || state === 'hover') {
+      // Blue for selected/hover - reuse same values
+      material.diffuseColor.r = 0.0;
+      material.diffuseColor.g = 0.3; 
+      material.diffuseColor.b = 0.8;
+      console.log(`🎨 Applied ${state.toUpperCase()}: ${name} -> blue`);
+    } else if (state === 'dimmed' && !this.isTopView) {
+      // Only dim in 3D View, not 3D Top
+      material.diffuseColor.r = 0.07;
+      material.diffuseColor.g = 0.07;
+      material.diffuseColor.b = 0.07;
+      material.alpha = 0.7; // Only transparency in 3D View
+      console.log(`🎨 Applied DIMMED: ${name} -> grey + transparent`);
+    } else {
+      // Normal state - restore original color safely
+      if (baseColor) {
+        material.diffuseColor.r = baseColor.r;
+        material.diffuseColor.g = baseColor.g;
+        material.diffuseColor.b = baseColor.b;
+      }
+      console.log(`🎨 Applied NORMAL: ${name} -> original color`);
     }
     
     } catch (error) {
