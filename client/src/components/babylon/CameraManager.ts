@@ -33,17 +33,17 @@ export class CameraManager {
     this.perspectiveCamera.lowerBetaLimit = 0.1;
     this.perspectiveCamera.upperBetaLimit = Math.PI / 2.2;
 
-    // Create orthographic camera
-    this.orthographicCamera = new FreeCamera("orthoCamera", new Vector3(0, 15, 0), this.scene);
-    this.orthographicCamera.setTarget(Vector3.Zero());
+    // Create orthographic camera - positioned higher and adjusted for BMC model
+    this.orthographicCamera = new FreeCamera("orthoCamera", new Vector3(0, 20, 0), this.scene);
+    this.orthographicCamera.setTarget(new Vector3(0, 0, 0.9)); // Target the BMC model position
     this.orthographicCamera.rotation.x = Math.PI / 2;
     this.orthographicCamera.rotation.y = 0;
     this.orthographicCamera.rotation.z = 0;
     this.orthographicCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
 
-    // Set orthographic projection
+    // Set orthographic projection - adjusted for scaled BMC model
     const aspectRatio = canvasElement.width / canvasElement.height;
-    const orthoSize = 8.5;
+    const orthoSize = 12; // Increased to accommodate 8x scaled BMC model
 
     if (aspectRatio > 1) {
       this.orthographicCamera.orthoTop = orthoSize;
