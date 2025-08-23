@@ -41,6 +41,8 @@ import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { BabylonMaterialManager } from '@/lib/babylon/BabylonMaterialManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { setupDoubleClick } from '@/lib/interactions/DoubleClickHandler';
+import { MaterialPresets } from './Canvas3DBabylon/materials/MaterialPresets';
+import { AnimationEffects } from './Canvas3DBabylon/animations/AnimationEffects';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -254,6 +256,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   
   // Unified BMC label manager - inject BMC State Manager
   const cleanBMCRef = useRef<CleanBMCSystem>(cleanBMCSystem);
+  const animationEffectsRef = useRef<AnimationEffects | null>(null);
+  const materialPresetsRef = useRef<MaterialPresets | null>(null);
   
   // Inject BMC State Manager into CleanBMCSystem on first render
   useEffect(() => {
@@ -312,15 +316,33 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // Removed old handleBMCObjectClick - using direct cleanBMCRef.current.onSelect calls
   
-  // Clean hover handlers
+  // Enhanced hover handlers with animations
   const handleBMCObjectHoverEnter = (sectionName: string) => {
     cleanBMCRef.current.onHover(sectionName, true);
-    console.log(`HOVER ENTER: ${sectionName}`);
+    
+    // Find the mesh and apply hover animation
+    if (sceneRef.current) {
+      const mesh = sceneRef.current.meshes.find((m: any) => m.bmcSectionName === sectionName);
+      if (mesh && animationEffectsRef.current) {
+        animationEffectsRef.current.startHoverFloat(mesh);
+      }
+    }
+    
+    debugLog.verbose('hover', `Hover enter: ${sectionName}`);
   };
   
   const handleBMCObjectHoverExit = (sectionName: string) => {
     cleanBMCRef.current.onHover(sectionName, false);
-    console.log(`HOVER EXIT: ${sectionName}`);
+    
+    // Find the mesh and stop hover animation
+    if (sceneRef.current) {
+      const mesh = sceneRef.current.meshes.find((m: any) => m.bmcSectionName === sectionName);
+      if (mesh && animationEffectsRef.current) {
+        animationEffectsRef.current.stopHoverFloat(mesh);
+      }
+    }
+    
+    debugLog.verbose('hover', `Hover exit: ${sectionName}`);
   };
 
   // REMOVED: Old applyBMCVisualState function - CleanBMCSystem handles all visual states
@@ -590,7 +612,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         throw new Error('Scene creation returned null');
       }
       
-      console.log("✅ Babylon.js engine and scene initialized successfully");
+      // Initialize visual enhancement systems
+      const materialPresets = new MaterialPresets(scene);
+      const animationEffects = new AnimationEffects(scene);
+      
+      // Store references for use in other functions
+      materialPresetsRef.current = materialPresets;
+      animationEffectsRef.current = animationEffects;
+      
+      debugLog.info('scene', 'Babylon.js engine and scene initialized with visual enhancements');
     } catch (error) {
       console.error('Failed to initialize Babylon.js engine:', error);
       console.error('Engine object:', engine ? 'created' : 'null');
@@ -2453,13 +2483,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           if (mesh.name !== "__root__") {
             console.log(`✅ Processing non-root Revenue Streams mesh ${index}: ${mesh.name}`);
             
-            // Create material for Revenue Streams mesh - Darker British Racing Green
-            const baseColor = new Color3(0.0, 0.20, 0.12); // Darker British Racing Green
-            const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene);
-            sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.1, 0.3, 0.2); // Slightly green specular
-            sectionMaterial.specularPower = 32;
+            // Apply enhanced Revenue Generator material preset (gold metallic)
+            const sectionMaterial = materialPresetsRef.current?.getMaterialForSection("Revenue Streams") || 
+              new StandardMaterial(`revenueStreams_${index}`, scene);
             mesh.material = sectionMaterial;
+            
+            // Add animation effect on load
+            animationEffectsRef.current?.animateHeight(mesh, mesh.scaling.y * 1.1, 800).then(() => {
+              animationEffectsRef.current?.animateHeight(mesh, mesh.scaling.y / 1.1, 800);
+            });
+            
+            const baseColor = new Color3(1.0, 0.85, 0.3); // Gold for revenue
             
             // Store section name for interactions and original properties 
             (mesh as any).bmcSectionName = "Revenue Streams";
@@ -2648,13 +2682,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           if (mesh.name !== "__root__") {
             console.log(`✅ Processing non-root Cost Structure mesh ${index}: ${mesh.name}`);
             
-            // Create material for Cost Structure mesh - Deeper Red
-            const baseColor = new Color3(0.35, 0.0, 0.0); // Deeper Red
-            const sectionMaterial = new StandardMaterial(`costStructure_${index}`, scene);
-            sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.3, 0.1, 0.1); // Slightly red specular
-            sectionMaterial.specularPower = 32;
+            // Apply enhanced Cost Center material preset (soft fabric feel)
+            const sectionMaterial = materialPresetsRef.current?.getMaterialForSection("Cost Structure") ||
+              new StandardMaterial(`costStructure_${index}`, scene);
             mesh.material = sectionMaterial;
+            
+            // Add subtle animation effect on load
+            animationEffectsRef.current?.animateHeight(mesh, mesh.scaling.y * 1.05, 1000).then(() => {
+              animationEffectsRef.current?.animateHeight(mesh, mesh.scaling.y / 1.05, 1000);
+            });
+            
+            const baseColor = new Color3(0.5, 0.35, 0.25); // Soft brown for costs
             
             // Store section name for interactions and original properties 
             (mesh as any).bmcSectionName = "Cost Structure";
