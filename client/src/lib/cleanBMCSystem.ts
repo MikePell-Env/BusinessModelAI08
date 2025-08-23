@@ -1,6 +1,7 @@
 
 import { AbstractMesh, Color3, StandardMaterial } from '@babylonjs/core';
 import { BMCStateManagerImpl } from './bmcStateManager';
+import { MaterialManager } from './core/MaterialManager';
 
 interface BMCItem {
   mesh: AbstractMesh;
@@ -17,6 +18,7 @@ export class CleanBMCSystem {
   private hoveredObject: string | null = null;
   private isTopView: boolean = false;
   private bmcStateManager: BMCStateManagerImpl | null = null;
+  private materialManager: MaterialManager | null = null;
 
   constructor() {
     // Initialize silently
@@ -25,6 +27,12 @@ export class CleanBMCSystem {
   // Set the BMC state manager
   setBMCStateManager(bmcStateManager: BMCStateManagerImpl) {
     this.bmcStateManager = bmcStateManager;
+  }
+
+  // Set the material manager (CRITICAL: prevents material conflicts)
+  setMaterialManager(materialManager: MaterialManager) {
+    this.materialManager = materialManager;
+    console.log('🔧 CleanBMC: MaterialManager integration enabled - preventing material wars');
   }
 
   // Set whether we're in top view mode
@@ -178,10 +186,16 @@ export class CleanBMCSystem {
 
     const { mesh, material, originalHeight, baseColor } = item;
 
-    // Ensure material is still assigned to mesh (prevent material conflicts)
-    if (mesh.material !== material) {
-      console.log(`🔧 CleanBMC: Reassigning material to ${name} to prevent conflicts`);
-      mesh.material = material;
+    // FIXED: Use MaterialManager instead of direct assignment to prevent material wars
+    if (this.materialManager) {
+      // Let MaterialManager handle material assignment and conflicts
+      this.materialManager.assignMaterial(mesh, 'standard', name);
+    } else {
+      // Fallback: ensure material is assigned (only if MaterialManager not available)
+      if (mesh.material !== material) {
+        console.log(`🔧 CleanBMC: Fallback material assignment for ${name}`);
+        mesh.material = material;
+      }
     }
 
     // Height management - Keep objects at normal heights in both views
@@ -201,46 +215,81 @@ export class CleanBMCSystem {
     mesh.setEnabled(true);
     mesh.isVisible = true;
 
-    // Apply state-specific colors and effects
-    switch (state) {
-      case 'selected':
-        // Both views: Bright blue selection with blue glow
-        material.diffuseColor = new Color3(0.0, 0.3, 0.8);
-        material.emissiveColor = new Color3(0.0, 0.1, 0.2);
-        if (this.isTopView) {
-          console.log(`🎨 Applied 3D Top SELECTED: ${name} -> bright blue + glow`);
-        } else {
-          console.log(`🎨 Applied 3D SELECTED: ${name} -> bright blue + glow + elevated`);
-        }
-        break;
+    // FIXED: Use MaterialManager for safe material updates (prevents scene corruption)
+    if (this.materialManager) {
+      // Safe material updates through MaterialManager
+      switch (state) {
+        case 'selected':
+          this.materialManager.updateMaterial(mesh, {
+            diffuseColor: new Color3(0.0, 0.3, 0.8),
+            emissiveColor: new Color3(0.0, 0.1, 0.2),
+            alpha: 1.0
+          });
+          if (this.isTopView) {
+            console.log(`🎨 Applied 3D Top SELECTED: ${name} -> bright blue + glow`);
+          } else {
+            console.log(`🎨 Applied 3D SELECTED: ${name} -> bright blue + glow + elevated`);
+          }
+          break;
 
-      case 'hover':
-        // Hover: Bright blue (same as selection)
-        material.diffuseColor = new Color3(0.0, 0.3, 0.8);
-        material.emissiveColor = Color3.Black();
-        console.log(`🎨 Applied HOVER: ${name} -> bright blue`);
-        break;
+        case 'hover':
+          this.materialManager.updateMaterial(mesh, {
+            diffuseColor: new Color3(0.0, 0.3, 0.8),
+            emissiveColor: Color3.Black(),
+            alpha: 1.0
+          });
+          console.log(`🎨 Applied HOVER: ${name} -> bright blue`);
+          break;
 
-      case 'dimmed':
-        // Only applies in 3D View (not 3D Top)
-        // Revenue/Cost objects turn dark grey when flattened
-        if (name === "Revenue Streams" || name === "Cost Structure") {
-          material.diffuseColor = new Color3(0.07, 0.07, 0.07); // Dark grey
-        } else {
-          material.diffuseColor = baseColor.scale(0.6); // Darkened original color
-        }
-        material.emissiveColor = Color3.Black();
-        material.alpha = 0.7; // Increased from 0.3 to prevent objects from becoming too transparent
-        console.log(`🎨 Applied DIMMED: ${name} -> ${(name === "Revenue Streams" || name === "Cost Structure") ? "dark grey" : "darkened"} + transparent`);
-        break;
+        case 'dimmed':
+          const dimmedColor = (name === "Revenue Streams" || name === "Cost Structure") 
+            ? new Color3(0.07, 0.07, 0.07) 
+            : baseColor.scale(0.6);
+          this.materialManager.updateMaterial(mesh, {
+            diffuseColor: dimmedColor,
+            emissiveColor: Color3.Black(),
+            alpha: 0.7
+          });
+          console.log(`🎨 Applied DIMMED: ${name} -> ${(name === "Revenue Streams" || name === "Cost Structure") ? "dark grey" : "darkened"} + transparent`);
+          break;
 
-      case 'normal':
-      default:
-        // Normal state: Original colors
-        material.diffuseColor = baseColor.clone();
-        material.emissiveColor = Color3.Black();
-        console.log(`🎨 Applied NORMAL: ${name} -> original color`);
-        break;
+        case 'normal':
+        default:
+          this.materialManager.updateMaterial(mesh, {
+            diffuseColor: baseColor.clone(),
+            emissiveColor: Color3.Black(),
+            alpha: 1.0
+          });
+          console.log(`🎨 Applied NORMAL: ${name} -> original color`);
+          break;
+      }
+    } else {
+      // Fallback: Direct material manipulation (old system)
+      console.warn(`⚠️ CleanBMC: Using fallback material manipulation for ${name} - MaterialManager not available`);
+      switch (state) {
+        case 'selected':
+          material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+          material.emissiveColor = new Color3(0.0, 0.1, 0.2);
+          break;
+        case 'hover':
+          material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+          material.emissiveColor = Color3.Black();
+          break;
+        case 'dimmed':
+          if (name === "Revenue Streams" || name === "Cost Structure") {
+            material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+          } else {
+            material.diffuseColor = baseColor.scale(0.6);
+          }
+          material.emissiveColor = Color3.Black();
+          material.alpha = 0.7;
+          break;
+        case 'normal':
+        default:
+          material.diffuseColor = baseColor.clone();
+          material.emissiveColor = Color3.Black();
+          break;
+      }
     }
   }
 
