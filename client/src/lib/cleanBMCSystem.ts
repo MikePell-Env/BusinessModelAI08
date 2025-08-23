@@ -210,13 +210,13 @@ export class CleanBMCSystem {
     // Color behavior: Cost Structure and Revenue Streams keep their original colors when selected
     if (name === "Cost Structure") {
       item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);  // Keep original red
-      item.material.emissiveColor = new Color3(0.02, 0.0, 0.0);  // Subtle red glow
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else if (name === "Revenue Streams") {
       item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);  // Keep original green
-      item.material.emissiveColor = new Color3(0.0, 0.02, 0.01);  // Subtle green glow
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else {
       item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);  // Bright blue for others
-      item.material.emissiveColor = new Color3(0.0, 0.02, 0.04);  // Much subtler blue glow
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     }
     
     item.material.alpha = 1.0;
@@ -236,14 +236,14 @@ export class CleanBMCSystem {
 
     // Color behavior: Cost Structure and Revenue Streams brighten their original colors
     if (name === "Cost Structure") {
-      item.material.diffuseColor = new Color3(0.7, 0.2, 0.2);  // Bright red (original red brightened)
-      item.material.emissiveColor = new Color3(0.1, 0.0, 0.0);  // Red glow
+      item.material.diffuseColor = new Color3(0.5, 0.1, 0.1);  // Moderate red brightening
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else if (name === "Revenue Streams") {
-      item.material.diffuseColor = new Color3(0.0, 0.3, 0.18);  // Subtle brightened green (closer to original)
-      item.material.emissiveColor = new Color3(0.0, 0.05, 0.03);  // Gentle green glow
+      item.material.diffuseColor = new Color3(0.0, 0.3, 0.18);  // Subtle brightened green
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else {
-      item.material.diffuseColor = new Color3(0.1, 0.4, 0.9);  // Light blue for others
-      item.material.emissiveColor = new Color3(0.05, 0.05, 0.05);
+      item.material.diffuseColor = new Color3(0.05, 0.25, 0.6);  // Toned down blue
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     }
     
     item.material.alpha = 1.0;
