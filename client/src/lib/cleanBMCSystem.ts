@@ -161,7 +161,11 @@ export class CleanBMCSystem {
         return;
       }
 
-      // SIMPLE state logic
+          // SIMPLE state logic - ALWAYS ensure visibility first
+      item.mesh.isVisible = true;
+      item.mesh.setEnabled(true);
+      item.material.alpha = 1.0; // Start with full opacity
+      
       if (name === this.selectedObject) {
         // SELECTED STATE
         this.applySelectedState(name);
@@ -234,10 +238,10 @@ export class CleanBMCSystem {
     const baseColor = this.getBaseColor(name);
     item.material.diffuseColor = baseColor.scale(0.5);  // 50% darker
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
-    item.material.alpha = 0.7;  // Still mostly visible
+    item.material.alpha = 0.8;  // Keep mostly visible to prevent blank canvas
     
     // Slightly reduce height in 3D view
-    item.mesh.scaling.y = item.originalHeight * 0.3;
+    item.mesh.scaling.y = item.originalHeight * 0.5; // Not too small
   }
 
   // NORMAL STATE - Default appearance
