@@ -2973,23 +2973,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           scene.activeCamera = orthoCamera;
         }
         
-        // Re-setup orthographic controls when switching to 3D Top view
-        if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
-          const canvas = orthoEventHandlersRef.current.canvas;
-          // Remove old handlers first
-          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
-          canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
-          
-          // Re-add handlers to ensure they're active
-          canvas.addEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
-          canvas.addEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.addEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-          canvas.addEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
-          
-          console.log("🎯 Orthographic controls re-activated for 3D Top view");
-        }
+        // CRITICAL FIX: Don't re-setup orthographic event handlers - they conflict with SimpleClickHandler
+        // The built-in camera controls handle zoom/pan, SimpleClickHandler handles object interactions
+        console.log("🎯 3D Top view - using built-in camera controls + SimpleClickHandler (no manual event handlers)");
         
         // Apply visual state after camera switch
         setTimeout(() => {
@@ -3000,16 +2986,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         console.log(`✅ SWITCHED TO 3D TOP VIEW`);
       } else {
-        // Disable orthographic controls when switching away
-        if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
-          const canvas = orthoEventHandlersRef.current.canvas;
-          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
-          canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
-          
-          console.log("🎯 Orthographic controls disabled for 3D View");
-        }
+        // CRITICAL FIX: No manual event handler removal needed since we don't add them
+        console.log("🎯 Perspective view - using standard camera controls + SimpleClickHandler");
         
         // Smooth transition back to perspective camera
         if (viewTransitionRef.current) {
