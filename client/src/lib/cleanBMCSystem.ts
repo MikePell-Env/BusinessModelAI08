@@ -51,22 +51,20 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
     
-    // CRITICAL: If entering top view, restore all heights FIRST
+    // When entering top view, ensure all objects are at proper height
     if (isTopView) {
-      console.log(`📐 Entering TOP VIEW - restoring all heights to original values`);
+      console.log(`📐 Entering TOP VIEW - ensuring all heights are correct`);
       this.items.forEach((item, name) => {
-        // Skip Revenue Streams and Cost Structure (separate GLB models)
-        if (name === "Revenue Streams" || name === "Cost Structure") {
-          console.log(`⚠️ Skipping height restore for separate GLB: ${name}`);
-          return;
+        // For ALL items (including Revenue/Cost), ensure they're not flattened
+        // Don't animate, just ensure they're visible
+        if (item.mesh.scaling.y < 0.5) {
+          item.mesh.scaling.y = item.originalHeight;
+          console.log(`✅ Fixed ${name} height from ${item.mesh.scaling.y} to ${item.originalHeight}`);
         }
-        // Directly set height without animation
-        item.mesh.scaling.y = item.originalHeight;
-        console.log(`✅ Restored ${name} height to ${item.originalHeight}`);
       });
     }
     
-    // Update visuals when view mode changes
+    // Update visuals for the new view mode
     this.updateAllVisuals();
   }
   
@@ -338,87 +336,63 @@ export class CleanBMCSystem {
     const selectedItem = this.getSelectedObject();
     console.log(`🎨 Updating all visuals, selected: ${selectedItem}, isTopView: ${this.isTopView}`);
     
+    // SIMPLE RULE: In Top View, only change colors. Never touch heights.
+    
     this.items.forEach((item, name) => {
-      // Log current mesh state BEFORE changes
-      console.log(`🎨 BEFORE Processing ${name}:`, {
-        isSelected: name === selectedItem,
-        currentScalingY: item.mesh.scaling.y,
-        currentAlpha: item.material.alpha,
-        isTopView: this.isTopView,
-        meshVisible: item.mesh.isVisible,
-        meshEnabled: item.mesh.isEnabled
-      });
-      
-      // ALWAYS update labels FIRST to ensure they stay visible
+      // Always keep labels visible
       this.makeLabelVisible(name);
       
       if (name === selectedItem) {
-        // Selected: brighten specific colors using emissive color for brightness without reflectivity
+        // SELECTED: Bright color
         if (name === "Cost Structure") {
-          item.material.diffuseColor = new Color3(0.35, 0.0, 0.0); // Keep deeper red base
-          item.material.emissiveColor = new Color3(0.3, 0.0, 0.0); // Add red glow for brightness
+          item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+          item.material.emissiveColor = new Color3(0.3, 0.0, 0.0);
         } else if (name === "Revenue Streams") {
-          item.material.diffuseColor = new Color3(0.0, 0.20, 0.12); // Keep darker British racing green base
-          item.material.emissiveColor = new Color3(0.0, 0.15, 0.08); // Add green glow for brightness
+          item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+          item.material.emissiveColor = new Color3(0.0, 0.15, 0.08);
         } else {
-          item.material.diffuseColor = new Color3(0.0, 0.3, 0.8); // Default bright blue
-          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive for default
+          item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
         }
         item.material.alpha = 1.0;
         
-        // NO HEIGHT CHANGES IN TOP VIEW - keep objects at their original height
+        // Only animate height in 3D View
         if (!this.isTopView) {
           this.animateHeight(item.mesh, item.originalHeight);
-          console.log(`🔵 ${name} SELECTED: brightened color, height=${item.originalHeight}`);
-        } else {
-          console.log(`🔵 ${name} SELECTED in TOP VIEW: brightened color, height unchanged`);
         }
-      } else if (selectedItem) {
-        // Others when selected: dim object
-        item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
-        item.material.alpha = 0.5; // Only affects the 3D object, NOT the label
         
-        // Only flatten in 3D View, NOT in Top View
+      } else if (selectedItem) {
+        // NOT SELECTED (but something else is): Dimmed
+        item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+        item.material.alpha = 0.5;
+        
+        // Only flatten in 3D View
         if (!this.isTopView) {
           this.animateHeight(item.mesh, 0.1);
-          console.log(`⚫ ${name} dimmed: grey, height=0.1, LABEL SHOULD STAY VISIBLE`);
-        } else {
-          // In TOP VIEW: NO HEIGHT CHANGES - keep at original height
-          console.log(`⚫ ${name} dimmed in TOP VIEW: grey, height unchanged`);
         }
+        
       } else {
-        // Default state - restore original colors
+        // NOTHING SELECTED: Default colors
         if (name === "Cost Structure") {
-          item.material.diffuseColor = new Color3(0.35, 0.0, 0.0); // Deeper red
-          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
+          item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
         } else if (name === "Revenue Streams") {
-          item.material.diffuseColor = new Color3(0.0, 0.20, 0.12); // Darker British racing green
-          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
+          item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
         } else {
-          item.material.diffuseColor = new Color3(0.07, 0.07, 0.07); // Default grey
-          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
+          item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+          item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
         }
         item.material.alpha = 1.0;
         
-        // NO HEIGHT CHANGES IN TOP VIEW - keep at original height
+        // Only restore height in 3D View
         if (!this.isTopView) {
           this.animateHeight(item.mesh, item.originalHeight);
-          console.log(`🔘 ${name} default: original color, height=${item.originalHeight}`);
-        } else {
-          console.log(`🔘 ${name} default in TOP VIEW: original color, height unchanged`);
         }
       }
       
-      // CRITICAL: Force label visibility again after any material changes
+      // Keep labels visible
       this.makeLabelVisible(name);
-      
-      // Log AFTER state
-      console.log(`🎨 AFTER Processing ${name}:`, {
-        scalingY: item.mesh.scaling.y,
-        alpha: item.material.alpha,
-        meshVisible: item.mesh.isVisible,
-        meshEnabled: item.mesh.isEnabled
-      });
     });
   }
 
