@@ -298,6 +298,11 @@ export class CleanBMCSystem {
     }
   }
 
+  // Public method for external calls to update visuals
+  updateAllVisuals() {
+    this.updateVisuals();
+  }
+
   // Utility methods
   getAllItems(): string[] {
     return Array.from(this.items.keys());
