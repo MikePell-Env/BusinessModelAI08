@@ -7,6 +7,7 @@ export class BMCModelLoader {
   private scene: Scene;
   private canvas: BusinessModelCanvas;
   private cleanBMCSystem: any;
+  private rootMesh: AbstractMesh | null = null; // Added to store the root mesh
 
   constructor(scene: Scene, canvas: BusinessModelCanvas, cleanBMCSystem: any) {
     this.scene = scene;
@@ -19,6 +20,17 @@ export class BMCModelLoader {
       console.log("🔄 Loading main BMC model...");
       const result = await SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", this.scene);
       const meshes = result.meshes.filter(mesh => mesh.name !== "__root__");
+
+      if (meshes.length > 0) {
+        this.rootMesh = result.meshes.find(mesh => mesh.name === "__root__") || meshes[0];
+        if (this.rootMesh) {
+          // Position and scale the main BMC model according to documentation
+          this.rootMesh.position = new Vector3(0, 0.1, 0.9);
+          this.rootMesh.scaling = new Vector3(8, 8, 8);
+          console.log("✅ Main BMC model positioned and scaled.");
+        }
+      }
+
 
       if (meshes.length === 0) {
         console.warn("⚠️ No meshes found in GLB, creating fallback geometry");
@@ -209,5 +221,20 @@ export class BMCModelLoader {
   applyAnimations(meshes: AbstractMesh[]) {
     console.log("🎬 Applying BMC animations");
     // Animation logic will be handled by the BabylonAnimationManager
+  }
+
+  // Method to handle camera mode changes and model rotation
+  handleCameraModeChange(isOrthographic: boolean): void {
+    if (this.rootMesh) {
+      if (isOrthographic) {
+        // Apply 180° Y-axis rotation for orthographic (3D Top) view
+        this.rootMesh.rotation.y = Math.PI;
+        console.log("🔄 Applied 180° Y-axis rotation for orthographic view");
+      } else {
+        // Reset rotation for perspective view
+        this.rootMesh.rotation.y = 0;
+        console.log("🔄 Reset rotation for perspective view");
+      }
+    }
   }
 }

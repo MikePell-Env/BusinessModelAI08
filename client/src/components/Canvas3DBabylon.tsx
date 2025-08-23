@@ -1,8 +1,7 @@
-
 import React, { useRef, useEffect, useState } from 'react';
-import { 
-  Engine, 
-  Scene, 
+import {
+  Engine,
+  Scene,
   Vector3,
   PointerEventTypes,
   TransformNode,
@@ -21,7 +20,7 @@ import {
   DynamicTexture,
   Texture
 } from '@babylonjs/core';
-import { 
+import {
   AdvancedDynamicTexture,
   Rectangle,
   TextBlock,
@@ -52,15 +51,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const materialManagerRef = useRef<BabylonMaterialManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, any>>(new Map());
   const [showBulletText, setShowBulletText] = useState(false);
+  const bmcModelLoaderRef = useRef<BMCModelLoader | null>(null); // Added ref for BMCModelLoader
 
-  const { 
-    saveCamera3DState, 
-    getCamera3DState, 
-    is3D, 
-    isOrthographic, 
-    setSelectedObject, 
-    getSelectedObject, 
-    setOriginalHeights, 
+  const {
+    saveCamera3DState,
+    getCamera3DState,
+    is3D,
+    isOrthographic,
+    setSelectedObject,
+    getSelectedObject,
+    setOriginalHeights,
     getOriginalHeights,
     selectBMCObject,
     getBMCSelectedObject,
@@ -89,7 +89,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const mapSectionNameToBMCComponent = (sectionName: string): BMCComponentName | null => {
     const nameMapping: { [key: string]: BMCComponentName } = {
       'Key Partners': 'KeyPartners',
-      'Key Activities': 'KeyActivities', 
+      'Key Activities': 'KeyActivities',
       'Key Resources': 'KeyResources',
       'Value Propositions': 'ValueProposition',
       'Customer Relationships': 'CustomerRelationships',
@@ -317,7 +317,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Initialize camera manager
     cameraManagerRef.current = new CameraManager(scene, canvasElement);
-    
+
     // Set initial camera mode
     cameraManagerRef.current.setCameraMode(isOrthographic);
 
@@ -341,7 +341,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (pointerInfo.pickInfo?.hit) {
           const hitMesh = pointerInfo.pickInfo.pickedMesh;
           const isBMCMesh = hitMesh && (
-            hitMesh.name.includes('BMC_') || 
+            hitMesh.name.includes('BMC_') ||
             hitMesh.name.includes('Revenue') ||
             hitMesh.name.includes('Cost')
           );
@@ -360,16 +360,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
 
     // Initialize BMC Model Loader
-    const bmcModelLoader = new BMCModelLoader(scene, canvas, cleanBMCRef.current);
+    const bmcModelLoader = new BMCModelLoader(scene, bmcState);
+    bmcModelLoaderRef.current = bmcModelLoader; // Store reference to BMCModelLoader
 
     // Load and setup BMC models
     const initializeModels = async () => {
       try {
         console.log("🔄 Loading BMC models...");
-        
+
         // Load main BMC model
         const mainBMCMeshes = await bmcModelLoader.loadMainBMC();
-        
+
         // Load revenue streams and cost structure
         const revenueStreamsMeshes = await bmcModelLoader.loadRevenueStreams();
         const costStructureMeshes = await bmcModelLoader.loadCostStructure();
@@ -458,7 +459,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (currentBillboardPanel && advancedTexture) {
           advancedTexture.removeControl(currentBillboardPanel);
         }
-        
+
         if (cameraManagerRef.current) {
           cameraManagerRef.current.dispose();
         }
@@ -497,8 +498,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // For orthographic (3D Top) view, ensure camera is positioned correctly
         const cameras = cameraManagerRef.current.getCameras();
         if (cameras.orthographic) {
-          cameras.orthographic.position = new Vector3(0, 20, 0);
-          cameras.orthographic.setTarget(Vector3.Zero());
+          // Corrected camera position and target
+          cameras.orthographic.position = new Vector3(0, 20, 0); // Example: adjust as needed
+          cameras.orthographic.setTarget(Vector3.Zero()); // Point camera at the center
+
+          // Apply orthographic camera specific settings if needed
+          // cameras.orthographic.orthoLeft = -10;
+          // cameras.orthographic.orthoRight = 10;
+          // cameras.orthographic.orthoBottom = -10;
+          // cameras.orthographic.orthoTop = 10;
+        }
+        // Apply 180 Y-axis rotation for orthographic view if the loader supports it
+        if (bmcModelLoaderRef.current) {
+          bmcModelLoaderRef.current.applyOrthographicRotation();
         }
       }
 
