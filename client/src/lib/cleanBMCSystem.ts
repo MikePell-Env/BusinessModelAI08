@@ -83,8 +83,13 @@ export class CleanBMCSystem {
         try {
           this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent as any : null);
         } catch (e) {
-          console.error('BMC state manager error:', e);
+          console.error('❌ BMC state manager error during selection:', e);
+          console.error('❌ Section name:', sectionName);
+          console.error('❌ BMC component:', bmcComponent);
+          console.error('❌ Selected object:', this.selectedObject);
         }
+      } else {
+        console.warn(`⚠️ Skipping BMC state manager update for unmapped section: ${sectionName}`);
       }
     }
 
@@ -98,7 +103,7 @@ export class CleanBMCSystem {
       try {
         this.bmcStateManager.selectObject(null);
       } catch (e) {
-        console.error('BMC state manager error:', e);
+        console.error('❌ BMC state manager error during clear selection:', e);
       }
     }
     this.updateAllVisuals();
@@ -238,7 +243,17 @@ export class CleanBMCSystem {
       "Cost Structure": "costStructure",
       "Revenue Streams": "revenueStreams"
     };
-    return mapping[sectionName] || null;
+    
+    // Handle exact matches first
+    if (mapping[sectionName]) {
+      return mapping[sectionName];
+    }
+    
+    // Log unmapped section names for debugging
+    console.warn(`⚠️ No mapping found for section: "${sectionName}"`);
+    console.warn('Available mappings:', Object.keys(mapping));
+    
+    return null;
   }
 
   // Get current state for debugging
