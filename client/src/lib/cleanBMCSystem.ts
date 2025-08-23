@@ -410,7 +410,7 @@ export class CleanBMCSystem {
           item.material.alpha = 0.5; // 50% opacity
           this.animateHeight(item.mesh, item.originalHeight * 0.3); // flattened
         } else {
-          // In 3D Top, treat as normal (no dimming)
+          // In 3D Top, treat dimmed as normal (should not happen per rules but safety fallback)
           this.restoreOriginalMaterial(item.material, name);
           item.material.alpha = 1.0; // 100% opacity
           item.mesh.scaling.y = item.originalHeight; // full height
