@@ -493,6 +493,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             cameras.perspective.radius = savedState.radius;
           }
         }
+      } else {
+        // For orthographic (3D Top) view, ensure camera is positioned correctly
+        const cameras = cameraManagerRef.current.getCameras();
+        if (cameras.orthographic) {
+          cameras.orthographic.position = new Vector3(0, 20, 0);
+          cameras.orthographic.setTarget(Vector3.Zero());
+        }
       }
 
       setTimeout(() => {
