@@ -74,10 +74,12 @@ interface MaterialManagerProps {
   scene: Scene;
 }
 
-export const useMaterialManager = ({ scene }: MaterialManagerProps) => {
+export const useMaterialManager = ({ scene }: { scene: Scene | null }) => {
   const materialCache = React.useRef<Map<string, StandardMaterial | PBRMetallicRoughnessMaterial>>(new Map());
 
-  const createMaterialFromPreset = (preset: MaterialPreset): StandardMaterial | PBRMetallicRoughnessMaterial => {
+  const createMaterialFromPreset = (preset: MaterialPreset): StandardMaterial | PBRMetallicRoughnessMaterial | null => {
+    if (!scene) return null;
+    
     let material: StandardMaterial | PBRMetallicRoughnessMaterial;
 
     if (preset.type === 'pbr') {
@@ -104,7 +106,9 @@ export const useMaterialManager = ({ scene }: MaterialManagerProps) => {
     return material;
   };
 
-  const getMaterial = (presetName: string): StandardMaterial | PBRMetallicRoughnessMaterial => {
+  const getMaterial = (presetName: string): StandardMaterial | PBRMetallicRoughnessMaterial | null => {
+    if (!scene) return null;
+    
     // Check cache first
     if (materialCache.current.has(presetName)) {
       return materialCache.current.get(presetName)!;
@@ -113,11 +117,13 @@ export const useMaterialManager = ({ scene }: MaterialManagerProps) => {
     // Get preset
     const preset = MATERIAL_PRESETS[presetName];
     if (!preset) {
-      throw new Error(`Material preset not found: ${presetName}`);
+      console.warn(`Material preset not found: ${presetName}`);
+      return null;
     }
 
     // Create material
     const material = createMaterialFromPreset(preset);
+    if (!material) return null;
     
     // Cache material
     materialCache.current.set(presetName, material);
@@ -126,15 +132,20 @@ export const useMaterialManager = ({ scene }: MaterialManagerProps) => {
   };
 
   const applyMaterialToMesh = (mesh: AbstractMesh, presetName: string) => {
+    if (!scene) return;
     const material = getMaterial(presetName);
-    mesh.material = material;
+    if (material) {
+      mesh.material = material;
+    }
   };
 
   const createCustomMaterial = (
     name: string, 
     baseColor: Color3, 
     options?: Partial<MaterialPreset>
-  ): StandardMaterial => {
+  ): StandardMaterial | null => {
+    if (!scene) return null;
+    
     const material = new StandardMaterial(name, scene);
     material.diffuseColor = baseColor;
     
@@ -145,7 +156,9 @@ export const useMaterialManager = ({ scene }: MaterialManagerProps) => {
     return material;
   };
 
-  const createTexturedMaterial = (name: string, texturePath: string): StandardMaterial => {
+  const createTexturedMaterial = (name: string, texturePath: string): StandardMaterial | null => {
+    if (!scene) return null;
+    
     const material = new StandardMaterial(name, scene);
     material.diffuseTexture = new Texture(texturePath, scene);
     return material;

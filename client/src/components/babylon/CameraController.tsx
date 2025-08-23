@@ -8,8 +8,8 @@ import {
 } from '@babylonjs/core';
 
 interface CameraControllerProps {
-  scene: Scene;
-  canvas: HTMLCanvasElement;
+  scene: Scene | null;
+  canvas: HTMLCanvasElement | null;
   isOrthographic: boolean;
   camera3DState: { alpha: number; beta: number; radius: number } | null;
   onSaveCamera3DState: (alpha: number, beta: number, radius: number) => void;
@@ -225,6 +225,15 @@ export const useCameraController = ({
       scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
     }
   }, [scene, canvas]);
+
+  // Early return if scene or canvas not ready
+  if (!scene || !canvas) {
+    return {
+      perspectiveCamera: { current: null },
+      orthographicCamera: { current: null },
+      orthoEventHandlers: { current: null }
+    };
+  }
 
   // Handle camera switching
   React.useEffect(() => {
