@@ -7,6 +7,14 @@ This project is a web application for creating and visualizing business model ca
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **January 15, 2025**: **Major Architecture Refactoring** - Split monolithic Canvas3DBabylon.tsx (3,100+ lines) into focused modular components:
+  - `SceneManager.tsx` - Scene initialization and lighting
+  - `CameraController.tsx` - Perspective and orthographic camera management
+  - `InteractionManager.tsx` - Click/hover interaction handling
+  - `MaterialManager.tsx` - Material presets and visual state management  
+  - `BMCObjectManager.tsx` - 3D object loading and height management
+  - `ErrorBoundary.tsx` - React error boundaries for 3D components
+  - All TypeScript errors resolved, proper dependency injection implemented
 - **January 15, 2025**: Updated Envisioner logo to new design with proper sizing (h-5) to match original dimensions
 
 ## System Architecture
