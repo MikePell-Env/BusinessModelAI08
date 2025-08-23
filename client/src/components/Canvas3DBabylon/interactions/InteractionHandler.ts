@@ -60,16 +60,16 @@ export class InteractionHandler {
     if (!mesh.actionManager) {
       mesh.actionManager = new ActionManager(this.scene);
     }
-    
+
     // Ensure mesh is pickable
     mesh.isPickable = true;
-    
+
     // Setup click handling with double-click detection
     this.setupClickHandling(mesh, sectionName);
-    
+
     // Setup hover handling
     this.setupHoverHandling(mesh, sectionName);
-    
+
     debugLog.verbose('interaction', `Interactions setup for ${sectionName}`);
   }
 
@@ -82,13 +82,13 @@ export class InteractionHandler {
         const currentTime = Date.now();
         const lastClickTime = this.clickTimers.get(sectionName) || 0;
         const timeDifference = currentTime - lastClickTime;
-        
+
         debugLog.critical(`Click detected on ${sectionName}, time diff: ${timeDifference}ms`);
-        
+
         if (timeDifference < this.doubleClickThreshold && timeDifference > 50) {
           // Double-click detected
           debugLog.critical(`DOUBLE-CLICK detected on ${sectionName}!`);
-          
+
           // Rule 4: Double-click on selected object shows popup panel
           if (this.cleanBMC && this.cleanBMC.getSelectedObject() === sectionName) {
             // Trigger double-click callback to show panel
@@ -106,28 +106,28 @@ export class InteractionHandler {
               this.callbacks.onDoubleClick(sectionName, position);
             }
           }
-          
+
           // Reset timer to prevent triple-clicks
           this.clickTimers.set(sectionName, 0);
         } else {
           // Single click
           debugLog.critical(`Single click on ${sectionName}`);
-          
+
           // DEBUG: Log current state before selection
           if (this.cleanBMC) {
             console.log(`🔍 DEBUG: Before selection - Current selected: ${this.cleanBMC.getSelectedObject()}`);
             console.log(`🔍 DEBUG: About to select: ${sectionName}`);
-            
+
             this.cleanBMC.onSelect(sectionName);
-            
+
             console.log(`🔍 DEBUG: After selection - New selected: ${this.cleanBMC.getSelectedObject()}`);
           }
-          
+
           // Trigger single-click callback
           if (this.callbacks.onSingleClick) {
             this.callbacks.onSingleClick(sectionName);
           }
-          
+
           // Update click timer
           this.clickTimers.set(sectionName, currentTime);
         }
@@ -143,29 +143,29 @@ export class InteractionHandler {
     mesh.actionManager?.registerAction(
       new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
         debugLog.verbose('interaction', `Hover enter: ${sectionName}`);
-        
+
         // Handle hover via CleanBMC
         if (this.cleanBMC) {
           this.cleanBMC.onHover(sectionName, true);
         }
-        
+
         // Trigger hover enter callback
         if (this.callbacks.onHoverEnter) {
           this.callbacks.onHoverEnter(sectionName);
         }
       })
     );
-    
+
     // Hover exit
     mesh.actionManager?.registerAction(
       new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
         debugLog.verbose('interaction', `Hover exit: ${sectionName}`);
-        
+
         // Handle hover via CleanBMC
         if (this.cleanBMC) {
           this.cleanBMC.onHover(sectionName, false);
         }
-        
+
         // Trigger hover exit callback
         if (this.callbacks.onHoverExit) {
           this.callbacks.onHoverExit(sectionName);
@@ -181,16 +181,16 @@ export class InteractionHandler {
     this.scene.onPointerObservable.add((pointerInfo) => {
       if (pointerInfo.type === 1) { // POINTERDOWN
         const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
-        
+
         // If no mesh was picked or it's the ground, clear selection
         if (!pickedMesh || pickedMesh.name === 'ground') {
           debugLog.verbose('interaction', 'Background clicked - clearing selection');
-          
+
           // Clear selection via CleanBMC
           if (this.cleanBMC) {
             this.cleanBMC.clearSelection();
           }
-          
+
           // Trigger callback
           onBackgroundClick();
         }
