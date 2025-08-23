@@ -59,6 +59,9 @@ const CanvasBlock: React.FC<{
 
 export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) => {
   const { hasImportedFromPowerPoint, getSelectedObject, selectBMCObject } = useCanvas();
+  const [translateX, setTranslateX] = React.useState(0);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragStart, setDragStart] = React.useState({ x: 0, startTranslateX: 0 });
   
   if (!canvas) return null;
   
@@ -93,18 +96,60 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
   };
 
   const handleBackgroundClick = (e: React.MouseEvent) => {
-    // Only clear selection if clicking the background (not on any card)
-    if (e.target === e.currentTarget) {
+    // Only clear selection if clicking the background (not on any card) and not dragging
+    if (e.target === e.currentTarget && !isDragging) {
       selectBMCObject(null);
       console.log('📋 2D View: Cleared selection (background click)');
     }
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 0) { // Left mouse button only
+      setIsDragging(false); // Reset drag state
+      setDragStart({ 
+        x: e.clientX, 
+        startTranslateX: translateX 
+      });
+      console.log('🖱️ 2D View: Mouse down at', e.clientX);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (e.buttons === 1) { // Left mouse button is pressed
+      const deltaX = e.clientX - dragStart.x;
+      const newTranslateX = dragStart.startTranslateX + deltaX;
+      
+      // Constrain horizontal translation to reasonable bounds
+      const constrainedTranslateX = Math.max(-800, Math.min(800, newTranslateX));
+      
+      setTranslateX(constrainedTranslateX);
+      
+      // Mark as dragging if moved more than 5 pixels
+      if (Math.abs(deltaX) > 5) {
+        setIsDragging(true);
+      }
+      
+      console.log(`🖱️ 2D View: Horizontal drag - deltaX: ${deltaX}, translateX: ${constrainedTranslateX}`);
+    }
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    // Reset drag state after a short delay to allow click detection
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 100);
+    console.log('🖱️ 2D View: Mouse up, was dragging:', isDragging);
+  };
+
   return (
     <div 
-      className="w-full h-full p-6"
-      style={{ backgroundColor: '#e9ecef' }}
+      className="w-full h-full p-6 select-none"
+      style={{ backgroundColor: '#e9ecef', cursor: isDragging ? 'grabbing' : 'grab' }}
       onClick={handleBackgroundClick}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
     >
       {/* Header - centered horizontally in upper area */}
       <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-10">
@@ -112,7 +157,13 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
       </div>
 
       {/* Business Model Canvas Grid */}
-      <div className="grid grid-cols-10 grid-rows-3 gap-4 h-5/6 max-w-7xl mx-auto">
+      <div 
+        className="grid grid-cols-10 grid-rows-3 gap-4 h-5/6 max-w-7xl mx-auto transition-transform duration-75"
+        style={{ 
+          transform: `translateX(${translateX}px)`,
+          pointerEvents: isDragging ? 'none' : 'auto' 
+        }}
+      >
         {/* Row 1 */}
         <CanvasBlock 
           element={canvas.keyPartners} 
