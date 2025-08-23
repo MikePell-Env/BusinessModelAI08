@@ -1,4 +1,6 @@
-import { Scene, SceneLoader, AbstractMesh, Vector3, ActionManager, ExecuteCodeAction, StandardMaterial, Color3, Animation, MeshBuilder } from '@babylonjs/core';
+import { Scene, SceneLoader, AbstractMesh, Vector3, StandardMaterial, Color3, Animation, MeshBuilder } from '@babylonjs/core';
+import '@babylonjs/core/Actions/actionManager';
+import { ActionManager, ExecuteCodeAction } from '@babylonjs/core/Actions';
 import { BusinessModelCanvas } from '@/types/canvas';
 
 export class BMCModelLoader {
