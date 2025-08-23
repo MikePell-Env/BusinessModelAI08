@@ -336,35 +336,43 @@ export class CleanBMCSystem {
     this.updateAllVisuals();
   }
 
-  // Update all visual states - STRICT 3D TOP RULES
+  // Update all visual states - COMPLETELY SEPARATE 3D TOP AND 3D VIEW
   private updateAllVisuals() {
     const currentSelection = this.getSelectedObject();
     console.log(`🎨 CleanBMC: Updating visuals - selection: "${currentSelection}", topView: ${this.isTopView}`);
 
-    // STRICT 3D TOP IMPLEMENTATION
     if (this.isTopView) {
-      // 3D TOP RULES: Only selected object changes color, NOTHING ELSE CHANGES
+      // =================== 3D TOP VIEW ONLY ===================
+      // STRICT RULE: ONLY color changes, NEVER height/opacity changes
+      console.log(`🔝 3D TOP: Applying strict top view rules`);
+      
       this.items.forEach((item, name) => {
-        // ALWAYS ensure visibility first
+        // FORCE all objects to be fully visible and at original height
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
         item.mesh.visibility = 1.0;
         item.mesh.scaling.y = item.originalHeight;
-        item.material.alpha = 1.0;
+        item.material.alpha = 1.0;  // ALWAYS 100% opacity
         
         if (name === currentSelection) {
-          // ONLY change color for selected object
+          // Selected: Bright selection color, but SAME height and opacity
+          console.log(`🔝 3D TOP: Applying selection effect to ${name}`);
           this.applySelectionEffect(item.material, name);
         } else {
-          // ALL non-selected objects stay EXACTLY as they were
+          // Not selected: Original color, SAME height and opacity
+          console.log(`🔝 3D TOP: Restoring original material for ${name}`);
           this.restoreOriginalMaterial(item.material, name);
         }
         
-        // Always ensure labels are visible
+        // Always ensure labels are visible in top view
         this.ensureLabelVisibility(name);
       });
+      
     } else {
-      // 3D VIEW: Normal implementation with dimming
+      // =================== 3D VIEW ONLY ===================
+      // Full interactive behavior with height animations and dimming
+      console.log(`🎭 3D VIEW: Applying full 3D view logic`);
+      
       this.items.forEach((item, name) => {
         const isSelected = (name === currentSelection);
         const isHovered = (name === this.hoveredObject);
@@ -384,6 +392,7 @@ export class CleanBMCSystem {
           visualState = 'normal';
         }
         
+        // Only call applyVisualState in 3D View mode
         this.applyVisualState(item, name, visualState);
       });
     }
@@ -396,10 +405,11 @@ export class CleanBMCSystem {
 
   // Apply the correct visual state to an item - ONLY USED FOR 3D VIEW NOW
   private applyVisualState(item: BMCItem, name: string, state: 'normal' | 'hover' | 'selected' | 'dimmed') {
-    // This method should ONLY be called for 3D View
+    // CRITICAL SAFETY CHECK: This method should NEVER be called in 3D Top view
     if (this.isTopView) {
-      console.error(`⚠️ ERROR: applyVisualState called in 3D Top view - this should not happen!`);
-      return;
+      console.error(`🚨 CRITICAL ERROR: applyVisualState called in 3D Top view for ${name} with state ${state} - BLOCKING EXECUTION!`);
+      console.error(`🚨 This is the bug that causes objects to disappear in 3D top view!`);
+      return; // HARD BLOCK - do not proceed
     }
     
     console.log(`🎨 3D View: Applying ${state} state to ${name}`);
