@@ -42,6 +42,7 @@ import { BabylonMaterialManager } from '@/lib/babylon/BabylonMaterialManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { setupDoubleClick } from '@/lib/interactions/DoubleClickHandler';
 import { SceneSetup } from './Canvas3DBabylon/scene/SceneSetup';
+import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -1431,15 +1432,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
     ];
 
+    // Initialize model loader
+    const modelLoader = new BMCModelLoader(scene);
+    
     // Load complete BMC GLB model with individual section coloring
-    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", scene).then((result) => {
-      if (result.meshes.length > 0) {
-        console.log(`✅ BMC model loaded with ${result.meshes.length} meshes`);
+    modelLoader.loadMainBMC().then((model) => {
+      if (model.meshes.length > 0) {
+        console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
         
-        const rootMesh = result.meshes[0];
+        const rootMesh = model.rootMesh;
         rootMeshRef.current = rootMesh;
         
-        // Position moved down by one row on ground plane
+        // Position moved down by one row on ground plane (override default from loader)
         rootMesh.position = new Vector3(0, 0.1, 0.9);
         
         // Keep model at normal rotation for all views
@@ -1471,7 +1475,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
-        result.meshes.forEach((mesh, index) => {
+        model.meshes.forEach((mesh, index) => {
           if (mesh.material && mesh.name !== "__root__") {
             const section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
             const baseColor = section.color;
@@ -2393,12 +2397,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Load Revenue Streams as separate GLB model positioned below Customer Channels
     console.log(`🔄 Starting to load Revenue Streams model...`);
-    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_07_RevenueStreams_1754360428541.glb", scene).then((result) => {
-      console.log(`🔄 Revenue Streams model load completed, meshes: ${result.meshes.length}`);
-      if (result.meshes.length > 0) {
-        console.log(`✅ Revenue Streams model loaded with ${result.meshes.length} meshes`);
+    modelLoader.loadRevenueStreams().then((model) => {
+      console.log(`🔄 Revenue Streams model load completed, meshes: ${model.meshes.length}`);
+      if (model.meshes.length > 0) {
+        console.log(`✅ Revenue Streams model loaded with ${model.meshes.length} meshes`);
         
-        const revenueRootMesh = result.meshes[0];
+        const revenueRootMesh = model.rootMesh;
         
         // Position Revenue Streams to align with LEFT EDGE of Customer Channels
         // From console logs: Customer Channels left edge = 0.467, Revenue Streams left edge = 0.155
@@ -2412,12 +2416,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.log(`📦 Revenue Streams positioned at (-0.221, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
         // Apply basic material and label to Revenue Streams mesh  
-        console.log(`🔍 Revenue Streams meshes found: ${result.meshes.length}`);
-        result.meshes.forEach((mesh, index) => {
-          console.log(`🔍 Processing Revenue Streams mesh ${index}: ${mesh.name}, has material: ${!!mesh.material}, is root: ${mesh.name === "__root__"}`);
-        });
-        
-        result.meshes.forEach((mesh, index) => {
+        console.log(`🔍 Revenue Streams meshes found: ${model.meshes.length}`);
+        model.meshes.forEach((mesh, index) => {
           if (mesh.name !== "__root__") {
             console.log(`✅ Processing non-root Revenue Streams mesh ${index}: ${mesh.name}`);
             
@@ -2562,7 +2562,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Debug Revenue Streams dimensions with fixed narrower width
         setTimeout(() => {
-          const revenueMesh = result.meshes.find(mesh => mesh.name !== "__root__");
+          const revenueMesh = model.meshes.find(mesh => mesh.name !== "__root__");
           if (revenueMesh) {
             const boundingInfo = revenueMesh.getBoundingInfo();
             const worldMatrix = revenueMesh.getWorldMatrix();
@@ -2589,12 +2589,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Load Cost Structure as separate GLB model positioned in lower left area (yellow rectangle in diagram)
     console.log(`🔄 Starting to load Cost Structure model...`);
-    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_07_RevenueStreams_1754360428541.glb", scene).then((result) => {
-      console.log(`🔄 Cost Structure model load completed, meshes: ${result.meshes.length}`);
-      if (result.meshes.length > 0) {
-        console.log(`✅ Cost Structure model loaded with ${result.meshes.length} meshes`);
+    modelLoader.loadCostStructure().then((model) => {
+      console.log(`🔄 Cost Structure model load completed, meshes: ${model.meshes.length}`);
+      if (model.meshes.length > 0) {
+        console.log(`✅ Cost Structure model loaded with ${model.meshes.length} meshes`);
         
-        const costRootMesh = result.meshes[0];
+        const costRootMesh = model.rootMesh;
         
         // Position Cost Structure in lower left area (yellow rectangle from diagram)
         // X-axis: negative = LEFT, positive = RIGHT
@@ -2607,12 +2607,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.log(`📦 Cost Structure positioned at (-10.1, 0.1, -10.5) - width 8.0, positioned farther left`);
         
         // Apply basic material and label to Cost Structure mesh  
-        console.log(`🔍 Cost Structure meshes found: ${result.meshes.length}`);
-        result.meshes.forEach((mesh, index) => {
-          console.log(`🔍 Processing Cost Structure mesh ${index}: ${mesh.name}, has material: ${!!mesh.material}, is root: ${mesh.name === "__root__"}`);
-        });
-        
-        result.meshes.forEach((mesh, index) => {
+        console.log(`🔍 Cost Structure meshes found: ${model.meshes.length}`);
+        model.meshes.forEach((mesh, index) => {
           if (mesh.name !== "__root__") {
             console.log(`✅ Processing non-root Cost Structure mesh ${index}: ${mesh.name}`);
             
@@ -2757,7 +2753,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Debug Cost Structure dimensions
         setTimeout(() => {
-          const costMesh = result.meshes.find(mesh => mesh.name !== "__root__");
+          const costMesh = model.meshes.find(mesh => mesh.name !== "__root__");
           if (costMesh) {
             const boundingInfo = costMesh.getBoundingInfo();
             const worldMatrix = costMesh.getWorldMatrix();

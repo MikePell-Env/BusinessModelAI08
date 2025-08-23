@@ -42,7 +42,7 @@ export class BMCModelLoader {
       const result = await SceneLoader.ImportMeshAsync(
         "", 
         "/models/", 
-        "BMC_blender_07_combined_V15_1754330444296.glb", 
+        "BMC_blender_09_complete_1753576063858.glb", 
         this.scene
       );
       
