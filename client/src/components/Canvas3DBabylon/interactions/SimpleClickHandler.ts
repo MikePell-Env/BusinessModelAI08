@@ -116,16 +116,21 @@ export class SimpleClickHandler {
    */
   private handlePointerPick(pointerInfo: any): void {
     const pickInfo = pointerInfo.pickInfo;
+    console.log(`🔍 SimpleClickHandler: PointerPick detected - hit: ${pickInfo.hit}, mesh: ${pickInfo.pickedMesh?.name || 'none'}`);
     
     if (pickInfo.hit && pickInfo.pickedMesh) {
       const mesh = pickInfo.pickedMesh;
+      console.log(`🔍 SimpleClickHandler: Mesh picked: ${mesh.name}, registered: ${this.meshRegistry.has(mesh)}`);
       
       // Only handle registered meshes
       if (this.meshRegistry.has(mesh)) {
         this.handleMeshClick(mesh, pickInfo.pickedPoint);
+      } else {
+        console.log(`⚠️ SimpleClickHandler: Mesh ${mesh.name} not in registry`);
       }
     } else {
       // Background click
+      console.log(`🔍 SimpleClickHandler: Background click detected`);
       this.handleBackgroundClick();
     }
   }
