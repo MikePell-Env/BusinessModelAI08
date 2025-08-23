@@ -412,7 +412,7 @@ export class CleanBMCSystem {
           // Only apply dimming in 3D View
           this.applyDimmedEffect(item.material, name);
           item.material.alpha = 0.5; // 50% opacity
-          this.animateHeight(item.mesh, item.originalHeight * 0.3); // flattened
+          this.animateHeight(item.mesh, item.originalHeight * 0.1); // flatten to 0.1
         } else {
           // This should never happen in 3D Top due to updateAllVisuals logic
           console.error(`⚠️ Unexpected dimmed state in 3D Top for ${name}`);
