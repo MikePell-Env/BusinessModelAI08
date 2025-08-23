@@ -74,7 +74,7 @@ export class InteractionHandler {
   }
 
   /**
-   * Setup click and double-click handling
+   * Setup click and double-click handling with proper behavior
    */
   private setupClickHandling(mesh: AbstractMesh, sectionName: string): void {
     mesh.actionManager?.registerAction(
@@ -89,18 +89,22 @@ export class InteractionHandler {
           // Double-click detected
           debugLog.critical(`DOUBLE-CLICK detected on ${sectionName}!`);
           
-          // Handle selection via CleanBMC
-          if (this.cleanBMC) {
-            const currentlySelected = this.cleanBMC.getSelectedObject();
-            if (currentlySelected !== sectionName) {
+          // Rule 4: Double-click on selected object shows popup panel
+          if (this.cleanBMC && this.cleanBMC.getSelectedObject() === sectionName) {
+            // Trigger double-click callback to show panel
+            if (this.callbacks.onDoubleClick) {
+              const position = mesh.getAbsolutePosition();
+              this.callbacks.onDoubleClick(sectionName, position);
+            }
+          } else {
+            // Double-click on unselected object: first select it, then show panel
+            if (this.cleanBMC) {
               this.cleanBMC.onSelect(sectionName);
             }
-          }
-          
-          // Trigger double-click callback
-          if (this.callbacks.onDoubleClick) {
-            const position = mesh.getAbsolutePosition();
-            this.callbacks.onDoubleClick(sectionName, position);
+            if (this.callbacks.onDoubleClick) {
+              const position = mesh.getAbsolutePosition();
+              this.callbacks.onDoubleClick(sectionName, position);
+            }
           }
           
           // Reset timer to prevent triple-clicks
@@ -109,7 +113,7 @@ export class InteractionHandler {
           // Single click
           debugLog.critical(`Single click on ${sectionName}`);
           
-          // Handle selection via CleanBMC
+          // Handle selection with toggle behavior via CleanBMC
           if (this.cleanBMC) {
             this.cleanBMC.onSelect(sectionName);
           }

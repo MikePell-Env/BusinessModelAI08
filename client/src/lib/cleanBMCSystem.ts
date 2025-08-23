@@ -151,58 +151,83 @@ export class CleanBMCSystem {
     this.updateAllVisuals();
   }
 
-  // Handle selection
+  // Handle selection with proper toggle behavior
   onSelect(sectionName: string) {
     console.log(`🎯 CleanBMC: Selection request for "${sectionName}"`);
+
+    // Toggle behavior: if clicking on already selected object, deselect it
+    if (this.selectedObject === sectionName) {
+      console.log(`🔄 Deselecting already selected object: ${sectionName}`);
+      this.selectedObject = null;
+    } else {
+      console.log(`🎯 Selecting new object: ${sectionName}`);
+      this.selectedObject = sectionName;
+    }
 
     // Update BMC state manager
     if (this.bmcStateManager) {
       const bmcComponent = this.convertNameToBMCComponent(sectionName);
       if (bmcComponent) {
-        this.bmcStateManager.selectObject(bmcComponent);
+        this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent : null);
       }
     }
 
-    this.selectedObject = sectionName;
     this.updateAllVisuals();
   }
 
   // Clear selection
   clearSelection() {
-    this.selectObject(null);
+    console.log(`🎯 CleanBMC: Clearing all selections`);
+    this.selectedObject = null;
+    
+    // Update BMC state manager
+    if (this.bmcStateManager) {
+      this.bmcStateManager.selectObject(null);
+    }
+    
+    this.updateAllVisuals();
   }
 
-  // SIMPLIFIED: Update all visual states
+  // Update all visual states following 3D Top view rules
   private updateAllVisuals(): void {
     console.log(`🎨 updateAllVisuals: updating visuals for ${this.isTopView ? '3D Top' : '3D'} view`);
+    console.log(`🎨 Current selection: ${this.selectedObject || 'none'}`);
 
     this.items.forEach((item, name) => {
       // CRITICAL: Always ensure basic visibility first
       item.mesh.isVisible = true;
       item.mesh.setEnabled(true);
       
-      if (name === this.selectedObject) {
-        // Apply selected state
-        this.applySelectedState(name, item);
-      } else if (name === this.hoveredObject) {
-        // Apply hover state
-        this.applyHoverState(item, name);
-      } else if (this.selectedObject) {
-        // Apply dimmed state for non-selected objects when something is selected
-        this.applyDimmedState(item, name);
+      if (this.isTopView) {
+        // 3D TOP VIEW RULES
+        if (!this.selectedObject) {
+          // Rule 1: No selection - all objects flattened, 100% opaque, original colors
+          this.apply3DTopNormalState(name, item);
+        } else if (name === this.selectedObject) {
+          // Rule 2: Selected object - bright blue, flattened
+          this.apply3DTopSelectedState(name, item);
+        } else {
+          // Rule 2: Non-selected objects when something is selected - visible but flattened
+          this.apply3DTopNonSelectedState(name, item);
+        }
       } else {
-        // Apply normal state when nothing is selected
-        this.applyNormalState(name, item);
+        // 3D VIEW RULES (existing behavior)
+        if (name === this.selectedObject) {
+          this.applySelectedState(name, item);
+        } else if (name === this.hoveredObject) {
+          this.applyHoverState(item, name);
+        } else if (this.selectedObject) {
+          this.applyDimmedState(item, name);
+        } else {
+          this.applyNormalState(name, item);
+        }
       }
       
-      // CRITICAL: Final safety check - never let objects become invisible
-      if (item.material.alpha < 0.3) {
-        item.material.alpha = 0.3; // Minimum 30% opacity
-        console.log(`⚠️ Fixed low opacity for ${name}: set to 0.3`);
-      }
+      // Keep labels visible
+      this.makeLabelVisible(name, 1.0);
     });
 
-    console.log(`✅ Visual update complete - all objects guaranteed visible`);
+    console.log(`✅ Visual update complete for ${this.isTopView ? '3D Top' : '3D'} view`);
   }
 
   // SIMPLIFIED: Apply selected state
@@ -304,7 +329,56 @@ export class CleanBMCSystem {
     this.makeLabelVisible(name, 1.0);
   }
 
-  // Helper for height animation
+  // 3D TOP VIEW STATE METHODS
+
+  // Rule 1: Normal state in 3D Top - flattened, 100% opaque, original colors
+  private apply3DTopNormalState(name: string, item: BMCItem) {
+    console.log(`🔵 3D Top Normal: ${name} - flattened, 100% opaque, original colors`);
+    
+    // Original colors based on section
+    if (name === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+    } else if (name === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+    } else {
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+    }
+    
+    item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    item.material.alpha = 1.0; // 100% opaque
+    item.mesh.scaling.y = item.originalHeight; // Flattened (original height in top view is flattened)
+  }
+
+  // Rule 2: Selected state in 3D Top - bright blue, flattened
+  private apply3DTopSelectedState(name: string, item: BMCItem) {
+    console.log(`✅ 3D Top Selected: ${name} - bright blue, flattened`);
+    
+    // Bright blue for selection
+    item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+    item.material.emissiveColor = new Color3(0.0, 0.1, 0.2);
+    item.material.alpha = 1.0; // 100% opaque
+    item.mesh.scaling.y = item.originalHeight; // Flattened
+  }
+
+  // Rule 2: Non-selected objects when something is selected - visible but flattened
+  private apply3DTopNonSelectedState(name: string, item: BMCItem) {
+    console.log(`🔅 3D Top Non-Selected: ${name} - visible, flattened, original colors`);
+    
+    // Keep original colors (not dimmed)
+    if (name === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+    } else if (name === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+    } else {
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+    }
+    
+    item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    item.material.alpha = 1.0; // 100% opaque (NOT dimmed)
+    item.mesh.scaling.y = item.originalHeight; // Flattened
+  }
+
+  // Helper for height animation (3D View only)
   private animateHeight(mesh: AbstractMesh, targetHeight: number) {
     // Never animate in top view
     if (this.isTopView) {
