@@ -27,6 +27,16 @@ export class CleanBMCSystem {
   // Set whether we're in top view mode
   setTopViewMode(isTopView: boolean) {
     this.isTopView = isTopView;
+    
+    // CRITICAL FIX: When switching to 3D Top view, immediately flatten ALL objects
+    if (isTopView) {
+      this.items.forEach((item) => {
+        if (item.mesh) {
+          item.mesh.scaling.y = 0.01;
+        }
+      });
+    }
+    
     this.updateAllVisuals();
   }
 
@@ -45,6 +55,11 @@ export class CleanBMCSystem {
       originalHeight: mesh.scaling.y,
       baseColor: baseColor.clone()
     });
+
+    // CRITICAL FIX: In 3D Top view, immediately flatten the object regardless of state
+    if (this.isTopView) {
+      mesh.scaling.y = 0.01;
+    }
 
     // Initialize with proper state
     this.applyState(name, 'normal');
