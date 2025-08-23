@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { Canvas2D } from './Canvas2D';
-import { Canvas3DBabylon } from './Canvas3DBabylon';
+import Canvas3DBabylon from './Canvas3DBabylon';
 import { AIChat } from './AIChat';
 import { Header } from './Header';
 import { MicrosoftStackStatus } from './MicrosoftStackStatus';
