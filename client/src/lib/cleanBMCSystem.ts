@@ -143,57 +143,79 @@ export class CleanBMCSystem {
     this.items.forEach((item, name) => {
       if (this.selectedObject === name) {
         this.applyState(name, 'selected');
-      } else if (this.selectedObject !== null) {
+      } else if (this.selectedObject !== null && !this.isTopView) {
+        // 3D View: Non-selected objects are dimmed
         this.applyState(name, 'dimmed');
       } else {
+        // 3D Top View: Non-selected objects stay normal (no dimming)
+        // 3D View with no selection: All objects normal
         this.applyState(name, 'normal');
       }
     });
   }
 
-  // Simplified state application
+  // State application following documentation rules
   private applyState(name: string, state: string) {
     const item = this.items.get(name);
     if (!item || !item.mesh || !item.material) return;
 
     const { mesh, material, originalHeight, baseColor } = item;
 
-    // Height management
-    if (state === 'selected' && !this.isTopView) {
-      mesh.scaling.y = originalHeight * 1.4;
-    } else if (state === 'dimmed' && !this.isTopView) {
-      mesh.scaling.y = 0.01;
-    } else {
+    // Height management - 3D Top: always flattened, 3D View: varies by state
+    if (this.isTopView) {
+      // 3D Top View: All objects always use original height (appear flattened)
       mesh.scaling.y = originalHeight;
+    } else {
+      // 3D View: Height varies by state
+      if (state === 'selected') {
+        mesh.scaling.y = originalHeight * 1.4; // Elevated
+      } else if (state === 'dimmed') {
+        mesh.scaling.y = 0.01; // Flattened
+      } else {
+        mesh.scaling.y = originalHeight; // Normal
+      }
     }
 
-    // Color and opacity
-    material.emissiveColor = Color3.Black();
+    // Base material settings
     material.alpha = 1.0;
 
+    // Apply state-specific colors and effects
     switch (state) {
       case 'selected':
         if (this.isTopView) {
+          // 3D Top View: Bright blue + blue glow
           material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+          material.emissiveColor = new Color3(0.0, 0.1, 0.2);
+          console.log(`🎨 Applied 3D Top SELECTED: ${name} -> bright blue + glow`);
         } else {
+          // 3D View: Enhanced original color + elevated
           material.diffuseColor = baseColor.clone();
+          material.emissiveColor = Color3.Black();
+          console.log(`🎨 Applied 3D SELECTED: ${name} -> original color + elevated`);
         }
         break;
 
       case 'hover':
-        material.diffuseColor = new Color3(0.03, 0.18, 0.45);
+        // Hover: Bright blue (same as selection)
+        material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+        material.emissiveColor = Color3.Black();
+        console.log(`🎨 Applied HOVER: ${name} -> bright blue`);
         break;
 
       case 'dimmed':
+        // Only applies in 3D View (not 3D Top)
         material.diffuseColor = baseColor.scale(0.6);
-        if (!this.isTopView) {
-          material.alpha = 0.3;
-        }
+        material.emissiveColor = Color3.Black();
+        material.alpha = 0.3;
+        console.log(`🎨 Applied DIMMED: ${name} -> darkened + transparent`);
         break;
 
       case 'normal':
       default:
+        // Normal state: Original colors
         material.diffuseColor = baseColor.clone();
+        material.emissiveColor = Color3.Black();
+        console.log(`🎨 Applied NORMAL: ${name} -> original color`);
         break;
     }
   }
