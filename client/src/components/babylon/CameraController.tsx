@@ -222,7 +222,7 @@ export const useCameraController = ({
     }
   };
 
-  // Initialize cameras
+  // Initialize cameras - ALWAYS call this hook, handle null scenes inside
   React.useEffect(() => {
     if (scene && canvas) {
       const perspectiveCamera = initializePerspectiveCamera();
@@ -233,28 +233,14 @@ export const useCameraController = ({
     }
   }, [scene, canvas]);
 
-  // Early return if scene or canvas not ready
-  if (!scene || !canvas) {
-    return {
-      perspectiveCamera: { current: null },
-      orthographicCamera: { current: null },
-      orthoEventHandlers: { current: null }
-    };
-  }
-
-  // Handle camera switching - only after cameras are initialized  
+  // Handle camera switching - ALWAYS call this hook
   React.useEffect(() => {
-    // Add a small delay to ensure all refs are properly set
-    const timer = setTimeout(() => {
-      if (scene && canvas && perspectiveCameraRef.current && orthographicCameraRef.current) {
-        switchCamera(isOrthographic);
-      }
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, [isOrthographic]);
+    if (scene && canvas && perspectiveCameraRef.current && orthographicCameraRef.current) {
+      switchCamera(isOrthographic);
+    }
+  }, [isOrthographic, scene, canvas]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount - ALWAYS call this hook
   React.useEffect(() => {
     return () => {
       if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
@@ -271,6 +257,7 @@ export const useCameraController = ({
     };
   }, []);
 
+  // ALWAYS return the same structure, regardless of scene/canvas state
   return {
     perspectiveCamera: perspectiveCameraRef,
     orthographicCamera: orthographicCameraRef,
