@@ -223,31 +223,43 @@ export class CleanBMCSystem {
       mesh.material = material;
     }
     
-    // CRITICAL FIX: Safe material property access to prevent canvas crashes
+    // ULTRA-SAFE: No new Color3 creation, just direct property modification
     material.alpha = 1.0; // Always solid - no transparency crashes
-    material.emissiveColor = Color3.Black(); // Always black emission
     
-    // SAFE: Ensure diffuseColor exists before modifying (prevents crashes)
+    // SAFE: Ensure diffuseColor exists with minimal object creation
     if (!material.diffuseColor) {
-      material.diffuseColor = new Color3(0.5, 0.5, 0.5); // Create if missing
+      material.diffuseColor = Color3.Gray(); // Use static method, no new creation
     }
     
-    // Apply colors based on state (SAFE property access)
+    // SAFE: Set emissiveColor without new object creation
+    if (!material.emissiveColor) {
+      material.emissiveColor = Color3.Black();
+    }
+    
+    // Apply colors by DIRECT property modification (no new objects)
     if (state === 'selected' || state === 'hover') {
-      // Blue for selected/hover - SAFE property modification
-      material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+      // Blue for selected/hover - direct property modification
+      material.diffuseColor.r = 0.0;
+      material.diffuseColor.g = 0.3; 
+      material.diffuseColor.b = 0.8;
       console.log(`🎨 Applied ${state.toUpperCase()}: ${name} -> blue`);
     } else if (state === 'dimmed' && !this.isTopView) {
       // Only dim in 3D View, not 3D Top
-      material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      material.diffuseColor.r = 0.07;
+      material.diffuseColor.g = 0.07;
+      material.diffuseColor.b = 0.07;
       material.alpha = 0.7; // Only transparency in 3D View
       console.log(`🎨 Applied DIMMED: ${name} -> grey + transparent`);
     } else {
-      // Normal state - restore original color safely
+      // Normal state - restore original color by direct property copy
       if (baseColor) {
-        material.diffuseColor = baseColor.clone(); // SAFE: clone to avoid reference issues
+        material.diffuseColor.r = baseColor.r;
+        material.diffuseColor.g = baseColor.g;
+        material.diffuseColor.b = baseColor.b;
       } else {
-        material.diffuseColor = new Color3(0.5, 0.5, 0.5); // Fallback color
+        material.diffuseColor.r = 0.5;
+        material.diffuseColor.g = 0.5;
+        material.diffuseColor.b = 0.5;
       }
       console.log(`🎨 Applied NORMAL: ${name} -> original color`);
     }
