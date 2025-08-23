@@ -52,22 +52,14 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
 
-    // When entering top view, ensure all objects are at FULL HEIGHT
+    // When entering top view, reset all objects to original height (flat appearance from above)
     if (isTopView) {
-      console.log(`📐 Entering TOP VIEW - ensuring all objects at FULL HEIGHT`);
+      console.log(`📐 Entering TOP VIEW - keeping all objects flat`);
       this.items.forEach((item, name) => {
-        // Ensure mesh visibility and material alpha are correct
+        // Reset to original height - appears flat from above
+        item.mesh.scaling.y = item.originalHeight;
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
-        if (item.material) {
-          item.material.alpha = 1.0;
-        }
-
-        // FORCE full height in top view - never flattened
-        item.mesh.scaling.y = item.originalHeight;
-        console.log(`📐 TOP VIEW: Set ${name} to full height ${item.originalHeight}`);
-
-        // Force labels to be visible
         this.makeLabelVisible(name);
       });
     }
