@@ -620,154 +620,65 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
     perspectiveCamera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
     
-    // Create orthographic camera for top view
-    const orthoCamera = new FreeCamera("orthoCamera", new Vector3(0, 15, 0), scene);
-    orthoCamera.setTarget(Vector3.Zero());
+    // Create perspective camera for top view (experiment: using perspective instead of ortho)
+    // Position it high above, looking straight down to simulate flat view
+    const topViewCamera = new ArcRotateCamera(
+      "topViewCamera",
+      -Math.PI / 2,  // Alpha - same rotation as main camera
+      0.01,          // Beta - nearly straight down (0.01 to avoid gimbal lock)
+      35,            // Radius - high above to flatten perspective
+      Vector3.Zero(), // Target at origin
+      scene
+    );
+    topViewCamera.setTarget(Vector3.Zero());
     
-    // Look straight down for top view
-    orthoCamera.rotation.x = Math.PI / 2;
-    orthoCamera.rotation.y = 0;
-    orthoCamera.rotation.z = 0;
+    // Configure top view camera for minimal distortion
+    topViewCamera.fov = 0.4; // Narrow field of view to reduce perspective distortion
+    topViewCamera.minZ = 0.1;
+    topViewCamera.maxZ = 100;
     
-    // Set orthographic projection with proper aspect ratio (optimized size for full model visibility)
-    orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
-    const aspectRatio = canvasRef.current!.width / canvasRef.current!.height;
-    const orthoSize = 8.5; // Optimized size to show full model while maximizing viewport usage
+    // Set limits for top view camera
+    topViewCamera.lowerRadiusLimit = 20;  // Minimum height
+    topViewCamera.upperRadiusLimit = 50;  // Maximum height
+    topViewCamera.lowerBetaLimit = 0.01;  // Keep nearly straight down
+    topViewCamera.upperBetaLimit = 0.01;  // Prevent rotation from top view
     
-    if (aspectRatio > 1) {
-      // Wider than tall - expand horizontally
-      orthoCamera.orthoTop = orthoSize;
-      orthoCamera.orthoBottom = -orthoSize;
-      orthoCamera.orthoLeft = -orthoSize * aspectRatio;
-      orthoCamera.orthoRight = orthoSize * aspectRatio;
-    } else {
-      // Taller than wide - expand vertically
-      orthoCamera.orthoTop = orthoSize / aspectRatio;
-      orthoCamera.orthoBottom = -orthoSize / aspectRatio;
-      orthoCamera.orthoLeft = -orthoSize;
-      orthoCamera.orthoRight = orthoSize;
-    }
+    // Store as orthoCamera for compatibility
+    const orthoCamera = topViewCamera;
     
-    // Set proper clipping planes for orthographic view
-    orthoCamera.minZ = 0.1;
-    orthoCamera.maxZ = 100;
-    
-    // Disable rotation controls for pure top-down view
-    orthoCamera.inputs.clear();
-    
-    // Add direct event handlers for orthographic camera controls (using ref for cross-useEffect access)
-    
+    // Setup controls for top view camera
     const setupOrthoControls = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       
-      // Mouse wheel zoom
+      // For perspective camera in top view, we'll use its native controls
+      topViewCamera.attachControl(canvas, true);
+      
+      // Adjust wheel sensitivity for smoother zooming
+      topViewCamera.wheelPrecision = 100; // Higher = less sensitive
+      
+      // Mouse wheel zoom (adjusts radius/height)
       const onWheel = (event: WheelEvent) => {
-        event.preventDefault();
-        const delta = event.deltaY > 0 ? 1.1 : 0.9;
-        const currentSize = orthoCamera.orthoTop || 8.5;
-        const newSize = Math.max(2, Math.min(15, currentSize * delta)); // Constrain zoom range
-        
-        // Update orthographic bounds while maintaining aspect ratio
-        const aspectRatio = canvas.width / canvas.height;
-        if (aspectRatio > 1) {
-          orthoCamera.orthoTop = newSize;
-          orthoCamera.orthoBottom = -newSize;
-          orthoCamera.orthoLeft = -newSize * aspectRatio;
-          orthoCamera.orthoRight = newSize * aspectRatio;
-        } else {
-          orthoCamera.orthoTop = newSize / aspectRatio;
-          orthoCamera.orthoBottom = -newSize / aspectRatio;
-          orthoCamera.orthoLeft = -newSize;
-          orthoCamera.orthoRight = newSize;
-        }
+        // Let the camera's native wheel handling work
+        // The radius limits will constrain the zoom
       };
       
-      // Mouse drag for constrained panning (left/right and horizontal translation with Shift)
-      let isDragging = false;
-      let lastX = 0;
-      let lastY = 0;
+      // Top view camera uses native ArcRotateCamera controls
+      // Panning is handled by the camera itself with alpha rotation disabled
       
-      const onMouseDown = (event: MouseEvent) => {
-        console.log(`🖱️ MouseDown detected: button=${event.button}, clientX=${event.clientX}, clientY=${event.clientY}, shiftKey=${event.shiftKey}`);
-        if (event.button === 0) { // Left mouse button
-          isDragging = true;
-          lastX = event.clientX;
-          lastY = event.clientY;
-          event.preventDefault();
-          event.stopPropagation();
-          console.log(`🖱️ ✅ ORTHO DRAG STARTED: X=${event.clientX}, Y=${event.clientY}, shift=${event.shiftKey}, camera.x=${orthoCamera.position.x.toFixed(3)}, camera.z=${orthoCamera.position.z.toFixed(3)}`);
-        }
-      };
+      // Store minimal handlers for cleanup
+      const onMouseUp = () => {};
       
-      const onMouseMove = (event: MouseEvent) => {
-        if (!isDragging) {
-          console.log(`🖱️ MouseMove but not dragging - ignoring`);
-          return;
-        }
-        
-        const deltaX = event.clientX - lastX;
-        const deltaY = event.clientY - lastY;
-        const sensitivity = 0.02;
-        
-        console.log(`🖱️ MouseMove: deltaX=${deltaX}, deltaY=${deltaY}, shiftKey=${event.shiftKey}`);
-        
-        // Use event.shiftKey directly for reliable Shift detection
-        if (event.shiftKey) {
-          // Shift + drag: Horizontal translation (Z-axis movement)
-          const translationZ = -deltaY * sensitivity;
-          
-          const oldZ = orthoCamera.position.z;
-          orthoCamera.position.z += translationZ;
-          
-          const target = orthoCamera.getTarget();
-          target.z += translationZ;
-          orthoCamera.setTarget(target);
-          
-          console.log(`🖱️ ✨ SHIFT+DRAG HORIZONTAL: deltaY=${deltaY}, translationZ=${translationZ.toFixed(3)}, camera.z=${oldZ.toFixed(3)} -> ${orthoCamera.position.z.toFixed(3)}`);
-        } else {
-          // Normal drag: Left/right panning (X-axis)
-          const translationX = deltaX * sensitivity;
-          
-          const oldX = orthoCamera.position.x;
-          orthoCamera.position.x -= translationX;
-          
-          const target = orthoCamera.getTarget();
-          target.x -= translationX;
-          orthoCamera.setTarget(target);
-          
-          console.log(`🖱️ NORMAL DRAG: deltaX=${deltaX}, translationX=${translationX.toFixed(3)}, camera.x=${oldX.toFixed(3)} -> ${orthoCamera.position.x.toFixed(3)}`);
-        }
-        
-        lastX = event.clientX;
-        lastY = event.clientY;
-        event.preventDefault();
-        event.stopPropagation();
-      };
-      
-      const onMouseUp = (event: MouseEvent) => {
-        if (isDragging) {
-          console.log(`🖱️ Ortho pan ended`);
-        }
-        isDragging = false;
-      };
-      
-      canvas.addEventListener('wheel', onWheel, { passive: false });
-      canvas.addEventListener('mousedown', onMouseDown, true);
-      canvas.addEventListener('mousemove', onMouseMove, true);  
-      canvas.addEventListener('mouseup', onMouseUp, true);
-      canvas.addEventListener('mouseleave', onMouseUp, true);
-      
-      // Store handlers for cleanup in ref
+      // Store minimal handlers for cleanup in ref
       orthoEventHandlersRef.current = {
         wheel: onWheel,
-        mousedown: onMouseDown,
-        mousemove: onMouseMove,
+        mousedown: onMouseUp,
+        mousemove: onMouseUp,
         mouseup: onMouseUp,
         canvas: canvas
       };
       
-      console.log("🎯 Orthographic camera controls configured (zoom + constrained panning)");
+      console.log("🎯 Top view perspective camera configured for flat appearance");
     };
     
     // Setup controls when camera is active
@@ -775,7 +686,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Store camera references
     cameraRef.current = perspectiveCamera;
-    orthoCameraRef.current = orthoCamera;
+    orthoCameraRef.current = topViewCamera; // Use perspective camera for top view
     
     // Set active camera based on mode
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
