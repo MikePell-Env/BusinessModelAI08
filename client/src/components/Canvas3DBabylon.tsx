@@ -43,6 +43,7 @@ import { debugLog } from '@/lib/debug/DebugLogger';
 import { setupDoubleClick } from '@/lib/interactions/DoubleClickHandler';
 import { SceneSetup } from './Canvas3DBabylon/scene/SceneSetup';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
+import { InteractionHandler } from './Canvas3DBabylon/interactions/InteractionHandler';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -1432,8 +1433,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
     ];
 
-    // Initialize model loader
+    // Initialize model loader and interaction handler
     const modelLoader = new BMCModelLoader(scene);
+    const interactionHandler = new InteractionHandler(scene);
+    
+    // Set CleanBMC reference for the interaction handler
+    interactionHandler.setCleanBMC(cleanBMCRef.current);
+    
+    // Register interaction callbacks
+    interactionHandler.registerCallbacks({
+      onDoubleClick: (sectionName: string, position: Vector3) => {
+        debugLog.critical(`Double-click callback triggered for ${sectionName}`);
+        setBillboardContent({
+          show: true,
+          title: sectionName,
+          mesh: null,
+          position: position
+        });
+      }
+    });
     
     // Load complete BMC GLB model with individual section coloring
     modelLoader.loadMainBMC().then((model) => {
@@ -2158,21 +2176,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Enable pointer events for this mesh with proper setup
-            mesh.actionManager = new ActionManager(scene);
-            mesh.isPickable = true; // Ensure mesh is pickable for hover/click
-            console.log(`🎯 ${sectionName}: ActionManager and pickable state enabled`);
-            console.log(`🎯 ${sectionName}: Mesh ready for double-click detection`);
-            console.log(`🔍 ${sectionName}: Mesh isPickable=${mesh.isPickable}, has ActionManager=${!!mesh.actionManager}`);
-            
-            // Unified hover handlers using BMC state manager
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              handleBMCObjectHoverEnter(sectionName);
-            }));
-            
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              handleBMCObjectHoverExit(sectionName);
-            }));
+            // Setup interactions using InteractionHandler
+            interactionHandler.setupMeshInteractions(mesh, sectionName);
+            console.log(`🎯 ${sectionName}: Interactions configured via InteractionHandler`);
             
             // REMOVED: Old click select function - replaced by unified BMC system
             
@@ -2182,47 +2188,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
-            // Manual double-click detection (more reliable than OnDoublePickTrigger)
-            let lastClickTime = 0;
-            const doubleClickThreshold = 300; // milliseconds
-            
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              const currentTime = Date.now();
-              const timeDifference = currentTime - lastClickTime;
-              
-              debugLog.critical(`Click detected on ${sectionName}, time diff: ${timeDifference}ms`);
-              
-              if (timeDifference < doubleClickThreshold && timeDifference > 50) {
-                // Double-click detected
-                debugLog.critical(`DOUBLE-CLICK detected on ${sectionName}!`);
-                
-                const currentlySelected = cleanBMCRef.current?.getSelectedObject();
-                const isAlreadySelected = currentlySelected === sectionName;
-                
-                if (currentBillboardPanel) {
-                  advancedTexture.removeControl(currentBillboardPanel);
-                  currentBillboardPanel = null;
-                  billboardPanelRef.current = null;
-                }
-                
-                if (!isAlreadySelected && cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect(sectionName);
-                }
-                
-                const meshWorldPosition = mesh.getAbsolutePosition();
-                createBillboardPanel(sectionName, meshWorldPosition);
-                
-                // Reset click timer to prevent triple-clicks
-                lastClickTime = 0;
-              } else {
-                // Single click - just select
-                debugLog.critical(`Single click on ${sectionName}`);
-                if (cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect(sectionName);
-                }
-                lastClickTime = currentTime;
-              }
-            }));
+            // All click and double-click handling managed by InteractionHandler
             
             // REMOVED: Old close button functionality - now handled by billboard panel system
             
@@ -2441,64 +2407,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Create action manager for hover interactions
-            if (!mesh.actionManager) {
-              mesh.actionManager = new ActionManager(scene);
-              mesh.isPickable = true;
-            }
-            
-            // Unified hover handlers using BMC state manager
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              handleBMCObjectHoverEnter("Revenue Streams");
-            }));
-            
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              handleBMCObjectHoverExit("Revenue Streams");
-            }));
+            // Setup interactions using InteractionHandler
+            interactionHandler.setupMeshInteractions(mesh, "Revenue Streams");
+            console.log(`🎯 Revenue Streams: Interactions configured via InteractionHandler`);
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
-            // Manual double-click detection for Revenue Streams (more reliable than OnDoublePickTrigger)
-            let lastClickTimeRevenue = 0;
-            const doubleClickThresholdRevenue = 300; // milliseconds
-            
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              const currentTime = Date.now();
-              const timeDifference = currentTime - lastClickTimeRevenue;
-              
-              debugLog.critical(`Click detected on Revenue Streams, time diff: ${timeDifference}ms`);
-              
-              if (timeDifference < doubleClickThresholdRevenue && timeDifference > 50) {
-                // Double-click detected
-                debugLog.critical(`DOUBLE-CLICK detected on Revenue Streams!`);
-                
-                const currentlySelected = cleanBMCRef.current?.getSelectedObject();
-                const isAlreadySelected = currentlySelected === "Revenue Streams";
-                
-                if (currentBillboardPanel) {
-                  advancedTexture.removeControl(currentBillboardPanel);
-                  currentBillboardPanel = null;
-                  billboardPanelRef.current = null;
-                }
-                
-                if (!isAlreadySelected && cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect("Revenue Streams");
-                }
-                
-                const meshWorldPosition = mesh.getAbsolutePosition();
-                createBillboardPanel("Revenue Streams", meshWorldPosition);
-                
-                // Reset click timer to prevent triple-clicks
-                lastClickTimeRevenue = 0;
-              } else {
-                // Single click - just select
-                debugLog.critical(`Single click on Revenue Streams`);
-                if (cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect("Revenue Streams");
-                }
-                lastClickTimeRevenue = currentTime;
-              }
-            }));
+            // All click and double-click handling managed by InteractionHandler
 
             // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
             console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
@@ -2632,64 +2547,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Create action manager for hover interactions
-            if (!mesh.actionManager) {
-              mesh.actionManager = new ActionManager(scene);
-              mesh.isPickable = true;
-            }
-            
-            // Unified hover handlers using BMC state manager
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              handleBMCObjectHoverEnter("Cost Structure");
-            }));
-            
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              handleBMCObjectHoverExit("Cost Structure");
-            }));
+            // Setup interactions using InteractionHandler
+            interactionHandler.setupMeshInteractions(mesh, "Cost Structure");
+            console.log(`🎯 Cost Structure: Interactions configured via InteractionHandler`);
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
-            // Manual double-click detection for Cost Structure (more reliable than OnDoublePickTrigger)
-            let lastClickTimeCost = 0;
-            const doubleClickThresholdCost = 300; // milliseconds
-            
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              const currentTime = Date.now();
-              const timeDifference = currentTime - lastClickTimeCost;
-              
-              debugLog.critical(`Click detected on Cost Structure, time diff: ${timeDifference}ms`);
-              
-              if (timeDifference < doubleClickThresholdCost && timeDifference > 50) {
-                // Double-click detected
-                debugLog.critical(`DOUBLE-CLICK detected on Cost Structure!`);
-                
-                const currentlySelected = cleanBMCRef.current?.getSelectedObject();
-                const isAlreadySelected = currentlySelected === "Cost Structure";
-                
-                if (currentBillboardPanel) {
-                  advancedTexture.removeControl(currentBillboardPanel);
-                  currentBillboardPanel = null;
-                  billboardPanelRef.current = null;
-                }
-                
-                if (!isAlreadySelected && cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect("Cost Structure");
-                }
-                
-                const meshWorldPosition = mesh.getAbsolutePosition();
-                createBillboardPanel("Cost Structure", meshWorldPosition);
-                
-                // Reset click timer to prevent triple-clicks
-                lastClickTimeCost = 0;
-              } else {
-                // Single click - just select
-                debugLog.critical(`Single click on Cost Structure`);
-                if (cleanBMCRef.current) {
-                  cleanBMCRef.current.onSelect("Cost Structure");
-                }
-                lastClickTimeCost = currentTime;
-              }
-            }));
+            // All click and double-click handling managed by InteractionHandler
 
             // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
             console.log(`🏷️ Creating floating label for Cost Structure mesh (index ${index})`);
