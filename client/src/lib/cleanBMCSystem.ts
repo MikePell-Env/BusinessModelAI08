@@ -106,6 +106,20 @@ export class CleanBMCSystem {
   onSelect(sectionName: string) {
     console.log(`🎯 Selection request for "${sectionName}"`);
     
+    // CRITICAL: Special debugging for Revenue Streams
+    if (sectionName === "Revenue Streams") {
+      console.log(`🚨 REVENUE STREAMS SELECTION DEBUG:`);
+      console.log(`  Current items count: ${this.items.size}`);
+      console.log(`  Revenue Streams item exists: ${this.items.has("Revenue Streams")}`);
+      const revenueItem = this.items.get("Revenue Streams");
+      if (revenueItem) {
+        console.log(`  Revenue mesh visible: ${revenueItem.mesh.isVisible}`);
+        console.log(`  Revenue mesh enabled: ${revenueItem.mesh.isEnabled()}`);
+        console.log(`  Revenue material alpha: ${revenueItem.material?.alpha}`);
+        console.log(`  Revenue mesh scaling: Y=${revenueItem.mesh.scaling.y}`);
+      }
+    }
+    
     // Toggle selection
     if (this.selectedObject === sectionName) {
       console.log(`Deselecting ${sectionName}`);
@@ -127,7 +141,19 @@ export class CleanBMCSystem {
       }
     }
 
-    this.updateAllVisuals();
+    try {
+      this.updateAllVisuals();
+      
+      // CRITICAL: Check all items after update if Revenue Streams was selected
+      if (sectionName === "Revenue Streams") {
+        console.log(`🚨 AFTER UPDATE - Item visibility check:`);
+        this.items.forEach((item, name) => {
+          console.log(`  ${name}: visible=${item.mesh.isVisible}, enabled=${item.mesh.isEnabled()}, alpha=${item.material?.alpha}`);
+        });
+      }
+    } catch (error) {
+      console.error(`🚨 CRITICAL ERROR during visual update for ${sectionName}:`, error);
+    }
   }
 
   // Clear selection
