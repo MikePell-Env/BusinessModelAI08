@@ -240,7 +240,195 @@ export class CleanBMCSystem {
     console.log(`🎯 ======= CLEAR SELECTION END =======`);
   }
 
-  // REMOVED OLD updateVisuals() method - using updateAllVisuals() instead
+  // Update all visual states - STRICT 3D TOP RULES
+  updateAllVisuals() {
+    const currentSelection = this.getSelectedObject();
+    console.log(`🎨 CleanBMC: Updating visuals - selection: "${currentSelection}", topView: ${this.isTopView}`);
+
+    // STRICT 3D TOP IMPLEMENTATION
+    if (this.isTopView) {
+      // 3D TOP RULES: Only selected object changes color, NOTHING ELSE CHANGES
+      this.items.forEach((item, name) => {
+        // ALWAYS ensure visibility first
+        item.mesh.isVisible = true;
+        item.mesh.setEnabled(true);
+        item.mesh.visibility = 1.0;
+        item.mesh.scaling.y = item.originalHeight;
+        item.material.alpha = 1.0;
+        
+        if (name === currentSelection) {
+          // ONLY change color for selected object
+          this.applySelectionEffect(item.material, name);
+        } else {
+          // ALL non-selected objects stay EXACTLY as they were
+          this.restoreOriginalMaterial(item.material, name);
+        }
+        
+        // Always ensure labels are visible
+        this.ensureLabelVisibility(name);
+      });
+    } else {
+      // 3D VIEW: Normal implementation with dimming
+      this.items.forEach((item, name) => {
+        const isSelected = (name === currentSelection);
+        const isHovered = (name === this.hoveredObject);
+        
+        item.mesh.isVisible = true;
+        item.mesh.setEnabled(true);
+
+        let visualState: 'normal' | 'hover' | 'selected' | 'dimmed';
+        
+        if (isSelected) {
+          visualState = 'selected';
+        } else if (isHovered && !currentSelection) {
+          visualState = 'hover';
+        } else if (currentSelection && currentSelection !== name) {
+          visualState = 'dimmed';
+        } else {
+          visualState = 'normal';
+        }
+        
+        this.applyVisualState(item, name, visualState);
+      });
+    }
+  }
+
+  // Clear selection
+  clearSelection() {
+    this.selectObject(null);
+  }
+
+  // Apply the correct visual state to an item - ONLY USED FOR 3D VIEW NOW
+  private applyVisualState(item: BMCItem, name: string, state: 'normal' | 'hover' | 'selected' | 'dimmed') {
+    // This method should ONLY be called for 3D View
+    if (this.isTopView) {
+      console.error(`⚠️ ERROR: applyVisualState called in 3D Top view - this should not happen!`);
+      return;
+    }
+    
+    console.log(`🎨 3D View: Applying ${state} state to ${name}`);
+    
+    item.mesh.isVisible = true;
+    item.mesh.setEnabled(true);
+
+    switch (state) {
+      case 'selected':
+        // SELECTED: Bright blue, full height, 100% opacity (rules 2,6)
+        this.applySelectionEffect(item.material, name);
+        item.material.alpha = 1.0;
+        if (!this.isTopView) {
+          // 3D View: selected stays at full height
+          this.animateHeight(item.mesh, item.originalHeight);
+        } else {
+          // 3D Top: selected stays at full height
+          item.mesh.scaling.y = item.originalHeight;
+          item.mesh.visibility = 1.0; // Ensure full visibility
+        }
+        break;
+
+      case 'hover':
+        this.applyHoverEffect(item.material, true);
+        break;
+
+      case 'dimmed':
+        // DIMMED: Only applies to 3D View (rule 6)
+        // 3D Top NEVER uses dimmed state - handled by updateAllVisuals logic
+        if (!this.isTopView) {
+          // Only apply dimming in 3D View
+          this.applyDimmedEffect(item.material, name);
+          item.material.alpha = 0.5; // 50% opacity
+          this.animateHeight(item.mesh, item.originalHeight * 0.01); // flatten to almost nothing
+        } else {
+          // This should NEVER happen in 3D Top - force to normal state immediately
+          console.error(`⚠️ CRITICAL BUG: Dimmed state in 3D Top for ${name} - forcing normal state`);
+          // Immediately apply normal state
+          this.restoreOriginalMaterial(item.material, name);
+          item.material.alpha = 1.0;
+          item.mesh.scaling.y = item.originalHeight;
+          item.mesh.isVisible = true;
+          item.mesh.setEnabled(true);
+          // Ensure labels stay visible
+          this.ensureLabelVisibility(name);
+          // Force a re-render to make sure it's visible
+          if (item.mesh.refreshBoundingInfo) {
+            item.mesh.refreshBoundingInfo();
+          }
+        }
+        break;
+
+      case 'normal':
+      default:
+        // NORMAL: Original material, full height, 100% opacity (rules 1,4,5,8)
+        this.restoreOriginalMaterial(item.material, name);
+        // FORCE 100% opacity - NEVER change this
+        item.material.alpha = 1.0;
+        // CRITICAL: Ensure mesh is visible
+        item.mesh.isVisible = true;
+        item.mesh.setEnabled(true);
+        if (!this.isTopView) {
+          // 3D View: return to full height
+          this.animateHeight(item.mesh, item.originalHeight);
+        } else {
+          // 3D Top: maintain full height - NEVER hide or reduce
+          item.mesh.scaling.y = item.originalHeight;
+          // Double-check visibility in 3D Top
+          item.mesh.visibility = 1.0;
+        }
+        break;
+    }
+
+    // Always ensure labels are visible
+    this.ensureLabelVisibility(name);
+  }
+
+  // Helper methods for material effects
+  private applySelectionEffect(material: StandardMaterial, name: string) {
+    material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+    material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+  }
+
+  private applyHoverEffect(material: StandardMaterial, isHovered: boolean) {
+    if (isHovered) {
+      material.emissiveColor = new Color3(0.1, 0.1, 0.1);
+    } else {
+      material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    }
+  }
+
+  private applyDimmedEffect(material: StandardMaterial, name: string) {
+    material.diffuseColor = new Color3(0.05, 0.05, 0.05);
+    material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+  }
+
+  private restoreOriginalMaterial(material: StandardMaterial, name: string) {
+    if (name === "Cost Structure") {
+      material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+    } else if (name === "Revenue Streams") {
+      material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+    } else {
+      material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+    }
+    material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    material.alpha = 1.0;
+  }
+
+  private ensureLabelVisibility(name: string) {
+    const item = this.items.get(name);
+    if (item?.label) {
+      item.label.isVisible = true;
+      item.label.setEnabled(true);
+      if (item.labelMaterial) {
+        item.labelMaterial.alpha = 1.0;
+      }
+    }
+  }
+
+  private selectObject(sectionName: string | null) {
+    this.selectedObject = sectionName;
+    this.updateAllVisuals();
+  }
+
+  // OLD METHOD - REMOVED
   private updateVisuals_OLD_REMOVED() {
     const currentSelection = this.getSelectedObject();
     console.log(`🎨 UpdateVisuals START: selection="${currentSelection}", topView=${this.isTopView}, hoveredObject="${this.hoveredObject}"`);
