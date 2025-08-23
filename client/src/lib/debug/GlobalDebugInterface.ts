@@ -1,6 +1,5 @@
 
 import { checkpointSystem } from './CheckpointSystem';
-import { cleanBMCSystem } from '../cleanBMCSystem';
 
 // Global debug interface
 class GlobalDebugInterface {
@@ -16,11 +15,11 @@ class GlobalDebugInterface {
   }
 
   checkpoints(): void {
-    cleanBMCSystem.showCheckpoints();
+    console.log('Debug checkpoints disabled');
   }
 
   errors(): void {
-    cleanBMCSystem.showErrors();
+    console.log('Debug errors disabled');
   }
 
   export(): string {
@@ -34,22 +33,11 @@ class GlobalDebugInterface {
   }
 
   bmcState(): void {
-    console.log("🎯 Current BMC State:");
-    console.log("  Selected object:", cleanBMCSystem.getSelectedObject());
-    console.log("  Is top view:", cleanBMCSystem.getIsTopView());
-    console.log("  Total items:", cleanBMCSystem.getAllItems().size);
+    console.log("🎯 BMC State debugging disabled");
   }
 
   bmcItems(): void {
-    console.log("📦 BMC Items:");
-    cleanBMCSystem.getAllItems().forEach((item, name) => {
-      console.log(`  ${name}:`, {
-        visible: item.mesh.isVisible,
-        enabled: item.mesh.isEnabled(),
-        alpha: item.material?.alpha || 'N/A',
-        height: item.mesh.scaling.y
-      });
-    });
+    console.log("📦 BMC Items debugging disabled");
   }
 
   recent(count: number = 10): void {
