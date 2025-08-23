@@ -69,16 +69,20 @@ export class CleanBMCSystem {
 
   // Register a BMC item (mesh + material + original height)
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
+    // Ensure originalHeight has a minimum value to prevent disappearing objects
+    const safeHeight = Math.max(originalHeight, 0.5);
+    console.log(`📏 Registering ${name}: provided height=${originalHeight}, safe height=${safeHeight}`);
+    
     this.items.set(name, {
       mesh,
       material,
-      originalHeight,
+      originalHeight: safeHeight,
       name
     });
     
     // Set default appearance
     this.setDefaultAppearance(name);
-    console.log(`✓ Registered BMC item: ${name}`);
+    console.log(`✓ Registered BMC item: ${name} with height ${safeHeight}`);
   }
 
   // Add a label to an existing BMC item
@@ -344,7 +348,7 @@ export class CleanBMCSystem {
           console.log(`⚫ ${name} dimmed in TOP VIEW: grey, height=${item.originalHeight * 0.7}`);
         }
       } else {
-        // Default state - restore original colors
+        // Default state - restore original colors and ensure proper height
         if (name === "Cost Structure") {
           item.material.diffuseColor = new Color3(0.35, 0.0, 0.0); // Deeper red
           item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // Remove emissive
@@ -356,8 +360,11 @@ export class CleanBMCSystem {
           item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
         }
         item.material.alpha = 1.0;
-        this.animateHeight(item.mesh, item.originalHeight);
-        console.log(`🔘 ${name} default: original color, height=${item.originalHeight}`);
+        
+        // Ensure we restore to a safe height value
+        const restoreHeight = Math.max(item.originalHeight, 0.5);
+        this.animateHeight(item.mesh, restoreHeight);
+        console.log(`🔘 ${name} default: original color, height=${restoreHeight} (stored: ${item.originalHeight})`);
       }
       
       // CRITICAL: Force label visibility again after any material changes
