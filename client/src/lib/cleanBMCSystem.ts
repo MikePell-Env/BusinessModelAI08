@@ -319,10 +319,12 @@ export class CleanBMCSystem {
 
   // Update all visual states
   private updateAllVisuals() {
-    console.log(`🎨 CleanBMC: Updating all visuals - selected: "${this.selectedObject}", hovered: "${this.hoveredObject}", topView: ${this.isTopView}`);
+    // Get current selection from state manager
+    const currentSelection = this.getSelectedObject();
+    console.log(`🎨 CleanBMC: Updating all visuals - selection: "${currentSelection}", hovered: "${this.hoveredObject}", topView: ${this.isTopView}`);
 
     this.items.forEach((item, name) => {
-      const isSelected = (name === this.selectedObject);
+      const isSelected = (name === currentSelection);
       const isHovered = (name === this.hoveredObject);
 
       // Ensure mesh is always visible and enabled
@@ -334,11 +336,11 @@ export class CleanBMCSystem {
 
       if (isSelected) {
         visualState = 'selected';
-      } else if (isHovered && !this.selectedObject) {
+      } else if (isHovered && !currentSelection) {
         visualState = 'hover';
-      } else if (this.selectedObject && this.selectedObject !== name) {
-        // In top view, don't apply dimmed state to prevent objects from disappearing
-        visualState = this.isTopView ? 'normal' : 'dimmed';
+      } else if (currentSelection && currentSelection !== name) {
+        // Something else is selected - this object should be dimmed
+        visualState = 'dimmed';
       } else {
         visualState = 'normal';
       }
@@ -355,7 +357,6 @@ export class CleanBMCSystem {
   // Apply the correct visual state to an item
   private applyVisualState(item: BMCItem, name: string, state: 'normal' | 'hover' | 'selected' | 'dimmed') {
     console.log(`🎨 Applying ${state} state to ${name} (topView: ${this.isTopView})`);
-    console.log(`   BEFORE: scaling.y=${item.mesh.scaling.y}, alpha=${item.material.alpha}, visible=${item.mesh.isVisible}`);
 
     // Always ensure mesh remains visible
     item.mesh.isVisible = true;
@@ -370,33 +371,33 @@ export class CleanBMCSystem {
 
     switch (state) {
       case 'selected':
+        // SELECTED: Bright blue at full height
         this.applySelectionEffect(item.material, name);
-        // Only animate height in 3D perspective view
         if (!this.isTopView) {
-          this.animateHeight(item.mesh, item.originalHeight * 1.4);
+          // In 3D view: selected objects stay at full height
+          this.animateHeight(item.mesh, item.originalHeight);
         }
         break;
 
       case 'hover':
         this.applyHoverEffect(item.material, true);
-        // Height already handled in onHover method
         break;
 
       case 'dimmed':
-        // Apply dimmed colors but keep visible
+        // DIMMED (others when something is selected): 50% opacity, flattened
         this.applyDimmedEffect(item.material, name);
-        // Only animate height in 3D view (not top view)
         if (!this.isTopView) {
+          // In 3D view: dimmed objects are flattened
           this.animateHeight(item.mesh, item.originalHeight * 0.3);
         }
-        console.log(`   AFTER DIMMED: scaling.y=${item.mesh.scaling.y}, alpha=${item.material.alpha}`);
         break;
 
       case 'normal':
       default:
+        // NORMAL (no selection): Full height, full opacity
         this.restoreOriginalMaterial(item.material, name);
-        // Only animate height in 3D perspective view
         if (!this.isTopView) {
+          // In 3D view: normal objects at full height
           this.animateHeight(item.mesh, item.originalHeight);
         }
         break;
@@ -408,17 +409,10 @@ export class CleanBMCSystem {
 
   // Helper to apply selection effect
   private applySelectionEffect(material: StandardMaterial, name: string) {
-    if (name === "Cost Structure") {
-      material.diffuseColor = new Color3(0.35, 0.0, 0.0);
-      material.emissiveColor = new Color3(0.3, 0.0, 0.0);
-    } else if (name === "Revenue Streams") {
-      material.diffuseColor = new Color3(0.0, 0.20, 0.12);
-      material.emissiveColor = new Color3(0.0, 0.15, 0.08);
-    } else {
-      material.diffuseColor = new Color3(0.0, 0.3, 0.8);
-      material.emissiveColor = new Color3(0.0, 0.0, 0.0);
-    }
-    material.alpha = 1.0;
+    // BRIGHT BLUE for all selected objects
+    material.diffuseColor = new Color3(0.0, 0.4, 1.0);  // Bright blue
+    material.emissiveColor = new Color3(0.0, 0.2, 0.5); // Blue glow
+    material.alpha = 1.0; // Full opacity
   }
 
   // Helper to apply hover effect
@@ -431,7 +425,7 @@ export class CleanBMCSystem {
 
   // Helper to apply dimmed effect
   private applyDimmedEffect(material: StandardMaterial, name: string) {
-    // In top view, keep objects more visible
+    // 50% opacity in 3D view, higher in top view
     material.alpha = this.isTopView ? 0.9 : 0.5;
     if (name === "Cost Structure") {
       material.diffuseColor = new Color3(0.2, 0.0, 0.0);
