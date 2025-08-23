@@ -510,7 +510,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
         // Apply 180 Y-axis rotation for orthographic view if the loader supports it
         if (bmcModelLoaderRef.current) {
-          bmcModelLoaderRef.current.applyOrthographicRotation();
+          bmcModelLoaderRef.current.handleCameraModeChange(true);
         }
       }
 
