@@ -1364,6 +1364,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Store reference for later use
     viewTransitionRef.current = viewTransitionManager;
     
+    // Connect ViewTransitionManager to cleanBMCSystem
+    if (cleanBMCRef.current) {
+      cleanBMCRef.current.setViewTransitionManager(viewTransitionManager);
+    }
+    
     // Set CleanBMC reference for the interaction handler
     interactionHandler.setCleanBMC(cleanBMCRef.current);
     
