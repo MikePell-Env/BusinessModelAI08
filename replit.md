@@ -10,6 +10,10 @@ Preferred communication style: Simple, everyday language.
 - **January 23, 2025**: Updated Envisioner logo to new design while maintaining smaller size (h-5) for better header proportions
 - **January 23, 2025**: Unified ActionManager-based click handling system restored and verified working across all 3D view modes
 - **January 23, 2025**: Fixed 3D Top view single-click selection and double-click panel opening functionality
+- **January 23, 2025**: Completed major refactoring - Phase 1 (Analysis), Phase 2 (Modular Integration), Phase 3 (Visual Enhancements)
+- **January 23, 2025**: Created 4 modular components reducing main file by 400+ lines, eliminated 120+ lines of duplicate code
+- **January 23, 2025**: Enhanced lighting system with rim light and improved material polish for professional appearance
+- **January 23, 2025**: Documented coordinate system oddities - X-axis inversion for separate GLB models (Revenue Streams, Cost Structure)
 
 ## System Architecture
 The application employs a full-stack monorepo architecture, separating client and server concerns.
@@ -29,6 +33,7 @@ The application employs a full-stack monorepo architecture, separating client an
 
 ### Key Components & Technical Details
 - **Canvas Visualization System**: Features traditional 2D grid and an advanced 3D system. The 3D system uses a single GLB model with 7 interactive sections, supports dynamic object height manipulation, and an interactive selection system. View switching between 2D, 3D View, and 3D Top modes is seamless with state persistence. Additional GLB instances are used for Revenue Streams and Cost Structure sections.
+- **Coordinate System Workarounds**: The system handles X-axis inversion for separate GLB models. Revenue Streams positioned at X=-0.221 (appears right) and Cost Structure at X=-10.1 (appears left). Main BMC model uses transformNode scaling while separate GLBs use direct mesh scaling.
 - **AI Chat Integration**: Utilizes GPT-4o for insights and recommendations, providing a real-time, context-aware conversational interface. Intelligent voice-activated 3D view switching is implemented through custom event systems.
 - **Data Management**: Employs shared TypeScript types for consistent data structures. Canvas elements are defined for the nine core BMC sections, with sample data loaded from JSON and support for canvas metadata and version control.
 - **Unified Transformation System**: Manages coordinate systems for various object types, ensuring consistent height, position, and scaling control across all BMC components.
