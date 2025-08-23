@@ -248,17 +248,11 @@ export class CleanBMCSystem {
     
     item.material.alpha = 1.0;
     
-    // Height behavior: 3D Top = 0.01 (flattened), 3D View = check if another object is selected
+    // Height behavior: 3D Top = 0.01 (flattened), 3D View = NEVER change height on hover
     if (this.isTopView) {
       item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
-    } else {
-      // If another object is already selected, keep hovered object flattened
-      if (this.selectedObject && this.selectedObject !== name) {
-        item.mesh.scaling.y = 0.01;  // Keep flattened when another object is selected
-      } else {
-        item.mesh.scaling.y = item.originalHeight;  // Original height when no selection or self-hover
-      }
     }
+    // In 3D view, do NOT change height on hover - leave height as-is
   }
 
   // DIMMED STATE - Darker but visible
