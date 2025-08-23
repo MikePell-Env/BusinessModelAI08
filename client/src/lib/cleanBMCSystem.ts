@@ -244,13 +244,14 @@ export class CleanBMCSystem {
     const baseColor = this.getBaseColor(name);
     item.material.diffuseColor = baseColor.scale(0.5);  // 50% darker
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
-    item.material.alpha = 0.8;  // Keep mostly visible to prevent blank canvas
     
-    // Height behavior: 3D Top = 0.01 (flattened), 3D View = reduced height
+    // Height and opacity behavior: 3D Top = 0.01 + 100%, 3D View = 0.01 + 30%
     if (this.isTopView) {
       item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
+      item.material.alpha = 1.0;   // 100% opacity in 3D Top view
     } else {
-      item.mesh.scaling.y = item.originalHeight * 0.5;  // Reduced height in 3D view
+      item.mesh.scaling.y = 0.01;  // Flattened when other object selected in 3D view
+      item.material.alpha = 0.3;   // 30% opacity in 3D view (original height preserved for restoration)
     }
   }
 
