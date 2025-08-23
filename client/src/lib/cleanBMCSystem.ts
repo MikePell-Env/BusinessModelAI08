@@ -473,13 +473,8 @@ export class CleanBMCSystem {
   private applyDimmedEffect(material: StandardMaterial, name: string) {
     // Only applies to 3D View - 50% opacity
     material.alpha = 0.5;
-    if (name === "Cost Structure") {
-      material.diffuseColor = new Color3(0.2, 0.0, 0.0);
-    } else if (name === "Revenue Streams") {
-      material.diffuseColor = new Color3(0.0, 0.15, 0.10);
-    } else {
-      material.diffuseColor = new Color3(0.05, 0.05, 0.05);
-    }
+    // ALL objects use dark grey when dimmed (including Cost Structure and Revenue Streams)
+    material.diffuseColor = new Color3(0.05, 0.05, 0.05);
     material.emissiveColor = new Color3(0.0, 0.0, 0.0);
   }
 
