@@ -2138,9 +2138,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Setup interactions using SimpleClickHandler
+            // Setup interactions using SimpleClickHandler  
             clickHandler.registerMesh(mesh, sectionName);
             console.log(`🎯 ${sectionName}: Interactions configured via SimpleClickHandler`);
+            
+            // RESTORE: Add ActionManager hover functionality (separate from click handling)
+            if (!mesh.actionManager) {
+              mesh.actionManager = new ActionManager(scene);
+            }
+            
+            // Hover Enter - Standard bright blue hover effect
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              console.log(`🎯 HOVER DETECTED on ${sectionName}`);
+              
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onHover(sectionName, true);
+              }
+            }));
+            
+            // Hover Exit - Restore original appearance
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              console.log(`🎯 HOVER EXIT DETECTED on ${sectionName}`);
+              
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onHover(sectionName, false);
+              }
+            }));
             
             // REMOVED: Old click select function - replaced by unified BMC system
             
@@ -2374,6 +2397,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             clickHandler.registerMesh(mesh, "Revenue Streams");
             console.log(`🎯 Revenue Streams: Interactions configured via SimpleClickHandler`);
             
+            // RESTORE: Add ActionManager hover functionality
+            if (!mesh.actionManager) {
+              mesh.actionManager = new ActionManager(scene);
+            }
+            
+            // Hover Enter
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              console.log(`🎯 HOVER DETECTED on Revenue Streams`);
+              
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onHover("Revenue Streams", true);
+              }
+            }));
+            
+            // Hover Exit
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              console.log(`🎯 HOVER EXIT DETECTED on Revenue Streams`);
+              
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onHover("Revenue Streams", false);
+              }
+            }));
+            
             // REMOVED: Single click handler - now handled by manual double-click detection
             
             // All click and double-click handling managed by SimpleClickHandler
@@ -2515,6 +2561,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // Setup interactions using SimpleClickHandler
             clickHandler.registerMesh(mesh, "Cost Structure");
             console.log(`🎯 Cost Structure: Interactions configured via SimpleClickHandler`);
+            
+            // RESTORE: Add ActionManager hover functionality
+            if (!mesh.actionManager) {
+              mesh.actionManager = new ActionManager(scene);
+            }
+            
+            // Hover Enter
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              console.log(`🎯 HOVER DETECTED on Cost Structure`);
+              
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onHover("Cost Structure", true);
+              }
+            }));
+            
+            // Hover Exit
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              console.log(`🎯 HOVER EXIT DETECTED on Cost Structure`);
+              
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onHover("Cost Structure", false);
+              }
+            }));
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
