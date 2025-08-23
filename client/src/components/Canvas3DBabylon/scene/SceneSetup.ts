@@ -10,7 +10,7 @@ import {
   Color3, 
   Color4,
   Vector3,
-  CubeTexture
+  ActionManager
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
@@ -19,7 +19,15 @@ export class SceneSetup {
   private scene: Scene;
 
   constructor(canvas: HTMLCanvasElement) {
-    this.engine = new Engine(canvas, true);
+    // Initialize engine with high-quality settings for clear label rendering (matching existing)
+    this.engine = new Engine(canvas, true, {
+      preserveDrawingBuffer: true,
+      stencil: true,
+      antialias: true, // Enable anti-aliasing for smoother edges
+      adaptToDeviceRatio: true, // Use device pixel ratio for crisp rendering
+      powerPreference: "high-performance" // Request high-performance GPU
+    }, true); // Enable adaptive quality
+    
     this.scene = new Scene(this.engine);
     this.setupScene();
     this.setupLighting();
@@ -27,47 +35,35 @@ export class SceneSetup {
   }
 
   private setupScene(): void {
-    // Set background color to a subtle gradient (existing color)
-    this.scene.clearColor = new Color4(0.05, 0.05, 0.1, 1.0);
+    // Set background to match 2D view (#e9ecef - light gray)
+    // #e9ecef = RGB(233, 236, 239) = normalized (0.914, 0.925, 0.937)
+    this.scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
     
-    // Enable antialiasing and optimization
-    this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
-    this.scene.imageProcessingConfiguration.contrast = 1.6;
-    this.scene.imageProcessingConfiguration.exposure = 0.6;
+    // Enable pointer interactions on the scene
+    this.scene.actionManager = new ActionManager(this.scene);
     
     debugLog.verbose('scene', 'Scene initialized with optimized settings');
   }
 
   private setupLighting(): void {
-    // Ambient light for overall illumination
+    // Enhanced lighting setup for semi-gloss black plastic with subtle reflections (matching existing)
     const hemisphericLight = new HemisphericLight(
-      "HemiLight", 
+      "hemisphericLight", 
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 0.6;
-    hemisphericLight.diffuse = new Color3(0.9, 0.9, 1.0);
-    hemisphericLight.specular = new Color3(0.1, 0.1, 0.2);
-    hemisphericLight.groundColor = new Color3(0.1, 0.1, 0.15);
+    hemisphericLight.intensity = 1.2; // Moderate ambient lighting
+    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Neutral ambient
+    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Low specular for subtle shine
 
-    // Main directional light (sun-like)
     const directionalLight = new DirectionalLight(
-      "DirectionalLight", 
-      new Vector3(-1, -2, -1), 
+      "directionalLight", 
+      new Vector3(-1, -1, -1), 
       this.scene
     );
-    directionalLight.intensity = 0.8;
-    directionalLight.diffuse = new Color3(1, 0.98, 0.95);
-    directionalLight.specular = new Color3(0.2, 0.2, 0.25);
-
-    // Secondary fill light
-    const fillLight = new DirectionalLight(
-      "FillLight", 
-      new Vector3(1, -1, 0.5), 
-      this.scene
-    );
-    fillLight.intensity = 0.3;
-    fillLight.diffuse = new Color3(0.8, 0.85, 1.0);
+    directionalLight.intensity = 1.8; // Strong directional light for shape definition
+    directionalLight.diffuse = new Color3(1, 1, 1);
+    directionalLight.specular = new Color3(0.3, 0.3, 0.3); // Low specular for controlled shine
 
     debugLog.verbose('scene', 'Lighting system configured');
   }
