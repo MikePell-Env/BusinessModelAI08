@@ -211,11 +211,11 @@ export class CleanBMCSystem {
     item.material.emissiveColor = new Color3(0.0, 0.1, 0.2);
     item.material.alpha = 1.0;
     
-    // Simple height change in 3D view only
-    if (!this.isTopView) {
-      item.mesh.scaling.y = item.originalHeight * 1.4;
+    // Height behavior: 3D Top = 0.01 (flattened), 3D View = original with animation
+    if (this.isTopView) {
+      item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
     } else {
-      item.mesh.scaling.y = item.originalHeight;
+      item.mesh.scaling.y = item.originalHeight * 1.4;  // Elevated when selected in 3D view
     }
   }
 
@@ -227,7 +227,13 @@ export class CleanBMCSystem {
     item.material.diffuseColor = new Color3(0.1, 0.4, 0.9);  // Light blue
     item.material.emissiveColor = new Color3(0.05, 0.05, 0.05);
     item.material.alpha = 1.0;
-    item.mesh.scaling.y = item.originalHeight;
+    
+    // Height behavior: 3D Top = 0.01 (flattened), 3D View = original height
+    if (this.isTopView) {
+      item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
+    } else {
+      item.mesh.scaling.y = item.originalHeight;  // Original height in 3D view
+    }
   }
 
   // DIMMED STATE - Darker but visible
@@ -240,8 +246,12 @@ export class CleanBMCSystem {
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     item.material.alpha = 0.8;  // Keep mostly visible to prevent blank canvas
     
-    // Slightly reduce height in 3D view
-    item.mesh.scaling.y = item.originalHeight * 0.5; // Not too small
+    // Height behavior: 3D Top = 0.01 (flattened), 3D View = reduced height
+    if (this.isTopView) {
+      item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
+    } else {
+      item.mesh.scaling.y = item.originalHeight * 0.5;  // Reduced height in 3D view
+    }
   }
 
   // NORMAL STATE - Default appearance
@@ -252,7 +262,13 @@ export class CleanBMCSystem {
     item.material.diffuseColor = this.getBaseColor(name);
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     item.material.alpha = 1.0;
-    item.mesh.scaling.y = item.originalHeight;
+    
+    // Height behavior: 3D Top = 0.01 (flattened), 3D View = original full height
+    if (this.isTopView) {
+      item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
+    } else {
+      item.mesh.scaling.y = item.originalHeight;  // Original full height in 3D view
+    }
   }
 
   // Get current state for debugging
