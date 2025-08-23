@@ -210,13 +210,13 @@ export class CleanBMCSystem {
     // Color behavior: Cost Structure and Revenue Streams keep their original colors when selected
     if (name === "Cost Structure") {
       item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);  // Keep original red
-      item.material.emissiveColor = new Color3(0.1, 0.0, 0.0);  // Red glow
+      item.material.emissiveColor = new Color3(0.02, 0.0, 0.0);  // Subtle red glow
     } else if (name === "Revenue Streams") {
       item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);  // Keep original green
-      item.material.emissiveColor = new Color3(0.0, 0.05, 0.03);  // Green glow
+      item.material.emissiveColor = new Color3(0.0, 0.02, 0.01);  // Subtle green glow
     } else {
       item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);  // Bright blue for others
-      item.material.emissiveColor = new Color3(0.0, 0.1, 0.2);
+      item.material.emissiveColor = new Color3(0.0, 0.02, 0.04);  // Much subtler blue glow
     }
     
     item.material.alpha = 1.0;
