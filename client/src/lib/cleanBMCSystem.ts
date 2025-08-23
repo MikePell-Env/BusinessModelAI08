@@ -386,11 +386,17 @@ export class CleanBMCSystem {
   // Apply the correct visual state to an item - FOLLOWS SELECTION RULES EXACTLY
   private applyVisualState(item: BMCItem, name: string, state: 'normal' | 'hover' | 'selected' | 'dimmed') {
     console.log(`🎨 Applying ${state} state to ${name} (topView: ${this.isTopView})`);
-    console.log(`   Current: height=${item.mesh.scaling.y}, alpha=${item.material.alpha}`);
+    console.log(`   Current: height=${item.mesh.scaling.y}, alpha=${item.material.alpha}, visible=${item.mesh.isVisible}`);
 
-    // Always ensure mesh remains visible
+    // CRITICAL: Always ensure mesh remains visible - especially in 3D Top
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
+    
+    // Extra safety for 3D Top view
+    if (this.isTopView && state === 'dimmed') {
+      console.error(`⚠️ PREVENTING dimmed state in 3D Top for ${name} - forcing normal`);
+      state = 'normal'; // Force to normal state
+    }
 
     switch (state) {
       case 'selected':
@@ -402,8 +408,9 @@ export class CleanBMCSystem {
           // 3D View: selected stays at full height
           this.animateHeight(item.mesh, item.originalHeight);
         } else {
-          // 3D Top: selected stays at full height  
+          // 3D Top: selected stays at full height
           item.mesh.scaling.y = item.originalHeight;
+          item.mesh.visibility = 1.0; // Ensure full visibility
         }
         break;
 
@@ -442,13 +449,18 @@ export class CleanBMCSystem {
         // NORMAL: Original material, full height, 100% opacity (rules 1,4,5,8)
         this.restoreOriginalMaterial(item.material, name);
         // FORCE 100% opacity - NEVER change this
-        item.material.alpha = 1.0; 
+        item.material.alpha = 1.0;
+        // CRITICAL: Ensure mesh is visible
+        item.mesh.isVisible = true;
+        item.mesh.setEnabled(true);
         if (!this.isTopView) {
           // 3D View: return to full height
           this.animateHeight(item.mesh, item.originalHeight);
         } else {
-          // 3D Top: maintain full height
+          // 3D Top: maintain full height - NEVER hide or reduce
           item.mesh.scaling.y = item.originalHeight;
+          // Double-check visibility in 3D Top
+          item.mesh.visibility = 1.0;
         }
         break;
     }
