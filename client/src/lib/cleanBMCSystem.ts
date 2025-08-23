@@ -101,15 +101,20 @@ export class CleanBMCSystem {
       return;
     }
 
-    // Only apply hover effects if no object is selected
-    if (this.selectedObject !== null) {
+    // Don't apply hover to already selected objects
+    if (this.selectedObject === sectionName) {
       return;
     }
 
     if (isHovering) {
       this.applyState(sectionName, 'hover');
     } else {
-      this.applyState(sectionName, 'normal');
+      // Return to proper state: normal if nothing selected, dimmed if something else is selected
+      if (this.selectedObject !== null && !this.isTopView) {
+        this.applyState(sectionName, 'dimmed');
+      } else {
+        this.applyState(sectionName, 'normal');
+      }
     }
   }
 
