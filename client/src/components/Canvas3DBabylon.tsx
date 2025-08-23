@@ -243,8 +243,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     getCamera3DState, 
     is3D, 
     isOrthographic, 
-    setSelectedObject, 
-    getSelectedObject, 
+    // REPLACED: Using BMC State Manager for proper selection preservation
+    // setSelectedObject, 
+    // getSelectedObject, 
     setOriginalHeights, 
     getOriginalHeights,
     // New BMC State Manager methods
@@ -278,17 +279,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     console.log("🔗 Injection complete");
     
-    // DISABLED: Old sync was causing conflicts between dual selection systems
-    // const currentSelection = bmcState.getSelectedObject();
-    // if (currentSelection) {
-    //   console.log(`🔄 Syncing initial selection state: ${currentSelection}`);
-    //   setTimeout(() => {
-    //     if (cleanBMCRef.current) {
-    //
-    //       console.log(`✅ Initial visual state synced for: ${currentSelection}`);
-    //     }
-    //   }, 100);
-    // }
+    // RESTORED: Sync with BMC State Manager for selection preservation
+    const currentSelection = bmcState.getSelectedObject();
+    if (currentSelection) {
+      console.log(`🔄 Syncing initial selection state: ${currentSelection}`);
+      setTimeout(() => {
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.onSelect(currentSelection);
+          console.log(`✅ Initial visual state synced for: ${currentSelection}`);
+        }
+      }, 100);
+    }
   }, [bmcState]);
   
   // Update CleanBMCSystem when view mode changes
@@ -351,7 +352,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   let handleBackgroundClick = () => {
     console.log('Background clicked - clearing selection');
     cleanBMCRef.current.clearSelection();
-    // REMOVED: setSelectedObject(null) - CleanBMCSystem manages all state
+    // FIXED: Clear BMC selection for proper preservation
+    bmcState.selectObject(null);
   };
   
   // REMOVED: Sync function caused infinite loops - legacy store no longer needed
@@ -2810,19 +2812,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // REMOVED: Emergency label fix interval - CleanBMCSystem handles all label visibility
     
-    // DISABLED: Don't automatically clear/restore selections - interferes with view switching
-    // setTimeout(() => {
-    //   const existingSelection = getSelectedObject();
-    //   const hasHeights = Object.keys(getOriginalHeights()).length > 0;
-    //   
-    //   // Only restore if there's a clear user selection and we have height data
-    //   if (existingSelection && hasHeights) {
-    //     console.log("🔄 Initial load: Restoring user selection:", existingSelection);
-    //     // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
-    //   } else {
-    //     console.log("🔄 Initial load: No selection to restore, hover behavior ready");
-    //   }
-    // }, 2500);
+    // ENABLED: Restore selection using BMC State Manager for proper preservation
+    setTimeout(() => {
+      const existingSelection = bmcState.getSelectedObject();
+      if (existingSelection) {
+        console.log("🔄 Initial load: Restoring user selection:", existingSelection);
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.onSelect(existingSelection);
+        }
+      } else {
+        console.log("🔄 Initial load: No selection to restore, hover behavior ready");
+      }
+    }, 1000);
 
     // Initialize Animation Manager (Material Manager already initialized above)
     animationManagerRef.current = new BabylonAnimationManager(scene);
@@ -2997,24 +2998,33 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Handle restoration when entering 3D mode - optimized for smooth transitions
   useEffect(() => {
     if (is3D && sceneRef.current) {
-      const selectedObject = getSelectedObject();
+      const selectedObject = bmcState.getSelectedObject();
       console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
+      
+      // FIXED: Coordinate with BMC State Manager for view transitions
+      bmcState.switchView('view3DPerspective');
       
       // Update visuals immediately to prevent white flash
       if (cleanBMCRef.current) {
         cleanBMCRef.current.setTopViewMode(false);
       }
     } else if (!is3D) {
-      const selectedObject = getSelectedObject();
+      const selectedObject = bmcState.getSelectedObject();
       console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
+      
+      // FIXED: Coordinate with BMC State Manager for view transitions
+      bmcState.switchView('view2D');
     }
   }, [is3D]);
 
   // Handle restoration when switching between 3D View and 3D Top View
   useEffect(() => {
     if (is3D && sceneRef.current) {
-      const selectedObject = getSelectedObject();
+      const selectedObject = bmcState.getSelectedObject();
       console.log(`🔄 3D VIEW TRANSITION: ${isOrthographic ? '3D Top' : '3D View'}, selection="${selectedObject}"`);
+      
+      // FIXED: Coordinate with BMC State Manager for view transitions
+      bmcState.switchView(isOrthographic ? 'view3DOrthographic' : 'view3DPerspective');
       
       // Update visuals immediately without delay to prevent white flash
       if (cleanBMCRef.current) {
