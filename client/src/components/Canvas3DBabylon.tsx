@@ -2908,10 +2908,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // The built-in camera controls handle zoom/pan, SimpleClickHandler handles object interactions
         console.log("🎯 3D Top view - using built-in camera controls + SimpleClickHandler (no manual event handlers)");
         
-        // Apply visual state after camera switch
+        // Apply visual state after camera switch - preserve selection in 3D Top view
         setTimeout(() => {
           if (cleanBMCRef.current) {
-    
+            cleanBMCRef.current.setTopViewMode(true);
           }
         }, 10);
         
@@ -2931,10 +2931,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           scene.activeCamera = perspectiveCamera;
         }
         
-        // Apply visual state after camera switch
+        // Apply visual state after camera switch - preserve selection in 3D View
         setTimeout(() => {
           if (cleanBMCRef.current) {
-    
+            cleanBMCRef.current.setTopViewMode(false);
           }
         }, 10);
         
