@@ -65,17 +65,30 @@ export class CleanBMCSystem {
   onSelect(sectionName: string) {
     console.log(`🔍 CleanBMC onSelect: ${sectionName}`);
 
-    // Toggle selection
-    if (this.selectedObject === sectionName) {
-      this.selectedObject = null;
-    } else {
-      this.selectedObject = sectionName;
+    try {
+      console.log(`🔍 DEBUG: Current selectedObject: ${this.selectedObject}`);
+      console.log(`🔍 DEBUG: Incoming sectionName: ${sectionName}`);
+
+      // Toggle selection
+      if (this.selectedObject === sectionName) {
+        console.log(`🔍 DEBUG: Deselecting same object`);
+        this.selectedObject = null;
+      } else {
+        console.log(`🔍 DEBUG: Selecting new object: ${sectionName}`);
+        this.selectedObject = sectionName;
+      }
+
+      console.log(`🔍 DEBUG: About to call updateAllVisuals()`);
+      this.updateAllVisuals();
+      console.log(`🔍 DEBUG: onSelect completed successfully`);
+      
+    } catch (error) {
+      console.error(`❌ CRASH in onSelect(${sectionName}):`, error);
+      console.error(`❌ Error name: ${error.name}`);
+      console.error(`❌ Error message: ${error.message}`);
+      console.error(`❌ Stack trace:`, error.stack);
+      throw error; // Re-throw to see where it came from
     }
-
-    // REMOVED: BMC state manager calls to prevent dual state management conflicts
-    // Only CleanBMCSystem manages visual state now
-
-    this.updateAllVisuals();
   }
 
   // Clear selection
@@ -178,13 +191,17 @@ export class CleanBMCSystem {
 
   // State application following documentation rules
   private applyState(name: string, state: string) {
-    const item = this.items.get(name);
-    if (!item || !item.mesh || !item.material) {
-      console.warn(`⚠️ CleanBMC: Cannot apply state ${state} to ${name} - missing item, mesh, or material`);
-      return;
-    }
+    console.log(`🔍 DEBUG CleanBMC: applyState called - name: ${name}, state: ${state}`);
+    
+    try {
+      const item = this.items.get(name);
+      if (!item || !item.mesh || !item.material) {
+        console.warn(`⚠️ CleanBMC: Cannot apply state ${state} to ${name} - missing item, mesh, or material`);
+        return;
+      }
 
-    const { mesh, material, originalHeight, baseColor } = item;
+      console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
+      const { mesh, material, originalHeight, baseColor } = item;
 
     // Height management - Keep objects at normal heights in both views (do this FIRST)
     if (state === 'selected' && !this.isTopView) {
