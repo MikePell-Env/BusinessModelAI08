@@ -23,6 +23,7 @@ export class SimpleClickHandler {
   private scene: Scene;
   private callbacks: ClickHandlerCallbacks = {};
   private meshRegistry: Set<AbstractMesh> = new Set();
+  private meshToSectionName: Map<AbstractMesh, string> = new Map();
   
   // Click timing for double-click detection
   private lastClickTime = 0;
@@ -47,12 +48,44 @@ export class SimpleClickHandler {
   }
 
   /**
-   * Register a mesh for interactions
+   * Register a mesh for interactions with its section name
    */
-  registerMesh(mesh: AbstractMesh): void {
+  registerMesh(mesh: AbstractMesh, sectionName?: string): void {
     mesh.isPickable = true;
     this.meshRegistry.add(mesh);
-    console.log(`🎯 Registered mesh for interaction: ${mesh.name}`);
+    
+    // Store section name mapping
+    if (sectionName) {
+      this.meshToSectionName.set(mesh, sectionName);
+    } else {
+      // Try to get from mesh metadata or derive from mesh name
+      const derivedName = this.deriveSectionName(mesh.name);
+      if (derivedName) {
+        this.meshToSectionName.set(mesh, derivedName);
+      }
+    }
+    
+    const mappedName = this.meshToSectionName.get(mesh) || mesh.name;
+    console.log(`🎯 Registered mesh for interaction: ${mesh.name} -> ${mappedName}`);
+  }
+
+  /**
+   * Derive section name from mesh name
+   */
+  private deriveSectionName(meshName: string): string | null {
+    const nameMapping: Record<string, string> = {
+      "ValueProposition": "Value Propositions",
+      "KeyPartners": "Key Partners", 
+      "CustomerSegments": "Customer Segments",
+      "KeyResources": "Key Activities",  // Note: these are swapped in the model
+      "KeyActivities": "Key Resources",  // Note: these are swapped in the model
+      "CustomerChannels": "Customer Relationships",  // Note: these are swapped
+      "CustomerRelationships": "CustomerChannels",  // Note: these are swapped  
+      "RevenueStreams": "Revenue Streams",
+      "CostStructureMesh_1": "Cost Structure"
+    };
+    
+    return nameMapping[meshName] || null;
   }
 
   /**
@@ -103,8 +136,9 @@ export class SimpleClickHandler {
   private handleMeshClick(mesh: AbstractMesh, position: Vector3): void {
     const currentTime = Date.now();
     const timeSinceLastClick = currentTime - this.lastClickTime;
+    const sectionName = this.meshToSectionName.get(mesh) || mesh.name;
     
-    console.log(`🖱️ Click on ${mesh.name}, time since last: ${timeSinceLastClick}ms`);
+    console.log(`🖱️ Click on ${mesh.name} (${sectionName}), time since last: ${timeSinceLastClick}ms`);
 
     // Check for double-click
     if (
@@ -113,7 +147,7 @@ export class SimpleClickHandler {
       timeSinceLastClick > 50 // Prevent accidental rapid clicks
     ) {
       // Double-click detected
-      console.log(`🖱️🖱️ Double-click on ${mesh.name}`);
+      console.log(`🖱️🖱️ Double-click on ${mesh.name} (${sectionName})`);
       
       // Cancel any pending single-click
       if (this.singleClickTimer) {
@@ -121,9 +155,9 @@ export class SimpleClickHandler {
         this.singleClickTimer = null;
       }
       
-      // Execute double-click callback
+      // Execute double-click callback with section name
       if (this.callbacks.onDoubleClick) {
-        this.callbacks.onDoubleClick(mesh.name, mesh, position);
+        this.callbacks.onDoubleClick(sectionName, mesh, position);
       }
       
       // Reset click tracking
@@ -141,10 +175,10 @@ export class SimpleClickHandler {
       
       // Set timer for single-click
       this.singleClickTimer = window.setTimeout(() => {
-        console.log(`🖱️ Single-click confirmed for ${mesh.name}`);
+        console.log(`🖱️ Single-click confirmed for ${mesh.name} (${sectionName})`);
         
         if (this.callbacks.onSingleClick) {
-          this.callbacks.onSingleClick(mesh.name, mesh);
+          this.callbacks.onSingleClick(sectionName, mesh);
         }
         
         this.singleClickTimer = null;
@@ -178,14 +212,16 @@ export class SimpleClickHandler {
     if (hoveredMesh !== this.currentHoveredMesh) {
       // Exit previous hover
       if (this.currentHoveredMesh && this.callbacks.onHoverExit) {
-        console.log(`🖱️ Hover exit: ${this.currentHoveredMesh.name}`);
-        this.callbacks.onHoverExit(this.currentHoveredMesh.name, this.currentHoveredMesh);
+        const exitSectionName = this.meshToSectionName.get(this.currentHoveredMesh) || this.currentHoveredMesh.name;
+        console.log(`🖱️ Hover exit: ${this.currentHoveredMesh.name} (${exitSectionName})`);
+        this.callbacks.onHoverExit(exitSectionName, this.currentHoveredMesh);
       }
       
       // Enter new hover
       if (hoveredMesh && this.callbacks.onHoverEnter) {
-        console.log(`🖱️ Hover enter: ${hoveredMesh.name}`);
-        this.callbacks.onHoverEnter(hoveredMesh.name, hoveredMesh);
+        const enterSectionName = this.meshToSectionName.get(hoveredMesh) || hoveredMesh.name;
+        console.log(`🖱️ Hover enter: ${hoveredMesh.name} (${enterSectionName})`);
+        this.callbacks.onHoverEnter(enterSectionName, hoveredMesh);
       }
       
       this.currentHoveredMesh = hoveredMesh;
@@ -213,6 +249,7 @@ export class SimpleClickHandler {
     }
     
     this.meshRegistry.clear();
+    this.meshToSectionName.clear();
     this.currentHoveredMesh = null;
     this.lastClickedMesh = null;
     
