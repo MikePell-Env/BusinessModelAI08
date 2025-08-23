@@ -52,14 +52,18 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
 
-    // Always ensure objects are visible and at proper heights
+    // FIX: Reset all objects to their original state when switching views
     this.items.forEach((item, name) => {
+      // Reset to original height
       item.mesh.scaling.y = item.originalHeight;
       item.mesh.isVisible = true;
       item.mesh.setEnabled(true);
-      item.material.alpha = 1.0;
+      // Full opacity in top view, let updateAllVisuals handle the rest
+      if (isTopView) {
+        item.material.alpha = 1.0;
+      }
       this.makeLabelVisible(name);
-      console.log(`   Restored ${name}: height=${item.originalHeight}, alpha=1.0`);
+      console.log(`   Reset ${name}: height=${item.originalHeight}`);
     });
 
     // Update visuals for the new view mode
@@ -68,9 +72,10 @@ export class CleanBMCSystem {
 
   // Helper method for smooth height animations - ONLY in 3D perspective view
   private animateHeight(mesh: AbstractMesh, targetHeight: number) {
-    // NEVER animate heights in top view
+    // NEVER animate heights in top view - keep objects flat
     if (this.isTopView) {
-      console.log(`⏭️ Skipping height animation in top view for ${targetHeight}`);
+      console.log(`⏭️ Skipping height animation in top view, keeping flat`);
+      mesh.scaling.y = this.items.get(mesh.name)?.originalHeight || 1.0;
       return;
     }
 
@@ -89,9 +94,10 @@ export class CleanBMCSystem {
 
   // Register a BMC item (mesh + material + original height)
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
-    // Use the ACTUAL mesh scaling.y as the true original height
-    const actualOriginalHeight = mesh.scaling.y;
-    console.log(`📏 Registering ${name} with ACTUAL height=${actualOriginalHeight} (ignoring passed ${originalHeight})`);
+    // FIX: Use the passed originalHeight value, not the current mesh.scaling.y
+    // The mesh might already be scaled when we register it
+    const actualOriginalHeight = originalHeight || 1.0;
+    console.log(`📏 Registering ${name} with height=${actualOriginalHeight}`);
 
     this.items.set(name, {
       mesh,
@@ -357,13 +363,19 @@ export class CleanBMCSystem {
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
 
-    // In top view, keep objects at their actual original height (never change heights)
+    // FIX: Ensure consistent handling of scaling and alpha
     if (this.isTopView) {
-      // Maintain actual original height in top view
+      // In top view: keep flat height and full opacity always
       item.mesh.scaling.y = item.originalHeight;
-      // CRITICAL: Ensure objects never disappear in top view
       item.material.alpha = 1.0;
-      console.log(`📐 TOP VIEW: Keeping ${name} at actual original height ${item.originalHeight}, alpha=1.0`);
+      console.log(`📐 TOP VIEW: Flat at height ${item.originalHeight}, alpha=1.0`);
+    } else {
+      // In 3D view: allow alpha changes but ensure visibility
+      if (state === 'dimmed') {
+        item.material.alpha = 0.5;
+      } else {
+        item.material.alpha = 1.0;
+      }
     }
 
     switch (state) {
@@ -386,6 +398,9 @@ export class CleanBMCSystem {
         // Only animate height in 3D view (not top view)
         if (!this.isTopView) {
           this.animateHeight(item.mesh, item.originalHeight * 0.3);
+        } else {
+          // Ensure flat in top view
+          item.mesh.scaling.y = item.originalHeight;
         }
         console.log(`   AFTER DIMMED: scaling.y=${item.mesh.scaling.y}, alpha=${item.material.alpha}`);
         break;
@@ -429,8 +444,8 @@ export class CleanBMCSystem {
 
   // Helper to apply dimmed effect
   private applyDimmedEffect(material: StandardMaterial, name: string) {
-    // In top view, keep objects fully visible to prevent disappearing
-    material.alpha = this.isTopView ? 1.0 : 0.5;
+    // FIX: Don't change alpha here - it's already handled in applyVisualState
+    // This prevents double-setting and conflicts
     if (name === "Cost Structure") {
       material.diffuseColor = new Color3(0.2, 0.0, 0.0);
     } else if (name === "Revenue Streams") {
