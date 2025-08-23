@@ -1484,8 +1484,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system
-              cleanBMCRef.current.registerItem("Customer Segments", mesh, sectionMaterial, mesh.scaling.y);
+              // Register with clean system - use fixed height of 1.0 for all BMC sections
+              cleanBMCRef.current.registerItem("Customer Segments", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Customer Segments", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Segments label plane created`);
@@ -1532,8 +1532,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system
-              cleanBMCRef.current.registerItem("Key Partners", mesh, sectionMaterial, mesh.scaling.y);
+              // Register with clean system - use fixed height of 1.0 for all BMC sections
+              cleanBMCRef.current.registerItem("Key Partners", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Partners", labelPlane, labelMaterial);
               
               console.log(`✅ Key Partners label plane created`);
@@ -1580,8 +1580,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system
-              cleanBMCRef.current.registerItem("Customer Relationships", mesh, sectionMaterial, mesh.scaling.y);
+              // Register with clean system - use fixed height of 1.0 for all BMC sections
+              cleanBMCRef.current.registerItem("Customer Relationships", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Customer Relationships", labelPlane, labelMaterial);
               
               console.log(`✅ Customer Relationships label plane created`);
@@ -1628,8 +1628,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system
-              cleanBMCRef.current.registerItem("CustomerChannels", mesh, sectionMaterial, mesh.scaling.y);
+              // Register with clean system - use fixed height of 1.0 for all BMC sections
+              cleanBMCRef.current.registerItem("CustomerChannels", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("CustomerChannels", labelPlane, labelMaterial);
               
               console.log(`✅ CustomerChannels label plane created`);
@@ -1679,8 +1679,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system
-              cleanBMCRef.current.registerItem("Key Activities", mesh, sectionMaterial, mesh.scaling.y);
+              // Register with clean system - use fixed height of 1.0 for all BMC sections
+              cleanBMCRef.current.registerItem("Key Activities", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Activities", labelPlane, labelMaterial);
               
               console.log(`✅ Key Activities label plane created`);
@@ -1727,8 +1727,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system
-              cleanBMCRef.current.registerItem("Key Resources", mesh, sectionMaterial, mesh.scaling.y);
+              // Register with clean system - use fixed height of 1.0 for all BMC sections
+              cleanBMCRef.current.registerItem("Key Resources", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Resources", labelPlane, labelMaterial);
               
               console.log(`✅ Key Resources label plane created`);
@@ -1775,8 +1775,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system
-              cleanBMCRef.current.registerItem("Value Propositions", mesh, sectionMaterial, mesh.scaling.y);
+              // Register with clean system - use fixed height of 1.0 for all BMC sections
+              cleanBMCRef.current.registerItem("Value Propositions", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Value Propositions", labelPlane, labelMaterial);
               
               console.log(`✅ Value Propositions label plane created`);
@@ -2383,8 +2383,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Register with clean system
-            cleanBMCRef.current.registerItem("Revenue Streams", mesh, sectionMaterial, mesh.scaling.y);
+            // Register with clean system - use fixed height of 1.6 for Revenue Streams (scaled differently)
+            cleanBMCRef.current.registerItem("Revenue Streams", mesh, sectionMaterial, 1.6);
             cleanBMCRef.current.addLabel("Revenue Streams", labelPlane, labelMaterial);
             
             // Apply proportional scaling - reduced by 20% from the 2x size
@@ -2524,8 +2524,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Register with clean system
-            cleanBMCRef.current.registerItem("Cost Structure", mesh, sectionMaterial, mesh.scaling.y);
+            // Register with clean system - use fixed height of 1.6 for Cost Structure (scaled differently)
+            cleanBMCRef.current.registerItem("Cost Structure", mesh, sectionMaterial, 1.6);
             cleanBMCRef.current.addLabel("Cost Structure", labelPlane, labelMaterial);
             
             // Apply same proportional scaling as Revenue Streams
