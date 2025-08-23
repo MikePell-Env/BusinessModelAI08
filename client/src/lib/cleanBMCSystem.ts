@@ -18,7 +18,7 @@ export class CleanBMCSystem {
   private hoveredObject: string | null = null;
   private isTopView: boolean = false;
   private bmcStateManager: BMCStateManagerImpl | null = null;
-  private materialManager: MaterialManager | null = null;
+  // REMOVED: MaterialManager - using direct property modification instead
 
   constructor() {
     // Initialize silently
@@ -30,10 +30,7 @@ export class CleanBMCSystem {
   }
 
   // Set the material manager (CRITICAL: prevents material conflicts)
-  setMaterialManager(materialManager: MaterialManager) {
-    this.materialManager = materialManager;
-    console.log('🔧 CleanBMC: MaterialManager integration enabled - preventing material wars');
-  }
+  // REMOVED: MaterialManager - using direct property modification instead
 
   // Set whether we're in top view mode
   setTopViewMode(isTopView: boolean) {
@@ -99,9 +96,9 @@ export class CleanBMCSystem {
     this.updateAllVisuals();
   }
 
-  // Handle hover state changes
+  // Handle hover state changes - simplified direct approach
   onHover(sectionName: string, isHovering: boolean): void {
-    console.log(`🖱️ onHover: ${sectionName}, hovering=${isHovering}`);
+    console.log(`🖱️ Simple hover: ${sectionName}, hovering=${isHovering}`);
 
     const item = this.items.get(sectionName);
     if (!item) {
@@ -219,36 +216,16 @@ export class CleanBMCSystem {
     mesh.setEnabled(true);
     mesh.isVisible = true;
 
-    // FIXED: Use MaterialManager's proper state system (single operation, no conflicts)
-    if (this.materialManager) {
-      // Let MaterialManager handle everything with proper state management
-      const materialState = this.getMaterialStateFromString(state);
-      this.materialManager.applyMaterialState(mesh, name, materialState);
-      console.log(`🎨 MaterialManager: Applied ${materialState} state to ${name}`);
-      return; // Exit early - MaterialManager handled everything
-    } else {
-      // Fallback: ensure material is assigned (only if MaterialManager not available)
-      if (mesh.material !== material) {
-        console.log(`🔧 CleanBMC: Fallback material assignment for ${name}`);
-        mesh.material = material;
-      }
-      // Fallback material settings
-      material.alpha = 1.0;
+    // FIXED: Direct material property modification (much simpler than swapping materials)
+    // Ensure material is assigned once
+    if (mesh.material !== material) {
+      mesh.material = material;
     }
+    
+    // Modify material properties directly based on state
+    material.alpha = 1.0; // Reset alpha first
 
-    // MaterialManager already handled everything above - skip redundant material operations
-    if (this.materialManager) {
-      // MaterialManager already applied the state - no additional work needed
-      if (this.isTopView) {
-        console.log(`🎨 Applied 3D Top ${state.toUpperCase()}: ${name} -> MaterialManager handled`);
-      } else {
-        console.log(`🎨 Applied 3D ${state.toUpperCase()}: ${name} -> MaterialManager handled`);
-      }
-      return;
-    }
-
-    // Fallback: Direct material manipulation (old system) - only if MaterialManager not available
-    console.warn(`⚠️ CleanBMC: Using fallback material manipulation for ${name} - MaterialManager not available`);
+    // Apply visual state by modifying material properties directly
     switch (state) {
       case 'selected':
         material.diffuseColor = new Color3(0.0, 0.3, 0.8);
