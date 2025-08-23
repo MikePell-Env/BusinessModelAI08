@@ -34,22 +34,129 @@ export class ViewTransitionManager {
   }
 
   /**
-   * Transition between perspective and orthographic cameras - INSTANT for better performance
+   * Smoothly transition between perspective and orthographic cameras
    */
   public transitionToCamera(
     fromCamera: ArcRotateCamera | FreeCamera,
     toCamera: ArcRotateCamera | FreeCamera,
     options: CameraTransitionOptions = {}
   ): Promise<void> {
-    // Instant transition - no animation to avoid choppiness
+    const { duration = 600, easing = true } = options;
+    
     return new Promise((resolve) => {
-      debugLog.verbose('animation', 'Instant camera transition');
-      this.scene.activeCamera = toCamera;
-      resolve();
+      debugLog.verbose('animation', `Smooth camera transition over ${duration}ms`);
+      
+      // Create a single interpolation instead of switching cameras
+      if (fromCamera instanceof ArcRotateCamera && toCamera instanceof FreeCamera) {
+        // Perspective to orthographic
+        this.smoothPerspToOrtho(fromCamera, toCamera, duration, easing, resolve);
+      } else if (fromCamera instanceof FreeCamera && toCamera instanceof ArcRotateCamera) {
+        // Orthographic to perspective  
+        this.smoothOrthoToPersp(fromCamera, toCamera, duration, easing, resolve);
+      } else {
+        // Same camera type
+        this.scene.activeCamera = toCamera;
+        resolve();
+      }
     });
   }
 
-  // Removed animated transitions - keeping only instant switches for performance
+  private smoothPerspToOrtho(
+    perspCamera: ArcRotateCamera,
+    orthoCamera: FreeCamera,
+    duration: number,
+    useEasing: boolean,
+    onComplete: () => void
+  ): void {
+    const startTime = performance.now();
+    const startPosition = perspCamera.position.clone();
+    const endPosition = orthoCamera.position.clone();
+    const startTarget = perspCamera.target.clone();
+    const endTarget = new Vector3(0, 0, 0); // Ortho looks at origin
+    
+    // Use perspective camera during transition
+    this.scene.activeCamera = perspCamera;
+    
+    const animate = () => {
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Apply easing
+      const t = useEasing ? this.easeInOutCubic(progress) : progress;
+      
+      // Interpolate position and target
+      perspCamera.position = Vector3.Lerp(startPosition, endPosition, t);
+      perspCamera.target = Vector3.Lerp(startTarget, endTarget, t);
+      
+      // Gradually flatten the view angle for orthographic effect
+      perspCamera.beta = perspCamera.beta * (1 - t) + 0.01 * t;
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // Switch to ortho camera at the end
+        this.scene.activeCamera = orthoCamera;
+        debugLog.verbose('animation', 'Smooth transition to orthographic complete');
+        onComplete();
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }
+
+  private smoothOrthoToPersp(
+    orthoCamera: FreeCamera,
+    perspCamera: ArcRotateCamera,
+    duration: number,
+    useEasing: boolean,
+    onComplete: () => void
+  ): void {
+    // Create temp camera at ortho position
+    const tempCamera = new ArcRotateCamera(
+      'tempTransition',
+      perspCamera.alpha,
+      0.01, // Start flat like ortho
+      22, // Ortho height
+      new Vector3(0, 0, 0),
+      this.scene
+    );
+    
+    const startTime = performance.now();
+    const endBeta = perspCamera.beta;
+    const endRadius = perspCamera.radius;
+    
+    // Use temp camera during transition
+    this.scene.activeCamera = tempCamera;
+    tempCamera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
+    
+    const animate = () => {
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Apply easing
+      const t = useEasing ? this.easeInOutCubic(progress) : progress;
+      
+      // Interpolate camera properties
+      tempCamera.beta = 0.01 * (1 - t) + endBeta * t;
+      tempCamera.radius = 22 * (1 - t) + endRadius * t;
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // Switch to final perspective camera
+        this.scene.activeCamera = perspCamera;
+        tempCamera.dispose();
+        debugLog.verbose('animation', 'Smooth transition to perspective complete');
+        onComplete();
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }
+  
+  private easeInOutCubic(t: number): number {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
 
   /**
    * Smoothly animate mesh height changes
@@ -95,8 +202,8 @@ export class ViewTransitionManager {
       
       mesh.animations = [heightAnim];
       
-      // Slower animation speed for more noticeable effect
-      this.scene.beginAnimation(mesh, 0, 60, false, 60 / (duration / 1000) * 0.5, () => {
+      // Much slower animation speed for very pronounced effect
+      this.scene.beginAnimation(mesh, 0, 60, false, 60 / (duration / 1000) * 0.3, () => {
         if (onComplete) onComplete();
         resolve();
       });
