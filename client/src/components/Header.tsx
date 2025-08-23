@@ -42,6 +42,12 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplor
           >
             Contact
           </a>
+          <span className="text-gray-500 text-sm font-medium cursor-not-allowed">
+            Excel
+          </span>
+          <span className="text-gray-500 text-sm font-medium cursor-not-allowed">
+            PowerPoint
+          </span>
         </nav>
       </div>
     </header>
