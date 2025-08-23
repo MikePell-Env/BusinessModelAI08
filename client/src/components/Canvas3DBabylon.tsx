@@ -275,7 +275,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log(`🔄 Syncing initial selection state: ${currentSelection}`);
       setTimeout(() => {
         if (cleanBMCRef.current) {
-          cleanBMCRef.current.updateAllVisuals();
+  
           console.log(`✅ Initial visual state synced for: ${currentSelection}`);
         }
       }, 100);
@@ -686,7 +686,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       topViewCamera.panningInertia = 0.9; // Smooth panning
       
       // Enable panning with left mouse (hold Ctrl) or middle mouse
-      topViewCamera.panningMouseButton = 1; // Middle mouse for panning
+      topViewCamera._panningMouseButton = 1; // Middle mouse for panning
       
       console.log("🎯 Top view camera configured: zoom (wheel) + pan (middle/ctrl+left) only, no rotation");
     };
@@ -2884,7 +2884,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Apply visual state after camera switch
         setTimeout(() => {
           if (cleanBMCRef.current) {
-            cleanBMCRef.current.updateAllVisuals();
+    
           }
         }, 10);
         
@@ -2915,7 +2915,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Apply visual state after camera switch
         setTimeout(() => {
           if (cleanBMCRef.current) {
-            cleanBMCRef.current.updateAllVisuals();
+    
           }
         }, 10);
         
@@ -2960,7 +2960,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Update visuals immediately to prevent white flash
       if (cleanBMCRef.current) {
-        cleanBMCRef.current.updateAllVisuals();
+
       }
     } else if (!is3D) {
       const selectedObject = getSelectedObject();
@@ -2976,7 +2976,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Update visuals immediately without delay to prevent white flash
       if (cleanBMCRef.current) {
-        cleanBMCRef.current.updateAllVisuals();
+
       }
     }
   }, [isOrthographic, is3D]);
