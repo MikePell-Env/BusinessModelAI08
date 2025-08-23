@@ -176,27 +176,33 @@ export class CleanBMCSystem {
   private updateAllVisuals(): void {
     console.log(`🎨 updateAllVisuals: updating visuals for ${this.isTopView ? '3D Top' : '3D'} view`);
 
-    if (this.selectedObject) {
-      // Update selected object's visual state
-      const selectedItem = this.items.get(this.selectedObject);
-      if (selectedItem) {
-        this.applySelectedState(this.selectedObject, selectedItem);
-      }
-
-      // Update all other objects to be semi-transparent but still visible
-      this.items.forEach((item, name) => {
-        if (name !== this.selectedObject) {
-          this.applyUnselectedState(name, item);
-        }
-      });
-    } else {
-      // No selection - ensure all objects are fully visible
-      this.items.forEach((item, name) => {
+    this.items.forEach((item, name) => {
+      // CRITICAL: Always ensure basic visibility first
+      item.mesh.isVisible = true;
+      item.mesh.setEnabled(true);
+      
+      if (name === this.selectedObject) {
+        // Apply selected state
+        this.applySelectedState(name, item);
+      } else if (name === this.hoveredObject) {
+        // Apply hover state
+        this.applyHoverState(item, name);
+      } else if (this.selectedObject) {
+        // Apply dimmed state for non-selected objects when something is selected
+        this.applyDimmedState(item, name);
+      } else {
+        // Apply normal state when nothing is selected
         this.applyNormalState(name, item);
-      });
-    }
+      }
+      
+      // CRITICAL: Final safety check - never let objects become invisible
+      if (item.material.alpha < 0.3) {
+        item.material.alpha = 0.3; // Minimum 30% opacity
+        console.log(`⚠️ Fixed low opacity for ${name}: set to 0.3`);
+      }
+    });
 
-    console.log(`✅ Visual update complete - all objects should remain visible`);
+    console.log(`✅ Visual update complete - all objects guaranteed visible`);
   }
 
   // SIMPLIFIED: Apply selected state
@@ -245,6 +251,10 @@ export class CleanBMCSystem {
   private applyDimmedState(item: BMCItem, name: string) {
     console.log(`🔅 Applying DIMMED state to ${name}`);
 
+    // CRITICAL: Always ensure visibility first
+    item.mesh.isVisible = true;
+    item.mesh.setEnabled(true);
+
     // Darker colors for dimmed
     if (name === "Cost Structure") {
       item.material.diffuseColor = new Color3(0.2, 0.0, 0.0);
@@ -255,26 +265,40 @@ export class CleanBMCSystem {
     }
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
 
-    // CRITICAL FIX: In top view, NEVER change opacity
+    // CRITICAL FIX: NEVER make objects invisible in ANY view mode
     if (this.isTopView) {
-      item.material.alpha = 1.0;  // Always full opacity in top view
+      item.material.alpha = 0.6;  // Dimmed but visible in top view
       item.mesh.scaling.y = item.originalHeight;  // Always original height
     } else {
-      item.material.alpha = 0.5;  // Only dim in 3D view
+      item.material.alpha = 0.4;  // Dimmed but visible in 3D view
       this.animateHeight(item.mesh, 0.01);  // Flatten to 0.01
     }
+
+    // Keep labels visible
+    this.makeLabelVisible(name, 0.7);
   }
 
   // SIMPLIFIED: Apply normal state
   private applyNormalState(name: string, item: BMCItem) {
     console.log(`🔵 Applied normal state to ${name}: visible=true, alpha=1.0`);
 
-    // Ensure mesh is visible and enabled
+    // CRITICAL: Ensure mesh is visible and enabled
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
 
-    // Full visibility and maintain current height
+    // Set default colors based on section
+    if (name === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+    } else if (name === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+    } else {
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+    }
+    item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+
+    // Full visibility and maintain original height
     item.material.alpha = 1.0;
+    item.mesh.scaling.y = item.originalHeight;
 
     // Labels fully visible
     this.makeLabelVisible(name, 1.0);
@@ -358,16 +382,7 @@ export class CleanBMCSystem {
     return this.isTopView;
   }
 
-  // SIMPLIFIED: Apply unselected state
-  private applyUnselectedState(name: string, item: BMCItem): void {
-    // Semi-transparent state for non-selected objects - but not too dim
-    item.material.alpha = Math.max(0.5, item.material.alpha || 1.0); // Minimum 50% visibility
-
-    // Keep labels visible but slightly dimmed
-    this.makeLabelVisible(name, 0.7);
-
-    console.log(`🔹 Applied unselected state to ${name}: alpha=${item.material.alpha}`);
-  }
+  
 }
 
 // Create singleton instance for backward compatibility
