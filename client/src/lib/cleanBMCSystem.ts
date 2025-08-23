@@ -161,19 +161,16 @@ export class CleanBMCSystem {
 
     const { mesh, material, originalHeight, baseColor } = item;
 
-    // Height management - 3D Top: always flattened, 3D View: varies by state
-    if (this.isTopView) {
-      // 3D Top View: All objects always use original height (appear flattened)
-      mesh.scaling.y = originalHeight;
+    // Height management - Keep objects at normal heights in both views
+    if (state === 'selected' && !this.isTopView) {
+      // Only elevate selected objects in 3D View
+      mesh.scaling.y = originalHeight * 1.4; // Elevated
+    } else if (state === 'dimmed' && !this.isTopView) {
+      // Only flatten dimmed objects in 3D View
+      mesh.scaling.y = 0.01; // Flattened
     } else {
-      // 3D View: Height varies by state
-      if (state === 'selected') {
-        mesh.scaling.y = originalHeight * 1.4; // Elevated
-      } else if (state === 'dimmed') {
-        mesh.scaling.y = 0.01; // Flattened
-      } else {
-        mesh.scaling.y = originalHeight; // Normal
-      }
+      // All other cases: keep normal height (including all 3D Top view states)
+      mesh.scaling.y = originalHeight; // Normal height
     }
 
     // Base material settings
