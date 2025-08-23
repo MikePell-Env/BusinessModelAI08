@@ -361,7 +361,9 @@ export class CleanBMCSystem {
     if (this.isTopView) {
       // Maintain actual original height in top view
       item.mesh.scaling.y = item.originalHeight;
-      console.log(`📐 TOP VIEW: Keeping ${name} at actual original height ${item.originalHeight}`);
+      // CRITICAL: Ensure objects never disappear in top view
+      item.material.alpha = 1.0;
+      console.log(`📐 TOP VIEW: Keeping ${name} at actual original height ${item.originalHeight}, alpha=1.0`);
     }
 
     switch (state) {
@@ -427,8 +429,8 @@ export class CleanBMCSystem {
 
   // Helper to apply dimmed effect
   private applyDimmedEffect(material: StandardMaterial, name: string) {
-    // In top view, keep objects more visible
-    material.alpha = this.isTopView ? 0.9 : 0.5;
+    // In top view, keep objects fully visible to prevent disappearing
+    material.alpha = this.isTopView ? 1.0 : 0.5;
     if (name === "Cost Structure") {
       material.diffuseColor = new Color3(0.2, 0.0, 0.0);
     } else if (name === "Revenue Streams") {
