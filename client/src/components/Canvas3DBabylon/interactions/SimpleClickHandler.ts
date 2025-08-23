@@ -223,8 +223,8 @@ export class SimpleClickHandler {
    * Handle pointer move for hover effects
    */
   private handlePointerMove(pointerInfo: any): void {
-    // Debug: Log pointer move events
-    console.log(`🐭 Pointer move detected`);
+    // Debug: Log pointer move events (disabled for performance)
+    // console.log(`🐭 Pointer move detected`);
     
     // Only process hover if we have valid pick info
     if (!pointerInfo.pickInfo) return;
@@ -234,14 +234,11 @@ export class SimpleClickHandler {
     
     // Only consider registered meshes for hover
     if (pickInfo.hit && pickInfo.pickedMesh) {
-      // Debug: Check if mesh is in registry
-      console.log(`🐭 Picked mesh: ${pickInfo.pickedMesh.name}, in registry: ${this.meshRegistry.has(pickInfo.pickedMesh)}`);
-      
       if (this.meshRegistry.has(pickInfo.pickedMesh)) {
         // Verify the mesh is still valid and not disposed
         if (!pickInfo.pickedMesh.isDisposed() && pickInfo.pickedMesh.isEnabled()) {
           hoveredMesh = pickInfo.pickedMesh;
-          console.log(`🐭 Hover candidate: ${hoveredMesh.name}`);
+          console.log(`🐭 Hover detected: ${hoveredMesh.name}`);
         }
       }
     }

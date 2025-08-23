@@ -224,8 +224,13 @@ export class InteractionHandler {
 
   /**
    * Setup background click handling for deselection
+   * DISABLED: Conflicts with SimpleClickHandler's onPointerObservable
    */
   public setupBackgroundClick(): void {
+    // DISABLED: This conflicts with SimpleClickHandler's pointer event handling
+    // SimpleClickHandler now handles background clicks via onBackgroundClick callback
+    console.log('🚫 InteractionHandler background click handling disabled to avoid conflicts with SimpleClickHandler');
+    /*
     // Use scene-level pointer observable for background clicks
     this.scene.onPointerObservable.add((pointerInfo) => {
       if (pointerInfo.type === 1 && !pointerInfo.pickInfo?.hit) { // BABYLON.PointerEventTypes.POINTERDOWN
@@ -236,6 +241,7 @@ export class InteractionHandler {
         }
       }
     });
+    */
   }
 
   /**
