@@ -8,6 +8,7 @@ interface BMCItem {
   name: string;
   label?: AbstractMesh;
   labelMaterial?: StandardMaterial;
+  originalColor?: Color3; // Added for storing original color
 }
 
 export class CleanBMCSystem {
@@ -54,6 +55,9 @@ export class CleanBMCSystem {
     const actualHeight = mesh.scaling.y;
     console.log(`📏 Registering ${name} with height=${actualHeight}`);
 
+    // Store original color
+    const originalColor = material.diffuseColor ? material.diffuseColor.clone() : new Color3(0.5, 0.5, 0.5); // Default to grey if no diffuseColor
+
     // Ensure material is assigned
     if (!mesh.material) {
       mesh.material = material;
@@ -63,7 +67,8 @@ export class CleanBMCSystem {
       mesh,
       material,
       originalHeight: actualHeight,
-      name
+      name,
+      originalColor: originalColor // Store original color
     });
 
     // Set initial state
@@ -92,20 +97,20 @@ export class CleanBMCSystem {
   // Handle hover state
   onHover(itemName: string | null, isHovering: boolean) {
     console.log(`🖱️ Hover ${isHovering ? 'ON' : 'OFF'} for "${itemName}"`);
-    
+
     if (isHovering && itemName) {
       this.hoveredObject = itemName;
     } else {
       this.hoveredObject = null;
     }
-    
+
     this.updateAllVisuals();
   }
 
   // Handle selection
   onSelect(sectionName: string) {
     console.log(`🎯 Selection request for "${sectionName}"`);
-    
+
     // Toggle selection
     if (this.selectedObject === sectionName) {
       console.log(`Deselecting ${sectionName}`);
@@ -134,7 +139,7 @@ export class CleanBMCSystem {
   clearSelection() {
     console.log(`Clearing selection`);
     this.selectedObject = null;
-    
+
     if (this.bmcStateManager) {
       try {
         this.bmcStateManager.selectObject(null);
@@ -142,53 +147,66 @@ export class CleanBMCSystem {
         console.error('BMC state manager error:', e);
       }
     }
-    
+
     this.updateAllVisuals();
   }
 
-  // SIMPLIFIED: Update all visuals
-  private updateAllVisuals(): void {
-    console.log(`🎨 Updating visuals: selected="${this.selectedObject}", hovered="${this.hoveredObject}", view="${this.isTopView ? '3D Top' : '3D'}"`);
+  // Update all visual states based on current selection and view mode
+  public updateAllVisuals(): void {
+    console.log(`🎨 UpdateAllVisuals: selectedObject="${this.selectedObject}", isTopView=${this.isTopView}`);
 
-    this.items.forEach((item, name) => {
-      // ALWAYS ensure mesh is visible
-      item.mesh.isVisible = true;
-      item.mesh.setEnabled(true);
+    try {
+      this.items.forEach((item, name) => {
+        try {
+          // Ensure item, mesh, and material are valid before proceeding
+          if (!item || !item.mesh || !item.material) {
+            console.warn(`Skipping visual update for invalid item: ${name}`);
+            return;
+          }
 
-      // ALWAYS ensure material exists
-      if (!item.material) {
-        console.error(`No material for ${name}`);
-        return;
-      }
-
-          // SIMPLE state logic - ALWAYS ensure visibility first
-      item.mesh.isVisible = true;
-      item.mesh.setEnabled(true);
-      item.material.alpha = 1.0; // Start with full opacity
-      
-      if (name === this.selectedObject) {
-        // SELECTED STATE
-        this.applySelectedState(name);
-      } else if (name === this.hoveredObject && !this.isTopView) {
-        // HOVER STATE (only in 3D view)
-        this.applyHoverState(name);
-      } else if (this.selectedObject) {
-        // DIMMED STATE (when something else is selected - works in both views)
-        this.applyDimmedState(name);
-      } else {
-        // NORMAL STATE
-        this.applyNormalState(name);
-      }
-
-      // Ensure labels are always visible
-      if (item.label) {
-        item.label.isVisible = true;
-        item.label.setEnabled(true);
-        if (item.labelMaterial) {
-          item.labelMaterial.alpha = 1.0;
+          if (this.isTopView) {
+            // 3D Top View behavior
+            if (this.selectedObject === name) {
+              this.apply3DTopSelectedState(item);
+            } else {
+              this.apply3DTopNormalState(item);
+            }
+          } else {
+            // 3D View behavior
+            if (this.selectedObject === name) {
+              this.apply3DSelectedState(item);
+            } else if (this.selectedObject) {
+              this.apply3DNonSelectedState(item);
+            } else {
+              this.apply3DNormalState(item);
+            }
+          }
+        } catch (itemError) {
+          console.error(`Error updating visuals for ${name}:`, itemError);
+          // Continue processing other items even if one fails
         }
-      }
-    });
+      });
+
+      console.log(`🎨 Selection changed to: ${this.selectedObject || 'none'} in ${this.isTopView ? '3D Top' : '3D'} view`);
+
+    } catch (error) {
+      console.error('Critical error in updateAllVisuals:', error);
+
+      // Emergency recovery: ensure all meshes remain visible
+      this.items.forEach((item, name) => {
+        try {
+          if (item.mesh && !item.mesh.isDisposed?.()) {
+            item.mesh.isVisible = true;
+            item.mesh.setEnabled(true);
+            if (item.material && !item.material.isDisposed?.()) {
+              item.material.alpha = 1.0;
+            }
+          }
+        } catch (recoveryError) {
+          console.error(`Failed to recover ${name}:`, recoveryError);
+        }
+      });
+    }
   }
 
   // Get base color for section
@@ -203,24 +221,23 @@ export class CleanBMCSystem {
   }
 
   // SELECTED STATE - Bright blue or original colors for Cost/Revenue
-  private applySelectedState(name: string) {
-    const item = this.items.get(name);
-    if (!item) return;
+  private applySelectedState(item: BMCItem): void {
+    if (!item.material || !item.mesh) return;
 
     // Color behavior: Cost Structure and Revenue Streams keep their original colors when selected
-    if (name === "Cost Structure") {
+    if (item.name === "Cost Structure") {
       item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);  // Keep original red
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
-    } else if (name === "Revenue Streams") {
+    } else if (item.name === "Revenue Streams") {
       item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);  // Keep original green
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else {
       item.material.diffuseColor = new Color3(0.0, 0.2, 0.5);  // Slightly brighter blue for others
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     }
-    
+
     item.material.alpha = 1.0;
-    
+
     // Height behavior: 3D Top = 0.01 (flattened), 3D View = original with animation
     if (this.isTopView) {
       item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
@@ -230,24 +247,23 @@ export class CleanBMCSystem {
   }
 
   // HOVER STATE - Light blue or brightened original color
-  private applyHoverState(name: string) {
-    const item = this.items.get(name);
-    if (!item) return;
+  private applyHoverState(item: BMCItem): void {
+    if (!item.material || !item.mesh) return;
 
     // Color behavior: Cost Structure and Revenue Streams brighten their original colors
-    if (name === "Cost Structure") {
+    if (item.name === "Cost Structure") {
       item.material.diffuseColor = new Color3(0.45, 0.05, 0.05);  // Subtle red brightening
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
-    } else if (name === "Revenue Streams") {
+    } else if (item.name === "Revenue Streams") {
       item.material.diffuseColor = new Color3(0.0, 0.25, 0.15);  // Subtle green brightening
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else {
       item.material.diffuseColor = new Color3(0.03, 0.18, 0.45);  // Slightly brighter blue
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     }
-    
+
     item.material.alpha = 1.0;
-    
+
     // Height behavior: Only change height in 3D Top view (to flatten), NEVER in 3D view
     if (this.isTopView) {
       item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
@@ -256,27 +272,26 @@ export class CleanBMCSystem {
   }
 
   // DIMMED STATE - Darker but visible
-  private applyDimmedState(name: string) {
-    const item = this.items.get(name);
-    if (!item) return;
+  private applyDimmedState(item: BMCItem): void {
+    if (!item.material || !item.mesh) return;
 
     // Color behavior: Different for 3D Top vs 3D view
     if (this.isTopView) {
       // 3D Top view: Use lighter dimmed colors so objects remain visible
-      const baseColor = this.getBaseColor(name);
+      const baseColor = item.originalColor || this.getBaseColor(item.name);
       item.material.diffuseColor = baseColor.scale(0.7);  // 70% of base color - still visible
     } else {
       // 3D view: Cost Structure and Revenue Streams use dark grey when flattened
-      if (name === "Cost Structure" || name === "Revenue Streams") {
+      if (item.name === "Cost Structure" || item.name === "Revenue Streams") {
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);  // Dark grey when flattened
       } else {
-        const baseColor = this.getBaseColor(name);
+        const baseColor = item.originalColor || this.getBaseColor(item.name);
         item.material.diffuseColor = baseColor.scale(0.5);  // 50% darker for others
       }
     }
-    
+
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
-    
+
     // Height and opacity behavior: 3D Top = 0.01 + 100%, 3D View = 0.01 + 30%
     if (this.isTopView) {
       item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
@@ -288,19 +303,187 @@ export class CleanBMCSystem {
   }
 
   // NORMAL STATE - Default appearance
-  private applyNormalState(name: string) {
-    const item = this.items.get(name);
-    if (!item) return;
+  private applyNormalState(item: BMCItem): void {
+    if (!item.material || !item.mesh) return;
 
-    item.material.diffuseColor = this.getBaseColor(name);
+    item.material.diffuseColor = item.originalColor || this.getBaseColor(item.name);
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     item.material.alpha = 1.0;
-    
+
     // Height behavior: 3D Top = 0.01 (flattened), 3D View = original full height
     if (this.isTopView) {
       item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
     } else {
       item.mesh.scaling.y = item.originalHeight;  // Original full height in 3D view
+    }
+  }
+
+  /**
+   * Apply visual state for 3D Top view - selected object
+   */
+  private apply3DTopSelectedState(item: BMCItem): void {
+    console.log(`🎨 Applying 3D Top selected state to: ${item.name}`);
+
+    // Validate material before applying changes
+    if (!item.material || !item.mesh) {
+      console.warn(`⚠️ Missing material or mesh for ${item.name}, skipping visual update`);
+      return;
+    }
+
+    // Set bright blue color for selection
+    const selectedColor = new Color3(0.0, 0.3, 0.8);
+    const selectedEmissive = new Color3(0.0, 0.1, 0.2);
+
+    this.setMeshColor(item.mesh, selectedColor, item.material);
+    this.setMeshEmissive(item.mesh, selectedEmissive, item.material);
+    this.setMeshHeight(item.mesh, item.originalHeight); // This might need adjustment based on desired top-view selected height
+    this.setMeshOpacity(item.mesh, 1.0, item.material);
+
+    console.log(`✅ Applied 3D Top selected state to: ${item.name}`);
+  }
+
+  /**
+   * Apply visual state for 3D Top view - normal/unselected state
+   */
+  private apply3DTopNormalState(item: BMCItem): void {
+    console.log(`🎨 Applying 3D Top normal state to: ${item.name}`);
+
+    // Validate material before applying changes
+    if (!item.material || !item.mesh) {
+      console.warn(`⚠️ Missing material or mesh for ${item.name}, skipping visual update`);
+      return;
+    }
+
+    this.setMeshColor(item.mesh, item.originalColor || this.getBaseColor(item.name), item.material);
+    this.setMeshEmissive(item.mesh, new Color3(0, 0, 0), item.material);
+    this.setMeshHeight(item.mesh, item.originalHeight); // This might need adjustment based on desired top-view normal height
+    this.setMeshOpacity(item.mesh, 1.0, item.material);
+
+    console.log(`✅ Applied 3D Top normal state to: ${item.name}`);
+  }
+
+  // Placeholder for 3D View selected state (if needed separately)
+  private apply3DSelectedState(item: BMCItem): void {
+    // This might be identical to applySelectedState or have specific 3D view logic
+    this.applySelectedState(item);
+  }
+
+  // Placeholder for 3D View non-selected state (when another object is selected)
+  private apply3DNonSelectedState(item: BMCItem): void {
+    // This might be identical to applyDimmedState or have specific 3D view logic
+    this.applyDimmedState(item);
+  }
+
+  // Placeholder for 3D View normal state
+  private apply3DNormalState(item: BMCItem): void {
+    // This might be identical to applyNormalState or have specific 3D view logic
+    this.applyNormalState(item);
+  }
+
+
+  /**
+   * Safely set mesh color with proper material handling
+   */
+  private setMeshColor(mesh: AbstractMesh, color: Color3, material: any): void {
+    try {
+      // Validate material exists and is not disposed
+      if (!material || material.isDisposed?.()) {
+        console.warn(`Material is missing or disposed for ${(mesh as any).bmcSectionName || 'unknown'}`);
+        return;
+      }
+
+      // Validate mesh exists and is not disposed
+      if (!mesh || mesh.isDisposed?.()) {
+        console.warn(`Mesh is missing or disposed for ${(mesh as any).bmcSectionName || 'unknown'}`);
+        return;
+      }
+
+      // Handle both StandardMaterial and PBRMaterial
+      if (material.baseColor) {
+        material.baseColor = color;
+      }
+      if (material.diffuseColor) {
+        material.diffuseColor = color;
+      }
+
+      // Update original color references for consistency
+      if ((material as any).originalBaseColor) {
+        (material as any).originalBaseColor = color.clone();
+      }
+      if ((material as any).originalDiffuseColor) {
+        (material as any).originalDiffuseColor = color.clone();
+      }
+
+      // Ensure mesh remains visible and enabled
+      mesh.isVisible = true;
+      mesh.setEnabled(true);
+      material.alpha = Math.max(0.1, material.alpha); // Prevent complete transparency
+
+    } catch (error) {
+      console.error(`Error setting mesh color for ${(mesh as any).bmcSectionName}:`, error);
+    }
+  }
+
+  /**
+   * Safely set mesh emissive color
+   */
+  private setMeshEmissive(mesh: AbstractMesh, color: Color3, material: any): void {
+    try {
+      if (!material || material.isDisposed?.() || !mesh || mesh.isDisposed?.()) {
+        console.warn(`Material or mesh is invalid, cannot set emissive color for ${(mesh as any).bmcSectionName || 'unknown'}`);
+        return;
+      }
+      material.emissiveColor = color;
+    } catch (error) {
+      console.error(`Error setting mesh emissive color for ${(mesh as any).bmcSectionName}:`, error);
+    }
+  }
+
+  /**
+   * Safely set mesh height (scaling.y)
+   */
+  private setMeshHeight(mesh: AbstractMesh, height: number): void {
+    try {
+      if (!mesh || mesh.isDisposed?.()) {
+        console.warn(`Mesh is missing or disposed, cannot set height for ${(mesh as any).bmcSectionName || 'unknown'}`);
+        return;
+      }
+      mesh.scaling.y = height;
+    } catch (error) {
+      console.error(`Error setting mesh height for ${(mesh as any).bmcSectionName}:`, error);
+    }
+  }
+
+  /**
+   * Safely set mesh opacity with proper material handling
+   */
+  private setMeshOpacity(mesh: AbstractMesh, opacity: number, material: any): void {
+    try {
+      // Validate material and mesh
+      if (!material || material.isDisposed?.()) {
+        console.warn(`Material is missing or disposed, cannot set opacity for ${(mesh as any).bmcSectionName || 'unknown'}`);
+        return;
+      }
+
+      if (!mesh || mesh.isDisposed?.()) {
+        console.warn(`Mesh is missing or disposed, cannot set opacity for ${(mesh as any).bmcSectionName || 'unknown'}`);
+        return;
+      }
+
+      // Clamp opacity to safe range (never fully transparent in 3D Top)
+      const safeOpacity = this.isTopView ? Math.max(0.1, Math.min(1.0, opacity)) : Math.min(1.0, opacity);
+
+      material.alpha = safeOpacity;
+      // mesh.visibility = safeOpacity; // Visibility is usually controlled by isVisible property, not directly tied to alpha for rendering
+
+      // Ensure mesh stays visible and enabled if opacity is greater than 0
+      mesh.isVisible = safeOpacity > 0;
+      mesh.setEnabled(safeOpacity > 0);
+
+      // console.log(`🔧 Set opacity to ${safeOpacity} for ${(mesh as any).bmcSectionName || 'unknown'}`);
+
+    } catch (error) {
+      console.error(`Error setting mesh opacity for ${(mesh as any).bmcSectionName}:`, error);
     }
   }
 
