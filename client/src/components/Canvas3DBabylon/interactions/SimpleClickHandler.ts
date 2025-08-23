@@ -107,18 +107,9 @@ export class SimpleClickHandler {
         case PointerEventTypes.POINTERMOVE:
           this.handlePointerMove(pointerInfo);
           break;
-        default:
-          // Debug: Log other pointer event types to understand what's happening
-          console.log(`🐭 Other pointer event type: ${pointerInfo.type}`);
-          break;
       }
     });
     
-    // Alternative approach: Use scene.onPointerMove directly for more reliable hover detection
-    this.scene.onPointerMove = (evt) => {
-      const pickInfo = this.scene.pick(evt.offsetX, evt.offsetY);
-      this.handleAlternativePointerMove(pickInfo);
-    };
   }
 
   /**
@@ -233,29 +224,13 @@ export class SimpleClickHandler {
    * Handle pointer move for hover effects
    */
   private handlePointerMove(pointerInfo: any): void {
-    // Debug: Log pointer move events for debugging hover
-    console.log(`🐭 Pointer move detected via onPointerObservable, pickInfo available: ${!!pointerInfo.pickInfo}`);
+    // Debug: Log pointer move events for debugging hover  
+    // console.log(`🐭 Pointer move detected, pickInfo available: ${!!pointerInfo.pickInfo}`);
     
     // Only process hover if we have valid pick info
     if (!pointerInfo.pickInfo) return;
     
-    this.processHoverFromPickInfo(pointerInfo.pickInfo);
-  }
-
-  /**
-   * Alternative hover detection using scene.onPointerMove
-   */
-  private handleAlternativePointerMove(pickInfo: any): void {
-    console.log(`🐭 Alternative pointer move detected via scene.onPointerMove, hit: ${pickInfo?.hit}`);
-    this.processHoverFromPickInfo(pickInfo);
-  }
-
-  /**
-   * Process hover logic from pick info (shared by both methods)
-   */
-  private processHoverFromPickInfo(pickInfo: any): void {
-    if (!pickInfo) return;
-    
+    const pickInfo = pointerInfo.pickInfo;
     let hoveredMesh: AbstractMesh | null = null;
     
     // Only consider registered meshes for hover
@@ -264,9 +239,7 @@ export class SimpleClickHandler {
         // Verify the mesh is still valid and not disposed
         if (!pickInfo.pickedMesh.isDisposed() && pickInfo.pickedMesh.isEnabled()) {
           hoveredMesh = pickInfo.pickedMesh;
-          console.log(`🐭 Hover detected: ${hoveredMesh.name}`);
-        } else {
-          console.log(`🐭 Mesh ${pickInfo.pickedMesh.name} is disposed or disabled`);
+          // console.log(`🐭 Hover detected: ${hoveredMesh.name}`);
         }
       }
     }
@@ -276,7 +249,7 @@ export class SimpleClickHandler {
       // Exit previous hover
       if (this.currentHoveredMesh && this.callbacks.onHoverExit) {
         const exitSectionName = this.meshToSectionName.get(this.currentHoveredMesh) || this.currentHoveredMesh.name;
-        console.log(`🖱️ Hover exit: ${this.currentHoveredMesh.name} (${exitSectionName})`);
+        // console.log(`🖱️ Hover exit: ${this.currentHoveredMesh.name} (${exitSectionName})`);
         try {
           this.callbacks.onHoverExit(exitSectionName, this.currentHoveredMesh);
         } catch (error) {
@@ -287,7 +260,7 @@ export class SimpleClickHandler {
       // Enter new hover
       if (hoveredMesh && this.callbacks.onHoverEnter) {
         const enterSectionName = this.meshToSectionName.get(hoveredMesh) || hoveredMesh.name;
-        console.log(`🖱️ Hover enter: ${hoveredMesh.name} (${enterSectionName})`);
+        // console.log(`🖱️ Hover enter: ${hoveredMesh.name} (${enterSectionName})`);
         try {
           this.callbacks.onHoverEnter(enterSectionName, hoveredMesh);
         } catch (error) {
@@ -298,6 +271,7 @@ export class SimpleClickHandler {
       this.currentHoveredMesh = hoveredMesh;
     }
   }
+
 
   /**
    * Get debug information
