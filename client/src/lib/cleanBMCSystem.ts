@@ -229,8 +229,8 @@ export class CleanBMCSystem {
       item.material.diffuseColor = new Color3(0.7, 0.2, 0.2);  // Bright red (original red brightened)
       item.material.emissiveColor = new Color3(0.1, 0.0, 0.0);  // Red glow
     } else if (name === "Revenue Streams") {
-      item.material.diffuseColor = new Color3(0.0, 0.5, 0.25);  // Bright deep green (keeping green dominance)
-      item.material.emissiveColor = new Color3(0.0, 0.15, 0.08);  // Strong green glow
+      item.material.diffuseColor = new Color3(0.0, 0.3, 0.18);  // Subtle brightened green (closer to original)
+      item.material.emissiveColor = new Color3(0.0, 0.05, 0.03);  // Gentle green glow
     } else {
       item.material.diffuseColor = new Color3(0.1, 0.4, 0.9);  // Light blue for others
       item.material.emissiveColor = new Color3(0.05, 0.05, 0.05);
