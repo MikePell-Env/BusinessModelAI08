@@ -21,6 +21,7 @@ export class CleanBMCSystem {
   // REMOVED: private selectedItem - BMC State Manager is the single source of truth
   private bmcStateManager: any = null; // Will be injected
   private viewTransitionManager: ViewTransitionManager | null = null;
+  private isTopView: boolean = false; // Track if we're in top view
   
   // Inject dependencies
   setBMCStateManager(bmcStateManager: any) {
@@ -43,6 +44,14 @@ export class CleanBMCSystem {
   setViewTransitionManager(viewTransitionManager: ViewTransitionManager) {
     console.log("🎬 CleanBMCSystem.setViewTransitionManager called");
     this.viewTransitionManager = viewTransitionManager;
+  }
+  
+  // Set whether we're in top view mode
+  setTopViewMode(isTopView: boolean) {
+    console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
+    this.isTopView = isTopView;
+    // Update visuals when view mode changes
+    this.updateAllVisuals();
   }
   
   // Helper method for smooth height animations
@@ -321,11 +330,19 @@ export class CleanBMCSystem {
         this.animateHeight(item.mesh, item.originalHeight);
         console.log(`🔵 ${name} SELECTED: brightened color, height=${item.originalHeight}`);
       } else if (selectedItem) {
-        // Others when selected: dim object, flattened object - BUT LABELS STAY 100%
+        // Others when selected: dim object
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
         item.material.alpha = 0.5; // Only affects the 3D object, NOT the label
-        this.animateHeight(item.mesh, 0.1);
-        console.log(`⚫ ${name} dimmed: grey, height=0.1, LABEL SHOULD STAY VISIBLE`);
+        
+        // Only flatten in 3D View, not in Top View (where flattening makes objects disappear)
+        if (!this.isTopView) {
+          this.animateHeight(item.mesh, 0.1);
+          console.log(`⚫ ${name} dimmed: grey, height=0.1, LABEL SHOULD STAY VISIBLE`);
+        } else {
+          // In top view, keep objects at reduced but visible height
+          this.animateHeight(item.mesh, item.originalHeight * 0.7);
+          console.log(`⚫ ${name} dimmed in TOP VIEW: grey, height=${item.originalHeight * 0.7}`);
+        }
       } else {
         // Default state - restore original colors
         if (name === "Cost Structure") {
