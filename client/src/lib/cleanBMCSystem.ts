@@ -248,11 +248,11 @@ export class CleanBMCSystem {
     
     item.material.alpha = 1.0;
     
-    // Height behavior: 3D Top = 0.01 (flattened), 3D View = NEVER change height on hover
+    // Height behavior: Only change height in 3D Top view (to flatten), NEVER in 3D view
     if (this.isTopView) {
       item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
     }
-    // In 3D view, do NOT change height on hover - leave height as-is
+    // 3D view: NO height changes on hover - completely leave height untouched
   }
 
   // DIMMED STATE - Darker but visible
