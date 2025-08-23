@@ -711,6 +711,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           isDragging = true;
           lastX = event.clientX;
           lastY = event.clientY;
+          canvas.style.cursor = 'grabbing';
           event.preventDefault();
           event.stopPropagation();
           console.log(`🖱️ ✅ ORTHO DRAG STARTED: X=${event.clientX}, Y=${event.clientY}, shift=${event.shiftKey}, camera.x=${orthoCamera.position.x.toFixed(3)}, camera.z=${orthoCamera.position.z.toFixed(3)}`);
@@ -718,21 +719,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       };
       
       const onMouseMove = (event: MouseEvent) => {
-        if (!isDragging) {
-          console.log(`🖱️ MouseMove but not dragging - ignoring`);
-          return;
-        }
+        if (!isDragging) return;
         
         const deltaX = event.clientX - lastX;
         const deltaY = event.clientY - lastY;
-        const sensitivity = 0.02;
+        const sensitivity = 0.015; // Slightly reduced for more precise control
         
         console.log(`🖱️ MouseMove: deltaX=${deltaX}, deltaY=${deltaY}, shiftKey=${event.shiftKey}`);
         
-        // Use event.shiftKey directly for reliable Shift detection
-        if (event.shiftKey) {
-          // Shift + drag: Horizontal translation (Z-axis movement)
-          const translationZ = -deltaY * sensitivity;
+        // Always allow horizontal translation (X-axis) with left/right mouse movement
+        if (Math.abs(deltaX) > 1) { // Only move if there's significant horizontal movement
+          const translationX = -deltaX * sensitivity; // Negative for natural movement direction
+          
+          const oldX = orthoCamera.position.x;
+          orthoCamera.position.x += translationX;
+          
+          const target = orthoCamera.getTarget();
+          target.x += translationX;
+          orthoCamera.setTarget(target);
+          
+          console.log(`🖱️ HORIZONTAL DRAG: deltaX=${deltaX}, translationX=${translationX.toFixed(3)}, camera.x=${oldX.toFixed(3)} -> ${orthoCamera.position.x.toFixed(3)}`);
+        }
+        
+        // Optional: Allow vertical translation (Z-axis) with Shift+drag for up/down movement
+        if (event.shiftKey && Math.abs(deltaY) > 1) {
+          const translationZ = deltaY * sensitivity;
           
           const oldZ = orthoCamera.position.z;
           orthoCamera.position.z += translationZ;
@@ -741,19 +752,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           target.z += translationZ;
           orthoCamera.setTarget(target);
           
-          console.log(`🖱️ ✨ SHIFT+DRAG HORIZONTAL: deltaY=${deltaY}, translationZ=${translationZ.toFixed(3)}, camera.z=${oldZ.toFixed(3)} -> ${orthoCamera.position.z.toFixed(3)}`);
-        } else {
-          // Normal drag: Left/right panning (X-axis)
-          const translationX = deltaX * sensitivity;
-          
-          const oldX = orthoCamera.position.x;
-          orthoCamera.position.x -= translationX;
-          
-          const target = orthoCamera.getTarget();
-          target.x -= translationX;
-          orthoCamera.setTarget(target);
-          
-          console.log(`🖱️ NORMAL DRAG: deltaX=${deltaX}, translationX=${translationX.toFixed(3)}, camera.x=${oldX.toFixed(3)} -> ${orthoCamera.position.x.toFixed(3)}`);
+          console.log(`🖱️ ✨ SHIFT+DRAG VERTICAL: deltaY=${deltaY}, translationZ=${translationZ.toFixed(3)}, camera.z=${oldZ.toFixed(3)} -> ${orthoCamera.position.z.toFixed(3)}`);
         }
         
         lastX = event.clientX;
@@ -765,8 +764,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const onMouseUp = (event: MouseEvent) => {
         if (isDragging) {
           console.log(`🖱️ Ortho pan ended`);
+          canvas.style.cursor = 'grab';
         }
         isDragging = false;
+        event.preventDefault();
+        event.stopPropagation();
       };
       
       canvas.addEventListener('wheel', onWheel, { passive: false });
@@ -774,6 +776,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       canvas.addEventListener('mousemove', onMouseMove, true);  
       canvas.addEventListener('mouseup', onMouseUp, true);
       canvas.addEventListener('mouseleave', onMouseUp, true);
+      
+      // Set initial cursor style
+      canvas.style.cursor = 'grab';
       
       // Store handlers for cleanup in ref
       orthoEventHandlersRef.current = {
