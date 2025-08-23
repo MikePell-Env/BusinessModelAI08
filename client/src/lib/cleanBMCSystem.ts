@@ -27,7 +27,6 @@ export class CleanBMCSystem {
 
   // Inject dependencies
   setBMCStateManager(bmcStateManager: any) {
-    console.log("🔗 CleanBMCSystem.setBMCStateManager called");
     this.bmcStateManager = bmcStateManager;
 
     if (bmcStateManager && bmcStateManager.addStateListener) {
@@ -43,32 +42,20 @@ export class CleanBMCSystem {
 
   // Set view mode
   setTopViewMode(isTopView: boolean) {
-    console.log(`🎬 ======= VIEW MODE CHANGE START =======`);
-    console.log(`🎬 CleanBMCSystem.setTopViewMode: ${this.isTopView} → ${isTopView}`);
-    console.log(`🎬 Current selection: ${this.getSelectedObject()}`);
-    console.log(`🎬 Items count: ${this.items.size}`);
-    
     this.isTopView = isTopView;
     
     // FORCE all objects to be visible at full height when entering top view
     if (isTopView) {
-      console.log(`🎬 ENTERING TOP VIEW - forcing all objects visible`);
       this.items.forEach((item, name) => {
-        console.log(`🎬   - Processing ${name}: visible=${item.mesh.isVisible}, enabled=${item.mesh.isEnabled()}, height=${item.mesh.scaling.y}`);
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
         item.mesh.scaling.y = item.originalHeight;
         item.material.alpha = 1.0;
         this.makeLabelVisible(item.name);
-        console.log(`🎬   - After force: visible=${item.mesh.isVisible}, enabled=${item.mesh.isEnabled()}, height=${item.mesh.scaling.y}`);
       });
-    } else {
-      console.log(`🎬 ENTERING 3D VIEW - normal behavior`);
     }
     
-    console.log(`🎬 About to call updateAllVisuals()`);
     this.updateAllVisuals();
-    console.log(`🎬 ======= VIEW MODE CHANGE END =======`);
   }
 
   // Register BMC item

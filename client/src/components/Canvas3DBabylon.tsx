@@ -82,15 +82,20 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         
         // Register BMC sections with CleanBMCSystem
         mainModel.meshes.forEach(mesh => {
-          if (mesh.name && mesh.name.includes('BMC_') && mesh.material) {
-            const sectionName = mesh.name.replace('BMC_', '').replace(/_/g, ' ');
-            // Register the main mesh with its current height
-            cleanBMCSystem.registerItem(sectionName, mesh, mesh.material as any, mesh.scaling.y);
-            
-            // Find and add any label mesh for this section
-            const labelMesh = mainModel.meshes.find(m => m.name?.includes(`Label_${sectionName.replace(/ /g, '')}`));
-            if (labelMesh && labelMesh.material) {
-              cleanBMCSystem.addLabel(sectionName, labelMesh, labelMesh.material as any);
+          // Register all meshes that have names and materials
+          if (mesh.name && mesh.material) {
+            // Register main BMC sections
+            if (mesh.name.includes('BMC_')) {
+              const sectionName = mesh.name.replace('BMC_', '').replace(/_/g, ' ');
+              cleanBMCSystem.registerItem(sectionName, mesh, mesh.material as any, mesh.scaling.y);
+            }
+            // Register labels
+            else if (mesh.name.includes('Label_')) {
+              const labelName = mesh.name.replace('Label_', '').replace(/_/g, ' ');
+              const mainMesh = mainModel.meshes.find(m => m.name?.includes(`BMC_${labelName.replace(/ /g, '_')}`));
+              if (mainMesh) {
+                cleanBMCSystem.addLabel(labelName, mesh, mesh.material as any);
+              }
             }
           }
         });
@@ -155,6 +160,15 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           scene.render();
         });
         
+        // Set initial view mode
+        if (isOrthographic) {
+          cameraController.switchToMode('3D Top');
+          cleanBMCSystem.setTopViewMode(true);
+        } else {
+          cameraController.switchToMode('3D View');
+          cleanBMCSystem.setTopViewMode(false);
+        }
+        
         // Handle window resize
         window.addEventListener("resize", () => {
           sceneSetup.resize();
@@ -187,7 +201,7 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       });
       setIsInitialized(false);
     };
-  }, [canvas]); // Dependency on canvas to reinitialize if needed
+  }, []); // Run once on mount
 
   // Handle view mode changes
   useEffect(() => {
