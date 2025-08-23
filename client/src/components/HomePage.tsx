@@ -180,7 +180,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                     <div className="text-center opacity-50">
                       <div className="bg-white p-6 rounded-lg border-2 border-gray-400 relative h-full flex flex-col shadow-2xl">
                         {/* Number 3 in top left */}
-                        <div className="absolute top-4 left-4 bg-gray-600 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                        <div className="absolute top-4 left-4 bg-gray-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                           3
                         </div>
                         
