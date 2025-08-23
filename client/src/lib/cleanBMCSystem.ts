@@ -52,12 +52,12 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
 
-    // When entering top view, reset all objects to original height (flat appearance from above)
+    // When entering top view, flatten ALL objects
     if (isTopView) {
-      console.log(`📐 Entering TOP VIEW - keeping all objects flat`);
+      console.log(`📐 Entering TOP VIEW - flattening all objects`);
       this.items.forEach((item, name) => {
-        // Reset to original height - appears flat from above
-        item.mesh.scaling.y = item.originalHeight;
+        // FLATTEN all objects in top view
+        item.mesh.scaling.y = 0.1;  // Flat height
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
         this.makeLabelVisible(name);
@@ -356,10 +356,10 @@ export class CleanBMCSystem {
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
 
-    // In top view, ALWAYS force full original height
+    // In top view, ALWAYS keep objects flat
     if (this.isTopView) {
-      item.mesh.scaling.y = item.originalHeight;
-      console.log(`📐 TOP VIEW: Keeping ${name} at full height ${item.originalHeight}`);
+      item.mesh.scaling.y = 0.1;  // Always flat in top view
+      console.log(`📐 TOP VIEW: Keeping ${name} flat at height 0.1`);
     }
 
     switch (state) {
@@ -377,14 +377,10 @@ export class CleanBMCSystem {
         break;
 
       case 'dimmed':
-        // In top view, apply dimmed colors but NEVER change height
-        if (this.isTopView) {
-          this.applyDimmedEffect(item.material, name);
-          // Force full height - no animation
-          item.mesh.scaling.y = item.originalHeight;
-        } else {
-          // In 3D view, apply dimmed effect and flatten
-          this.applyDimmedEffect(item.material, name);
+        // Apply dimmed colors
+        this.applyDimmedEffect(item.material, name);
+        // Only animate height in 3D view (not top view)
+        if (!this.isTopView) {
           this.animateHeight(item.mesh, item.originalHeight * 0.3);
         }
         break;
