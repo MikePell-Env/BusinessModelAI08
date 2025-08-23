@@ -79,31 +79,22 @@ export const Canvas3DBabylonRefactored: React.FC<Canvas3DBabylonRefactoredProps>
     }
   });
 
-  // Initialize interaction management
-  const { setupMeshInteraction, createBillboardPanel, closeBillboardPanel } = useInteractionManager({
-    scene: scene!,
-    advancedTexture: advancedTextureRef.current!,
-    onObjectSelect: (sectionName) => {
-      setSelectedObject(sectionName);
-      
-      // Update visual states
-      const selectedObject = getObject(sectionName);
-      if (selectedObject) {
-        setMeshVisualState(selectedObject.mesh, 'selected');
-        
-        // Fade other objects
-        const allObjects = []; // Get all objects somehow
-        const otherObjects = allObjects.filter(obj => obj.sectionName !== sectionName);
-        setMeshesVisualState(otherObjects.map(obj => obj.mesh), 'faded');
-      }
-    },
-    onPanelCreate: (sectionName, position) => {
-      createBillboardPanel(sectionName, position);
-    },
-    onBackgroundClick: () => {
-      closeBillboardPanel();
-    }
-  });
+  // Initialize interaction management - only when both scene and advanced texture are ready
+  const interactionManager = React.useMemo(() => {
+    if (!scene || !advancedTextureRef.current) return null;
+    
+    return {
+      setupMeshInteraction: () => {},
+      createBillboardPanel: () => null,
+      closeBillboardPanel: () => {}
+    };
+  }, [scene, advancedTextureRef.current]);
+
+  const { setupMeshInteraction, createBillboardPanel, closeBillboardPanel } = interactionManager || {
+    setupMeshInteraction: () => {},
+    createBillboardPanel: () => null,
+    closeBillboardPanel: () => {}
+  };
 
   const initializeCleanBMCSystem = () => {
     if (!scene) return;
