@@ -215,7 +215,7 @@ export class CleanBMCSystem {
       item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);  // Keep original green
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else {
-      item.material.diffuseColor = new Color3(0.0, 0.15, 0.4);  // Darker blue for others
+      item.material.diffuseColor = new Color3(0.0, 0.2, 0.5);  // Slightly brighter blue for others
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     }
     
@@ -242,7 +242,7 @@ export class CleanBMCSystem {
       item.material.diffuseColor = new Color3(0.0, 0.25, 0.15);  // Subtle green brightening
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else {
-      item.material.diffuseColor = new Color3(0.02, 0.15, 0.35);  // Much darker blue
+      item.material.diffuseColor = new Color3(0.03, 0.18, 0.45);  // Slightly brighter blue
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     }
     
