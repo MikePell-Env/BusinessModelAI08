@@ -196,7 +196,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                         {/* Button at bottom */}
                         <Button 
                           disabled
-                          className="w-full bg-gray-300 text-gray-700 hover:bg-gray-300 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
+                          className="w-full bg-gray-300 text-gray-900 hover:bg-gray-300 border border-gray-500 cursor-not-allowed rounded-lg py-2 mt-4"
                         >
                           Use MCP API
                         </Button>
