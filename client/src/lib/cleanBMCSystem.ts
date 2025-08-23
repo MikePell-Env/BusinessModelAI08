@@ -97,6 +97,15 @@ export class CleanBMCSystem {
     const actualHeight = mesh.scaling.y;
     console.log(`📏 Registering ${name} with ACTUAL mesh height=${actualHeight} (passed=${originalHeight})`);
 
+    // For Revenue Streams and Cost Structure (separate GLBs), ensure material is properly set
+    if (name === "Revenue Streams" || name === "Cost Structure") {
+      console.log(`🔧 Special handling for separate GLB: ${name}`);
+      // Ensure the material is properly assigned to the mesh
+      if (!mesh.material) {
+        mesh.material = material;
+      }
+    }
+
     this.items.set(name, {
       mesh,
       material,
@@ -282,26 +291,41 @@ export class CleanBMCSystem {
   private applySelectedState(name: string, item: BMCItem) {
     console.log(`✅ Applying SELECTED state to ${name}`);
 
-    // Colors for selection
-    if (name === "Cost Structure") {
-      item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
-      item.material.emissiveColor = new Color3(0.3, 0.0, 0.0);
-    } else if (name === "Revenue Streams") {
-      item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
-      item.material.emissiveColor = new Color3(0.0, 0.15, 0.08);
-    } else {
-      item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
-      item.material.emissiveColor = new Color3(0.0, 0.1, 0.2);
-    }
+    try {
+      // Ensure material exists
+      if (!item.material) {
+        console.error(`❌ No material for ${name} - creating fallback`);
+        const fallbackMaterial = new StandardMaterial(`${name}_fallback`, item.mesh.getScene());
+        item.material = fallbackMaterial;
+        item.mesh.material = fallbackMaterial;
+      }
 
-    // Always full opacity
-    item.material.alpha = 1.0;
+      // Colors for selection
+      if (name === "Cost Structure") {
+        item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+        item.material.emissiveColor = new Color3(0.3, 0.0, 0.0);
+      } else if (name === "Revenue Streams") {
+        item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+        item.material.emissiveColor = new Color3(0.0, 0.15, 0.08);
+      } else {
+        item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+        item.material.emissiveColor = new Color3(0.0, 0.1, 0.2);
+      }
 
-    // Height animation only in 3D view
-    if (this.isTopView) {
-      item.mesh.scaling.y = item.originalHeight;
-    } else {
-      this.animateHeight(item.mesh, item.originalHeight * 1.4);
+      // Always full opacity
+      item.material.alpha = 1.0;
+
+      // Height animation only in 3D view
+      if (this.isTopView) {
+        item.mesh.scaling.y = item.originalHeight;
+      } else {
+        this.animateHeight(item.mesh, item.originalHeight * 1.4);
+      }
+    } catch (error) {
+      console.error(`❌ Error applying selected state to ${name}:`, error);
+      // Ensure mesh stays visible
+      item.mesh.isVisible = true;
+      item.mesh.setEnabled(true);
     }
   }
 
