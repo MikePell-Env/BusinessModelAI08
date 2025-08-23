@@ -23,7 +23,7 @@ interface BMCObjectDescriptor {
 }
 
 interface BMCObjectManagerProps {
-  scene: Scene;
+  scene: Scene | null;
   onObjectLoaded?: (sectionName: string, mesh: AbstractMesh) => void;
   onAllObjectsLoaded?: () => void;
 }
@@ -66,6 +66,8 @@ export const useBMCObjectManager = ({
     width: number = 2, 
     height: number = 0.5
   ): AbstractMesh => {
+    if (!scene) return null as any;
+    
     const labelPlane = MeshBuilder.CreatePlane(
       `${sectionName}_label`, 
       { width, height }, 
@@ -77,10 +79,10 @@ export const useBMCObjectManager = ({
     
     // Create material with texture
     const labelTexturePath = getLabelTexturePath(sectionName);
-    const labelMaterial = new StandardMaterial(`${sectionName}_labelMaterial`, scene);
+    const labelMaterial = new StandardMaterial(`${sectionName}_labelMaterial`, scene!);
     
     if (labelTexturePath) {
-      labelMaterial.diffuseTexture = new Texture(labelTexturePath, scene);
+      labelMaterial.diffuseTexture = new Texture(labelTexturePath, scene!);
       labelMaterial.diffuseTexture.hasAlpha = true;
     }
     
@@ -114,7 +116,7 @@ export const useBMCObjectManager = ({
         "", 
         "/models/", 
         "BMC_blender_09_complete_1753576063858.glb", 
-        scene
+        scene!
       );
       
       if (result.meshes.length === 0) {
@@ -132,7 +134,7 @@ export const useBMCObjectManager = ({
             const sectionName = mapBMCComponentToSectionName(componentName);
             
             // Create transform node for scaling
-            const transformNode = new TransformNode(`${sectionName}_transform`, scene);
+            const transformNode = new TransformNode(`${sectionName}_transform`, scene!);
             mesh.parent = transformNode;
             
             const descriptor: BMCObjectDescriptor = {
