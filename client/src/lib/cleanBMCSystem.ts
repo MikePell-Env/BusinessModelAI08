@@ -223,38 +223,39 @@ export class CleanBMCSystem {
       mesh.material = material;
     }
     
-    // FIXED: Simplified material changes - no transparency in 3D Top, reuse colors
+    // CRITICAL FIX: Safe material property access to prevent canvas crashes
     material.alpha = 1.0; // Always solid - no transparency crashes
     material.emissiveColor = Color3.Black(); // Always black emission
     
-    // Apply colors based on state (avoiding new Color3 creation crashes)
+    // SAFE: Ensure diffuseColor exists before modifying (prevents crashes)
+    if (!material.diffuseColor) {
+      material.diffuseColor = new Color3(0.5, 0.5, 0.5); // Create if missing
+    }
+    
+    // Apply colors based on state (SAFE property access)
     if (state === 'selected' || state === 'hover') {
-      // Blue for selected/hover - reuse same values
-      material.diffuseColor.r = 0.0;
-      material.diffuseColor.g = 0.3; 
-      material.diffuseColor.b = 0.8;
+      // Blue for selected/hover - SAFE property modification
+      material.diffuseColor = new Color3(0.0, 0.3, 0.8);
       console.log(`🎨 Applied ${state.toUpperCase()}: ${name} -> blue`);
     } else if (state === 'dimmed' && !this.isTopView) {
       // Only dim in 3D View, not 3D Top
-      material.diffuseColor.r = 0.07;
-      material.diffuseColor.g = 0.07;
-      material.diffuseColor.b = 0.07;
+      material.diffuseColor = new Color3(0.07, 0.07, 0.07);
       material.alpha = 0.7; // Only transparency in 3D View
       console.log(`🎨 Applied DIMMED: ${name} -> grey + transparent`);
     } else {
       // Normal state - restore original color safely
       if (baseColor) {
-        material.diffuseColor.r = baseColor.r;
-        material.diffuseColor.g = baseColor.g;
-        material.diffuseColor.b = baseColor.b;
+        material.diffuseColor = baseColor.clone(); // SAFE: clone to avoid reference issues
+      } else {
+        material.diffuseColor = new Color3(0.5, 0.5, 0.5); // Fallback color
       }
       console.log(`🎨 Applied NORMAL: ${name} -> original color`);
     }
     
     } catch (error) {
       console.error(`❌ CRASH in applyState(${name}, ${state}):`, error);
-      console.error(`❌ Error details:`, error.message);
-      console.error(`❌ Stack:`, error.stack);
+      console.error(`❌ Error details:`, (error as Error).message);
+      console.error(`❌ Stack:`, (error as Error).stack);
       throw error;
     }
   }
