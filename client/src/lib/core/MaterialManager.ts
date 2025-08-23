@@ -155,14 +155,20 @@ export class MaterialManager {
       const material = this.getMaterial(sectionId, state);
       console.log(`🔍 DEBUG MaterialManager: Got material ${material.name}, isFrozen: ${material.isFrozen}`);
       
-      // DISABLED: Freeze/unfreeze system causing crashes after multiple clicks
-      // Material assignment without freeze/unfreeze manipulation
-      console.log(`🔍 DEBUG MaterialManager: Applying material ${material.name} to mesh (no freeze/unfreeze)`);
+      // FIXED: Only assign material if it's different (prevent redundant assignments)
+      const currentMaterial = mesh.material;
+      const needsMaterialChange = currentMaterial !== material;
       
-      // Apply material
-      mesh.material = material;
+      console.log(`🔍 DEBUG MaterialManager: Current: ${currentMaterial?.name || 'none'}, Target: ${material.name}, needsChange: ${needsMaterialChange}`);
       
-      // Ensure mesh visibility
+      if (needsMaterialChange) {
+        console.log(`🔍 DEBUG MaterialManager: Assigning NEW material ${material.name} to mesh`);
+        mesh.material = material;
+      } else {
+        console.log(`🔍 DEBUG MaterialManager: Material ${material.name} already assigned - skipping redundant assignment`);
+      }
+      
+      // Ensure mesh visibility (always needed)
       mesh.setEnabled(true);
       mesh.isVisible = true;
 
