@@ -69,17 +69,10 @@ export class ViewTransitionManager {
     onComplete: () => void
   ): void {
     const startTime = performance.now();
-    
-    // Calculate the target position for straight-down view
-    // Maintain same X and Z from perspective camera's view center
-    const startAlpha = perspCamera.alpha;
-    const startBeta = perspCamera.beta;
-    const startRadius = perspCamera.radius;
+    const startPosition = perspCamera.position.clone();
+    const endPosition = orthoCamera.position.clone();
     const startTarget = perspCamera.target.clone();
-    
-    // Target is straight down view (beta = 0)
-    const endBeta = 0.01; // Nearly 0 for top-down
-    const endRadius = 15; // Match ortho camera height
+    const endTarget = new Vector3(0, 0, 0); // Ortho looks at origin
     
     // Use perspective camera during transition
     this.scene.activeCamera = perspCamera;
@@ -91,30 +84,17 @@ export class ViewTransitionManager {
       // Apply easing
       const t = useEasing ? this.easeInOutCubic(progress) : progress;
       
-      // Smoothly interpolate camera parameters
-      perspCamera.beta = startBeta * (1 - t) + endBeta * t;
-      perspCamera.radius = startRadius * (1 - t) + endRadius * t;
+      // Interpolate position and target
+      perspCamera.position = Vector3.Lerp(startPosition, endPosition, t);
+      perspCamera.target = Vector3.Lerp(startTarget, endTarget, t);
       
-      // Keep target at origin for consistent view
-      perspCamera.target = Vector3.Lerp(startTarget, Vector3.Zero(), t);
+      // Gradually flatten the view angle for orthographic effect
+      perspCamera.beta = perspCamera.beta * (1 - t) + 0.01 * t;
       
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        // Set ortho camera position to match final perspective view
-        orthoCamera.position.x = perspCamera.position.x;
-        orthoCamera.position.y = 15; // Keep ortho height
-        orthoCamera.position.z = perspCamera.position.z;
-        
-        // Update ortho camera target to match
-        const newTarget = new Vector3(
-          perspCamera.position.x,
-          0,
-          perspCamera.position.z
-        );
-        orthoCamera.setTarget(newTarget);
-        
-        // Switch to ortho camera
+        // Switch to ortho camera at the end
         this.scene.activeCamera = orthoCamera;
         debugLog.verbose('animation', 'Smooth transition to orthographic complete');
         onComplete();
@@ -131,28 +111,19 @@ export class ViewTransitionManager {
     useEasing: boolean,
     onComplete: () => void
   ): void {
-    // Create temp camera that matches ortho view position
+    // Create temp camera at ortho position
     const tempCamera = new ArcRotateCamera(
       'tempTransition',
       perspCamera.alpha,
       0.01, // Start flat like ortho
-      15, // Match ortho height
-      new Vector3(
-        orthoCamera.position.x,
-        0,
-        orthoCamera.position.z
-      ), // Start from ortho's ground position
+      22, // Ortho height
+      new Vector3(0, 0, 0),
       this.scene
     );
     
     const startTime = performance.now();
-    const startBeta = 0.01;
-    const startRadius = 15;
-    const startTarget = tempCamera.target.clone();
-    
     const endBeta = perspCamera.beta;
     const endRadius = perspCamera.radius;
-    const endTarget = perspCamera.target.clone();
     
     // Use temp camera during transition
     this.scene.activeCamera = tempCamera;
@@ -166,18 +137,12 @@ export class ViewTransitionManager {
       const t = useEasing ? this.easeInOutCubic(progress) : progress;
       
       // Interpolate camera properties
-      tempCamera.beta = startBeta * (1 - t) + endBeta * t;
-      tempCamera.radius = startRadius * (1 - t) + endRadius * t;
-      tempCamera.target = Vector3.Lerp(startTarget, endTarget, t);
+      tempCamera.beta = 0.01 * (1 - t) + endBeta * t;
+      tempCamera.radius = 22 * (1 - t) + endRadius * t;
       
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        // Update perspective camera to match final position
-        perspCamera.beta = endBeta;
-        perspCamera.radius = endRadius;
-        perspCamera.target = endTarget;
-        
         // Switch to final perspective camera
         this.scene.activeCamera = perspCamera;
         tempCamera.dispose();
