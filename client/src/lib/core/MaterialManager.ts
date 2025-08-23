@@ -184,6 +184,56 @@ export class MaterialManager {
   }
 
   /**
+   * COMPATIBILITY METHOD: Assign material to mesh (for CleanBMCSystem integration)
+   */
+  assignMaterial(mesh: AbstractMesh, materialType: string, sectionId: string): void {
+    // For now, assign normal state material by default
+    this.applyMaterialState(mesh, sectionId, 'normal');
+    console.log(`🔗 MaterialManager: Assigned ${materialType} material to ${sectionId}`);
+  }
+
+  /**
+   * COMPATIBILITY METHOD: Update material properties (for CleanBMCSystem integration)
+   */
+  updateMaterial(mesh: AbstractMesh, properties: {
+    diffuseColor?: Color3;
+    emissiveColor?: Color3;
+    alpha?: number;
+  }): void {
+    if (this.disposed || !mesh.material) {
+      console.warn('⚠️ MaterialManager: Cannot update material - disposed or no material');
+      return;
+    }
+
+    try {
+      const material = mesh.material as StandardMaterial;
+      
+      // Unfreeze for updates
+      if (material.isFrozen) {
+        material.unfreeze();
+      }
+
+      // Apply property updates
+      if (properties.diffuseColor) {
+        material.diffuseColor = properties.diffuseColor.clone();
+      }
+      if (properties.emissiveColor) {
+        material.emissiveColor = properties.emissiveColor.clone();
+      }
+      if (properties.alpha !== undefined) {
+        material.alpha = properties.alpha;
+      }
+
+      // Refreeze for performance
+      material.freeze();
+
+      console.log(`🎨 MaterialManager: Updated material properties for mesh`);
+    } catch (error) {
+      console.error('❌ MaterialManager: Failed to update material properties:', error);
+    }
+  }
+
+  /**
    * Get pool statistics for debugging
    */
   getPoolStats(): { total: number; sections: number; materials: string[] } {
