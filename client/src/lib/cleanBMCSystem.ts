@@ -112,6 +112,16 @@ export class CleanBMCSystem {
   selectObject(name: string | null) {
     console.log(`🎯 CleanBMCSystem.selectObject: ${name}`);
     
+    // Ensure all objects are visible and reset their height
+    this.items.forEach((item) => {
+      item.mesh.isVisible = true; // Set all objects visible
+      item.mesh.setEnabled(true); // Enable all meshes
+      item.mesh.scaling.y = item.originalHeight; // Restore original height
+    });
+
+    // Set the currently selected object
+    this.selectedObject = name;
+    
     if (this.bmcStateManager) {
       const componentName = this.convertNameToBMCComponent(name);
       this.bmcStateManager.selectObject(componentName);
