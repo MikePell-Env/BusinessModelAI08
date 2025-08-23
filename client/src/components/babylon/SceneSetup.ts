@@ -1,4 +1,4 @@
-import { Scene, HemisphericLight, DirectionalLight, Vector3, Color3, StandardMaterial, MeshBuilder, AbstractMesh, Texture } from '@babylonjs/core';
+import { Scene, HemisphericLight, DirectionalLight, Vector3, Color3, Color4, StandardMaterial, MeshBuilder, AbstractMesh, Texture, DynamicTexture, ActionManager, ExecuteCodeAction } from '@babylonjs/core';
 
 export class SceneSetup {
   private scene: Scene;
