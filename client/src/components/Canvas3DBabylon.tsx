@@ -353,6 +353,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // REMOVED: Old restore logic - now handled by applyBMCVisualState
 
+  // Helper function to improve label texture quality - removes visual artifacts
+  const enhanceLabelTexture = (texture: Texture): void => {
+    // Use nearest neighbor filtering for crisp, pixel-perfect text
+    texture.updateSamplingMode(Texture.NEAREST_SAMPLINGMODE);
+    
+    // Disable texture wrapping for labels
+    texture.wrapU = Texture.CLAMP_ADDRESSMODE;
+    texture.wrapV = Texture.CLAMP_ADDRESSMODE;
+    
+    // Disable anisotropic filtering which can blur text
+    texture.anisotropicFilteringLevel = 1;
+  };
+
   // Helper function to get section content from canvas data
   const getSectionContent = (sectionName: string): string => {
     const sectionMap: { [key: string]: string } = {
@@ -1040,6 +1053,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
       const internalLabelTexture = new Texture("/textures/Labels_internal_grey.png", scene);
       internalLabelTexture.hasAlpha = true;
+      enhanceLabelTexture(internalLabelTexture);
       
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
@@ -1077,6 +1091,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const externalLabelMaterial = new StandardMaterial("externalLabelMat", scene);
       const externalLabelTexture = new Texture("/textures/Labels_external_grey.png", scene);
       externalLabelTexture.hasAlpha = true;
+      enhanceLabelTexture(externalLabelTexture);
       
       externalLabelMaterial.diffuseTexture = externalLabelTexture;
       externalLabelMaterial.emissiveTexture = externalLabelTexture;
@@ -1113,6 +1128,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const verticalDividerMaterial = new StandardMaterial("verticalDividerMat", scene);
       const verticalDividerTexture = new Texture("/textures/Labels_vertical_divider.png", scene);
       verticalDividerTexture.hasAlpha = true;
+      enhanceLabelTexture(verticalDividerTexture);
       
       verticalDividerMaterial.diffuseTexture = verticalDividerTexture;
       verticalDividerMaterial.emissiveTexture = verticalDividerTexture;
@@ -1457,6 +1473,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const labelMaterial = new StandardMaterial("customerSegmentsLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
               labelTexture.hasAlpha = true;
+              enhanceLabelTexture(labelTexture);
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
@@ -1505,6 +1522,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const labelMaterial = new StandardMaterial("keyPartnersLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_KeyPartners.png", scene);
               labelTexture.hasAlpha = true;
+              enhanceLabelTexture(labelTexture);
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
@@ -1553,6 +1571,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const labelMaterial = new StandardMaterial("customerRelationshipsLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_CustomerRelationships.png", scene);
               labelTexture.hasAlpha = true;
+              enhanceLabelTexture(labelTexture);
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
@@ -1601,6 +1620,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const labelMaterial = new StandardMaterial("customerChannelsLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_CustomerChannels.png", scene);
               labelTexture.hasAlpha = true;
+              enhanceLabelTexture(labelTexture);
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
@@ -1650,6 +1670,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const labelMaterial = new StandardMaterial("keyActivitiesLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_KeyActivities.png", scene);
               labelTexture.hasAlpha = true;
+              enhanceLabelTexture(labelTexture);
               
               labelMaterial.diffuseTexture = labelTexture;
               // REMOVED emissive settings that bypass depth testing and render on top
@@ -1701,6 +1722,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const labelMaterial = new StandardMaterial("keyResourcesLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_KeyResources.png", scene);
               labelTexture.hasAlpha = true;
+              enhanceLabelTexture(labelTexture);
               
               labelMaterial.diffuseTexture = labelTexture;
               // REMOVED emissive settings that bypass depth testing and render on top
@@ -1749,6 +1771,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               const labelMaterial = new StandardMaterial("valuePropositionsLabelMat", scene);
               const labelTexture = new Texture("/textures/Label_ValueProposition.png", scene);
               labelTexture.hasAlpha = true;
+              enhanceLabelTexture(labelTexture);
               
               labelMaterial.diffuseTexture = labelTexture;
               // REMOVED emissive texture/color that was causing texture corruption
@@ -2356,6 +2379,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const labelMaterial = new StandardMaterial("revenueStreamsLabelMat", scene);
             const labelTexture = new Texture("/textures/Label_RevenueStreams.png", scene);
             labelTexture.hasAlpha = true;
+            enhanceLabelTexture(labelTexture);
             
             labelMaterial.diffuseTexture = labelTexture;
             labelMaterial.emissiveTexture = labelTexture;
@@ -2497,6 +2521,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const labelMaterial = new StandardMaterial("costStructureLabelMat", scene);
             const labelTexture = new Texture("/textures/Label_CostStructure_1754477996199.png", scene);
             labelTexture.hasAlpha = true;
+            enhanceLabelTexture(labelTexture);
             
             labelMaterial.diffuseTexture = labelTexture;
             labelMaterial.emissiveTexture = labelTexture;
