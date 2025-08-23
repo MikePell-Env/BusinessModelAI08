@@ -403,18 +403,11 @@ export class CleanBMCSystem {
         break;
 
       case 'dimmed':
-        // DIMMED (3D View only - rule 6): 50% opacity, flattened
-        // 3D Top never dims other objects (rules 2,4)
-        if (!this.isTopView) {
-          this.applyDimmedEffect(item.material, name);
-          item.material.alpha = 0.5; // 50% opacity
-          this.animateHeight(item.mesh, item.originalHeight * 0.3); // flattened
-        } else {
-          // In 3D Top, treat dimmed as normal (should not happen per rules but safety fallback)
-          this.restoreOriginalMaterial(item.material, name);
-          item.material.alpha = 1.0; // 100% opacity
-          item.mesh.scaling.y = item.originalHeight; // full height
-        }
+        // DIMMED: Only applies to 3D View (rule 6)
+        // 3D Top NEVER uses dimmed state - handled by updateAllVisuals logic
+        this.applyDimmedEffect(item.material, name);
+        item.material.alpha = 0.5; // 50% opacity
+        this.animateHeight(item.mesh, item.originalHeight * 0.3); // flattened
         break;
 
       case 'normal':
