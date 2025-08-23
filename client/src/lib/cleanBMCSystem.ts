@@ -29,7 +29,7 @@ export class CleanBMCSystem {
   // Set whether we're in top view mode
   setTopViewMode(isTopView: boolean) {
     this.isTopView = isTopView;
-    
+
     // CRITICAL FIX: When switching to 3D Top view, immediately flatten ALL objects
     if (isTopView) {
       this.items.forEach((item) => {
@@ -38,14 +38,14 @@ export class CleanBMCSystem {
         }
       });
     }
-    
+
     this.updateAllVisuals();
   }
 
   // Register a BMC item
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
     const baseColor = this.getBaseColor(name);
-    
+
     // Ensure material is assigned
     if (!mesh.material) {
       mesh.material = material;
@@ -71,7 +71,7 @@ export class CleanBMCSystem {
   onSelect(sectionName: string) {
     try {
       console.log(`🔍 DEBUG: CleanBMC onSelect ENTRY - sectionName: "${sectionName}"`);
-      
+
       // Special debugging for Cost Structure
       if (sectionName === "Cost Structure") {
         console.log(`🔍 DEBUG: Cost Structure selection process starting...`);
@@ -79,11 +79,11 @@ export class CleanBMCSystem {
         console.log(`🔍 DEBUG: Items in cleanBMCSystem:`, Array.from(this.items.keys()));
         console.log(`🔍 DEBUG: bmcStateManager exists:`, !!this.bmcStateManager);
       }
-    
+
     // Toggle selection
     console.log(`🔍 DEBUG: Before toggle - this.selectedObject: "${this.selectedObject}", sectionName: "${sectionName}"`);
     console.log(`🔍 DEBUG: Equality check: ${this.selectedObject === sectionName}`);
-    
+
     if (this.selectedObject === sectionName) {
       console.log(`🔍 DEBUG: DESELECTING - same object clicked`);
       this.selectedObject = null;
@@ -98,7 +98,7 @@ export class CleanBMCSystem {
     if (this.bmcStateManager) {
       const bmcComponent = this.convertNameToBMCComponent(sectionName);
       console.log(`🔍 DEBUG: BMC component conversion result: ${sectionName} -> ${bmcComponent}`);
-      
+
       if (bmcComponent) {
         try {
           this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent as any : null);
@@ -137,10 +137,37 @@ export class CleanBMCSystem {
     this.updateAllVisuals();
   }
 
-  // Handle hover state
-  onHover(itemName: string | null, isHovering: boolean) {
-    this.hoveredObject = isHovering ? itemName : null;
-    this.updateAllVisuals();
+  // Handle hover state changes
+  onHover(sectionName: string, isHovering: boolean): void {
+    console.log(`🖱️ onHover: ${sectionName}, hovering=${isHovering}, topView=${this.isTopView}, selected=${this.selectedObject}`);
+
+    const item = this.items.get(sectionName);
+    if (!item) {
+      console.warn(`⚠️ Item not found for hover: ${sectionName}`);
+      return;
+    }
+
+    // Validate mesh and material before proceeding
+    if (!item.mesh || item.mesh.isDisposed() || !item.material || item.material.isDisposed()) {
+      console.warn(`⚠️ Invalid mesh/material for hover on ${sectionName}`);
+      return;
+    }
+
+    // Only apply hover effects if no object is selected
+    if (this.selectedObject !== null) {
+      console.log(`🚫 Hover ignored - object selected: ${this.selectedObject}`);
+      return;
+    }
+
+    try {
+      if (isHovering) {
+        this.applyHoverState(item);
+      } else {
+        this.removeHoverState(item);
+      }
+    } catch (error) {
+      console.error(`❌ Error handling hover for ${sectionName}:`, error);
+    }
   }
 
   // Get selected object
@@ -167,24 +194,69 @@ export class CleanBMCSystem {
   }
 
   // Main visual update method - simplified
-  public updateAllVisuals(): void {
+  private updateAllVisuals(): void {
+    console.log(`🎨 updateAllVisuals: mode=${this.isTopView ? '3D Top' : '3D View'}, selected=${this.selectedObject || 'none'}`);
+
+    // Ensure scene and materials are valid before applying changes
+    if (!this.validateScene()) {
+      console.warn('⚠️ Scene validation failed, skipping visual updates');
+      return;
+    }
+
     this.items.forEach((item, name) => {
-      if (!item?.mesh || !item?.material) {
-        return;
+      try {
+        if (this.selectedObject === name) {
+          // Selected object
+          if (this.isTopView) {
+            this.apply3DTopSelectedState(item);
+          } else {
+            this.apply3DViewSelectedState(item);
+          }
+        } else if (this.selectedObject !== null) {
+          // Non-selected objects when something is selected
+          if (this.isTopView) {
+            this.apply3DTopNonSelectedState(item);
+          } else {
+            this.apply3DViewNonSelectedState(item);
+          }
+        } else {
+          // No selection - normal state
+          if (this.isTopView) {
+            this.apply3DTopNormalState(item);
+          } else {
+            this.apply3DViewNormalState(item);
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Error updating visuals for ${name}:`, error);
       }
-
-      // Determine state
-      let state = 'normal';
-      if (this.selectedObject === name) {
-        state = 'selected';
-      } else if (this.selectedObject && this.selectedObject !== name) {
-        state = 'dimmed';
-      } else if (this.hoveredObject === name) {
-        state = 'hover';
-      }
-
-      this.applyState(name, state);
     });
+  }
+
+  // Validate scene and materials to prevent canvas going blank
+  private validateScene(): boolean {
+    let allValid = true;
+
+    this.items.forEach((item, name) => {
+      if (!item.mesh || item.mesh.isDisposed()) {
+        console.error(`❌ Mesh disposed for ${name}`);
+        allValid = false;
+      }
+
+      if (!item.material || item.material.isDisposed()) {
+        console.error(`❌ Material disposed for ${name}`);
+        allValid = false;
+      }
+
+      // Check if mesh is visible and enabled
+      if (!item.mesh.isVisible || !item.mesh.isEnabled()) {
+        console.warn(`⚠️ Mesh ${name} is not visible/enabled`);
+        item.mesh.isVisible = true;
+        item.mesh.setEnabled(true);
+      }
+    });
+
+    return allValid;
   }
 
   // Simplified state application
@@ -249,6 +321,111 @@ export class CleanBMCSystem {
     }
   }
 
+  // Restore original material properties
+  private restoreOriginalMaterial(item: BMCItem): void {
+    this.ensureMaterialValid(item); // Ensure material is valid before restoring
+    item.material.diffuseColor = item.baseColor.clone();
+    item.material.alpha = 1.0;
+    item.material.emissiveColor = Color3.Black();
+  }
+
+  // Apply state for selected object in 3D Top view
+  private apply3DTopSelectedState(item: BMCItem): void {
+    // Selected object: bright blue, flattened, full opacity
+    this.ensureMaterialValid(item);
+    item.material.diffuseColor = new Color3(0.0, 0.3, 0.8); // Bright blue
+    item.material.emissiveColor = new Color3(0.0, 0.1, 0.2); // Slight blue glow
+    item.mesh.scaling.y = item.originalHeight; // Flattened
+    item.material.alpha = 1.0;
+    item.material.needDepthPrePass = false; // Prevent depth issues
+  }
+
+  // Apply state for non-selected objects in 3D Top view
+  private apply3DTopNonSelectedState(item: BMCItem): void {
+    // Non-selected objects: original colors, flattened, full opacity
+    this.ensureMaterialValid(item);
+    this.restoreOriginalMaterial(item);
+    item.mesh.scaling.y = item.originalHeight; // Flattened  
+    item.material.alpha = 1.0;
+    item.material.needDepthPrePass = false; // Prevent depth issues
+  }
+
+  // Apply state for normal objects in 3D Top view
+  private apply3DTopNormalState(item: BMCItem): void {
+    // Normal state: original colors, flattened, full opacity
+    this.ensureMaterialValid(item);
+    this.restoreOriginalMaterial(item);
+    item.mesh.scaling.y = item.originalHeight; // Flattened
+    item.material.alpha = 1.0;
+    item.material.needDepthPrePass = false; // Prevent depth issues
+  }
+
+  // Apply state for selected object in regular 3D view
+  private apply3DViewSelectedState(item: BMCItem): void {
+    // Selected object: original height, original color, full opacity
+    this.ensureMaterialValid(item);
+    item.mesh.scaling.y = item.originalHeight * 1.4; // Elevated
+    item.material.diffuseColor = item.baseColor.clone();
+    item.material.alpha = 1.0;
+  }
+
+  // Apply state for non-selected objects in regular 3D view
+  private apply3DViewNonSelectedState(item: BMCItem): void {
+    // Non-selected objects: dimmed, flattened, lower opacity
+    this.ensureMaterialValid(item);
+    item.mesh.scaling.y = 0.01; // Flattened
+    if (item.name === "Cost Structure" || item.name === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+    } else {
+      item.material.diffuseColor = item.baseColor.scale(0.5);
+    }
+    item.material.alpha = 0.3;
+  }
+
+  // Apply state for normal objects in regular 3D view
+  private apply3DViewNormalState(item: BMCItem): void {
+    // Normal state: original height, original color, full opacity
+    this.ensureMaterialValid(item);
+    item.mesh.scaling.y = item.originalHeight;
+    item.material.diffuseColor = item.baseColor.clone();
+    item.material.alpha = 1.0;
+  }
+
+  // Apply hover state to an item
+  private applyHoverState(item: BMCItem): void {
+    this.ensureMaterialValid(item);
+    if (this.isTopView) {
+      item.material.diffuseColor = new Color3(0.03, 0.18, 0.45); // Hover blue for top view
+    } else {
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07); // Dimmed grey for 3D view hover
+    }
+    item.material.alpha = 1.0;
+  }
+
+  // Remove hover state from an item
+  private removeHoverState(item: BMCItem): void {
+    this.ensureMaterialValid(item);
+    // Restore to its current state (normal, dimmed, etc.)
+    this.updateAllVisuals(); // Re-apply visual states to reset hover
+  }
+
+  // Ensure material is valid and recreate if necessary
+  private ensureMaterialValid(item: BMCItem): void {
+    if (!item.material || item.material.isDisposed()) {
+      console.warn(`⚠️ Material disposed for ${item.mesh.name}, recreating...`);
+
+      // Recreate material with same properties
+      const newMaterial = new StandardMaterial(`${item.mesh.name}_material`, item.mesh.getScene());
+      newMaterial.diffuseColor = new Color3(0.07, 0.07, 0.07); // Default grey
+      newMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+      newMaterial.alpha = 1.0;
+      newMaterial.backFaceCulling = true;
+
+      item.material = newMaterial;
+      item.mesh.material = newMaterial;
+    }
+  }
+
   // Get base color for section
   private getBaseColor(name: string): Color3 {
     if (name === "Cost Structure") {
@@ -273,16 +450,16 @@ export class CleanBMCSystem {
       "Cost Structure": "costStructure",
       "Revenue Streams": "revenueStreams"
     };
-    
+
     // Handle exact matches first
     if (mapping[sectionName]) {
       return mapping[sectionName];
     }
-    
+
     // Log unmapped section names for debugging
     console.warn(`⚠️ No mapping found for section: "${sectionName}"`);
     console.warn('Available mappings:', Object.keys(mapping));
-    
+
     return null;
   }
 

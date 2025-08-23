@@ -223,11 +223,18 @@ export class SimpleClickHandler {
    * Handle pointer move for hover effects
    */
   private handlePointerMove(pointerInfo: any): void {
+    // Only process hover if we have valid pick info
+    if (!pointerInfo.pickInfo) return;
+    
     const pickInfo = pointerInfo.pickInfo;
     let hoveredMesh: AbstractMesh | null = null;
     
+    // Only consider registered meshes for hover
     if (pickInfo.hit && pickInfo.pickedMesh && this.meshRegistry.has(pickInfo.pickedMesh)) {
-      hoveredMesh = pickInfo.pickedMesh;
+      // Verify the mesh is still valid and not disposed
+      if (!pickInfo.pickedMesh.isDisposed() && pickInfo.pickedMesh.isEnabled()) {
+        hoveredMesh = pickInfo.pickedMesh;
+      }
     }
     
     // Check if hover state changed
@@ -236,14 +243,22 @@ export class SimpleClickHandler {
       if (this.currentHoveredMesh && this.callbacks.onHoverExit) {
         const exitSectionName = this.meshToSectionName.get(this.currentHoveredMesh) || this.currentHoveredMesh.name;
         console.log(`🖱️ Hover exit: ${this.currentHoveredMesh.name} (${exitSectionName})`);
-        this.callbacks.onHoverExit(exitSectionName, this.currentHoveredMesh);
+        try {
+          this.callbacks.onHoverExit(exitSectionName, this.currentHoveredMesh);
+        } catch (error) {
+          console.error(`❌ Hover exit callback error:`, error);
+        }
       }
       
       // Enter new hover
       if (hoveredMesh && this.callbacks.onHoverEnter) {
         const enterSectionName = this.meshToSectionName.get(hoveredMesh) || hoveredMesh.name;
         console.log(`🖱️ Hover enter: ${hoveredMesh.name} (${enterSectionName})`);
-        this.callbacks.onHoverEnter(enterSectionName, hoveredMesh);
+        try {
+          this.callbacks.onHoverEnter(enterSectionName, hoveredMesh);
+        } catch (error) {
+          console.error(`❌ Hover enter callback error:`, error);
+        }
       }
       
       this.currentHoveredMesh = hoveredMesh;
