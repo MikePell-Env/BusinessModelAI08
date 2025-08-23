@@ -243,8 +243,7 @@ export class CleanBMCSystem {
       item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     } else {
-      // Use lighter grey for better visibility
-      item.material.diffuseColor = new Color3(0.3, 0.3, 0.3);
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     }
     item.material.alpha = 1.0;
@@ -457,7 +456,7 @@ export class CleanBMCSystem {
     } else if (name === "Revenue Streams") {
       material.diffuseColor = new Color3(0.0, 0.15, 0.10);
     } else {
-      material.diffuseColor = new Color3(0.15, 0.15, 0.15);
+      material.diffuseColor = new Color3(0.05, 0.05, 0.05);
     }
     material.emissiveColor = new Color3(0.0, 0.0, 0.0);
   }
@@ -471,8 +470,7 @@ export class CleanBMCSystem {
       material.diffuseColor = new Color3(0.0, 0.20, 0.12);
       material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     } else {
-      // Regular BMC sections - lighter grey for visibility
-      material.diffuseColor = new Color3(0.3, 0.3, 0.3);
+      material.diffuseColor = new Color3(0.07, 0.07, 0.07);
       material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     }
     material.alpha = 1.0;
