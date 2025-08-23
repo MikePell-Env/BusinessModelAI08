@@ -36,7 +36,7 @@ import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
-import { CleanBMCSystem, cleanBMCSystem } from '@/lib/cleanBMCSystem';
+import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { BabylonMaterialManager } from '@/lib/babylon/BabylonMaterialManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
@@ -258,7 +258,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // REMOVED: Old content panels system - now using clean billboard panel system
   
   // Unified BMC label manager - inject BMC State Manager
-  const cleanBMCRef = useRef<CleanBMCSystem>(cleanBMCSystem);
+  const cleanBMCRef = useRef<CleanBMCSystem>(new CleanBMCSystem());
   
   // Inject BMC State Manager into CleanBMCSystem on first render
   useEffect(() => {
