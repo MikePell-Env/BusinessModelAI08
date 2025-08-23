@@ -1444,12 +1444,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     interactionHandler.registerCallbacks({
       onDoubleClick: (sectionName: string, position: Vector3) => {
         debugLog.critical(`Double-click callback triggered for ${sectionName}`);
-        setBillboardContent({
-          show: true,
-          title: sectionName,
-          mesh: null,
-          position: position
-        });
+        createBillboardPanel(sectionName, position);
       }
     });
     
