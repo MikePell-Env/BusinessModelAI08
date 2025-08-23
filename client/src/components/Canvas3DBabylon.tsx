@@ -18,8 +18,7 @@ import {
   SceneLoader,
   AbstractMesh,
   DynamicTexture,
-  Texture,
-  MeshBuilder
+  Texture
 } from '@babylonjs/core';
 import { 
   AdvancedDynamicTexture,
