@@ -41,7 +41,7 @@ export class ViewTransitionManager {
     toCamera: ArcRotateCamera | FreeCamera,
     options: CameraTransitionOptions = {}
   ): Promise<void> {
-    const { duration = 5000, easing = true } = options;
+    const { duration = 1200, easing = true } = options;
     
     return new Promise((resolve) => {
       debugLog.verbose('animation', `Smooth camera transition over ${duration}ms`);

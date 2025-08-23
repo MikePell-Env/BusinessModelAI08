@@ -1,7 +1,6 @@
-
 /**
- * CLEAN BMC SYSTEM - Ultra-Simple 3D Top Selection
- * RULE: In 3D Top, ONLY colors change. Height and opacity NEVER change.
+ * CLEAN BMC SYSTEM - Fresh Start
+ * Simple, reliable BMC object and label management
  */
 
 import { AbstractMesh, StandardMaterial, Color3, Mesh } from '@babylonjs/core';
@@ -19,99 +18,158 @@ interface BMCItem {
 
 export class CleanBMCSystem {
   private items = new Map<string, BMCItem>();
-  private bmcStateManager: any = null;
+  private bmcStateManager: any = null; // Will be injected
   private viewTransitionManager: ViewTransitionManager | null = null;
-  private isTopView: boolean = false;
-  private selectedObject: string | null = null;
-  private hoveredObject: string | null = null;
+  private isTopView: boolean = false; // Track if we're in top view
+  private selectedObject: string | null = null; // Track selected object internally
+  private hoveredObject: string | null = null; // Track hovered object internally
 
   // Inject dependencies
   setBMCStateManager(bmcStateManager: any) {
+    console.log("🔗 CleanBMCSystem.setBMCStateManager called with:", bmcStateManager);
     this.bmcStateManager = bmcStateManager;
 
+    // Subscribe to state changes from BMC State Manager
     if (bmcStateManager && bmcStateManager.addStateListener) {
+      console.log("🔗 Adding state listener to BMC State Manager");
       bmcStateManager.addStateListener(() => {
+        console.log("🔄 CleanBMCSystem received state change notification, updating visuals");
         this.updateAllVisuals();
       });
+    } else {
+      console.warn("⚠️ BMC State Manager missing addStateListener method:", bmcStateManager);
     }
   }
 
+  // Set ViewTransitionManager for smooth animations
   setViewTransitionManager(viewTransitionManager: ViewTransitionManager) {
+    console.log("🎬 CleanBMCSystem.setViewTransitionManager called");
     this.viewTransitionManager = viewTransitionManager;
   }
 
-  // Set view mode
+  // Set whether we're in top view mode
   setTopViewMode(isTopView: boolean) {
+    console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
-    
-    // FORCE all objects to be visible at full height when entering top view
+
+    // When entering top view, restore all objects to their ACTUAL original height
     if (isTopView) {
+      console.log(`📐 Entering TOP VIEW - restoring to actual original heights`);
       this.items.forEach((item, name) => {
+        // Restore to actual original height from when model was loaded
+        item.mesh.scaling.y = item.originalHeight;
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
-        item.mesh.scaling.y = item.originalHeight;
-        item.material.alpha = 1.0;
-        this.makeLabelVisible(item.name);
+        item.material.alpha = 1.0;  // Full opacity
+        this.makeLabelVisible(name);
+        console.log(`   Set ${name}: height=${item.originalHeight} (actual original), alpha=1.0`);
       });
     }
-    
+
+    // Update visuals for the new view mode
     this.updateAllVisuals();
   }
 
-  // Register BMC item
+  // Helper method for smooth height animations - ONLY in 3D perspective view
+  private animateHeight(mesh: AbstractMesh, targetHeight: number) {
+    // NEVER animate heights in top view
+    if (this.isTopView) {
+      console.log(`⏭️ Skipping height animation in top view for ${targetHeight}`);
+      return;
+    }
+
+    if (this.viewTransitionManager && mesh instanceof Mesh) {
+      this.viewTransitionManager.animateMeshHeight(mesh, targetHeight, {
+        duration: 2500,
+        easing: true
+      });
+    } else {
+      // Fallback to instant change - but only if not in top view
+      if (!this.isTopView) {
+        mesh.scaling.y = targetHeight;
+      }
+    }
+  }
+
+  // Register a BMC item (mesh + material + original height)
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
-    const actualHeight = mesh.scaling.y;
-    console.log(`📏 Registering ${name} with height=${actualHeight}`);
+    // Use the ACTUAL mesh scaling.y as the true original height
+    const actualOriginalHeight = mesh.scaling.y;
+    console.log(`📏 Registering ${name} with ACTUAL height=${actualOriginalHeight} (ignoring passed ${originalHeight})`);
 
     this.items.set(name, {
       mesh,
       material,
-      originalHeight: actualHeight,
+      originalHeight: actualOriginalHeight,  // Use actual mesh height
       name
     });
 
+    // Set default appearance
     this.setDefaultAppearance(name);
+    console.log(`✓ Registered BMC item: ${name} with ACTUAL height ${actualOriginalHeight}`);
   }
 
-  // Add label
+  // Add a label to an existing BMC item
   addLabel(itemName: string, labelMesh: AbstractMesh, labelMaterial: StandardMaterial) {
     const item = this.items.get(itemName);
     if (item) {
       item.label = labelMesh;
       item.labelMaterial = labelMaterial;
       this.makeLabelVisible(itemName);
+      console.log(`✓ Added label to: ${itemName}`);
+    } else {
+      console.error(`Cannot add label - item not found: ${itemName}`);
     }
   }
 
-  // Make label visible
+  // Make a label always visible at 100% opacity - NEVER change label opacity
   private makeLabelVisible(itemName: string) {
     const item = this.items.get(itemName);
-    if (!item?.label || !item?.labelMaterial) return;
+    if (!item?.label || !item?.labelMaterial) {
+      return;
+    }
 
+    // FORCE label visibility - NEVER change opacity from 100%
     item.label.isVisible = true;
     item.label.setEnabled(true);
     item.label.visibility = 1.0;
     item.labelMaterial.alpha = 1.0;
+    item.labelMaterial.backFaceCulling = false;
+    item.labelMaterial.useAlphaFromDiffuseTexture = true;
+    item.labelMaterial.disableLighting = false;
+
+    // Use ALPHATEST mode for PNG transparency
+    (item.labelMaterial as any).transparencyMode = 1;
+    (item.labelMaterial as any).alphaCutOff = 0.4;
+
+    if (item.labelMaterial.diffuseTexture) {
+      (item.labelMaterial.diffuseTexture as any).level = 1.0;
+      (item.labelMaterial.diffuseTexture as any).hasAlpha = true;
+      item.labelMaterial.useAlphaFromDiffuseTexture = true;
+      (item.labelMaterial.diffuseTexture as any).wrapU = 1;
+      (item.labelMaterial.diffuseTexture as any).wrapV = 1;
+    }
+
     item.label.renderingGroupId = 1;
+
+    if (item.labelMaterial) {
+      item.labelMaterial.needDepthPrePass = true;
+      item.labelMaterial.forceDepthWrite = true;
+      (item.labelMaterial as any).separateCullingPass = true;
+      (item.labelMaterial as any).depthFunction = 519;
+    }
   }
 
-  // Selection methods
+  // Selection methods that delegate to BMC State Manager
   selectObject(name: string | null) {
-    console.log(`🎯 CleanBMCSystem.selectObject: ${name}`);
-    
-    // Ensure all objects are visible and reset their height
-    this.items.forEach((item) => {
-      item.mesh.isVisible = true; // Set all objects visible
-      item.mesh.setEnabled(true); // Enable all meshes
-      item.mesh.scaling.y = item.originalHeight; // Restore original height
-    });
+    console.log(`🎯 CleanBMCSystem.selectObject called with: ${name}`);
 
-    // Set the currently selected object
-    this.selectedObject = name;
-    
     if (this.bmcStateManager) {
       const componentName = this.convertNameToBMCComponent(name);
+      console.log(`🎯 Converting ${name} -> ${componentName}`);
       this.bmcStateManager.selectObject(componentName);
+    } else {
+      console.warn("⚠️ BMC State Manager not injected into CleanBMCSystem");
     }
   }
 
@@ -123,12 +181,12 @@ export class CleanBMCSystem {
     return null;
   }
 
-  // Conversion helpers
+  // Helper methods to convert between name formats
   private convertNameToBMCComponent(name: string | null): BMCComponentName | null {
     if (!name) return null;
-    const mapping: { [key: string]: BMCComponentName } = {
+    const nameMapping: { [key: string]: BMCComponentName } = {
       'Key Partners': 'KeyPartners',
-      'Key Activities': 'KeyActivities', 
+      'Key Activities': 'KeyActivities',
       'Key Resources': 'KeyResources',
       'Value Propositions': 'ValueProposition',
       'Customer Relationships': 'CustomerRelationships',
@@ -137,15 +195,15 @@ export class CleanBMCSystem {
       'Cost Structure': 'CostStructure',
       'Revenue Streams': 'RevenueStreams'
     };
-    return mapping[name] || null;
+    return nameMapping[name] || null;
   }
 
   private convertBMCComponentToName(componentName: BMCComponentName | null): string | null {
     if (!componentName) return null;
-    const mapping: { [key in BMCComponentName]: string } = {
+    const nameMapping: { [key in BMCComponentName]: string } = {
       'KeyPartners': 'Key Partners',
       'KeyActivities': 'Key Activities',
-      'KeyResources': 'Key Resources', 
+      'KeyResources': 'Key Resources',
       'ValueProposition': 'Value Propositions',
       'CustomerRelationships': 'Customer Relationships',
       'CustomerChannels': 'CustomerChannels',
@@ -153,205 +211,193 @@ export class CleanBMCSystem {
       'CostStructure': 'Cost Structure',
       'RevenueStreams': 'Revenue Streams'
     };
-    return mapping[componentName] || null;
+    return nameMapping[componentName] || null;
   }
 
-  // Set default appearance
+  // Set default appearance for an item
   private setDefaultAppearance(itemName: string) {
     const item = this.items.get(itemName);
     if (!item) return;
 
+    // Set specific colors for Cost Structure and Revenue Streams, default grey for others
     if (itemName === "Cost Structure") {
       item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     } else if (itemName === "Revenue Streams") {
       item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     } else {
       item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     }
-    
-    item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     item.material.alpha = 1.0;
+
+    // Set height to original height without animation during setup
     item.mesh.scaling.y = item.originalHeight;
-    
+
+    // Always ensure label visibility
     this.makeLabelVisible(itemName);
   }
 
   // Handle hover
   onHover(itemName: string, isHovered: boolean) {
+    if (this.getSelectedObject()) return; // No hover when selected
+
     const item = this.items.get(itemName);
-    if (!item) return;
+    if (!item) {
+      console.error(`Hover: Item not found: ${itemName}. Available:`, Array.from(this.items.keys()));
+      return;
+    }
 
     if (isHovered) {
       this.hoveredObject = itemName;
+      // Hover: brighten specific colors
+      if (itemName === "Cost Structure") {
+        item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+        item.material.emissiveColor = new Color3(0.2, 0.0, 0.0);
+      } else if (itemName === "Revenue Streams") {
+        item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+        item.material.emissiveColor = new Color3(0.0, 0.1, 0.05);
+      } else {
+        item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+      }
+      item.material.alpha = 1.0;
+      
+      // In top view, keep flat - no height changes at all
+      if (this.isTopView) {
+        item.mesh.scaling.y = item.originalHeight;
+        console.log(`📐 HOVER in TOP VIEW: Keeping ${itemName} flat at height ${item.originalHeight}`);
+      } else {
+        // Only animate height in 3D perspective view
+        this.animateHeight(item.mesh, item.originalHeight);
+      }
     } else {
       this.hoveredObject = null;
+      // Back to original colors
+      if (itemName === "Cost Structure") {
+        item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+      } else if (itemName === "Revenue Streams") {
+        item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+      } else {
+        item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+        item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+      }
+      item.material.alpha = 1.0;
+      
+      // In top view, keep flat - no height changes at all
+      if (this.isTopView) {
+        item.mesh.scaling.y = item.originalHeight;
+        console.log(`📐 HOVER EXIT in TOP VIEW: Keeping ${itemName} flat at height ${item.originalHeight}`);
+      } else {
+        // Only animate height in 3D perspective view
+        this.animateHeight(item.mesh, item.originalHeight);
+      }
     }
-    
-    this.updateAllVisuals();
+
+    // Always ensure label stays visible
+    this.makeLabelVisible(itemName);
   }
 
   // Handle selection
   onSelect(sectionName: string) {
-    console.log(`🎯 ======= SELECTION START =======`);
-    console.log(`🎯 onSelect called with: ${sectionName}`);
-    console.log(`🎯 Current view mode: topView=${this.isTopView}`);
-    console.log(`🎯 Current selected before: ${this.getSelectedObject()}`);
-    console.log(`🎯 BMC State Manager exists: ${!!this.bmcStateManager}`);
-    
+    console.log(`🎯 CleanBMC: Selection request for "${sectionName}"`);
+
+    // Update BMC state manager
     if (this.bmcStateManager) {
       const bmcComponent = this.convertNameToBMCComponent(sectionName);
-      console.log(`🎯 Converted "${sectionName}" to BMC component: ${bmcComponent}`);
       if (bmcComponent) {
-        console.log(`🎯 Calling bmcStateManager.selectObject(${bmcComponent})`);
         this.bmcStateManager.selectObject(bmcComponent);
-        console.log(`🎯 BMC State Manager selection complete`);
-      } else {
-        console.log(`🎯 ERROR: Could not convert section name to BMC component`);
       }
-    } else {
-      console.log(`🎯 ERROR: No BMC State Manager available`);
     }
-    
-    console.log(`🎯 Current selected after: ${this.getSelectedObject()}`);
-    console.log(`🎯 About to call updateAllVisuals()`);
+
+    this.selectedObject = sectionName;
     this.updateAllVisuals();
-    console.log(`🎯 ======= SELECTION END =======`);
+  }
+
+  // Update all visual states
+  private updateAllVisuals() {
+    console.log(`🎨 CleanBMC: Updating all visuals - selected: "${this.selectedObject}", hovered: "${this.hoveredObject}", topView: ${this.isTopView}`);
+
+    this.items.forEach((item, name) => {
+      const isSelected = (name === this.selectedObject);
+      const isHovered = (name === this.hoveredObject);
+
+      // Ensure mesh is always visible and enabled
+      item.mesh.isVisible = true;
+      item.mesh.setEnabled(true);
+
+      // Determine the appropriate state
+      let visualState: 'normal' | 'hover' | 'selected' | 'dimmed';
+
+      if (isSelected) {
+        visualState = 'selected';
+      } else if (isHovered && !this.selectedObject) {
+        visualState = 'hover';
+      } else if (this.selectedObject && this.selectedObject !== name) {
+        // In top view, don't apply dimmed state to prevent objects from disappearing
+        visualState = this.isTopView ? 'normal' : 'dimmed';
+      } else {
+        visualState = 'normal';
+      }
+
+      this.applyVisualState(item, name, visualState);
+    });
   }
 
   // Clear selection
   clearSelection() {
-    console.log(`🎯 ======= CLEAR SELECTION START =======`);
-    console.log(`🎯 Current selected before clear: ${this.getSelectedObject()}`);
     this.selectObject(null);
-    console.log(`🎯 Current selected after clear: ${this.getSelectedObject()}`);
-    console.log(`🎯 ======= CLEAR SELECTION END =======`);
   }
 
-  // Update all visual states - STRICT 3D TOP RULES
-  updateAllVisuals() {
-    const currentSelection = this.getSelectedObject();
-    console.log(`🎨 CleanBMC: Updating visuals - selection: "${currentSelection}", topView: ${this.isTopView}`);
-
-    // STRICT 3D TOP IMPLEMENTATION
-    if (this.isTopView) {
-      // 3D TOP RULES: Only selected object changes color, NOTHING ELSE CHANGES
-      this.items.forEach((item, name) => {
-        // ALWAYS ensure visibility first
-        item.mesh.isVisible = true;
-        item.mesh.setEnabled(true);
-        item.mesh.visibility = 1.0;
-        item.mesh.scaling.y = item.originalHeight;
-        item.material.alpha = 1.0;
-        
-        if (name === currentSelection) {
-          // ONLY change color for selected object
-          this.applySelectionEffect(item.material, name);
-        } else {
-          // ALL non-selected objects stay EXACTLY as they were
-          this.restoreOriginalMaterial(item.material, name);
-        }
-        
-        // Always ensure labels are visible
-        this.ensureLabelVisibility(name);
-      });
-    } else {
-      // 3D VIEW: Normal implementation with dimming
-      this.items.forEach((item, name) => {
-        const isSelected = (name === currentSelection);
-        const isHovered = (name === this.hoveredObject);
-        
-        item.mesh.isVisible = true;
-        item.mesh.setEnabled(true);
-
-        let visualState: 'normal' | 'hover' | 'selected' | 'dimmed';
-        
-        if (isSelected) {
-          visualState = 'selected';
-        } else if (isHovered && !currentSelection) {
-          visualState = 'hover';
-        } else if (currentSelection && currentSelection !== name) {
-          visualState = 'dimmed';
-        } else {
-          visualState = 'normal';
-        }
-        
-        this.applyVisualState(item, name, visualState);
-      });
-    }
-  }
-
-
-  // Apply the correct visual state to an item - ONLY USED FOR 3D VIEW NOW
+  // Apply the correct visual state to an item
   private applyVisualState(item: BMCItem, name: string, state: 'normal' | 'hover' | 'selected' | 'dimmed') {
-    // This method should ONLY be called for 3D View
-    if (this.isTopView) {
-      console.error(`⚠️ ERROR: applyVisualState called in 3D Top view - this should not happen!`);
-      return;
-    }
-    
-    console.log(`🎨 3D View: Applying ${state} state to ${name}`);
-    
+    console.log(`🎨 Applying ${state} state to ${name} (topView: ${this.isTopView})`);
+    console.log(`   BEFORE: scaling.y=${item.mesh.scaling.y}, alpha=${item.material.alpha}, visible=${item.mesh.isVisible}`);
+
+    // Always ensure mesh remains visible
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
 
+    // In top view, keep objects at their actual original height (never change heights)
+    if (this.isTopView) {
+      // Maintain actual original height in top view
+      item.mesh.scaling.y = item.originalHeight;
+      console.log(`📐 TOP VIEW: Keeping ${name} at actual original height ${item.originalHeight}`);
+    }
+
     switch (state) {
       case 'selected':
-        // SELECTED: Bright blue, full height, 100% opacity (rules 2,6)
         this.applySelectionEffect(item.material, name);
-        item.material.alpha = 1.0;
+        // Only animate height in 3D perspective view
         if (!this.isTopView) {
-          // 3D View: selected stays at full height
-          this.animateHeight(item.mesh, item.originalHeight);
-        } else {
-          // 3D Top: selected stays at full height
-          item.mesh.scaling.y = item.originalHeight;
-          item.mesh.visibility = 1.0; // Ensure full visibility
+          this.animateHeight(item.mesh, item.originalHeight * 1.4);
         }
         break;
 
       case 'hover':
         this.applyHoverEffect(item.material, true);
+        // Height already handled in onHover method
         break;
 
       case 'dimmed':
-        // DIMMED: Only applies to 3D View (rule 6)
-        // 3D Top NEVER uses dimmed state - handled by updateAllVisuals logic
+        // Apply dimmed colors but keep visible
+        this.applyDimmedEffect(item.material, name);
+        // Only animate height in 3D view (not top view)
         if (!this.isTopView) {
-          // Only apply dimming in 3D View
-          this.applyDimmedEffect(item.material, name);
-          item.material.alpha = 0.5; // 50% opacity
-          this.animateHeight(item.mesh, item.originalHeight * 0.01); // flatten to almost nothing
-        } else {
-          // This should NEVER happen in 3D Top - force to normal state immediately
-          console.error(`⚠️ CRITICAL BUG: Dimmed state in 3D Top for ${name} - forcing normal state`);
-          // Immediately apply normal state
-          this.restoreOriginalMaterial(item.material, name);
-          item.material.alpha = 1.0;
-          item.mesh.scaling.y = item.originalHeight;
-          item.mesh.isVisible = true;
-          item.mesh.setEnabled(true);
-          // Ensure labels stay visible
-          this.ensureLabelVisibility(name);
+          this.animateHeight(item.mesh, item.originalHeight * 0.3);
         }
+        console.log(`   AFTER DIMMED: scaling.y=${item.mesh.scaling.y}, alpha=${item.material.alpha}`);
         break;
 
       case 'normal':
       default:
-        // NORMAL: Original material, full height, 100% opacity (rules 1,4,5,8)
         this.restoreOriginalMaterial(item.material, name);
-        // FORCE 100% opacity - NEVER change this
-        item.material.alpha = 1.0;
-        // CRITICAL: Ensure mesh is visible
-        item.mesh.isVisible = true;
-        item.mesh.setEnabled(true);
+        // Only animate height in 3D perspective view
         if (!this.isTopView) {
-          // 3D View: return to full height
           this.animateHeight(item.mesh, item.originalHeight);
-        } else {
-          // 3D Top: maintain full height - NEVER hide or reduce
-          item.mesh.scaling.y = item.originalHeight;
-          // Double-check visibility in 3D Top
-          item.mesh.visibility = 1.0;
         }
         break;
     }
@@ -360,78 +406,93 @@ export class CleanBMCSystem {
     this.ensureLabelVisibility(name);
   }
 
-  // Helper methods for material effects
+  // Helper to apply selection effect
   private applySelectionEffect(material: StandardMaterial, name: string) {
-    material.diffuseColor = new Color3(0.0, 0.3, 0.8);
-    material.emissiveColor = new Color3(0.0, 0.0, 0.0);
-  }
-
-  private applyHoverEffect(material: StandardMaterial, isHovered: boolean) {
-    if (isHovered) {
-      material.emissiveColor = new Color3(0.1, 0.1, 0.1);
-    } else {
-      material.emissiveColor = new Color3(0.0, 0.0, 0.0);
-    }
-  }
-
-  private applyDimmedEffect(material: StandardMaterial, name: string) {
-    material.diffuseColor = new Color3(0.05, 0.05, 0.05);
-    material.emissiveColor = new Color3(0.0, 0.0, 0.0);
-  }
-
-  private restoreOriginalMaterial(material: StandardMaterial, name: string) {
     if (name === "Cost Structure") {
       material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+      material.emissiveColor = new Color3(0.3, 0.0, 0.0);
     } else if (name === "Revenue Streams") {
       material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+      material.emissiveColor = new Color3(0.0, 0.15, 0.08);
     } else {
-      material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+      material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     }
-    material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     material.alpha = 1.0;
   }
 
+  // Helper to apply hover effect
+  private applyHoverEffect(material: StandardMaterial, isHovering: boolean) {
+    if (isHovering) {
+      material.emissiveColor = new Color3(0.1, 0.1, 0.1);
+      material.alpha = 1.0;
+    }
+  }
+
+  // Helper to apply dimmed effect
+  private applyDimmedEffect(material: StandardMaterial, name: string) {
+    // In top view, keep objects more visible
+    material.alpha = this.isTopView ? 0.9 : 0.5;
+    if (name === "Cost Structure") {
+      material.diffuseColor = new Color3(0.2, 0.0, 0.0);
+    } else if (name === "Revenue Streams") {
+      material.diffuseColor = new Color3(0.0, 0.15, 0.10);
+    } else {
+      material.diffuseColor = new Color3(0.05, 0.05, 0.05);
+    }
+    material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+  }
+
+  // Helper to restore original material properties
+  private restoreOriginalMaterial(material: StandardMaterial, name: string) {
+    if (name === "Cost Structure") {
+      material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+      material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    } else if (name === "Revenue Streams") {
+      material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+      material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    } else {
+      material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    }
+    material.alpha = 1.0;
+  }
+
+  // Ensure label visibility is maintained
   private ensureLabelVisibility(name: string) {
     const item = this.items.get(name);
-    if (item?.label) {
+    if (item && item.label) {
       item.label.isVisible = true;
       item.label.setEnabled(true);
+      item.label.visibility = 1.0;
       if (item.labelMaterial) {
         item.labelMaterial.alpha = 1.0;
       }
     }
   }
 
-  // Height animation helper - ONLY for 3D view
-  private animateHeight(mesh: AbstractMesh, targetHeight: number) {
-    if (this.isTopView) {
-      // Never animate in top view - keep current height
-      return;
-    }
-    
-    // Only animate in 3D view
-    if (this.viewTransitionManager && mesh instanceof Mesh) {
-      this.viewTransitionManager.animateMeshHeight(mesh, targetHeight, {
-        duration: 1000,
-        easing: true
-      });
-    } else {
-      mesh.scaling.y = targetHeight;
-    }
-  }
-
-  // Utility methods
+  // Get all registered items
   getAllItems(): string[] {
     return Array.from(this.items.keys());
   }
 
+  // Check if a mesh is registered in the system
   isRegisteredMesh(mesh: AbstractMesh): boolean {
-    return Array.from(this.items.values()).some(item => item.mesh === mesh);
+    const items = Array.from(this.items.values());
+    for (const item of items) {
+      if (item.mesh === mesh) {
+        return true;
+      }
+    }
+    return false;
   }
 
+  // Get mesh for a BMC item
   getMesh(itemName: string): AbstractMesh | null {
-    return this.items.get(itemName)?.mesh || null;
+    const item = this.items.get(itemName);
+    return item?.mesh || null;
   }
 }
 
+// Global instance
 export const cleanBMCSystem = new CleanBMCSystem();

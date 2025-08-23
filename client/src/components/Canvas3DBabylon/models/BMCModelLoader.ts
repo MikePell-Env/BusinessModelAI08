@@ -11,12 +11,10 @@ import {
   StandardMaterial,
   Color3,
   ActionManager,
-  Mesh,
-  TransformNode
+  Mesh
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import { debugLog } from '@/lib/debug/DebugLogger';
-import { cleanBMCSystem } from '@/lib/cleanBMCSystem';
 
 export interface LoadedModel {
   rootMesh: AbstractMesh;
@@ -83,9 +81,9 @@ export class BMCModelLoader {
     
     try {
       const result = await SceneLoader.ImportMeshAsync(
-        "",
-        "/models/",
-        "RS.glb",
+        "", 
+        "/models/", 
+        "BMC_blender_07_RevenueStreams_1754360428541.glb", 
         this.scene
       );
       
@@ -94,38 +92,21 @@ export class BMCModelLoader {
       }
       
       const rootMesh = result.meshes[0];
-      
-      // Create a wrapper TransformNode for proper positioning
-      const wrapper = new TransformNode("RevenueStreamsWrapper", this.scene);
-      result.meshes.forEach(mesh => {
-        if (mesh.parent === null) {
-          mesh.parent = wrapper;
-        }
-      });
-      
-      // Position Revenue Streams (note X-axis inversion)
-      wrapper.position = new Vector3(-0.221, 0.1, -10.5);
-      wrapper.scaling = new Vector3(-1, 1, 1); // Invert X-axis
-      
-      // Register with CleanBMCSystem
-      const mainMesh = result.meshes.find(m => m.name.includes('Revenue')) || result.meshes[1];
-      if (mainMesh && mainMesh.material) {
-        // Set correct material color
-        const material = mainMesh.material as StandardMaterial;
-        material.diffuseColor = new Color3(0.0, 0.20, 0.12); // Green for revenue
-        cleanBMCSystem.registerItem('Revenue Streams', mainMesh, material, mainMesh.scaling.y);
-      }
+      // Position to align with Customer Channels left edge
+      rootMesh.position = new Vector3(-0.221, 0.1, -10.5);
+      rootMesh.rotation = Vector3.Zero();
+      rootMesh.scaling = new Vector3(7.7, 8, 8);
       
       const model: LoadedModel = {
-        rootMesh: wrapper as any,
+        rootMesh,
         meshes: result.meshes,
         sectionName: 'Revenue Streams',
-        position: wrapper.position.clone(),
-        scale: wrapper.scaling.clone()
+        position: rootMesh.position.clone(),
+        scale: rootMesh.scaling.clone()
       };
       
       this.loadedModels.set('Revenue Streams', model);
-      debugLog.info('model', 'Revenue Streams loaded');
+      debugLog.info('model', `Revenue Streams loaded at position ${rootMesh.position}`);
       
       return model;
     } catch (error) {
@@ -142,9 +123,9 @@ export class BMCModelLoader {
     
     try {
       const result = await SceneLoader.ImportMeshAsync(
-        "",
-        "/models/",
-        "CS.glb",
+        "", 
+        "/models/", 
+        "BMC_blender_07_RevenueStreams_1754360428541.glb", 
         this.scene
       );
       
@@ -153,38 +134,21 @@ export class BMCModelLoader {
       }
       
       const rootMesh = result.meshes[0];
-      
-      // Create a wrapper TransformNode for proper positioning
-      const wrapper = new TransformNode("CostStructureWrapper", this.scene);
-      result.meshes.forEach(mesh => {
-        if (mesh.parent === null) {
-          mesh.parent = wrapper;
-        }
-      });
-      
-      // Position Cost Structure (note X-axis inversion)
-      wrapper.position = new Vector3(-10.1, 0.1, -10.5);
-      wrapper.scaling = new Vector3(-1, 1, 1); // Invert X-axis
-      
-      // Register with CleanBMCSystem
-      const mainMesh = result.meshes.find(m => m.name.includes('Cost')) || result.meshes[1];
-      if (mainMesh && mainMesh.material) {
-        // Set correct material color
-        const material = mainMesh.material as StandardMaterial;
-        material.diffuseColor = new Color3(0.35, 0.0, 0.0); // Red for costs
-        cleanBMCSystem.registerItem('Cost Structure', mainMesh, material, mainMesh.scaling.y);
-      }
+      // Position in lower left area
+      rootMesh.position = new Vector3(-10.1, 0.1, -10.5);
+      rootMesh.rotation = Vector3.Zero();
+      rootMesh.scaling = new Vector3(8.0, 8, 8);
       
       const model: LoadedModel = {
-        rootMesh: wrapper as any,
+        rootMesh,
         meshes: result.meshes,
         sectionName: 'Cost Structure',
-        position: wrapper.position.clone(),
-        scale: wrapper.scaling.clone()
+        position: rootMesh.position.clone(),
+        scale: rootMesh.scaling.clone()
       };
       
       this.loadedModels.set('Cost Structure', model);
-      debugLog.info('model', 'Cost Structure loaded');
+      debugLog.info('model', `Cost Structure loaded at position ${rootMesh.position}`);
       
       return model;
     } catch (error) {
@@ -194,28 +158,65 @@ export class BMCModelLoader {
   }
 
   /**
-   * Get a loaded model by name
+   * Apply material to a section
    */
-  public getModel(name: string): LoadedModel | undefined {
-    return this.loadedModels.get(name);
+  public applySectionMaterial(mesh: AbstractMesh, sectionName: string, baseColor: Color3): StandardMaterial {
+    const material = new StandardMaterial(`${sectionName}_material`, this.scene);
+    material.diffuseColor = baseColor;
+    material.specularColor = new Color3(0.2, 0.2, 0.2);
+    material.specularPower = 32;
+    
+    if (mesh instanceof Mesh) {
+      mesh.material = material;
+    }
+    
+    // Store metadata for interactions
+    (mesh as any).bmcSectionName = sectionName;
+    (mesh as any).originalColor = baseColor.clone();
+    (mesh as any).isClicked = false;
+    
+    // Ensure mesh is pickable
+    mesh.isPickable = true;
+    if (!mesh.actionManager) {
+      mesh.actionManager = new ActionManager(this.scene);
+    }
+    
+    debugLog.verbose('model', `Applied material to ${sectionName}`);
+    
+    return material;
   }
 
   /**
    * Get all loaded models
    */
-  public getAllModels(): LoadedModel[] {
-    return Array.from(this.loadedModels.values());
+  public getLoadedModels(): Map<string, LoadedModel> {
+    return this.loadedModels;
   }
 
   /**
-   * Dispose all loaded models
+   * Get a specific loaded model
    */
-  public dispose(): void {
-    this.loadedModels.forEach(model => {
-      model.meshes.forEach(mesh => {
-        mesh.dispose();
-      });
-    });
-    this.loadedModels.clear();
+  public getModel(sectionName: string): LoadedModel | undefined {
+    return this.loadedModels.get(sectionName);
+  }
+
+  /**
+   * Load all BMC models
+   */
+  public async loadAllModels(): Promise<void> {
+    debugLog.info('model', 'Loading all BMC models...');
+    
+    try {
+      await Promise.all([
+        this.loadMainBMC(),
+        this.loadRevenueStreams(),
+        this.loadCostStructure()
+      ]);
+      
+      debugLog.info('model', 'All BMC models loaded successfully');
+    } catch (error) {
+      debugLog.error('model', 'Failed to load all models', error);
+      throw error;
+    }
   }
 }
