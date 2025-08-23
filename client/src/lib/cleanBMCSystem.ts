@@ -206,7 +206,7 @@ export class CleanBMCSystem {
       
       // CRITICAL: Always ensure basic visibility first
       const wasVisible = item.mesh.isVisible;
-      const wasEnabled = item.mesh.getEnabled();
+      const wasEnabled = item.mesh.isEnabled();
       const currentAlpha = item.material.alpha;
       const currentHeight = item.mesh.scaling.y;
       
@@ -245,7 +245,7 @@ export class CleanBMCSystem {
       
       // CRITICAL DEBUG: Check final state after all operations
       const finalVisible = item.mesh.isVisible;
-      const finalEnabled = item.mesh.getEnabled();
+      const finalEnabled = item.mesh.isEnabled();
       const finalAlpha = item.material.alpha;
       const finalHeight = item.mesh.scaling.y;
       
@@ -262,7 +262,7 @@ export class CleanBMCSystem {
     // FINAL DEBUG: Report final state of all objects
     console.log(`🔍 FINAL STATE SUMMARY:`);
     this.items.forEach((item, name) => {
-      console.log(`  ${name}: visible=${item.mesh.isVisible}, enabled=${item.mesh.getEnabled()}, alpha=${item.material.alpha}`);
+      console.log(`  ${name}: visible=${item.mesh.isVisible}, enabled=${item.mesh.isEnabled()}, alpha=${item.material.alpha}`);
     });
   }
 
