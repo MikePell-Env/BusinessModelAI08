@@ -6,6 +6,8 @@ interface BMCItem {
   material: StandardMaterial;
   originalHeight: number;
   baseColor: Color3;
+  label?: AbstractMesh;
+  labelMaterial?: StandardMaterial;
 }
 
 export class CleanBMCSystem {
@@ -111,6 +113,24 @@ export class CleanBMCSystem {
   // Get selected object
   getSelectedObject(): string | null {
     return this.selectedObject;
+  }
+
+  // Add label to an item
+  addLabel(name: string, labelMesh: AbstractMesh, labelMaterial: StandardMaterial) {
+    const item = this.items.get(name);
+    if (item) {
+      item.label = labelMesh;
+      item.labelMaterial = labelMaterial;
+    }
+  }
+
+  // Set labels visible
+  setLabelsVisible(visible: boolean) {
+    this.items.forEach((item) => {
+      if (item.label) {
+        item.label.setEnabled(visible);
+      }
+    });
   }
 
   // Main visual update method - simplified
