@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { Canvas2D } from './Canvas2D';
-import { Canvas3DBabylonRefactored } from './Canvas3DBabylonRefactored';
-import { BabylonErrorBoundary } from './babylon/ErrorBoundary';
+import { Canvas3DBabylon } from './Canvas3DBabylon';
 import { AIChat } from './AIChat';
 import { Header } from './Header';
 import { MicrosoftStackStatus } from './MicrosoftStackStatus';
@@ -203,9 +202,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       {/* Canvas Views */}
       <div className="w-full h-full relative">
         {is3D ? (
-          <BabylonErrorBoundary>
-            <Canvas3DBabylonRefactored canvas={canvas} isTransitioning={isTransitioning} />
-          </BabylonErrorBoundary>
+          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} />
         ) : (
           <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
         )}

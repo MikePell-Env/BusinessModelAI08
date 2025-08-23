@@ -960,26 +960,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
     
     // Background click handler for panels only
-    if (scene?.onPointerObservable) {
-      scene.onPointerObservable.add((pointerInfo) => {
-        if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-          if (pointerInfo.pickInfo?.hit) {
-            const hitMesh = pointerInfo.pickInfo.pickedMesh;
-            const isBMCMesh = hitMesh && (
-              hitMesh.name.includes('BMC_') || 
-              hitMesh.name.includes('Revenue') ||
-              hitMesh.name.includes('Cost')
-            );
-            
-            if (!isBMCMesh && currentBillboardPanel) {
-              handleBackgroundClick();
-            }
-          } else if (currentBillboardPanel) {
+    scene.onPointerObservable.add((pointerInfo) => {
+      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+        if (pointerInfo.pickInfo?.hit) {
+          const hitMesh = pointerInfo.pickInfo.pickedMesh;
+          const isBMCMesh = hitMesh && (
+            hitMesh.name.includes('BMC_') || 
+            hitMesh.name.includes('Revenue') ||
+            hitMesh.name.includes('Cost')
+          );
+          
+          if (!isBMCMesh && currentBillboardPanel) {
             handleBackgroundClick();
           }
+        } else if (currentBillboardPanel) {
+          handleBackgroundClick();
         }
-      });
-    }
+      }
+    });
     
     // Function to create billboarded content panel
     const createBillboardPanel = (sectionName: string, worldPosition: Vector3) => {
