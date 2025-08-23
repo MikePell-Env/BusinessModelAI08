@@ -38,13 +38,12 @@ import { useCanvas } from '@/lib/stores/useCanvas';
 import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
 import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
-import { BabylonMaterialManager } from '@/lib/babylon/BabylonMaterialManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
-import { setupDoubleClick } from '@/lib/interactions/DoubleClickHandler';
 import { SceneSetup } from './Canvas3DBabylon/scene/SceneSetup';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
-import { SimpleClickHandler } from './Canvas3DBabylon/interactions/SimpleClickHandler';
 import { ViewTransitionManager } from './Canvas3DBabylon/animations/ViewTransitionManager';
+import { MaterialManager } from '@/lib/core/MaterialManager';
+import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -234,7 +233,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const rootMeshRef = useRef<AbstractMesh | null>(null);
   const orthoEventHandlersRef = useRef<any>(null);
   const animationManagerRef = useRef<BabylonAnimationManager | null>(null);
-  const materialManagerRef = useRef<BabylonMaterialManager | null>(null);
+  const materialManagerRef = useRef<MaterialManager | null>(null);
+  const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
   const viewTransitionRef = useRef<ViewTransitionManager | null>(null);
   const [showBulletText, setShowBulletText] = useState(false);
@@ -1341,35 +1341,37 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
     ];
 
-    // Initialize model loader, interaction handler, and view transitions
+    // Initialize model loader and view transitions
     const modelLoader = new BMCModelLoader(scene);
-    const clickHandler = new SimpleClickHandler(scene);
     const viewTransitionManager = new ViewTransitionManager(scene);
     
     // Store reference for later use
     viewTransitionRef.current = viewTransitionManager;
     
-    // Setup click handler callbacks
-    clickHandler.setCallbacks({
-      onSingleClick: (meshName: string, mesh: AbstractMesh) => {
-        console.log(`🖱️ Single click: ${meshName}`);
+    // Initialize unified systems
+    materialManagerRef.current = new MaterialManager(scene);
+    
+    // Setup unified interaction manager with callbacks  
+    interactionManagerRef.current = new UnifiedInteractionManager(scene, {
+      onSingleClick: (sectionId: string, mesh: AbstractMesh) => {
+        console.log(`🖱️ Single click: ${sectionId}`);
         console.log(`🔍 DEBUG: cleanBMCRef.current exists: ${!!cleanBMCRef.current}`);
         
         if (cleanBMCRef.current) {
-          console.log(`🔍 DEBUG: About to call cleanBMCRef.current.onSelect(${meshName})`);
+          console.log(`🔍 DEBUG: About to call cleanBMCRef.current.onSelect(${sectionId})`);
           try {
-            cleanBMCRef.current.onSelect(meshName);
+            cleanBMCRef.current.onSelect(sectionId);
             console.log(`🔍 DEBUG: cleanBMCRef.current.onSelect completed successfully`);
           } catch (error) {
-            console.error(`❌ ERROR in cleanBMCRef.current.onSelect(${meshName}):`, error);
+            console.error(`❌ ERROR in cleanBMCRef.current.onSelect(${sectionId}):`, error);
             console.error(`❌ Stack trace:`, error instanceof Error ? error.stack : 'No stack trace available');
           }
         } else {
           console.error(`❌ cleanBMCRef.current is null/undefined!`);
         }
       },
-      onDoubleClick: (meshName: string, mesh: AbstractMesh, position: Vector3) => {
-        console.log(`🖱️🖱️ Double click: ${meshName}`);
+      onDoubleClick: (sectionId: string, mesh: AbstractMesh, position: Vector3) => {
+        console.log(`🖱️🖱️ Double click: ${sectionId}`);
         
         // Close any existing panel first
         if (currentBillboardPanel) {
@@ -1380,16 +1382,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Create new panel
         const worldPosition = mesh.getAbsolutePosition();
-        createBillboardPanel(meshName, worldPosition);
+        createBillboardPanel(sectionId, worldPosition);
       },
-      onHoverEnter: (meshName: string) => {
+      onHoverEnter: (sectionId: string, mesh: AbstractMesh) => {
         if (cleanBMCRef.current) {
-          cleanBMCRef.current.onHover(meshName, true);
+          cleanBMCRef.current.onHover(sectionId, true);
         }
       },
-      onHoverExit: (meshName: string) => {
+      onHoverExit: (sectionId: string, mesh: AbstractMesh) => {
         if (cleanBMCRef.current) {
-          cleanBMCRef.current.onHover(meshName, false);
+          cleanBMCRef.current.onHover(sectionId, false);
         }
       },
       onBackgroundClick: () => {
@@ -1400,6 +1402,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (currentBillboardPanel) {
           advancedTexture.removeControl(currentBillboardPanel);
           currentBillboardPanel = null;
+          billboardPanelRef.current = null;
         }
       }
     });
@@ -2806,10 +2809,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     //   }
     // }, 2500);
 
-    // Initialize Animation and Material Managers
+    // Initialize Animation Manager (Material Manager already initialized above)
     animationManagerRef.current = new BabylonAnimationManager(scene);
-    materialManagerRef.current = new BabylonMaterialManager(scene);
-    console.log('🎬 Animation and Material Managers initialized');
+    console.log('🎬 Animation Manager initialized');
+    console.log('🎨 Material Manager initialized');
+    console.log('🖱️ Unified Interaction Manager initialized');
 
     // Start the render loop using SceneSetup module
     let isDisposed = false;
@@ -2851,8 +2855,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       }
 
-      // Clean up Animation and Material Managers
+      // Clean up unified systems and managers
       try {
+        if (interactionManagerRef.current) {
+          interactionManagerRef.current.dispose();
+          interactionManagerRef.current = null;
+        }
         if (animationManagerRef.current) {
           animationManagerRef.current.dispose();
           animationManagerRef.current = null;
@@ -2862,7 +2870,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           materialManagerRef.current = null;
         }
       } catch (e) {
-        console.warn('Error cleaning up Animation/Material Managers:', e);
+        console.warn('Error cleaning up unified systems and managers:', e);
       }
 
       // Properly dispose of Babylon.js resources using SceneSetup module
@@ -2904,9 +2912,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           scene.activeCamera = orthoCamera;
         }
         
-        // CRITICAL FIX: Don't re-setup orthographic event handlers - they conflict with SimpleClickHandler
-        // The built-in camera controls handle zoom/pan, SimpleClickHandler handles object interactions
-        console.log("🎯 3D Top view - using built-in camera controls + SimpleClickHandler (no manual event handlers)");
+        // CRITICAL FIX: Don't re-setup orthographic event handlers - UnifiedInteractionManager handles all interactions
+        // The built-in camera controls handle zoom/pan, UnifiedInteractionManager handles object interactions
+        console.log("🎯 3D Top view - using built-in camera controls + UnifiedInteractionManager (no manual event handlers)");
         
         // Apply visual state after camera switch - preserve selection in 3D Top view
         setTimeout(() => {
@@ -2918,7 +2926,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.log(`✅ SWITCHED TO 3D TOP VIEW`);
       } else {
         // CRITICAL FIX: No manual event handler removal needed since we don't add them
-        console.log("🎯 Perspective view - using standard camera controls + SimpleClickHandler");
+        console.log("🎯 Perspective view - using standard camera controls + UnifiedInteractionManager");
         
         // Smooth transition back to perspective camera
         if (viewTransitionRef.current) {
