@@ -3,8 +3,9 @@
  * Simple, reliable BMC object and label management
  */
 
-import { AbstractMesh, StandardMaterial, Color3 } from '@babylonjs/core';
+import { AbstractMesh, StandardMaterial, Color3, Mesh } from '@babylonjs/core';
 import { BMCComponentName } from '@/types/bmcState';
+import { ViewTransitionManager } from '@/components/Canvas3DBabylon/animations/ViewTransitionManager';
 
 interface BMCItem {
   mesh: AbstractMesh;
@@ -19,8 +20,9 @@ export class CleanBMCSystem {
   private items = new Map<string, BMCItem>();
   // REMOVED: private selectedItem - BMC State Manager is the single source of truth
   private bmcStateManager: any = null; // Will be injected
+  private viewTransitionManager: ViewTransitionManager | null = null;
   
-  // Inject BMC State Manager dependency
+  // Inject dependencies
   setBMCStateManager(bmcStateManager: any) {
     console.log("🔗 CleanBMCSystem.setBMCStateManager called with:", bmcStateManager);
     this.bmcStateManager = bmcStateManager;
@@ -34,6 +36,25 @@ export class CleanBMCSystem {
       });
     } else {
       console.warn("⚠️ BMC State Manager missing addStateListener method:", bmcStateManager);
+    }
+  }
+  
+  // Set ViewTransitionManager for smooth animations
+  setViewTransitionManager(viewTransitionManager: ViewTransitionManager) {
+    console.log("🎬 CleanBMCSystem.setViewTransitionManager called");
+    this.viewTransitionManager = viewTransitionManager;
+  }
+  
+  // Helper method for smooth height animations
+  private animateHeight(mesh: AbstractMesh, targetHeight: number) {
+    if (this.viewTransitionManager && mesh instanceof Mesh) {
+      this.viewTransitionManager.animateMeshHeight(mesh, targetHeight, {
+        duration: 300,
+        easing: true
+      });
+    } else {
+      // Fallback to instant change
+      mesh.scaling.y = targetHeight;
     }
   }
 
@@ -194,7 +215,7 @@ export class CleanBMCSystem {
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
     }
     item.material.alpha = 1.0;
-    item.mesh.scaling.y = item.originalHeight;
+    this.animateHeight(item.mesh, item.originalHeight);
 
     // Always ensure label visibility
     this.makeLabelVisible(itemName);
@@ -224,7 +245,7 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive for default
       }
       item.material.alpha = 1.0;
-      item.mesh.scaling.y = item.originalHeight;
+      this.animateHeight(item.mesh, item.originalHeight);
     } else {
       // Back to original colors
       if (itemName === "Cost Structure") {
@@ -241,7 +262,7 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
       }
       item.material.alpha = 1.0;
-      item.mesh.scaling.y = item.originalHeight;
+      this.animateHeight(item.mesh, item.originalHeight);
     }
     
     // Always ensure label stays visible
@@ -292,13 +313,13 @@ export class CleanBMCSystem {
           item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive for default
         }
         item.material.alpha = 1.0;
-        item.mesh.scaling.y = item.originalHeight;
+        this.animateHeight(item.mesh, item.originalHeight);
         console.log(`🔵 ${name} SELECTED: brightened color, height=${item.originalHeight}`);
       } else if (selectedItem) {
         // Others when selected: dim object, flattened object - BUT LABELS STAY 100%
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
         item.material.alpha = 0.5; // Only affects the 3D object, NOT the label
-        item.mesh.scaling.y = 0.1;
+        this.animateHeight(item.mesh, 0.1);
         console.log(`⚫ ${name} dimmed: grey, height=0.1, LABEL SHOULD STAY VISIBLE`);
       } else {
         // Default state - restore original colors
@@ -313,7 +334,7 @@ export class CleanBMCSystem {
           item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
         }
         item.material.alpha = 1.0;
-        item.mesh.scaling.y = item.originalHeight;
+        this.animateHeight(item.mesh, item.originalHeight);
         console.log(`🔘 ${name} default: original color, height=${item.originalHeight}`);
       }
       
@@ -345,7 +366,7 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
       }
       item.material.alpha = 1.0;
-      item.mesh.scaling.y = item.originalHeight;
+      this.animateHeight(item.mesh, item.originalHeight);
       
       // LAST: Force label visibility again after material changes
       this.makeLabelVisible(name);
