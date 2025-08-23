@@ -198,10 +198,15 @@ export class CleanBMCSystem {
 
       case 'dimmed':
         // Only applies in 3D View (not 3D Top)
-        material.diffuseColor = baseColor.scale(0.6);
+        // Revenue/Cost objects turn dark grey when flattened
+        if (name === "Revenue Streams" || name === "Cost Structure") {
+          material.diffuseColor = new Color3(0.07, 0.07, 0.07); // Dark grey
+        } else {
+          material.diffuseColor = baseColor.scale(0.6); // Darkened original color
+        }
         material.emissiveColor = Color3.Black();
         material.alpha = 0.3;
-        console.log(`🎨 Applied DIMMED: ${name} -> darkened + transparent`);
+        console.log(`🎨 Applied DIMMED: ${name} -> ${(name === "Revenue Streams" || name === "Cost Structure") ? "dark grey" : "darkened"} + transparent`);
         break;
 
       case 'normal':
