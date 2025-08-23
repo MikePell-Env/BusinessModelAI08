@@ -2128,7 +2128,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
             // Setup interactions using SimpleClickHandler
-            clickHandler.registerMesh(mesh);
+            clickHandler.registerMesh(mesh, sectionName);
             console.log(`🎯 ${sectionName}: Interactions configured via SimpleClickHandler`);
             
             // REMOVED: Old click select function - replaced by unified BMC system
@@ -2360,7 +2360,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
             // Setup interactions using SimpleClickHandler
-            clickHandler.registerMesh(mesh);
+            clickHandler.registerMesh(mesh, "Revenue Streams");
             console.log(`🎯 Revenue Streams: Interactions configured via SimpleClickHandler`);
             
             // REMOVED: Single click handler - now handled by manual double-click detection
@@ -2502,7 +2502,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
             // Setup interactions using SimpleClickHandler
-            clickHandler.registerMesh(mesh);
+            clickHandler.registerMesh(mesh, "Cost Structure");
             console.log(`🎯 Cost Structure: Interactions configured via SimpleClickHandler`);
             
             // REMOVED: Single click handler - now handled by manual double-click detection
