@@ -142,7 +142,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                         <Button 
                           onClick={handleDirectImport}
                           disabled={loading}
-                          className="w-full bg-gray-200 text-gray-800 hover:bg-blue-500 hover:text-white border border-gray-400 rounded-lg py-2 mt-4 transition-colors"
+                          className="w-full bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-600 border border-gray-400 rounded-lg py-2 mt-4 transition-colors"
                         >
                           {loading ? 'Processing...' : 'Import Office file...'}
                         </Button>
@@ -169,7 +169,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                         {/* Button at bottom */}
                         <Button 
                           onClick={toggleChat}
-                          className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-400 rounded-lg py-2 mt-4"
+                          className="w-full bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-600 border border-gray-400 rounded-lg py-2 mt-4 transition-colors"
                         >
                           Ask Copilot...
                         </Button>
