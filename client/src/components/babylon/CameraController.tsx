@@ -40,7 +40,7 @@ export const useCameraController = ({
       Math.PI / 3,    // beta (vertical rotation) 
       12,             // radius (distance from target)
       new Vector3(0, 1, 0), // target position
-      scene
+      scene!
     );
 
     // Restore camera state if available
@@ -75,7 +75,7 @@ export const useCameraController = ({
 
   const initializeOrthographicCamera = () => {
     // Create orthographic camera for top-down view
-    const orthoCamera = new FreeCamera("orthographicCamera", new Vector3(0, 15, 0), scene);
+    const orthoCamera = new FreeCamera("orthographicCamera", new Vector3(0, 15, 0), scene!);
     orthoCamera.setTarget(new Vector3(0, 0, 0));
     orthoCamera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
 
@@ -242,12 +242,17 @@ export const useCameraController = ({
     };
   }
 
-  // Handle camera switching - only after cameras are initialized
+  // Handle camera switching - only after cameras are initialized  
   React.useEffect(() => {
-    if (scene && canvas && perspectiveCameraRef.current && orthographicCameraRef.current) {
-      switchCamera(isOrthographic);
-    }
-  }, [isOrthographic, scene, canvas]);
+    // Add a small delay to ensure all refs are properly set
+    const timer = setTimeout(() => {
+      if (scene && canvas && perspectiveCameraRef.current && orthographicCameraRef.current) {
+        switchCamera(isOrthographic);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [isOrthographic]);
 
   // Cleanup on unmount
   React.useEffect(() => {
