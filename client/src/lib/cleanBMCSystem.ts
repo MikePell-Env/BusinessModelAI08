@@ -239,7 +239,10 @@ export class CleanBMCSystem {
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
     }
     item.material.alpha = 1.0;
-    this.animateHeight(item.mesh, item.originalHeight);
+    // Only animate height if NOT in top view
+    if (!this.isTopView) {
+      this.animateHeight(item.mesh, item.originalHeight);
+    }
 
     // Always ensure label visibility
     this.makeLabelVisible(itemName);
@@ -269,7 +272,10 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive for default
       }
       item.material.alpha = 1.0;
-      this.animateHeight(item.mesh, item.originalHeight);
+      // Only animate height if NOT in top view
+      if (!this.isTopView) {
+        this.animateHeight(item.mesh, item.originalHeight);
+      }
     } else {
       // Back to original colors
       if (itemName === "Cost Structure") {
@@ -286,7 +292,10 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
       }
       item.material.alpha = 1.0;
-      this.animateHeight(item.mesh, item.originalHeight);
+      // Only animate height if NOT in top view
+      if (!this.isTopView) {
+        this.animateHeight(item.mesh, item.originalHeight);
+      }
     }
     
     // Always ensure label stays visible
@@ -410,7 +419,10 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
       }
       item.material.alpha = 1.0;
-      this.animateHeight(item.mesh, item.originalHeight);
+      // Only animate height if NOT in top view (in restoreAllToDefault)
+      if (!this.isTopView) {
+        this.animateHeight(item.mesh, item.originalHeight);
+      }
       
       // LAST: Force label visibility again after material changes
       this.makeLabelVisible(name);
