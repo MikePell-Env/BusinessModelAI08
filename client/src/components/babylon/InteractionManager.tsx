@@ -16,8 +16,8 @@ import {
 import { BMCComponentName } from '@/types/bmcState';
 
 interface InteractionManagerProps {
-  scene: Scene;
-  advancedTexture: AdvancedDynamicTexture;
+  scene: Scene | null;
+  advancedTexture: AdvancedDynamicTexture | null;
   onObjectSelect?: (sectionName: string) => void;
   onPanelCreate?: (sectionName: string, position: Vector3) => void;
   onBackgroundClick?: () => void;
@@ -42,8 +42,12 @@ export const useInteractionManager = ({
     onHoverEnter?: () => void,
     onHoverExit?: () => void
   ) => {
-    if (!mesh.actionManager) {
-      mesh.actionManager = new ActionManager(scene);
+    if (!scene || !mesh.actionManager) {
+      if (scene) {
+        mesh.actionManager = new ActionManager(scene);
+      } else {
+        return; // Skip if scene is not ready
+      }
     }
 
     // Single click for immediate selection

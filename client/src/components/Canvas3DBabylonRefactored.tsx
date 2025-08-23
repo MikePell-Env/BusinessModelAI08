@@ -58,46 +58,38 @@ export const Canvas3DBabylonRefactored: React.FC<Canvas3DBabylonRefactoredProps>
   const materialManager = useMaterialManager({ scene: scene || null });
   const { setMeshVisualState, setMeshesVisualState } = materialManager;
 
-  // Initialize interaction management first - needed by BMC object manager
-  const interactionManager = React.useMemo(() => {
-    if (!scene || !advancedTextureRef.current) return null;
-    
-    return useInteractionManager({
-      scene,
-      advancedTexture: advancedTextureRef.current,
-      onObjectSelect: (sectionName) => {
-        setSelectedObject(sectionName);
-        console.log(`Selected: ${sectionName}`);
-      },
-      onPanelCreate: (sectionName, position) => {
-        console.log(`Panel created for: ${sectionName}`);
-      },
-      onBackgroundClick: () => {
-        console.log('Background clicked');
-      }
-    });
-  }, [scene, advancedTextureRef.current]);
+  // Initialize interaction management - always call hook, handle null inside
+  const interactionManager = useInteractionManager({
+    scene: scene || null,
+    advancedTexture: advancedTextureRef.current || null,
+    onObjectSelect: (sectionName) => {
+      setSelectedObject(sectionName);
+      console.log(`Selected: ${sectionName}`);
+    },
+    onPanelCreate: (sectionName, position) => {
+      console.log(`Panel created for: ${sectionName}`);
+    },
+    onBackgroundClick: () => {
+      console.log('Background clicked');
+    }
+  });
 
-  // Initialize BMC object management - depends on interaction manager
-  const bmcObjectManager = React.useMemo(() => {
-    if (!scene) return null;
-    
-    return useBMCObjectManager({
-      scene,
-      onObjectLoaded: (sectionName, mesh) => {
-        console.log(`BMC object loaded: ${sectionName}`);
-        
-        // Setup interactions for this mesh when interaction manager is ready
-        if (interactionManager) {
-          interactionManager.setupMeshInteraction(mesh, sectionName);
-        }
-      },
-      onAllObjectsLoaded: () => {
-        console.log('All BMC objects loaded');
-        initializeCleanBMCSystem();
+  // Initialize BMC object management - always call hook, handle dependencies inside
+  const bmcObjectManager = useBMCObjectManager({
+    scene: scene || null,
+    onObjectLoaded: (sectionName, mesh) => {
+      console.log(`BMC object loaded: ${sectionName}`);
+      
+      // Setup interactions for this mesh when interaction manager is ready
+      if (interactionManager && scene) {
+        interactionManager.setupMeshInteraction(mesh, sectionName);
       }
-    });
-  }, [scene, interactionManager]);
+    },
+    onAllObjectsLoaded: () => {
+      console.log('All BMC objects loaded');
+      initializeCleanBMCSystem();
+    }
+  });
 
   const { getObject, setObjectHeight, createLabelPlane } = bmcObjectManager || {
     getObject: () => undefined,
