@@ -84,6 +84,11 @@ export const useInteractionManager = ({
 
   const setupBackgroundClickHandler = () => {
     // Background click handler for panels only
+    if (!scene || !scene.onPointerObservable) {
+      console.warn('Scene or onPointerObservable not available');
+      return;
+    }
+    
     scene.onPointerObservable.add((pointerInfo) => {
       if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
         if (pointerInfo.pickInfo?.hit) {
@@ -158,7 +163,9 @@ export const useInteractionManager = ({
 
   // Initialize background click handler
   React.useEffect(() => {
-    setupBackgroundClickHandler();
+    if (scene && scene.onPointerObservable) {
+      setupBackgroundClickHandler();
+    }
   }, [scene]);
 
   return {
