@@ -42,7 +42,7 @@ import { debugLog } from '@/lib/debug/DebugLogger';
 import { SceneSetup } from './Canvas3DBabylon/scene/SceneSetup';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
 import { ViewTransitionManager } from './Canvas3DBabylon/animations/ViewTransitionManager';
-import { MaterialManager } from '@/lib/core/MaterialManager';
+// REMOVED: MaterialManager - using direct property modification instead
 import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 
 interface Canvas3DBabylonProps {
@@ -233,7 +233,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const rootMeshRef = useRef<AbstractMesh | null>(null);
   const orthoEventHandlersRef = useRef<any>(null);
   const animationManagerRef = useRef<BabylonAnimationManager | null>(null);
-  const materialManagerRef = useRef<MaterialManager | null>(null);
+  // REMOVED: MaterialManager - using direct property modification instead
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
   const viewTransitionRef = useRef<ViewTransitionManager | null>(null);
@@ -1353,10 +1353,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Store reference for later use
     viewTransitionRef.current = viewTransitionManager;
     
-    // Initialize unified systems
-    materialManagerRef.current = new MaterialManager(scene);
-    
-    // REMOVED: MaterialManager integration - using direct property modification instead
+    // REMOVED: MaterialManager initialization - using direct property modification instead
     
     // Setup unified interaction manager with callbacks  
     interactionManagerRef.current = new UnifiedInteractionManager(scene, {
@@ -2871,10 +2868,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           animationManagerRef.current.dispose();
           animationManagerRef.current = null;
         }
-        if (materialManagerRef.current) {
-          materialManagerRef.current.dispose();
-          materialManagerRef.current = null;
-        }
+        // REMOVED: MaterialManager disposal - using direct property modification instead
       } catch (e) {
         console.warn('Error cleaning up unified systems and managers:', e);
       }
@@ -3105,7 +3099,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           
           <button 
             onClick={() => {
-              if (animationManagerRef.current && materialManagerRef.current) {
+              if (animationManagerRef.current) {
                 console.log('🎭 Applying Business Performance Themes...');
                 
                 // Debug: List all available meshes
