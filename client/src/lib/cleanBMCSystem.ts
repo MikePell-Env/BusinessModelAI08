@@ -16,6 +16,22 @@ interface BMCItem {
   name: string;
 }
 
+/*
+SELECTION RULES - NEVER CHANGE THESE:
+
+3D TOP VIEW:
+1. Initially, if no object is selected, all objects are full height, 100% opaque
+2. If an object is clicked once, it becomes selected, full height, 100% opaque, bright blue
+3. If that selected object is double clicked, the popup panel appears; no other objects change
+4. If the selected object is single clicked again, it becomes deselected, returns to original material at 100% opaque; all other objects remain full height, 100% opaque, original material
+
+3D VIEW:
+5. Initially, if no object is selected, all objects are full height, 100% opaque
+6. If an object is clicked once, it becomes selected, full height, 100% opaque, bright blue; all other objects are flattened and drawn at 50% opacity
+7. If that selected object is double clicked, the popup panel appears; no other objects change
+8. If the selected object is single clicked again, it becomes deselected, returns to original material at 100% opaque; all other objects return to original height, 100% opaque
+*/
+
 export class CleanBMCSystem {
   private items = new Map<string, BMCItem>();
   private bmcStateManager: any = null; // Will be injected
@@ -317,11 +333,12 @@ export class CleanBMCSystem {
     this.updateAllVisuals();
   }
 
-  // Update all visual states
+  // Update all visual states - IMPLEMENTS SELECTION RULES EXACTLY
   private updateAllVisuals() {
     // Get current selection from state manager
     const currentSelection = this.getSelectedObject();
-    console.log(`🎨 CleanBMC: Updating all visuals - selection: "${currentSelection}", hovered: "${this.hoveredObject}", topView: ${this.isTopView}`);
+    console.log(`🎨 CleanBMC: Updating all visuals - selection: "${currentSelection}", topView: ${this.isTopView}`);
+    console.log(`📋 RULES: ${this.isTopView ? '3D TOP (others never change)' : '3D VIEW (others flatten/dim when selected)'}`);
 
     this.items.forEach((item, name) => {
       const isSelected = (name === currentSelection);
@@ -331,17 +348,22 @@ export class CleanBMCSystem {
       item.mesh.isVisible = true;
       item.mesh.setEnabled(true);
 
-      // Determine the appropriate state
+      // Determine state based on SELECTION RULES
       let visualState: 'normal' | 'hover' | 'selected' | 'dimmed';
 
       if (isSelected) {
+        // Rules 2,6: Selected object = bright blue, full height, 100% opacity
         visualState = 'selected';
       } else if (isHovered && !currentSelection) {
+        // Only hover when nothing is selected
         visualState = 'hover';
       } else if (currentSelection && currentSelection !== name) {
-        // Something else is selected - this object should be dimmed
-        visualState = 'dimmed';
+        // CRITICAL DIFFERENCE:
+        // 3D Top (rules 2,4): Other objects NEVER change when something is selected
+        // 3D View (rule 6): Other objects flatten and become 50% opaque
+        visualState = this.isTopView ? 'normal' : 'dimmed';
       } else {
+        // Rules 1,4,5,8: No selection = original material, full height, 100% opacity
         visualState = 'normal';
       }
 
@@ -354,7 +376,7 @@ export class CleanBMCSystem {
     this.selectObject(null);
   }
 
-  // Apply the correct visual state to an item
+  // Apply the correct visual state to an item - FOLLOWS SELECTION RULES EXACTLY
   private applyVisualState(item: BMCItem, name: string, state: 'normal' | 'hover' | 'selected' | 'dimmed') {
     console.log(`🎨 Applying ${state} state to ${name} (topView: ${this.isTopView})`);
 
@@ -362,20 +384,17 @@ export class CleanBMCSystem {
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
 
-    // In top view, keep objects at their actual original height (never change heights)
-    if (this.isTopView) {
-      // Maintain actual original height in top view
-      item.mesh.scaling.y = item.originalHeight;
-      console.log(`📐 TOP VIEW: Keeping ${name} at actual original height ${item.originalHeight}`);
-    }
-
     switch (state) {
       case 'selected':
-        // SELECTED: Bright blue at full height
+        // SELECTED: Bright blue, full height, 100% opacity (rules 2,6)
         this.applySelectionEffect(item.material, name);
+        item.material.alpha = 1.0; // 100% opacity
         if (!this.isTopView) {
-          // In 3D view: selected objects stay at full height
+          // 3D View: selected stays at full height
           this.animateHeight(item.mesh, item.originalHeight);
+        } else {
+          // 3D Top: selected stays at full height  
+          item.mesh.scaling.y = item.originalHeight;
         }
         break;
 
@@ -384,21 +403,31 @@ export class CleanBMCSystem {
         break;
 
       case 'dimmed':
-        // DIMMED (others when something is selected): 50% opacity, flattened
-        this.applyDimmedEffect(item.material, name);
+        // DIMMED (3D View only - rule 6): 50% opacity, flattened
+        // 3D Top never dims other objects (rules 2,4)
         if (!this.isTopView) {
-          // In 3D view: dimmed objects are flattened
-          this.animateHeight(item.mesh, item.originalHeight * 0.3);
+          this.applyDimmedEffect(item.material, name);
+          item.material.alpha = 0.5; // 50% opacity
+          this.animateHeight(item.mesh, item.originalHeight * 0.3); // flattened
+        } else {
+          // In 3D Top, treat as normal (no dimming)
+          this.restoreOriginalMaterial(item.material, name);
+          item.material.alpha = 1.0; // 100% opacity
+          item.mesh.scaling.y = item.originalHeight; // full height
         }
         break;
 
       case 'normal':
       default:
-        // NORMAL (no selection): Full height, full opacity
+        // NORMAL: Original material, full height, 100% opacity (rules 1,4,5,8)
         this.restoreOriginalMaterial(item.material, name);
+        item.material.alpha = 1.0; // 100% opacity
         if (!this.isTopView) {
-          // In 3D view: normal objects at full height
+          // 3D View: return to full height
           this.animateHeight(item.mesh, item.originalHeight);
+        } else {
+          // 3D Top: maintain full height
+          item.mesh.scaling.y = item.originalHeight;
         }
         break;
     }
