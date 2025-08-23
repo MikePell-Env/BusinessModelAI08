@@ -49,7 +49,7 @@ export class CleanBMCSystem {
   private animateHeight(mesh: AbstractMesh, targetHeight: number) {
     if (this.viewTransitionManager && mesh instanceof Mesh) {
       this.viewTransitionManager.animateMeshHeight(mesh, targetHeight, {
-        duration: 1200,  // Even longer duration for very noticeable animation
+        duration: 2500,  // Much slower animation for very pronounced effect
         easing: true
       });
     } else {
