@@ -45,14 +45,24 @@ export const Canvas3DBabylonRefactored: React.FC<Canvas3DBabylonRefactoredProps>
     }
   });
 
-  // Initialize camera management
-  const { perspectiveCamera, orthographicCamera } = useCameraController({
-    scene: scene!,
-    canvas: canvasRef.current!,
-    isOrthographic,
-    camera3DState: getCamera3DState(),
-    onSaveCamera3DState: saveCamera3DState
-  });
+  // Initialize camera management - only when scene and canvas are ready
+  const cameraController = React.useMemo(() => {
+    if (!scene || !canvasRef.current) return null;
+    
+    return useCameraController({
+      scene,
+      canvas: canvasRef.current,
+      isOrthographic,
+      camera3DState: getCamera3DState(),
+      onSaveCamera3DState: saveCamera3DState
+    });
+  }, [scene, canvasRef.current, isOrthographic]);
+
+  const { perspectiveCamera, orthographicCamera } = cameraController || {
+    perspectiveCamera: { current: null },
+    orthographicCamera: { current: null },
+    orthoEventHandlers: { current: null }
+  };
 
   // Initialize material management - only when scene is ready
   const materialManager = React.useMemo(() => {
@@ -65,7 +75,27 @@ export const Canvas3DBabylonRefactored: React.FC<Canvas3DBabylonRefactoredProps>
     setMeshesVisualState: () => {}
   };
 
-  // Initialize BMC object management - only when scene is ready
+  // Initialize interaction management first - needed by BMC object manager
+  const interactionManager = React.useMemo(() => {
+    if (!scene || !advancedTextureRef.current) return null;
+    
+    return useInteractionManager({
+      scene,
+      advancedTexture: advancedTextureRef.current,
+      onObjectSelect: (sectionName) => {
+        setSelectedObject(sectionName);
+        console.log(`Selected: ${sectionName}`);
+      },
+      onPanelCreate: (sectionName, position) => {
+        console.log(`Panel created for: ${sectionName}`);
+      },
+      onBackgroundClick: () => {
+        console.log('Background clicked');
+      }
+    });
+  }, [scene, advancedTextureRef.current]);
+
+  // Initialize BMC object management - depends on interaction manager
   const bmcObjectManager = React.useMemo(() => {
     if (!scene) return null;
     
@@ -74,7 +104,7 @@ export const Canvas3DBabylonRefactored: React.FC<Canvas3DBabylonRefactoredProps>
       onObjectLoaded: (sectionName, mesh) => {
         console.log(`BMC object loaded: ${sectionName}`);
         
-        // Setup interactions for this mesh when both managers are ready
+        // Setup interactions for this mesh when interaction manager is ready
         if (interactionManager) {
           interactionManager.setupMeshInteraction(mesh, sectionName);
         }
