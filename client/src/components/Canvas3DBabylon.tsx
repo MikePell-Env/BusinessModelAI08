@@ -642,6 +642,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     topViewCamera.upperRadiusLimit = 40;  // Maximum height
     topViewCamera.lowerBetaLimit = 0.01;  // Keep nearly straight down
     topViewCamera.upperBetaLimit = 0.01;  // Prevent rotation from top view
+    topViewCamera.lowerAlphaLimit = topViewCamera.alpha; // Lock alpha rotation
+    topViewCamera.upperAlphaLimit = topViewCamera.alpha; // Lock alpha rotation
     
     // Store as orthoCamera for compatibility with existing code
     const orthoCamera = topViewCamera;
@@ -651,34 +653,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const canvas = canvasRef.current;
       if (!canvas) return;
       
-      // For perspective camera in top view, we'll use its native controls
+      // Attach camera with default controls
       topViewCamera.attachControl(canvas, true);
       
-      // Adjust wheel sensitivity for smoother zooming
-      topViewCamera.wheelPrecision = 80; // Balanced sensitivity
+      // Configure inputs for top view
+      // Disable rotation by setting angular sensibility to 0
+      const inputs = topViewCamera.inputs;
+      const pointerInput = inputs.attached.pointers;
+      if (pointerInput) {
+        (pointerInput as any).angularSensibilityX = 0; // No horizontal rotation
+        (pointerInput as any).angularSensibilityY = 0; // No vertical rotation
+        (pointerInput as any).panningSensibility = 200; // Increase panning sensitivity
+      }
       
-      // Mouse wheel zoom (adjusts radius/height)
-      const onWheel = (event: WheelEvent) => {
-        // Let the camera's native wheel handling work
-        // The radius limits will constrain the zoom
-      };
+      // Configure mouse wheel for zoom only  
+      const mouseWheelInput = inputs.attached.mousewheel;
+      if (mouseWheelInput) {
+        (mouseWheelInput as any).wheelPrecision = 80; // Balanced zoom sensitivity
+      }
       
-      // Top view camera uses native ArcRotateCamera controls
-      // Panning is handled by the camera itself with alpha rotation disabled
+      // Set panning configuration
+      topViewCamera.panningAxis = new Vector3(1, 0, 1); // Allow X and Z panning only
+      topViewCamera.panningSensibility = 200; // Panning sensitivity
+      topViewCamera.panningInertia = 0.9; // Smooth panning
       
-      // Store minimal handlers for cleanup
-      const onMouseUp = () => {};
+      // Enable panning with left mouse (hold Ctrl) or middle mouse
+      topViewCamera.panningMouseButton = 1; // Middle mouse for panning
       
-      // Store minimal handlers for cleanup in ref
-      orthoEventHandlersRef.current = {
-        wheel: onWheel,
-        mousedown: onMouseUp,
-        mousemove: onMouseUp,
-        mouseup: onMouseUp,
-        canvas: canvas
-      };
-      
-      console.log("🎯 Top view perspective camera configured for flat appearance");
+      console.log("🎯 Top view camera configured: zoom (wheel) + pan (middle/ctrl+left) only, no rotation");
     };
     
     // Setup controls when camera is active
