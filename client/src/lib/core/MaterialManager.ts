@@ -39,6 +39,9 @@ export class MaterialManager {
     
     if (!this.materialPool.has(materialKey)) {
       this.materialPool.set(materialKey, this.createMaterial(sectionId, state, materialKey));
+      console.log(`🎨 Created NEW material: ${materialKey} (pool size: ${this.materialPool.size})`);
+    } else {
+      console.log(`🎨 Reusing EXISTING material: ${materialKey} (pool size: ${this.materialPool.size})`);
     }
     
     return this.materialPool.get(materialKey)!;
@@ -147,8 +150,10 @@ export class MaterialManager {
     try {
       const material = this.getMaterial(sectionId, state);
       
-      // Unfreeze if frozen for state changes
-      if (material.isFrozen) {
+      // FIXED: Don't freeze/unfreeze rapidly - causes crashes
+      // Only unfreeze if absolutely necessary
+      const needsUnfreeze = material.isFrozen && mesh.material !== material;
+      if (needsUnfreeze) {
         material.unfreeze();
       }
 
@@ -162,8 +167,10 @@ export class MaterialManager {
       // Track current material
       this.sectionMaterialMap.set(sectionId, material.name);
 
-      // Refreeze for performance
-      material.freeze();
+      // FIXED: Only refreeze if we unfroze it
+      if (needsUnfreeze) {
+        material.freeze();
+      }
 
       console.log(`🎨 Applied ${state} material to ${sectionId}`);
     } catch (error) {
@@ -171,7 +178,8 @@ export class MaterialManager {
       
       // Fallback: ensure mesh has some material
       if (!mesh.material) {
-        mesh.material = this.getMaterial(sectionId, 'normal');
+        const fallbackMaterial = this.getMaterial(sectionId, 'normal');
+        mesh.material = fallbackMaterial;
       }
     }
   }
