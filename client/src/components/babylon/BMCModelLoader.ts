@@ -1,5 +1,4 @@
-
-import { Scene, SceneLoader, StandardMaterial, Color3, Vector3, ActionManager, ExecuteCodeAction, MeshBuilder, Texture, AbstractMesh } from '@babylonjs/core';
+import { Scene, SceneLoader, AbstractMesh, Vector3, ActionManager, ExecuteCodeAction, StandardMaterial, Color3, Animation, MeshBuilder } from '@babylonjs/core';
 import { BusinessModelCanvas } from '@/types/canvas';
 
 export class BMCModelLoader {
@@ -14,118 +13,122 @@ export class BMCModelLoader {
   }
 
   async loadMainBMC(): Promise<AbstractMesh[]> {
-    console.log("🔄 Loading main BMC components...");
-    const meshes: AbstractMesh[] = [];
+    try {
+      console.log("🔄 Loading main BMC model...");
+      const result = await SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", this.scene);
+      const meshes = result.meshes.filter(mesh => mesh.name !== "__root__");
 
-    const bmcComponents = [
-      { name: 'Key Partners', file: 'BMC_blender_06_KeyPartners.glb', position: new Vector3(-6, 1, 2) },
-      { name: 'Key Activities', file: 'BMC_blender_06_KeyActivities.glb', position: new Vector3(-6, 1, 0) },
-      { name: 'Key Resources', file: 'BMC_blender_06_KeyResources.glb', position: new Vector3(-6, 1, -2) },
-      { name: 'Value Propositions', file: 'BMC_blender_06_ValueProposition.glb', position: new Vector3(0, 1, 0) },
-      { name: 'Customer Relationships', file: 'BMC_blender_06_CustomerRelationships.glb', position: new Vector3(6, 1, 2) },
-      { name: 'CustomerChannels', file: 'BMC_blender_06_CustomerChannels.glb', position: new Vector3(6, 1, 0) },
-      { name: 'Customer Segments', file: 'BMC_blender_06_CustomerSegments.glb', position: new Vector3(6, 1, -2) }
-    ];
-
-    for (const component of bmcComponents) {
-      try {
-        console.log(`🔄 Attempting to load: ${component.file}`);
-        const result = await SceneLoader.ImportMeshAsync("", "/models/", component.file, this.scene);
-        
-        if (result.meshes && result.meshes.length > 0) {
-          const rootMesh = result.meshes[0];
-          rootMesh.position = component.position;
-          rootMesh.name = `BMC_${component.name}`;
-          (rootMesh as any).bmcSectionName = component.name;
-          
-          // Apply base material
-          this.applyBaseMaterial(rootMesh);
-          
-          // Register with cleanBMCSystem
-          if (this.cleanBMCSystem) {
-            this.cleanBMCSystem.registerMesh(component.name, rootMesh);
-          }
-          
-          meshes.push(rootMesh);
-          console.log(`✅ Loaded ${component.name}`);
-        } else {
-          throw new Error('No meshes found in loaded file');
-        }
-      } catch (error) {
-        console.warn(`⚠️ Could not load ${component.name} from ${component.file}:`, error);
-        // Create fallback geometry
-        const fallbackMesh = this.createFallbackGeometry(component.name, component.position);
-        meshes.push(fallbackMesh);
+      if (meshes.length === 0) {
+        console.warn("⚠️ No meshes found in GLB, creating fallback geometry");
+        return this.createFallbackBMCGeometry();
       }
-    }
 
-    console.log(`🔄 Loaded ${meshes.length} BMC components`);
-    return meshes;
+      console.log(`✅ Loaded main BMC with ${meshes.length} meshes`);
+      return meshes;
+    } catch (error) {
+      console.error("❌ Error loading main BMC:", error);
+      console.log("🔄 Creating fallback geometry...");
+      return this.createFallbackBMCGeometry();
+    }
   }
 
   async loadRevenueStreams(): Promise<AbstractMesh[]> {
-    console.log("🔄 Loading Revenue Streams model...");
     try {
+      console.log("🔄 Loading Revenue Streams model...");
       const result = await SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_07_RevenueStreams_1754360428541.glb", this.scene);
-      
-      if (result.meshes && result.meshes.length > 0) {
-        const rootMesh = result.meshes[0];
-        rootMesh.position = new Vector3(0, 1, -4);
-        rootMesh.name = "BMC_Revenue Streams";
-        (rootMesh as any).bmcSectionName = "Revenue Streams";
-        
-        this.applyBaseMaterial(rootMesh);
-        console.log("✅ Loaded Revenue Streams");
-        return [rootMesh];
+      const meshes = result.meshes.filter(mesh => mesh.name !== "__root__");
+
+      if (meshes.length === 0) {
+        console.warn("⚠️ No Revenue Streams meshes found, creating fallback");
+        return this.createFallbackRevenueStreams();
       }
+
+      console.log(`✅ Loaded Revenue Streams with ${meshes.length} meshes`);
+      return meshes;
     } catch (error) {
-      console.warn("⚠️ Could not load Revenue Streams:", error);
-      const fallbackMesh = this.createFallbackGeometry("Revenue Streams", new Vector3(0, 1, -4));
-      return [fallbackMesh];
+      console.error("❌ Error loading Revenue Streams:", error);
+      return this.createFallbackRevenueStreams();
     }
-    
-    return [];
   }
 
   async loadCostStructure(): Promise<AbstractMesh[]> {
-    console.log("🔄 Loading Cost Structure model...");
     try {
-      // Using a placeholder - you may need to create this model
-      const fallbackMesh = this.createFallbackGeometry("Cost Structure", new Vector3(0, 1, 4));
-      console.log("✅ Created Cost Structure placeholder");
-      return [fallbackMesh];
+      console.log("🔄 Loading Cost Structure model...");
+      const result = await SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", this.scene);
+      const meshes = result.meshes.filter(mesh => mesh.name !== "__root__");
+
+      if (meshes.length === 0) {
+        console.warn("⚠️ No Cost Structure meshes found, creating fallback");
+        return this.createFallbackCostStructure();
+      }
+
+      console.log(`✅ Loaded Cost Structure with ${meshes.length} meshes`);
+      return meshes;
     } catch (error) {
-      console.warn("⚠️ Could not create Cost Structure:", error);
-      return [];
+      console.error("❌ Error loading Cost Structure:", error);
+      return this.createFallbackCostStructure();
     }
   }
 
-  private createFallbackGeometry(name: string, position: Vector3): AbstractMesh {
-    console.log(`🔧 Creating fallback geometry for: ${name}`);
-    const mesh = MeshBuilder.CreateBox(`BMC_${name}`, { 
-      width: 3, 
-      height: 2, 
-      depth: 1.5 
-    }, this.scene);
-    mesh.position = position;
-    mesh.name = `BMC_${name}`;
-    (mesh as any).bmcSectionName = name;
-    
+  private createFallbackBMCGeometry(): AbstractMesh[] {
+    console.log("🔧 Creating fallback BMC geometry...");
+    const meshes: AbstractMesh[] = [];
+
+    const bmcComponents = [
+      { name: 'Key Partners', position: new Vector3(-6, 1, 2) },
+      { name: 'Key Activities', position: new Vector3(-6, 1, 0) },
+      { name: 'Key Resources', position: new Vector3(-6, 1, -2) },
+      { name: 'Value Propositions', position: new Vector3(0, 1, 0) },
+      { name: 'Customer Relationships', position: new Vector3(6, 1, 2) },
+      { name: 'CustomerChannels', position: new Vector3(6, 1, 0) },
+      { name: 'Customer Segments', position: new Vector3(6, 1, -2) }
+    ];
+
+    bmcComponents.forEach(component => {
+      const mesh = MeshBuilder.CreateBox(`BMC_${component.name}`, { width: 3, height: 2, depth: 1.5 }, this.scene);
+      mesh.position = component.position;
+      (mesh as any).bmcSectionName = component.name;
+      this.applyBaseMaterial(mesh);
+      if (this.cleanBMCSystem) {
+        this.cleanBMCSystem.registerMesh(component.name, mesh);
+      }
+      meshes.push(mesh);
+    });
+    console.log(`✅ Created ${meshes.length} fallback BMC geometries`);
+    return meshes;
+  }
+
+  private createFallbackRevenueStreams(): AbstractMesh[] {
+    console.log("🔧 Creating fallback Revenue Streams geometry...");
+    const mesh = MeshBuilder.CreateBox("BMC_RevenueStreams_Fallback", { width: 5, height: 2, depth: 2 }, this.scene);
+    mesh.position = new Vector3(0, 1, -4);
+    (mesh as any).bmcSectionName = "Revenue Streams";
     this.applyBaseMaterial(mesh);
-    
-    // Register with cleanBMCSystem
     if (this.cleanBMCSystem) {
-      this.cleanBMCSystem.registerMesh(name, mesh);
+      this.cleanBMCSystem.registerMesh("Revenue Streams", mesh);
     }
-    
-    return mesh;
+    console.log("✅ Created fallback Revenue Streams geometry");
+    return [mesh];
+  }
+
+  private createFallbackCostStructure(): AbstractMesh[] {
+    console.log("🔧 Creating fallback Cost Structure geometry...");
+    const mesh = MeshBuilder.CreateBox("BMC_CostStructure_Fallback", { width: 5, height: 2, depth: 2 }, this.scene);
+    mesh.position = new Vector3(0, 1, 4);
+    (mesh as any).bmcSectionName = "Cost Structure";
+    this.applyBaseMaterial(mesh);
+    if (this.cleanBMCSystem) {
+      this.cleanBMCSystem.registerMesh("Cost Structure", mesh);
+    }
+    console.log("✅ Created fallback Cost Structure geometry");
+    return [mesh];
   }
 
   private applyBaseMaterial(mesh: AbstractMesh) {
     const material = new StandardMaterial(`material_${mesh.name}`, this.scene);
     material.diffuseColor = new Color3(0.07, 0.07, 0.07);
     material.specularColor = new Color3(0.1, 0.1, 0.1);
-    
+
     if (mesh instanceof AbstractMesh) {
       mesh.material = material;
     }
@@ -133,24 +136,24 @@ export class BMCModelLoader {
 
   setupMainBMCInteractions(meshes: AbstractMesh[], advancedTexture: any, createBillboardPanel: any) {
     console.log(`🔄 Setting up main BMC interactions for ${meshes.length} meshes`);
-    
+
     meshes.forEach((mesh, index) => {
       if (mesh && (mesh as any).bmcSectionName) {
         const sectionName = (mesh as any).bmcSectionName;
         console.log(`🔗 Setting up interactions for: ${sectionName}`);
-        
+
         // Setup action manager
         if (!mesh.actionManager) {
           mesh.actionManager = new ActionManager(this.scene);
         }
-        
+
         // Click handling
         mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
           console.log(`🎯 Clicked on ${sectionName}`);
-          
+
           if (this.cleanBMCSystem) {
             const isCurrentlySelected = this.cleanBMCSystem.getSelectedObject() === sectionName;
-            
+
             if (isCurrentlySelected) {
               // Second click - show panel
               try {
@@ -181,13 +184,13 @@ export class BMCModelLoader {
             this.cleanBMCSystem.onHover(sectionName, false);
           }
         }));
-        
+
         console.log(`✅ Interactions set up for: ${sectionName}`);
       } else {
         console.warn(`⚠️ Mesh ${index} missing bmcSectionName property`);
       }
     });
-    
+
     console.log(`✅ All BMC interactions configured`);
   }
 
