@@ -686,7 +686,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       topViewCamera.panningInertia = 0.9; // Smooth panning
       
       // Enable panning with left mouse (hold Ctrl) or middle mouse
-      topViewCamera.panningMouseButton = 1; // Middle mouse for panning
+      (topViewCamera as any).panningMouseButton = 1; // Middle mouse for panning
       
       console.log("🎯 Top view camera configured: zoom (wheel) + pan (middle/ctrl+left) only, no rotation");
     };
