@@ -46,26 +46,37 @@ export class SceneSetup {
   }
 
   private setupLighting(): void {
-    // Enhanced lighting setup for semi-gloss black plastic with subtle reflections (matching existing)
+    // Enhanced lighting setup with better material highlighting
     const hemisphericLight = new HemisphericLight(
       "hemisphericLight", 
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 1.2; // Moderate ambient lighting
-    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Neutral ambient
-    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Low specular for subtle shine
+    hemisphericLight.intensity = 1.3; // Slightly increased for better ambient
+    hemisphericLight.diffuse = new Color3(0.95, 0.95, 0.95); // Brighter neutral ambient
+    hemisphericLight.specular = new Color3(0.3, 0.3, 0.3); // Increased for better reflections
+    hemisphericLight.groundColor = new Color3(0.4, 0.4, 0.45); // Add ground color for depth
 
     const directionalLight = new DirectionalLight(
       "directionalLight", 
       new Vector3(-1, -1, -1), 
       this.scene
     );
-    directionalLight.intensity = 1.8; // Strong directional light for shape definition
+    directionalLight.intensity = 1.9; // Slightly stronger for better definition
     directionalLight.diffuse = new Color3(1, 1, 1);
-    directionalLight.specular = new Color3(0.3, 0.3, 0.3); // Low specular for controlled shine
+    directionalLight.specular = new Color3(0.4, 0.4, 0.4); // Enhanced specular highlights
 
-    debugLog.verbose('scene', 'Lighting system configured');
+    // Add subtle rim light for edge definition
+    const rimLight = new DirectionalLight(
+      "rimLight",
+      new Vector3(1, 0.5, 1),
+      this.scene
+    );
+    rimLight.intensity = 0.5; // Subtle rim lighting
+    rimLight.diffuse = new Color3(0.8, 0.8, 0.9); // Cool rim color
+    rimLight.specular = new Color3(0.2, 0.2, 0.2);
+
+    debugLog.verbose('scene', 'Enhanced lighting system configured');
   }
 
   private setupEnvironment(): void {
