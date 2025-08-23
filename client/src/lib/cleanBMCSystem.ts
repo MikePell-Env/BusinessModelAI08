@@ -412,14 +412,16 @@ export class CleanBMCSystem {
           // Only apply dimming in 3D View
           this.applyDimmedEffect(item.material, name);
           item.material.alpha = 0.5; // 50% opacity
-          this.animateHeight(item.mesh, item.originalHeight * 0.1); // flatten to 0.1
+          this.animateHeight(item.mesh, item.originalHeight * 0.01); // flatten to almost nothing
         } else {
-          // This should never happen in 3D Top due to updateAllVisuals logic
-          console.error(`⚠️ Unexpected dimmed state in 3D Top for ${name}`);
-          // Fallback to normal state
+          // Should never reach here - 3D Top always uses 'normal' for non-selected
+          console.error(`⚠️ BUG: Dimmed state in 3D Top for ${name} - forcing normal`);
+          // Force normal state
           this.restoreOriginalMaterial(item.material, name);
           item.material.alpha = 1.0;
           item.mesh.scaling.y = item.originalHeight;
+          item.mesh.isVisible = true;
+          item.mesh.setEnabled(true);
         }
         break;
 
@@ -445,9 +447,17 @@ export class CleanBMCSystem {
 
   // Helper to apply selection effect
   private applySelectionEffect(material: StandardMaterial, name: string) {
-    // BRIGHT BLUE for all selected objects
-    material.diffuseColor = new Color3(0.0, 0.4, 1.0);  // Bright blue
-    material.emissiveColor = new Color3(0.0, 0.2, 0.5); // Blue glow
+    // Use original selection colors from documentation
+    if (name === "Cost Structure") {
+      material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+      material.emissiveColor = new Color3(0.3, 0.0, 0.0);
+    } else if (name === "Revenue Streams") {
+      material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+      material.emissiveColor = new Color3(0.0, 0.15, 0.08);
+    } else {
+      material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+      material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    }
     material.alpha = 1.0; // Full opacity
   }
 
