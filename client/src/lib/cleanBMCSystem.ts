@@ -1,4 +1,5 @@
 import { AbstractMesh, Color3, StandardMaterial, Mesh } from '@babylonjs/core';
+import { BMCStateManager } from '../types/bmcState';
 import { ViewTransitionManager } from '../components/Canvas3DBabylon/animations/ViewTransitionManager';
 
 interface BMCItem {
@@ -16,13 +17,36 @@ export class CleanBMCSystem {
   private hoveredObject: string | null = null;
   private isTopView: boolean = false;
   private viewTransitionManager: ViewTransitionManager | null = null;
+  private bmcStateManager: BMCStateManager | null = null;
 
   constructor() {
     console.log("✅ CleanBMCSystem initialized");
   }
 
+  // Convert between section names and BMC component names
+  private convertNameToBMCComponent(sectionName: string): string | null {
+    const mapping: Record<string, string> = {
+      "Value Propositions": "valuePropositions",
+      "Key Partners": "keyPartners",
+      "Customer Segments": "customerSegments",
+      "Key Resources": "keyResources",
+      "Key Activities": "keyActivities",
+      "CustomerChannels": "channels",
+      "Customer Relationships": "customerRelationships",
+      "Cost Structure": "costStructure",
+      "Revenue Streams": "revenueStreams"
+    };
+    return mapping[sectionName] || null;
+  }
+
+  // Set the BMC state manager
+  setBMCStateManager(bmcStateManager: BMCStateManager) {
+    this.bmcStateManager = bmcStateManager;
+  }
+
   // Set the view transition manager
   setViewTransitionManager(viewTransitionManager: ViewTransitionManager) {
+    console.log("🎬 CleanBMCSystem.setViewTransitionManager called");
     this.viewTransitionManager = viewTransitionManager;
   }
 
@@ -30,28 +54,32 @@ export class CleanBMCSystem {
   setTopViewMode(isTopView: boolean) {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
-    
-    // Reset everything to visible state when switching views
-    this.items.forEach((item) => {
+
+    // Ensure all objects remain visible in both view modes
+    this.items.forEach((item, name) => {
+      // Keep objects at their current height (don't force restoration)
       item.mesh.isVisible = true;
       item.mesh.setEnabled(true);
-      item.material.alpha = 1.0;
-      // Reset to original height
-      item.mesh.scaling.y = item.originalHeight;
-      if (item.label) {
-        item.label.isVisible = true;
-        item.label.setEnabled(true);
+
+      // Ensure materials are properly visible
+      if (item.material.alpha !== undefined) {
+        item.material.alpha = Math.max(item.material.alpha, 0.5); // Minimum 50% visibility
       }
+
+      // Keep labels visible
+      this.makeLabelVisible(name);
+      console.log(`   Ensured visibility for ${name}: visible=true, enabled=true`);
     });
-    
-    this.updateVisuals();
+
+    // Update visuals without hiding objects
+    this.updateAllVisuals();
   }
 
   // Register a BMC item
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
-    // Capture the actual current height of the mesh
+    // IMPORTANT: Use the actual current mesh height, not the passed value
     const actualHeight = mesh.scaling.y;
-    console.log(`📏 Registering ${name} with actual height=${actualHeight}`);
+    console.log(`📏 Registering ${name} with ACTUAL mesh height=${actualHeight} (passed=${originalHeight})`);
 
     this.items.set(name, {
       mesh,
@@ -60,125 +88,205 @@ export class CleanBMCSystem {
       name
     });
 
-    // Set initial appearance
-    this.applyNormalColors(material, name);
-    material.alpha = 1.0;
+    // Set default appearance WITHOUT changing height
+    this.setDefaultAppearancePreserveHeight(name);
+    console.log(`✓ Registered BMC item: ${name} with preserved height ${actualHeight}`);
   }
 
-  // Add a label
+  // Add a label to an existing BMC item
   addLabel(itemName: string, labelMesh: AbstractMesh, labelMaterial: StandardMaterial) {
     const item = this.items.get(itemName);
     if (item) {
       item.label = labelMesh;
       item.labelMaterial = labelMaterial;
-      // Ensure label is always visible
-      labelMesh.isVisible = true;
-      labelMesh.setEnabled(true);
-      labelMaterial.alpha = 1.0;
+      this.makeLabelVisible(itemName);
+      console.log(`✓ Added label to: ${itemName}`);
     }
   }
 
-  // Handle hover
+  // Make label always visible
+  private makeLabelVisible(itemName: string, alpha: number = 1.0) {
+    const item = this.items.get(itemName);
+    if (item?.label && item?.labelMaterial) {
+      item.label.isVisible = true;
+      item.label.setEnabled(true);
+      item.labelMaterial.alpha = alpha;
+      item.labelMaterial.emissiveColor = new Color3(0.05, 0.05, 0.05);
+    }
+  }
+
+  // Ensure label visibility
+  private ensureLabelVisibility(itemName: string) {
+    this.makeLabelVisible(itemName);
+  }
+
+  // Get selected object
+  getSelectedObject(): string | null {
+    return this.selectedObject;
+  }
+
+  // Select an object
+  selectObject(objectName: string | null) {
+    console.log(`🎯 CleanBMC: Selecting object: "${objectName}"`);
+
+    if (objectName === this.selectedObject) {
+      console.log("  Already selected, no change needed");
+      return;
+    }
+
+    this.selectedObject = objectName;
+    this.updateAllVisuals();
+  }
+
+  // Handle hover state
   onHover(itemName: string | null, isHovering: boolean) {
-    console.log(`🖱️ Hover ${isHovering ? 'ON' : 'OFF'} for "${itemName}"`);
-    
+    console.log(`🖱️ CleanBMC: Hover ${isHovering ? 'ON' : 'OFF'} for "${itemName}"`);
+
     if (isHovering && itemName) {
       this.hoveredObject = itemName;
     } else {
       this.hoveredObject = null;
     }
-    
-    this.updateVisuals();
+
+    this.updateAllVisuals();
   }
 
   // Handle selection
   onSelect(sectionName: string) {
-    console.log(`🎯 Selection: "${sectionName}"`);
+    console.log(`🎯 CleanBMC: Selection request for "${sectionName}"`);
+
+    // Update BMC state manager
+    if (this.bmcStateManager) {
+      const bmcComponent = this.convertNameToBMCComponent(sectionName);
+      if (bmcComponent) {
+        this.bmcStateManager.selectObject(bmcComponent);
+      }
+    }
+
     this.selectedObject = sectionName;
-    this.updateVisuals();
+    this.updateAllVisuals();
   }
 
   // Clear selection
   clearSelection() {
-    this.selectedObject = null;
-    this.updateVisuals();
+    this.selectObject(null);
   }
 
-  // SUPER SIMPLIFIED: Update all visuals
-  private updateVisuals() {
-    console.log(`🎨 Updating - selected: "${this.selectedObject}", hovered: "${this.hoveredObject}", topView: ${this.isTopView}`);
-    
-    this.items.forEach((item, name) => {
-      // CRITICAL: Always keep objects visible
-      item.mesh.isVisible = true;
-      item.mesh.setEnabled(true);
-      
-      // CRITICAL: Always keep labels visible
-      if (item.label) {
-        item.label.isVisible = true;
-        item.label.setEnabled(true);
+  // SIMPLIFIED: Update all visual states
+  private updateAllVisuals(): void {
+    console.log(`🎨 updateAllVisuals: updating visuals for ${this.isTopView ? '3D Top' : '3D'} view`);
+
+    if (this.selectedObject) {
+      // Update selected object's visual state
+      const selectedItem = this.items.get(this.selectedObject);
+      if (selectedItem) {
+        this.applySelectedState(this.selectedObject, selectedItem);
       }
-      if (item.labelMaterial) {
-        item.labelMaterial.alpha = 1.0;
-      }
-      
-      const isSelected = (name === this.selectedObject);
-      const isHovered = (name === this.hoveredObject);
-      const hasSelection = (this.selectedObject !== null);
-      
-      // SIMPLIFIED STATE LOGIC
-      if (isSelected) {
-        // SELECTED: Blue color, raised height (3D only)
-        this.applySelectedColors(item.material, name);
-        item.material.alpha = 1.0;
-        
-        if (this.isTopView) {
-          item.mesh.scaling.y = item.originalHeight; // Keep original in top view
-        } else {
-          this.setHeight(item.mesh, item.originalHeight * 1.4); // Raise in 3D
+
+      // Update all other objects to be semi-transparent but still visible
+      this.items.forEach((item, name) => {
+        if (name !== this.selectedObject) {
+          this.applyUnselectedState(name, item);
         }
-        
-      } else if (isHovered && !hasSelection) {
-        // HOVER: Bright blue (only when nothing selected)
-        item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
-        item.material.emissiveColor = new Color3(0.1, 0.1, 0.1);
-        item.material.alpha = 1.0;
-        item.mesh.scaling.y = item.originalHeight;
-        
-      } else if (hasSelection && !isSelected) {
-        // DIMMED: Darker colors, flattened (3D only)
-        this.applyDimmedColors(item.material, name);
-        
-        // CRITICAL: In top view, NEVER change alpha or height
-        if (this.isTopView) {
-          item.material.alpha = 1.0;
-          item.mesh.scaling.y = item.originalHeight;
-        } else {
-          item.material.alpha = 0.5;
-          this.setHeight(item.mesh, 0.01); // Flatten in 3D only
-        }
-        
-      } else {
-        // NORMAL: Default appearance
-        this.applyNormalColors(item.material, name);
-        item.material.alpha = 1.0;
-        
-        if (this.isTopView) {
-          item.mesh.scaling.y = item.originalHeight;
-        } else {
-          this.setHeight(item.mesh, item.originalHeight);
-        }
-      }
-    });
+      });
+    } else {
+      // No selection - ensure all objects are fully visible
+      this.items.forEach((item, name) => {
+        this.applyNormalState(name, item);
+      });
+    }
+
+    console.log(`✅ Visual update complete - all objects should remain visible`);
   }
 
-  // Helper: Set height (with animation in 3D view)
-  private setHeight(mesh: AbstractMesh, targetHeight: number) {
+  // SIMPLIFIED: Apply selected state
+  private applySelectedState(name: string, item: BMCItem) {
+    console.log(`✅ Applying SELECTED state to ${name}`);
+
+    // Colors for selection
+    if (name === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+      item.material.emissiveColor = new Color3(0.3, 0.0, 0.0);
+    } else if (name === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
+      item.material.emissiveColor = new Color3(0.0, 0.15, 0.08);
+    } else {
+      item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+      item.material.emissiveColor = new Color3(0.0, 0.1, 0.2);
+    }
+
+    // Always full opacity
+    item.material.alpha = 1.0;
+
+    // Height animation only in 3D view
     if (this.isTopView) {
-      // Never animate in top view, just set directly
+      item.mesh.scaling.y = item.originalHeight;
+    } else {
+      this.animateHeight(item.mesh, item.originalHeight * 1.4);
+    }
+  }
+
+  // SIMPLIFIED: Apply hover state
+  private applyHoverState(item: BMCItem, name: string) {
+    console.log(`🖱️ Applying HOVER state to ${name}`);
+
+    // Hover uses bright blue for all
+    item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+    item.material.emissiveColor = new Color3(0.1, 0.1, 0.1);
+    item.material.alpha = 1.0;
+
+    // No height change for hover in top view
+    if (this.isTopView) {
+      item.mesh.scaling.y = item.originalHeight;
+    }
+  }
+
+  // SIMPLIFIED: Apply dimmed state
+  private applyDimmedState(item: BMCItem, name: string) {
+    console.log(`🔅 Applying DIMMED state to ${name}`);
+
+    // Darker colors for dimmed
+    if (name === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.2, 0.0, 0.0);
+    } else if (name === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.0, 0.15, 0.10);
+    } else {
+      item.material.diffuseColor = new Color3(0.05, 0.05, 0.05);
+    }
+    item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+
+    // CRITICAL FIX: In top view, NEVER change opacity
+    if (this.isTopView) {
+      item.material.alpha = 1.0;  // Always full opacity in top view
+      item.mesh.scaling.y = item.originalHeight;  // Always original height
+    } else {
+      item.material.alpha = 0.5;  // Only dim in 3D view
+      this.animateHeight(item.mesh, 0.01);  // Flatten to 0.01
+    }
+  }
+
+  // SIMPLIFIED: Apply normal state
+  private applyNormalState(name: string, item: BMCItem) {
+    console.log(`🔵 Applied normal state to ${name}: visible=true, alpha=1.0`);
+
+    // Ensure mesh is visible and enabled
+    item.mesh.isVisible = true;
+    item.mesh.setEnabled(true);
+
+    // Full visibility and maintain current height
+    item.material.alpha = 1.0;
+
+    // Labels fully visible
+    this.makeLabelVisible(name, 1.0);
+  }
+
+  // Helper for height animation
+  private animateHeight(mesh: AbstractMesh, targetHeight: number) {
+    // Never animate in top view
+    if (this.isTopView) {
       return;
     }
-    
+
     if (this.viewTransitionManager && mesh instanceof Mesh) {
       this.viewTransitionManager.animateMeshHeight(mesh, targetHeight, {
         duration: 2500,
@@ -189,53 +297,50 @@ export class CleanBMCSystem {
     }
   }
 
-  // Helper: Apply selected colors
-  private applySelectedColors(material: StandardMaterial, name: string) {
-    if (name === "Cost Structure") {
-      material.diffuseColor = new Color3(0.35, 0.0, 0.0);
-      material.emissiveColor = new Color3(0.3, 0.0, 0.0);
-    } else if (name === "Revenue Streams") {
-      material.diffuseColor = new Color3(0.0, 0.20, 0.12);
-      material.emissiveColor = new Color3(0.0, 0.15, 0.08);
+  // Set default appearance for an item WITHOUT changing height
+  private setDefaultAppearancePreserveHeight(itemName: string) {
+    const item = this.items.get(itemName);
+    if (!item) return;
+
+    console.log(`🎨 Setting default appearance for ${itemName} (preserving height)`);
+
+    // Set default colors based on section
+    if (itemName === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+    } else if (itemName === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
     } else {
-      material.diffuseColor = new Color3(0.0, 0.3, 0.8);
-      material.emissiveColor = new Color3(0.0, 0.1, 0.2);
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
     }
+
+    item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    item.material.alpha = 1.0;
+    // DO NOT change mesh.scaling.y - preserve original height
+
+    this.makeLabelVisible(itemName);
   }
 
-  // Helper: Apply dimmed colors
-  private applyDimmedColors(material: StandardMaterial, name: string) {
-    if (name === "Cost Structure") {
-      material.diffuseColor = new Color3(0.2, 0.0, 0.0);
-    } else if (name === "Revenue Streams") {
-      material.diffuseColor = new Color3(0.0, 0.15, 0.10);
+  // Set default appearance for an item
+  private setDefaultAppearance(itemName: string) {
+    const item = this.items.get(itemName);
+    if (!item) return;
+
+    console.log(`🎨 Setting default appearance for ${itemName}`);
+
+    // Set default colors based on section
+    if (itemName === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);
+    } else if (itemName === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
     } else {
-      material.diffuseColor = new Color3(0.05, 0.05, 0.05);
+      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
     }
-    material.emissiveColor = new Color3(0.0, 0.0, 0.0);
-  }
 
-  // Helper: Apply normal colors
-  private applyNormalColors(material: StandardMaterial, name: string) {
-    if (name === "Cost Structure") {
-      material.diffuseColor = new Color3(0.35, 0.0, 0.0);
-    } else if (name === "Revenue Streams") {
-      material.diffuseColor = new Color3(0.0, 0.20, 0.12);
-    } else {
-      material.diffuseColor = new Color3(0.07, 0.07, 0.07);
-    }
-    material.emissiveColor = new Color3(0.0, 0.0, 0.0);
-  }
+    item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
+    item.material.alpha = 1.0;
+    item.mesh.scaling.y = item.originalHeight;
 
-  // Get selected object
-  getSelectedObject(): string | null {
-    return this.selectedObject;
-  }
-
-  // Select an object
-  selectObject(objectName: string | null) {
-    this.selectedObject = objectName;
-    this.updateVisuals();
+    this.makeLabelVisible(itemName);
   }
 
   // Check if an item exists
@@ -253,9 +358,15 @@ export class CleanBMCSystem {
     return this.isTopView;
   }
 
-  // No longer needed - removed BMC state manager integration
-  setBMCStateManager(bmcStateManager: any) {
-    // Removed - was causing errors
+  // SIMPLIFIED: Apply unselected state
+  private applyUnselectedState(name: string, item: BMCItem): void {
+    // Semi-transparent state for non-selected objects - but not too dim
+    item.material.alpha = Math.max(0.5, item.material.alpha || 1.0); // Minimum 50% visibility
+
+    // Keep labels visible but slightly dimmed
+    this.makeLabelVisible(name, 0.7);
+
+    console.log(`🔹 Applied unselected state to ${name}: alpha=${item.material.alpha}`);
   }
 }
 
