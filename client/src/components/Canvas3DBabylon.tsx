@@ -1362,7 +1362,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`🔍 DEBUG: cleanBMCRef.current.onSelect completed successfully`);
           } catch (error) {
             console.error(`❌ ERROR in cleanBMCRef.current.onSelect(${meshName}):`, error);
-            console.error(`❌ Stack trace:`, error.stack);
+            console.error(`❌ Stack trace:`, error instanceof Error ? error.stack : 'No stack trace available');
           }
         } else {
           console.error(`❌ cleanBMCRef.current is null/undefined!`);
@@ -2979,7 +2979,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Update visuals immediately to prevent white flash
       if (cleanBMCRef.current) {
-
+        cleanBMCRef.current.setTopViewMode(false);
       }
     } else if (!is3D) {
       const selectedObject = getSelectedObject();
@@ -2995,7 +2995,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Update visuals immediately without delay to prevent white flash
       if (cleanBMCRef.current) {
-
+        cleanBMCRef.current.setTopViewMode(isOrthographic);
       }
     }
   }, [isOrthographic, is3D]);
