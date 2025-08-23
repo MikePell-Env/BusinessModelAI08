@@ -282,6 +282,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
   }, [bmcState]);
   
+  // Update CleanBMCSystem when view mode changes
+  useEffect(() => {
+    if (cleanBMCRef.current) {
+      console.log(`📐 Updating CleanBMCSystem top view mode: ${isOrthographic}`);
+      cleanBMCRef.current.setTopViewMode(isOrthographic);
+    }
+  }, [isOrthographic]);
+  
   // REMOVED: Legacy transform utilities - now handled by unified BMC system
 
   // BMC Section Name Mapping: Convert between display names and BMC component names
