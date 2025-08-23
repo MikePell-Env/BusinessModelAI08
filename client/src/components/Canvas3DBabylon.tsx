@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { 
   Engine, 
@@ -33,9 +34,9 @@ import { BMCComponentName } from '@/types/bmcState';
 import { CleanBMCSystem, cleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { BabylonMaterialManager } from '@/lib/babylon/BabylonMaterialManager';
-// import { CameraManager } from './babylon/CameraManager';
-// import { BMCModelLoader } from './babylon/BMCModelLoader';
-// import { SceneSetup } from './babylon/SceneSetup';
+import { CameraManager } from './babylon/CameraManager';
+import { BMCModelLoader } from './babylon/BMCModelLoader';
+import { SceneSetup } from './babylon/SceneSetup';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -304,31 +305,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Basic scene setup inline to avoid import issues
-    const light = new HemisphericLight("hemiLight", new Vector3(0, 1, 0), scene);
-    light.intensity = 0.7;
+    // Initialize scene setup
+    const sceneSetup = new SceneSetup(scene);
+    sceneSetup.setupEnvironment();
 
-    const dirLight = new DirectionalLight("dirLight", new Vector3(-1, -1, -1), scene);
-    dirLight.intensity = 0.5;
+    // Initialize camera manager
+    cameraManagerRef.current = new CameraManager(scene, canvasElement);
+    
+    // Set initial camera mode
+    cameraManagerRef.current.setCameraMode(isOrthographic);
 
-    // Create cameras
-    const camera = new ArcRotateCamera(
-      "camera",
-      -Math.PI / 2,
-      Math.PI / 2.5,
-      12,
-      Vector3.Zero(),
-      scene
-    );
-    camera.attachControl(canvasElement, true);
-    camera.lowerRadiusLimit = 5;
-    camera.upperRadiusLimit = 25;
-
+    // Restore camera state if available
     const savedCameraState = getCamera3DState();
-    if (savedCameraState) {
-      camera.alpha = savedCameraState.alpha;
-      camera.beta = savedCameraState.beta;
-      camera.radius = savedCameraState.radius;
+    if (savedCameraState && !isOrthographic) {
+      cameraManagerRef.current.restoreCameraState(
+        savedCameraState.alpha,
+        savedCameraState.beta,
+        savedCameraState.radius
+      );
     }
 
     // Initialize GUI
@@ -359,25 +353,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     });
 
-    // Create simple placeholder boxes for now
-    const valueProposition = MeshBuilder.CreateBox("valueProposition", {size: 2}, scene);
-    valueProposition.position = new Vector3(0, 1, 0);
-    
-    const customerSegments = MeshBuilder.CreateBox("customerSegments", {size: 1.5}, scene);
-    customerSegments.position = new Vector3(3, 1, 0);
-    
-    const keyPartners = MeshBuilder.CreateBox("keyPartners", {size: 1.5}, scene);
-    keyPartners.position = new Vector3(-3, 1, 0);
+    // Initialize BMC Model Loader
+    const bmcModelLoader = new BMCModelLoader(scene, canvas, cleanBMCRef.current);
 
-    // Basic material
-    const material = new StandardMaterial("basicMat", scene);
-    material.diffuseColor = new Color3(0.07, 0.07, 0.07);
-    
-    valueProposition.material = material;
-    customerSegments.material = material.clone("mat2");
-    keyPartners.material = material.clone("mat3");
+    // Load and setup BMC models
+    const initializeModels = async () => {
+      try {
+        console.log("🔄 Loading BMC models...");
+        
+        // Load main BMC model
+        const mainBMCMeshes = await bmcModelLoader.loadMainBMC();
+        
+        // Load revenue streams and cost structure
+        const revenueStreamsMeshes = await bmcModelLoader.loadRevenueStreams();
+        const costStructureMeshes = await bmcModelLoader.loadCostStructure();
 
-    console.log("✅ Basic 3D scene created");
+        // Setup interactions
+        bmcModelLoader.setupMainBMCInteractions(mainBMCMeshes, advancedTexture, createBillboardPanel);
+        bmcModelLoader.setupRevenueStreamsInteractions(revenueStreamsMeshes, advancedTexture, createBillboardPanel);
+        bmcModelLoader.setupCostStructureInteractions(costStructureMeshes, advancedTexture, createBillboardPanel);
+
+        // Apply animations
+        bmcModelLoader.applyAnimations([...mainBMCMeshes, ...revenueStreamsMeshes, ...costStructureMeshes]);
+
+        console.log("✅ BMC models loaded and configured");
+      } catch (error) {
+        console.error("❌ Error loading BMC models:", error);
+      }
+    };
+
+    initializeModels();
 
     // Initialize Animation and Material Managers
     animationManagerRef.current = new BabylonAnimationManager(scene);
@@ -421,13 +426,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
 
     // Try to save heights with retries
-    if (!saveOriginalHeights()) {
-      setTimeout(() => {
-        if (!saveOriginalHeights()) {
-          setTimeout(() => saveOriginalHeights(), 1000);
-        }
-      }, 500);
-    }
+    setTimeout(() => {
+      if (!saveOriginalHeights()) {
+        setTimeout(() => {
+          if (!saveOriginalHeights()) {
+            setTimeout(() => saveOriginalHeights(), 1000);
+          }
+        }, 500);
+      }
+    }, 1000);
 
     // Start render loop
     let isDisposed = false;
@@ -442,6 +449,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       isDisposed = true;
 
       try {
+        if (currentBillboardPanel && advancedTexture) {
+          advancedTexture.removeControl(currentBillboardPanel);
+        }
+        
+        if (cameraManagerRef.current) {
+          cameraManagerRef.current.dispose();
+        }
+
         if (scene && !scene.isDisposed) {
           scene.dispose();
         }
@@ -450,6 +465,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
         sceneRef.current = null;
         engineRef.current = null;
+        cameraManagerRef.current = null;
       } catch (e) {
         console.warn('Error during Babylon.js cleanup:', e);
       }
