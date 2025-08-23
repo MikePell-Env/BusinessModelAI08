@@ -78,9 +78,7 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         modelLoaderRef.current = modelLoader;
         
         // Load main BMC model
-        console.log('Loading main BMC model...');
         const mainModel = await modelLoader.loadMainBMC();
-        console.log('Main model loaded:', mainModel);
         
         // Register BMC sections with CleanBMCSystem
         mainModel.meshes.forEach(mesh => {
@@ -97,9 +95,9 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }
         });
         
-        // Load additional models
-        await modelLoader.loadRevenueStreams();
-        await modelLoader.loadCostStructure();
+        // Load additional models (comment out for now to test)
+        // await modelLoader.loadRevenueStreams();
+        // await modelLoader.loadCostStructure();
         
         // 7. Setup interactions
         const interactionHandler = new InteractionHandler(scene);
@@ -153,11 +151,9 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         panelManagerRef.current = panelManager;
         
         // 10. Start render loop
-        console.log('Starting render loop...');
         sceneSetup.startRenderLoop(() => {
           scene.render();
         });
-        console.log('Render loop started');
         
         // Handle window resize
         window.addEventListener("resize", () => {
@@ -165,13 +161,9 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         });
         
         setIsInitialized(true);
-        console.log('3D scene initialized successfully');
-        console.log('Scene has', scene.meshes.length, 'meshes');
-        console.log('Active camera:', scene.activeCamera?.name);
         debugLog.info('main', '3D BMC visualization initialized successfully');
         
       } catch (error) {
-        console.error('Failed to initialize 3D scene:', error);
         debugLog.error('main', 'Failed to initialize 3D scene', error);
       }
     };
@@ -195,7 +187,7 @@ const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       });
       setIsInitialized(false);
     };
-  }, []); // Only run once on mount
+  }, [canvas]); // Dependency on canvas to reinitialize if needed
 
   // Handle view mode changes
   useEffect(() => {
