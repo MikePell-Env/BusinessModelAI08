@@ -50,6 +50,22 @@ export class CleanBMCSystem {
   setTopViewMode(isTopView: boolean) {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
+    
+    // CRITICAL: If entering top view, restore all heights FIRST
+    if (isTopView) {
+      console.log(`📐 Entering TOP VIEW - restoring all heights to original values`);
+      this.items.forEach((item, name) => {
+        // Skip Revenue Streams and Cost Structure (separate GLB models)
+        if (name === "Revenue Streams" || name === "Cost Structure") {
+          console.log(`⚠️ Skipping height restore for separate GLB: ${name}`);
+          return;
+        }
+        // Directly set height without animation
+        item.mesh.scaling.y = item.originalHeight;
+        console.log(`✅ Restored ${name} height to ${item.originalHeight}`);
+      });
+    }
+    
     // Update visuals when view mode changes
     this.updateAllVisuals();
   }
@@ -323,12 +339,14 @@ export class CleanBMCSystem {
     console.log(`🎨 Updating all visuals, selected: ${selectedItem}, isTopView: ${this.isTopView}`);
     
     this.items.forEach((item, name) => {
-      console.log(`🎨 Processing ${name}:`, {
+      // Log current mesh state BEFORE changes
+      console.log(`🎨 BEFORE Processing ${name}:`, {
         isSelected: name === selectedItem,
-        hasLabel: !!item.label,
-        hasMaterial: !!item.labelMaterial,
-        currentAlpha: item.labelMaterial?.alpha,
-        isTopView: this.isTopView
+        currentScalingY: item.mesh.scaling.y,
+        currentAlpha: item.material.alpha,
+        isTopView: this.isTopView,
+        meshVisible: item.mesh.isVisible,
+        meshEnabled: item.mesh.isEnabled
       });
       
       // ALWAYS update labels FIRST to ensure they stay visible
@@ -393,6 +411,14 @@ export class CleanBMCSystem {
       
       // CRITICAL: Force label visibility again after any material changes
       this.makeLabelVisible(name);
+      
+      // Log AFTER state
+      console.log(`🎨 AFTER Processing ${name}:`, {
+        scalingY: item.mesh.scaling.y,
+        alpha: item.material.alpha,
+        meshVisible: item.mesh.isVisible,
+        meshEnabled: item.mesh.isEnabled
+      });
     });
   }
 
