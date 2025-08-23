@@ -28,8 +28,14 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplor
               currentPage === 'home' ? 'text-blue-400' : 'text-white'
             }`}
           >
-            Home
+            Web
           </button>
+          <span className="text-gray-500 text-sm font-medium cursor-not-allowed">
+            Excel
+          </span>
+          <span className="text-gray-500 text-sm font-medium cursor-not-allowed">
+            PowerPoint
+          </span>
           <a 
             href="#about" 
             className="text-white hover:text-gray-300 transition-colors text-sm font-medium"
@@ -42,12 +48,6 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplor
           >
             Contact
           </a>
-          <span className="text-gray-500 text-sm font-medium cursor-not-allowed">
-            Excel
-          </span>
-          <span className="text-gray-500 text-sm font-medium cursor-not-allowed">
-            PowerPoint
-          </span>
         </nav>
       </div>
     </header>
