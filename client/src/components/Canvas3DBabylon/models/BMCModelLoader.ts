@@ -133,11 +133,16 @@ export class BMCModelLoader {
         throw new Error('No meshes found in Cost Structure model');
       }
       
-      // CRITICAL FIX: Rename all meshes to avoid naming conflicts with Revenue Streams
+      // CRITICAL FIX: Rename ALL meshes to avoid naming conflicts with Revenue Streams
       result.meshes.forEach((mesh, index) => {
+        const originalName = mesh.name;
         if (mesh.name === "RevenueStreams") {
-          mesh.name = `CostStructureMesh_${index}`;
-          console.log(`🔧 Renamed mesh from "RevenueStreams" to "${mesh.name}"`);
+          mesh.name = "CostStructure";
+          console.log(`🔧 Renamed main mesh from "${originalName}" to "${mesh.name}"`);
+        } else if (mesh.name !== "__root__") {
+          // Rename any other meshes to avoid conflicts
+          mesh.name = `CostStructure_${originalName}_${index}`;
+          console.log(`🔧 Renamed child mesh from "${originalName}" to "${mesh.name}"`);
         }
       });
       

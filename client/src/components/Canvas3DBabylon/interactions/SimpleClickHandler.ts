@@ -82,7 +82,7 @@ export class SimpleClickHandler {
       "CustomerChannels": "Customer Relationships",  // Note: these are swapped
       "CustomerRelationships": "CustomerChannels",  // Note: these are swapped  
       "RevenueStreams": "Revenue Streams",
-      "CostStructureMesh_1": "Cost Structure"
+      "CostStructure": "Cost Structure"
     };
     
     return nameMapping[meshName] || null;
