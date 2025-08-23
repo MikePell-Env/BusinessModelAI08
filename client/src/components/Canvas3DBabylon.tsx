@@ -1353,8 +1353,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     clickHandler.setCallbacks({
       onSingleClick: (meshName: string, mesh: AbstractMesh) => {
         console.log(`🖱️ Single click: ${meshName}`);
+        console.log(`🔍 DEBUG: cleanBMCRef.current exists: ${!!cleanBMCRef.current}`);
+        
         if (cleanBMCRef.current) {
-          cleanBMCRef.current.onSelect(meshName);
+          console.log(`🔍 DEBUG: About to call cleanBMCRef.current.onSelect(${meshName})`);
+          try {
+            cleanBMCRef.current.onSelect(meshName);
+            console.log(`🔍 DEBUG: cleanBMCRef.current.onSelect completed successfully`);
+          } catch (error) {
+            console.error(`❌ ERROR in cleanBMCRef.current.onSelect(${meshName}):`, error);
+            console.error(`❌ Stack trace:`, error.stack);
+          }
+        } else {
+          console.error(`❌ cleanBMCRef.current is null/undefined!`);
         }
       },
       onDoubleClick: (meshName: string, mesh: AbstractMesh, position: Vector3) => {
