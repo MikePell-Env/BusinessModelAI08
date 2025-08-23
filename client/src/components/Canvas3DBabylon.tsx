@@ -2147,7 +2147,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           }
           
           // Measure Customer Segments dimensions for Revenue Streams width alignment
-          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
+          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Customer Segments");
           if (segmentsMesh) {
             const boundingInfo = segmentsMesh.getBoundingInfo();
             const worldMatrix = segmentsMesh.getWorldMatrix();
@@ -2213,7 +2213,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           });
           
           const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
-          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
+          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Customer Segments");
           
           if (revenueStreamsMesh && segmentsMesh) {
             // Get current Revenue Streams dimensions
