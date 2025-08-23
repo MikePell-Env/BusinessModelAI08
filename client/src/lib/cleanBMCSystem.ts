@@ -69,14 +69,16 @@ export class CleanBMCSystem {
 
   // Handle selection
   onSelect(sectionName: string) {
-    console.log(`🔍 DEBUG: CleanBMC onSelect called with: ${sectionName}`);
-    
-    // Special debugging for Cost Structure
-    if (sectionName === "Cost Structure") {
-      console.log(`🔍 DEBUG: Cost Structure selection process starting...`);
-      console.log(`🔍 DEBUG: Current selectedObject: ${this.selectedObject}`);
-      console.log(`🔍 DEBUG: Items in cleanBMCSystem:`, Array.from(this.items.keys()));
-    }
+    try {
+      console.log(`🔍 DEBUG: CleanBMC onSelect ENTRY - sectionName: "${sectionName}"`);
+      
+      // Special debugging for Cost Structure
+      if (sectionName === "Cost Structure") {
+        console.log(`🔍 DEBUG: Cost Structure selection process starting...`);
+        console.log(`🔍 DEBUG: Current selectedObject: ${this.selectedObject}`);
+        console.log(`🔍 DEBUG: Items in cleanBMCSystem:`, Array.from(this.items.keys()));
+        console.log(`🔍 DEBUG: bmcStateManager exists:`, !!this.bmcStateManager);
+      }
     
     // Toggle selection
     if (this.selectedObject === sectionName) {
@@ -108,11 +110,12 @@ export class CleanBMCSystem {
     }
 
     console.log(`🔍 DEBUG: About to call updateAllVisuals()`);
-    try {
-      this.updateAllVisuals();
-      console.log(`🔍 DEBUG: updateAllVisuals() completed successfully`);
+    this.updateAllVisuals();
+    console.log(`🔍 DEBUG: updateAllVisuals() completed successfully`);
     } catch (error) {
-      console.error(`❌ updateAllVisuals error:`, error);
+      console.error(`❌ CRITICAL ERROR in onSelect("${sectionName}"):`, error);
+      console.error(`❌ Stack:`, error.stack);
+      throw error; // Re-throw to see what's calling this
     }
   }
 
