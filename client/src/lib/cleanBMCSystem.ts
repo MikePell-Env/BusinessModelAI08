@@ -52,17 +52,18 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
 
-    // When entering top view, keep all objects at original height
+    // When entering top view, set all objects to full height (not flat)
     if (isTopView) {
-      console.log(`📐 Entering TOP VIEW - keeping original heights`);
+      console.log(`📐 Entering TOP VIEW - setting to full heights`);
       this.items.forEach((item, name) => {
-        // Keep original height in top view
-        item.mesh.scaling.y = item.originalHeight;
+        // Set to full height (same as normal state in 3D view)
+        const fullHeight = item.originalHeight * 2.0;  // Make them clearly visible
+        item.mesh.scaling.y = fullHeight;
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
         item.material.alpha = 1.0;  // Full opacity
         this.makeLabelVisible(name);
-        console.log(`   Set ${name}: height=${item.originalHeight}, alpha=1.0`);
+        console.log(`   Set ${name}: height=${fullHeight} (original=${item.originalHeight}), alpha=1.0`);
       });
     }
 
@@ -359,11 +360,12 @@ export class CleanBMCSystem {
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
 
-    // In top view, keep objects at original height
+    // In top view, keep objects at full height (never change heights)
     if (this.isTopView) {
-      // Maintain original height in top view
-      item.mesh.scaling.y = item.originalHeight;
-      console.log(`📐 TOP VIEW: Keeping ${name} at original height ${item.originalHeight}`);
+      // Maintain full height in top view
+      const fullHeight = item.originalHeight * 2.0;
+      item.mesh.scaling.y = fullHeight;
+      console.log(`📐 TOP VIEW: Keeping ${name} at full height ${fullHeight}`);
     }
 
     switch (state) {
