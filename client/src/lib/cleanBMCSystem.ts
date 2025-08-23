@@ -202,13 +202,23 @@ export class CleanBMCSystem {
     }
   }
 
-  // SELECTED STATE - Bright blue
+  // SELECTED STATE - Bright blue or original colors for Cost/Revenue
   private applySelectedState(name: string) {
     const item = this.items.get(name);
     if (!item) return;
 
-    item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);  // Bright blue
-    item.material.emissiveColor = new Color3(0.0, 0.1, 0.2);
+    // Color behavior: Cost Structure and Revenue Streams keep their original colors when selected
+    if (name === "Cost Structure") {
+      item.material.diffuseColor = new Color3(0.35, 0.0, 0.0);  // Keep original red
+      item.material.emissiveColor = new Color3(0.1, 0.0, 0.0);  // Red glow
+    } else if (name === "Revenue Streams") {
+      item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);  // Keep original green
+      item.material.emissiveColor = new Color3(0.0, 0.05, 0.03);  // Green glow
+    } else {
+      item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);  // Bright blue for others
+      item.material.emissiveColor = new Color3(0.0, 0.1, 0.2);
+    }
+    
     item.material.alpha = 1.0;
     
     // Height behavior: 3D Top = 0.01 (flattened), 3D View = original with animation
@@ -238,11 +248,16 @@ export class CleanBMCSystem {
     
     item.material.alpha = 1.0;
     
-    // Height behavior: 3D Top = 0.01 (flattened), 3D View = original height
+    // Height behavior: 3D Top = 0.01 (flattened), 3D View = check if another object is selected
     if (this.isTopView) {
       item.mesh.scaling.y = 0.01;  // Always flattened in 3D Top view
     } else {
-      item.mesh.scaling.y = item.originalHeight;  // Original height in 3D view
+      // If another object is already selected, keep hovered object flattened
+      if (this.selectedObject && this.selectedObject !== name) {
+        item.mesh.scaling.y = 0.01;  // Keep flattened when another object is selected
+      } else {
+        item.mesh.scaling.y = item.originalHeight;  // Original height when no selection or self-hover
+      }
     }
   }
 
