@@ -112,7 +112,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                 {/* Dialog Content */}
                 <div className="p-8">
                   <h2 className="text-xl text-gray-800 mb-6 text-center">
-                    Select how you want to import your business model information:
+                    <strong>Select</strong> how you want to import your business model information:
                   </h2>
 
                   <div className="grid grid-cols-3 gap-6">
