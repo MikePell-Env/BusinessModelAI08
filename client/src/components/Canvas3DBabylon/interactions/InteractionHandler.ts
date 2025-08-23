@@ -12,6 +12,7 @@ import {
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
+import { checkpointSystem } from '@/lib/debug/CheckpointSystem';
 
 interface ClickTimer {
   lastClickTime: number;
@@ -84,6 +85,20 @@ export class InteractionHandler {
         const timeDifference = currentTime - lastClickTime;
 
         debugLog.critical(`Click detected on ${sectionName}, time diff: ${timeDifference}ms`);
+
+        checkpointSystem.createCheckpoint(
+          'InteractionHandler.click', 
+          `Click on ${sectionName}`, 
+          { 
+            selectedObject: this.cleanBMC?.getSelectedObject() || null,
+            hoveredObject: null,
+            isTopView: this.cleanBMC?.getIsTopView() || false,
+            itemCount: 0,
+            visibleItems: [],
+            enabledItems: []
+          },
+          { timeDifference, sectionName }
+        );
 
         if (timeDifference < this.doubleClickThreshold && timeDifference > 50) {
           // Double-click detected

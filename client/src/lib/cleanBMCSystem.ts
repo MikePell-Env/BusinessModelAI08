@@ -1,6 +1,7 @@
 import { AbstractMesh, Color3, StandardMaterial, Mesh } from '@babylonjs/core';
 import { BMCStateManagerImpl } from './bmcStateManager';
 import { ViewTransitionManager } from '../components/Canvas3DBabylon/animations/ViewTransitionManager';
+import { checkpointSystem } from './debug/CheckpointSystem';
 
 // Assuming debugLog is available globally or imported from a utility file
 // For this example, let's mock it if it's not provided in the context
@@ -69,6 +70,14 @@ export class CleanBMCSystem {
   // Set whether we're in top view mode
   setTopViewMode(isTopView: boolean) {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
+    
+    checkpointSystem.createCheckpoint(
+      'CleanBMCSystem.setTopViewMode', 
+      `Setting top view mode to ${isTopView}`, 
+      this.getCurrentState(),
+      { newTopViewMode: isTopView, oldTopViewMode: this.isTopView }
+    );
+    
     this.isTopView = isTopView;
 
     // Ensure all objects remain visible in both view modes
@@ -182,64 +191,43 @@ export class CleanBMCSystem {
     console.log(`🔍 DEBUG: Current selectedObject: "${this.selectedObject}"`);
     console.log(`🔍 DEBUG: Requesting selection of: "${sectionName}"`);
 
-    try {
-      // Special validation for separate GLB models
-      if (sectionName === "Revenue Streams" || sectionName === "Cost Structure") {
-        console.log(`🔧 Validating separate GLB: ${sectionName}`);
-        const item = this.items.get(sectionName);
-        if (!item) {
-          console.error(`❌ ${sectionName} not registered in CleanBMCSystem`);
-          return;
-        }
-        if (!item.mesh || !item.material) {
-          console.error(`❌ ${sectionName} missing mesh or material`);
-          console.log(`  Has mesh: ${!!item.mesh}`);
-          console.log(`  Has material: ${!!item.material}`);
-          return;
-        }
-      }
+    checkpointSystem.createCheckpoint(
+      'CleanBMCSystem.onSelect', 
+      `Selection request: ${sectionName}`, 
+      this.getCurrentState(),
+      { requestedSelection: sectionName }
+    );
 
-      // Toggle behavior: if clicking on already selected object, deselect it
-      if (this.selectedObject === sectionName) {
-        console.log(`🔄 Deselecting already selected object: ${sectionName}`);
-        this.selectedObject = null;
-      } else {
-        console.log(`🎯 Selecting new object: ${sectionName}`);
-        this.selectedObject = sectionName;
-      }
-
-      console.log(`🔍 DEBUG: After selection logic - selectedObject: "${this.selectedObject}"`);
-
-      // Update BMC state manager
-      if (this.bmcStateManager) {
-        try {
-          const bmcComponent = this.convertNameToBMCComponent(sectionName);
-          if (bmcComponent) {
-            console.log(`🔍 DEBUG: Updating BMC state manager with: ${this.selectedObject ? bmcComponent : null}`);
-            // Cast to proper type to fix TypeScript error
-            this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent as any : null);
-          }
-        } catch (stateError) {
-          console.error('Error updating BMC state manager:', stateError);
-        }
-      }
-
-      console.log(`🔍 DEBUG: About to call updateAllVisuals...`);
-      this.updateAllVisuals();
-      console.log(`🔍 DEBUG: updateAllVisuals completed`);
-    } catch (error) {
-      console.error(`❌ Critical error in onSelect for ${sectionName}:`, error);
-      // Recovery: Ensure canvas doesn't go blank
-      this.items.forEach((item) => {
-        if (item && item.mesh) {
-          item.mesh.isVisible = true;
-          item.mesh.setEnabled(true);
-          if (item.material) {
-            item.material.alpha = 1.0;
-          }
-        }
-      });
+    // Toggle behavior: if clicking on already selected object, deselect it
+    if (this.selectedObject === sectionName) {
+      console.log(`🔄 Deselecting already selected object: ${sectionName}`);
+      this.selectedObject = null;
+    } else {
+      console.log(`🎯 Selecting new object: ${sectionName}`);
+      this.selectedObject = sectionName;
     }
+
+    checkpointSystem.createCheckpoint(
+      'CleanBMCSystem.onSelect', 
+      `Selection completed: ${this.selectedObject}`, 
+      this.getCurrentState()
+    );
+
+    console.log(`🔍 DEBUG: After selection logic - selectedObject: "${this.selectedObject}"`);
+
+    // Update BMC state manager
+    if (this.bmcStateManager) {
+      const bmcComponent = this.convertNameToBMCComponent(sectionName);
+      if (bmcComponent) {
+        console.log(`🔍 DEBUG: Updating BMC state manager with: ${this.selectedObject ? bmcComponent : null}`);
+        // Cast to proper type to fix TypeScript error
+        this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent as any : null);
+      }
+    }
+
+    console.log(`🔍 DEBUG: About to call updateAllVisuals...`);
+    this.updateAllVisuals();
+    console.log(`🔍 DEBUG: updateAllVisuals completed`);
   }
 
   // Clear selection
@@ -261,21 +249,46 @@ export class CleanBMCSystem {
 
   // Update all visual states following 3D Top view rules
   private updateAllVisuals(): void {
-    // Only log critical information, not every frame
-    if (this.selectedObject !== this.lastLoggedSelection) {
-      console.log(`🎨 Selection changed to: ${this.selectedObject || 'none'} in ${this.isTopView ? '3D Top' : '3D'} view`);
-      this.lastLoggedSelection = this.selectedObject;
-    }
+    try {
+      checkpointSystem.createCheckpoint(
+        'CleanBMCSystem.updateAllVisuals', 
+        'Starting visual update', 
+        this.getCurrentState()
+      );
+
+      // Only log critical information, not every frame
+      if (this.selectedObject !== this.lastLoggedSelection) {
+        console.log(`🎨 Selection changed to: ${this.selectedObject || 'none'} in ${this.isTopView ? '3D Top' : '3D'} view`);
+        this.lastLoggedSelection = this.selectedObject;
+      }
 
     this.items.forEach((item, name) => {
       // CRITICAL: Ensure mesh is always visible and enabled
       try {
+        checkpointSystem.createCheckpoint(
+          'CleanBMCSystem.updateAllVisuals', 
+          `Processing item: ${name}`, 
+          this.getCurrentState(),
+          { 
+            currentItem: name,
+            meshVisible: item.mesh.isVisible,
+            meshEnabled: item.mesh.isEnabled(),
+            materialExists: !!item.material
+          }
+        );
+
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
         
         // Ensure material exists and is properly configured
         if (!item.material) {
           console.error(`❌ No material for ${name}`);
+          checkpointSystem.createCheckpoint(
+            'CleanBMCSystem.updateAllVisuals', 
+            `ERROR: No material for ${name}`, 
+            this.getCurrentState(),
+            { errorItem: name }
+          );
           return;
         }
         
@@ -307,6 +320,15 @@ export class CleanBMCSystem {
         
       } catch (error) {
         console.error(`❌ Error updating visual for ${name}:`, error);
+        
+        checkpointSystem.createCheckpoint(
+          'CleanBMCSystem.updateAllVisuals', 
+          `CRASH: Error updating ${name}`, 
+          this.getCurrentState(),
+          { crashedItem: name, error: error.message },
+          error as Error
+        );
+        
         // Attempt recovery - ensure object stays visible
         try {
           item.mesh.isVisible = true;
@@ -316,9 +338,31 @@ export class CleanBMCSystem {
           }
         } catch (recoveryError) {
           console.error(`❌ Recovery failed for ${name}:`, recoveryError);
+          checkpointSystem.createCheckpoint(
+            'CleanBMCSystem.updateAllVisuals', 
+            `RECOVERY FAILED: ${name}`, 
+            this.getCurrentState(),
+            { recoveryFailedItem: name, recoveryError: recoveryError.message },
+            recoveryError as Error
+          );
         }
       }
     });
+
+    checkpointSystem.createCheckpoint(
+      'CleanBMCSystem.updateAllVisuals', 
+      'Visual update completed', 
+      this.getCurrentState()
+    );
+  } catch (overallError) {
+    console.error(`🚨 CRITICAL: updateAllVisuals completely failed:`, overallError);
+    checkpointSystem.createCheckpoint(
+      'CleanBMCSystem.updateAllVisuals', 
+      'CRITICAL: Complete method failure', 
+      this.getCurrentState(),
+      { overallError: overallError.message },
+      overallError as Error
+    );
   }
 
   // SIMPLIFIED: Apply selected state
@@ -583,6 +627,47 @@ export class CleanBMCSystem {
   // Check if in top view
   getIsTopView(): boolean {
     return this.isTopView;
+  }
+
+  // Get current state for checkpoints
+  private getCurrentState() {
+    const visibleItems: string[] = [];
+    const enabledItems: string[] = [];
+    
+    this.items.forEach((item, name) => {
+      if (item.mesh.isVisible) visibleItems.push(name);
+      if (item.mesh.isEnabled()) enabledItems.push(name);
+    });
+
+    return {
+      selectedObject: this.selectedObject,
+      hoveredObject: this.hoveredObject,
+      isTopView: this.isTopView,
+      itemCount: this.items.size,
+      visibleItems,
+      enabledItems
+    };
+  }
+
+  // Public method to show checkpoints
+  showCheckpoints(): void {
+    checkpointSystem.showSummary();
+    console.log("📋 Recent checkpoints:");
+    const recent = checkpointSystem.getRecentCheckpoints(10);
+    recent.forEach(cp => {
+      const time = new Date(cp.timestamp).toLocaleTimeString();
+      console.log(`  ${time} - ${cp.location} - ${cp.action}`, cp.state);
+    });
+  }
+
+  // Public method to show error checkpoints
+  showErrors(): void {
+    const errors = checkpointSystem.getErrorCheckpoints();
+    console.log(`🚨 Found ${errors.length} error checkpoints:`);
+    errors.forEach(cp => {
+      const time = new Date(cp.timestamp).toLocaleTimeString();
+      console.log(`  ${time} - ${cp.location} - ${cp.action}`, cp.error?.message);
+    });
   }
 
 
