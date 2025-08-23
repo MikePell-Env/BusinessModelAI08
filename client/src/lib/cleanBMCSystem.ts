@@ -281,6 +281,13 @@ export class CleanBMCSystem {
         console.log(`🎨 Applied NORMAL: ${name} -> original color`);
         break;
     }
+    
+    } catch (error) {
+      console.error(`❌ CRASH in applyState(${name}, ${state}):`, error);
+      console.error(`❌ Error details:`, error.message);
+      console.error(`❌ Stack:`, error.stack);
+      throw error;
+    }
   }
 
   // Convert string state to MaterialManager state type
