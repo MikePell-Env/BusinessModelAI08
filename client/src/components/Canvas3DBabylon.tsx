@@ -626,25 +626,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       "topViewCamera",
       -Math.PI / 2,  // Alpha - same rotation as main camera
       0.01,          // Beta - nearly straight down (0.01 to avoid gimbal lock)
-      35,            // Radius - high above to flatten perspective
+      28,            // Radius - optimized to show full grid plane
       Vector3.Zero(), // Target at origin
       scene
     );
     topViewCamera.setTarget(Vector3.Zero());
     
     // Configure top view camera for minimal distortion
-    topViewCamera.fov = 0.4; // Narrow field of view to reduce perspective distortion
+    topViewCamera.fov = 0.6; // Balanced FOV to show full grid without too much distortion
     topViewCamera.minZ = 0.1;
     topViewCamera.maxZ = 100;
     
     // Set limits for top view camera
-    topViewCamera.lowerRadiusLimit = 20;  // Minimum height
-    topViewCamera.upperRadiusLimit = 50;  // Maximum height
+    topViewCamera.lowerRadiusLimit = 15;  // Minimum height
+    topViewCamera.upperRadiusLimit = 40;  // Maximum height
     topViewCamera.lowerBetaLimit = 0.01;  // Keep nearly straight down
     topViewCamera.upperBetaLimit = 0.01;  // Prevent rotation from top view
-    
-    // Store as orthoCamera for compatibility
-    const orthoCamera = topViewCamera;
     
     // Setup controls for top view camera
     const setupOrthoControls = () => {
@@ -655,7 +652,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       topViewCamera.attachControl(canvas, true);
       
       // Adjust wheel sensitivity for smoother zooming
-      topViewCamera.wheelPrecision = 100; // Higher = less sensitive
+      topViewCamera.wheelPrecision = 80; // Balanced sensitivity
       
       // Mouse wheel zoom (adjusts radius/height)
       const onWheel = (event: WheelEvent) => {
@@ -686,7 +683,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Store camera references
     cameraRef.current = perspectiveCamera;
-    orthoCameraRef.current = topViewCamera; // Use perspective camera for top view
+    orthoCameraRef.current = topViewCamera as any; // Cast to any for compatibility
     
     // Set active camera based on mode
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;

@@ -111,6 +111,9 @@ export class CleanBMCSystem {
     // CRITICAL: Use ALPHATEST mode to enable PNG transparency while staying opaque
     (item.labelMaterial as any).transparencyMode = 1; // Material.MATERIAL_ALPHATEST = 1
     
+    // Fix banding artifacts in top view by adjusting alpha test threshold
+    (item.labelMaterial as any).alphaCutOff = 0.4; // Threshold for alpha testing
+    
     // REMOVE emissive override that may interfere with PNG texture rendering
     // Keep original emissive settings to avoid texture corruption
     
@@ -129,13 +132,15 @@ export class CleanBMCSystem {
       (item.labelMaterial.diffuseTexture as any).wrapV = 1; // CLAMP
     }
     
-    // CRITICAL: Labels must participate in normal depth testing, not render on top
-    item.label.renderingGroupId = 0; // Same group as 3D objects for proper occlusion
+    // Fix depth fighting and banding in top view
+    item.label.renderingGroupId = 1; // Render labels after 3D objects to prevent z-fighting
     
-    // Enable proper depth testing for labels
+    // Adjust depth settings to prevent banding artifacts
     if (item.labelMaterial) {
-      item.labelMaterial.needDepthPrePass = false; // Normal depth testing
-      (item.labelMaterial as any).depthFunction = 515; // Engine.LEQUAL for normal depth testing
+      item.labelMaterial.needDepthPrePass = true; // Enable depth pre-pass to fix banding
+      item.labelMaterial.forceDepthWrite = true; // Force depth writing
+      (item.labelMaterial as any).separateCullingPass = true; // Separate culling for labels
+      (item.labelMaterial as any).depthFunction = 519; // Engine.ALWAYS for labels to prevent banding
     }
     
     console.log(`✅ Label ${itemName} visibility enforced: visibility=${item.label.visibility}, alpha=${item.labelMaterial.alpha}, renderingGroup=${item.label.renderingGroupId}`);
