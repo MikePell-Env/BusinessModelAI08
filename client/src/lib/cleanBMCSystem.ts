@@ -55,11 +55,18 @@ export class CleanBMCSystem {
     if (isTopView) {
       console.log(`📐 Entering TOP VIEW - ensuring all heights are correct`);
       this.items.forEach((item, name) => {
-        // For ALL items (including Revenue/Cost), ensure they're not flattened
-        // Don't animate, just ensure they're visible
+        // Skip Revenue Streams and Cost Structure - they're separate GLB models
+        // that shouldn't have their scaling modified
+        if (name === "Revenue Streams" || name === "Cost Structure") {
+          console.log(`⏭️ Skipping height check for separate GLB: ${name}`);
+          return;
+        }
+        
+        // For main BMC items, ensure they're not flattened
         if (item.mesh.scaling.y < 0.5) {
+          const oldHeight = item.mesh.scaling.y;
           item.mesh.scaling.y = item.originalHeight;
-          console.log(`✅ Fixed ${name} height from ${item.mesh.scaling.y} to ${item.originalHeight}`);
+          console.log(`✅ Fixed ${name} height from ${oldHeight} to ${item.originalHeight}`);
         }
       });
     }
@@ -69,12 +76,11 @@ export class CleanBMCSystem {
   }
   
   // Helper method for smooth height animations
-  private animateHeight(mesh: AbstractMesh, targetHeight: number) {
+  private animateHeight(mesh: AbstractMesh, targetHeight: number, itemName?: string) {
     // Skip height animations entirely for Revenue Streams and Cost Structure
     // These are separate GLB models with different scaling behavior
-    const meshName = mesh.name;
-    if (meshName && (meshName.includes('revenue') || meshName.includes('cost'))) {
-      console.log(`⚠️ Skipping height animation for separate GLB model: ${meshName}`);
+    if (itemName && (itemName === "Revenue Streams" || itemName === "Cost Structure")) {
+      console.log(`⚠️ Skipping height animation for separate GLB model: ${itemName}`);
       return;
     }
     
@@ -255,7 +261,7 @@ export class CleanBMCSystem {
     item.material.alpha = 1.0;
     // Only animate height if NOT in top view
     if (!this.isTopView) {
-      this.animateHeight(item.mesh, item.originalHeight);
+      this.animateHeight(item.mesh, item.originalHeight, itemName);
     }
 
     // Always ensure label visibility
@@ -288,7 +294,7 @@ export class CleanBMCSystem {
       item.material.alpha = 1.0;
       // Only animate height if NOT in top view
       if (!this.isTopView) {
-        this.animateHeight(item.mesh, item.originalHeight);
+        this.animateHeight(item.mesh, item.originalHeight, itemName);
       }
     } else {
       // Back to original colors
@@ -308,7 +314,7 @@ export class CleanBMCSystem {
       item.material.alpha = 1.0;
       // Only animate height if NOT in top view
       if (!this.isTopView) {
-        this.animateHeight(item.mesh, item.originalHeight);
+        this.animateHeight(item.mesh, item.originalHeight, itemName);
       }
     }
     
@@ -358,7 +364,7 @@ export class CleanBMCSystem {
         
         // Only animate height in 3D View
         if (!this.isTopView) {
-          this.animateHeight(item.mesh, item.originalHeight);
+          this.animateHeight(item.mesh, item.originalHeight, name);
         }
         
       } else if (selectedItem) {
@@ -368,7 +374,7 @@ export class CleanBMCSystem {
         
         // Only flatten in 3D View
         if (!this.isTopView) {
-          this.animateHeight(item.mesh, 0.1);
+          this.animateHeight(item.mesh, 0.1, name);
         }
         
       } else {
@@ -387,7 +393,7 @@ export class CleanBMCSystem {
         
         // Only restore height in 3D View
         if (!this.isTopView) {
-          this.animateHeight(item.mesh, item.originalHeight);
+          this.animateHeight(item.mesh, item.originalHeight, name);
         }
       }
       
@@ -421,7 +427,7 @@ export class CleanBMCSystem {
       item.material.alpha = 1.0;
       // Only animate height if NOT in top view (in restoreAllToDefault)
       if (!this.isTopView) {
-        this.animateHeight(item.mesh, item.originalHeight);
+        this.animateHeight(item.mesh, item.originalHeight, name);
       }
       
       // LAST: Force label visibility again after material changes
