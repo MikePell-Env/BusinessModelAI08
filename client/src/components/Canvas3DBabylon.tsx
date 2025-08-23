@@ -269,13 +269,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     cleanBMCRef.current.setBMCStateManager(bmcState);
     
-    // CRITICAL FIX: Connect MaterialManager to prevent material wars
-    if (materialManagerRef.current) {
-      cleanBMCRef.current.setMaterialManager(materialManagerRef.current);
-      console.log("🔗 MaterialManager integration enabled - material conflicts resolved");
-    } else {
-      console.warn("⚠️ MaterialManager not available yet - will use fallback material system");
-    }
+    // REMOVED: MaterialManager integration - using direct property modification instead
     
     console.log("🔗 Injection complete");
     
@@ -1362,11 +1356,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Initialize unified systems
     materialManagerRef.current = new MaterialManager(scene);
     
-    // CRITICAL FIX: Connect MaterialManager to CleanBMCSystem immediately upon creation
-    if (cleanBMCRef.current && materialManagerRef.current) {
-      cleanBMCRef.current.setMaterialManager(materialManagerRef.current);
-      console.log("🔗 MaterialManager connected to CleanBMCSystem during scene setup - material wars prevented");
-    }
+    // REMOVED: MaterialManager integration - using direct property modification instead
     
     // Setup unified interaction manager with callbacks  
     interactionManagerRef.current = new UnifiedInteractionManager(scene, {
