@@ -52,15 +52,17 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
 
-    // When entering top view, flatten ALL objects
+    // When entering top view, flatten ALL objects but keep them visible
     if (isTopView) {
       console.log(`📐 Entering TOP VIEW - flattening all objects`);
       this.items.forEach((item, name) => {
-        // FLATTEN all objects in top view
-        item.mesh.scaling.y = 0.1;  // Flat height
+        // FLATTEN all objects in top view but keep visible
+        item.mesh.scaling.y = 0.3;  // Flat but visible from above
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
+        item.material.alpha = 1.0;  // Full opacity
         this.makeLabelVisible(name);
+        console.log(`   Set ${name}: height=0.3, alpha=1.0`);
       });
     }
 
@@ -351,15 +353,17 @@ export class CleanBMCSystem {
   // Apply the correct visual state to an item
   private applyVisualState(item: BMCItem, name: string, state: 'normal' | 'hover' | 'selected' | 'dimmed') {
     console.log(`🎨 Applying ${state} state to ${name} (topView: ${this.isTopView})`);
+    console.log(`   BEFORE: scaling.y=${item.mesh.scaling.y}, alpha=${item.material.alpha}, visible=${item.mesh.isVisible}`);
 
-    // Always ensure mesh remains visible and opaque
+    // Always ensure mesh remains visible
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
 
-    // In top view, ALWAYS keep objects flat
+    // In top view, ALWAYS keep objects flat but visible
     if (this.isTopView) {
-      item.mesh.scaling.y = 0.1;  // Always flat in top view
-      console.log(`📐 TOP VIEW: Keeping ${name} flat at height 0.1`);
+      // Use a height that's visible from above
+      item.mesh.scaling.y = 0.3;  // Slightly taller to be visible from top
+      console.log(`📐 TOP VIEW: Setting ${name} to flat height 0.3`);
     }
 
     switch (state) {
@@ -377,12 +381,13 @@ export class CleanBMCSystem {
         break;
 
       case 'dimmed':
-        // Apply dimmed colors
+        // Apply dimmed colors but keep visible
         this.applyDimmedEffect(item.material, name);
         // Only animate height in 3D view (not top view)
         if (!this.isTopView) {
           this.animateHeight(item.mesh, item.originalHeight * 0.3);
         }
+        console.log(`   AFTER DIMMED: scaling.y=${item.mesh.scaling.y}, alpha=${item.material.alpha}`);
         break;
 
       case 'normal':
@@ -424,7 +429,8 @@ export class CleanBMCSystem {
 
   // Helper to apply dimmed effect
   private applyDimmedEffect(material: StandardMaterial, name: string) {
-    material.alpha = 0.5;
+    // In top view, use higher alpha to keep objects visible
+    material.alpha = this.isTopView ? 0.8 : 0.5;
     if (name === "Cost Structure") {
       material.diffuseColor = new Color3(0.2, 0.0, 0.0);
     } else if (name === "Revenue Streams") {
