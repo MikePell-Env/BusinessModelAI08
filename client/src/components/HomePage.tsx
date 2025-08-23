@@ -100,8 +100,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
         <div className="flex justify-center px-8">
           <div className="w-full max-w-4xl">
             {/* Combined Dialog Box with Demo Banner Inside */}
-            <div className="mb-8">
-              <div className="bg-white rounded-lg shadow-lg border border-gray-300">
+            <div className="mb-8 mt-32">
+              <div className="bg-white rounded-lg shadow-lg border-4 border-black">
                 {/* Blue Demo Banner - Now inside the dialog */}
                 <div className="bg-blue-500 text-white p-4 rounded-t-lg">
                   <p className="text-base leading-tight">
@@ -118,7 +118,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                   <div className="grid grid-cols-3 gap-6">
                     {/* Option 1 - Import Office Files */}
                     <div className="text-center">
-                      <div className="bg-white p-6 rounded-lg border border-gray-300 hover:shadow-md transition-shadow relative h-full flex flex-col">
+                      <div className="bg-white p-6 rounded-lg border-2 border-blue-500 hover:shadow-md transition-shadow relative h-full flex flex-col shadow-2xl">
                         {/* Number 1 in top left */}
                         <div className="absolute top-4 left-4 bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                           1
@@ -151,7 +151,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
 
                     {/* Option 2 - Ask Copilot (Enabled) */}
                     <div className="text-center">
-                      <div className="bg-white p-6 rounded-lg border border-gray-300 hover:shadow-md transition-shadow relative h-full flex flex-col">
+                      <div className="bg-white p-6 rounded-lg border-2 border-blue-500 hover:shadow-md transition-shadow relative h-full flex flex-col shadow-2xl">
                         {/* Number 2 in top left */}
                         <div className="absolute top-4 left-4 bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                           2
@@ -178,7 +178,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
 
                     {/* Option 3 - Dev API (Disabled) */}
                     <div className="text-center opacity-50">
-                      <div className="bg-white p-6 rounded-lg border border-gray-300 relative h-full flex flex-col">
+                      <div className="bg-white p-6 rounded-lg border-2 border-blue-500 relative h-full flex flex-col shadow-2xl">
                         {/* Number 3 in top left */}
                         <div className="absolute top-4 left-4 bg-gray-600 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
                           3
