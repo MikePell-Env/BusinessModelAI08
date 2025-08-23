@@ -700,70 +700,46 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       };
       
-      // Mouse drag for constrained panning (left/right and horizontal translation with Shift)
+      // Mouse drag for horizontal-only translation
       let isDragging = false;
       let lastX = 0;
-      let lastY = 0;
       
       const onMouseDown = (event: MouseEvent) => {
-        console.log(`🖱️ MouseDown detected: button=${event.button}, clientX=${event.clientX}, clientY=${event.clientY}, shiftKey=${event.shiftKey}`);
-        if (event.button === 0) { // Left mouse button
+        if (event.button === 0) { // Left mouse button only
           isDragging = true;
           lastX = event.clientX;
-          lastY = event.clientY;
           canvas.style.cursor = 'grabbing';
           event.preventDefault();
           event.stopPropagation();
-          console.log(`🖱️ ✅ ORTHO DRAG STARTED: X=${event.clientX}, Y=${event.clientY}, shift=${event.shiftKey}, camera.x=${orthoCamera.position.x.toFixed(3)}, camera.z=${orthoCamera.position.z.toFixed(3)}`);
         }
       };
       
       const onMouseMove = (event: MouseEvent) => {
-        if (!isDragging) return;
+        if (!isDragging || event.button !== 0) return;
         
         const deltaX = event.clientX - lastX;
-        const deltaY = event.clientY - lastY;
-        const sensitivity = 0.015; // Slightly reduced for more precise control
         
-        console.log(`🖱️ MouseMove: deltaX=${deltaX}, deltaY=${deltaY}, shiftKey=${event.shiftKey}`);
-        
-        // Always allow horizontal translation (X-axis) with left/right mouse movement
-        if (Math.abs(deltaX) > 1) { // Only move if there's significant horizontal movement
+        // Only apply horizontal translation (X-axis movement)
+        if (Math.abs(deltaX) > 0) {
+          const sensitivity = 0.02; // Increased sensitivity for better responsiveness
           const translationX = -deltaX * sensitivity; // Negative for natural movement direction
           
-          const oldX = orthoCamera.position.x;
+          // Apply translation to camera position only (not target)
           orthoCamera.position.x += translationX;
           
+          // Update target to maintain looking straight down
           const target = orthoCamera.getTarget();
-          target.x += translationX;
+          target.x = orthoCamera.position.x;
           orthoCamera.setTarget(target);
-          
-          console.log(`🖱️ HORIZONTAL DRAG: deltaX=${deltaX}, translationX=${translationX.toFixed(3)}, camera.x=${oldX.toFixed(3)} -> ${orthoCamera.position.x.toFixed(3)}`);
-        }
-        
-        // Optional: Allow vertical translation (Z-axis) with Shift+drag for up/down movement
-        if (event.shiftKey && Math.abs(deltaY) > 1) {
-          const translationZ = deltaY * sensitivity;
-          
-          const oldZ = orthoCamera.position.z;
-          orthoCamera.position.z += translationZ;
-          
-          const target = orthoCamera.getTarget();
-          target.z += translationZ;
-          orthoCamera.setTarget(target);
-          
-          console.log(`🖱️ ✨ SHIFT+DRAG VERTICAL: deltaY=${deltaY}, translationZ=${translationZ.toFixed(3)}, camera.z=${oldZ.toFixed(3)} -> ${orthoCamera.position.z.toFixed(3)}`);
         }
         
         lastX = event.clientX;
-        lastY = event.clientY;
         event.preventDefault();
         event.stopPropagation();
       };
       
       const onMouseUp = (event: MouseEvent) => {
         if (isDragging) {
-          console.log(`🖱️ Ortho pan ended`);
           canvas.style.cursor = 'grab';
         }
         isDragging = false;
@@ -771,11 +747,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         event.stopPropagation();
       };
       
+      // Add event listeners with proper options
       canvas.addEventListener('wheel', onWheel, { passive: false });
-      canvas.addEventListener('mousedown', onMouseDown, true);
-      canvas.addEventListener('mousemove', onMouseMove, true);  
-      canvas.addEventListener('mouseup', onMouseUp, true);
-      canvas.addEventListener('mouseleave', onMouseUp, true);
+      canvas.addEventListener('mousedown', onMouseDown);
+      canvas.addEventListener('mousemove', onMouseMove);
+      canvas.addEventListener('mouseup', onMouseUp);
+      canvas.addEventListener('mouseleave', onMouseUp);
       
       // Set initial cursor style
       canvas.style.cursor = 'grab';
@@ -789,7 +766,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         canvas: canvas
       };
       
-      console.log("🎯 Orthographic camera controls configured (zoom + constrained panning)");
+      console.log("🎯 Orthographic camera controls configured (zoom + horizontal panning only)");
     };
     
     // Setup controls when camera is active
@@ -2983,12 +2960,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
         const canvas = orthoEventHandlersRef.current.canvas;
         canvas.removeEventListener('wheel', orthoEventHandlersRef.current.wheel);
-        canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
-        canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-        canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-        canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
-        
-
+        canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown);
+        canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove);
+        canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup);
+        canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup);
         
         orthoEventHandlersRef.current = null;
       }
@@ -3054,23 +3029,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Switch to orthographic camera
         scene.activeCamera = orthoCamera;
         
-        // Re-setup orthographic controls when switching to 3D Top view
-        if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
-          const canvas = orthoEventHandlersRef.current.canvas;
-          // Remove old handlers first
-          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
-          canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
-          
-          // Re-add handlers to ensure they're active
-          canvas.addEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
-          canvas.addEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.addEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-          canvas.addEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
-          
-          console.log("🎯 Orthographic controls re-activated for 3D Top view");
-        }
+        // Orthographic controls are already active, no need to re-add
+        console.log("🎯 3D Top view active - orthographic controls enabled")
         
         // Apply visual state after camera switch
         setTimeout(() => {
@@ -3081,16 +3041,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         console.log(`✅ SWITCHED TO 3D TOP VIEW`);
       } else {
-        // Disable orthographic controls when switching away
-        if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
-          const canvas = orthoEventHandlersRef.current.canvas;
-          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
-          canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
-          
-          console.log("🎯 Orthographic controls disabled for 3D View");
-        }
+        // Orthographic controls remain active but won't affect perspective camera
+        console.log("🎯 3D View active - perspective camera controls enabled")
         
         // Switch back to perspective camera
         scene.activeCamera = perspectiveCamera;
