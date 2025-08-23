@@ -106,20 +106,6 @@ export class CleanBMCSystem {
   onSelect(sectionName: string) {
     console.log(`🎯 Selection request for "${sectionName}"`);
     
-    // CRITICAL: Special debugging for Revenue Streams
-    if (sectionName === "Revenue Streams") {
-      console.log(`🚨 REVENUE STREAMS SELECTION DEBUG:`);
-      console.log(`  Current items count: ${this.items.size}`);
-      console.log(`  Revenue Streams item exists: ${this.items.has("Revenue Streams")}`);
-      const revenueItem = this.items.get("Revenue Streams");
-      if (revenueItem) {
-        console.log(`  Revenue mesh visible: ${revenueItem.mesh.isVisible}`);
-        console.log(`  Revenue mesh enabled: ${revenueItem.mesh.isEnabled()}`);
-        console.log(`  Revenue material alpha: ${revenueItem.material?.alpha}`);
-        console.log(`  Revenue mesh scaling: Y=${revenueItem.mesh.scaling.y}`);
-      }
-    }
-    
     // Toggle selection
     if (this.selectedObject === sectionName) {
       console.log(`Deselecting ${sectionName}`);
@@ -141,19 +127,7 @@ export class CleanBMCSystem {
       }
     }
 
-    try {
-      this.updateAllVisuals();
-      
-      // CRITICAL: Check all items after update if Revenue Streams was selected
-      if (sectionName === "Revenue Streams") {
-        console.log(`🚨 AFTER UPDATE - Item visibility check:`);
-        this.items.forEach((item, name) => {
-          console.log(`  ${name}: visible=${item.mesh.isVisible}, enabled=${item.mesh.isEnabled()}, alpha=${item.material?.alpha}`);
-        });
-      }
-    } catch (error) {
-      console.error(`🚨 CRITICAL ERROR during visual update for ${sectionName}:`, error);
-    }
+    this.updateAllVisuals();
   }
 
   // Clear selection
@@ -286,12 +260,19 @@ export class CleanBMCSystem {
     const item = this.items.get(name);
     if (!item) return;
 
-    // Color behavior: Cost Structure and Revenue Streams use dark grey when flattened in 3D view
-    if (!this.isTopView && (name === "Cost Structure" || name === "Revenue Streams")) {
-      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);  // Dark grey when flattened
-    } else {
+    // Color behavior: Different for 3D Top vs 3D view
+    if (this.isTopView) {
+      // 3D Top view: Use lighter dimmed colors so objects remain visible
       const baseColor = this.getBaseColor(name);
-      item.material.diffuseColor = baseColor.scale(0.5);  // 50% darker for others
+      item.material.diffuseColor = baseColor.scale(0.7);  // 70% of base color - still visible
+    } else {
+      // 3D view: Cost Structure and Revenue Streams use dark grey when flattened
+      if (name === "Cost Structure" || name === "Revenue Streams") {
+        item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);  // Dark grey when flattened
+      } else {
+        const baseColor = this.getBaseColor(name);
+        item.material.diffuseColor = baseColor.scale(0.5);  // 50% darker for others
+      }
     }
     
     item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
