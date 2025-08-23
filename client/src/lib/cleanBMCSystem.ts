@@ -415,6 +415,24 @@ export class CleanBMCSystem {
     }
   }
 
+  // Height animation helper - ONLY for 3D view
+  private animateHeight(mesh: AbstractMesh, targetHeight: number) {
+    if (this.isTopView) {
+      // Never animate in top view - keep current height
+      return;
+    }
+    
+    // Only animate in 3D view
+    if (this.viewTransitionManager && mesh instanceof Mesh) {
+      this.viewTransitionManager.animateMeshHeight(mesh, targetHeight, {
+        duration: 1000,
+        easing: true
+      });
+    } else {
+      mesh.scaling.y = targetHeight;
+    }
+  }
+
   // Utility methods
   getAllItems(): string[] {
     return Array.from(this.items.keys());
