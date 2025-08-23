@@ -156,16 +156,10 @@ export class CleanBMCSystem {
     item.labelMaterial.backFaceCulling = false;
     item.labelMaterial.useAlphaFromDiffuseTexture = true;
     item.labelMaterial.disableLighting = false;
-    
-    // Disable depth writing to prevent cut-through
-    item.labelMaterial.disableDepthWrite = true;
-    
+
     // Use ALPHATEST mode for PNG transparency
-    (item.labelMaterial as any).transparencyMode = 2; // ALPHATEST mode
+    (item.labelMaterial as any).transparencyMode = 1;
     (item.labelMaterial as any).alphaCutOff = 0.4;
-    
-    // Set alphaIndex for proper sorting
-    item.label.alphaIndex = 1000;
 
     if (item.labelMaterial.diffuseTexture) {
       (item.labelMaterial.diffuseTexture as any).level = 1.0;

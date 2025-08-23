@@ -1468,7 +1468,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Position slightly above mesh center, moved left from top view
               labelPlane.position.x = center.x - size.x * 0.15; // Move left from top view perspective
-              labelPlane.position.y = center.y + size.y * 0.8; // Increased offset to prevent cut-through
+              labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z;
               
               // Rotate to be flat on top
@@ -1516,7 +1516,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Position slightly above mesh center, moved right from top view
               labelPlane.position.x = center.x + size.x * 0.15; // Move right from top view perspective
-              labelPlane.position.y = center.y + size.y * 0.8; // Increased offset to prevent cut-through
+              labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z;
               
               // Rotate to be flat on top
@@ -1564,7 +1564,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Position within the mesh boundaries, moved right with margin like Customer Segments
               labelPlane.position.x = center.x + size.x * 0.15; // Move right but leave margin on right edge
-              labelPlane.position.y = center.y + size.y * 0.8; // Increased offset to prevent cut-through
+              labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z + size.z * 0.3; // Move up more in top view
               
               // Rotate to be flat on top
@@ -1612,7 +1612,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Position within the mesh boundaries, moved right with margin like Customer Relationships  
               labelPlane.position.x = center.x + size.x * 0.15; // Move right but leave margin on right edge
-              labelPlane.position.y = center.y + size.y * 0.8; // Increased offset to prevent cut-through
+              labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z - size.z * 0.3; // Move down toward bottom of shape
               
               // Rotate to be flat on top
@@ -1661,7 +1661,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Position within the mesh boundaries, moved left from top view perspective
               labelPlane.position.x = center.x - size.x * 0.15; // Move left but leave margin on left edge
-              labelPlane.position.y = center.y + size.y * 0.8; // Increased offset to prevent cut-through
+              labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z + size.z * 0.3; // Move up more in top view
               
               // Rotate to be flat on top
@@ -1712,7 +1712,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Position within the mesh boundaries, moved left and down toward bottom
               labelPlane.position.x = center.x - size.x * 0.15; // Move left but leave margin on left edge
-              labelPlane.position.y = center.y + size.y * 0.8; // Increased offset to prevent cut-through
+              labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z - size.z * 0.3; // Move down toward bottom of shape
               
               // Rotate to be flat on top
@@ -1760,7 +1760,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               
               // Position centered above the circular Value Propositions area
               labelPlane.position.x = center.x; // Center position
-              labelPlane.position.y = center.y + size.y * 0.8; // Increased offset to prevent cut-through
+              labelPlane.position.y = center.y + size.y * 0.6;
               labelPlane.position.z = center.z; // Center in the circular area
               
               // Rotate to be flat on top
@@ -2366,7 +2366,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Center the label horizontally and vertically within the top face of the Revenue Streams object
             labelPlane.position.x = center.x; // Center horizontally
-            labelPlane.position.y = center.y + size.y * 0.8; // Increased offset to prevent cut-through
+            labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
             labelPlane.position.z = center.z; // Center vertically (Z-axis)
             
             // Rotate to be flat on top and then 90 degrees counterclockwise to read properly
@@ -2507,7 +2507,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Center the label horizontally and vertically within the top face of the Cost Structure object
             labelPlane.position.x = center.x; // Center horizontally
-            labelPlane.position.y = center.y + size.y * 0.8; // Increased offset to prevent cut-through
+            labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
             labelPlane.position.z = center.z; // Center vertically (Z-axis)
             
             // Rotate to be flat on top and then 90 degrees counterclockwise (same as Revenue Streams)
