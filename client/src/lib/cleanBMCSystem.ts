@@ -179,16 +179,13 @@ export class CleanBMCSystem {
     // Apply state-specific colors and effects
     switch (state) {
       case 'selected':
+        // Both views: Bright blue selection with blue glow
+        material.diffuseColor = new Color3(0.0, 0.3, 0.8);
+        material.emissiveColor = new Color3(0.0, 0.1, 0.2);
         if (this.isTopView) {
-          // 3D Top View: Bright blue + blue glow
-          material.diffuseColor = new Color3(0.0, 0.3, 0.8);
-          material.emissiveColor = new Color3(0.0, 0.1, 0.2);
           console.log(`🎨 Applied 3D Top SELECTED: ${name} -> bright blue + glow`);
         } else {
-          // 3D View: Enhanced original color + elevated
-          material.diffuseColor = baseColor.clone();
-          material.emissiveColor = Color3.Black();
-          console.log(`🎨 Applied 3D SELECTED: ${name} -> original color + elevated`);
+          console.log(`🎨 Applied 3D SELECTED: ${name} -> bright blue + glow + elevated`);
         }
         break;
 
