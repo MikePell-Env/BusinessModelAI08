@@ -6,6 +6,11 @@ This project is a web application for creating and visualizing business model ca
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (January 2025)
+- **January 23, 2025**: Updated Envisioner logo to new design while maintaining smaller size (h-5) for better header proportions
+- **January 23, 2025**: Unified ActionManager-based click handling system restored and verified working across all 3D view modes
+- **January 23, 2025**: Fixed 3D Top view single-click selection and double-click panel opening functionality
+
 ## System Architecture
 The application employs a full-stack monorepo architecture, separating client and server concerns.
 
