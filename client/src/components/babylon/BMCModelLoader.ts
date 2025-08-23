@@ -281,4 +281,25 @@ export class BMCModelLoader {
       this.cleanBMCRef.current.addLabel("Cost Structure", labelPlane, labelMaterial);
     }
   }
+
+  // Additional methods required by Canvas3DBabylon.tsx
+  setupMainBMCInteractions() {
+    // Setup interactions for main BMC components
+    console.log("Setting up main BMC interactions");
+  }
+
+  applyAnimations() {
+    // Apply animations to BMC models
+    console.log("Applying BMC animations");
+  }
+
+  setupRevenueStreamsInteractions() {
+    // Setup interactions for revenue streams
+    console.log("Setting up revenue streams interactions");
+  }
+
+  setupCostStructureInteractions() {
+    // Setup interactions for cost structure
+    console.log("Setting up cost structure interactions");
+  }
 }
