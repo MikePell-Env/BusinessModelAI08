@@ -41,6 +41,7 @@ import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { BabylonMaterialManager } from '@/lib/babylon/BabylonMaterialManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { setupDoubleClick } from '@/lib/interactions/DoubleClickHandler';
+import { SceneSetup } from './Canvas3DBabylon/scene/SceneSetup';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -567,53 +568,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
     console.log('✅ WebGL context available');
 
-    // Initialize Babylon.js engine and scene with error handling
+    // Initialize Babylon.js engine and scene using SceneSetup module
+    let sceneSetup: SceneSetup | null = null;
     let engine: Engine | null = null;
     let scene: Scene | null = null;
 
     try {
-      // Initialize engine with high-quality settings for clear label rendering
-      engine = new Engine(canvasElement, true, {
-        preserveDrawingBuffer: true,
-        stencil: true,
-        antialias: true, // Enable anti-aliasing for smoother edges
-        adaptToDeviceRatio: true, // Use device pixel ratio for crisp rendering
-        powerPreference: "high-performance" // Request high-performance GPU
-      }, true); // Enable adaptive quality
+      sceneSetup = new SceneSetup(canvasElement);
+      engine = sceneSetup.getEngine();
+      scene = sceneSetup.getScene();
       
-      if (!engine) {
-        throw new Error('Engine creation returned null');
+      if (!engine || !scene) {
+        throw new Error('Scene setup failed to initialize engine or scene');
       }
       
-      scene = new Scene(engine);
-      if (!scene) {
-        throw new Error('Scene creation returned null');
-      }
-      
-      debugLog.info('scene', 'Babylon.js engine and scene initialized successfully');
+      debugLog.info('scene', 'Babylon.js engine and scene initialized via SceneSetup module');
     } catch (error) {
-      console.error('Failed to initialize Babylon.js engine:', error);
-      console.error('Engine object:', engine ? 'created' : 'null');
-      console.error('Scene object:', scene ? 'created' : 'null');
+      console.error('Failed to initialize Babylon.js via SceneSetup:', error);
       return;
     }
-
-    // Ensure we have valid engine and scene before proceeding
-    if (!engine || !scene) {
-      console.error('❌ Engine or scene initialization failed');
-      return;
-    }
-    
-    // Set background to match 2D view (#e9ecef - light gray)
-    // #e9ecef = RGB(233, 236, 239) = normalized (0.914, 0.925, 0.937)
-    scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
     
     engineRef.current = engine;
     sceneRef.current = scene;
-    
-    // Enable pointer interactions on the scene
-    scene.actionManager = new ActionManager(scene);
-    console.log("🎯 Scene ActionManager enabled");
+    console.log("🎯 Scene initialized with SceneSetup module");
 
     // Create perspective camera (always created to preserve state)
     const savedCameraState = getCamera3DState();
@@ -801,17 +778,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Initialize label manager with scene
     // Simple BMC manager doesn't need scene setup
-
-    // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
-    const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 1.2; // Moderate ambient lighting
-    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Neutral ambient
-    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Low specular for subtle shine
     
-    const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 1.8; // Strong directional light for shape definition
-    directionalLight.diffuse = new Color3(1, 1, 1);
-    directionalLight.specular = new Color3(0.3, 0.3, 0.3); // Low specular for controlled shine
+    // Lighting is now handled by SceneSetup module
 
     // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
