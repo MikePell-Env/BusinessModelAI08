@@ -243,7 +243,8 @@ export class CleanBMCSystem {
       item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     } else {
-      item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+      // Use lighter grey for better visibility
+      item.material.diffuseColor = new Color3(0.3, 0.3, 0.3);
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
     }
     item.material.alpha = 1.0;
@@ -388,7 +389,8 @@ export class CleanBMCSystem {
       case 'selected':
         // SELECTED: Bright blue, full height, 100% opacity (rules 2,6)
         this.applySelectionEffect(item.material, name);
-        item.material.alpha = 1.0; // 100% opacity
+        // FORCE 100% opacity - NEVER change this in 3D Top
+        item.material.alpha = 1.0;
         if (!this.isTopView) {
           // 3D View: selected stays at full height
           this.animateHeight(item.mesh, item.originalHeight);
@@ -414,7 +416,8 @@ export class CleanBMCSystem {
       default:
         // NORMAL: Original material, full height, 100% opacity (rules 1,4,5,8)
         this.restoreOriginalMaterial(item.material, name);
-        item.material.alpha = 1.0; // 100% opacity
+        // FORCE 100% opacity - NEVER change this
+        item.material.alpha = 1.0; 
         if (!this.isTopView) {
           // 3D View: return to full height
           this.animateHeight(item.mesh, item.originalHeight);
