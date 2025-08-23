@@ -2985,9 +2985,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     materialManagerRef.current = new BabylonMaterialManager(scene);
     console.log('🎬 Animation and Material Managers initialized');
 
-    // Start the render loop with safety check
+    // Start the render loop using SceneSetup module
     let isDisposed = false;
-    engine.runRenderLoop(() => {
+    sceneSetup.startRenderLoop(() => {
       if (!isDisposed && scene && !scene.isDisposed) {
         scene.render();
       }
@@ -3039,13 +3039,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.warn('Error cleaning up Animation/Material Managers:', e);
       }
 
-      // Properly dispose of Babylon.js resources
+      // Properly dispose of Babylon.js resources using SceneSetup module
       try {
-        if (scene && !scene.isDisposed) {
-          scene.dispose();
-        }
-        if (engine && !engine.isDisposed) {
-          engine.dispose();
+        if (sceneSetup) {
+          sceneSetup.dispose();
         }
         sceneRef.current = null;
         engineRef.current = null;
