@@ -142,7 +142,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                         <Button 
                           onClick={handleDirectImport}
                           disabled={loading}
-                          className="w-full bg-gray-200 text-gray-800 hover:bg-black hover:text-white border border-gray-400 rounded-lg py-2 mt-4 transition-colors"
+                          className="w-full bg-gray-200 text-gray-800 hover:bg-blue-500 hover:text-white border border-gray-400 rounded-lg py-2 mt-4 transition-colors"
                         >
                           {loading ? 'Processing...' : 'Import Office file...'}
                         </Button>
