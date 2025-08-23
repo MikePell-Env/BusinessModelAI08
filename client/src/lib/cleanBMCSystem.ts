@@ -76,11 +76,9 @@ export class CleanBMCSystem {
   }
   
   // Helper method for smooth height animations
-  private animateHeight(mesh: AbstractMesh, targetHeight: number, itemName?: string) {
-    // Skip height animations entirely for Revenue Streams and Cost Structure
-    // These are separate GLB models with different scaling behavior
-    if (itemName && (itemName === "Revenue Streams" || itemName === "Cost Structure")) {
-      console.log(`⚠️ Skipping height animation for separate GLB model: ${itemName}`);
+  private animateHeight(mesh: AbstractMesh, targetHeight: number) {
+    // NEVER animate heights in top view
+    if (this.isTopView) {
       return;
     }
     
@@ -259,10 +257,8 @@ export class CleanBMCSystem {
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
     }
     item.material.alpha = 1.0;
-    // Only animate height if NOT in top view
-    if (!this.isTopView) {
-      this.animateHeight(item.mesh, item.originalHeight, itemName);
-    }
+    // Animate height (will be skipped in top view)
+    this.animateHeight(item.mesh, item.originalHeight);
 
     // Always ensure label visibility
     this.makeLabelVisible(itemName);
@@ -292,10 +288,8 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive for default
       }
       item.material.alpha = 1.0;
-      // Only animate height if NOT in top view
-      if (!this.isTopView) {
-        this.animateHeight(item.mesh, item.originalHeight, itemName);
-      }
+      // Animate height (will be skipped in top view)
+      this.animateHeight(item.mesh, item.originalHeight);
     } else {
       // Back to original colors
       if (itemName === "Cost Structure") {
@@ -312,10 +306,8 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
       }
       item.material.alpha = 1.0;
-      // Only animate height if NOT in top view
-      if (!this.isTopView) {
-        this.animateHeight(item.mesh, item.originalHeight, itemName);
-      }
+      // Animate height (will be skipped in top view)
+      this.animateHeight(item.mesh, item.originalHeight);
     }
     
     // Always ensure label stays visible
@@ -362,20 +354,16 @@ export class CleanBMCSystem {
         }
         item.material.alpha = 1.0;
         
-        // Only animate height in 3D View
-        if (!this.isTopView) {
-          this.animateHeight(item.mesh, item.originalHeight, name);
-        }
+        // Animate height (will be skipped in top view)
+        this.animateHeight(item.mesh, item.originalHeight);
         
       } else if (selectedItem) {
         // NOT SELECTED (but something else is): Dimmed
         item.material.diffuseColor = new Color3(0.07, 0.07, 0.07);
         item.material.alpha = 0.5;
         
-        // Only flatten in 3D View
-        if (!this.isTopView) {
-          this.animateHeight(item.mesh, 0.1, name);
-        }
+        // Flatten (will be skipped in top view)
+        this.animateHeight(item.mesh, 0.1);
         
       } else {
         // NOTHING SELECTED: Default colors
@@ -391,10 +379,8 @@ export class CleanBMCSystem {
         }
         item.material.alpha = 1.0;
         
-        // Only restore height in 3D View
-        if (!this.isTopView) {
-          this.animateHeight(item.mesh, item.originalHeight, name);
-        }
+        // Restore height (will be skipped in top view)
+        this.animateHeight(item.mesh, item.originalHeight);
       }
       
       // Keep labels visible
@@ -425,10 +411,8 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0); // No emissive
       }
       item.material.alpha = 1.0;
-      // Only animate height if NOT in top view (in restoreAllToDefault)
-      if (!this.isTopView) {
-        this.animateHeight(item.mesh, item.originalHeight, name);
-      }
+      // Animate height (will be skipped in top view)
+      this.animateHeight(item.mesh, item.originalHeight);
       
       // LAST: Force label visibility again after material changes
       this.makeLabelVisible(name);
