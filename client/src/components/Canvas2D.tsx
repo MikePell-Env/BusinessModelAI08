@@ -59,14 +59,11 @@ const CanvasBlock: React.FC<{
 
 export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) => {
   const { hasImportedFromPowerPoint, getSelectedObject, selectBMCObject } = useCanvas();
-  const [translateX, setTranslateX] = React.useState(0);
-  const [isDragging, setIsDragging] = React.useState(false);
-  const [dragStart, setDragStart] = React.useState({ x: 0, y: 0, startTranslateX: 0 });
-
+  
   if (!canvas) return null;
-
+  
   const selectedObject = getSelectedObject();
-
+  
   // Helper function to map section titles to their names used in 3D view
   const getSectionName = (title: string): string => {
     const mapping: { [key: string]: string } = {
@@ -82,89 +79,32 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
     };
     return mapping[title] || title;
   };
-
+  
   const handleSectionSelect = (sectionTitle: string) => {
     const sectionName = getSectionName(sectionTitle);
     const isCurrentlySelected = selectedObject === sectionName;
-
+    
     console.log(`🎯 2D Click on: ${sectionTitle} -> ${sectionName}`);
     console.log(`🎯 Currently selected: ${selectedObject}, isCurrentlySelected: ${isCurrentlySelected}`);
-
+    
     // Toggle selection using unified BMC system
     selectBMCObject(isCurrentlySelected ? null : sectionName as any);
     console.log(`📋 2D View: ${isCurrentlySelected ? 'Deselected' : 'Selected'} "${sectionName}"`);
   };
 
   const handleBackgroundClick = (e: React.MouseEvent) => {
-    // Only clear selection if clicking the background (not on any card) and not dragging
-    if (e.target === e.currentTarget && !isDragging) {
+    // Only clear selection if clicking the background (not on any card)
+    if (e.target === e.currentTarget) {
       selectBMCObject(null);
       console.log('📋 2D View: Cleared selection (background click)');
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 0) { // Left mouse button only
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false); // Reset drag state
-      setDragStart({ 
-        x: e.clientX, 
-        y: e.clientY,
-        startTranslateX: translateX
-      });
-      console.log('🖱️ 2D View: Mouse down at', e.clientX, e.clientY, 'current translateX:', translateX);
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (e.buttons === 1) { // Left mouse button is pressed
-      e.preventDefault();
-      e.stopPropagation();
-      const deltaX = e.clientX - dragStart.x;
-      const newTranslateX = dragStart.startTranslateX + deltaX;
-
-      // Apply constraints to prevent dragging too far
-      const maxTranslateX = 200; // Allow some right movement
-      const minTranslateX = -800; // Allow left movement to see all cards
-      const constrainedTranslateX = Math.max(minTranslateX, Math.min(maxTranslateX, newTranslateX));
-
-      setTranslateX(constrainedTranslateX);
-
-      // Mark as dragging if moved more than 2 pixels (more sensitive)
-      if (Math.abs(deltaX) > 2) {
-        setIsDragging(true);
-      }
-
-      console.log('🖱️ 2D View: Dragging, deltaX:', deltaX, 'newTranslateX:', constrainedTranslateX);
-    }
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Reset drag state after a short delay to allow click detection
-    setTimeout(() => {
-      setIsDragging(false);
-    }, 50);
-    console.log('🖱️ 2D View: Mouse up, was dragging:', isDragging);
-  };
-
   return (
     <div 
-      className="w-full h-full p-6 select-none"
-      style={{ 
-        backgroundColor: '#e9ecef', 
-        cursor: isDragging ? 'grabbing' : 'grab',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        touchAction: 'none'
-      }}
+      className="w-full h-full p-6"
+      style={{ backgroundColor: '#e9ecef' }}
       onClick={handleBackgroundClick}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
     >
       {/* Header - centered horizontally in upper area */}
       <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-10">
@@ -172,13 +112,7 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
       </div>
 
       {/* Business Model Canvas Grid */}
-      <div 
-        className="grid grid-cols-10 grid-rows-3 gap-4 h-5/6 max-w-7xl mx-auto transition-transform duration-75"
-        style={{ 
-          transform: `translateX(${translateX}px)`,
-          pointerEvents: isDragging ? 'none' : 'auto' 
-        }}
-      >
+      <div className="grid grid-cols-10 grid-rows-3 gap-4 h-5/6 max-w-7xl mx-auto">
         {/* Row 1 */}
         <CanvasBlock 
           element={canvas.keyPartners} 
@@ -215,7 +149,7 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
           isSelected={selectedObject === getSectionName(canvas.customerSegments.title)}
           onSelect={() => handleSectionSelect(canvas.customerSegments.title)}
         />
-
+        
         {/* Row 2 */}
         <CanvasBlock 
           element={canvas.keyResources} 
@@ -231,7 +165,7 @@ export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) =
           isSelected={selectedObject === getSectionName(canvas.channels.title)}
           onSelect={() => handleSectionSelect(canvas.channels.title)}
         />
-
+        
         {/* Row 3 - Bottom boxes with cost structure 20% wider */}
         <CanvasBlock 
           element={canvas.costStructure} 

@@ -1,26 +1,32 @@
 import React, { useRef, useEffect, useState } from 'react';
-import {
-  Engine,
-  Scene,
-  Vector3,
-  PointerEventTypes,
-  TransformNode,
-  MeshBuilder,
-  StandardMaterial,
-  Color3,
-  Mesh,
-  ActionManager,
-  ExecuteCodeAction,
+import { 
+  Engine, 
+  Scene, 
   ArcRotateCamera,
-  FreeCamera,
-  HemisphericLight,
+  FreeCamera, 
+  HemisphericLight, 
   DirectionalLight,
+  PointLight,
+  MeshBuilder, 
+  PBRMetallicRoughnessMaterial, 
+  StandardMaterial,
+  Color3, 
+  Color4,
+  Vector3, 
+  Mesh, 
+  ActionManager, 
+  ExecuteCodeAction,
+  CubeTexture,
+  Texture,
+  DynamicTexture,
   SceneLoader,
   AbstractMesh,
-  DynamicTexture,
-  Texture
+  Matrix,
+  TransformNode,
+  LinesMesh,
+  PointerEventTypes
 } from '@babylonjs/core';
-import {
+import { 
   AdvancedDynamicTexture,
   Rectangle,
   TextBlock,
@@ -29,71 +35,257 @@ import {
 import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
-import { BMCComponentName } from '@/types/bmcState';
+import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
 import { CleanBMCSystem, cleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { BabylonMaterialManager } from '@/lib/babylon/BabylonMaterialManager';
-import { CameraManager } from './babylon/CameraManager';
-import { BMCModelLoader } from './babylon/BMCModelLoader';
-import { SceneSetup } from './babylon/SceneSetup';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
   isTransitioning?: boolean;
 }
 
+
+
+// UNIFIED BMC TRANSFORMATION SYSTEM
+// Handles coordinate system complexities and provides consistent interface for all BMC objects
+
+/**
+ * BMC Coordinate System Documentation:
+ * 
+ * WORLD COORDINATE SYSTEM (Babylon.js Standard):
+ * - X-axis: RIGHT = positive, LEFT = negative 
+ * - Y-axis: UP = positive, DOWN = negative
+ * - Z-axis: FORWARD = positive, BACKWARD = negative
+ * 
+ * BMC SCREEN LAYOUT MAPPING:
+ * - X-axis: negative = LEFT side of screen, positive = RIGHT side of screen
+ * - Z-axis: negative = UPPER part of screen, positive = LOWER part of screen
+ * - Y-axis: height above ground plane (Y=0.1 is standard base height)
+ * 
+ * OBJECT TYPES IN SYSTEM:
+ * 1. Main BMC Model: Single GLB with 7 sections, uses transformNode scaling
+ * 2. Revenue Streams: Separate GLB positioned at (-0.221, 0.1, -10.5) 
+ * 3. Cost Structure: Separate GLB positioned at (-10.1, 0.1, -10.5)
+ * 
+ * COORDINATE REFERENCE POINTS:
+ * - Customer Channels left edge: X ≈ 0.467
+ * - Revenue Streams aligns with Customer Channels left edge
+ * - Cost Structure spans from Key Partners to Key Resources alignment
+ */
+
+interface BMCObjectDescriptor {
+  mesh: AbstractMesh;
+  sectionName: string;
+  objectType: 'main_bmc' | 'separate_glb';
+  transformNode?: TransformNode; // Only for main BMC sections
+  rootMesh?: AbstractMesh; // Only for separate GLB objects
+}
+
+class UnifiedBMCTransformSystem {
+  private objects = new Map<string, BMCObjectDescriptor>();
+  
+  // Register objects in the unified system
+  registerObject(sectionName: string, descriptor: BMCObjectDescriptor) {
+    this.objects.set(sectionName, descriptor);
+    console.log(`🔗 Registered ${sectionName} as ${descriptor.objectType}`);
+  }
+  
+  // Universal height manipulation (handles different object types)
+  setHeight(sectionName: string, height: number): boolean {
+    const obj = this.objects.get(sectionName);
+    if (!obj) {
+      console.warn(`⚠️ Object not found: ${sectionName}`);
+      return false;
+    }
+    
+    if (obj.objectType === 'main_bmc' && obj.transformNode) {
+      // Main BMC sections use transformNode scaling
+      obj.transformNode.scaling.y = height;
+      console.log(`📏 Main BMC: ${sectionName} height set to ${height}`);
+    } else if (obj.objectType === 'separate_glb') {
+      // Separate GLB objects use mesh scaling directly
+      obj.mesh.scaling.y = height;
+      console.log(`📏 Separate GLB: ${sectionName} height set to ${height}`);
+    }
+    return true;
+  }
+  
+  // Universal position manipulation
+  setPosition(sectionName: string, x: number, y: number, z: number): boolean {
+    const obj = this.objects.get(sectionName);
+    if (!obj) {
+      console.warn(`⚠️ Object not found: ${sectionName}`);
+      return false;
+    }
+    
+    if (obj.objectType === 'main_bmc') {
+      // Main BMC sections cannot be repositioned individually (part of single mesh)
+      console.warn(`⚠️ Cannot reposition main BMC section: ${sectionName}`);
+      return false;
+    } else if (obj.objectType === 'separate_glb' && obj.rootMesh) {
+      // Separate GLB objects can be repositioned via root mesh
+      obj.rootMesh.position = new Vector3(x, y, z);
+      console.log(`🌍 Separate GLB: ${sectionName} moved to (${x}, ${y}, ${z})`);
+    }
+    return true;
+  }
+  
+  // Universal scaling manipulation
+  setScale(sectionName: string, x: number, y: number, z: number): boolean {
+    const obj = this.objects.get(sectionName);
+    if (!obj) {
+      console.warn(`⚠️ Object not found: ${sectionName}`);
+      return false;
+    }
+    
+    if (obj.objectType === 'main_bmc' && obj.transformNode) {
+      obj.transformNode.scaling = new Vector3(x, y, z);
+      console.log(`📐 Main BMC: ${sectionName} scaled to (${x}, ${y}, ${z})`);
+    } else if (obj.objectType === 'separate_glb' && obj.rootMesh) {
+      obj.rootMesh.scaling = new Vector3(x, y, z);
+      console.log(`📐 Separate GLB: ${sectionName} scaled to (${x}, ${y}, ${z})`);
+    }
+    return true;
+  }
+  
+  // Get current transformation data
+  getTransformData(sectionName: string): any {
+    const obj = this.objects.get(sectionName);
+    if (!obj) return null;
+    
+    if (obj.objectType === 'main_bmc' && obj.transformNode) {
+      return {
+        type: 'main_bmc',
+        position: obj.transformNode.position.asArray(),
+        rotation: obj.transformNode.rotation.asArray(),
+        scaling: obj.transformNode.scaling.asArray()
+      };
+    } else if (obj.objectType === 'separate_glb' && obj.rootMesh) {
+      return {
+        type: 'separate_glb',
+        position: obj.rootMesh.position.asArray(),
+        rotation: obj.rootMesh.rotation.asArray(),
+        scaling: obj.rootMesh.scaling.asArray(),
+        meshPosition: obj.mesh.position.asArray(),
+        meshScaling: obj.mesh.scaling.asArray()
+      };
+    }
+    return null;
+  }
+  
+  // Export all transformation data for debugging
+  exportAllTransforms(): Record<string, any> {
+    const transforms: Record<string, any> = {};
+    this.objects.forEach((obj, name) => {
+      transforms[name] = this.getTransformData(name);
+    });
+    return transforms;
+  }
+  
+  // Get all registered objects
+  getAllObjects(): string[] {
+    return Array.from(this.objects.keys());
+  }
+  
+  // Debug coordinate system
+  debugCoordinateSystem() {
+    console.log("🌐 BMC COORDINATE SYSTEM DEBUG:");
+    console.log("📍 COORDINATE MAPPING:");
+    console.log("  Screen LEFT = Negative X");
+    console.log("  Screen RIGHT = Positive X"); 
+    console.log("  Screen UP = Negative Z");
+    console.log("  Screen DOWN = Positive Z");
+    console.log("  Height = Positive Y");
+    
+    console.log("🔍 REGISTERED OBJECTS:");
+    this.objects.forEach((obj, name) => {
+      const transform = this.getTransformData(name);
+      console.log(`  ${name} (${obj.objectType}):`, transform);
+    });
+  }
+}
+
+// REMOVED: Legacy BMCSectionController - replaced by unified BMC system
+
+// Standard grid positions for future consistency (doesn't affect current layout)
+const STANDARD_POSITIONS = {
+  'KeyPartners': { x: -15, y: 0, z: 10 },
+  'KeyActivities': { x: -5, y: 0, z: 10 },
+  'ValueProposition': { x: 5, y: 0, z: 10 },
+  'CustomerRelationships': { x: 15, y: 0, z: 10 },
+  'CustomerSegments': { x: 25, y: 0, z: 10 },
+  'KeyResources': { x: -5, y: 0, z: -10 },
+  'Channels': { x: 15, y: 0, z: -10 }
+};
+
 export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
-  const cameraManagerRef = useRef<CameraManager | null>(null);
+  const cameraRef = useRef<ArcRotateCamera | null>(null);
+  const orthoCameraRef = useRef<FreeCamera | null>(null);
+  const rootMeshRef = useRef<AbstractMesh | null>(null);
+  const orthoEventHandlersRef = useRef<any>(null);
   const animationManagerRef = useRef<BabylonAnimationManager | null>(null);
   const materialManagerRef = useRef<BabylonMaterialManager | null>(null);
-  const bulletTextPlanesRef = useRef<Map<string, any>>(new Map());
+  const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
   const [showBulletText, setShowBulletText] = useState(false);
-  const bmcModelLoaderRef = useRef<BMCModelLoader | null>(null); // Added ref for BMCModelLoader
-
-  const {
-    saveCamera3DState,
-    getCamera3DState,
-    is3D,
-    isOrthographic,
-    setSelectedObject,
-    getSelectedObject,
-    setOriginalHeights,
+  const { 
+    saveCamera3DState, 
+    getCamera3DState, 
+    is3D, 
+    isOrthographic, 
+    setSelectedObject, 
+    getSelectedObject, 
+    setOriginalHeights, 
     getOriginalHeights,
+    // New BMC State Manager methods
     selectBMCObject,
     getBMCSelectedObject,
     bmcState
   } = useCanvas();
-
-  const cleanBMCRef = useRef(cleanBMCSystem);
-
-  // Initialize BMC State Manager integration
+  
+  // REMOVED: Unified transformation system - simplified for reliability
+  
+  // REMOVED: Old content panels system - now using clean billboard panel system
+  
+  // Unified BMC label manager - inject BMC State Manager
+  const cleanBMCRef = useRef<CleanBMCSystem>(cleanBMCSystem);
+  
+  // Inject BMC State Manager into CleanBMCSystem on first render
   useEffect(() => {
     console.log("🔗 Injecting BMC State Manager into CleanBMCSystem...");
+    console.log("🔗 bmcState:", bmcState);
+    console.log("🔗 cleanBMCRef.current:", cleanBMCRef.current);
+    
     cleanBMCRef.current.setBMCStateManager(bmcState);
-
+    console.log("🔗 Injection complete");
+    
+    // Force sync current selection state after injection
     const currentSelection = bmcState.getSelectedObject();
     if (currentSelection) {
       console.log(`🔄 Syncing initial selection state: ${currentSelection}`);
       setTimeout(() => {
         if (cleanBMCRef.current) {
           cleanBMCRef.current.updateAllVisuals();
+          console.log(`✅ Initial visual state synced for: ${currentSelection}`);
         }
       }, 100);
     }
   }, [bmcState]);
+  
+  // REMOVED: Legacy transform utilities - now handled by unified BMC system
 
-  // Helper functions for BMC component mapping
+  // BMC Section Name Mapping: Convert between display names and BMC component names
   const mapSectionNameToBMCComponent = (sectionName: string): BMCComponentName | null => {
     const nameMapping: { [key: string]: BMCComponentName } = {
       'Key Partners': 'KeyPartners',
-      'Key Activities': 'KeyActivities',
+      'Key Activities': 'KeyActivities', 
       'Key Resources': 'KeyResources',
       'Value Propositions': 'ValueProposition',
       'Customer Relationships': 'CustomerRelationships',
-      'CustomerChannels': 'CustomerChannels',
+      'CustomerChannels': 'CustomerChannels',  // GLB mesh name is "CustomerChannels"
       'Customer Segments': 'CustomerSegments',
       'Cost Structure': 'CostStructure',
       'Revenue Streams': 'RevenueStreams'
@@ -101,154 +293,232 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     return nameMapping[sectionName] || null;
   };
 
-  // Event handlers
+  const mapBMCComponentToSectionName = (componentName: BMCComponentName): string => {
+    const nameMapping: { [key in BMCComponentName]: string } = {
+      'KeyPartners': 'Key Partners',
+      'KeyActivities': 'Key Activities', 
+      'KeyResources': 'Key Resources',
+      'ValueProposition': 'Value Propositions',
+      'CustomerRelationships': 'Customer Relationships',
+      'CustomerChannels': 'CustomerChannels',  // GLB mesh name is "CustomerChannels"
+      'CustomerSegments': 'Customer Segments',
+      'CostStructure': 'Cost Structure',
+      'RevenueStreams': 'Revenue Streams'
+    };
+    return nameMapping[componentName];
+  };
+
+  // Removed old handleBMCObjectClick - using direct cleanBMCRef.current.onSelect calls
+  
+  // Clean hover handlers
   const handleBMCObjectHoverEnter = (sectionName: string) => {
     cleanBMCRef.current.onHover(sectionName, true);
+    console.log(`HOVER ENTER: ${sectionName}`);
   };
-
+  
   const handleBMCObjectHoverExit = (sectionName: string) => {
     cleanBMCRef.current.onHover(sectionName, false);
+    console.log(`HOVER EXIT: ${sectionName}`);
   };
 
-  // Billboard panel creation
-  const createBillboardPanel = (sectionName: string, worldPosition: Vector3, advancedTexture: AdvancedDynamicTexture, scene: Scene) => {
-    console.log(`🚀 Creating billboard panel for: ${sectionName}`);
+  // REMOVED: Old applyBMCVisualState function - CleanBMCSystem handles all visual states
 
-    const getSectionData = (name: string) => {
-      const mapping: { [key: string]: keyof BusinessModelCanvas } = {
-        'Key Partners': 'keyPartners',
-        'Key Activities': 'keyActivities',
-        'Key Resources': 'keyResources',
-        'Value Propositions': 'valuePropositions',
-        'Customer Relationships': 'customerRelationships',
-        'CustomerChannels': 'channels',
-        'Customer Segments': 'customerSegments',
-        'Cost Structure': 'costStructure',
-        'Revenue Streams': 'revenueStreams'
-      };
+  // Handle background click to clear selection (will be updated inside useEffect)
+  let handleBackgroundClick = () => {
+    console.log('Background clicked - clearing selection');
+    cleanBMCRef.current.clearSelection();
+    // REMOVED: setSelectedObject(null) - CleanBMCSystem manages all state
+  };
+  
+  // REMOVED: Sync function caused infinite loops - legacy store no longer needed
+  
 
-      const key = mapping[name];
-      if (key && canvas[key]) {
-        return canvas[key];
-      }
-      return null;
+  
+  // REMOVED: Old height logic - now handled by applyBMCVisualState
+
+  // REMOVED: Old restore logic - now handled by applyBMCVisualState
+
+  // Helper function to get section content from canvas data
+  const getSectionContent = (sectionName: string): string => {
+    const sectionMap: { [key: string]: string } = {
+      "Value Propositions": "valuePropositions",
+      "Key Partners": "keyPartners",
+      "Key Activities": "keyActivities", 
+      "Key Resources": "keyResources",
+      "Customer Relationships": "customerRelationships",
+      "CustomerChannels": "channels",
+      "Customer Segments": "customerSegments",
+      "Cost Structure": "costStructure",
+      "Revenue Streams": "revenueStreams"
     };
+    
+    const sectionKey = sectionMap[sectionName];
+    if (!sectionKey || !canvas[sectionKey as keyof typeof canvas]) {
+      return `No content available for ${sectionName}`;
+    }
+    
+    const section = canvas[sectionKey as keyof typeof canvas] as CanvasElement;
+    if (!section.content || section.content.length === 0) {
+      return `No bullet points available for ${sectionName}`;
+    }
+    
+    // Format content as bullet points
+    return section.content.map(item => `• ${item}`).join('\n');
+  };
 
-    const sectionData = getSectionData(sectionName);
-    if (!sectionData || typeof sectionData === 'string' || !sectionData.content || sectionData.content.length === 0) {
+  // Create bullet text plane for BMC section content
+  const createBulletTextPlane = (sectionName: string, mesh: AbstractMesh, scene: Scene) => {
+    console.log(`🎯 createBulletTextPlane called for ${sectionName}`);
+    console.log(`🎯 canvas available:`, !!canvas);
+    console.log(`🎯 showBulletText:`, showBulletText);
+    console.log(`🎯 mesh:`, mesh?.name || 'NO MESH');
+    
+    if (!canvas || !showBulletText) {
+      console.log(`❌ Early return: canvas=${!!canvas}, showBulletText=${showBulletText}`);
+      return null;
+    }
+
+    // Get content for the section
+    let content: string[] = [];
+    switch (sectionName) {
+      case 'Value Propositions':
+        content = canvas.valuePropositions?.content || [];
+        console.log(`📋 Value Propositions content:`, content);
+        break;
+      // Add other sections later
+      default:
+        console.log(`❌ Unsupported section: ${sectionName}`);
+        return null;
+    }
+
+    if (content.length === 0) {
       console.log(`❌ No content available for ${sectionName}`);
       return null;
     }
 
-    const bulletPoints = (sectionData as CanvasElement).content.map((item: string) => `• ${item}`).join('\n');
-    const lineHeight = 18;
-    const padding = 80;
-    const averageCharsPerLine = 65;
-
-    let totalLines = 0;
-    (sectionData as CanvasElement).content.forEach((item: string) => {
-      const bulletText = `• ${item}`;
-      const linesForThisItem = Math.ceil(bulletText.length / averageCharsPerLine);
-      totalLines += Math.max(1, linesForThisItem);
-    });
-
-    const calculatedHeight = padding + (totalLines * lineHeight) + 60;
-    const maxHeight = Math.min(800, Math.max(450, calculatedHeight));
-
-    const panel = new Rectangle();
-    panel.widthInPixels = 600;
-    panel.heightInPixels = Math.max(400, maxHeight);
-    panel.cornerRadius = 12;
-    panel.color = "#333333";
-    panel.thickness = 2;
-    panel.background = "white";
-    panel.leftInPixels = 20;
-    panel.topInPixels = -panel.heightInPixels / 2;
-
-    const headerRect = new Rectangle();
-    headerRect.widthInPixels = panel.widthInPixels - 4;
-    headerRect.heightInPixels = 50;
-    headerRect.topInPixels = -panel.heightInPixels / 2 + 27;
-    headerRect.background = "#f8f9fa";
-    headerRect.color = "#dee2e6";
-    headerRect.thickness = 1;
-
-    const titleText = new TextBlock();
-    titleText.text = sectionName;
-    titleText.color = "#333333";
-    const titleDevicePixelRatio = window.devicePixelRatio || 1;
-    const baseTitleSize = 18;
-    titleText.fontSize = Math.round(baseTitleSize * Math.min(titleDevicePixelRatio, 2));
-    titleText.fontWeight = "bold";
-    headerRect.addControl(titleText);
-
-    const closeButton = new TextBlock();
-    closeButton.text = "X";
-    closeButton.color = "#666666";
-    closeButton.fontSize = 16;
-    closeButton.fontWeight = "bold";
-    closeButton.widthInPixels = 20;
-    closeButton.heightInPixels = 20;
-    closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-    closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-    closeButton.leftInPixels = -10;
-    closeButton.topInPixels = 5;
-    closeButton.isPointerBlocker = true;
-
-    const contentText = new TextBlock();
-    contentText.text = bulletPoints;
-    contentText.color = "#333333";
-    const contentDevicePixelRatio = window.devicePixelRatio || 1;
-    const baseFontSize = 14;
-    contentText.fontSize = Math.round(baseFontSize * Math.min(contentDevicePixelRatio, 2));
-    contentText.lineSpacing = 6;
-    contentText.textWrapping = true;
-    contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-    contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-    contentText.paddingLeft = "20px";
-    contentText.paddingRight = "20px";
-    contentText.paddingTop = "60px";
-    contentText.paddingBottom = "30px";
-    contentText.heightInPixels = maxHeight - 20;
-    contentText.topInPixels = 25;
-
-    panel.addControl(headerRect);
-    panel.addControl(closeButton);
-    panel.addControl(contentText);
-    panel.isPointerBlocker = true;
-
-    const billboardTransform = new TransformNode("billboardTransform", scene);
-    billboardTransform.position = worldPosition.clone();
-    billboardTransform.position.y += 1;
-
-    panel.linkWithMesh(billboardTransform);
-    panel.linkOffsetY = -30;
-
-    closeButton.onPointerClickObservable.add(() => {
-      advancedTexture.removeControl(panel);
-      if (cleanBMCRef.current) {
-        cleanBMCRef.current.clearSelection();
+    // Format content as bullet points
+    const bulletText = content.map(item => `• ${item}`).join('\n');
+    console.log(`📝 Creating bullet text for ${sectionName}:`, bulletText);
+    
+    // Create dynamic texture for text
+    const textureSize = 512;
+    const dynamicTexture = new DynamicTexture(`bulletText_${sectionName}`, textureSize, scene, false);
+    const context = dynamicTexture.getContext();
+    
+    // Clear with transparent background
+    context.clearRect(0, 0, textureSize, textureSize);
+    
+    // Set text properties - small readable font
+    context.fillStyle = '#2d3748'; // Dark grey text
+    context.font = '20px Arial'; // Small font size
+    (context as any).textAlign = 'left';
+    (context as any).textBaseline = 'top';
+    
+    // Draw text with word wrapping
+    const maxWidth = textureSize - 40; // Leave margin
+    const lineHeight = 24;
+    const lines = bulletText.split('\n');
+    let y = 20;
+    
+    lines.forEach(line => {
+      // Simple word wrapping
+      const words = line.split(' ');
+      let currentLine = '';
+      
+      words.forEach(word => {
+        const testLine = currentLine + word + ' ';
+        const metrics = context.measureText(testLine);
+        
+        if (metrics.width > maxWidth && currentLine !== '') {
+          context.fillText(currentLine.trim(), 20, y);
+          y += lineHeight;
+          currentLine = word + ' ';
+        } else {
+          currentLine = testLine;
+        }
+      });
+      
+      if (currentLine.trim() !== '') {
+        context.fillText(currentLine.trim(), 20, y);
+        y += lineHeight;
       }
     });
-
-    advancedTexture.addControl(panel);
-    return panel;
+    
+    dynamicTexture.update();
+    
+    // Create text plane
+    const textPlane = MeshBuilder.CreatePlane(`bulletTextPlane_${sectionName}`, { 
+      size: 2.0, 
+      sideOrientation: 2 
+    }, scene);
+    
+    // Position text plane on top of the mesh, slightly elevated
+    textPlane.position = mesh.position.clone();
+    textPlane.position.y = mesh.position.y + (mesh.scaling.y / 2) + 0.1; // Higher elevation
+    textPlane.rotation.x = Math.PI / 2; // Lay flat on top
+    console.log(`📍 Text plane positioned at:`, textPlane.position);
+    console.log(`📍 Mesh position:`, mesh.position);
+    console.log(`📍 Mesh scaling:`, mesh.scaling);
+    
+    // Create material - make it very visible
+    const textMaterial = new StandardMaterial(`bulletTextMat_${sectionName}`, scene);
+    textMaterial.diffuseTexture = dynamicTexture;
+    textMaterial.emissiveTexture = dynamicTexture;
+    textMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Bright white for visibility
+    textMaterial.useAlphaFromDiffuseTexture = true;
+    textMaterial.disableLighting = true;
+    textMaterial.backFaceCulling = false;
+    textMaterial.alpha = 1.0; // Ensure full opacity
+    
+    textPlane.material = textMaterial;
+    textPlane.isPickable = false;
+    textPlane.parent = mesh;
+    textPlane.setEnabled(true); // Ensure it's enabled
+    textPlane.isVisible = true; // Ensure it's visible
+    
+    console.log(`✅ Bullet text plane created for ${sectionName}`);
+    console.log(`📊 Text plane details:`, {
+      name: textPlane.name,
+      position: textPlane.position,
+      isVisible: textPlane.isVisible,
+      isEnabled: textPlane.isEnabled(),
+      parent: textPlane.parent?.name,
+      materialAlpha: textMaterial.alpha
+    });
+    return textPlane;
   };
 
   // Toggle bullet text display
   const toggleBulletText = () => {
     const newState = !showBulletText;
+    console.log(`🔄 Toggling bullet text: ${showBulletText} → ${newState}`);
     setShowBulletText(newState);
-
+    
     if (newState) {
+      // Create bullet text for existing meshes
       const scene = sceneRef.current;
       if (scene) {
+        // Find Value Propositions mesh using the CleanBMCSystem registry
         const valuePropMesh = cleanBMCRef.current.getMesh('Value Propositions');
+        console.log('🔍 Looking for Value Propositions mesh:', valuePropMesh ? 'FOUND' : 'NOT FOUND');
+        if (!valuePropMesh) {
+          console.log('🔍 Available meshes:', scene.meshes.map(m => m.name));
+        }
         if (valuePropMesh) {
-          // Placeholder for actual bullet text plane creation logic
+          console.log(`🎯 Found mesh for Value Propositions:`, valuePropMesh.name);
+          console.log(`📍 Mesh position:`, valuePropMesh.position);
+          console.log(`📏 Mesh scaling:`, valuePropMesh.scaling);
+          const textPlane = createBulletTextPlane('Value Propositions', valuePropMesh, scene);
+          if (textPlane) {
+            console.log(`💾 Storing text plane:`, textPlane.name);
+            bulletTextPlanesRef.current.set('Value Propositions', textPlane);
+          } else {
+            console.log(`❌ Failed to create text plane for Value Propositions`);
+          }
         }
       }
     } else {
+      // Remove all bullet text planes
       bulletTextPlanesRef.current.forEach((plane, name) => {
         plane.dispose();
       });
@@ -256,163 +526,2371 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
   };
 
-  // Main initialization effect
+  // Expose toggle function for manual testing
+  useEffect(() => {
+    (window as any).toggleBulletText = toggleBulletText;
+    return () => {
+      delete (window as any).toggleBulletText;
+    };
+  }, [showBulletText]);
+
+  // REMOVED: Old restoration function - CleanBMCSystem handles this automatically
+
+  // REMOVED: Old restoration useEffect - CleanBMCSystem handles state automatically
+  
+  // GUI state removed since labels are no longer used
+
+
+
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
 
-    // Prevent multiple initializations
-    if (engineRef.current || sceneRef.current) {
-      console.log('🔄 Babylon.js already initialized, skipping...');
+    // Check if Babylon.js is properly loaded
+    console.log('🔍 Babylon.js library check:');
+    console.log('Engine available:', typeof Engine);
+    console.log('Scene available:', typeof Scene);
+    console.log('Vector3 available:', typeof Vector3);
+    
+    if (typeof Engine === 'undefined') {
+      console.error('❌ Babylon.js Engine not loaded');
       return;
     }
 
-    console.log('🔍 Initializing Babylon.js Canvas3D...');
-
-    // WebGL support check
+    // Check WebGL support first
     const canvasElement = canvasRef.current;
     const gl = canvasElement.getContext('webgl') || canvasElement.getContext('experimental-webgl');
     if (!gl) {
       console.error('WebGL is not supported in this browser');
       return;
     }
+    console.log('✅ WebGL context available');
 
+    // Initialize Babylon.js engine and scene with error handling
     let engine: Engine | null = null;
     let scene: Scene | null = null;
 
     try {
+      // Initialize engine with high-quality settings for clear label rendering
       engine = new Engine(canvasElement, true, {
         preserveDrawingBuffer: true,
         stencil: true,
-        antialias: true,
-        adaptToDeviceRatio: true,
-        powerPreference: "high-performance"
-      }, true);
-
+        antialias: true, // Enable anti-aliasing for smoother edges
+        adaptToDeviceRatio: true, // Use device pixel ratio for crisp rendering
+        powerPreference: "high-performance" // Request high-performance GPU
+      }, true); // Enable adaptive quality
+      
       if (!engine) {
         throw new Error('Engine creation returned null');
       }
-
+      
       scene = new Scene(engine);
       if (!scene) {
         throw new Error('Scene creation returned null');
       }
-
+      
       console.log("✅ Babylon.js engine and scene initialized successfully");
     } catch (error) {
       console.error('Failed to initialize Babylon.js engine:', error);
+      console.error('Engine object:', engine ? 'created' : 'null');
+      console.error('Scene object:', scene ? 'created' : 'null');
       return;
     }
 
+    // Ensure we have valid engine and scene before proceeding
     if (!engine || !scene) {
       console.error('❌ Engine or scene initialization failed');
       return;
     }
-
+    
+    // Set background to match 2D view (#e9ecef - light gray)
+    // #e9ecef = RGB(233, 236, 239) = normalized (0.914, 0.925, 0.937)
+    scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
+    
     engineRef.current = engine;
     sceneRef.current = scene;
+    
+    // Enable pointer interactions on the scene
+    scene.actionManager = new ActionManager(scene);
+    console.log("🎯 Scene ActionManager enabled");
 
-    // Initialize scene setup
-    const sceneSetup = new SceneSetup(scene);
-    sceneSetup.setupEnvironment();
-
-    // Initialize camera manager
-    cameraManagerRef.current = new CameraManager(scene, canvasElement);
-
-    // Set initial camera mode
-    cameraManagerRef.current.setCameraMode(isOrthographic);
-
-    // Restore camera state if available
+    // Create perspective camera (always created to preserve state)
     const savedCameraState = getCamera3DState();
-    if (savedCameraState && !isOrthographic) {
-      cameraManagerRef.current.restoreCameraState(
-        savedCameraState.alpha,
-        savedCameraState.beta,
-        savedCameraState.radius
-      );
+    const perspectiveCamera = new ArcRotateCamera(
+      "perspectiveCamera",
+      savedCameraState?.alpha ?? -Math.PI / 2.5,  // Alpha - more angled from the side for better perspective
+      savedCameraState?.beta ?? Math.PI / 6,      // Beta - high angle for top-down perspective
+      savedCameraState?.radius ?? 25,             // Radius - further back to see entire BMC layout clearly
+      Vector3.Zero(),  // Target position
+      scene
+    );
+    perspectiveCamera.setTarget(Vector3.Zero());
+    
+    // Enable camera controls on the canvas for perspective camera
+    perspectiveCamera.attachControl(canvasRef.current, true);
+    
+    // Reduce mouse wheel sensitivity for smoother zooming
+    perspectiveCamera.wheelPrecision = 50;        // Default is 3, higher values = less sensitive
+    
+    // Set camera limits for grid layout navigation (original working values)
+    perspectiveCamera.lowerRadiusLimit = 5;      // Minimum zoom distance
+    perspectiveCamera.upperRadiusLimit = 25;     // Maximum zoom distance
+    perspectiveCamera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
+    perspectiveCamera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
+    
+    // Create orthographic camera for top view
+    const orthoCamera = new FreeCamera("orthoCamera", new Vector3(0, 15, 0), scene);
+    orthoCamera.setTarget(Vector3.Zero());
+    
+    // Look straight down for top view
+    orthoCamera.rotation.x = Math.PI / 2;
+    orthoCamera.rotation.y = 0;
+    orthoCamera.rotation.z = 0;
+    
+    // Set orthographic projection with proper aspect ratio (optimized size for full model visibility)
+    orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
+    const aspectRatio = canvasRef.current!.width / canvasRef.current!.height;
+    const orthoSize = 8.5; // Optimized size to show full model while maximizing viewport usage
+    
+    if (aspectRatio > 1) {
+      // Wider than tall - expand horizontally
+      orthoCamera.orthoTop = orthoSize;
+      orthoCamera.orthoBottom = -orthoSize;
+      orthoCamera.orthoLeft = -orthoSize * aspectRatio;
+      orthoCamera.orthoRight = orthoSize * aspectRatio;
+    } else {
+      // Taller than wide - expand vertically
+      orthoCamera.orthoTop = orthoSize / aspectRatio;
+      orthoCamera.orthoBottom = -orthoSize / aspectRatio;
+      orthoCamera.orthoLeft = -orthoSize;
+      orthoCamera.orthoRight = orthoSize;
+    }
+    
+    // Set proper clipping planes for orthographic view
+    orthoCamera.minZ = 0.1;
+    orthoCamera.maxZ = 100;
+    
+    // Disable rotation controls for pure top-down view
+    orthoCamera.inputs.clear();
+    
+    // Add direct event handlers for orthographic camera controls (using ref for cross-useEffect access)
+    
+    const setupOrthoControls = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      
+      // Mouse wheel zoom
+      const onWheel = (event: WheelEvent) => {
+        event.preventDefault();
+        const delta = event.deltaY > 0 ? 1.1 : 0.9;
+        const currentSize = orthoCamera.orthoTop || 8.5;
+        const newSize = Math.max(2, Math.min(15, currentSize * delta)); // Constrain zoom range
+        
+        // Update orthographic bounds while maintaining aspect ratio
+        const aspectRatio = canvas.width / canvas.height;
+        if (aspectRatio > 1) {
+          orthoCamera.orthoTop = newSize;
+          orthoCamera.orthoBottom = -newSize;
+          orthoCamera.orthoLeft = -newSize * aspectRatio;
+          orthoCamera.orthoRight = newSize * aspectRatio;
+        } else {
+          orthoCamera.orthoTop = newSize / aspectRatio;
+          orthoCamera.orthoBottom = -newSize / aspectRatio;
+          orthoCamera.orthoLeft = -newSize;
+          orthoCamera.orthoRight = newSize;
+        }
+      };
+      
+      // Mouse drag for constrained panning (left/right and horizontal translation with Shift)
+      let isDragging = false;
+      let lastX = 0;
+      let lastY = 0;
+      
+      const onMouseDown = (event: MouseEvent) => {
+        console.log(`🖱️ MouseDown detected: button=${event.button}, clientX=${event.clientX}, clientY=${event.clientY}, shiftKey=${event.shiftKey}`);
+        if (event.button === 0) { // Left mouse button
+          isDragging = true;
+          lastX = event.clientX;
+          lastY = event.clientY;
+          event.preventDefault();
+          event.stopPropagation();
+          console.log(`🖱️ ✅ ORTHO DRAG STARTED: X=${event.clientX}, Y=${event.clientY}, shift=${event.shiftKey}, camera.x=${orthoCamera.position.x.toFixed(3)}, camera.z=${orthoCamera.position.z.toFixed(3)}`);
+        }
+      };
+      
+      const onMouseMove = (event: MouseEvent) => {
+        if (!isDragging) {
+          console.log(`🖱️ MouseMove but not dragging - ignoring`);
+          return;
+        }
+        
+        const deltaX = event.clientX - lastX;
+        const deltaY = event.clientY - lastY;
+        const sensitivity = 0.02;
+        
+        console.log(`🖱️ MouseMove: deltaX=${deltaX}, deltaY=${deltaY}, shiftKey=${event.shiftKey}`);
+        
+        // Use event.shiftKey directly for reliable Shift detection
+        if (event.shiftKey) {
+          // Shift + drag: Horizontal translation (Z-axis movement)
+          const translationZ = -deltaY * sensitivity;
+          
+          const oldZ = orthoCamera.position.z;
+          orthoCamera.position.z += translationZ;
+          
+          const target = orthoCamera.getTarget();
+          target.z += translationZ;
+          orthoCamera.setTarget(target);
+          
+          console.log(`🖱️ ✨ SHIFT+DRAG HORIZONTAL: deltaY=${deltaY}, translationZ=${translationZ.toFixed(3)}, camera.z=${oldZ.toFixed(3)} -> ${orthoCamera.position.z.toFixed(3)}`);
+        } else {
+          // Normal drag: Left/right panning (X-axis)
+          const translationX = deltaX * sensitivity;
+          
+          const oldX = orthoCamera.position.x;
+          orthoCamera.position.x -= translationX;
+          
+          const target = orthoCamera.getTarget();
+          target.x -= translationX;
+          orthoCamera.setTarget(target);
+          
+          console.log(`🖱️ NORMAL DRAG: deltaX=${deltaX}, translationX=${translationX.toFixed(3)}, camera.x=${oldX.toFixed(3)} -> ${orthoCamera.position.x.toFixed(3)}`);
+        }
+        
+        lastX = event.clientX;
+        lastY = event.clientY;
+        event.preventDefault();
+        event.stopPropagation();
+      };
+      
+      const onMouseUp = (event: MouseEvent) => {
+        if (isDragging) {
+          console.log(`🖱️ Ortho pan ended`);
+        }
+        isDragging = false;
+      };
+      
+      canvas.addEventListener('wheel', onWheel, { passive: false });
+      canvas.addEventListener('mousedown', onMouseDown, true);
+      canvas.addEventListener('mousemove', onMouseMove, true);  
+      canvas.addEventListener('mouseup', onMouseUp, true);
+      canvas.addEventListener('mouseleave', onMouseUp, true);
+      
+      // Store handlers for cleanup in ref
+      orthoEventHandlersRef.current = {
+        wheel: onWheel,
+        mousedown: onMouseDown,
+        mousemove: onMouseMove,
+        mouseup: onMouseUp,
+        canvas: canvas
+      };
+      
+      console.log("🎯 Orthographic camera controls configured (zoom + constrained panning)");
+    };
+    
+    // Setup controls when camera is active
+    setupOrthoControls();
+    
+    // Store camera references
+    cameraRef.current = perspectiveCamera;
+    orthoCameraRef.current = orthoCamera;
+    
+    // Set active camera based on mode
+    scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
+    
+    // Initialize label manager with scene
+    // Simple BMC manager doesn't need scene setup
+
+    // Enhanced lighting setup for semi-gloss black plastic with subtle reflections
+    const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
+    hemisphericLight.intensity = 1.2; // Moderate ambient lighting
+    hemisphericLight.diffuse = new Color3(0.9, 0.9, 0.9); // Neutral ambient
+    hemisphericLight.specular = new Color3(0.2, 0.2, 0.2); // Low specular for subtle shine
+    
+    const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
+    directionalLight.intensity = 1.8; // Strong directional light for shape definition
+    directionalLight.diffuse = new Color3(1, 1, 1);
+    directionalLight.specular = new Color3(0.3, 0.3, 0.3); // Low specular for controlled shine
+
+    // Create ground with powder blue background and white gridlines
+    const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
+    
+    // Create dynamic texture for powder blue grid pattern with white lines
+    const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
+    const gridContext = gridTexture.getContext();
+    
+    // Fill with custom powder blue background
+    gridContext.fillStyle = "#a7dbfc"; // Custom powder blue background
+    gridContext.fillRect(0, 0, 1024, 1024);
+    
+    // Draw white grid lines
+    gridContext.strokeStyle = "#FFFFFF"; // White grid lines
+    gridContext.lineWidth = 1; // Thin 1px grid lines
+    
+    // Draw vertical lines (spacing every 32 pixels)
+    for (let i = 0; i <= 1024; i += 32) {
+      gridContext.beginPath();
+      gridContext.moveTo(i, 0);
+      gridContext.lineTo(i, 1024);
+      gridContext.stroke();
+    }
+    
+    // Draw horizontal lines (spacing every 32 pixels)
+    for (let i = 0; i <= 1024; i += 32) {
+      gridContext.beginPath();
+      gridContext.moveTo(0, i);
+      gridContext.lineTo(1024, i);
+      gridContext.stroke();
+    }
+    
+    gridTexture.update();
+    
+    // Apply powder blue material with white grid texture to ground
+    const groundMaterial = new StandardMaterial("groundMaterial", scene);
+    groundMaterial.diffuseTexture = gridTexture;
+    groundMaterial.specularColor = new Color3(0.1, 0.1, 0.2); // Subtle blue-tinted specular reflection
+    groundMaterial.specularPower = 64; // Higher value for sharper reflections
+    groundMaterial.alpha = 0.5; // 50% opacity
+    ground.material = groundMaterial;
+
+    // Add click detection to ground for clearing selections and closing panels
+    ground.actionManager = new ActionManager(scene);
+    ground.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+      console.log('Ground clicked - clearing selection and closing billboard panel');
+      
+      // Clear BMC selection
+      cleanBMCRef.current.clearSelection();
+      
+      // Close billboard panel if it exists
+      if (currentBillboardPanel) {
+        advancedTexture.removeControl(currentBillboardPanel);
+        currentBillboardPanel = null;
+        billboardPanelRef.current = null;
+        console.log("❌ Billboard panel closed by ground click");
+      }
+    }));
+
+    // Create extruded border rails on all sides
+    const railHeight = 0.15; // Reduced from 0.3 to 0.15
+    const railWidth = 0.2;
+    const railColor = new Color3(0.3, 0.3, 0.3); // Darker grey rail color
+    
+    // Create rail material
+    const railMaterial = new StandardMaterial("railMaterial", scene);
+    railMaterial.diffuseColor = railColor;
+    railMaterial.specularColor = new Color3(0, 0, 0);
+    
+    // North rail (back) - extends full width including rail thickness for flush corners
+    const northRail = MeshBuilder.CreateBox("northRail", {
+      width: 20 + railWidth*2, // Ground width + rail thickness on both sides for flush corners
+      height: railHeight,
+      depth: railWidth
+    }, scene);
+    northRail.position = new Vector3(0, railHeight/2, -7 - railWidth/2); // 14/2 = 7
+    northRail.material = railMaterial;
+    
+    // South rail (front) - extends full width including rail thickness for flush corners
+    const southRail = MeshBuilder.CreateBox("southRail", {
+      width: 20 + railWidth*2, // Ground width + rail thickness on both sides for flush corners
+      height: railHeight,
+      depth: railWidth
+    }, scene);
+    southRail.position = new Vector3(0, railHeight/2, 7 + railWidth/2); // 14/2 = 7
+    southRail.material = railMaterial;
+    
+    // East rail (right) - only spans ground depth (not including rail thickness to avoid overlap)
+    const eastRail = MeshBuilder.CreateBox("eastRail", {
+      width: railWidth,
+      height: railHeight,
+      depth: 14 // Only ground depth, no extension needed
+    }, scene);
+    eastRail.position = new Vector3(10 + railWidth/2, railHeight/2, 0); // 20/2 = 10
+    eastRail.material = railMaterial;
+    
+    // West rail (left) - only spans ground depth (not including rail thickness to avoid overlap)
+    const westRail = MeshBuilder.CreateBox("westRail", {
+      width: railWidth,
+      height: railHeight,
+      depth: 14 // Only ground depth, no extension needed
+    }, scene);
+    westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0); // 20/2 = 10
+    westRail.material = railMaterial;
+
+
+    
+
+
+    // Create optimized environment for PBR materials to work properly
+    const environmentHelper = scene.createDefaultEnvironment({
+      createGround: false, // We already have ground
+      createSkybox: false, // Disable skybox to show scene clearColor background
+      skyboxSize: 100,
+      skyboxColor: new Color3(0.95, 0.95, 0.97), // Not used since createSkybox is false
+      groundColor: new Color3(0.9, 0.9, 0.9)
+    });
+    
+    // Set environment to moderate intensity for PBR materials
+    if (environmentHelper) {
+      scene.environmentIntensity = 0.5; // Moderate for PBR materials to work
     }
 
-    // Initialize GUI
+    // Create GUI for 3D billboard labels and content panels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    
+    // Store reference to current billboard panel for cleanup
     let currentBillboardPanel: any = null;
-
-    // Background click handler
+    
+    // Store references for background click handler
+    const billboardPanelRef = { current: null as any };
+    billboardPanelRef.current = currentBillboardPanel;
+    
+    // Using official Babylon.js OnDoublePickTrigger (approved method)
+    
+    // Update background click handler to have access to billboard panel
+    handleBackgroundClick = () => {
+      console.log('Background clicked - clearing selection and closing billboard panel');
+      cleanBMCRef.current.clearSelection();
+      
+      // Close billboard panel if it exists
+      if (currentBillboardPanel) {
+        advancedTexture.removeControl(currentBillboardPanel);
+        currentBillboardPanel = null;
+        billboardPanelRef.current = null;
+        console.log("❌ Billboard panel closed by background click");
+      }
+    };
+    
+    // Background click handler for panels only
     scene.onPointerObservable.add((pointerInfo) => {
       if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
         if (pointerInfo.pickInfo?.hit) {
           const hitMesh = pointerInfo.pickInfo.pickedMesh;
           const isBMCMesh = hitMesh && (
-            hitMesh.name.includes('BMC_') ||
+            hitMesh.name.includes('BMC_') || 
             hitMesh.name.includes('Revenue') ||
             hitMesh.name.includes('Cost')
           );
-
+          
           if (!isBMCMesh && currentBillboardPanel) {
-            advancedTexture.removeControl(currentBillboardPanel);
-            currentBillboardPanel = null;
-            cleanBMCRef.current.clearSelection();
+            handleBackgroundClick();
           }
         } else if (currentBillboardPanel) {
-          advancedTexture.removeControl(currentBillboardPanel);
-          currentBillboardPanel = null;
-          cleanBMCRef.current.clearSelection();
+          handleBackgroundClick();
         }
       }
     });
+    
+    // Function to create billboarded content panel
+    const createBillboardPanel = (sectionName: string, worldPosition: Vector3) => {
+      console.log(`🚀🚀 CREATING BILLBOARD PANEL FOR: ${sectionName} 🚀🚀`);
+      
+      // Remove existing panel if any (panel refresh functionality)
+      if (currentBillboardPanel) {
+        advancedTexture.removeControl(currentBillboardPanel);
+        currentBillboardPanel = null;
+        billboardPanelRef.current = null;
+        console.log(`🔄 Refreshing panel content - removed existing panel to show ${sectionName}`);
+      }
+      
+      // Get section content from canvas data
+      const getSectionData = (name: string) => {
+        const mapping: { [key: string]: keyof BusinessModelCanvas } = {
+          'Key Partners': 'keyPartners',
+          'Key Activities': 'keyActivities',
+          'Key Resources': 'keyResources',
+          'Value Propositions': 'valuePropositions',
+          'Customer Relationships': 'customerRelationships',
+          'CustomerChannels': 'channels',
+          'Customer Segments': 'customerSegments',
+          'Cost Structure': 'costStructure',
+          'Revenue Streams': 'revenueStreams'
+        };
+        
+        const key = mapping[name];
+        console.log(`🔍 Looking for section ${name} with key ${key}`);
+        if (key && canvas[key]) {
+          console.log(`✅ Found section data for ${name}:`, canvas[key]);
+          return canvas[key];
+        }
+        console.log(`❌ No section data found for ${name}`);
+        return null;
+      };
+      
+      const sectionData = getSectionData(sectionName);
+      if (!sectionData || typeof sectionData === 'string' || !sectionData.content || sectionData.content.length === 0) {
+        console.log(`❌ No content available for ${sectionName} - sectionData:`, sectionData);
+        return;
+      }
+      
+      console.log(`✅ Section data found for ${sectionName}, creating panel...`);
+      
+      // Calculate proper height based on content
+      const bulletPoints = (sectionData as CanvasElement).content.map((item: string) => `• ${item}`).join('\n');
+      const lineHeight = 18; // More realistic line height for 12px font
+      const padding = 80; // Header (40px) + top/bottom padding (40px)
+      const averageCharsPerLine = 65; // Approximate chars that fit in 600px width
+      
+      // Calculate total lines needed including text wrapping
+      let totalLines = 0;
+      (sectionData as CanvasElement).content.forEach((item: string) => {
+        const bulletText = `• ${item}`;
+        const linesForThisItem = Math.ceil(bulletText.length / averageCharsPerLine);
+        totalLines += Math.max(1, linesForThisItem); // At least 1 line per item
+      });
+      
+      const calculatedHeight = padding + (totalLines * lineHeight) + 60; // Add extra padding to prevent cropping
+      const maxHeight = Math.min(800, Math.max(450, calculatedHeight)); // Minimum 450px height, up to 800px
+      
+      console.log(`📏 Panel height calculation: ${totalLines} lines × ${lineHeight}px + ${padding}px padding = ${calculatedHeight}px (max: ${maxHeight}px)`);
+      
+      // Create main panel container - larger size for better visibility
+      const panel = new Rectangle();
+      panel.widthInPixels = 600; // Increased from 400 to 600 for better visibility
+      panel.heightInPixels = Math.max(400, maxHeight); // Minimum 400px height
+      panel.cornerRadius = 12;
+      panel.color = "#333333";
+      panel.thickness = 2;
+      panel.background = "white";
+      
+      // Position panel closer to the 3D object
+      panel.leftInPixels = 20; // Closer offset from object
+      panel.topInPixels = -panel.heightInPixels / 2;
+      
+      // Create header with section title
+      const headerRect = new Rectangle();
+      headerRect.widthInPixels = panel.widthInPixels - 4;
+      headerRect.heightInPixels = 50; // Increased header height
+      headerRect.topInPixels = -panel.heightInPixels / 2 + 27; // Adjusted position
+      headerRect.background = "#f8f9fa";
+      headerRect.color = "#dee2e6";
+      headerRect.thickness = 1;
+      
+      const titleText = new TextBlock();
+      titleText.text = sectionName;
+      titleText.color = "#333333";
+      
+      // Scale title font for high DPI displays
+      const titleDevicePixelRatio = window.devicePixelRatio || 1;
+      const baseTitleSize = 18; // Increased base title size
+      titleText.fontSize = Math.round(baseTitleSize * Math.min(titleDevicePixelRatio, 2));
+      titleText.fontWeight = "bold";
+      headerRect.addControl(titleText);
+      
+      // Create close button
+      const closeButton = new TextBlock();
+      closeButton.text = "X";
+      closeButton.color = "#666666"; // Gray color
+      closeButton.fontSize = 16;
+      closeButton.fontWeight = "bold";
+      closeButton.widthInPixels = 20;
+      closeButton.heightInPixels = 20;
+      closeButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      closeButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      closeButton.leftInPixels = -10;
+      closeButton.topInPixels = 5;
+      closeButton.isPointerBlocker = true;
+      
+      // Create content area with bullet points - improved font rendering for high DPI
+      const contentText = new TextBlock();
+      contentText.text = bulletPoints;
+      contentText.color = "#333333";
+      
+      // Calculate appropriate font size based on device pixel ratio for crisp rendering
+      const contentDevicePixelRatio = window.devicePixelRatio || 1;
+      const baseFontSize = 14; // Increased base size
+      contentText.fontSize = Math.round(baseFontSize * Math.min(contentDevicePixelRatio, 2)); // Cap scaling at 2x
+      
+      contentText.lineSpacing = 6; // More line spacing for better readability
+      contentText.textWrapping = true;
+      contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+      contentText.paddingLeft = "20px";
+      contentText.paddingRight = "20px";
+      contentText.paddingTop = "60px"; // More top padding to avoid header overlap
+      contentText.paddingBottom = "30px"; // More bottom padding to prevent cropping
+      
+      // Make content area take full available height with proper spacing
+      contentText.heightInPixels = maxHeight - 20; // Leave more room to prevent cropping
+      contentText.topInPixels = 25; // Move content down from header
+      
+      // Add controls to panel
+      panel.addControl(headerRect);
+      panel.addControl(closeButton);
+      panel.addControl(contentText);
+      
+      // Make panel clickable to prevent background clicks from closing it
+      panel.isPointerBlocker = true;
+      
+      // Make panel billboard (always face camera) positioned closer to object
+      const billboardTransform = new TransformNode("billboardTransform", scene);
+      billboardTransform.position = worldPosition.clone();
+      billboardTransform.position.y += 1; // Closer offset above object
+      
+      // Connect GUI to 3D position
+      panel.linkWithMesh(billboardTransform);
+      panel.linkOffsetY = -30; // Closer vertical offset
+      
+      // Close button functionality
+      closeButton.onPointerClickObservable.add(() => {
+        if (currentBillboardPanel) {
+          advancedTexture.removeControl(currentBillboardPanel);
+          currentBillboardPanel = null;
+          billboardPanelRef.current = null;
+          
+          // Clear selection when panel is closed
+          if (cleanBMCRef.current) {
+            cleanBMCRef.current.clearSelection();
+          }
+        }
+      });
+      
+      // Add panel to UI
+      advancedTexture.addControl(panel);
+      currentBillboardPanel = panel;
+      billboardPanelRef.current = panel;
+      
+      console.log(`✅✅ BILLBOARD PANEL CREATED SUCCESSFULLY FOR ${sectionName} ✅✅`);
+      console.log(`📍 Panel position: (${worldPosition.x.toFixed(2)}, ${worldPosition.y.toFixed(2)}, ${worldPosition.z.toFixed(2)})`);
+      console.log(`📏 Panel size: ${panel.widthInPixels}x${panel.heightInPixels}px`);
+      console.log(`🎯 Panel should now be visible on screen with ${(sectionData as CanvasElement).content.length} bullet points!`);
+    };
+    
+    // Add "Internal" label directly on the ground plane near Cost Structure
+    const createInternalLabel = () => {
+      // Cost Structure is at (-10.1, 0.1, -10.5), Ground plane is at Y=0
+      // Place Internal label on the ground plane, moved more to the right
+      
+      const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
+        width: 4.0,   // Reduced by 20% (was 5.0)
+        height: 1.28  // Reduced by 20% (was 1.6)
+      }, scene);
+      
+      // Position on ground plane, moved more to the right
+      internalLabelPlane.position.x = -5.0;  // Moved more to the right (was -8.0)
+      internalLabelPlane.position.y = 0.001; // Directly on ground plane surface
+      internalLabelPlane.position.z = -6.2;  // Move in negative Z direction (down on screen) to align with red line
+      
+      // Rotate to lie flat on the ground
+      internalLabelPlane.rotation.x = Math.PI / 2;
+      
+      // Create material with the new grey Internal label at 50% transparency
+      const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
+      const internalLabelTexture = new Texture("/textures/Labels_internal_grey.png", scene);
+      internalLabelTexture.hasAlpha = true;
+      
+      internalLabelMaterial.diffuseTexture = internalLabelTexture;
+      internalLabelMaterial.emissiveTexture = internalLabelTexture;
+      internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
+      internalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
+      internalLabelMaterial.useAlphaFromDiffuseTexture = true;
+      internalLabelMaterial.disableLighting = true;
+      
+      internalLabelPlane.material = internalLabelMaterial;
+      internalLabelPlane.isPickable = false;
+      
+      console.log(`✅ Internal label (grey) on ground plane at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
+    };
 
-    // Initialize BMC Model Loader
-    const bmcModelLoader = new BMCModelLoader(scene, canvas, cleanBMCRef.current);
-    bmcModelLoaderRef.current = bmcModelLoader; // Store reference to BMCModelLoader
+    // Add "External" label on the right side of the ground plane
+    const createExternalLabel = () => {
+      // Position on the right side, mirroring Internal label placement
+      // Based on diagram: External should be positioned below Revenue Streams area
+      
+      const externalLabelPlane = MeshBuilder.CreatePlane("externalLabel", {
+        width: 4.0,   // Reduced by 20% (was 5.0)
+        height: 1.28  // Reduced by 20% (was 1.6)
+      }, scene);
+      
+      // Position on ground plane on the right side
+      // Revenue Streams is at (-0.221, 0.1, -10.5), so External should be to the right
+      externalLabelPlane.position.x = 5.0;   // Right side (positive X, mirroring Internal at -5.0)
+      externalLabelPlane.position.y = 0.001; // Directly on ground plane surface
+      externalLabelPlane.position.z = -6.2;  // Same Z as Internal for alignment
+      
+      // Rotate to lie flat on the ground
+      externalLabelPlane.rotation.x = Math.PI / 2;
+      
+      // Create material with the External grey label at 50% transparency
+      const externalLabelMaterial = new StandardMaterial("externalLabelMat", scene);
+      const externalLabelTexture = new Texture("/textures/Labels_external_grey.png", scene);
+      externalLabelTexture.hasAlpha = true;
+      
+      externalLabelMaterial.diffuseTexture = externalLabelTexture;
+      externalLabelMaterial.emissiveTexture = externalLabelTexture;
+      externalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
+      externalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
+      externalLabelMaterial.useAlphaFromDiffuseTexture = true;
+      externalLabelMaterial.disableLighting = true;
+      
+      externalLabelPlane.material = externalLabelMaterial;
+      externalLabelPlane.isPickable = false;
+      
+      console.log(`✅ External label positioned on right side at (${externalLabelPlane.position.x}, ${externalLabelPlane.position.y}, ${externalLabelPlane.position.z})`);
+    };
 
-    // Load and setup BMC models
-    const initializeModels = async () => {
-      try {
-        console.log("🔄 Loading BMC models...");
+    // Add vertical divider label in the center of the ground plane, running top to bottom
+    const createVerticalDividerLabel = () => {
+      // Position in the center of the ground plane (X=0), running from top to bottom
+      // Based on BMC layout: center line should run between left side (Internal) and right side (External)
+      
+      const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
+        width: 0.02,  // Ultra-thin width (2px equivalent)
+        height: 13.0  // Increased height to extend more toward top
+      }, scene);
+      
+      // Position to keep bottom fixed while extending toward positive Z (top in view)
+      verticalDividerPlane.position.x = 0.0;   // Center line (X=0)
+      verticalDividerPlane.position.y = 0.001; // Directly on ground plane surface
+      verticalDividerPlane.position.z = 0.0;   // Adjusted to extend toward positive Z (top)
+      
+      // Rotate to lie flat on the ground
+      verticalDividerPlane.rotation.x = Math.PI / 2;
+      
+      // Create material with the vertical divider grey label at 50% transparency
+      const verticalDividerMaterial = new StandardMaterial("verticalDividerMat", scene);
+      const verticalDividerTexture = new Texture("/textures/Labels_vertical_divider.png", scene);
+      verticalDividerTexture.hasAlpha = true;
+      
+      verticalDividerMaterial.diffuseTexture = verticalDividerTexture;
+      verticalDividerMaterial.emissiveTexture = verticalDividerTexture;
+      verticalDividerMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
+      verticalDividerMaterial.alpha = 0.3; // 30% opacity (same as Internal/External)
+      verticalDividerMaterial.useAlphaFromDiffuseTexture = true;
+      verticalDividerMaterial.disableLighting = true;
+      
+      verticalDividerPlane.material = verticalDividerMaterial;
+      verticalDividerPlane.isPickable = false;
+      
+      console.log(`✅ Vertical divider label (grey) on ground plane at center (${verticalDividerPlane.position.x}, ${verticalDividerPlane.position.y}, ${verticalDividerPlane.position.z})`);
+    };
+    
+    // Create the Internal, External, and Vertical Divider labels
+    createInternalLabel();
+    createExternalLabel();
+    createVerticalDividerLabel();
+    
 
-        // Load main BMC model
-        const mainBMCMeshes = await bmcModelLoader.loadMainBMC();
+    
 
-        // Load revenue streams and cost structure
-        const revenueStreamsMeshes = await bmcModelLoader.loadRevenueStreams();
-        const costStructureMeshes = await bmcModelLoader.loadCostStructure();
+    
 
-        // Setup interactions
-        bmcModelLoader.setupMainBMCInteractions(mainBMCMeshes, advancedTexture, createBillboardPanel);
-        bmcModelLoader.setupRevenueStreamsInteractions(revenueStreamsMeshes, advancedTexture, createBillboardPanel);
-        bmcModelLoader.setupCostStructureInteractions(costStructureMeshes, advancedTexture, createBillboardPanel);
 
-        // Apply animations
-        bmcModelLoader.applyAnimations([...mainBMCMeshes, ...revenueStreamsMeshes, ...costStructureMeshes]);
 
-        console.log("✅ BMC models loaded and configured");
-      } catch (error) {
-        console.error("❌ Error loading BMC models:", error);
+
+    // Function to apply texture only to top face of mesh using proper UV mapping
+    const applyTopFaceTexture = (mesh: Mesh, scene: Scene) => {
+      console.log(`🔍 Analyzing mesh vertex data for top face identification...`);
+      
+      // Get vertex data
+      const positions = mesh.getVerticesData("position");
+      const indices = mesh.getIndices();
+      let uvs = mesh.getVerticesData("uv");
+      const normals = mesh.getVerticesData("normal");
+      
+      if (!positions || !indices || !uvs || !normals) {
+        console.log(`❌ Missing vertex data for texture mapping`);
+        return;
+      }
+      
+      console.log(`📊 Mesh has ${positions.length/3} vertices, ${indices.length/3} faces`);
+      
+      // Find the maximum Y coordinate to identify top faces
+      let maxY = -Infinity;
+      for (let i = 1; i < positions.length; i += 3) { // Y coordinates are at positions 1, 4, 7, etc.
+        maxY = Math.max(maxY, positions[i]);
+      }
+      
+      console.log(`📏 Maximum Y coordinate found: ${maxY}`);
+      
+      // Clone UV array for modification (convert to regular array if needed)
+      const newUvs = Array.from(uvs);
+      
+      // Process each triangle face
+      let topFacesFound = 0;
+      for (let i = 0; i < indices.length; i += 3) {
+        const v1Index = indices[i];
+        const v2Index = indices[i + 1];
+        const v3Index = indices[i + 2];
+        
+        // Get positions for this triangle
+        const v1Y = positions[v1Index * 3 + 1];
+        const v2Y = positions[v2Index * 3 + 1];
+        const v3Y = positions[v3Index * 3 + 1];
+        
+        // Get normals for this triangle
+        const n1Y = normals[v1Index * 3 + 1];
+        const n2Y = normals[v2Index * 3 + 1];
+        const n3Y = normals[v3Index * 3 + 1];
+        
+        // Calculate average Y position and normal for this face
+        const avgY = (v1Y + v2Y + v3Y) / 3;
+        const avgNormalY = (n1Y + n2Y + n3Y) / 3;
+        
+        // Check if this is a top face (close to maxY and normal pointing up)
+        const isTopFace = Math.abs(avgY - maxY) < 0.01 && avgNormalY > 0.5;
+        
+        if (isTopFace) {
+          // This is a top face - create a small label in the center only
+          // Get world positions
+          const v1X = positions[v1Index * 3];
+          const v1Z = positions[v1Index * 3 + 2];
+          const v2X = positions[v2Index * 3];
+          const v2Z = positions[v2Index * 3 + 2];
+          const v3X = positions[v3Index * 3];
+          const v3Z = positions[v3Index * 3 + 2];
+          
+          // Calculate triangle center
+          const triCenterX = (v1X + v2X + v3X) / 3;
+          const triCenterZ = (v1Z + v2Z + v3Z) / 3;
+          
+          // Find overall mesh bounds for this face
+          let meshMinX = Infinity, meshMaxX = -Infinity;
+          let meshMinZ = Infinity, meshMaxZ = -Infinity;
+          
+          // Sample all vertices to find true bounds
+          for (let i = 0; i < positions.length; i += 3) {
+            const x = positions[i];
+            const z = positions[i + 2];
+            meshMinX = Math.min(meshMinX, x);
+            meshMaxX = Math.max(meshMaxX, x);
+            meshMinZ = Math.min(meshMinZ, z);
+            meshMaxZ = Math.max(meshMaxZ, z);
+          }
+          
+          const meshCenterX = (meshMinX + meshMaxX) / 2;
+          const meshCenterZ = (meshMinZ + meshMaxZ) / 2;
+          const meshWidth = meshMaxX - meshMinX;
+          const meshDepth = meshMaxZ - meshMinZ;
+          
+          // Define tiny label area - only 5% of mesh size
+          const labelSize = Math.min(meshWidth, meshDepth) * 0.05;
+          
+          // Check if this triangle is in the small center label area
+          const distanceFromCenter = Math.sqrt(
+            Math.pow(triCenterX - meshCenterX, 2) + 
+            Math.pow(triCenterZ - meshCenterZ, 2)
+          );
+          
+          if (distanceFromCenter < labelSize) {
+            // This triangle is in the label area - map to texture
+            newUvs[v1Index * 2] = 0.2 + 0.6 * (v1X - meshCenterX + labelSize) / (2 * labelSize);
+            newUvs[v1Index * 2 + 1] = 0.2 + 0.6 * (v1Z - meshCenterZ + labelSize) / (2 * labelSize);
+            
+            newUvs[v2Index * 2] = 0.2 + 0.6 * (v2X - meshCenterX + labelSize) / (2 * labelSize);
+            newUvs[v2Index * 2 + 1] = 0.2 + 0.6 * (v2Z - meshCenterZ + labelSize) / (2 * labelSize);
+            
+            newUvs[v3Index * 2] = 0.2 + 0.6 * (v3X - meshCenterX + labelSize) / (2 * labelSize);
+            newUvs[v3Index * 2 + 1] = 0.2 + 0.6 * (v3Z - meshCenterZ + labelSize) / (2 * labelSize);
+            
+            console.log(`📝 Label triangle mapped at distance ${distanceFromCenter.toFixed(3)} from center`);
+          } else {
+            // This triangle is outside label area - map to edge (transparent/black area)
+            newUvs[v1Index * 2] = 0.95;
+            newUvs[v1Index * 2 + 1] = 0.95;
+            newUvs[v2Index * 2] = 0.95;
+            newUvs[v2Index * 2 + 1] = 0.95;
+            newUvs[v3Index * 2] = 0.95;
+            newUvs[v3Index * 2 + 1] = 0.95;
+          }
+          
+          topFacesFound++;
+          console.log(`✅ Top face ${topFacesFound} processed at Y=${avgY.toFixed(3)}`);
+        }
+        // For non-top faces, don't modify UVs - keep original material appearance
+      }
+      
+      console.log(`🎯 Found and textured ${topFacesFound} top faces`);
+      
+      // Apply the modified UV coordinates back to the mesh
+      mesh.setVerticesData("uv", newUvs);
+      mesh.refreshBoundingInfo();
+      
+      console.log(`✅ UV mapping applied successfully to Customer Segments mesh`);
+    };
+
+    // Function to apply standard base color to a specific section
+    const applyDarkTopFace = (sectionName: string) => {
+      if (!scene) return;
+      
+      const meshes = scene.meshes;
+      let foundMesh = false;
+      meshes.forEach((mesh) => {
+        if ((mesh as any).bmcSectionName === sectionName && mesh.material) {
+          foundMesh = true;
+          console.log(`🎨 Applying standard base color to ${sectionName} entire mesh`);
+          
+          const material = mesh.material as any;
+          const standardColor = new Color3(0.07, 0.07, 0.07); // Standard base color
+          
+          // Apply standard color to the entire mesh for consistency
+          if (material.diffuseColor) {
+            material.diffuseColor = standardColor;
+          }
+          if (material.baseColor) {
+            material.baseColor = standardColor;
+          }
+          
+          // Update original colors for hover behavior
+          if (material.originalBaseColor) {
+            material.originalBaseColor = standardColor.clone();
+          }
+          if (material.originalDiffuseColor) {
+            material.originalDiffuseColor = standardColor.clone();
+          }
+          
+          console.log(`✅ Applied standard base color (0.07, 0.07, 0.07) to ${sectionName} entire mesh`);
+        }
+      });
+      
+      if (!foundMesh) {
+        console.log(`❌ No mesh found with section name: ${sectionName}`);
       }
     };
 
-    initializeModels();
+    // Only GLB models are used now - no more box geometry functions needed
 
-    // Initialize Animation and Material Managers
-    animationManagerRef.current = new BabylonAnimationManager(scene);
-    materialManagerRef.current = new BabylonMaterialManager(scene);
+    // All BMC elements are now loaded as GLB models - circular layout matching top view
 
-    // Save original heights
+    // Define BMC section colors and names with corrected label order
+    const bmcSections = [
+      { color: new Color3(0.3, 0.6, 0.9), name: "Value Propositions" },      // Blue
+      { color: new Color3(0.4, 0.8, 0.4), name: "Key Partners" },           // Green  
+      { color: new Color3(0.9, 0.9, 0.3), name: "Key Activities" },         // Yellow (was Customer Relationships position)
+      { color: new Color3(0.9, 0.3, 0.3), name: "Key Resources" },          // Red
+      { color: new Color3(0.8, 0.4, 0.9), name: "Customer Relationships" }, // Purple (was Customer Segments position)
+      { color: new Color3(0.6, 0.9, 0.9), name: "CustomerChannels" },               // Cyan
+      { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
+    ];
+
+    // Load complete BMC GLB model with individual section coloring
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_09_complete_1753576063858.glb", scene).then((result) => {
+      if (result.meshes.length > 0) {
+        console.log(`✅ BMC model loaded with ${result.meshes.length} meshes`);
+        
+        const rootMesh = result.meshes[0];
+        rootMeshRef.current = rootMesh;
+        
+        // Position moved down by one row on ground plane
+        rootMesh.position = new Vector3(0, 0.1, 0.9);
+        
+        // Keep model at normal rotation for all views
+        rootMesh.rotation = Vector3.Zero();
+        
+        // Position logging removed for better performance
+        
+        // Start with visible scale
+        rootMesh.scaling = new Vector3(8, 8, 8);
+        
+        console.log(`📦 BMC model positioned at origin with scale 8.0`);
+        
+        // Corrected BMC section mapping - based on user feedback that specific labels need to swap
+        // Current observation: Key Activities label is where Customer Relationships should be
+        // Customer Relationships label is where Customer Segments should be  
+        // Customer Segments label is where Key Activities should be
+        // GLB model mesh mapping - adding fallback entries to prevent VAO errors
+        const correctLabelMapping: Record<number, { color: Color3; name: string }> = {
+          0: { color: new Color3(0.07, 0.07, 0.07), name: "Value Propositions" },      // Medium Dark Grey
+          1: { color: new Color3(0.07, 0.07, 0.07), name: "Key Partners" },           // Medium Dark Grey
+          2: { color: new Color3(0.07, 0.07, 0.07), name: "Customer Segments" },      // Medium Dark Grey
+          3: { color: new Color3(0.07, 0.07, 0.07), name: "Key Resources" },          // Medium Dark Grey
+          4: { color: new Color3(0.07, 0.07, 0.07), name: "Key Activities" },         // Medium Dark Grey
+          5: { color: new Color3(0.07, 0.07, 0.07), name: "CustomerChannels" },      // Medium Dark Grey
+          6: { color: new Color3(0.07, 0.07, 0.07), name: "Customer Relationships" }, // Medium Dark Grey
+          7: { color: new Color3(0.07, 0.07, 0.07), name: "Cost Structure" },         // Fallback - Medium Dark Grey
+          8: { color: new Color3(0.07, 0.07, 0.07), name: "Revenue Streams" },        // Fallback - Medium Dark Grey
+        };
+
+        // Apply corrected colors, interactivity, and labels to each BMC section mesh
+        let sectionIndex = 0;
+        result.meshes.forEach((mesh, index) => {
+          if (mesh.material && mesh.name !== "__root__") {
+            const section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
+            const baseColor = section.color;
+            const sectionName = section.name;
+            
+            // Store section name directly on mesh for simpler approach
+            (mesh as any).bmcSectionName = sectionName;
+            
+            // TransformNode created for coordinate control
+            
+            // Create StandardMaterial with PBR-compatible properties for hover behavior
+            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene) as any;
+            
+            // Use very dark black color with subtle shine - CONSISTENT with Cost/Revenue
+            sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+            sectionMaterial.specularPower = 32;
+            
+            // Add baseColor property for compatibility with hover behavior
+            sectionMaterial.baseColor = baseColor;
+            
+            // Store original colors for hover behavior
+            (sectionMaterial as any).originalBaseColor = baseColor.clone();
+            (sectionMaterial as any).originalDiffuseColor = baseColor.clone();
+            
+            // Add floating label planes for specific sections
+            if (sectionName === "Customer Segments") {
+              console.log(`🏷️ Creating floating label for Customer Segments mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with larger size to match other labels
+              const labelWidth = size.x * 1.0; // Full width to match font size of other labels
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like Key Activities
+              console.log(`Customer Segments Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
+              const labelPlane = MeshBuilder.CreatePlane("customerSegmentsLabel", {
+                width: labelWidth,   // Larger width to match other labels
+                height: labelHeight  // 50% taller to prevent squishing
+              }, scene);
+              
+              // Position slightly above mesh center, moved left from top view
+              labelPlane.position.x = center.x - size.x * 0.15; // Move left from top view perspective
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z;
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create bright material for white text
+              const labelMaterial = new StandardMaterial("customerSegmentsLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_CustomerSegments.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Customer Segments", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Customer Segments", labelPlane, labelMaterial);
+              
+              console.log(`✅ Customer Segments label plane created`);
+            }
+            
+            if (sectionName === "Key Partners") {
+              console.log(`🏷️ Creating floating label for Key Partners mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with larger size to match other labels
+              const labelWidth = size.x * 0.95; // Larger width to better match font size of other labels
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like Key Activities
+              console.log(`Key Partners Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
+              const labelPlane = MeshBuilder.CreatePlane("keyPartnersLabel", {
+                width: labelWidth,   // Larger width to match other labels
+                height: labelHeight  // 50% taller to prevent squishing
+              }, scene);
+              
+              // Position slightly above mesh center, moved right from top view
+              labelPlane.position.x = center.x + size.x * 0.15; // Move right from top view perspective
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z;
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create bright material for white text
+              const labelMaterial = new StandardMaterial("keyPartnersLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_KeyPartners.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Key Partners", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Key Partners", labelPlane, labelMaterial);
+              
+              console.log(`✅ Key Partners label plane created`);
+            }
+            
+            if (sectionName === "Customer Relationships") {
+              console.log(`🏷️ Creating floating label for Customer Relationships mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with 50% taller height and slightly larger overall
+              const labelWidth = size.x * 0.65; // Slightly larger than 0.6
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger than the previous calculated height
+              console.log(`Customer Relationships Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
+              const labelPlane = MeshBuilder.CreatePlane("customerRelationshipsLabel", {
+                width: labelWidth,   // Slightly larger width to fit better within mesh
+                height: labelHeight  // 50% taller to reduce squishing
+              }, scene);
+              
+              // Position within the mesh boundaries, moved right with margin like Customer Segments
+              labelPlane.position.x = center.x + size.x * 0.15; // Move right but leave margin on right edge
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z + size.z * 0.3; // Move up more in top view
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create bright material for white text
+              const labelMaterial = new StandardMaterial("customerRelationshipsLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_CustomerRelationships.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Customer Relationships", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Customer Relationships", labelPlane, labelMaterial);
+              
+              console.log(`✅ Customer Relationships label plane created`);
+            }
+            
+            if (sectionName === "CustomerChannels") {
+              console.log(`🏷️ Creating floating label for CustomerChannels mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with 50% taller height and slightly larger overall
+              const labelWidth = size.x * 0.65; // Slightly larger than 0.6
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger than calculated height
+              console.log(`CustomerChannels Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
+              const labelPlane = MeshBuilder.CreatePlane("customerChannelsLabel", {
+                width: labelWidth,   // Slightly larger width
+                height: labelHeight  // 50% taller to reduce squishing
+              }, scene);
+              
+              // Position within the mesh boundaries, moved right with margin like Customer Relationships  
+              labelPlane.position.x = center.x + size.x * 0.15; // Move right but leave margin on right edge
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z - size.z * 0.3; // Move down toward bottom of shape
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create bright material for white text
+              const labelMaterial = new StandardMaterial("customerChannelsLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_CustomerChannels.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              // Register with clean system
+              cleanBMCRef.current.registerItem("CustomerChannels", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("CustomerChannels", labelPlane, labelMaterial);
+              
+              console.log(`✅ CustomerChannels label plane created`);
+            }
+            
+            // Add floating label planes for Key Activities section
+            if (sectionName === "Key Activities") {
+              console.log(`🏷️ Creating floating label for Key Activities mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with 50% taller height than before
+              const labelWidth = size.x * 0.6;
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger than the previous calculated height
+              console.log(`Key Activities Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
+              const labelPlane = MeshBuilder.CreatePlane("keyActivitiesLabel", {
+                width: labelWidth,   // Smaller width to fit better within mesh
+                height: labelHeight  // 50% taller to reduce squishing
+              }, scene);
+              
+              // Position within the mesh boundaries, moved left from top view perspective
+              labelPlane.position.x = center.x - size.x * 0.15; // Move left but leave margin on left edge
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z + size.z * 0.3; // Move up more in top view
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create material for PNG texture - avoid emissive conflicts causing depth issues
+              const labelMaterial = new StandardMaterial("keyActivitiesLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_KeyActivities.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              // REMOVED emissive settings that bypass depth testing and render on top
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              // Ensure proper depth testing - labels should not render on top of 3D objects
+              labelMaterial.needDepthPrePass = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Key Activities", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Key Activities", labelPlane, labelMaterial);
+              
+              console.log(`✅ Key Activities label plane created`);
+            }
+            
+            // Add floating label planes for Key Resources section
+            if (sectionName === "Key Resources") {
+              console.log(`🏷️ Creating floating label for Key Resources mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with 50% taller height than before
+              const labelWidth = size.x * 0.6;
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger than the previous calculated height
+              console.log(`Key Resources Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
+              const labelPlane = MeshBuilder.CreatePlane("keyResourcesLabel", {
+                width: labelWidth,   // Smaller width to fit better within mesh
+                height: labelHeight  // 50% taller to reduce squishing
+              }, scene);
+              
+              // Position within the mesh boundaries, moved left and down toward bottom
+              labelPlane.position.x = center.x - size.x * 0.15; // Move left but leave margin on left edge
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z - size.z * 0.3; // Move down toward bottom of shape
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create material for PNG texture - avoid emissive conflicts causing depth issues
+              const labelMaterial = new StandardMaterial("keyResourcesLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_KeyResources.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              // REMOVED emissive settings that bypass depth testing and render on top
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Key Resources", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Key Resources", labelPlane, labelMaterial);
+              
+              console.log(`✅ Key Resources label plane created`);
+            }
+            
+            // Add floating label planes for Value Propositions section
+            if (sectionName === "Value Propositions") {
+              console.log(`🏷️ Creating floating label for Value Propositions mesh (index ${index})`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Create label plane with slightly adjusted size for perfect proportion
+              const labelWidth = size.x * 0.48; // Tiny bit larger for optimal proportion in circular area
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like other labels
+              console.log(`Value Propositions Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
+              const labelPlane = MeshBuilder.CreatePlane("valuePropositionsLabel", {
+                width: labelWidth,   // Size for central prominence
+                height: labelHeight  // 50% taller to prevent squishing
+              }, scene);
+              
+              // Position centered above the circular Value Propositions area
+              labelPlane.position.x = center.x; // Center position
+              labelPlane.position.y = center.y + size.y * 0.6;
+              labelPlane.position.z = center.z; // Center in the circular area
+              
+              // Rotate to be flat on top
+              labelPlane.rotation.x = Math.PI / 2;
+              
+              // Create material for PNG texture - avoid emissive texture conflicts
+              const labelMaterial = new StandardMaterial("valuePropositionsLabelMat", scene);
+              const labelTexture = new Texture("/textures/Label_ValueProposition.png", scene);
+              labelTexture.hasAlpha = true;
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              // REMOVED emissive texture/color that was causing texture corruption
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = false;
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh;
+              labelPlane.isPickable = false;
+              
+              // Register with clean system
+              cleanBMCRef.current.registerItem("Value Propositions", mesh, sectionMaterial, mesh.scaling.y);
+              cleanBMCRef.current.addLabel("Value Propositions", labelPlane, labelMaterial);
+              
+              console.log(`✅ Value Propositions label plane created`);
+              
+              // Add pulsating green stroke animation to the top edge of Value Propositions cylinder
+              const createPulsatingEdge = () => {
+                // Get mesh geometry to create edge lines
+                const positions = mesh.getVerticesData("position");
+                const indices = mesh.getIndices();
+                
+                if (!positions || !indices) {
+                  console.log("❌ Could not create edge animation - no mesh data");
+                  return;
+                }
+                
+                // Find the top face vertices (highest Y values)
+                const topVertices: Vector3[] = [];
+                const vertices: Vector3[] = [];
+                
+                // Convert positions array to Vector3 array
+                for (let i = 0; i < positions.length; i += 3) {
+                  vertices.push(new Vector3(positions[i], positions[i + 1], positions[i + 2]));
+                }
+                
+                // Find maximum Y value (top of cylinder)
+                let maxY = -Infinity;
+                vertices.forEach(vertex => {
+                  if (vertex.y > maxY) maxY = vertex.y;
+                });
+                
+                // Collect vertices near the top (within small tolerance)
+                const tolerance = 0.01;
+                vertices.forEach(vertex => {
+                  if (Math.abs(vertex.y - maxY) < tolerance) {
+                    topVertices.push(vertex);
+                  }
+                });
+                
+                // Sort top vertices by angle to create circular edge
+                const center = new Vector3(0, maxY, 0); // Top center
+                topVertices.sort((a, b) => {
+                  const angleA = Math.atan2(a.z - center.z, a.x - center.x);
+                  const angleB = Math.atan2(b.z - center.z, b.x - center.x);
+                  return angleA - angleB;
+                });
+                
+                if (topVertices.length < 3) {
+                  console.log("❌ Not enough top vertices found for edge animation");
+                  return;
+                }
+                
+                // Create edge lines using points
+                const edgePoints: Vector3[] = [];
+                topVertices.forEach(vertex => {
+                  edgePoints.push(vertex);
+                });
+                // Close the loop
+                if (edgePoints.length > 0) {
+                  edgePoints.push(edgePoints[0]);
+                }
+                
+                // Create the pulsating green edge line
+                const edgeLine = MeshBuilder.CreateLines("valuePropositionEdge", {
+                  points: edgePoints,
+                  updatable: true
+                }, scene);
+                
+                // Create bright green material for the edge
+                const edgeMaterial = new StandardMaterial("valuePropositionEdgeMat", scene);
+                edgeMaterial.emissiveColor = new Color3(0, 1, 0); // Bright green
+                edgeMaterial.disableLighting = true;
+                
+                // Set line properties
+                edgeLine.color = new Color3(0, 1, 0); // Bright green
+                edgeLine.parent = mesh;
+                edgeLine.isPickable = false;
+                
+                // Store animation reference with pause state
+                (mesh as any).pulsatingEdge = { line: edgeLine, isPaused: false };
+                
+                // Create pulsating animation
+                let animationTime = 0;
+                const animateEdge = () => {
+                  if (edgeLine && !edgeLine.isDisposed()) {
+                    const animationRef = (mesh as any).pulsatingEdge;
+                    
+                    // Check if animation should be paused (3D Top view)
+                    if (!animationRef.isPaused) {
+                      animationTime += 0.02; // Animation speed
+                      
+                      // Pulsate opacity and glow
+                      const pulse = (Math.sin(animationTime * 2) + 1) / 2; // 0 to 1
+                      const intensity = 0.3 + (pulse * 0.7); // 0.3 to 1.0
+                      
+                      // Update line color with pulsating intensity
+                      edgeLine.color = new Color3(0, intensity, 0);
+                    } else {
+                      // Keep static bright color when paused
+                      edgeLine.color = new Color3(0, 1, 0);
+                    }
+                    
+                    // Continue animation loop
+                    requestAnimationFrame(animateEdge);
+                  }
+                };
+                
+                // Start animation
+                animateEdge();
+                
+                console.log(`✅ Pulsating green edge animation created for Value Propositions with ${topVertices.length} vertices`);
+              };
+              
+              // Create the pulsating edge after a short delay to ensure mesh is ready
+              setTimeout(createPulsatingEdge, 100);
+            }
+
+            // Create blue tracer animation for Customer Segments
+            if (sectionName === "Customer Segments") {
+              const createBlueTracer = () => {
+                // Get mesh bounding info
+                const boundingInfo = mesh.getBoundingInfo();
+                const min = boundingInfo.minimum;
+                const max = boundingInfo.maximum;
+                
+                // Calculate rectangular path with proportional steps based on edge lengths
+                const padding = 0.0005; // Minimal padding to hug the top surface
+                const topY = max.y + padding; // Hug the top surface closely
+                
+                // Calculate edge lengths for proportional speed
+                const widthLength = Math.abs(max.x - min.x);
+                const heightLength = Math.abs(max.z - min.z);
+                const totalPerimeter = 2 * (widthLength + heightLength);
+                
+                // Calculate steps per edge based on their relative length
+                const totalSteps = 80; // Total points around perimeter
+                const bottomSteps = Math.ceil((widthLength / totalPerimeter) * totalSteps);
+                const rightSteps = Math.ceil((heightLength / totalPerimeter) * totalSteps);
+                const topSteps = Math.ceil((widthLength / totalPerimeter) * totalSteps);
+                const leftSteps = Math.ceil((heightLength / totalPerimeter) * totalSteps);
+                
+                const pathPoints: Vector3[] = [];
+                
+                // Bottom edge (min.x, min.z) to (max.x, min.z)
+                for (let i = 0; i <= bottomSteps; i++) {
+                  const t = i / bottomSteps;
+                  const x = min.x + (max.x - min.x) * t;
+                  pathPoints.push(new Vector3(x, topY, min.z));
+                }
+                
+                // Right edge (max.x, min.z) to (max.x, max.z) - skip first point to avoid duplicate
+                for (let i = 1; i <= rightSteps; i++) {
+                  const t = i / rightSteps;
+                  const z = min.z + (max.z - min.z) * t;
+                  pathPoints.push(new Vector3(max.x, topY, z));
+                }
+                
+                // Top edge (max.x, max.z) to (min.x, max.z) - skip first point to avoid duplicate
+                for (let i = 1; i <= topSteps; i++) {
+                  const t = i / topSteps;
+                  const x = max.x - (max.x - min.x) * t;
+                  pathPoints.push(new Vector3(x, topY, max.z));
+                }
+                
+                // Left edge (min.x, max.z) to (min.x, min.z) - skip first and last points to avoid duplicates
+                for (let i = 1; i < leftSteps; i++) {
+                  const t = i / leftSteps;
+                  const z = max.z - (max.z - min.z) * t;
+                  pathPoints.push(new Vector3(min.x, topY, z));
+                }
+                
+                // Create tiny bright blue sphere (tracer head) with blur effect
+                const tracerSphere = MeshBuilder.CreateSphere("customerSegmentsTracer", { diameter: 0.002 }, scene);
+                const tracerMaterial = new StandardMaterial("tracerMat", scene);
+                tracerMaterial.emissiveColor = new Color3(0, 0.9, 1); // Brighter blue
+                tracerMaterial.disableLighting = true;
+                tracerMaterial.alpha = 0.6; // More transparency for stronger blur effect
+                tracerMaterial.diffuseColor = new Color3(0, 0.7, 1); // Brighter blue base
+                tracerMaterial.specularColor = new Color3(0.4, 1.0, 1); // Strong highlight for glow
+                tracerMaterial.useAlphaFromDiffuseTexture = true;
+                tracerSphere.material = tracerMaterial;
+                tracerSphere.parent = mesh;
+                tracerSphere.isPickable = false;
+                
+                // Create a single stable trail line that gets updated safely
+                const maxTrailLength = 12; // Longer trail for better visual impact
+                const trailPositions: Vector3[] = [];
+                
+                // Initialize trail positions with current position
+                for (let i = 0; i < maxTrailLength; i++) {
+                  trailPositions.push(pathPoints[0].clone());
+                }
+                
+                // Create a single trail line with initial points
+                const trailLine = MeshBuilder.CreateLines("customerSegmentsTrail", {
+                  points: trailPositions,
+                  updatable: true
+                }, scene);
+                
+                trailLine.color = new Color3(0, 0.7, 1); // Bright blue
+                trailLine.parent = mesh;
+                trailLine.isPickable = false;
+                
+                // Store animation reference with pause state
+                (mesh as any).blueTracer = { 
+                  sphere: tracerSphere, 
+                  trail: trailLine, 
+                  isPaused: false 
+                };
+                
+                // Animation variables
+                let animationTime = 0;
+                const totalPathLength = pathPoints.length; // Use actual path length
+                let updateCounter = 0;
+                
+                const animateTracer = () => {
+                  if (tracerSphere && !tracerSphere.isDisposed() && trailLine && !trailLine.isDisposed()) {
+                    const animationRef = (mesh as any).blueTracer;
+                    
+                    // Check if animation should be paused (3D Top view)
+                    if (!animationRef.isPaused) {
+                      animationTime += 0.5; // Double speed - faster movement around edges
+                      
+                      // Calculate position along the edge-based rectangular path
+                      const effectivePathLength = pathPoints.length;
+                      const progress = (animationTime % (effectivePathLength * 2)) / (effectivePathLength * 2);
+                      const scaledProgress = progress * effectivePathLength;
+                      const segmentIndex = Math.floor(scaledProgress) % effectivePathLength;
+                      const segmentProgress = scaledProgress - Math.floor(scaledProgress);
+                      
+                      // Get current and next points, wrapping around for smooth loop
+                      const currentPoint = pathPoints[segmentIndex];
+                      const nextPoint = pathPoints[(segmentIndex + 1) % pathPoints.length];
+                      
+                      // Interpolate position smoothly along the rectangular edges only
+                      const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
+                      tracerSphere.position = currentPos;
+                      
+                      // Update trail positions more frequently for smoother trail with faster speed
+                      updateCounter++;
+                      if (updateCounter % 3 === 0) { // Update every 3rd frame for longer trail with faster speed
+                        // Shift trail positions
+                        for (let i = trailPositions.length - 1; i > 0; i--) {
+                          trailPositions[i] = trailPositions[i - 1].clone();
+                        }
+                        trailPositions[0] = currentPos.clone();
+                        
+                        // Safely update line geometry with simpler approach
+                        try {
+                          MeshBuilder.CreateLines("customerSegmentsTrail", {
+                            points: trailPositions,
+                            instance: trailLine
+                          }, scene);
+                        } catch (error) {
+                          // Skip trail update if it fails
+                        }
+                      }
+                    }
+                    // Note: When paused, tracer sphere stays at current position
+                    
+                    // Continue animation loop
+                    requestAnimationFrame(animateTracer);
+                  }
+                };
+                
+                // Start animation
+                animateTracer();
+                
+                console.log(`✅ Blue tracer animation created for Customer Segments with ${pathPoints.length} path points:`);
+                pathPoints.forEach((point, index) => {
+                  console.log(`  Point ${index}: (${point.x.toFixed(3)}, ${point.y.toFixed(3)}, ${point.z.toFixed(3)})`);
+                });
+              };
+              
+              // Create the blue tracer after a short delay to ensure mesh is ready
+              setTimeout(createBlueTracer, 100);
+            }
+            
+            mesh.material = sectionMaterial;
+            mesh.receiveShadows = true;
+            
+            // Store original color and material for hover/click effects
+            (mesh as any).originalColor = baseColor.clone();
+            (mesh as any).originalMaterial = sectionMaterial;
+            (mesh as any).isClicked = false;
+            
+            // Create billboard label above this mesh but make it invisible
+            const labelContainer = new Rectangle(`label_${index}`);
+            labelContainer.widthInPixels = 200;
+            labelContainer.heightInPixels = 40;
+            labelContainer.cornerRadius = 8;
+            labelContainer.color = "white";
+            labelContainer.thickness = 2;
+            labelContainer.background = "rgba(0, 0, 0, 0.7)";
+            // Value Propositions label should always appear in front
+            labelContainer.zIndex = sectionName === "Value Propositions" ? 2000 : 1000;
+            
+            const labelText = new TextBlock(`labelText_${index}`, sectionName);
+            labelText.color = "white";
+            labelText.fontSize = "14px";
+            labelText.fontFamily = "Arial, sans-serif";
+            labelText.fontWeight = "bold";
+            
+            labelContainer.addControl(labelText);
+            advancedTexture.addControl(labelContainer);
+            
+            // Position label higher above mesh top with billboard behavior
+            // Special much higher positioning for Value Proposition label
+            const labelHeight = sectionName === "Value Propositions" ? 3.5 : 1.2; // Much higher for Value Propositions
+            
+            // Link label to 3D position with billboard behavior
+            labelContainer.linkWithMesh(mesh);
+            labelContainer.linkOffsetY = `-${labelHeight * 50}px`; // Convert world units to approximate pixels
+            
+            // Hide the label by making it invisible
+            labelContainer.isVisible = false;
+            
+            // REMOVED: Old content panel system - replaced by new billboard panel system
+            // Store references for mesh identification
+            (mesh as any).labelContainer = labelContainer;
+            
+            // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
+            
+            // Enable pointer events for this mesh with proper setup
+            mesh.actionManager = new ActionManager(scene);
+            mesh.isPickable = true; // Ensure mesh is pickable for hover/click
+            console.log(`🎯 ${sectionName}: ActionManager and pickable state enabled`);
+            console.log(`🎯 ${sectionName}: Mesh ready for double-click detection`);
+            console.log(`🔍 ${sectionName}: Mesh isPickable=${mesh.isPickable}, has ActionManager=${!!mesh.actionManager}`);
+            
+            // Unified hover handlers using BMC state manager
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              handleBMCObjectHoverEnter(sectionName);
+            }));
+            
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              handleBMCObjectHoverExit(sectionName);
+            }));
+            
+            // REMOVED: Old click select function - replaced by unified BMC system
+            
+            // REMOVED: Old click unselect function - replaced by unified BMC system
+            
+            // REMOVED: Old updateContentPanel function - replaced by createBillboardPanel
+            
+            // Single click for immediate selection
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect(sectionName);
+              }
+            }));
+            
+            // Double-click for panel
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+              const isAlreadySelected = currentlySelected === sectionName;
+              
+              if (currentBillboardPanel) {
+                advancedTexture.removeControl(currentBillboardPanel);
+                currentBillboardPanel = null;
+                billboardPanelRef.current = null;
+              }
+              
+              if (!isAlreadySelected && cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect(sectionName);
+              }
+              
+              const meshWorldPosition = mesh.getAbsolutePosition();
+              createBillboardPanel(sectionName, meshWorldPosition);
+            }));
+            
+            // REMOVED: Old close button functionality - now handled by billboard panel system
+            
+            console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - ${sectionName} - Interactive color: ${baseColor.r.toFixed(2)}, ${baseColor.g.toFixed(2)}, ${baseColor.b.toFixed(2)}`);
+            sectionIndex++;
+          }
+        });
+        
+        // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
+        console.log("📏 Value Propositions height managed by unified BMC system");
+
+        // REMOVED: Customer Channels special color treatment - now uses unified BMC system like all other objects
+
+        // Debug current coordinates to understand proper positioning
+        setTimeout(() => {
+          console.log("🔍 Debugging coordinates - legacy transformUtils removed");
+          
+          // Measure Customer Channels dimensions for precise Revenue Streams alignment
+          const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "CustomerChannels");
+          if (channelsMesh) {
+            const boundingInfo = channelsMesh.getBoundingInfo();
+            const worldMatrix = channelsMesh.getWorldMatrix();
+            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
+            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
+            
+            console.log("🔍 Customer Channels Coordinates:");
+            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
+            console.log(`  Width: ${(max.x - min.x).toFixed(3)}`);
+            console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
+            console.log(`  Position: (${channelsMesh.position.x.toFixed(3)}, ${channelsMesh.position.y.toFixed(3)}, ${channelsMesh.position.z.toFixed(3)})`);
+            console.log(`  Scale: (${channelsMesh.scaling.x.toFixed(3)}, ${channelsMesh.scaling.y.toFixed(3)}, ${channelsMesh.scaling.z.toFixed(3)})`);
+          }
+          
+          // Measure Customer Segments dimensions for Revenue Streams width alignment
+          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
+          if (segmentsMesh) {
+            const boundingInfo = segmentsMesh.getBoundingInfo();
+            const worldMatrix = segmentsMesh.getWorldMatrix();
+            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
+            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
+            
+            console.log("🔍 Customer Segments Coordinates:");
+            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
+            console.log(`  Width: ${(max.x - min.x).toFixed(3)}`);
+            console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
+            console.log(`  Position: (${segmentsMesh.position.x.toFixed(3)}, ${segmentsMesh.position.y.toFixed(3)}, ${segmentsMesh.position.z.toFixed(3)})`);
+            console.log(`  Scale: (${segmentsMesh.scaling.x.toFixed(3)}, ${segmentsMesh.scaling.y.toFixed(3)}, ${segmentsMesh.scaling.z.toFixed(3)})`);
+          }
+          
+          // Calculate Revenue Streams scaling to align right edge with Customer Segments
+          const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
+          if (revenueStreamsMesh && segmentsMesh) {
+            // Get current Revenue Streams dimensions
+            const revBoundingInfo = revenueStreamsMesh.getBoundingInfo();
+            const revWorldMatrix = revenueStreamsMesh.getWorldMatrix();
+            const revMin = Vector3.TransformCoordinates(revBoundingInfo.minimum, revWorldMatrix);
+            const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
+            const currentRevWidth = revMax.x - revMin.x;
+            
+            // Get Customer Segments right edge
+            const segBoundingInfo = segmentsMesh.getBoundingInfo();
+            const segWorldMatrix = segmentsMesh.getWorldMatrix();
+            const segMin = Vector3.TransformCoordinates(segBoundingInfo.minimum, segWorldMatrix);
+            const segMax = Vector3.TransformCoordinates(segBoundingInfo.maximum, segWorldMatrix);
+            
+            // Calculate required width: Revenue Streams left edge (0.467) to Customer Segments right edge
+            const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
+            const scalingRatio = requiredWidth / currentRevWidth;
+            
+            // Apply only X-axis scaling to change width while keeping position
+            const currentScale = revenueStreamsMesh.scaling;
+            revenueStreamsMesh.scaling = new Vector3(currentScale.x * scalingRatio, currentScale.y, currentScale.z);
+            
+            console.log("🔧 Revenue Streams Width Adjustment:");
+            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            console.log(`  Required width: ${requiredWidth.toFixed(3)}`);
+            console.log(`  Scaling ratio: ${scalingRatio.toFixed(3)}`);
+            console.log(`  New X scale: ${(currentScale.x * scalingRatio).toFixed(3)}`);
+            console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
+            
+            console.log("✅ Revenue Streams mesh found and resized!");
+            console.log(`  Has label plane children: ${revenueStreamsMesh.getChildMeshes().length > 0}`);
+          } else {
+            console.log("❌ Revenue Streams mesh or Customer Segments NOT found - cannot resize width");
+          }
+        }, 2000);
+        
+        // Delayed Revenue Streams width adjustment to ensure both meshes are fully loaded
+        setTimeout(() => {
+          console.log("🔍 DELAYED: Searching for meshes to resize Revenue Streams...");
+          
+          // Debug all available meshes
+          console.log(`🔍 Available meshes (${scene.meshes.length}):`);
+          scene.meshes.forEach((mesh, i) => {
+            const sectionName = (mesh as any).bmcSectionName;
+            console.log(`  ${i}: ${mesh.name} - section: ${sectionName || 'none'}`);
+          });
+          
+          const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
+          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Segments");
+          
+          if (revenueStreamsMesh && segmentsMesh) {
+            // Get current Revenue Streams dimensions
+            const revBoundingInfo = revenueStreamsMesh.getBoundingInfo();
+            const revWorldMatrix = revenueStreamsMesh.getWorldMatrix();
+            const revMin = Vector3.TransformCoordinates(revBoundingInfo.minimum, revWorldMatrix);
+            const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
+            const currentRevWidth = revMax.x - revMin.x;
+            
+            // Get Customer Segments right edge
+            const segBoundingInfo = segmentsMesh.getBoundingInfo();
+            const segWorldMatrix = segmentsMesh.getWorldMatrix();
+            const segMin = Vector3.TransformCoordinates(segBoundingInfo.minimum, segWorldMatrix);
+            const segMax = Vector3.TransformCoordinates(segBoundingInfo.maximum, segWorldMatrix);
+            
+            // Calculate required width: From Revenue Streams left edge (A) to Customer Segments right edge (B)
+            // This keeps left edge at A but shrinks right edge from C to B position
+            const revenueLeftEdge = 0.467; // Position A - perfectly aligned with Customer Channels
+            const targetWidth = segMax.x - revenueLeftEdge; // Width from A to B
+            
+            // Calculate scaling needed to achieve this exact width
+            const baseWidth = currentRevWidth / revenueStreamsMesh.scaling.x; // Get unscaled width
+            const requiredScaleX = targetWidth / baseWidth;
+            
+            // Apply X-axis scaling to align right edge with Customer Segments
+            revenueStreamsMesh.scaling.x = requiredScaleX;
+            
+            console.log("🔧 DELAYED Revenue Streams Width Alignment:");
+            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            console.log(`  Revenue left edge (A): ${revenueLeftEdge.toFixed(3)}`);
+            console.log(`  Customer Segments right edge (B): ${segMax.x.toFixed(3)}`);
+            console.log(`  Target width (A to B): ${targetWidth.toFixed(3)}`);
+            console.log(`  Base width (unscaled): ${baseWidth.toFixed(3)}`);
+            console.log(`  Required X scale: ${requiredScaleX.toFixed(3)}`);
+            console.log("✅ Revenue Streams right edge aligned with Customer Segments!");
+          } else {
+            console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
+          }
+        }, 4000);
+        
+        // Immediate Revenue Streams width check
+        setTimeout(() => {
+          const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
+          if (revenueStreamsMesh) {
+            const revBoundingInfo = revenueStreamsMesh.getBoundingInfo();
+            const revWorldMatrix = revenueStreamsMesh.getWorldMatrix();
+            const revMin = Vector3.TransformCoordinates(revBoundingInfo.minimum, revWorldMatrix);
+            const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
+            const currentRevWidth = revMax.x - revMin.x;
+            
+            console.log("📏 CURRENT Revenue Streams Dimensions:");
+            console.log(`  Left edge (min X): ${revMin.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${revMax.x.toFixed(3)}`);
+            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            console.log(`  Current X scale: ${revenueStreamsMesh.scaling.x.toFixed(3)}`);
+            console.log(`  Position: (${revenueStreamsMesh.position.x.toFixed(3)}, ${revenueStreamsMesh.position.y.toFixed(3)}, ${revenueStreamsMesh.position.z.toFixed(3)})`);
+          } else {
+            console.log("❌ Revenue Streams mesh not found for width check");
+          }
+        }, 5000);
+
+
+        
+      } else {
+        console.error("❌ No meshes found in BMC model");
+      }
+    }).catch((error) => {
+      console.error("❌ Failed to load BMC model:", error);
+    });
+
+    // Load Revenue Streams as separate GLB model positioned below Customer Channels
+    console.log(`🔄 Starting to load Revenue Streams model...`);
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_07_RevenueStreams_1754360428541.glb", scene).then((result) => {
+      console.log(`🔄 Revenue Streams model load completed, meshes: ${result.meshes.length}`);
+      if (result.meshes.length > 0) {
+        console.log(`✅ Revenue Streams model loaded with ${result.meshes.length} meshes`);
+        
+        const revenueRootMesh = result.meshes[0];
+        
+        // Position Revenue Streams to align with LEFT EDGE of Customer Channels
+        // From console logs: Customer Channels left edge = 0.467, Revenue Streams left edge = 0.155
+        // Need to move right by 0.312 units to align: Current X position -0.533 becomes -0.221
+        // X-axis: negative = LEFT, positive = RIGHT
+        // Z-axis: negative = UP (screen), positive = DOWN (screen)
+        revenueRootMesh.position = new Vector3(-0.221, 0.1, -10.5); // Adjusted to align left edges
+        revenueRootMesh.rotation = Vector3.Zero();
+        revenueRootMesh.scaling = new Vector3(7.7, 8, 8);
+        
+        console.log(`📦 Revenue Streams positioned at (-0.221, 0.1, -10.5) - aligned with Customer Channels left edge`);
+        
+        // Apply basic material and label to Revenue Streams mesh  
+        console.log(`🔍 Revenue Streams meshes found: ${result.meshes.length}`);
+        result.meshes.forEach((mesh, index) => {
+          console.log(`🔍 Processing Revenue Streams mesh ${index}: ${mesh.name}, has material: ${!!mesh.material}, is root: ${mesh.name === "__root__"}`);
+        });
+        
+        result.meshes.forEach((mesh, index) => {
+          if (mesh.name !== "__root__") {
+            console.log(`✅ Processing non-root Revenue Streams mesh ${index}: ${mesh.name}`);
+            
+            // Create material for Revenue Streams mesh - Darker British Racing Green
+            const baseColor = new Color3(0.0, 0.20, 0.12); // Darker British Racing Green
+            const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene);
+            sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.specularColor = new Color3(0.1, 0.3, 0.2); // Slightly green specular
+            sectionMaterial.specularPower = 32;
+            mesh.material = sectionMaterial;
+            
+            // Store section name for interactions and original properties 
+            (mesh as any).bmcSectionName = "Revenue Streams";
+            (mesh as any).originalColor = baseColor.clone();
+            (mesh as any).isClicked = false;
+            (mesh as any).hasTexture = false; // Revenue Streams uses solid color
+            
+            // REMOVED: Unified transformation system registration - simplified for reliability
+            
+            // REMOVED: Old content panel system - Revenue Streams uses new billboard panel system
+            
+            // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
+            
+            // Create action manager for hover interactions
+            if (!mesh.actionManager) {
+              mesh.actionManager = new ActionManager(scene);
+              mesh.isPickable = true;
+            }
+            
+            // Unified hover handlers using BMC state manager
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              handleBMCObjectHoverEnter("Revenue Streams");
+            }));
+            
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              handleBMCObjectHoverExit("Revenue Streams");
+            }));
+            
+            // Single click for immediate selection
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Revenue Streams");
+              }
+            }));
+            
+            // Double-click for panel
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+              const isAlreadySelected = currentlySelected === "Revenue Streams";
+              
+              if (currentBillboardPanel) {
+                advancedTexture.removeControl(currentBillboardPanel);
+                currentBillboardPanel = null;
+                billboardPanelRef.current = null;
+              }
+              
+              if (!isAlreadySelected && cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Revenue Streams");
+              }
+              
+              const meshWorldPosition = mesh.getAbsolutePosition();
+              createBillboardPanel("Revenue Streams", meshWorldPosition);
+            }));
+
+            // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
+            console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
+            
+            // Get mesh bounds for positioning
+            const boundingInfo = mesh.getBoundingInfo();
+            const center = boundingInfo.boundingBox.center;
+            const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+            
+            // Create label plane with proper aspect ratio to prevent vertical squishing
+            const labelWidth = size.x * 0.65; // Same as Customer Channels
+            const labelHeight = (labelWidth * 0.25) * 2.0; // Doubled height to prevent squishing
+            console.log(`Revenue Streams Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+            console.log(`🔍 Revenue Streams mesh center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
+            console.log(`🔍 Revenue Streams mesh size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
+            
+            const labelPlane = MeshBuilder.CreatePlane("revenueStreamsLabel", {
+              width: labelWidth,
+              height: labelHeight
+            }, scene);
+            
+            // Center the label horizontally and vertically within the top face of the Revenue Streams object
+            labelPlane.position.x = center.x; // Center horizontally
+            labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
+            labelPlane.position.z = center.z; // Center vertically (Z-axis)
+            
+            // Rotate to be flat on top and then 90 degrees counterclockwise to read properly
+            labelPlane.rotation.x = Math.PI / 2;
+            labelPlane.rotation.y = -Math.PI / 2; // 90 degrees counterclockwise for proper text orientation
+            
+            // Create bright material for white text (same as Customer Channels)
+            const labelMaterial = new StandardMaterial("revenueStreamsLabelMat", scene);
+            const labelTexture = new Texture("/textures/Label_RevenueStreams.png", scene);
+            labelTexture.hasAlpha = true;
+            
+            labelMaterial.diffuseTexture = labelTexture;
+            labelMaterial.emissiveTexture = labelTexture;
+            labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
+            labelMaterial.useAlphaFromDiffuseTexture = true;
+            labelMaterial.disableLighting = false;
+            
+            labelPlane.material = labelMaterial;
+            labelPlane.parent = mesh;
+            labelPlane.isPickable = false;
+            
+            // Register with clean system
+            cleanBMCRef.current.registerItem("Revenue Streams", mesh, sectionMaterial, mesh.scaling.y);
+            cleanBMCRef.current.addLabel("Revenue Streams", labelPlane, labelMaterial);
+            
+            // Apply proportional scaling - reduced by 20% from the 2x size
+            labelPlane.scaling = new Vector3(1.6, 2.08, 1.0); // 80% of 2x size (2.0 * 0.8 = 1.6, 2.6 * 0.8 = 2.08)
+            
+            console.log(`✅ Revenue Streams label plane created at position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+            console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
+            console.log(`🔍 Label scale: (${labelPlane.scaling.x.toFixed(3)}, ${labelPlane.scaling.y.toFixed(3)}, ${labelPlane.scaling.z.toFixed(3)})`);
+            console.log(`🔍 Label dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}`);
+            
+            console.log(`🎨 Revenue Streams Mesh ${index}: ${mesh.name || 'unnamed'} configured`);
+          }
+        });
+        
+        // Debug Revenue Streams dimensions with fixed narrower width
+        setTimeout(() => {
+          const revenueMesh = result.meshes.find(mesh => mesh.name !== "__root__");
+          if (revenueMesh) {
+            const boundingInfo = revenueMesh.getBoundingInfo();
+            const worldMatrix = revenueMesh.getWorldMatrix();
+            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
+            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
+            const width = max.x - min.x;
+            
+            console.log("📏 Revenue Streams Fixed Dimensions (X-scale 7.7):");
+            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
+            console.log(`  Width: ${width.toFixed(3)}`);
+            console.log(`  Position: (${revenueRootMesh.position.x.toFixed(3)}, ${revenueRootMesh.position.y.toFixed(3)}, ${revenueRootMesh.position.z.toFixed(3)})`);
+            console.log(`  Scale: (${revenueRootMesh.scaling.x.toFixed(3)}, ${revenueRootMesh.scaling.y.toFixed(3)}, ${revenueRootMesh.scaling.z.toFixed(3)})`);
+          }
+        }, 500);
+        
+      } else {
+        console.error("❌ No meshes found in Revenue Streams model");
+      }
+    }).catch((error) => {
+      console.error("❌ Failed to load Revenue Streams model:", error);
+      console.error("❌ Revenue Streams model error details:", error.message);
+    });
+
+    // Load Cost Structure as separate GLB model positioned in lower left area (yellow rectangle in diagram)
+    console.log(`🔄 Starting to load Cost Structure model...`);
+    SceneLoader.ImportMeshAsync("", "/models/", "BMC_blender_07_RevenueStreams_1754360428541.glb", scene).then((result) => {
+      console.log(`🔄 Cost Structure model load completed, meshes: ${result.meshes.length}`);
+      if (result.meshes.length > 0) {
+        console.log(`✅ Cost Structure model loaded with ${result.meshes.length} meshes`);
+        
+        const costRootMesh = result.meshes[0];
+        
+        // Position Cost Structure in lower left area (yellow rectangle from diagram)
+        // X-axis: negative = LEFT, positive = RIGHT
+        // Z-axis: negative = UP (screen), positive = DOWN (screen)
+        // Place in lower left area with same width as Revenue Streams
+        costRootMesh.position = new Vector3(-10.1, 0.1, -10.5); // Shifted farther left
+        costRootMesh.rotation = Vector3.Zero();
+        costRootMesh.scaling = new Vector3(8.0, 8, 8); // Width set to 8.0
+        
+        console.log(`📦 Cost Structure positioned at (-10.1, 0.1, -10.5) - width 8.0, positioned farther left`);
+        
+        // Apply basic material and label to Cost Structure mesh  
+        console.log(`🔍 Cost Structure meshes found: ${result.meshes.length}`);
+        result.meshes.forEach((mesh, index) => {
+          console.log(`🔍 Processing Cost Structure mesh ${index}: ${mesh.name}, has material: ${!!mesh.material}, is root: ${mesh.name === "__root__"}`);
+        });
+        
+        result.meshes.forEach((mesh, index) => {
+          if (mesh.name !== "__root__") {
+            console.log(`✅ Processing non-root Cost Structure mesh ${index}: ${mesh.name}`);
+            
+            // Create material for Cost Structure mesh - Deeper Red
+            const baseColor = new Color3(0.35, 0.0, 0.0); // Deeper Red
+            const sectionMaterial = new StandardMaterial(`costStructure_${index}`, scene);
+            sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.specularColor = new Color3(0.3, 0.1, 0.1); // Slightly red specular
+            sectionMaterial.specularPower = 32;
+            mesh.material = sectionMaterial;
+            
+            // Store section name for interactions and original properties 
+            (mesh as any).bmcSectionName = "Cost Structure";
+            (mesh as any).originalColor = baseColor.clone();
+            (mesh as any).isClicked = false;
+            (mesh as any).hasTexture = false; // Cost Structure uses solid color
+            
+            // REMOVED: Unified transformation system registration - simplified for reliability
+            
+            // REMOVED: Old content panel system - Cost Structure uses new billboard panel system
+            
+            // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
+            
+            // Create action manager for hover interactions
+            if (!mesh.actionManager) {
+              mesh.actionManager = new ActionManager(scene);
+              mesh.isPickable = true;
+            }
+            
+            // Unified hover handlers using BMC state manager
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              handleBMCObjectHoverEnter("Cost Structure");
+            }));
+            
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              handleBMCObjectHoverExit("Cost Structure");
+            }));
+            
+            // Single click for immediate selection
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Cost Structure");
+              }
+            }));
+            
+            // Double-click for panel
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, () => {
+              const currentlySelected = cleanBMCRef.current?.getSelectedObject();
+              const isAlreadySelected = currentlySelected === "Cost Structure";
+              
+              if (currentBillboardPanel) {
+                advancedTexture.removeControl(currentBillboardPanel);
+                currentBillboardPanel = null;
+                billboardPanelRef.current = null;
+              }
+              
+              if (!isAlreadySelected && cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect("Cost Structure");
+              }
+              
+              const meshWorldPosition = mesh.getAbsolutePosition();
+              createBillboardPanel("Cost Structure", meshWorldPosition);
+            }));
+
+            // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
+            console.log(`🏷️ Creating floating label for Cost Structure mesh (index ${index})`);
+            
+            // Get mesh bounds for positioning
+            const boundingInfo = mesh.getBoundingInfo();
+            const center = boundingInfo.boundingBox.center;
+            const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+            
+            // Create label plane with same dimensions as Revenue Streams
+            const labelWidth = size.x * 0.65;
+            const labelHeight = (labelWidth * 0.25) * 2.0;
+            console.log(`Cost Structure Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+            console.log(`🔍 Cost Structure mesh center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
+            console.log(`🔍 Cost Structure mesh size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
+            
+            const labelPlane = MeshBuilder.CreatePlane("costStructureLabel", {
+              width: labelWidth,
+              height: labelHeight
+            }, scene);
+            
+            // Center the label horizontally and vertically within the top face of the Cost Structure object
+            labelPlane.position.x = center.x; // Center horizontally
+            labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
+            labelPlane.position.z = center.z; // Center vertically (Z-axis)
+            
+            // Rotate to be flat on top and then 90 degrees counterclockwise (same as Revenue Streams)
+            labelPlane.rotation.x = Math.PI / 2;
+            labelPlane.rotation.y = -Math.PI / 2; // 90 degrees counterclockwise for proper text orientation
+            
+            // Create material with Cost Structure label texture
+            const labelMaterial = new StandardMaterial("costStructureLabelMat", scene);
+            const labelTexture = new Texture("/textures/Label_CostStructure_1754477996199.png", scene);
+            labelTexture.hasAlpha = true;
+            
+            labelMaterial.diffuseTexture = labelTexture;
+            labelMaterial.emissiveTexture = labelTexture;
+            labelMaterial.emissiveColor = new Color3(0.7, 0.7, 0.7);
+            labelMaterial.useAlphaFromDiffuseTexture = true;
+            labelMaterial.disableLighting = false;
+            
+            labelPlane.material = labelMaterial;
+            labelPlane.parent = mesh;
+            labelPlane.isPickable = false;
+            
+            // Register with clean system
+            cleanBMCRef.current.registerItem("Cost Structure", mesh, sectionMaterial, mesh.scaling.y);
+            cleanBMCRef.current.addLabel("Cost Structure", labelPlane, labelMaterial);
+            
+            // Apply same proportional scaling as Revenue Streams
+            labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
+            
+            console.log(`✅ Cost Structure label plane created at position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+            console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
+            console.log(`🔍 Label scale: (${labelPlane.scaling.x.toFixed(3)}, ${labelPlane.scaling.y.toFixed(3)}, ${labelPlane.scaling.z.toFixed(3)})`);
+            console.log(`🔍 Label dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}`);
+            
+            console.log(`🎨 Cost Structure Mesh ${index}: ${mesh.name || 'unnamed'} configured`);
+          }
+        });
+        
+        // Debug Cost Structure dimensions
+        setTimeout(() => {
+          const costMesh = result.meshes.find(mesh => mesh.name !== "__root__");
+          if (costMesh) {
+            const boundingInfo = costMesh.getBoundingInfo();
+            const worldMatrix = costMesh.getWorldMatrix();
+            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
+            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
+            const width = max.x - min.x;
+            
+            console.log("📏 Cost Structure Fixed Dimensions (X-scale 7.7):");
+            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
+            console.log(`  Width: ${width.toFixed(3)}`);
+            console.log(`  Position: (${costRootMesh.position.x.toFixed(3)}, ${costRootMesh.position.y.toFixed(3)}, ${costRootMesh.position.z.toFixed(3)})`);
+            console.log(`  Scale: (${costRootMesh.scaling.x.toFixed(3)}, ${costRootMesh.scaling.y.toFixed(3)}, ${costRootMesh.scaling.z.toFixed(3)})`);
+          }
+        }, 500);
+        
+      } else {
+        console.error("❌ No meshes found in Cost Structure model");
+      }
+    }).catch((error) => {
+      console.error("❌ Failed to load Cost Structure model:", error);
+      console.error("❌ Cost Structure model error details:", error.message);
+    });
+
+    // Helper functions for manipulating individual BMC sections
+    // IMPORTANT: GLB Model Coordinate System Behavior
+    // This specific GLB model (BMC_blender_09_complete_1753576063858.glb) has NORMAL Y-axis scaling:
+    // - LARGER height values (>1.0) = TALLER shapes
+    // - SMALLER height values (<1.0) = SHORTER shapes
+    const adjustBMCSection = (sectionName: string, options: {
+      height?: number;
+      transparency?: number; 
+      color?: Color3;
+      scale?: Vector3;
+    }) => {
+      if (scene) {
+        const meshes = scene.meshes;
+        meshes.forEach((mesh) => {
+          if ((mesh as any).bmcSectionName === sectionName) {
+            const transformNode = (mesh as any).bmcTransformNode as TransformNode;
+            const material = mesh.material as PBRMetallicRoughnessMaterial;
+            
+            if (transformNode) {
+              // Adjust height (Y scaling)
+              if (options.height !== undefined) {
+                transformNode.scaling.y = options.height;
+                console.log(`📏 ${sectionName} height adjusted to ${options.height}`);
+              }
+              
+              // Adjust overall scale
+              if (options.scale) {
+                transformNode.scaling = options.scale;
+                console.log(`📐 ${sectionName} scale adjusted to (${options.scale.x}, ${options.scale.y}, ${options.scale.z})`);
+              }
+            }
+            
+            if (material) {
+              // Adjust transparency (alpha)
+              if (options.transparency !== undefined) {
+                material.alpha = 1 - options.transparency; // Convert transparency to alpha
+                console.log(`👻 ${sectionName} transparency set to ${options.transparency}`);
+              }
+              
+              // Adjust color
+              if (options.color) {
+                const vividColor = new Color3(
+                  Math.pow(options.color.r, 0.7),
+                  Math.pow(options.color.g, 0.7), 
+                  Math.pow(options.color.b, 0.7)
+                );
+                material.baseColor = vividColor;
+                (mesh as any).originalColor = options.color.clone();
+                console.log(`🎨 ${sectionName} color changed to (${options.color.r.toFixed(2)}, ${options.color.g.toFixed(2)}, ${options.color.b.toFixed(2)})`);
+              }
+            }
+          }
+        });
+      }
+    };
+
+    // Helper function to manipulate the entire BMC collection
+    const adjustEntireBMC = (options: {
+      position?: Vector3;
+      rotation?: Vector3;
+      scale?: Vector3;
+    }) => {
+      if (scene) {
+        const rootTransform = scene.getNodeByName("__root__") as TransformNode;
+        if (rootTransform) {
+          if (options.position) {
+            rootTransform.position = options.position;
+            console.log(`🌍 Entire BMC position set to (${options.position.x}, ${options.position.y}, ${options.position.z})`);
+          }
+          if (options.rotation) {
+            rootTransform.rotation = options.rotation;
+            console.log(`🔄 Entire BMC rotation set to (${options.rotation.x}, ${options.rotation.y}, ${options.rotation.z})`);
+          }
+          if (options.scale) {
+            rootTransform.scaling = options.scale;
+            console.log(`📏 Entire BMC scale set to (${options.scale.x}, ${options.scale.y}, ${options.scale.z})`);
+          }
+        }
+      }
+    };
+
+    // Helper function to list all available BMC sections
+    const listBMCSections = () => {
+      if (scene) {
+        const sections: string[] = [];
+        scene.meshes.forEach((mesh) => {
+          if ((mesh as any).bmcSectionName) {
+            sections.push((mesh as any).bmcSectionName);
+          }
+        });
+        console.log("📋 Available BMC sections:", sections);
+        console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
+        return sections;
+      }
+      return [];
+    };
+
+    // Expose manipulation functions globally for development/testing
+    (window as any).adjustBMCSection = adjustBMCSection;
+    (window as any).adjustEntireBMC = adjustEntireBMC;
+    (window as any).listBMCSections = listBMCSections;
+    
+    console.log("🔧 BMC manipulation functions available:");
+    console.log("   window.adjustBMCSection(sectionName, {height, transparency, color, scale}) - individual sections");
+    console.log("   window.adjustEntireBMC({position, rotation, scale}) - entire collection");
+    console.log("   window.listBMCSections() - shows all available section names");
+    console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
+
+    // SIMPLE: Save original heights when GLB model first loads
     const saveOriginalHeights = () => {
+      console.log("📏 STARTUP: Saving original heights from GLB model...");
+      
+      // Check if we already have heights stored
       const existingHeights = getOriginalHeights();
       if (Object.keys(existingHeights).length > 0) {
+        console.log("📏 Already have heights stored:", existingHeights);
         return true;
       }
-
+      
       if (scene && scene.meshes) {
         const originalHeights: { [sectionName: string]: number } = {};
-
+        
+        // Read each mesh's current transform node scaling.y as the original height
         scene.meshes.forEach((mesh) => {
           const sectionName = (mesh as any).bmcSectionName;
-          const transformNode = (mesh as any).bmcTransformNode;
-
+          const transformNode = (mesh as any).bmcTransformNode as TransformNode;
+          
           if (sectionName && transformNode) {
             const height = transformNode.scaling.y;
             originalHeights[sectionName] = height;
-
+            console.log(`📏 ORIGINAL: ${sectionName} = ${height}`);
+            
+            // Initialize BMC object transform state
             const bmcComponent = mapSectionNameToBMCComponent(sectionName);
             if (bmcComponent) {
               bmcState.updateTransformState(bmcComponent, {
@@ -421,29 +2899,69 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
                 position: mesh.position.clone(),
                 scaling: mesh.scaling.clone()
               });
+              console.log(`🔧 BMC State: Initialized "${bmcComponent}" with height ${height}`);
             }
           }
         });
-
+        
+        // Store in global state
         setOriginalHeights(originalHeights);
+        console.log("📏 SAVED original heights:", originalHeights);
         return true;
       }
-
+      
       return false;
     };
+    
+    // Try to save heights immediately, then retry
+    if (!saveOriginalHeights()) {
+      setTimeout(() => {
+        if (!saveOriginalHeights()) {
+          setTimeout(() => saveOriginalHeights(), 1000);
+        }
+      }, 500);
+    }
+    
+    // Clear any existing selection state to ensure hover behavior works on first load
+    const clearAllSelections = () => {
+      console.log("🔄 STARTUP: Clearing all selections to enable hover behavior");
+      
+      // Clear selection state using unified BMC system
+      bmcState.selectObject(null);
+      // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
+      
+      console.log("✅ All selections cleared, hover behavior enabled");
+    };
+    
+    // REMOVED: Emergency label fix - CleanBMCSystem handles all label visibility
+    
+    // DISABLED: Don't clear selections automatically - interferes with view switching
+    // setTimeout(() => {
+    //   clearAllSelections();
+    // }, 1000);
+    
+    // REMOVED: Emergency label fix interval - CleanBMCSystem handles all label visibility
+    
+    // DISABLED: Don't automatically clear/restore selections - interferes with view switching
+    // setTimeout(() => {
+    //   const existingSelection = getSelectedObject();
+    //   const hasHeights = Object.keys(getOriginalHeights()).length > 0;
+    //   
+    //   // Only restore if there's a clear user selection and we have height data
+    //   if (existingSelection && hasHeights) {
+    //     console.log("🔄 Initial load: Restoring user selection:", existingSelection);
+    //     // REMOVED: applyBMCVisualState - CleanBMCSystem handles this automatically
+    //   } else {
+    //     console.log("🔄 Initial load: No selection to restore, hover behavior ready");
+    //   }
+    // }, 2500);
 
-    // Try to save heights with retries
-    setTimeout(() => {
-      if (!saveOriginalHeights()) {
-        setTimeout(() => {
-          if (!saveOriginalHeights()) {
-            setTimeout(() => saveOriginalHeights(), 1000);
-          }
-        }, 500);
-      }
-    }, 1000);
+    // Initialize Animation and Material Managers
+    animationManagerRef.current = new BabylonAnimationManager(scene);
+    materialManagerRef.current = new BabylonMaterialManager(scene);
+    console.log('🎬 Animation and Material Managers initialized');
 
-    // Start render loop
+    // Start the render loop with safety check
     let isDisposed = false;
     engine.runRenderLoop(() => {
       if (!isDisposed && scene && !scene.isDisposed) {
@@ -451,19 +2969,54 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     });
 
-    // Cleanup function
+    // Clean up on unmount
     return () => {
       isDisposed = true;
+      // REMOVED: clearInterval(labelFixInterval) - CleanBMCSystem handles all label visibility
+      
+      // Clean up orthographic camera event handlers
+      if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
+        const canvas = orthoEventHandlersRef.current.canvas;
+        canvas.removeEventListener('wheel', orthoEventHandlersRef.current.wheel);
+        canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+        canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
+        canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+        canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+        
 
+        
+        orthoEventHandlersRef.current = null;
+      }
+      
+      // Save perspective camera state before disposing (only from perspective camera)
+      if (cameraRef.current && !isOrthographic) {
+        try {
+          saveCamera3DState(
+            cameraRef.current.alpha,
+            cameraRef.current.beta,
+            cameraRef.current.radius
+          );
+        } catch (e) {
+          console.warn('Error saving camera state during cleanup:', e);
+        }
+      }
+
+      // Clean up Animation and Material Managers
       try {
-        if (currentBillboardPanel && advancedTexture) {
-          advancedTexture.removeControl(currentBillboardPanel);
+        if (animationManagerRef.current) {
+          animationManagerRef.current.dispose();
+          animationManagerRef.current = null;
         }
-
-        if (cameraManagerRef.current) {
-          cameraManagerRef.current.dispose();
+        if (materialManagerRef.current) {
+          materialManagerRef.current.dispose();
+          materialManagerRef.current = null;
         }
+      } catch (e) {
+        console.warn('Error cleaning up Animation/Material Managers:', e);
+      }
 
+      // Properly dispose of Babylon.js resources
+      try {
         if (scene && !scene.isDisposed) {
           scene.dispose();
         }
@@ -472,77 +3025,161 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
         sceneRef.current = null;
         engineRef.current = null;
-        cameraManagerRef.current = null;
       } catch (e) {
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, saveCamera3DState, isOrthographic, bmcState]);
+  }, [canvas, saveCamera3DState, isOrthographic]);
 
-  // Handle camera switching
+  // Handle camera switching when orthographic mode changes
   useEffect(() => {
-    if (cameraManagerRef.current) {
-      cameraManagerRef.current.setCameraMode(isOrthographic);
+    if (sceneRef.current && cameraRef.current && orthoCameraRef.current) {
+      const scene = sceneRef.current;
+      const perspectiveCamera = cameraRef.current;
+      const orthoCamera = orthoCameraRef.current;
+      
+      if (isOrthographic) {
+        // Save current perspective camera state before switching
+        saveCamera3DState(
+          perspectiveCamera.alpha,
+          perspectiveCamera.beta,
+          perspectiveCamera.radius
+        );
+        
+        // Switch to orthographic camera
+        scene.activeCamera = orthoCamera;
+        
+        // Re-setup orthographic controls when switching to 3D Top view
+        if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
+          const canvas = orthoEventHandlersRef.current.canvas;
+          // Remove old handlers first
+          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+          canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
+          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+          
+          // Re-add handlers to ensure they're active
+          canvas.addEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+          canvas.addEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
+          canvas.addEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+          canvas.addEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+          
+          console.log("🎯 Orthographic controls re-activated for 3D Top view");
+        }
+        
+        // Apply visual state after camera switch
+        setTimeout(() => {
+          if (cleanBMCRef.current) {
+            cleanBMCRef.current.updateAllVisuals();
+          }
+        }, 10);
+        
+        console.log(`✅ SWITCHED TO 3D TOP VIEW`);
+      } else {
+        // Disable orthographic controls when switching away
+        if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
+          const canvas = orthoEventHandlersRef.current.canvas;
+          canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
+          canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
+          canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
+          canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+          
+          console.log("🎯 Orthographic controls disabled for 3D View");
+        }
+        
+        // Switch back to perspective camera
+        scene.activeCamera = perspectiveCamera;
+        
+        // Apply visual state after camera switch
+        setTimeout(() => {
+          if (cleanBMCRef.current) {
+            cleanBMCRef.current.updateAllVisuals();
+          }
+        }, 10);
+        
+        console.log(`✅ SWITCHED TO 3D VIEW`);
+      }
+    }
+  }, [isOrthographic]);
 
-      if (!isOrthographic) {
-        const cameras = cameraManagerRef.current.getCameras();
-        if (cameras.perspective) {
-          const savedState = getCamera3DState();
-          if (savedState) {
-            cameras.perspective.alpha = savedState.alpha;
-            cameras.perspective.beta = savedState.beta;
-            cameras.perspective.radius = savedState.radius;
+  // Control animations based on view mode - pause in 3D Top, resume in 3D View
+  useEffect(() => {
+    if (sceneRef.current) {
+      const scene = sceneRef.current;
+      
+      // Find Value Proposition and Customer Segments meshes and control their animations
+      scene.meshes.forEach((mesh) => {
+        if (mesh.name && mesh.name.includes('Value Propositions')) {
+          const animationRef = (mesh as any).pulsatingEdge;
+          if (animationRef) {
+            animationRef.isPaused = isOrthographic; // Pause in 3D Top view
+            console.log(`🎬 Value Proposition animation ${isOrthographic ? 'PAUSED' : 'RESUMED'}`);
           }
         }
-      } else {
-        // For orthographic (3D Top) view, ensure camera is positioned correctly
-        const cameras = cameraManagerRef.current.getCameras();
-        if (cameras.orthographic) {
-          // Corrected camera position and target
-          cameras.orthographic.position = new Vector3(0, 20, 0); // Example: adjust as needed
-          cameras.orthographic.setTarget(Vector3.Zero()); // Point camera at the center
-
-          // Apply orthographic camera specific settings if needed
-          // cameras.orthographic.orthoLeft = -10;
-          // cameras.orthographic.orthoRight = 10;
-          // cameras.orthographic.orthoBottom = -10;
-          // cameras.orthographic.orthoTop = 10;
+        
+        if (mesh.name && mesh.name.includes('Customer Segments')) {
+          const animationRef = (mesh as any).blueTracer;
+          if (animationRef) {
+            animationRef.isPaused = isOrthographic; // Pause in 3D Top view
+            console.log(`🎬 Customer Segments animation ${isOrthographic ? 'PAUSED' : 'RESUMED'}`);
+          }
         }
-        // Apply rotation for orthographic view if the loader supports it
-        if (bmcModelLoaderRef.current) {
-          bmcModelLoaderRef.current.handleCameraModeChange(isOrthographic);
-        }
-      }
+      });
+      
 
+    }
+  }, [isOrthographic]);
+
+  // Handle restoration when entering 3D mode - optimized for smooth transitions
+  useEffect(() => {
+    if (is3D && sceneRef.current) {
+      const selectedObject = getSelectedObject();
+      console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
+      
+      // Small delay to ensure scene is ready, then restore visual state
+      setTimeout(() => {
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.updateAllVisuals();
+        }
+      }, 100);
+    } else if (!is3D) {
+      const selectedObject = getSelectedObject();
+      console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
+    }
+  }, [is3D]);
+
+  // Handle restoration when switching between 3D View and 3D Top View
+  useEffect(() => {
+    if (is3D && sceneRef.current) {
+      const selectedObject = getSelectedObject();
+      console.log(`🔄 3D VIEW TRANSITION: ${isOrthographic ? '3D Top' : '3D View'}, selection="${selectedObject}"`);
+      
+      // Small delay to ensure camera switch is complete, then restore visual state
       setTimeout(() => {
         if (cleanBMCRef.current) {
           cleanBMCRef.current.updateAllVisuals();
         }
       }, 150);
     }
-  }, [isOrthographic]);
+  }, [isOrthographic, is3D]);
 
-  // Handle restoration when entering 3D mode
-  useEffect(() => {
-    if (is3D && sceneRef.current) {
-      setTimeout(() => {
-        if (cleanBMCRef.current) {
-          cleanBMCRef.current.updateAllVisuals();
-        }
-      }, 100);
-    }
-  }, [is3D]);
 
-  // Expose toggle function for testing
+
+  // Save camera state when switching away from 3D view
   useEffect(() => {
-    (window as any).toggleBulletText = toggleBulletText;
     return () => {
-      delete (window as any).toggleBulletText;
+      if (cameraRef.current && !is3D) {
+        saveCamera3DState(
+          cameraRef.current.alpha,
+          cameraRef.current.beta,
+          cameraRef.current.radius
+        );
+      }
     };
-  }, [showBulletText]);
+  }, [is3D, saveCamera3DState]);
 
-  // Expose animation demo functions
-  useEffect(() => {
+  // Keep console functions available as backup
+  React.useEffect(() => {
     (window as any).bmcAnimationDemo = {
       runColorSequence: async () => {
         if (animationManagerRef.current) {
@@ -563,16 +3200,128 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           animationManagerRef.current.applyBusinessTheme("Revenue Streams", "revenue");
           animationManagerRef.current.applyBusinessTheme("Cost Structure", "cost");
         }
+      },
+      startDataBinding: () => {
+        if (animationManagerRef.current) {
+          animationManagerRef.current.bindColorToData("Revenue Streams", {
+            sectionId: "Revenue Streams",
+            dataField: "revenue.growth",
+            colorRange: ["#ff0000", "#00ff00"],
+            updateFrequency: 1000
+          });
+        }
       }
     };
   }, []);
 
   return (
     <div className={`w-full h-full ${isTransitioning ? 'opacity-50' : ''} relative`}>
+      {/* Header - centered horizontally in upper area */}
       <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-10">
         <h1 className="text-xl font-medium text-gray-900" style={{ fontFamily: 'Segoe UI, sans-serif' }}>{canvas.name}</h1>
       </div>
-
+      
+      {/* Quick Animation Demo Controls - HIDDEN */}
+      <div className="absolute top-4 right-4 z-10 bg-black/90 text-white p-4 rounded-lg shadow-lg hidden">
+        <div className="text-sm font-semibold mb-3 text-center">🎬 Animation Demos</div>
+        <div className="flex flex-col space-y-2">
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🎨 Running BMC Color Sequence Demo...');
+                animationManagerRef.current.createColorSequence([
+                  { section: "Value Propositions", color: "#00ff00", duration: 2000 },
+                  { section: "Customer Segments", color: "#0066ff", duration: 1500 },
+                  { section: "Key Partners", color: "#ff6600", duration: 1800 },
+                  { section: "Revenue Streams", color: "#ffff00", duration: 1200 },
+                  { section: "Cost Structure", color: "#ff0066", duration: 1500 }
+                ]).then(() => console.log('🎨 Color sequence complete!'));
+              }
+            }}
+            className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Color Sequence
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current && materialManagerRef.current) {
+                console.log('🎭 Applying Business Performance Themes...');
+                
+                // Debug: List all available meshes
+                const allMeshes = sceneRef.current?.meshes || [];
+                console.log('🔍 Available meshes:', allMeshes.map(m => ({ name: m.name, metadata: m.metadata })));
+                
+                // Apply themes to each section
+                animationManagerRef.current.applyBusinessTheme("Value Propositions", "high");
+                animationManagerRef.current.applyBusinessTheme("Customer Segments", "medium");
+                animationManagerRef.current.applyBusinessTheme("Key Partners", "low");
+                animationManagerRef.current.applyBusinessTheme("Revenue Streams", "revenue");
+                animationManagerRef.current.applyBusinessTheme("Cost Structure", "cost");
+                console.log('🎭 Business themes applied!');
+              }
+            }}
+            className="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Business Themes
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🔗 Starting data-driven color animation...');
+                animationManagerRef.current.bindColorToData("Revenue Streams", {
+                  sectionId: "Revenue Streams",
+                  dataField: "revenue.growth",
+                  colorRange: ["#ff0000", "#00ff00"],
+                  updateFrequency: 1000
+                });
+                console.log('🔗 Data binding active - Revenue Streams will animate based on simulated data');
+              }
+            }}
+            className="bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Data Binding
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🔄 Clearing all animations...');
+                animationManagerRef.current.clearAllAnimations();
+                
+                // Reset materials to safe defaults
+                const scene = sceneRef.current;
+                if (scene) {
+                  scene.meshes.forEach(mesh => {
+                    if (mesh.name.includes('BMC') || mesh.name.includes('Customer') || 
+                        mesh.name.includes('Value') || mesh.name.includes('Key') ||
+                        mesh.name.includes('Revenue') || mesh.name.includes('Cost')) {
+                      
+                      // Create safe default material
+                      const defaultMaterial = new StandardMaterial(`reset_${mesh.name}`, scene);
+                      defaultMaterial.diffuseColor = new Color3(0.07, 0.07, 0.07); // Original dark grey
+                      defaultMaterial.emissiveColor = new Color3(0.01, 0.01, 0.01); // Slight glow for visibility
+                      defaultMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+                      defaultMaterial.backFaceCulling = false;
+                      defaultMaterial.alpha = 1.0;
+                      
+                      (mesh as Mesh).material = defaultMaterial;
+                      mesh.isVisible = true;
+                      mesh.setEnabled(true);
+                    }
+                  });
+                }
+                console.log('🔄 All animations cleared, materials safely reset');
+              }
+            }}
+            className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Reset All
+          </button>
+        </div>
+      </div>
+      
       <canvas
         ref={canvasRef}
         className="w-full h-full"
