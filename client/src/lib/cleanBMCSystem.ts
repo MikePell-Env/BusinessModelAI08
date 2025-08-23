@@ -182,30 +182,64 @@ export class CleanBMCSystem {
     console.log(`🔍 DEBUG: Current selectedObject: "${this.selectedObject}"`);
     console.log(`🔍 DEBUG: Requesting selection of: "${sectionName}"`);
 
-    // Toggle behavior: if clicking on already selected object, deselect it
-    if (this.selectedObject === sectionName) {
-      console.log(`🔄 Deselecting already selected object: ${sectionName}`);
-      this.selectedObject = null;
-    } else {
-      console.log(`🎯 Selecting new object: ${sectionName}`);
-      this.selectedObject = sectionName;
-    }
-
-    console.log(`🔍 DEBUG: After selection logic - selectedObject: "${this.selectedObject}"`);
-
-    // Update BMC state manager
-    if (this.bmcStateManager) {
-      const bmcComponent = this.convertNameToBMCComponent(sectionName);
-      if (bmcComponent) {
-        console.log(`🔍 DEBUG: Updating BMC state manager with: ${this.selectedObject ? bmcComponent : null}`);
-        // Cast to proper type to fix TypeScript error
-        this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent as any : null);
+    try {
+      // Special validation for separate GLB models
+      if (sectionName === "Revenue Streams" || sectionName === "Cost Structure") {
+        console.log(`🔧 Validating separate GLB: ${sectionName}`);
+        const item = this.items.get(sectionName);
+        if (!item) {
+          console.error(`❌ ${sectionName} not registered in CleanBMCSystem`);
+          return;
+        }
+        if (!item.mesh || !item.material) {
+          console.error(`❌ ${sectionName} missing mesh or material`);
+          console.log(`  Has mesh: ${!!item.mesh}`);
+          console.log(`  Has material: ${!!item.material}`);
+          return;
+        }
       }
-    }
 
-    console.log(`🔍 DEBUG: About to call updateAllVisuals...`);
-    this.updateAllVisuals();
-    console.log(`🔍 DEBUG: updateAllVisuals completed`);
+      // Toggle behavior: if clicking on already selected object, deselect it
+      if (this.selectedObject === sectionName) {
+        console.log(`🔄 Deselecting already selected object: ${sectionName}`);
+        this.selectedObject = null;
+      } else {
+        console.log(`🎯 Selecting new object: ${sectionName}`);
+        this.selectedObject = sectionName;
+      }
+
+      console.log(`🔍 DEBUG: After selection logic - selectedObject: "${this.selectedObject}"`);
+
+      // Update BMC state manager
+      if (this.bmcStateManager) {
+        try {
+          const bmcComponent = this.convertNameToBMCComponent(sectionName);
+          if (bmcComponent) {
+            console.log(`🔍 DEBUG: Updating BMC state manager with: ${this.selectedObject ? bmcComponent : null}`);
+            // Cast to proper type to fix TypeScript error
+            this.bmcStateManager.selectObject(this.selectedObject ? bmcComponent as any : null);
+          }
+        } catch (stateError) {
+          console.error('Error updating BMC state manager:', stateError);
+        }
+      }
+
+      console.log(`🔍 DEBUG: About to call updateAllVisuals...`);
+      this.updateAllVisuals();
+      console.log(`🔍 DEBUG: updateAllVisuals completed`);
+    } catch (error) {
+      console.error(`❌ Critical error in onSelect for ${sectionName}:`, error);
+      // Recovery: Ensure canvas doesn't go blank
+      this.items.forEach((item) => {
+        if (item && item.mesh) {
+          item.mesh.isVisible = true;
+          item.mesh.setEnabled(true);
+          if (item.material) {
+            item.material.alpha = 1.0;
+          }
+        }
+      });
+    }
   }
 
   // Clear selection
