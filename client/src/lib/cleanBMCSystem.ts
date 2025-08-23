@@ -134,7 +134,6 @@ export class CleanBMCSystem {
 
   // Handle hover state
   onHover(itemName: string | null, isHovering: boolean) {
-    console.log(`🖱️ Hover: ${itemName}, isHovering: ${isHovering}`);
     this.hoveredObject = isHovering ? itemName : null;
     this.updateAllVisuals();
   }
@@ -164,12 +163,8 @@ export class CleanBMCSystem {
 
   // Main visual update method - simplified
   public updateAllVisuals(): void {
-    console.log(`🎨 UpdateAllVisuals: selectedObject=${this.selectedObject}, hoveredObject=${this.hoveredObject}`);
-    console.log(`🎨 UpdateAllVisuals: items count=${this.items.size}, registered items:`, Array.from(this.items.keys()));
-    
     this.items.forEach((item, name) => {
       if (!item?.mesh || !item?.material) {
-        console.warn(`⚠️ Missing mesh or material for ${name}`);
         return;
       }
 
@@ -177,15 +172,10 @@ export class CleanBMCSystem {
       let state = 'normal';
       if (this.selectedObject === name) {
         state = 'selected';
-        console.log(`🎨 ${name}: SELECTED`);
       } else if (this.selectedObject && this.selectedObject !== name) {
         state = 'dimmed';
-        console.log(`🎨 ${name}: DIMMED (selected=${this.selectedObject})`);
       } else if (this.hoveredObject === name) {
         state = 'hover';
-        console.log(`🎨 ${name}: HOVER`);
-      } else {
-        console.log(`🎨 ${name}: NORMAL`);
       }
 
       this.applyState(name, state);
