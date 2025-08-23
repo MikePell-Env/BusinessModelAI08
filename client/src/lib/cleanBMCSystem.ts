@@ -215,7 +215,7 @@ export class CleanBMCSystem {
       item.material.diffuseColor = new Color3(0.0, 0.20, 0.12);  // Keep original green
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else {
-      item.material.diffuseColor = new Color3(0.0, 0.3, 0.8);  // Bright blue for others
+      item.material.diffuseColor = new Color3(0.0, 0.15, 0.4);  // Darker blue for others
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     }
     
@@ -236,13 +236,13 @@ export class CleanBMCSystem {
 
     // Color behavior: Cost Structure and Revenue Streams brighten their original colors
     if (name === "Cost Structure") {
-      item.material.diffuseColor = new Color3(0.5, 0.1, 0.1);  // Moderate red brightening
+      item.material.diffuseColor = new Color3(0.45, 0.05, 0.05);  // Subtle red brightening
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else if (name === "Revenue Streams") {
-      item.material.diffuseColor = new Color3(0.0, 0.3, 0.18);  // Subtle brightened green
+      item.material.diffuseColor = new Color3(0.0, 0.25, 0.15);  // Subtle green brightening
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     } else {
-      item.material.diffuseColor = new Color3(0.05, 0.25, 0.6);  // Toned down blue
+      item.material.diffuseColor = new Color3(0.02, 0.15, 0.35);  // Much darker blue
       item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);  // No glow
     }
     
