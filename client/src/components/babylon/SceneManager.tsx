@@ -7,6 +7,7 @@ import {
   MeshBuilder,
   DynamicTexture,
   StandardMaterial,
+  FreeCamera,
   Color3, 
   Color4,
   Vector3
@@ -104,6 +105,14 @@ export const useSceneManager = ({ canvasRef, onSceneReady }: SceneManagerProps) 
     // Store references
     engineRef.current = engine;
     sceneRef.current = scene;
+
+    // Set up default camera before starting render loop
+    if (!scene.activeCamera) {
+      console.warn('No camera found, creating default camera');
+      const defaultCamera = new FreeCamera("defaultCamera", new Vector3(0, 5, -10), scene);
+      defaultCamera.setTarget(Vector3.Zero());
+      scene.activeCamera = defaultCamera;
+    }
 
     // Start render loop
     engine.runRenderLoop(() => {

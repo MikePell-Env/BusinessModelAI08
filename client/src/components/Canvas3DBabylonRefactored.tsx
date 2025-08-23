@@ -42,6 +42,8 @@ export const Canvas3DBabylonRefactored: React.FC<Canvas3DBabylonRefactoredProps>
       // Create advanced texture for UI
       const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
       advancedTextureRef.current = advancedTexture;
+      
+      console.log('Scene and UI ready for camera setup');
     }
   });
 
