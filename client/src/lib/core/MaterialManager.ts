@@ -142,21 +142,29 @@ export class MaterialManager {
    * Apply a material state to a mesh (ONLY way to change materials)
    */
   applyMaterialState(mesh: AbstractMesh, sectionId: string, state: MaterialState['type']): void {
+    console.log(`🔍 DEBUG MaterialManager: applyMaterialState called - section: ${sectionId}, state: ${state}`);
+    
     if (this.disposed) {
       console.warn('⚠️ MaterialManager: Cannot apply state - manager disposed');
       return;
     }
 
     try {
+      console.log(`🔍 DEBUG MaterialManager: Getting material for ${sectionId}_${state}`);
       const material = this.getMaterial(sectionId, state);
+      console.log(`🔍 DEBUG MaterialManager: Got material ${material.name}, isFrozen: ${material.isFrozen}`);
       
       // FIXED: Don't freeze/unfreeze rapidly - causes crashes
       // Only unfreeze if absolutely necessary
       const needsUnfreeze = material.isFrozen && mesh.material !== material;
+      console.log(`🔍 DEBUG MaterialManager: needsUnfreeze: ${needsUnfreeze}, current mesh material: ${mesh.material?.name || 'none'}`);
+      
       if (needsUnfreeze) {
+        console.log(`🔍 DEBUG MaterialManager: Unfreezing material ${material.name}`);
         material.unfreeze();
       }
 
+      console.log(`🔍 DEBUG MaterialManager: Applying material ${material.name} to mesh`);
       // Apply material
       mesh.material = material;
       
@@ -169,18 +177,29 @@ export class MaterialManager {
 
       // FIXED: Only refreeze if we unfroze it
       if (needsUnfreeze) {
+        console.log(`🔍 DEBUG MaterialManager: Refreezing material ${material.name}`);
         material.freeze();
       }
 
       console.log(`🎨 Applied ${state} material to ${sectionId}`);
     } catch (error) {
-      console.error(`❌ MaterialManager: Failed to apply material to ${sectionId}:`, error);
+      console.error(`❌ CRASH in MaterialManager.applyMaterialState(${sectionId}, ${state}):`, error);
+      console.error(`❌ Error name: ${error.name}`);
+      console.error(`❌ Error message: ${error.message}`);
+      console.error(`❌ Stack trace:`, error.stack);
       
       // Fallback: ensure mesh has some material
-      if (!mesh.material) {
-        const fallbackMaterial = this.getMaterial(sectionId, 'normal');
-        mesh.material = fallbackMaterial;
+      try {
+        if (!mesh.material) {
+          console.log(`🔍 DEBUG MaterialManager: Applying fallback material`);
+          const fallbackMaterial = this.getMaterial(sectionId, 'normal');
+          mesh.material = fallbackMaterial;
+        }
+      } catch (fallbackError) {
+        console.error(`❌ Even fallback failed:`, fallbackError);
       }
+      
+      throw error; // Re-throw to trace the call stack
     }
   }
 
