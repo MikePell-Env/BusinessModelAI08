@@ -1,15 +1,16 @@
-
 import { Scene, ArcRotateCamera, FreeCamera, Vector3 } from '@babylonjs/core';
 
 export class CameraManager {
   private scene: Scene;
+  private canvas: HTMLCanvasElement;
   private perspectiveCamera: ArcRotateCamera | null = null;
-  private orthoCamera: FreeCamera | null = null;
+  private orthographicCamera: FreeCamera | null = null;
   private orthoEventHandlers: any = null;
 
-  constructor(scene: Scene, canvasElement: HTMLCanvasElement) {
+  constructor(scene: Scene, canvas: HTMLCanvasElement) {
     this.scene = scene;
-    this.initializeCameras(canvasElement);
+    this.canvas = canvas;
+    this.initializeCameras(canvas);
   }
 
   private initializeCameras(canvasElement: HTMLCanvasElement) {
@@ -24,7 +25,7 @@ export class CameraManager {
     );
     this.perspectiveCamera.setTarget(Vector3.Zero());
     this.perspectiveCamera.attachControl(canvasElement, true);
-    
+
     // Camera limits
     this.perspectiveCamera.wheelPrecision = 50;
     this.perspectiveCamera.lowerRadiusLimit = 5;
@@ -33,33 +34,33 @@ export class CameraManager {
     this.perspectiveCamera.upperBetaLimit = Math.PI / 2.2;
 
     // Create orthographic camera
-    this.orthoCamera = new FreeCamera("orthoCamera", new Vector3(0, 15, 0), this.scene);
-    this.orthoCamera.setTarget(Vector3.Zero());
-    this.orthoCamera.rotation.x = Math.PI / 2;
-    this.orthoCamera.rotation.y = 0;
-    this.orthoCamera.rotation.z = 0;
-    this.orthoCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
+    this.orthographicCamera = new FreeCamera("orthoCamera", new Vector3(0, 15, 0), this.scene);
+    this.orthographicCamera.setTarget(Vector3.Zero());
+    this.orthographicCamera.rotation.x = Math.PI / 2;
+    this.orthographicCamera.rotation.y = 0;
+    this.orthographicCamera.rotation.z = 0;
+    this.orthographicCamera.mode = 1; // ORTHOGRAPHIC_CAMERA
 
     // Set orthographic projection
     const aspectRatio = canvasElement.width / canvasElement.height;
     const orthoSize = 8.5;
-    
+
     if (aspectRatio > 1) {
-      this.orthoCamera.orthoTop = orthoSize;
-      this.orthoCamera.orthoBottom = -orthoSize;
-      this.orthoCamera.orthoLeft = -orthoSize * aspectRatio;
-      this.orthoCamera.orthoRight = orthoSize * aspectRatio;
+      this.orthographicCamera.orthoTop = orthoSize;
+      this.orthographicCamera.orthoBottom = -orthoSize;
+      this.orthographicCamera.orthoLeft = -orthoSize * aspectRatio;
+      this.orthographicCamera.orthoRight = orthoSize * aspectRatio;
     } else {
-      this.orthoCamera.orthoTop = orthoSize / aspectRatio;
-      this.orthoCamera.orthoBottom = -orthoSize / aspectRatio;
-      this.orthoCamera.orthoLeft = -orthoSize;
-      this.orthoCamera.orthoRight = orthoSize;
+      this.orthographicCamera.orthoTop = orthoSize / aspectRatio;
+      this.orthographicCamera.orthoBottom = -orthoSize / aspectRatio;
+      this.orthographicCamera.orthoLeft = -orthoSize;
+      this.orthographicCamera.orthoRight = orthoSize;
     }
 
-    this.orthoCamera.minZ = 0.1;
-    this.orthoCamera.maxZ = 100;
-    this.orthoCamera.inputs.clear();
-    
+    this.orthographicCamera.minZ = 0.1;
+    this.orthographicCamera.maxZ = 100;
+    this.orthographicCamera.inputs.clear();
+
     this.setupOrthoControls(canvasElement);
   }
 
@@ -67,27 +68,27 @@ export class CameraManager {
     let isDragging = false;
     let lastMouseX = 0;
     let lastMouseY = 0;
-    
+
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
-      const currentSize = this.orthoCamera!.orthoTop || 8.5;
+      const currentSize = this.orthographicCamera!.orthoTop || 8.5;
       const newSize = Math.max(2, Math.min(15, currentSize * zoomFactor));
-      
+
       const aspectRatio = canvas.width / canvas.height;
       if (aspectRatio > 1) {
-        this.orthoCamera!.orthoTop = newSize;
-        this.orthoCamera!.orthoBottom = -newSize;
-        this.orthoCamera!.orthoLeft = -newSize * aspectRatio;
-        this.orthoCamera!.orthoRight = newSize * aspectRatio;
+        this.orthographicCamera!.orthoTop = newSize;
+        this.orthographicCamera!.orthoBottom = -newSize;
+        this.orthographicCamera!.orthoLeft = -newSize * aspectRatio;
+        this.orthographicCamera!.orthoRight = newSize * aspectRatio;
       } else {
-        this.orthoCamera!.orthoTop = newSize / aspectRatio;
-        this.orthoCamera!.orthoBottom = -newSize / aspectRatio;
-        this.orthoCamera!.orthoLeft = -newSize;
-        this.orthoCamera!.orthoRight = newSize;
+        this.orthographicCamera!.orthoTop = newSize / aspectRatio;
+        this.orthographicCamera!.orthoBottom = -newSize / aspectRatio;
+        this.orthographicCamera!.orthoLeft = -newSize;
+        this.orthographicCamera!.orthoRight = newSize;
       }
     };
-    
+
     const handleMouseDown = (e: MouseEvent) => {
       if (e.button === 0) {
         isDragging = true;
@@ -97,36 +98,36 @@ export class CameraManager {
         e.preventDefault();
       }
     };
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
-      
+
       const deltaX = e.clientX - lastMouseX;
       const deltaY = e.clientY - lastMouseY;
       const moveSpeed = 0.02;
-      
-      this.orthoCamera!.position.x -= deltaX * moveSpeed;
-      this.orthoCamera!.position.z -= deltaY * moveSpeed;
-      this.orthoCamera!.setTarget(new Vector3(this.orthoCamera!.position.x, 0, this.orthoCamera!.position.z));
-      
+
+      this.orthographicCamera!.position.x -= deltaX * moveSpeed;
+      this.orthographicCamera!.position.z -= deltaY * moveSpeed;
+      this.orthographicCamera!.setTarget(new Vector3(this.orthographicCamera!.position.x, 0, this.orthographicCamera!.position.z));
+
       lastMouseX = e.clientX;
       lastMouseY = e.clientY;
       e.preventDefault();
     };
-    
+
     const handleMouseUp = () => {
       isDragging = false;
       canvas.style.cursor = 'grab';
     };
-    
+
     canvas.addEventListener('wheel', handleWheel, { passive: false });
     canvas.addEventListener('mousedown', handleMouseDown);
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('mouseleave', handleMouseUp);
-    
+
     canvas.style.cursor = 'grab';
-    
+
     this.orthoEventHandlers = {
       wheel: handleWheel,
       mousedown: handleMouseDown,
@@ -138,7 +139,7 @@ export class CameraManager {
 
   setCameraMode(isOrthographic: boolean) {
     if (isOrthographic) {
-      this.scene.activeCamera = this.orthoCamera;
+      this.scene.activeCamera = this.orthographicCamera;
     } else {
       this.scene.activeCamera = this.perspectiveCamera;
     }
@@ -147,7 +148,7 @@ export class CameraManager {
   getCameras() {
     return {
       perspective: this.perspectiveCamera,
-      orthographic: this.orthoCamera
+      orthographic: this.orthographicCamera
     };
   }
 

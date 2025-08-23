@@ -33,9 +33,9 @@ import { BMCComponentName } from '@/types/bmcState';
 import { CleanBMCSystem, cleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { BabylonMaterialManager } from '@/lib/babylon/BabylonMaterialManager';
-import { CameraManager } from './babylon/CameraManager';
-import { BMCModelLoader } from './babylon/BMCModelLoader';
-import { SceneSetup } from './babylon/SceneSetup';
+// import { CameraManager } from './babylon/CameraManager';
+// import { BMCModelLoader } from './babylon/BMCModelLoader';
+// import { SceneSetup } from './babylon/SceneSetup';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -304,23 +304,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Initialize modular components
-    const sceneSetup = new SceneSetup(scene);
-    sceneSetup.setupEnvironment();
+    // Basic scene setup inline to avoid import issues
+    const light = new HemisphericLight("hemiLight", new Vector3(0, 1, 0), scene);
+    light.intensity = 0.7;
+
+    const dirLight = new DirectionalLight("dirLight", new Vector3(-1, -1, -1), scene);
+    dirLight.intensity = 0.5;
+
+    // Create cameras
+    const camera = new ArcRotateCamera(
+      "camera",
+      -Math.PI / 2,
+      Math.PI / 2.5,
+      12,
+      Vector3.Zero(),
+      scene
+    );
+    camera.attachControl(canvasElement, true);
+    camera.lowerRadiusLimit = 5;
+    camera.upperRadiusLimit = 25;
 
     const savedCameraState = getCamera3DState();
-    const cameraManager = new CameraManager(scene, canvasElement);
-    cameraManagerRef.current = cameraManager;
-
     if (savedCameraState) {
-      cameraManager.restoreCameraState(
-        savedCameraState.alpha,
-        savedCameraState.beta,
-        savedCameraState.radius
-      );
+      camera.alpha = savedCameraState.alpha;
+      camera.beta = savedCameraState.beta;
+      camera.radius = savedCameraState.radius;
     }
-
-    cameraManager.setCameraMode(isOrthographic);
 
     // Initialize GUI
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -350,27 +359,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     });
 
-    // Load BMC models
-    const bmcLoader = new BMCModelLoader(scene, canvas, cleanBMCRef.current);
+    // Create simple placeholder boxes for now
+    const valueProposition = MeshBuilder.CreateBox("valueProposition", {size: 2}, scene);
+    valueProposition.position = new Vector3(0, 1, 0);
+    
+    const customerSegments = MeshBuilder.CreateBox("customerSegments", {size: 1.5}, scene);
+    customerSegments.position = new Vector3(3, 1, 0);
+    
+    const keyPartners = MeshBuilder.CreateBox("keyPartners", {size: 1.5}, scene);
+    keyPartners.position = new Vector3(-3, 1, 0);
 
-    bmcLoader.loadMainBMC().then((meshes) => {
-      console.log("✅ Main BMC model loaded");
-      // Post-processing for main BMC model (animations, labels, etc.)
-      bmcLoader.setupMainBMCInteractions(meshes, advancedTexture, createBillboardPanel);
-      bmcLoader.applyAnimations(meshes);
-      // Save original heights after main BMC model is loaded and processed
-      saveOriginalHeights();
-    });
+    // Basic material
+    const material = new StandardMaterial("basicMat", scene);
+    material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+    
+    valueProposition.material = material;
+    customerSegments.material = material.clone("mat2");
+    keyPartners.material = material.clone("mat3");
 
-    bmcLoader.loadRevenueStreams().then((meshes) => {
-      console.log("✅ Revenue Streams model loaded");
-      bmcLoader.setupRevenueStreamsInteractions(meshes, advancedTexture, createBillboardPanel);
-    });
-
-    bmcLoader.loadCostStructure().then((meshes) => {
-      console.log("✅ Cost Structure model loaded");
-      bmcLoader.setupCostStructureInteractions(meshes, advancedTexture, createBillboardPanel);
-    });
+    console.log("✅ Basic 3D scene created");
 
     // Initialize Animation and Material Managers
     animationManagerRef.current = new BabylonAnimationManager(scene);
@@ -433,29 +440,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Cleanup function
     return () => {
       isDisposed = true;
-
-      if (cameraManagerRef.current) {
-        const cameras = cameraManagerRef.current.getCameras();
-        if (cameras.perspective && !isOrthographic) {
-          saveCamera3DState(
-            cameras.perspective.alpha,
-            cameras.perspective.beta,
-            cameras.perspective.radius
-          );
-        }
-        cameraManagerRef.current.dispose();
-        cameraManagerRef.current = null;
-      }
-
-      if (animationManagerRef.current) {
-        animationManagerRef.current.dispose();
-        animationManagerRef.current = null;
-      }
-
-      if (materialManagerRef.current) {
-        materialManagerRef.current.dispose();
-        materialManagerRef.current = null;
-      }
 
       try {
         if (scene && !scene.isDisposed) {
