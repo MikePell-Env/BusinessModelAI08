@@ -52,9 +52,9 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
 
-    // When entering top view, ensure all objects are visible but don't modify their heights
+    // When entering top view, ensure all objects are visible and FLATTENED
     if (isTopView) {
-      console.log(`📐 Entering TOP VIEW - ensuring all objects are visible`);
+      console.log(`📐 Entering TOP VIEW - flattening all objects and ensuring visibility`);
       this.items.forEach((item, name) => {
         // Ensure mesh visibility and material alpha are correct in top view
         item.mesh.isVisible = true;
@@ -62,6 +62,10 @@ export class CleanBMCSystem {
         if (item.material) {
           item.material.alpha = 1.0;
         }
+
+        // FORCE original height - completely flat in top view
+        item.mesh.scaling.y = item.originalHeight;
+        console.log(`📐 TOP VIEW: Flattened ${name} to original height ${item.originalHeight}`);
 
         // Force labels to be visible
         this.makeLabelVisible(name);
@@ -263,8 +267,15 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
       }
       item.material.alpha = 1.0;
-      // Only animate height in 3D perspective view
-      this.animateHeight(item.mesh, item.originalHeight);
+      
+      // In top view, keep flat - no height changes at all
+      if (this.isTopView) {
+        item.mesh.scaling.y = item.originalHeight;
+        console.log(`📐 HOVER in TOP VIEW: Keeping ${itemName} flat at height ${item.originalHeight}`);
+      } else {
+        // Only animate height in 3D perspective view
+        this.animateHeight(item.mesh, item.originalHeight);
+      }
     } else {
       this.hoveredObject = null;
       // Back to original colors
@@ -279,8 +290,15 @@ export class CleanBMCSystem {
         item.material.emissiveColor = new Color3(0.0, 0.0, 0.0);
       }
       item.material.alpha = 1.0;
-      // Only animate height in 3D perspective view
-      this.animateHeight(item.mesh, item.originalHeight);
+      
+      // In top view, keep flat - no height changes at all
+      if (this.isTopView) {
+        item.mesh.scaling.y = item.originalHeight;
+        console.log(`📐 HOVER EXIT in TOP VIEW: Keeping ${itemName} flat at height ${item.originalHeight}`);
+      } else {
+        // Only animate height in 3D perspective view
+        this.animateHeight(item.mesh, item.originalHeight);
+      }
     }
 
     // Always ensure label stays visible
@@ -345,6 +363,12 @@ export class CleanBMCSystem {
     // Always ensure mesh remains visible and opaque
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
+
+    // In top view, FORCE original height and skip all height animations
+    if (this.isTopView) {
+      item.mesh.scaling.y = item.originalHeight;
+      console.log(`📐 TOP VIEW: Forcing ${name} to original height ${item.originalHeight}, no animations`);
+    }
 
     switch (state) {
       case 'selected':
