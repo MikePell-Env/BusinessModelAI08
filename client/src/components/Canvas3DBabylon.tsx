@@ -2141,9 +2141,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Setup interactions using SimpleClickHandler ONLY
-            clickHandler.registerMesh(mesh, sectionName);
-            console.log(`🎯 ${sectionName}: Interactions configured via SimpleClickHandler`);
+            // Setup mesh for UnifiedInteractionManager
+            mesh.isPickable = true;
+            console.log(`🎯 ${sectionName}: Mesh configured for UnifiedInteractionManager`);
             
             // REMOVED: Old click select function - replaced by unified BMC system
             
@@ -2153,7 +2153,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
-            // All click and double-click handling managed by SimpleClickHandler
+            // All click and double-click handling managed by UnifiedInteractionManager
             
             // REMOVED: Old close button functionality - now handled by billboard panel system
             
@@ -2373,13 +2373,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Setup interactions using SimpleClickHandler ONLY
-            clickHandler.registerMesh(mesh, "Revenue Streams");
-            console.log(`🎯 Revenue Streams: Interactions configured via SimpleClickHandler`);
+            // Setup mesh for UnifiedInteractionManager
+            mesh.isPickable = true;
+            console.log(`🎯 Revenue Streams: Mesh configured for UnifiedInteractionManager`);
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
-            // All click and double-click handling managed by SimpleClickHandler
+            // All click and double-click handling managed by UnifiedInteractionManager
 
             // Add floating label plane for Revenue Streams section (same pattern as Customer Channels)
             console.log(`🏷️ Creating floating label for Revenue Streams mesh (index ${index})`);
@@ -2515,13 +2515,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Setup interactions using SimpleClickHandler ONLY
-            clickHandler.registerMesh(mesh, "Cost Structure");
-            console.log(`🎯 Cost Structure: Interactions configured via SimpleClickHandler`);
+            // Setup mesh for UnifiedInteractionManager
+            mesh.isPickable = true;
+            console.log(`🎯 Cost Structure: Mesh configured for UnifiedInteractionManager`);
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
-            // All click and double-click handling managed by SimpleClickHandler
+            // All click and double-click handling managed by UnifiedInteractionManager
 
             // Add floating label plane for Cost Structure section (exact same pattern as Revenue Streams)
             console.log(`🏷️ Creating floating label for Cost Structure mesh (index ${index})`);
