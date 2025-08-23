@@ -52,17 +52,17 @@ export class CleanBMCSystem {
     console.log(`🎬 CleanBMCSystem.setTopViewMode: ${isTopView}`);
     this.isTopView = isTopView;
 
-    // When entering top view, flatten ALL objects but keep them visible
+    // When entering top view, keep all objects at original height
     if (isTopView) {
-      console.log(`📐 Entering TOP VIEW - flattening all objects`);
+      console.log(`📐 Entering TOP VIEW - keeping original heights`);
       this.items.forEach((item, name) => {
-        // FLATTEN all objects in top view but keep visible
-        item.mesh.scaling.y = 0.3;  // Flat but visible from above
+        // Keep original height in top view
+        item.mesh.scaling.y = item.originalHeight;
         item.mesh.isVisible = true;
         item.mesh.setEnabled(true);
         item.material.alpha = 1.0;  // Full opacity
         this.makeLabelVisible(name);
-        console.log(`   Set ${name}: height=0.3, alpha=1.0`);
+        console.log(`   Set ${name}: height=${item.originalHeight}, alpha=1.0`);
       });
     }
 
@@ -359,11 +359,11 @@ export class CleanBMCSystem {
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
 
-    // In top view, ALWAYS keep objects flat but visible
+    // In top view, keep objects at original height
     if (this.isTopView) {
-      // Use a height that's visible from above
-      item.mesh.scaling.y = 0.3;  // Slightly taller to be visible from top
-      console.log(`📐 TOP VIEW: Setting ${name} to flat height 0.3`);
+      // Maintain original height in top view
+      item.mesh.scaling.y = item.originalHeight;
+      console.log(`📐 TOP VIEW: Keeping ${name} at original height ${item.originalHeight}`);
     }
 
     switch (state) {
@@ -429,8 +429,8 @@ export class CleanBMCSystem {
 
   // Helper to apply dimmed effect
   private applyDimmedEffect(material: StandardMaterial, name: string) {
-    // In top view, use higher alpha to keep objects visible
-    material.alpha = this.isTopView ? 0.8 : 0.5;
+    // In top view, keep objects more visible
+    material.alpha = this.isTopView ? 0.9 : 0.5;
     if (name === "Cost Structure") {
       material.diffuseColor = new Color3(0.2, 0.0, 0.0);
     } else if (name === "Revenue Streams") {
