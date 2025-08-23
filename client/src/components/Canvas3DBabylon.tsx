@@ -672,20 +672,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Disable rotation controls for pure top-down view
     orthoCamera.inputs.clear();
     
-    // Add direct event handlers for orthographic camera controls (using ref for cross-useEffect access)
-    
+    // Simplified orthographic camera controls setup
     const setupOrthoControls = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       
-      // Mouse wheel zoom
-      const onWheel = (event: WheelEvent) => {
-        event.preventDefault();
-        const delta = event.deltaY > 0 ? 1.1 : 0.9;
+      let isDragging = false;
+      let lastMouseX = 0;
+      
+      const handleWheel = (e: WheelEvent) => {
+        e.preventDefault();
+        const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
         const currentSize = orthoCamera.orthoTop || 8.5;
-        const newSize = Math.max(2, Math.min(15, currentSize * delta)); // Constrain zoom range
+        const newSize = Math.max(2, Math.min(15, currentSize * zoomFactor));
         
-        // Update orthographic bounds while maintaining aspect ratio
         const aspectRatio = canvas.width / canvas.height;
         if (aspectRatio > 1) {
           orthoCamera.orthoTop = newSize;
@@ -700,76 +700,55 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       };
       
-      // Mouse drag for horizontal-only translation
-      let isDragging = false;
-      let lastX = 0;
-      
-      const onMouseDown = (event: MouseEvent) => {
-        if (event.button === 0) { // Left mouse button only
+      const handleMouseDown = (e: MouseEvent) => {
+        if (e.button === 0) {
           isDragging = true;
-          lastX = event.clientX;
+          lastMouseX = e.clientX;
           canvas.style.cursor = 'grabbing';
-          event.preventDefault();
-          event.stopPropagation();
+          e.preventDefault();
         }
       };
       
-      const onMouseMove = (event: MouseEvent) => {
-        if (!isDragging || event.button !== 0) return;
+      const handleMouseMove = (e: MouseEvent) => {
+        if (!isDragging) return;
         
-        const deltaX = event.clientX - lastX;
+        const deltaX = e.clientX - lastMouseX;
+        const moveSpeed = 0.02;
         
-        // Only apply horizontal translation (X-axis movement)
-        if (Math.abs(deltaX) > 0) {
-          const sensitivity = 0.02; // Increased sensitivity for better responsiveness
-          const translationX = -deltaX * sensitivity; // Negative for natural movement direction
-          
-          // Apply translation to camera position only (not target)
-          orthoCamera.position.x += translationX;
-          
-          // Update target to maintain looking straight down
-          const target = orthoCamera.getTarget();
-          target.x = orthoCamera.position.x;
-          orthoCamera.setTarget(target);
-        }
+        // Horizontal translation only
+        orthoCamera.position.x -= deltaX * moveSpeed;
+        orthoCamera.setTarget(new Vector3(orthoCamera.position.x, 0, orthoCamera.position.z));
         
-        lastX = event.clientX;
-        event.preventDefault();
-        event.stopPropagation();
+        lastMouseX = e.clientX;
+        e.preventDefault();
       };
       
-      const onMouseUp = (event: MouseEvent) => {
-        if (isDragging) {
-          canvas.style.cursor = 'grab';
-        }
+      const handleMouseUp = () => {
         isDragging = false;
-        event.preventDefault();
-        event.stopPropagation();
+        canvas.style.cursor = 'grab';
       };
       
-      // Add event listeners with proper options
-      canvas.addEventListener('wheel', onWheel, { passive: false });
-      canvas.addEventListener('mousedown', onMouseDown);
-      canvas.addEventListener('mousemove', onMouseMove);
-      canvas.addEventListener('mouseup', onMouseUp);
-      canvas.addEventListener('mouseleave', onMouseUp);
+      // Add event listeners
+      canvas.addEventListener('wheel', handleWheel, { passive: false });
+      canvas.addEventListener('mousedown', handleMouseDown);
+      canvas.addEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener('mouseup', handleMouseUp);
+      canvas.addEventListener('mouseleave', handleMouseUp);
       
-      // Set initial cursor style
       canvas.style.cursor = 'grab';
       
-      // Store handlers for cleanup in ref
+      // Store for cleanup
       orthoEventHandlersRef.current = {
-        wheel: onWheel,
-        mousedown: onMouseDown,
-        mousemove: onMouseMove,
-        mouseup: onMouseUp,
+        wheel: handleWheel,
+        mousedown: handleMouseDown,
+        mousemove: handleMouseMove,
+        mouseup: handleMouseUp,
         canvas: canvas
       };
       
-      console.log("🎯 Orthographic camera controls configured (zoom + horizontal panning only)");
+      console.log("🎯 Simplified orthographic controls ready");
     };
     
-    // Setup controls when camera is active
     setupOrthoControls();
     
     // Store camera references
