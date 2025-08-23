@@ -94,16 +94,17 @@ export class CleanBMCSystem {
       return;
     }
 
+    console.log(`📐 Animating ${mesh.name} height to ${targetHeight} (from ${mesh.scaling.y})`);
+    
     if (this.viewTransitionManager && mesh instanceof Mesh) {
       this.viewTransitionManager.animateMeshHeight(mesh, targetHeight, {
-        duration: 2500,
+        duration: 1000,  // Faster animation
         easing: true
       });
     } else {
-      // Fallback to instant change - but only if not in top view
-      if (!this.isTopView) {
-        mesh.scaling.y = targetHeight;
-      }
+      // Fallback to instant change
+      console.log(`⚠️ No ViewTransitionManager, setting height directly`);
+      mesh.scaling.y = targetHeight;
     }
   }
 
@@ -379,6 +380,7 @@ export class CleanBMCSystem {
   // Apply the correct visual state to an item - FOLLOWS SELECTION RULES EXACTLY
   private applyVisualState(item: BMCItem, name: string, state: 'normal' | 'hover' | 'selected' | 'dimmed') {
     console.log(`🎨 Applying ${state} state to ${name} (topView: ${this.isTopView})`);
+    console.log(`   Current: height=${item.mesh.scaling.y}, alpha=${item.material.alpha}`);
 
     // Always ensure mesh remains visible
     item.mesh.isVisible = true;
@@ -406,9 +408,19 @@ export class CleanBMCSystem {
       case 'dimmed':
         // DIMMED: Only applies to 3D View (rule 6)
         // 3D Top NEVER uses dimmed state - handled by updateAllVisuals logic
-        this.applyDimmedEffect(item.material, name);
-        item.material.alpha = 0.5; // 50% opacity
-        this.animateHeight(item.mesh, item.originalHeight * 0.3); // flattened
+        if (!this.isTopView) {
+          // Only apply dimming in 3D View
+          this.applyDimmedEffect(item.material, name);
+          item.material.alpha = 0.5; // 50% opacity
+          this.animateHeight(item.mesh, item.originalHeight * 0.3); // flattened
+        } else {
+          // This should never happen in 3D Top due to updateAllVisuals logic
+          console.error(`⚠️ Unexpected dimmed state in 3D Top for ${name}`);
+          // Fallback to normal state
+          this.restoreOriginalMaterial(item.material, name);
+          item.material.alpha = 1.0;
+          item.mesh.scaling.y = item.originalHeight;
+        }
         break;
 
       case 'normal':
