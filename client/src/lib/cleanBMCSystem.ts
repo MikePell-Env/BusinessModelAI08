@@ -336,46 +336,57 @@ export class CleanBMCSystem {
     this.updateAllVisuals();
   }
 
-  // Update all visual states - IMPLEMENTS SELECTION RULES EXACTLY
+  // Update all visual states - STRICT 3D TOP RULES
   private updateAllVisuals() {
-    // Get current selection from state manager
     const currentSelection = this.getSelectedObject();
-    console.log(`🎨 CleanBMC: Updating all visuals - selection: "${currentSelection}", topView: ${this.isTopView}`);
-    console.log(`📋 RULES: ${this.isTopView ? '3D TOP (others never change)' : '3D VIEW (others flatten/dim when selected)'}`);
+    console.log(`🎨 CleanBMC: Updating visuals - selection: "${currentSelection}", topView: ${this.isTopView}`);
 
-    this.items.forEach((item, name) => {
-      const isSelected = (name === currentSelection);
-      const isHovered = (name === this.hoveredObject);
-
-      // CRITICAL: Always ensure mesh is visible and enabled before any state changes
-      item.mesh.isVisible = true;
-      item.mesh.setEnabled(true);
-
-      // Determine state based on SELECTION RULES
-      let visualState: 'normal' | 'hover' | 'selected' | 'dimmed';
-
-      if (isSelected) {
-        // Rules 2,6: Selected object = bright blue, full height, 100% opacity
-        visualState = 'selected';
-      } else if (isHovered && !currentSelection) {
-        // Only hover when nothing is selected
-        visualState = 'hover';
-      } else if (currentSelection && currentSelection !== name) {
-        // CRITICAL DIFFERENCE:
-        // 3D Top (rules 2,4): Other objects NEVER change when something is selected - ALWAYS normal
-        // 3D View (rule 6): Other objects flatten and become 50% opaque
-        if (this.isTopView) {
-          visualState = 'normal'; // 3D Top: force normal, never dimmed
+    // STRICT 3D TOP IMPLEMENTATION
+    if (this.isTopView) {
+      // 3D TOP RULES: Only selected object changes color, NOTHING ELSE CHANGES
+      this.items.forEach((item, name) => {
+        // ALWAYS ensure visibility first
+        item.mesh.isVisible = true;
+        item.mesh.setEnabled(true);
+        item.mesh.visibility = 1.0;
+        item.mesh.scaling.y = item.originalHeight;
+        item.material.alpha = 1.0;
+        
+        if (name === currentSelection) {
+          // ONLY change color for selected object
+          this.applySelectionEffect(item.material, name);
         } else {
-          visualState = 'dimmed'; // 3D View: apply dimming
+          // ALL non-selected objects stay EXACTLY as they were
+          this.restoreOriginalMaterial(item.material, name);
         }
-      } else {
-        // Rules 1,4,5,8: No selection = original material, full height, 100% opacity
-        visualState = 'normal';
-      }
+        
+        // Always ensure labels are visible
+        this.ensureLabelVisibility(name);
+      });
+    } else {
+      // 3D VIEW: Normal implementation with dimming
+      this.items.forEach((item, name) => {
+        const isSelected = (name === currentSelection);
+        const isHovered = (name === this.hoveredObject);
+        
+        item.mesh.isVisible = true;
+        item.mesh.setEnabled(true);
 
-      this.applyVisualState(item, name, visualState);
-    });
+        let visualState: 'normal' | 'hover' | 'selected' | 'dimmed';
+        
+        if (isSelected) {
+          visualState = 'selected';
+        } else if (isHovered && !currentSelection) {
+          visualState = 'hover';
+        } else if (currentSelection && currentSelection !== name) {
+          visualState = 'dimmed';
+        } else {
+          visualState = 'normal';
+        }
+        
+        this.applyVisualState(item, name, visualState);
+      });
+    }
   }
 
   // Clear selection
@@ -383,20 +394,18 @@ export class CleanBMCSystem {
     this.selectObject(null);
   }
 
-  // Apply the correct visual state to an item - FOLLOWS SELECTION RULES EXACTLY
+  // Apply the correct visual state to an item - ONLY USED FOR 3D VIEW NOW
   private applyVisualState(item: BMCItem, name: string, state: 'normal' | 'hover' | 'selected' | 'dimmed') {
-    console.log(`🎨 Applying ${state} state to ${name} (topView: ${this.isTopView})`);
-    console.log(`   Current: height=${item.mesh.scaling.y}, alpha=${item.material.alpha}, visible=${item.mesh.isVisible}`);
-
-    // CRITICAL: Always ensure mesh remains visible - especially in 3D Top
+    // This method should ONLY be called for 3D View
+    if (this.isTopView) {
+      console.error(`⚠️ ERROR: applyVisualState called in 3D Top view - this should not happen!`);
+      return;
+    }
+    
+    console.log(`🎨 3D View: Applying ${state} state to ${name}`);
+    
     item.mesh.isVisible = true;
     item.mesh.setEnabled(true);
-    
-    // Extra safety for 3D Top view
-    if (this.isTopView && state === 'dimmed') {
-      console.error(`⚠️ PREVENTING dimmed state in 3D Top for ${name} - forcing normal`);
-      state = 'normal'; // Force to normal state
-    }
 
     switch (state) {
       case 'selected':
