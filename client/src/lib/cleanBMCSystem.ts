@@ -56,6 +56,14 @@ export class CleanBMCSystem {
   
   // Helper method for smooth height animations
   private animateHeight(mesh: AbstractMesh, targetHeight: number) {
+    // Skip height animations entirely for Revenue Streams and Cost Structure
+    // These are separate GLB models with different scaling behavior
+    const meshName = mesh.name;
+    if (meshName && (meshName.includes('revenue') || meshName.includes('cost'))) {
+      console.log(`⚠️ Skipping height animation for separate GLB model: ${meshName}`);
+      return;
+    }
+    
     if (this.viewTransitionManager && mesh instanceof Mesh) {
       this.viewTransitionManager.animateMeshHeight(mesh, targetHeight, {
         duration: 2500,  // Much slower animation for very pronounced effect
