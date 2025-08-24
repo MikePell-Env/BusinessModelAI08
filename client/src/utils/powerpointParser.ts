@@ -165,7 +165,8 @@ export class PowerPointParser {
       companyName: companyName || this.extractCompanyFromTitle(allText) || 'Your Company',
       summary: this.extractSummary(allText),
       founders: this.extractFounders(allText),
-      details: this.extractDetails(allText)
+      details: this.extractDetails(allText),
+      website: this.extractWebsite(allText)
     };
     console.log('✅ Instant overview extraction complete:', canvas.overviewData);
     
@@ -609,6 +610,55 @@ export class PowerPointParser {
       ];
     } catch (error) {
       return ['Business details extraction in progress...'];
+    }
+  }
+
+  private extractWebsite(content: string): string[] {
+    try {
+      const websites = [];
+      
+      // Look for URLs in the content
+      const urlPattern = /(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s<>"]*)?)/gi;
+      const matches = content.match(urlPattern);
+      
+      if (matches) {
+        for (const match of matches) {
+          let cleanUrl = match.trim().replace(/[.,;!?]+$/, ''); // Remove trailing punctuation
+          
+          // Add https:// if it starts with www.
+          if (cleanUrl.startsWith('www.')) {
+            cleanUrl = 'https://' + cleanUrl;
+          }
+          
+          // Filter out common non-website patterns
+          if (!cleanUrl.match(/\.(jpg|jpeg|png|gif|pdf|doc|docx|ppt|pptx)$/i) && 
+              cleanUrl.length > 5 && 
+              websites.length < 3) {
+            websites.push(cleanUrl);
+          }
+        }
+      }
+      
+      // Look for domain-like patterns without protocols
+      const domainPattern = /\b([a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|co|io|ai|tech))\b/gi;
+      const domainMatches = content.match(domainPattern);
+      
+      if (domainMatches && websites.length < 3) {
+        for (const domain of domainMatches) {
+          const cleanDomain = 'https://' + domain.trim();
+          if (!websites.includes(cleanDomain) && websites.length < 3) {
+            websites.push(cleanDomain);
+          }
+        }
+      }
+      
+      if (websites.length > 0) {
+        return websites;
+      }
+      
+      return ['Website information will be extracted from your PowerPoint presentation.'];
+    } catch (error) {
+      return ['Website extraction in progress...'];
     }
   }
 
