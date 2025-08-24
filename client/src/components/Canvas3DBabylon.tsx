@@ -25,6 +25,8 @@ import { BusinessModelCanvas } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { SceneSetup } from './Canvas3DBabylon/scene/SceneSetup';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
+import { SafeMaterialManager } from '@/lib/babylon/SafeMaterialManager';
+import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -38,6 +40,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const orthoCameraRef = useRef<FreeCamera | null>(null);
   const meshesRef = useRef<AbstractMesh[]>([]);
+  const safeMaterialManagerRef = useRef<SafeMaterialManager | null>(null);
+  const cleanBMCSystemRef = useRef<CleanBMCSystem | null>(null);
 
   const { 
     saveCamera3DState, 
@@ -114,6 +118,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
     directionalLight.intensity = 1.9;
 
+    // Initialize safe systems
+    try {
+      safeMaterialManagerRef.current = new SafeMaterialManager(scene);
+      cleanBMCSystemRef.current = new CleanBMCSystem();
+      cleanBMCSystemRef.current.initialize(scene);
+      console.log('✅ Safe systems initialized');
+    } catch (error) {
+      console.error('❌ Failed to initialize safe systems:', error);
+    }
+
     // Create ground
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
@@ -135,22 +149,52 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Store mesh references
       meshesRef.current = model.meshes.filter(m => m.name !== "__root__");
 
-      // CRITICAL: NO material operations at all
+      // SAFE: Restore basic materials and interactions
       model.meshes.forEach((mesh, index) => {
         if (mesh.name !== "__root__") {
-          // Store section name only - no material changes
           const sectionNames = [
             "Value Propositions", "Key Partners", "Customer Segments", 
             "Key Resources", "Key Activities", "CustomerChannels", 
             "Customer Relationships"
           ];
-          (mesh as any).bmcSectionName = sectionNames[index] || `Section_${index}`;
+          const sectionName = sectionNames[index] || `Section_${index}`;
+          (mesh as any).bmcSectionName = sectionName;
 
-          // CRITICAL: Make completely non-interactive
-          mesh.isPickable = false;
-          mesh.actionManager = null;
+          // SAFE: Apply default material using SafeMaterialManager
+          if (safeMaterialManagerRef.current) {
+            const success = safeMaterialManagerRef.current.applyMaterialSafely(mesh, 'default_grey');
+            if (success) {
+              console.log(`✅ Safe material applied to ${sectionName}`);
+            }
+          }
 
-          console.log(`✅ Mesh ${index}: ${(mesh as any).bmcSectionName} - NO MATERIAL OPERATIONS`);
+          // SAFE: Register with CleanBMCSystem
+          if (cleanBMCSystemRef.current) {
+            cleanBMCSystemRef.current.registerMesh(mesh, sectionName);
+          }
+
+          // SAFE: Enable basic interactions
+          mesh.isPickable = true;
+          mesh.actionManager = new ActionManager(scene);
+          
+          // Basic hover effect
+          mesh.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+              if (safeMaterialManagerRef.current && cleanBMCSystemRef.current) {
+                cleanBMCSystemRef.current.onHover(sectionName, true);
+              }
+            })
+          );
+
+          mesh.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+              if (safeMaterialManagerRef.current && cleanBMCSystemRef.current) {
+                cleanBMCSystemRef.current.onHover(sectionName, false);
+              }
+            })
+          );
+
+          console.log(`✅ Safe interactions setup for ${sectionName}`);
         }
       });
     }).catch((error) => {
@@ -187,6 +231,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         } catch (e) {
           console.warn('Error saving camera state:', e);
         }
+      }
+
+      // Cleanup safe systems
+      if (cleanBMCSystemRef.current) {
+        cleanBMCSystemRef.current.dispose();
+      }
+      if (safeMaterialManagerRef.current) {
+        safeMaterialManagerRef.current.dispose();
       }
 
       if (scene) {
