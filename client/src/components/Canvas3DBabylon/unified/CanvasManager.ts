@@ -363,7 +363,7 @@ export class CanvasManager {
     
     // Notify BMC state manager
     if (this.bmcStateManager) {
-      this.bmcStateManager.selectBMCObject(sectionName);
+      this.bmcStateManager.selectObject(sectionName);
     }
     
     debugLog.verbose('canvas', `Selected: ${sectionName}`);
@@ -377,7 +377,7 @@ export class CanvasManager {
     
     // Notify BMC state manager
     if (this.bmcStateManager) {
-      this.bmcStateManager.selectBMCObject(null);
+      this.bmcStateManager.selectObject(null);
     }
     
     debugLog.verbose('canvas', 'Deselected all objects');
