@@ -5,6 +5,8 @@ This project is a web application for creating and visualizing business model ca
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
+Use green icon 🟢 when requesting user to test or run something to get their attention.
+Avoid taking unnecessary screenshots unless required for the specific task.
 
 ## Recent Changes (January 2025)
 - **January 23, 2025**: Updated Envisioner logo to new design while maintaining smaller size (h-5) for better header proportions
