@@ -35,9 +35,9 @@ export class SceneSetup {
   }
 
   private setupScene(): void {
-    // Set background to match reference image (light blue-gray)
-    // RGB(176, 196, 207) = normalized (0.690, 0.769, 0.812)
-    this.scene.clearColor = new Color4(176/255, 196/255, 207/255, 1.0);
+    // Set background to match reference image (light blue-grey)
+    // RGB(189, 211, 226) = normalized (0.741, 0.827, 0.886)
+    this.scene.clearColor = new Color4(189/255, 211/255, 226/255, 1.0);
     
     // Enable pointer interactions on the scene
     this.scene.actionManager = new ActionManager(this.scene);
