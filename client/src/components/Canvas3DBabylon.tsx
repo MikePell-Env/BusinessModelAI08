@@ -1397,8 +1397,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Position moved down by one row on ground plane (override default from loader)
         rootMesh.position = new Vector3(0, 0.1, 0.9);
         
-        // Keep model at normal rotation for all views
-        rootMesh.rotation = Vector3.Zero();
+        // FIXED: Rotate entire BMC layout 180 degrees clockwise to match reference orientation
+        rootMesh.rotation = new Vector3(0, Math.PI, 0); // 180 degrees clockwise around Y-axis
         
         // Position logging removed for better performance
         
