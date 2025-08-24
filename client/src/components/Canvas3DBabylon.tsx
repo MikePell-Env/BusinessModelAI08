@@ -659,40 +659,37 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.attachControl(canvasElement, true);
     perspectiveCamera.wheelPrecision = 50;
     
-    // FIXED: Perfect orthographic top-down view with 180-degree rotation to match reference layout
-    const orthographicCamera = new FreeCamera("OrthographicCamera", new Vector3(0, 50, 0), scene);
-    orthographicCamera.setTarget(new Vector3(0, 0, -3)); // Adjust target to center the BMC layout
-    // Rotate camera 180 degrees to get correct orientation without breaking coordinate calculations
-    orthographicCamera.rotation.y = Math.PI; // 180 degrees to flip the view
-    orthographicCamera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
+    // FIXED: Use perspective camera for 3D Top view positioned directly overhead
+    const topViewCamera = new FreeCamera("TopViewCamera", new Vector3(0, 50, 0), scene);
+    topViewCamera.setTarget(new Vector3(0, 0, -3)); // Look down at the BMC layout
     
-    // FIXED: Larger orthographic bounds to show full BMC canvas like reference image
-    const orthoSize = 25; // Increased from 20 to 25 to show more area
-    orthographicCamera.orthoLeft = -orthoSize;
-    orthographicCamera.orthoRight = orthoSize;
-    orthographicCamera.orthoTop = orthoSize;
-    orthographicCamera.orthoBottom = -orthoSize;
+    // No orthographic bounds needed for perspective camera
     
-    console.log(`🔬 ORTHOGRAPHIC CAMERA CREATED:`);
-    console.log(`🔬 Name: ${orthographicCamera.name}`);
-    console.log(`🔬 Position: ${orthographicCamera.position}`);
-    console.log(`🔬 Mode: ${orthographicCamera.mode}`);
-    console.log(`🔬 Ortho bounds: left=${orthographicCamera.orthoLeft}, right=${orthographicCamera.orthoRight}`);
+    console.log(`🔬 TOP VIEW CAMERA CREATED:`);
+    console.log(`🔬 Name: ${topViewCamera.name}`);
+    console.log(`🔬 Position: ${topViewCamera.position}`);
+    console.log(`🔬 Target: ${topViewCamera.getTarget()}`);
     
     // Store references
     cameraRef.current = perspectiveCamera;
-    orthoCameraRef.current = orthographicCamera;
+    orthoCameraRef.current = topViewCamera;
     
     // Switch camera based on view mode
-    scene.activeCamera = isOrthographic ? orthographicCamera : perspectiveCamera;
+    scene.activeCamera = isOrthographic ? topViewCamera : perspectiveCamera;
     
     // Initialize label manager with scene
     // Simple BMC manager doesn't need scene setup
     
     // Lighting is now handled by SceneSetupAdapter
 
+    // MASTER TRANSFORM: Create root transform node to rotate entire scene 180 degrees
+    const masterTransform = new TransformNode("MasterTransform", scene);
+    masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
+    console.log("🔄 Master transform node created with 180° rotation");
+
     // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
+    ground.parent = masterTransform; // Parent ground to master transform
     
     // Create dynamic texture for powder blue grid pattern with white lines
     const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
@@ -753,6 +750,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }, scene);
     northRail.position = new Vector3(0, railHeight/2, -7 - railWidth/2); // 14/2 = 7
     northRail.material = railMaterial;
+    northRail.parent = masterTransform; // Parent to master transform
     
     // South rail (front) - extends full width including rail thickness for flush corners
     const southRail = MeshBuilder.CreateBox("southRail", {
@@ -762,6 +760,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }, scene);
     southRail.position = new Vector3(0, railHeight/2, 7 + railWidth/2); // 14/2 = 7
     southRail.material = railMaterial;
+    southRail.parent = masterTransform; // Parent to master transform
     
     // East rail (right) - only spans ground depth (not including rail thickness to avoid overlap)
     const eastRail = MeshBuilder.CreateBox("eastRail", {
@@ -771,6 +770,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }, scene);
     eastRail.position = new Vector3(10 + railWidth/2, railHeight/2, 0); // 20/2 = 10
     eastRail.material = railMaterial;
+    eastRail.parent = masterTransform; // Parent to master transform
     
     // West rail (left) - only spans ground depth (not including rail thickness to avoid overlap)
     const westRail = MeshBuilder.CreateBox("westRail", {
@@ -780,6 +780,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }, scene);
     westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0); // 20/2 = 10
     westRail.material = railMaterial;
+    westRail.parent = masterTransform; // Parent to master transform
 
 
     
@@ -1036,6 +1037,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       internalLabelPlane.material = internalLabelMaterial;
       internalLabelPlane.isPickable = false;
+      internalLabelPlane.parent = masterTransform; // Parent to master transform
       
       console.log(`✅ Internal label (grey) on ground plane at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
     };
@@ -1074,6 +1076,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       externalLabelPlane.material = externalLabelMaterial;
       externalLabelPlane.isPickable = false;
+      externalLabelPlane.parent = masterTransform; // Parent to master transform
       
       console.log(`✅ External label positioned on right side at (${externalLabelPlane.position.x}, ${externalLabelPlane.position.y}, ${externalLabelPlane.position.z})`);
     };
@@ -1111,6 +1114,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       verticalDividerPlane.material = verticalDividerMaterial;
       verticalDividerPlane.isPickable = false;
+      verticalDividerPlane.parent = masterTransform; // Parent to master transform
       
       console.log(`✅ Vertical divider label (grey) on ground plane at center (${verticalDividerPlane.position.x}, ${verticalDividerPlane.position.y}, ${verticalDividerPlane.position.z})`);
     };
@@ -1401,6 +1405,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         // Keep model at normal rotation for all views
         rootMesh.rotation = Vector3.Zero();
+        rootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
         
         // Position logging removed for better performance
         
@@ -2325,6 +2330,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         revenueRootMesh.position = new Vector3(-0.221, 0.1, -10.5); // Adjusted to align left edges
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(7.7, 7.7, 8); // Y-scaling matches X-scaling to match Customer Segments height
+        revenueRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
         
         console.log(`📦 Revenue Streams positioned at (-0.221, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
@@ -2467,6 +2473,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         costRootMesh.position = new Vector3(-10.1, 0.1, -10.5); // Shifted farther left
         costRootMesh.rotation = Vector3.Zero();
         costRootMesh.scaling = new Vector3(8.0, 8.0, 8); // Y-scaling matches X-scaling to match Customer Segments height
+        costRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
         
         console.log(`📦 Cost Structure positioned at (-10.1, 0.1, -10.5) - width 8.0, positioned farther left`);
         
