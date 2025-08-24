@@ -654,18 +654,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       (perspectiveCamera as any).wheelPrecision = 50; // Reduce sensitivity for smoother zooming
     }
     
-    // Get orthographic camera from unified system
-    unifiedCamera.switchToMode('3D Top');
-    const orthoCamera = unifiedCamera.getActiveCamera();
-    unifiedCamera.switchToMode('3D View'); // Switch back to default
+    // REFACTORED 3D TOP: Eliminate competing systems, create direct orthographic camera
+    const orthoCamera = new FreeCamera("SimpleOrthographicCamera", new Vector3(0, 30, 0), scene);
+    orthoCamera.setTarget(Vector3.Zero());
+    orthoCamera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
     
-    // Camera controls are now handled by unified system internally
+    // FIXED: Larger view bounds to show all positions clearly
+    const orthoSize = 20;
+    orthoCamera.orthoLeft = -orthoSize;
+    orthoCamera.orthoRight = orthoSize;
+    orthoCamera.orthoTop = orthoSize;
+    orthoCamera.orthoBottom = -orthoSize;
     
-    // Store camera references (cast for compatibility with legacy code)
+    // Store camera references
     cameraRef.current = perspectiveCamera as any;
-    orthoCameraRef.current = orthoCamera as any;
+    orthoCameraRef.current = orthoCamera;
     
-    // Set active camera based on mode
+    // SIMPLIFIED: Direct camera switching - one system only
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
     
     // Initialize label manager with scene
