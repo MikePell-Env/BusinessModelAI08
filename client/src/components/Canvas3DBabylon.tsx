@@ -668,13 +668,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Optimized field of view to fill window area while showing complete BMC layout
     topViewCamera.fov = 0.2; // Sweet spot between filling window and showing complete layout
     
-    // Add smooth mouse wheel zoom support for top view camera (like 3D view)
+    // Add smooth mouse wheel zoom and panning support for top view camera
     const addTopViewZoomControls = () => {
       if (!canvasElement) return null;
       
       let targetFov = topViewCamera.fov;
       let currentFov = topViewCamera.fov;
       let animationId: number | null = null;
+      
+      // Panning state
+      let isPanning = false;
+      let lastMouseX = 0;
+      let lastMouseY = 0;
       
       const smoothZoomAnimation = () => {
         // Smooth interpolation toward target FOV
@@ -718,9 +723,75 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       };
       
-      canvasElement.addEventListener('wheel', handleWheel, { passive: false });
+      const handleMouseDown = (event: MouseEvent) => {
+        // Only handle panning when top view camera is active
+        if (scene.activeCamera !== topViewCamera) return;
+        
+        // Start panning on middle mouse button or right mouse button
+        if (event.button === 1 || event.button === 2) {
+          isPanning = true;
+          lastMouseX = event.clientX;
+          lastMouseY = event.clientY;
+          event.preventDefault();
+        }
+      };
       
-      return { wheel: handleWheel, canvas: canvasElement };
+      const handleMouseMove = (event: MouseEvent) => {
+        // Only handle panning when top view camera is active and panning is enabled
+        if (scene.activeCamera !== topViewCamera || !isPanning) return;
+        
+        const deltaX = event.clientX - lastMouseX;
+        const deltaY = event.clientY - lastMouseY;
+        
+        // Pan sensitivity - adjust based on zoom level (FOV)
+        const panSpeed = topViewCamera.fov * 0.02;
+        
+        // Move camera position (X and Z for horizontal panning)
+        topViewCamera.position.x -= deltaX * panSpeed;
+        topViewCamera.position.z -= deltaY * panSpeed;
+        
+        // Update target to maintain look-down direction
+        const target = topViewCamera.getTarget();
+        target.x = topViewCamera.position.x;
+        target.z = topViewCamera.position.z;
+        topViewCamera.setTarget(target);
+        
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
+        
+        event.preventDefault();
+      };
+      
+      const handleMouseUp = (event: MouseEvent) => {
+        // Stop panning
+        if (isPanning) {
+          isPanning = false;
+          event.preventDefault();
+        }
+      };
+      
+      const handleContextMenu = (event: MouseEvent) => {
+        // Prevent context menu when right-clicking for panning
+        if (scene.activeCamera === topViewCamera) {
+          event.preventDefault();
+        }
+      };
+      
+      canvasElement.addEventListener('wheel', handleWheel, { passive: false });
+      canvasElement.addEventListener('mousedown', handleMouseDown, true);
+      canvasElement.addEventListener('mousemove', handleMouseMove, true);
+      canvasElement.addEventListener('mouseup', handleMouseUp, true);
+      canvasElement.addEventListener('mouseleave', handleMouseUp, true);
+      canvasElement.addEventListener('contextmenu', handleContextMenu);
+      
+      return { 
+        wheel: handleWheel, 
+        mousedown: handleMouseDown,
+        mousemove: handleMouseMove,
+        mouseup: handleMouseUp,
+        contextmenu: handleContextMenu,
+        canvas: canvasElement 
+      };
     };
     
     // Store event handlers for cleanup
@@ -2891,13 +2962,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       // Clean up orthographic camera event handlers
       if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
         const canvas = orthoEventHandlersRef.current.canvas;
-        canvas.removeEventListener('wheel', orthoEventHandlersRef.current.wheel);
-        canvas.removeEventListener('mousedown', orthoEventHandlersRef.current.mousedown, true);
-        canvas.removeEventListener('mousemove', orthoEventHandlersRef.current.mousemove, true);
-        canvas.removeEventListener('mouseup', orthoEventHandlersRef.current.mouseup, true);
-        canvas.removeEventListener('mouseleave', orthoEventHandlersRef.current.mouseup, true);
+        const handlers = orthoEventHandlersRef.current;
         
-
+        canvas.removeEventListener('wheel', handlers.wheel);
+        canvas.removeEventListener('mousedown', handlers.mousedown, true);
+        canvas.removeEventListener('mousemove', handlers.mousemove, true);
+        canvas.removeEventListener('mouseup', handlers.mouseup, true);
+        canvas.removeEventListener('mouseleave', handlers.mouseup, true);
+        canvas.removeEventListener('contextmenu', handlers.contextmenu);
         
         orthoEventHandlersRef.current = null;
       }
