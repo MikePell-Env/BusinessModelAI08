@@ -208,8 +208,20 @@ export class CleanBMCSystem {
       // console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
       const { mesh, material, originalHeight, baseColor } = item;
 
-    // NO HEIGHT CHANGES - keep all objects at their original heights
-    // Only color/material changes
+    // FIXED: Height management - NO changes in 3D Top view (avoid scaling crashes)
+    // CRITICAL: NEVER change height on hover!
+    if (!this.isTopView && state !== 'hover') {
+      // Only do height changes in 3D View (not 3D Top) and NEVER on hover
+      // MORE DRAMATIC height changes for better visual feedback
+      if (state === 'selected') {
+        mesh.scaling.y = originalHeight * 3.0; // Much more elevated for dramatic effect
+      } else if (state === 'dimmed') {
+        mesh.scaling.y = 0.1; // More visible when flattened
+      } else {
+        mesh.scaling.y = originalHeight; // Normal height
+      }
+    }
+    // In 3D Top view OR hover state: skip ALL height changes
 
     // Base visibility settings - always ensure visibility
     mesh.setEnabled(true);
@@ -245,6 +257,7 @@ export class CleanBMCSystem {
         material.diffuseColor.r = 0.0;
         material.diffuseColor.g = 0.3; 
         material.diffuseColor.b = 0.8;
+        // console.log(`🎨 3D Top - Applied ${state.toUpperCase()}: ${name} -> blue`);
       } else {
         // Normal state - restore original color
         if (baseColor) {
@@ -256,6 +269,7 @@ export class CleanBMCSystem {
           material.diffuseColor.g = 0.5;
           material.diffuseColor.b = 0.5;
         }
+        // console.log(`🎨 3D Top - Applied NORMAL: ${name} -> original color`);
       }
     } else {
       // 3D VIEW: Follow specific interaction rules
@@ -284,11 +298,20 @@ export class CleanBMCSystem {
         // Rule 3: Selected object
         material.alpha = 1.0; // 100% opaque
         
+        // Special handling for Cost Structure and Revenue Streams - dramatic elevation
+        if (name === 'Cost Structure') {
+          mesh.scaling.y = 24.0; // 3x height for dramatic effect
+        } else if (name === 'Revenue Streams') {
+          mesh.scaling.y = 23.1; // 3x height for dramatic effect  
+        } else {
+          mesh.scaling.y = mesh.scaling.x * 3.0; // 3x height for main BMC objects
+        }
         if (isSpecialSection && baseColor) {
           // Cost/Revenue: Bright version of original
           material.diffuseColor.r = Math.min(baseColor.r * 1.5, 1.0);
           material.diffuseColor.g = Math.min(baseColor.g * 1.5, 1.0);
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
+          // console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright original`);
         } else {
           // Main sections: Toned down blue with better shading
           material.diffuseColor.r = 0.0;
@@ -298,16 +321,19 @@ export class CleanBMCSystem {
           material.emissiveColor.r = 0.0;
           material.emissiveColor.g = 0.05;
           material.emissiveColor.b = 0.1;
+          // console.log(`🎨 3D View - Applied SELECTED: ${name} -> toned blue with depth`);
         }
       } else if (state === 'dimmed') {
         // Rule 3: Other objects when something is selected
         material.alpha = 0.3; // 30% opacity
+        mesh.scaling.y = 0.1; // More visible when flattened
         
         if (isSpecialSection) {
-          // Cost Structure and Revenue Streams: Use grey color when dimmed
+          // Cost Structure and Revenue Streams: Use grey color when flattened (same as other BMC objects)
           material.diffuseColor.r = 0.25;
           material.diffuseColor.g = 0.25;
           material.diffuseColor.b = 0.25;
+          // console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & grey color`);
         } else {
           // Main BMC sections: Dimmed original colors
           if (baseColor) {
@@ -319,11 +345,20 @@ export class CleanBMCSystem {
             material.diffuseColor.g = 0.25;
             material.diffuseColor.b = 0.25;
           }
+          // console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & 30% opacity`);
         }
       } else {
-        // Rule 1: Normal state - original color, 100% opaque
+        // Rule 1: Normal state - full height, original color, 100% opaque
         material.alpha = 1.0;
         
+        // Special handling for Cost Structure and Revenue Streams - dramatic elevation
+        if (name === 'Cost Structure') {
+          mesh.scaling.y = 24.0; // 3x height for dramatic effect
+        } else if (name === 'Revenue Streams') {
+          mesh.scaling.y = 23.1; // 3x height for dramatic effect  
+        } else {
+          mesh.scaling.y = mesh.scaling.x * 3.0; // 3x height for main BMC objects
+        }
         if (baseColor) {
           material.diffuseColor.r = baseColor.r;
           material.diffuseColor.g = baseColor.g;
@@ -337,6 +372,7 @@ export class CleanBMCSystem {
         material.emissiveColor.r = 0.0;
         material.emissiveColor.g = 0.0;
         material.emissiveColor.b = 0.0;
+        // console.log(`🎨 3D View - Applied NORMAL: ${name} -> full height & original color`);
       }
     }
     
@@ -400,5 +436,4 @@ export class CleanBMCSystem {
       itemCount: this.items.size
     };
   }
-
 }
