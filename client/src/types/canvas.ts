@@ -19,6 +19,15 @@ export interface BusinessModelCanvas {
   costStructure: CanvasElement;
   revenueStreams: CanvasElement;
   lastModified: string;
+  // Overview data from PowerPoint
+  overviewData?: OverviewData;
+}
+
+export interface OverviewData {
+  companyName: string;
+  summary: string[];
+  founders: string[];
+  details: string[];
 }
 
 export interface ChatMessage {

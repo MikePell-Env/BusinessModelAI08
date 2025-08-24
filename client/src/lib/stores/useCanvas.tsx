@@ -47,6 +47,8 @@ interface CanvasState {
   setOriginalHeights: (heights: { [sectionName: string]: number }) => void;
   getOriginalHeights: () => { [sectionName: string]: number };
   setPendingPowerPointFile: (file: File | null) => void;
+  setOverviewData: (overviewData: BusinessModelCanvas['overviewData']) => void;
+  getOverviewData: () => BusinessModelCanvas['overviewData'];
 }
 
 export const useCanvas = create<CanvasState>()(
@@ -196,6 +198,24 @@ export const useCanvas = create<CanvasState>()(
     
     setPendingPowerPointFile: (file: File | null) => {
       set({ pendingPowerPointFile: file });
+    },
+    
+    setOverviewData: (overviewData: BusinessModelCanvas['overviewData']) => {
+      const { canvas } = get();
+      if (canvas) {
+        set({
+          canvas: {
+            ...canvas,
+            overviewData,
+            lastModified: new Date().toISOString()
+          }
+        });
+      }
+    },
+    
+    getOverviewData: () => {
+      const { canvas } = get();
+      return canvas?.overviewData;
     },
   }))
 );
