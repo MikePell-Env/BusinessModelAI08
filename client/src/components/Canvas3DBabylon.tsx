@@ -1,16 +1,16 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { 
-  Engine, 
-  Scene, 
+import {
+  Engine,
+  Scene,
   ArcRotateCamera,
-  FreeCamera, 
-  HemisphericLight, 
+  FreeCamera,
+  HemisphericLight,
   DirectionalLight,
-  MeshBuilder, 
+  MeshBuilder,
   StandardMaterial,
-  Color3, 
+  Color3,
   Color4,
-  Vector3, 
+  Vector3,
   AbstractMesh,
   ActionManager,
   ExecuteCodeAction,
@@ -38,10 +38,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const materialSystemRef = useRef<WorldClassMaterialSystem | null>(null);
   const interactionManagerRef = useRef<EnterpriseInteractionManager | null>(null);
 
-  const { 
-    saveCamera3DState, 
-    getCamera3DState, 
-    is3D, 
+  const {
+    saveCamera3DState,
+    getCamera3DState,
+    is3D,
     isOrthographic
   } = useCanvas();
 
@@ -94,21 +94,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.lowerBetaLimit = 0.1;
     perspectiveCamera.upperBetaLimit = Math.PI / 2.2;
 
-    // Create orthographic camera for true top-down view (like reference)
+    // Changed orthographic camera to perspective for top view
     const topViewCamera = new FreeCamera(
       "topViewCamera",
-      new Vector3(0, 25, 0), // Directly above, looking straight down
+      new Vector3(0, 22, -10), // Position for top view
       scene
     );
     topViewCamera.setTarget(Vector3.Zero());
-    
-    // Set orthographic mode for true 2D-like top view
-    topViewCamera.mode = 1; // Orthographic mode
-    const orthoSize = 12;
-    topViewCamera.orthoLeft = -orthoSize;
-    topViewCamera.orthoRight = orthoSize;
-    topViewCamera.orthoTop = orthoSize;
-    topViewCamera.orthoBottom = -orthoSize;
+    // Removed orthographic mode, will be perspective
+
+    // Define orthographic viewing box - not needed for perspective top view
+    // const orthoSize = 15;
+    // topViewCamera.orthoLeft = -orthoSize;
+    // topViewCamera.orthoRight = orthoSize;
+    // topViewCamera.orthoTop = orthoSize;
+    // topViewCamera.orthoBottom = -orthoSize;
 
     cameraRef.current = perspectiveCamera;
     orthoCameraRef.current = topViewCamera as any; // Cast to any if FreeCamera is expected elsewhere as orthographic
@@ -215,62 +215,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`🏆 Enterprise registration: ${sectionName}`);
           }
 
-          // Create surface label using reference implementation approach
+          // Create surface label directly on mesh - like reference implementation
           const createSurfaceLabel = (text: string, mesh: AbstractMesh) => {
-            // Load texture from public/textures folder like reference
-            const textureFile = `Label_${text.replace(/\s+/g, '')}.png`;
-            let labelTexture;
-            
-            try {
-              labelTexture = new Texture(`/textures/${textureFile}`, scene);
-            } catch (e) {
-              // Fallback to dynamic texture if file not found
-              labelTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
-              (labelTexture as DynamicTexture).hasAlpha = true;
-              (labelTexture as DynamicTexture).drawText(text, null, null, "bold 42px Arial", "white", "transparent", true);
-            }
+            const dynamicTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
+            dynamicTexture.hasAlpha = true;
+            dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
 
             const labelMaterial = new StandardMaterial("surfaceLabelMaterial_" + text.replace(/\s+/g, ''), scene);
-            labelMaterial.diffuseTexture = labelTexture;
+            labelMaterial.diffuseTexture = dynamicTexture;
+            labelMaterial.emissiveTexture = dynamicTexture;
+            labelMaterial.emissiveColor = new Color3(1, 1, 1);
             labelMaterial.alpha = 1.0;
             labelMaterial.backFaceCulling = false;
-            labelMaterial.disableLighting = true; // Ensure visibility
 
-            // Calculate label size based on mesh bounds
             const bounds = mesh.getBoundingInfo();
-            const meshWidth = bounds.maximum.x - bounds.minimum.x;
-            const meshDepth = bounds.maximum.z - bounds.minimum.z;
-            const labelWidth = Math.max(meshWidth * 0.8, 2.0);
-            const labelHeight = Math.max(meshDepth * 0.4, 1.0);
-            
-            const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), { 
-              width: labelWidth, 
-              height: labelHeight 
+            const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.6;
+            const labelHeight = labelWidth * 0.3;
+
+            const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), {
+              width: labelWidth,
+              height: labelHeight
             }, scene);
             labelPlane.material = labelMaterial;
             labelPlane.isPickable = false;
-            labelPlane.renderingGroupId = 1; // Render on top of other objects
+            labelPlane.renderingGroupId = 2; // Render on top
 
-            // Position directly on mesh surface
-            const meshCenter = bounds.minimum.add(bounds.maximum).scale(0.5);
-            labelPlane.position = new Vector3(meshCenter.x, bounds.maximum.y + 0.01, meshCenter.z);
+            // Position ON the mesh surface (not above)
+            labelPlane.position = mesh.position.clone();
+            labelPlane.position.y = bounds.maximum.y + 0.001; // Barely above surface to prevent z-fighting
             labelPlane.rotation.x = -Math.PI / 2; // Lay flat on surface
-            
-            // Make label always visible
-            labelPlane.alwaysSelectAsActiveMesh = true;
-            labelPlane.setEnabled(true);
-            labelPlane.isVisible = true;
+            labelPlane.setParent(mesh);
 
-            console.log(`✅ Created surface label for ${text} at position:`, labelPlane.position);
             return labelPlane;
           };
 
           // Create surface label for this section
-          const labelMesh = createSurfaceLabel(sectionName, mesh);
-          
-          // Store label reference for debugging
-          if (!mesh.metadata) mesh.metadata = {};
-          mesh.metadata.surfaceLabel = labelMesh;
+          createSurfaceLabel(sectionName, mesh);
 
           console.log(`✅ Processed ${sectionName} with enterprise systems and 3D label`);
         }
@@ -295,54 +275,41 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`🏆 Enterprise registration: Revenue Streams`);
             }
 
-            // Create surface label for Revenue Streams (use same function as above)
+            // Create surface label for Revenue Streams
             const createSurfaceLabel = (text: string, mesh: AbstractMesh) => {
-              const textureFile = `Label_${text.replace(/\s+/g, '')}.png`;
-              let labelTexture;
-              
-              try {
-                labelTexture = new Texture(`/textures/${textureFile}`, scene);
-              } catch (e) {
-                labelTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
-                (labelTexture as DynamicTexture).hasAlpha = true;
-                (labelTexture as DynamicTexture).drawText(text, null, null, "bold 42px Arial", "white", "transparent", true);
-              }
+              const dynamicTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
+              dynamicTexture.hasAlpha = true;
+              dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
 
               const labelMaterial = new StandardMaterial("surfaceLabelMaterial_" + text.replace(/\s+/g, ''), scene);
-              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.diffuseTexture = dynamicTexture;
+              labelMaterial.emissiveTexture = dynamicTexture;
+              labelMaterial.emissiveColor = new Color3(1, 1, 1);
               labelMaterial.alpha = 1.0;
               labelMaterial.backFaceCulling = false;
-              labelMaterial.disableLighting = true;
 
               const bounds = mesh.getBoundingInfo();
-              const meshWidth = bounds.maximum.x - bounds.minimum.x;
-              const meshDepth = bounds.maximum.z - bounds.minimum.z;
-              const labelWidth = Math.max(meshWidth * 0.8, 2.0);
-              const labelHeight = Math.max(meshDepth * 0.4, 1.0);
-              
-              const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), { 
-                width: labelWidth, 
-                height: labelHeight 
+              const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.6;
+              const labelHeight = labelWidth * 0.3;
+
+              const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), {
+                width: labelWidth,
+                height: labelHeight
               }, scene);
               labelPlane.material = labelMaterial;
               labelPlane.isPickable = false;
-              labelPlane.renderingGroupId = 1;
+              labelPlane.renderingGroupId = 2;
 
-              const meshCenter = bounds.minimum.add(bounds.maximum).scale(0.5);
-              labelPlane.position = new Vector3(meshCenter.x, bounds.maximum.y + 0.01, meshCenter.z);
+              // Position ON the mesh surface
+              labelPlane.position = mesh.position.clone();
+              labelPlane.position.y = bounds.maximum.y + 0.001;
               labelPlane.rotation.x = -Math.PI / 2;
-              
-              labelPlane.alwaysSelectAsActiveMesh = true;
-              labelPlane.setEnabled(true);
-              labelPlane.isVisible = true;
+              labelPlane.setParent(mesh);
 
-              console.log(`✅ Created surface label for ${text} at position:`, labelPlane.position);
               return labelPlane;
             };
 
-            const labelMesh = createSurfaceLabel('Revenue Streams', mesh);
-            if (!mesh.metadata) mesh.metadata = {};
-            mesh.metadata.surfaceLabel = labelMesh;
+            createSurfaceLabel('Revenue Streams', mesh);
           }
         });
       }
@@ -364,54 +331,41 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`🏆 Enterprise registration: Cost Structure`);
             }
 
-            // Create surface label for Cost Structure (use same function as above)
+            // Create surface label for Cost Structure
             const createSurfaceLabel = (text: string, mesh: AbstractMesh) => {
-              const textureFile = `Label_${text.replace(/\s+/g, '')}.png`;
-              let labelTexture;
-              
-              try {
-                labelTexture = new Texture(`/textures/${textureFile}`, scene);
-              } catch (e) {
-                labelTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
-                (labelTexture as DynamicTexture).hasAlpha = true;
-                (labelTexture as DynamicTexture).drawText(text, null, null, "bold 42px Arial", "white", "transparent", true);
-              }
+              const dynamicTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
+              dynamicTexture.hasAlpha = true;
+              dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
 
               const labelMaterial = new StandardMaterial("surfaceLabelMaterial_" + text.replace(/\s+/g, ''), scene);
-              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.diffuseTexture = dynamicTexture;
+              labelMaterial.emissiveTexture = dynamicTexture;
+              labelMaterial.emissiveColor = new Color3(1, 1, 1);
               labelMaterial.alpha = 1.0;
               labelMaterial.backFaceCulling = false;
-              labelMaterial.disableLighting = true;
 
               const bounds = mesh.getBoundingInfo();
-              const meshWidth = bounds.maximum.x - bounds.minimum.x;
-              const meshDepth = bounds.maximum.z - bounds.minimum.z;
-              const labelWidth = Math.max(meshWidth * 0.8, 2.0);
-              const labelHeight = Math.max(meshDepth * 0.4, 1.0);
-              
-              const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), { 
-                width: labelWidth, 
-                height: labelHeight 
+              const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.6;
+              const labelHeight = labelWidth * 0.3;
+
+              const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), {
+                width: labelWidth,
+                height: labelHeight
               }, scene);
               labelPlane.material = labelMaterial;
               labelPlane.isPickable = false;
-              labelPlane.renderingGroupId = 1;
+              labelPlane.renderingGroupId = 2;
 
-              const meshCenter = bounds.minimum.add(bounds.maximum).scale(0.5);
-              labelPlane.position = new Vector3(meshCenter.x, bounds.maximum.y + 0.01, meshCenter.z);
+              // Position ON the mesh surface
+              labelPlane.position = mesh.position.clone();
+              labelPlane.position.y = bounds.maximum.y + 0.001;
               labelPlane.rotation.x = -Math.PI / 2;
-              
-              labelPlane.alwaysSelectAsActiveMesh = true;
-              labelPlane.setEnabled(true);
-              labelPlane.isVisible = true;
+              labelPlane.setParent(mesh);
 
-              console.log(`✅ Created surface label for ${text} at position:`, labelPlane.position);
               return labelPlane;
             };
 
-            const labelMesh = createSurfaceLabel('Cost Structure', mesh);
-            if (!mesh.metadata) mesh.metadata = {};
-            mesh.metadata.surfaceLabel = labelMesh;
+            createSurfaceLabel('Cost Structure', mesh);
           }
         });
       }
