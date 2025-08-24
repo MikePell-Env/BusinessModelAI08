@@ -165,7 +165,7 @@ export class PowerPointParser {
       companyName: companyName || this.extractCompanyFromTitle(allText) || 'Your Company',
       summary: this.extractSummary(allText),
       founders: this.extractFounders(allText),
-      details: this.extractDetails(allText),
+      market: this.extractMarket(allText),
       website: this.extractWebsite(allText)
     };
     console.log('✅ Instant overview extraction complete:', canvas.overviewData);
@@ -564,52 +564,54 @@ export class PowerPointParser {
     }
   }
 
-  private extractDetails(content: string): string[] {
+  private extractMarket(content: string): string[] {
     try {
-      const detailPatterns = [
-        /(?:details|specifics|additional info|more info):\s*([^\n]+(?:\n[^\n]+)*)/gi,
-        /(?:target market|market|customers|clients):\s*([^\n]+(?:\n[^\n]+)*)/gi,
-        /(?:competitive advantage|advantages|benefits|unique):\s*([^\n]+(?:\n[^\n]+)*)/gi,
-        /(?:business model|revenue model|strategy):\s*([^\n]+(?:\n[^\n]+)*)/gi
+      const marketPatterns = [
+        /(?:target market|market size|market opportunity|addressable market|tam|sam|som):\s*([^\n]+(?:\n[^\n]+)*)/gi,
+        /(?:customers|customer segments|target customers|target audience):\s*([^\n]+(?:\n[^\n]+)*)/gi,
+        /(?:market analysis|market research|industry analysis|competitive landscape):\s*([^\n]+(?:\n[^\n]+)*)/gi,
+        /(?:market trends|industry trends|market growth|market potential):\s*([^\n]+(?:\n[^\n]+)*)/gi
       ];
 
-      const foundDetails = [];
+      const foundMarketInfo = [];
       
-      for (const pattern of detailPatterns) {
+      for (const pattern of marketPatterns) {
         let match;
-        while ((match = pattern.exec(content)) !== null && foundDetails.length < 3) {
+        while ((match = pattern.exec(content)) !== null && foundMarketInfo.length < 3) {
           if (match[1]) {
-            const detail = match[1].trim();
-            if (detail.length > 10) {
-              foundDetails.push(detail);
+            const marketInfo = match[1].trim();
+            if (marketInfo.length > 10) {
+              foundMarketInfo.push(marketInfo);
             }
           }
         }
       }
 
-      if (foundDetails.length > 0) {
-        return foundDetails;
+      if (foundMarketInfo.length > 0) {
+        return foundMarketInfo;
       }
 
-      // Look for bullet points or numbered lists with business details
-      const lines = content.split('\n').map(line => line.trim());
-      const businessDetails = lines.filter(line => 
-        (line.match(/^[•\-\*\d+\.]\s*/) || line.includes(':')) &&
-        line.length > 20 &&
-        /\b(market|customer|strategy|product|service|technology|innovation|growth|revenue|profit)\b/i.test(line)
+      // Look for market-related content in bullet points or general text
+      const lines = content.split('\n').map(line => line.trim().replace(/\s+/g, ' '));
+      const marketContent = lines.filter(line => 
+        line.length > 20 && line.length < 200 &&
+        (/\b(market|industry|customers|segments|target|addressable|billion|million|growth|demand)\b/i.test(line) ||
+         /\b(enterprises|businesses|organizations|companies|consumers|users)\b/i.test(line) ||
+         /\$[\d,.]+(B|M|K|billion|million|thousand)/i.test(line)) &&
+        !line.match(/^(SUMMARY|DETAILS|FOUNDERS|KEY|MISSION|WEBSITE)/i)
       );
       
-      if (businessDetails.length > 0) {
-        return businessDetails.slice(0, 3).map(detail => detail.replace(/^[•\-\*\d+\.]\s*/, '').trim());
+      if (marketContent.length > 0) {
+        return marketContent.slice(0, 3);
       }
 
       return [
-        'Detailed business information will be extracted from your slides using Microsoft Graph insights.',
-        'This includes target market analysis, competitive advantages, and business strategy recommendations.',
-        'Provide a PowerPoint file to populate this section with Microsoft Copilot-powered analysis.'
+        'Market analysis and target customer information will be extracted from your slides.',
+        'This includes market size, customer segments, and competitive landscape insights.',
+        'Upload your PowerPoint presentation to see detailed market opportunity analysis.'
       ];
     } catch (error) {
-      return ['Business details extraction in progress...'];
+      return ['Market information extraction in progress...'];
     }
   }
 
