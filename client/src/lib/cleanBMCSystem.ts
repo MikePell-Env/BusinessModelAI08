@@ -292,11 +292,11 @@ export class CleanBMCSystem {
         // Rule 3: Selected object
         material.alpha = 1.0; // 100% opaque
         
-        // Special handling for Cost Structure and Revenue Streams - preserve their 2x height
+        // Special handling for Cost Structure and Revenue Streams - same height as main BMC objects
         if (name === 'Cost Structure') {
-          mesh.scaling.y = 16.0; // Keep 2x height
+          mesh.scaling.y = mesh.scaling.x; // Same height as main BMC objects
         } else if (name === 'Revenue Streams') {
-          mesh.scaling.y = 15.4; // Keep 2x height  
+          mesh.scaling.y = mesh.scaling.x; // Same height as main BMC objects  
         } else {
           mesh.scaling.y = mesh.scaling.x; // Full height for main BMC objects
         }
@@ -332,11 +332,11 @@ export class CleanBMCSystem {
         // Rule 1: Normal state - full height, original color, 100% opaque
         material.alpha = 1.0;
         
-        // Special handling for Cost Structure and Revenue Streams - preserve their 2x height
+        // Special handling for Cost Structure and Revenue Streams - same height as main BMC objects
         if (name === 'Cost Structure') {
-          mesh.scaling.y = 16.0; // Keep 2x height
+          mesh.scaling.y = mesh.scaling.x; // Same height as main BMC objects
         } else if (name === 'Revenue Streams') {
-          mesh.scaling.y = 15.4; // Keep 2x height  
+          mesh.scaling.y = mesh.scaling.x; // Same height as main BMC objects  
         } else {
           mesh.scaling.y = mesh.scaling.x; // Full height for main BMC objects
         }
