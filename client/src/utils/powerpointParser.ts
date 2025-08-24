@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
+import { overviewAnalyzer } from '@/services/overviewAnalyzer';
 
 interface PowerPointCanvasMapping {
   keyPartners: string[];
@@ -37,7 +38,7 @@ export class PowerPointParser {
       const slideTexts = await this.extractSlideTexts(zip);
       
       // Parse the extracted text into canvas format
-      return this.parseTextToCanvas(slideTexts, file.name);
+      return await this.parseTextToCanvas(slideTexts, file.name);
       
     } catch (error) {
       console.error('PowerPoint parsing failed:', error);
@@ -126,7 +127,7 @@ export class PowerPointParser {
       .replace(/&apos;/g, "'");
   }
 
-  private parseTextToCanvas(slideTexts: string[], filename: string): BusinessModelCanvas {
+  private async parseTextToCanvas(slideTexts: string[], filename: string): Promise<BusinessModelCanvas> {
     const canvasData: PowerPointCanvasMapping = {
       keyPartners: [],
       keyActivities: [],
@@ -151,11 +152,43 @@ export class PowerPointParser {
     // Use company name as canvas title, fallback to filename
     const canvasName = companyName || filename.replace(/\.(pptx?|ppt)$/i, '') || 'Imported Business Model Canvas';
     
-    return this.createCanvasFromMapping(
+    // Create the canvas object
+    const canvas = this.createCanvasFromMapping(
       canvasData,
       canvasName,
       'Business model canvas'
     );
+
+    // Analyze overview data with Microsoft Copilot
+    try {
+      console.log('🤖 Analyzing PowerPoint content for overview data with Microsoft Copilot...');
+      const overviewData = await overviewAnalyzer.analyzeBusinessContent(allText, companyName || 'Your Company');
+      canvas.overviewData = overviewData;
+      console.log('✅ Overview data analysis complete:', overviewData);
+    } catch (error) {
+      console.error('Failed to analyze overview data:', error);
+      // Set fallback overview data
+      canvas.overviewData = {
+        companyName: companyName || 'Your Company',
+        summary: [
+          'Business overview will be extracted from your PowerPoint presentation.',
+          'Upload a presentation to see detailed company summary and market analysis.',
+          'This section will provide insights into your business model and opportunities.'
+        ],
+        founders: [
+          'Founder and leadership information will be displayed here.',
+          'Details about the team background and experience will be shown.',
+          'Upload your presentation to see team member profiles and expertise.'
+        ],
+        details: [
+          'Detailed business information will be extracted from your slides.',
+          'This includes target market, competitive advantages, and business strategy.',
+          'Provide a PowerPoint file to populate this section with specific details.'
+        ]
+      };
+    }
+    
+    return canvas;
   }
 
   private parseSingleSlideContent(content: string, canvasData: PowerPointCanvasMapping): void {
