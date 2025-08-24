@@ -12,10 +12,11 @@ import { powerpointParser } from '@/utils/powerpointParser';
 interface ExplorePageProps {
   onNavigateHome?: () => void;
   onNavigateExplore?: () => void;
-  currentPage?: 'home' | 'explore';
+  onNavigateOverview?: () => void;
+  currentPage?: 'home' | 'explore' | 'overview';
 }
 
-export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavigateExplore, currentPage }) => {
+export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavigateExplore, onNavigateOverview, currentPage }) => {
   const [showCanvas, setShowCanvas] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -85,7 +86,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavi
 
   return (
     <div className="min-h-screen bg-gray-200 relative">
-      <Header onNavigateHome={onNavigateHome} onNavigateExplore={onNavigateExplore} currentPage={currentPage} />
+      <Header onNavigateHome={onNavigateHome} onNavigateExplore={onNavigateExplore} onNavigateOverview={onNavigateOverview} currentPage={currentPage} />
 
       {/* Main Content */}
       <main className="bg-gray-200 min-h-screen py-12 relative">
