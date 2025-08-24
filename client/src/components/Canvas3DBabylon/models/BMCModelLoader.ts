@@ -147,8 +147,8 @@ export class BMCModelLoader {
       });
       
       const rootMesh = result.meshes[0];
-      // FINAL FIX: Cost Structure on LEFT side of reference image  
-      rootMesh.position = new Vector3(-10.1, 0.1, -10.5);
+      // FINAL FIX: Cost Structure on LEFT side - POSITIVE X for left with axis inversion
+      rootMesh.position = new Vector3(10.1, 0.1, -10.5);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(8.0, 8, 8);
       
