@@ -1,299 +1,209 @@
-import { Scene, PointerEventTypes, AbstractMesh, Vector3 } from '@babylonjs/core';
 
-export interface InteractionCallbacks {
-  onSingleClick: (sectionId: string, mesh: AbstractMesh) => void;
-  onDoubleClick: (sectionId: string, mesh: AbstractMesh, position: Vector3) => void;
-  onHoverEnter: (sectionId: string, mesh: AbstractMesh) => void;
-  onHoverExit: (sectionId: string, mesh: AbstractMesh) => void;
-  onBackgroundClick: () => void;
-}
+import { Scene, AbstractMesh, ActionManager, ExecuteCodeAction } from '@babylonjs/core';
+import { MaterialManager } from './MaterialManager';
 
-/**
- * Unified Interaction Manager following Babylon.js best practices
- * - Single pointer handler to prevent conflicts
- * - Proper double-click detection with timing
- * - Hover state management with throttling
- * - Background click detection
- */
 export class UnifiedInteractionManager {
   private scene: Scene;
-  private callbacks: InteractionCallbacks;
-  private disposed: boolean = false;
-  
-  // Double-click state
-  private lastClickTime: number = 0;
-  private lastClickedMesh: AbstractMesh | null = null;
-  private doubleClickThreshold: number = 300; // ms
-  
-  // Hover state
-  private currentHoveredMesh: AbstractMesh | null = null;
-  private hoverThrottleMs: number = 16; // ~60fps
-  private lastHoverTime: number = 0;
-  
-  // Drag detection for camera rotation
-  private isMouseDown: boolean = false;
-  private mouseDownPosition: { x: number, y: number } | null = null;
-  private isDragging: boolean = false;
-  private dragThreshold: number = 5; // pixels
-  private pendingClickMesh: { sectionId: string, mesh: AbstractMesh, position: Vector3 } | null = null;
+  private materialManager: MaterialManager;
+  private isOrthographicView: boolean;
+  private selectedMesh: AbstractMesh | null = null;
+  private hoveredMesh: AbstractMesh | null = null;
+  private meshSectionMap: Map<string, string> = new Map();
 
-  constructor(scene: Scene, callbacks: InteractionCallbacks) {
+  constructor(scene: Scene, materialManager: MaterialManager, isOrthographic: boolean = false) {
     this.scene = scene;
-    this.callbacks = callbacks;
-    this.setupInteractions();
-    console.log('🖱️ UnifiedInteractionManager initialized');
+    this.materialManager = materialManager;
+    this.isOrthographicView = isOrthographic;
+    
+    console.log('🎮 UnifiedInteractionManager initialized');
   }
 
   /**
-   * Setup the single pointer interaction system
+   * Setup interactions for a BMC mesh
    */
-  private setupInteractions(): void {
-    this.scene.onPointerObservable.add((pointerInfo) => {
-      if (this.disposed) return;
+  setupMeshInteractions(mesh: AbstractMesh, sectionName: string): void {
+    // Store section mapping
+    this.meshSectionMap.set(mesh.id, sectionName);
+    
+    // Create action manager if not exists
+    if (!mesh.actionManager) {
+      mesh.actionManager = new ActionManager(this.scene);
+    }
 
-      try {
-        switch (pointerInfo.type) {
-          case PointerEventTypes.POINTERDOWN:
-            this.handlePointerDown(pointerInfo);
-            break;
-          case PointerEventTypes.POINTERMOVE:
-            this.handlePointerMove(pointerInfo);
-            break;
-          case PointerEventTypes.POINTERUP:
-            this.handlePointerUp(pointerInfo);
-            break;
-        }
-      } catch (error) {
-        console.error('❌ UnifiedInteractionManager: Pointer event error:', error);
+    // Enable picking
+    mesh.isPickable = true;
+
+    // Click handler
+    mesh.actionManager.registerAction(new ExecuteCodeAction(
+      ActionManager.OnPickTrigger,
+      () => this.handleMeshClick(mesh, sectionName)
+    ));
+
+    // Hover handlers
+    mesh.actionManager.registerAction(new ExecuteCodeAction(
+      ActionManager.OnPointerOverTrigger,
+      () => this.handleMeshHover(mesh, sectionName)
+    ));
+
+    mesh.actionManager.registerAction(new ExecuteCodeAction(
+      ActionManager.OnPointerOutTrigger,
+      () => this.handleMeshUnhover(mesh, sectionName)
+    ));
+
+    console.log(`🎮 Setup interactions for ${sectionName}`);
+  }
+
+  /**
+   * Handle mesh click
+   */
+  private handleMeshClick(mesh: AbstractMesh, sectionName: string): void {
+    console.log(`🖱️ Clicked on ${sectionName}`);
+
+    // If clicking same mesh, deselect
+    if (this.selectedMesh === mesh) {
+      this.deselectMesh();
+      return;
+    }
+
+    // Deselect previous
+    if (this.selectedMesh) {
+      this.deselectMesh();
+    }
+
+    // Select new mesh
+    this.selectedMesh = mesh;
+    this.materialManager.applyMaterialState(mesh, sectionName, 'selected');
+
+    // Dim other meshes if in orthographic view
+    if (this.isOrthographicView) {
+      this.applySelectionDimming(mesh);
+    }
+
+    console.log(`✅ Selected ${sectionName}`);
+  }
+
+  /**
+   * Handle mesh hover
+   */
+  private handleMeshHover(mesh: AbstractMesh, sectionName: string): void {
+    if (this.selectedMesh === mesh || this.hoveredMesh === mesh) return;
+
+    this.hoveredMesh = mesh;
+    
+    // Only show hover if not selected
+    if (this.selectedMesh !== mesh) {
+      this.materialManager.applyMaterialState(mesh, sectionName, 'hover');
+    }
+
+    console.log(`👆 Hovering ${sectionName}`);
+  }
+
+  /**
+   * Handle mesh unhover
+   */
+  private handleMeshUnhover(mesh: AbstractMesh, sectionName: string): void {
+    if (this.hoveredMesh !== mesh) return;
+
+    this.hoveredMesh = null;
+
+    // Restore state if not selected
+    if (this.selectedMesh !== mesh) {
+      const state = this.selectedMesh && this.isOrthographicView ? 'dimmed' : 'normal';
+      this.materialManager.applyMaterialState(mesh, sectionName, state);
+    }
+
+    console.log(`👋 Unhovered ${sectionName}`);
+  }
+
+  /**
+   * Deselect current mesh
+   */
+  private deselectMesh(): void {
+    if (!this.selectedMesh) return;
+
+    const sectionName = this.meshSectionMap.get(this.selectedMesh.id);
+    if (sectionName) {
+      this.materialManager.applyMaterialState(this.selectedMesh, sectionName, 'normal');
+    }
+
+    // Restore all other meshes to normal
+    this.restoreAllMeshes();
+
+    this.selectedMesh = null;
+    console.log('🔄 Deselected mesh');
+  }
+
+  /**
+   * Apply selection dimming to non-selected meshes
+   */
+  private applySelectionDimming(selectedMesh: AbstractMesh): void {
+    this.scene.meshes.forEach(mesh => {
+      if (mesh === selectedMesh || mesh.name === "__root__" || mesh.name === "ground") return;
+
+      const sectionName = this.meshSectionMap.get(mesh.id);
+      if (sectionName) {
+        this.materialManager.applyMaterialState(mesh, sectionName, 'dimmed');
       }
     });
   }
 
   /**
-   * Handle pointer down events - track position for drag detection
+   * Restore all meshes to normal state
    */
-  private handlePointerDown(pointerInfo: any): void {
-    this.isMouseDown = true;
-    this.isDragging = false;
-    this.mouseDownPosition = { x: this.scene.pointerX, y: this.scene.pointerY };
-    
-    // Store potential click target but don't process yet
-    const pickResult = pointerInfo.pickInfo;
-    if (pickResult?.hit && pickResult.pickedMesh) {
-      const mesh = pickResult.pickedMesh;
-      const sectionId = this.getSectionId(mesh);
-      
-      if (sectionId) {
-        this.pendingClickMesh = { sectionId, mesh, position: pickResult.pickedPoint };
-      } else {
-        this.pendingClickMesh = null;
+  private restoreAllMeshes(): void {
+    this.scene.meshes.forEach(mesh => {
+      if (mesh.name === "__root__" || mesh.name === "ground") return;
+
+      const sectionName = this.meshSectionMap.get(mesh.id);
+      if (sectionName) {
+        this.materialManager.applyMaterialState(mesh, sectionName, 'normal');
       }
-    } else {
-      this.pendingClickMesh = null;
-    }
+    });
   }
 
   /**
-   * Handle mesh click with double-click detection
+   * Update view mode (orthographic vs perspective)
    */
-  private handleMeshClick(sectionId: string, mesh: AbstractMesh, position: Vector3): void {
-    const currentTime = Date.now();
-    const timeSinceLastClick = currentTime - this.lastClickTime;
-    
-    // Check for double-click
-    if (this.lastClickedMesh === mesh && timeSinceLastClick < this.doubleClickThreshold) {
-      // Double-click detected
-      console.log(`🖱️🖱️ Double-click: ${sectionId}`);
-      this.callbacks.onDoubleClick(sectionId, mesh, position);
-      
-      // Reset to prevent triple-click
-      this.lastClickTime = 0;
-      this.lastClickedMesh = null;
-    } else {
-      // Single click (might become double-click)
-      console.log(`🖱️ Single-click: ${sectionId}`);
-      
-      // Delay single-click callback to allow for potential double-click
-      setTimeout(() => {
-        const timeSinceThisClick = Date.now() - currentTime;
-        if (timeSinceThisClick >= this.doubleClickThreshold) {
-          // No double-click occurred, process as single-click
-          this.callbacks.onSingleClick(sectionId, mesh);
-        }
-      }, this.doubleClickThreshold + 10);
-      
-      this.lastClickTime = currentTime;
-      this.lastClickedMesh = mesh;
-    }
-  }
+  updateViewMode(isOrthographic: boolean): void {
+    this.isOrthographicView = isOrthographic;
+    console.log(`🔄 Updated view mode: ${isOrthographic ? '3D Top' : '3D View'}`);
 
-  /**
-   * Handle pointer move events (hover and drag detection)
-   */
-  private handlePointerMove(pointerInfo: any): void {
-    // Check for dragging during mouse down
-    if (this.isMouseDown && this.mouseDownPosition && !this.isDragging) {
-      const currentX = this.scene.pointerX;
-      const currentY = this.scene.pointerY;
-      const deltaX = Math.abs(currentX - this.mouseDownPosition.x);
-      const deltaY = Math.abs(currentY - this.mouseDownPosition.y);
+    // If we have a selection and switching to perspective, restore all meshes
+    if (!isOrthographic && this.selectedMesh) {
+      this.restoreAllMeshes();
       
-      if (deltaX > this.dragThreshold || deltaY > this.dragThreshold) {
-        this.isDragging = true;
-        console.log(`🖱️ Drag detected: movement (${deltaX}, ${deltaY}) exceeds threshold ${this.dragThreshold}px`);
+      // Keep selection but remove dimming
+      const sectionName = this.meshSectionMap.get(this.selectedMesh.id);
+      if (sectionName) {
+        this.materialManager.applyMaterialState(this.selectedMesh, sectionName, 'selected');
       }
     }
     
-    // Handle hover state only if not dragging
-    if (!this.isDragging) {
-      const currentTime = Date.now();
-      
-      // Throttle hover events for performance
-      if (currentTime - this.lastHoverTime < this.hoverThrottleMs) {
-        return;
-      }
-      this.lastHoverTime = currentTime;
-
-      const pickResult = this.scene.pick(
-        this.scene.pointerX, 
-        this.scene.pointerY,
-        (mesh) => this.isSelectableMesh(mesh)
-      );
-
-      const hoveredMesh = pickResult?.hit ? pickResult.pickedMesh : null;
-      
-      // Check if hover state changed
-      if (hoveredMesh !== this.currentHoveredMesh) {
-        // Exit previous hover
-        if (this.currentHoveredMesh) {
-          const prevSectionId = this.getSectionId(this.currentHoveredMesh);
-          if (prevSectionId) {
-            this.callbacks.onHoverExit(prevSectionId, this.currentHoveredMesh);
-          }
-        }
-        
-        // Enter new hover
-        if (hoveredMesh) {
-          const sectionId = this.getSectionId(hoveredMesh);
-          if (sectionId) {
-            this.callbacks.onHoverEnter(sectionId, hoveredMesh);
-          }
-        }
-        
-        this.currentHoveredMesh = hoveredMesh;
-      }
+    // If switching to orthographic and we have selection, reapply dimming
+    if (isOrthographic && this.selectedMesh) {
+      this.applySelectionDimming(this.selectedMesh);
     }
   }
 
   /**
-   * Handle pointer up events - process clicks only if no dragging occurred
+   * Get current selection info
    */
-  private handlePointerUp(pointerInfo: any): void {
-    if (!this.isMouseDown) return;
+  getSelectionInfo(): { meshId: string; sectionName: string } | null {
+    if (!this.selectedMesh) return null;
 
-    try {
-      if (this.isDragging) {
-        // Was a drag operation (camera rotation) - don't process as click
-        console.log(`🖱️ Drag operation completed - no click processing`);
-      } else if (this.pendingClickMesh) {
-        // Was a clean click without dragging - process selection
-        const { sectionId, mesh, position } = this.pendingClickMesh;
-        console.log(`🖱️ Clean click detected: ${sectionId}`);
-        this.handleMeshClick(sectionId, mesh, position);
-      } else {
-        // Background click without dragging
-        console.log(`🖱️ Background click without drag`);
-        this.callbacks.onBackgroundClick();
-      }
-    } finally {
-      // Reset drag state
-      this.isMouseDown = false;
-      this.isDragging = false;
-      this.mouseDownPosition = null;
-      this.pendingClickMesh = null;
-    }
-  }
-
-  /**
-   * Get section ID from mesh metadata
-   */
-  private getSectionId(mesh: AbstractMesh): string | null {
-    // Check direct property first
-    const sectionName = (mesh as any).bmcSectionName;
-    if (sectionName) {
-      return sectionName;
-    }
-
-    // Check metadata
-    if (mesh.metadata?.sectionId) {
-      return mesh.metadata.sectionId;
-    }
-
-    // Walk up parent hierarchy to find section
-    let current = mesh.parent;
-    while (current) {
-      if ((current as any).bmcSectionName) {
-        return (current as any).bmcSectionName;
-      }
-      if (current.metadata?.sectionId) {
-        return current.metadata.sectionId;
-      }
-      current = current.parent;
-    }
-
-    return null;
-  }
-
-  /**
-   * Check if mesh is selectable
-   */
-  private isSelectableMesh(mesh: AbstractMesh): boolean {
-    if (!mesh || !mesh.isPickable) {
-      return false;
-    }
-
-    // Must have a section ID to be selectable
-    return this.getSectionId(mesh) !== null;
-  }
-
-  /**
-   * Clear hover state
-   */
-  clearHover(): void {
-    if (this.currentHoveredMesh) {
-      const sectionId = this.getSectionId(this.currentHoveredMesh);
-      if (sectionId) {
-        this.callbacks.onHoverExit(sectionId, this.currentHoveredMesh);
-      }
-      this.currentHoveredMesh = null;
-    }
-  }
-
-  /**
-   * Get current interaction state for debugging
-   */
-  getState(): any {
     return {
-      disposed: this.disposed,
-      currentHover: this.currentHoveredMesh?.name || null,
-      lastClickTime: this.lastClickTime,
-      lastClickedMesh: this.lastClickedMesh?.name || null
+      meshId: this.selectedMesh.id,
+      sectionName: this.meshSectionMap.get(this.selectedMesh.id) || 'Unknown'
     };
   }
 
   /**
-   * Dispose the interaction manager
+   * Dispose interaction manager
    */
   dispose(): void {
-    if (this.disposed) return;
-
-    this.clearHover();
-    
-    // Note: onPointerObservable.clear() would remove ALL observers
-    // In a production app, you'd want to store the observer reference
-    // and remove only this one with scene.onPointerObservable.remove(observer)
-    
-    this.disposed = true;
-    console.log('🖱️ UnifiedInteractionManager disposed');
+    this.selectedMesh = null;
+    this.hoveredMesh = null;
+    this.meshSectionMap.clear();
+    console.log('🎮 UnifiedInteractionManager disposed');
   }
 }

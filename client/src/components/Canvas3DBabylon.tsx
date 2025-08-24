@@ -1,280 +1,205 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { 
-  Engine, 
-  Scene, 
-  ArcRotateCamera,
-  FreeCamera, 
-  HemisphericLight, 
-  DirectionalLight,
-  MeshBuilder, 
-  StandardMaterial,
-  Color3, 
-  Color4,
-  Vector3, 
-  AbstractMesh,
-  ActionManager, 
-  ExecuteCodeAction
-} from '@babylonjs/core';
-import { 
-  AdvancedDynamicTexture,
-  Rectangle,
-  TextBlock
-} from '@babylonjs/gui';
+import { Engine, Scene } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { SceneSetup } from './Canvas3DBabylon/scene/SceneSetup';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
-import { SafeMaterialManager } from '@/lib/babylon/SafeMaterialManager';
-import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
+import { MaterialManager } from '@/lib/core/MaterialManager';
+import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
   isTransitioning?: boolean;
 }
 
-export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
+export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ 
+  canvas, 
+  isTransitioning 
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
-  const cameraRef = useRef<ArcRotateCamera | null>(null);
-  const orthoCameraRef = useRef<FreeCamera | null>(null);
-  const meshesRef = useRef<AbstractMesh[]>([]);
-  const safeMaterialManagerRef = useRef<SafeMaterialManager | null>(null);
-  const cleanBMCSystemRef = useRef<CleanBMCSystem | null>(null);
+  const materialManagerRef = useRef<MaterialManager | null>(null);
+  const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
 
   const { 
     saveCamera3DState, 
     getCamera3DState, 
     is3D, 
-    isOrthographic
+    isOrthographic 
   } = useCanvas();
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
 
     const canvasElement = canvasRef.current;
+    let cleanup: (() => void) | null = null;
 
-    // Initialize Babylon.js with minimal settings
-    let engine: Engine | null = null;
-    let scene: Scene | null = null;
+    const initializeBabylon = async () => {
+      try {
+        // Initialize Babylon.js engine
+        const engine = new Engine(canvasElement, true, {
+          preserveDrawingBuffer: true,
+          antialias: true,
+          powerPreference: "high-performance",
+          failIfMajorPerformanceCaveat: false
+        });
+        engineRef.current = engine;
 
-    try {
-      engine = new Engine(canvasElement, true, {
-        preserveDrawingBuffer: true,
-        antialias: true,
-        powerPreference: "high-performance"
-      });
+        // Create scene
+        const scene = new Scene(engine);
+        sceneRef.current = scene;
 
-      scene = new Scene(engine);
-      scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
+        // Initialize core managers FIRST
+        const materialManager = new MaterialManager(scene);
+        materialManagerRef.current = materialManager;
 
-      engineRef.current = engine;
-      sceneRef.current = scene;
+        const interactionManager = new UnifiedInteractionManager(
+          scene, 
+          materialManager, 
+          isOrthographic
+        );
+        interactionManagerRef.current = interactionManager;
 
-    } catch (error) {
-      console.error('Failed to initialize Babylon.js:', error);
-      return;
-    }
+        // Setup scene (lighting, cameras, ground)
+        const sceneSetup = new SceneSetup(scene);
+        const { perspectiveCamera, orthographicCamera } = sceneSetup.initialize({
+          savedCameraState: getCamera3DState(),
+          isOrthographic
+        });
 
-    // Create cameras
-    const savedCameraState = getCamera3DState();
-    const perspectiveCamera = new ArcRotateCamera(
-      "perspectiveCamera",
-      savedCameraState?.alpha ?? -Math.PI / 2.5,
-      savedCameraState?.beta ?? Math.PI / 6,
-      savedCameraState?.radius ?? 25,
-      Vector3.Zero(),
-      scene
-    );
-    perspectiveCamera.attachControl(canvasElement, true);
-    perspectiveCamera.wheelPrecision = 50;
-    perspectiveCamera.lowerRadiusLimit = 5;
-    perspectiveCamera.upperRadiusLimit = 25;
-    perspectiveCamera.lowerBetaLimit = 0.1;
-    perspectiveCamera.upperBetaLimit = Math.PI / 2.2;
+        // Load BMC model
+        const modelLoader = new BMCModelLoader(scene);
+        const model = await modelLoader.loadMainBMC();
 
-    const topViewCamera = new ArcRotateCamera(
-      "topViewCamera",
-      -Math.PI / 2,
-      0.01,
-      28,
-      Vector3.Zero(),
-      scene
-    );
-    topViewCamera.fov = 0.6;
-    topViewCamera.lowerRadiusLimit = 15;
-    topViewCamera.upperRadiusLimit = 40;
+        if (model && model.meshes.length > 0) {
+          // Position and scale the model
+          const rootMesh = model.rootMesh;
+          rootMesh.position.set(0, 0.1, 0.9);
+          rootMesh.scaling.setAll(8);
 
-    cameraRef.current = perspectiveCamera;
-    orthoCameraRef.current = topViewCamera as any;
+          // Initialize materials for all BMC sections
+          const bmcMeshes = model.meshes.filter(m => m.name !== "__root__");
+          bmcMeshes.forEach((mesh, index) => {
+            const sectionNames = [
+              "Value Propositions", "Key Partners", "Customer Segments", 
+              "Key Resources", "Key Activities", "CustomerChannels", 
+              "Customer Relationships", "Cost Structure", "Revenue Streams"
+            ];
+            const sectionName = sectionNames[index] || `Section_${index}`;
 
-    scene.activeCamera = isOrthographic ? topViewCamera : perspectiveCamera;
+            // Store section metadata
+            (mesh as any).bmcSectionName = sectionName;
+            mesh.id = `bmc_${sectionName.replace(/\s+/g, '_')}`;
 
-    // Basic lighting
-    const hemisphericLight = new HemisphericLight("hemisphericLight", new Vector3(0, 1, 0), scene);
-    hemisphericLight.intensity = 1.3;
+            // Apply initial material using MaterialManager
+            materialManager.applyMaterialState(mesh, sectionName, 'normal');
 
-    const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -1), scene);
-    directionalLight.intensity = 1.9;
+            // Setup interactions
+            interactionManager.setupMeshInteractions(mesh, sectionName);
+          });
 
-    // Initialize safe systems
-    try {
-      safeMaterialManagerRef.current = new SafeMaterialManager(scene);
-      cleanBMCSystemRef.current = new CleanBMCSystem();
-      cleanBMCSystemRef.current.initialize(scene);
-      console.log('✅ Safe systems initialized');
-    } catch (error) {
-      console.error('❌ Failed to initialize safe systems:', error);
-    }
-
-    // Create ground
-    const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
-    const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseColor = new Color3(0.8, 0.8, 0.9);
-    groundMaterial.alpha = 0.5;
-    ground.material = groundMaterial;
-    ground.isPickable = false;
-
-    // Load BMC model with ZERO material modifications
-    const modelLoader = new BMCModelLoader(scene);
-
-    modelLoader.loadMainBMC().then((model) => {
-      if (model.meshes.length === 0) return;
-
-      const rootMesh = model.rootMesh;
-      rootMesh.position = new Vector3(0, 0.1, 0.9);
-      rootMesh.scaling = new Vector3(8, 8, 8);
-
-      // Store mesh references
-      meshesRef.current = model.meshes.filter(m => m.name !== "__root__");
-
-      // SAFE: Restore basic materials and interactions
-      model.meshes.forEach((mesh, index) => {
-        if (mesh.name !== "__root__") {
-          const sectionNames = [
-            "Value Propositions", "Key Partners", "Customer Segments", 
-            "Key Resources", "Key Activities", "CustomerChannels", 
-            "Customer Relationships"
-          ];
-          const sectionName = sectionNames[index] || `Section_${index}`;
-          (mesh as any).bmcSectionName = sectionName;
-
-          // SAFE: Apply default material using SafeMaterialManager
-          if (safeMaterialManagerRef.current) {
-            const success = safeMaterialManagerRef.current.applyMaterialSafely(mesh, 'default_grey');
-            if (success) {
-              console.log(`✅ Safe material applied to ${sectionName}`);
-            }
-          }
-
-          // SAFE: Register with CleanBMCSystem
-          if (cleanBMCSystemRef.current) {
-            cleanBMCSystemRef.current.registerMesh(mesh, sectionName);
-          }
-
-          // SAFE: Enable basic interactions
-          mesh.isPickable = true;
-          mesh.actionManager = new ActionManager(scene);
-          
-          // Basic hover effect
-          mesh.actionManager.registerAction(
-            new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-              if (safeMaterialManagerRef.current && cleanBMCSystemRef.current) {
-                cleanBMCSystemRef.current.onHover(sectionName, true);
-              }
-            })
-          );
-
-          mesh.actionManager.registerAction(
-            new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-              if (safeMaterialManagerRef.current && cleanBMCSystemRef.current) {
-                cleanBMCSystemRef.current.onHover(sectionName, false);
-              }
-            })
-          );
-
-          console.log(`✅ Safe interactions setup for ${sectionName}`);
+          console.log(`✅ Initialized ${bmcMeshes.length} BMC sections with pooled materials`);
         }
-      });
-    }).catch((error) => {
-      console.error("Failed to load BMC model:", error);
-    });
 
-    // Start render loop
-    let isDisposed = false;
-    engine.runRenderLoop(() => {
-      if (!isDisposed && scene && !scene.isDisposed) {
-        scene.render();
-      }
-    });
+        // Camera switching handler
+        const handleCameraSwitch = () => {
+          if (isOrthographic) {
+            // Save perspective state
+            saveCamera3DState(
+              perspectiveCamera.alpha,
+              perspectiveCamera.beta,
+              perspectiveCamera.radius
+            );
+            scene.activeCamera = orthographicCamera;
+            interactionManager.updateViewMode(true);
+          } else {
+            scene.activeCamera = perspectiveCamera;
+            interactionManager.updateViewMode(false);
+          }
+        };
 
-    // Handle window resize
-    const handleResize = () => {
-      if (engine) {
-        engine.resize();
+        // Apply initial camera
+        handleCameraSwitch();
+
+        // Start render loop
+        let isDisposed = false;
+        engine.runRenderLoop(() => {
+          if (!isDisposed && scene && !scene.isDisposed) {
+            scene.render();
+          }
+        });
+
+        // Handle window resize
+        const handleResize = () => engine?.resize();
+        window.addEventListener('resize', handleResize);
+
+        // Return cleanup function
+        cleanup = () => {
+          isDisposed = true;
+          window.removeEventListener('resize', handleResize);
+
+          // Save camera state
+          try {
+            if (perspectiveCamera && !isOrthographic) {
+              saveCamera3DState(
+                perspectiveCamera.alpha,
+                perspectiveCamera.beta,
+                perspectiveCamera.radius
+              );
+            }
+          } catch (e) {
+            console.warn('Error saving camera state:', e);
+          }
+
+          // Dispose in correct order
+          interactionManager?.dispose();
+          materialManager?.dispose();
+          scene?.dispose();
+          engine?.dispose();
+
+          // Clear refs
+          interactionManagerRef.current = null;
+          materialManagerRef.current = null;
+          sceneRef.current = null;
+          engineRef.current = null;
+        };
+
+      } catch (error) {
+        console.error('Failed to initialize Babylon.js:', error);
       }
     };
-    window.addEventListener('resize', handleResize);
+
+    initializeBabylon();
 
     return () => {
-      isDisposed = true;
-      window.removeEventListener('resize', handleResize);
-
-      if (cameraRef.current && !isOrthographic) {
-        try {
-          saveCamera3DState(
-            cameraRef.current.alpha,
-            cameraRef.current.beta,
-            cameraRef.current.radius
-          );
-        } catch (e) {
-          console.warn('Error saving camera state:', e);
-        }
-      }
-
-      // Cleanup safe systems
-      if (cleanBMCSystemRef.current) {
-        cleanBMCSystemRef.current.dispose();
-      }
-      if (safeMaterialManagerRef.current) {
-        safeMaterialManagerRef.current.dispose();
-      }
-
-      if (scene) {
-        scene.dispose();
-      }
-      if (engine) {
-        engine.dispose();
+      if (cleanup) {
+        cleanup();
       }
     };
-  }, [canvas]);
+  }, [canvas, saveCamera3DState, getCamera3DState]);
 
-  // Handle camera switching - MINIMAL operations only
+  // Handle camera switching
   useEffect(() => {
-    if (sceneRef.current && cameraRef.current && orthoCameraRef.current) {
+    if (interactionManagerRef.current) {
+      interactionManagerRef.current.updateViewMode(isOrthographic);
+
+      // Update active camera
       const scene = sceneRef.current;
-      const perspectiveCamera = cameraRef.current;
-      const orthoCamera = orthoCameraRef.current;
+      if (scene) {
+        const cameras = scene.cameras;
+        const perspectiveCamera = cameras.find(c => c.name === "perspectiveCamera");
+        const orthographicCamera = cameras.find(c => c.name === "topViewCamera");
 
-      if (isOrthographic) {
-        // Save perspective camera state
-        saveCamera3DState(
-          perspectiveCamera.alpha,
-          perspectiveCamera.beta,
-          perspectiveCamera.radius
-        );
-
-        // Switch camera - THAT'S IT
-        scene.activeCamera = orthoCamera;
-        console.log('✅ SWITCHED TO 3D TOP - ZERO MATERIAL OPERATIONS');
-      } else {
-        // Switch camera - THAT'S IT  
-        scene.activeCamera = perspectiveCamera;
-        console.log('✅ SWITCHED TO 3D VIEW - ZERO MATERIAL OPERATIONS');
+        if (isOrthographic && orthographicCamera) {
+          scene.activeCamera = orthographicCamera;
+        } else if (!isOrthographic && perspectiveCamera) {
+          scene.activeCamera = perspectiveCamera;
+        }
       }
     }
-  }, [isOrthographic, saveCamera3DState]);
+  }, [isOrthographic]);
 
   return (
     <div className={`w-full h-full ${isTransitioning ? 'opacity-50' : ''} relative`}>
