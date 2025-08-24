@@ -103,7 +103,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         engine.dispose();
       }
     };
-  }, [canvas, isOrthographic]);
+  }, [canvas]); // Only recreate scene when canvas changes, not view mode
 
   const setupCameras = (scene: Scene) => {
     // 3D Perspective Camera
@@ -230,7 +230,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
   };
 
-  // Handle camera switching when view mode changes
+  // Handle camera switching when view mode changes (separate from scene initialization)
   useEffect(() => {
     if (!sceneRef.current || !cameraRef.current || !orthoCameraRef.current) return;
 
