@@ -83,13 +83,13 @@ export class CameraController {
       this.scene
     );
     
-    // Look straight down with proper rotation for reference image match
+    // Look straight down with Y-axis rotation for reference image match
     camera.setTarget(new Vector3(0, 0, 0));
     
     // Rotate camera to match reference image orientation:
-    // - Cost Structure (red) at bottom-left
+    // - Cost Structure (red) at bottom-left  
     // - Revenue Streams (green) at bottom-right
-    camera.rotation.z = Math.PI; // 180-degree rotation around Z-axis
+    camera.rotation.y = Math.PI; // 180-degree rotation around Y-axis
     
     // Set orthographic mode
     camera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
@@ -115,7 +115,7 @@ export class CameraController {
       // Position for top-down view with proper orientation
       this.orthographicCamera.position = new Vector3(0, 30, 0);
       this.orthographicCamera.setTarget(new Vector3(0, 0, 0));
-      this.orthographicCamera.rotation.z = Math.PI; // 180-degree rotation around Z-axis
+      this.orthographicCamera.rotation.y = Math.PI; // 180-degree rotation around Y-axis
       
       debugLog.info('camera', 'Switched to 3D Top view (orthographic)');
     } else {
@@ -169,7 +169,7 @@ export class CameraController {
     } else {
       this.orthographicCamera.position = new Vector3(0, 30, 0);
       this.orthographicCamera.setTarget(new Vector3(0, 0, 0));
-      this.orthographicCamera.rotation.z = Math.PI; // 180-degree rotation around Z-axis
+      this.orthographicCamera.rotation.y = Math.PI; // 180-degree rotation around Y-axis
     }
     
     debugLog.info('camera', `Camera reset for ${this.currentMode} mode`);
