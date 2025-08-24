@@ -1,12 +1,13 @@
 import React, { Suspense, useState, useEffect } from "react";
 import { HomePage } from "./components/HomePage";
 import { ExplorePage } from "./components/ExplorePage";
+import { OverviewPage } from "./components/OverviewPage";
 import { AzureCredentialSetup } from "./components/AzureCredentialSetup";
 import { useCanvas } from "./lib/stores/useCanvas";
 import "@fontsource/inter";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'explore'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'explore' | 'overview'>('home');
   const [azureConfigured, setAzureConfigured] = useState<boolean | null>(null);
   const [showCredentialSetup, setShowCredentialSetup] = useState(false);
   const { toggleChat } = useCanvas();
@@ -29,6 +30,7 @@ function App() {
 
   const navigateToHome = () => setCurrentPage('home');
   const navigateToExplore = () => setCurrentPage('explore');
+  const navigateToOverview = () => setCurrentPage('overview');
 
   const handleCredentialsSubmit = async (apiKey: string, endpoint: string) => {
     try {
@@ -71,12 +73,21 @@ function App() {
           <ExplorePage 
             onNavigateHome={navigateToHome} 
             onNavigateExplore={navigateToExplore}
+            onNavigateOverview={navigateToOverview}
+            currentPage={currentPage}
+          />
+        ) : currentPage === 'overview' ? (
+          <OverviewPage 
+            onNavigateHome={navigateToHome} 
+            onNavigateExplore={navigateToExplore}
+            onNavigateOverview={navigateToOverview}
             currentPage={currentPage}
           />
         ) : (
           <HomePage 
             onNavigateHome={navigateToHome} 
             onNavigateExplore={navigateToExplore}
+            onNavigateOverview={navigateToOverview}
             currentPage={currentPage}
           />
         )}

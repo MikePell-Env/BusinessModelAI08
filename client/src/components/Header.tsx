@@ -3,10 +3,11 @@ import React from 'react';
 interface HeaderProps {
   onNavigateHome?: () => void;
   onNavigateExplore?: () => void;
-  currentPage?: 'home' | 'explore';
+  onNavigateOverview?: () => void;
+  currentPage?: 'home' | 'explore' | 'overview';
 }
 
-export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplore, currentPage = 'home' }) => {
+export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplore, onNavigateOverview, currentPage = 'home' }) => {
   return (
     <header className="bg-black text-white py-4 relative z-50">
       <div className="w-full flex justify-between items-center px-8">
@@ -36,6 +37,14 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplor
           <span className="text-gray-500 text-sm font-medium cursor-not-allowed">
             PowerPoint
           </span>
+          <button
+            onClick={onNavigateOverview}
+            className={`hover:text-gray-300 transition-colors text-sm font-medium ${
+              currentPage === 'overview' ? 'text-blue-400' : 'text-white'
+            }`}
+          >
+            Overview
+          </button>
           <a 
             href="#about" 
             className="text-white hover:text-gray-300 transition-colors text-sm font-medium"

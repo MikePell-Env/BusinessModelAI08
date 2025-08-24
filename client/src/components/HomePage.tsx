@@ -12,10 +12,11 @@ import { powerpointParser } from '@/utils/powerpointParser';
 interface HomePageProps {
   onNavigateHome?: () => void;
   onNavigateExplore?: () => void;
-  currentPage?: 'home' | 'explore';
+  onNavigateOverview?: () => void;
+  currentPage?: 'home' | 'explore' | 'overview';
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateExplore, currentPage }) => {
+export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateExplore, onNavigateOverview, currentPage }) => {
   const [showCanvas, setShowCanvas] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -93,7 +94,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
 
   return (
     <div className="min-h-screen bg-gray-100 pb-16 relative">
-      <Header onNavigateHome={onNavigateHome} onNavigateExplore={onNavigateExplore} currentPage={currentPage} />
+      <Header onNavigateHome={onNavigateHome} onNavigateExplore={onNavigateExplore} onNavigateOverview={onNavigateOverview} currentPage={currentPage} />
 
       {/* Main Content */}
       <main className="py-12 relative">
