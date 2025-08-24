@@ -71,10 +71,10 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     'Upload your presentation to see AI-analyzed team member profiles and expertise.'
   ];
 
-  const defaultDetails = [
-    'Detailed business information will be extracted from your slides using Microsoft Graph insights.',
-    'This includes target market analysis, competitive advantages, and business strategy recommendations.',
-    'Provide a PowerPoint file to populate this section with Microsoft Copilot-powered analysis.'
+  const defaultMarket = [
+    'Market analysis and target customer information will be extracted from your slides.',
+    'This includes market size, customer segments, and competitive landscape insights.',
+    'Upload your PowerPoint presentation to see detailed market opportunity analysis.'
   ];
 
   return (
@@ -123,12 +123,12 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               </div>
             </div>
 
-            {/* Middle Column - Details and Website */}
+            {/* Middle Column - Market and Website */}
             <div className="col-span-4 space-y-8">
               <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-4">DETAILS</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">MARKET</h2>
                 <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
-                  {getContent(overviewData?.details, defaultDetails)}
+                  {getContent(overviewData?.market, defaultMarket)}
                 </div>
               </div>
 

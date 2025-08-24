@@ -27,7 +27,7 @@ export interface OverviewData {
   companyName: string;
   summary: string[];
   founders: string[];
-  details: string[];
+  market: string[];
   website: string[];
 }
 
