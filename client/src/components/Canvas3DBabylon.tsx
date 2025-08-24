@@ -665,6 +665,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     orthographicCamera.orthoTop = orthoSize;
     orthographicCamera.orthoBottom = -orthoSize;
     
+    console.log(`🔬 ORTHOGRAPHIC CAMERA CREATED:`);
+    console.log(`🔬 Name: ${orthographicCamera.name}`);
+    console.log(`🔬 Position: ${orthographicCamera.position}`);
+    console.log(`🔬 Mode: ${orthographicCamera.mode}`);
+    console.log(`🔬 Ortho bounds: left=${orthographicCamera.orthoLeft}, right=${orthographicCamera.orthoRight}`);
+    
     // Store references
     cameraRef.current = perspectiveCamera;
     orthoCameraRef.current = orthographicCamera;
