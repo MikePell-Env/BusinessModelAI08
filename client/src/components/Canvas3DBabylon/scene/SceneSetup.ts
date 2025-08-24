@@ -35,9 +35,9 @@ export class SceneSetup {
   }
 
   private setupScene(): void {
-    // Set background to match 2D view (#e9ecef - light gray)
-    // #e9ecef = RGB(233, 236, 239) = normalized (0.914, 0.925, 0.937)
-    this.scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
+    // Set background to match reference image (light blue-gray)
+    // RGB(176, 196, 207) = normalized (0.690, 0.769, 0.812)
+    this.scene.clearColor = new Color4(176/255, 196/255, 207/255, 1.0);
     
     // Enable pointer interactions on the scene
     this.scene.actionManager = new ActionManager(this.scene);
