@@ -651,7 +651,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
       Math.PI/2 + Math.PI/12,  // +90° + 15° horizontal (slight additional rotation)
-      Math.PI/8,               // 22.5° vertical angle (tipped back more for flatter view)
+      Math.PI/12,              // 15° vertical angle (much flatter perspective)
       52,                      // Zoomed out slightly more to show more canvas area
       Vector3.Zero(),
       scene
