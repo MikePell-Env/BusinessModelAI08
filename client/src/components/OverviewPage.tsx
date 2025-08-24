@@ -26,24 +26,16 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       // Switch to 3D Top view (view3DOrthographic)
       switchBMCView('view3DOrthographic');
       
-      // Navigate to home page first
-      onNavigateHome?.();
-      
-      // Then trigger the canvas to open using the same event system
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('openEnvisioner', { 
-          detail: { viewMode: 'view3DOrthographic' } 
-        }));
-      }, 100);
+      // Directly trigger the canvas to open without navigating to home page
+      window.dispatchEvent(new CustomEvent('openEnvisioner', { 
+        detail: { viewMode: 'view3DOrthographic' } 
+      }));
     } catch (error) {
       console.error('Error switching to Business Model Canvas:', error);
-      // Fallback: navigate home and trigger canvas open
-      onNavigateHome?.();
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('openEnvisioner', { 
-          detail: { viewMode: 'view3DOrthographic' } 
-        }));
-      }, 100);
+      // Fallback: directly trigger canvas open
+      window.dispatchEvent(new CustomEvent('openEnvisioner', { 
+        detail: { viewMode: 'view3DOrthographic' } 
+      }));
     }
   };
 
