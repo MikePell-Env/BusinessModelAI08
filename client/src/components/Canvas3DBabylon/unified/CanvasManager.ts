@@ -361,9 +361,9 @@ export class CanvasManager {
     this.selectedObject = sectionName;
     this.updateAllVisualStates();
     
-    // Notify BMC state manager
+    // Notify BMC state manager - cast to proper type
     if (this.bmcStateManager) {
-      this.bmcStateManager.selectObject(sectionName);
+      this.bmcStateManager.selectObject(sectionName as any);
     }
     
     debugLog.verbose('canvas', `Selected: ${sectionName}`);
