@@ -46,58 +46,38 @@ export class SceneSetup {
   }
 
   private setupLighting(): void {
-    // High-contrast dramatic lighting for maximum shadow definition and visual polish
+    // Natural lighting setup matching 3D View shadow quality
     const hemisphericLight = new HemisphericLight(
       "hemisphericLight", 
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 0.15; // Extremely low ambient for deep shadows
-    hemisphericLight.diffuse = new Color3(0.35, 0.35, 0.4); // Very dark ambient
-    hemisphericLight.specular = new Color3(0.02, 0.02, 0.02); // Almost no ambient specular
-    hemisphericLight.groundColor = new Color3(0.08, 0.08, 0.1); // Nearly black ground light
+    hemisphericLight.intensity = 0.3; // Low but not extreme ambient
+    hemisphericLight.diffuse = new Color3(0.5, 0.5, 0.55); // Neutral ambient
+    hemisphericLight.specular = new Color3(0.1, 0.1, 0.1); // Minimal ambient specular
+    hemisphericLight.groundColor = new Color3(0.2, 0.2, 0.25); // Subtle ground light
 
-    // Primary directional light for sharp shadow casting
+    // Main directional light for natural shadow casting
     const directionalLight = new DirectionalLight(
       "directionalLight", 
-      new Vector3(-1.2, -0.6, -1.0), // Sharp angle for dramatic shadows
+      new Vector3(-0.8, -1.0, -0.6), // Natural angle for good shadows
       this.scene
     );
-    directionalLight.intensity = 2.2; // Very strong primary light
-    directionalLight.diffuse = new Color3(1.0, 0.96, 0.88); // Warm dramatic light
-    directionalLight.specular = new Color3(0.6, 0.55, 0.5); // Strong specular highlights
+    directionalLight.intensity = 1.2; // Moderate strength
+    directionalLight.diffuse = new Color3(0.9, 0.88, 0.82); // Warm natural light
+    directionalLight.specular = new Color3(0.25, 0.23, 0.2); // Moderate specular
 
-    // Secondary light for depth and surface modeling
-    const secondaryLight = new DirectionalLight(
-      "secondaryLight",
-      new Vector3(0.8, -0.5, -1.2), // Opposing angle for complex shadows
+    // Fill light for shadow detail
+    const fillLight = new DirectionalLight(
+      "fillLight",
+      new Vector3(0.6, -0.8, -0.8), // Fill in shadows softly
       this.scene
     );
-    secondaryLight.intensity = 0.6; // Reduced secondary for shadow preservation
-    secondaryLight.diffuse = new Color3(0.7, 0.75, 0.82); // Cool fill light
-    secondaryLight.specular = new Color3(0.15, 0.18, 0.22);
+    fillLight.intensity = 0.4; // Gentle fill
+    fillLight.diffuse = new Color3(0.65, 0.68, 0.75); // Cool fill light
+    fillLight.specular = new Color3(0.08, 0.1, 0.12); // Very subtle specular
 
-    // Key light from high angle for top surface definition
-    const keyLight = new DirectionalLight(
-      "keyLight",
-      new Vector3(-0.4, -0.9, -0.3), // High angle for top surface shadows
-      this.scene
-    );
-    keyLight.intensity = 1.0; // Strong key light
-    keyLight.diffuse = new Color3(0.95, 0.92, 0.85); // Warm key light
-    keyLight.specular = new Color3(0.3, 0.28, 0.25);
-
-    // Subtle rim light for edge separation
-    const rimLight = new DirectionalLight(
-      "rimLight",
-      new Vector3(1.8, -0.1, 0.3), // Low grazing angle
-      this.scene
-    );
-    rimLight.intensity = 0.4; // Subtle but defined rim
-    rimLight.diffuse = new Color3(0.6, 0.65, 0.75); // Cool rim separation
-    rimLight.specular = new Color3(0.12, 0.15, 0.18);
-
-    debugLog.verbose('scene', 'High-contrast lighting configured for maximum shadow definition');
+    debugLog.verbose('scene', 'Natural lighting configured to match 3D View shadow quality');
   }
 
   private setupEnvironment(): void {
