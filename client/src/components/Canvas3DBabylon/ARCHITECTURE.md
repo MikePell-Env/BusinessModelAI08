@@ -147,11 +147,19 @@ Cost Structure:         Color3(0.35, 0.0, 0.0)  // Deep Red
    - Beta: Math.PI / 3
    - Radius: 25
 
-2. **Orthographic Camera** (3D Top View)
-   - Type: FreeCamera with orthographic mode
-   - Position: `Vector3(0, 22, -10)`
-   - Rotation: Looking down at -80°
+2. **Pseudo-Orthographic Camera** (3D Top View)
+   - Type: FreeCamera with narrow FOV to minimize perspective distortion
+   - Position: `Vector3(0, 200, 0)` - High above scene looking straight down
+   - Target: `Vector3(0, 0, 0)` - Looking directly at scene center
+   - FOV: `0.2` - Narrow field of view for pseudo-orthographic effect
    - State persistence between view switches
+
+### Scene Transform Configuration (3D Top View Optimized)
+- **Master Transform Node**: Root transform affecting all geometry
+  - Y Rotation: `Math.PI` (180° to match reference layout)
+  - X Rotation: `0°` (perfectly flat, no forward/backward tilt)
+  - Position Y: `2` (lifted to center scene in window)
+- **Result**: Flat top-down view with Cost Structure (red) bottom-left, Revenue Streams (green) bottom-right
 
 ## Known Issues & Workarounds
 
