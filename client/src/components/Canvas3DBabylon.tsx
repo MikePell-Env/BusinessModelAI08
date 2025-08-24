@@ -215,62 +215,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`🏆 Enterprise registration: ${sectionName}`);
           }
 
-          // Create dual label system: 3D floating + flat orthographic
-          const createDualLabelSystem = (text: string, mesh: AbstractMesh) => {
-            // 1. FLOATING 3D LABEL for perspective view
-            const dynamicTexture3D = new DynamicTexture("3DlabelTexture_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
-            dynamicTexture3D.hasAlpha = true;
-            dynamicTexture3D.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
+          // Create surface label directly on mesh - like reference implementation
+          const createSurfaceLabel = (text: string, mesh: AbstractMesh) => {
+            const dynamicTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
+            dynamicTexture.hasAlpha = true;
+            dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
 
-            const labelMaterial3D = new StandardMaterial("3DlabelMaterial_" + text.replace(/\s+/g, ''), scene);
-            labelMaterial3D.diffuseTexture = dynamicTexture3D;
-            labelMaterial3D.emissiveTexture = dynamicTexture3D;
-            labelMaterial3D.alpha = 1.0;
-            labelMaterial3D.backFaceCulling = false;
+            const labelMaterial = new StandardMaterial("surfaceLabelMaterial_" + text.replace(/\s+/g, ''), scene);
+            labelMaterial.diffuseTexture = dynamicTexture;
+            labelMaterial.emissiveTexture = dynamicTexture;
+            labelMaterial.emissiveColor = new Color3(1, 1, 1);
+            labelMaterial.alpha = 1.0;
+            labelMaterial.backFaceCulling = false;
 
-            const labelPlane3D = MeshBuilder.CreatePlane("3Dlabel_" + text.replace(/\s+/g, ''), { width: 2, height: 1 }, scene);
-            labelPlane3D.material = labelMaterial3D;
-            labelPlane3D.isPickable = false;
-            labelPlane3D.renderingGroupId = 1;
-
-            // Position floating label above mesh
             const bounds = mesh.getBoundingInfo();
-            const meshHeight = bounds.maximum.y - bounds.minimum.y;
-            labelPlane3D.position = mesh.position.clone();
-            labelPlane3D.position.y = bounds.maximum.y + meshHeight * 0.3;
-            labelPlane3D.setParent(mesh);
+            const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.6;
+            const labelHeight = labelWidth * 0.3;
+            
+            const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), { 
+              width: labelWidth, 
+              height: labelHeight 
+            }, scene);
+            labelPlane.material = labelMaterial;
+            labelPlane.isPickable = false;
+            labelPlane.renderingGroupId = 2; // Render on top
 
-            // 2. FLAT ORTHOGRAPHIC LABEL for top view - positioned ON the section
-            const dynamicTextureFlat = new DynamicTexture("FlatLabelTexture_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
-            dynamicTextureFlat.hasAlpha = true;
-            dynamicTextureFlat.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
+            // Position ON the mesh surface (not above)
+            labelPlane.position = mesh.position.clone();
+            labelPlane.position.y = bounds.maximum.y + 0.001; // Barely above surface to prevent z-fighting
+            labelPlane.rotation.x = -Math.PI / 2; // Lay flat on surface
+            labelPlane.setParent(mesh);
 
-            const labelMaterialFlat = new StandardMaterial("FlatLabelMaterial_" + text.replace(/\s+/g, ''), scene);
-            labelMaterialFlat.diffuseTexture = dynamicTextureFlat;
-            labelMaterialFlat.emissiveTexture = dynamicTextureFlat;
-            labelMaterialFlat.alpha = 1.0;
-            labelMaterialFlat.backFaceCulling = false;
-
-            const labelPlaneFlat = MeshBuilder.CreatePlane("FlatLabel_" + text.replace(/\s+/g, ''), { width: 2, height: 1 }, scene);
-            labelPlaneFlat.material = labelMaterialFlat;
-            labelPlaneFlat.isPickable = false;
-            labelPlaneFlat.renderingGroupId = 2; // Higher priority than 3D labels
-
-            // Position flat label ON the mesh surface for top view
-            labelPlaneFlat.position = mesh.position.clone();
-            labelPlaneFlat.position.y = bounds.maximum.y + 0.05; // Just slightly above surface
-            labelPlaneFlat.rotation.x = -Math.PI / 2; // Lay flat for top view
-            labelPlaneFlat.setParent(mesh);
-
-            // Store references for view switching
-            (mesh as any).floatingLabel = labelPlane3D;
-            (mesh as any).flatLabel = labelPlaneFlat;
-
-            return { floating: labelPlane3D, flat: labelPlaneFlat };
+            return labelPlane;
           };
 
-          // Create dual label system for this section
-          createDualLabelSystem(sectionName, mesh);
+          // Create surface label for this section
+          createSurfaceLabel(sectionName, mesh);
 
           console.log(`✅ Processed ${sectionName} with enterprise systems and 3D label`);
         }
@@ -295,62 +275,41 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`🏆 Enterprise registration: Revenue Streams`);
             }
 
-            // Create dual label system for Revenue Streams
-            const createDualLabelSystem = (text: string, mesh: AbstractMesh) => {
-              const safeText = text.replace(' ', '_');
+            // Create surface label for Revenue Streams
+            const createSurfaceLabel = (text: string, mesh: AbstractMesh) => {
+              const dynamicTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
+              dynamicTexture.hasAlpha = true;
+              dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
 
-              // Floating 3D label
-              const dynamicTexture3D = new DynamicTexture("3DlabelTexture_" + safeText, { width: 512, height: 256 }, scene);
-              dynamicTexture3D.hasAlpha = true;
-              dynamicTexture3D.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
-
-              const labelMaterial3D = new StandardMaterial("3DlabelMaterial_" + safeText, scene);
-              labelMaterial3D.diffuseTexture = dynamicTexture3D;
-              labelMaterial3D.emissiveTexture = dynamicTexture3D;
-              labelMaterial3D.alpha = 1.0;
-              labelMaterial3D.backFaceCulling = false;
-
-              const labelPlane3D = MeshBuilder.CreatePlane("3Dlabel_" + safeText, { width: 2, height: 1 }, scene);
-              labelPlane3D.material = labelMaterial3D;
-              labelPlane3D.isPickable = false;
-              labelPlane3D.renderingGroupId = 1;
-
-              // Flat orthographic label
-              const dynamicTextureFlat = new DynamicTexture("FlatLabelTexture_" + safeText, { width: 512, height: 256 }, scene);
-              dynamicTextureFlat.hasAlpha = true;
-              dynamicTextureFlat.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
-
-              const labelMaterialFlat = new StandardMaterial("FlatLabelMaterial_" + safeText, scene);
-              labelMaterialFlat.diffuseTexture = dynamicTextureFlat;
-              labelMaterialFlat.emissiveTexture = dynamicTextureFlat;
-              labelMaterialFlat.alpha = 1.0;
-              labelMaterialFlat.backFaceCulling = false;
-
-              const labelPlaneFlat = MeshBuilder.CreatePlane("FlatLabel_" + safeText, { width: 2, height: 1 }, scene);
-              labelPlaneFlat.material = labelMaterialFlat;
-              labelPlaneFlat.isPickable = false;
-              labelPlaneFlat.renderingGroupId = 2;
+              const labelMaterial = new StandardMaterial("surfaceLabelMaterial_" + text.replace(/\s+/g, ''), scene);
+              labelMaterial.diffuseTexture = dynamicTexture;
+              labelMaterial.emissiveTexture = dynamicTexture;
+              labelMaterial.emissiveColor = new Color3(1, 1, 1);
+              labelMaterial.alpha = 1.0;
+              labelMaterial.backFaceCulling = false;
 
               const bounds = mesh.getBoundingInfo();
+              const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.6;
+              const labelHeight = labelWidth * 0.3;
+              
+              const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), { 
+                width: labelWidth, 
+                height: labelHeight 
+              }, scene);
+              labelPlane.material = labelMaterial;
+              labelPlane.isPickable = false;
+              labelPlane.renderingGroupId = 2;
 
-              // Position floating label above
-              labelPlane3D.position = mesh.position.clone();
-              labelPlane3D.position.y = bounds.maximum.y + (bounds.maximum.y - bounds.minimum.y) * 0.3;
-              labelPlane3D.setParent(mesh);
+              // Position ON the mesh surface
+              labelPlane.position = mesh.position.clone();
+              labelPlane.position.y = bounds.maximum.y + 0.001;
+              labelPlane.rotation.x = -Math.PI / 2;
+              labelPlane.setParent(mesh);
 
-              // Position flat label on surface
-              labelPlaneFlat.position = mesh.position.clone();
-              labelPlaneFlat.position.y = bounds.maximum.y + 0.05;
-              labelPlaneFlat.rotation.x = -Math.PI / 2;
-              labelPlaneFlat.setParent(mesh);
-
-              (mesh as any).floatingLabel = labelPlane3D;
-              (mesh as any).flatLabel = labelPlaneFlat;
-
-              return { floating: labelPlane3D, flat: labelPlaneFlat };
+              return labelPlane;
             };
 
-            createDualLabelSystem('Revenue Streams', mesh);
+            createSurfaceLabel('Revenue Streams', mesh);
           }
         });
       }
@@ -372,62 +331,41 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               console.log(`🏆 Enterprise registration: Cost Structure`);
             }
 
-            // Create dual label system for Cost Structure
-            const createDualLabelSystem = (text: string, mesh: AbstractMesh) => {
-              const safeText = text.replace(' ', '_');
+            // Create surface label for Cost Structure
+            const createSurfaceLabel = (text: string, mesh: AbstractMesh) => {
+              const dynamicTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
+              dynamicTexture.hasAlpha = true;
+              dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
 
-              // Floating 3D label
-              const dynamicTexture3D = new DynamicTexture("3DlabelTexture_" + safeText, { width: 512, height: 256 }, scene);
-              dynamicTexture3D.hasAlpha = true;
-              dynamicTexture3D.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
-
-              const labelMaterial3D = new StandardMaterial("3DlabelMaterial_" + safeText, scene);
-              labelMaterial3D.diffuseTexture = dynamicTexture3D;
-              labelMaterial3D.emissiveTexture = dynamicTexture3D;
-              labelMaterial3D.alpha = 1.0;
-              labelMaterial3D.backFaceCulling = false;
-
-              const labelPlane3D = MeshBuilder.CreatePlane("3Dlabel_" + safeText, { width: 2, height: 1 }, scene);
-              labelPlane3D.material = labelMaterial3D;
-              labelPlane3D.isPickable = false;
-              labelPlane3D.renderingGroupId = 1;
-
-              // Flat orthographic label
-              const dynamicTextureFlat = new DynamicTexture("FlatLabelTexture_" + safeText, { width: 512, height: 256 }, scene);
-              dynamicTextureFlat.hasAlpha = true;
-              dynamicTextureFlat.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
-
-              const labelMaterialFlat = new StandardMaterial("FlatLabelMaterial_" + safeText, scene);
-              labelMaterialFlat.diffuseTexture = dynamicTextureFlat;
-              labelMaterialFlat.emissiveTexture = dynamicTextureFlat;
-              labelMaterialFlat.alpha = 1.0;
-              labelMaterialFlat.backFaceCulling = false;
-
-              const labelPlaneFlat = MeshBuilder.CreatePlane("FlatLabel_" + safeText, { width: 2, height: 1 }, scene);
-              labelPlaneFlat.material = labelMaterialFlat;
-              labelPlaneFlat.isPickable = false;
-              labelPlaneFlat.renderingGroupId = 2;
+              const labelMaterial = new StandardMaterial("surfaceLabelMaterial_" + text.replace(/\s+/g, ''), scene);
+              labelMaterial.diffuseTexture = dynamicTexture;
+              labelMaterial.emissiveTexture = dynamicTexture;
+              labelMaterial.emissiveColor = new Color3(1, 1, 1);
+              labelMaterial.alpha = 1.0;
+              labelMaterial.backFaceCulling = false;
 
               const bounds = mesh.getBoundingInfo();
+              const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.6;
+              const labelHeight = labelWidth * 0.3;
+              
+              const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), { 
+                width: labelWidth, 
+                height: labelHeight 
+              }, scene);
+              labelPlane.material = labelMaterial;
+              labelPlane.isPickable = false;
+              labelPlane.renderingGroupId = 2;
 
-              // Position floating label above
-              labelPlane3D.position = mesh.position.clone();
-              labelPlane3D.position.y = bounds.maximum.y + (bounds.maximum.y - bounds.minimum.y) * 0.3;
-              labelPlane3D.setParent(mesh);
+              // Position ON the mesh surface
+              labelPlane.position = mesh.position.clone();
+              labelPlane.position.y = bounds.maximum.y + 0.001;
+              labelPlane.rotation.x = -Math.PI / 2;
+              labelPlane.setParent(mesh);
 
-              // Position flat label on surface
-              labelPlaneFlat.position = mesh.position.clone();
-              labelPlaneFlat.position.y = bounds.maximum.y + 0.05;
-              labelPlaneFlat.rotation.x = -Math.PI / 2;
-              labelPlaneFlat.setParent(mesh);
-
-              (mesh as any).floatingLabel = labelPlane3D;
-              (mesh as any).flatLabel = labelPlaneFlat;
-
-              return { floating: labelPlane3D, flat: labelPlaneFlat };
+              return labelPlane;
             };
 
-            createDualLabelSystem('Cost Structure', mesh);
+            createSurfaceLabel('Cost Structure', mesh);
           }
         });
       }
@@ -502,7 +440,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
   }, [canvas]);
 
-  // Handle camera switching with enterprise systems AND label visibility
+  // Handle camera switching with enterprise systems
   useEffect(() => {
     if (sceneRef.current && cameraRef.current && orthoCameraRef.current && interactionManagerRef.current) {
       const scene = sceneRef.current;
@@ -521,29 +459,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         scene.activeCamera = orthoCamera;
         interactionManagerRef.current.setTopViewMode(true);
 
-        // Switch to flat labels for orthographic view
-        scene.meshes.forEach(mesh => {
-          if ((mesh as any).floatingLabel && (mesh as any).flatLabel) {
-            (mesh as any).floatingLabel.isVisible = false;  // Hide floating labels
-            (mesh as any).flatLabel.isVisible = true;       // Show flat labels
-          }
-        });
-
-        console.log('📷 Enterprise: Switched to 3D Top View with flat labels');
+        console.log('📷 Enterprise: Switched to 3D Top View');
       } else {
         // Switch camera
         scene.activeCamera = perspectiveCamera;
         interactionManagerRef.current.setTopViewMode(false);
 
-        // Switch to floating labels for perspective view
-        scene.meshes.forEach(mesh => {
-          if ((mesh as any).floatingLabel && (mesh as any).flatLabel) {
-            (mesh as any).floatingLabel.isVisible = true;   // Show floating labels
-            (mesh as any).flatLabel.isVisible = false;      // Hide flat labels
-          }
-        });
-
-        console.log('📷 Enterprise: Switched to 3D Perspective View with floating labels');
+        console.log('📷 Enterprise: Switched to 3D Perspective View');
       }
     }
   }, [isOrthographic, saveCamera3DState]);
