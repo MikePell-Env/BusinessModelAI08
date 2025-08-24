@@ -597,6 +597,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return;
     }
     console.log('✅ WebGL context available');
+    
+    // DIAGNOSTIC: Detect WebGL context loss (canvas disappearing)
+    canvasElement.addEventListener('webglcontextlost', (e) => {
+      console.error('🚨🚨🚨 WebGL CONTEXT LOST! Canvas disappeared!');
+      console.error('This happens after too many material operations');
+      e.preventDefault();
+    });
+    canvasElement.addEventListener('webglcontextrestored', () => {
+      console.log('✅ WebGL context restored - canvas should reappear');
+    });
 
     // Initialize Babylon.js engine and scene using SceneSetup module
     let sceneSetup: SceneSetup | null = null;
