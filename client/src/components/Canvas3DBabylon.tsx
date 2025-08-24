@@ -245,7 +245,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   
   // UNIFIED SYSTEM: Single managers replacing competing systems  
   const unifiedSceneRef = useRef<SceneSetupAdapter | null>(null);
-  const unifiedCameraRef = useRef<CameraControllerAdapter | null>(null);
+  // REMOVED: Unified camera system - using simple direct cameras
   const { 
     saveCamera3DState, 
     getCamera3DState, 
@@ -642,36 +642,35 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     sceneRef.current = scene;
     console.log("🎯 Scene initialized with SceneSetupAdapter");
 
-    // UNIFIED: Use pre-created cameras (eliminates camera recreation)
-    const unifiedCamera = new CameraControllerAdapter(scene, canvasElement);
-    unifiedCameraRef.current = unifiedCamera;
+    // CLEAN START: Create TWO cameras - perspective and orthographic
+    const perspectiveCamera = new ArcRotateCamera(
+      "PerspectiveCamera",
+      -Math.PI/2,
+      Math.PI/3,
+      25,
+      Vector3.Zero(),
+      scene
+    );
+    perspectiveCamera.setPosition(new Vector3(-20, 15, -20));
+    perspectiveCamera.attachControl(canvasElement, true);
+    perspectiveCamera.wheelPrecision = 50;
     
-    // Get the active camera from unified system 
-    const perspectiveCamera = unifiedCamera.getActiveCamera();
+    const orthographicCamera = new FreeCamera("OrthographicCamera", new Vector3(0, 30, 0), scene);
+    orthographicCamera.setTarget(Vector3.Zero());
+    orthographicCamera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
     
-    // Configure camera (unified system handles the limits and settings internally)
-    if ('wheelPrecision' in perspectiveCamera) {
-      (perspectiveCamera as any).wheelPrecision = 50; // Reduce sensitivity for smoother zooming
-    }
-    
-    // REFACTORED 3D TOP: Eliminate competing systems, create direct orthographic camera
-    const orthoCamera = new FreeCamera("SimpleOrthographicCamera", new Vector3(0, 30, 0), scene);
-    orthoCamera.setTarget(Vector3.Zero());
-    orthoCamera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
-    
-    // FIXED: Larger view bounds to show all positions clearly
     const orthoSize = 20;
-    orthoCamera.orthoLeft = -orthoSize;
-    orthoCamera.orthoRight = orthoSize;
-    orthoCamera.orthoTop = orthoSize;
-    orthoCamera.orthoBottom = -orthoSize;
+    orthographicCamera.orthoLeft = -orthoSize;
+    orthographicCamera.orthoRight = orthoSize;
+    orthographicCamera.orthoTop = orthoSize;
+    orthographicCamera.orthoBottom = -orthoSize;
     
-    // Store camera references
-    cameraRef.current = perspectiveCamera as any;
-    orthoCameraRef.current = orthoCamera;
+    // Store references
+    cameraRef.current = perspectiveCamera;
+    orthoCameraRef.current = orthographicCamera;
     
-    // SIMPLIFIED: Direct camera switching - one system only
-    scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
+    // Switch camera based on view mode
+    scene.activeCamera = isOrthographic ? orthographicCamera : perspectiveCamera;
     
     // Initialize label manager with scene
     // Simple BMC manager doesn't need scene setup
@@ -2854,24 +2853,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
   }, [canvas, saveCamera3DState, isOrthographic]);
 
-  // UNIFIED: Handle camera switching using unified system (eliminates camera conflicts)
+  // CLEAN: Simple camera switching
   useEffect(() => {
-    if (unifiedCameraRef.current) {
-      const targetMode = isOrthographic ? '3D Top' : '3D View';
+    if (sceneRef.current && cameraRef.current && orthoCameraRef.current) {
+      sceneRef.current.activeCamera = isOrthographic ? orthoCameraRef.current : cameraRef.current;
       
-      console.log(`🎯 UNIFIED: Switching to ${targetMode} - no manual camera recreation`);
+      if (cleanBMCRef.current) {
+        cleanBMCRef.current.setTopViewMode(isOrthographic);
+      }
       
-      // Use unified system for smooth, conflict-free transitions
-      unifiedCameraRef.current.switchToMode(targetMode);
-      
-      // Apply visual state using CleanBMCSystem
-      setTimeout(() => {
-        if (cleanBMCRef.current) {
-          cleanBMCRef.current.setTopViewMode(isOrthographic);
-        }
-      }, 10);
-      
-      console.log(`✅ UNIFIED: Switched to ${targetMode} - crash-free guaranteed`);
+      console.log(`📷 Switched to ${isOrthographic ? '3D Top' : '3D View'}`);
     }
   }, [isOrthographic]);
 
