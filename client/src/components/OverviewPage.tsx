@@ -18,9 +18,20 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   const [overviewData, setOverviewData] = React.useState<any>(null);
 
   React.useEffect(() => {
-    // Optional: Load overview data later without importing canvas store
-    // For now, just use static content to ensure immediate rendering
-    console.log('Overview page mounted - immediate render');
+    // Load overview data immediately from canvas store
+    const loadData = async () => {
+      try {
+        const { useCanvas } = await import('@/lib/stores/useCanvas');
+        const canvas = useCanvas.getState().canvas;
+        if (canvas?.overviewData) {
+          setOverviewData(canvas.overviewData);
+          console.log('Overview data loaded:', canvas.overviewData);
+        }
+      } catch (error) {
+        console.log('No canvas data available yet');
+      }
+    };
+    loadData();
   }, []);
 
   const getContent = (section: string[] | undefined, fallback: string[]) => {

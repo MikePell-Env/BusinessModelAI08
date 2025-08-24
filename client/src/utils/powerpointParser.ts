@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
-import { overviewAnalyzer } from '@/services/overviewAnalyzer';
+// Removed overviewAnalyzer import for immediate extraction
 
 interface PowerPointCanvasMapping {
   keyPartners: string[];
@@ -159,34 +159,15 @@ export class PowerPointParser {
       'Business model canvas'
     );
 
-    // Quick direct extraction of overview data
-    console.log('⚡ Quickly extracting overview information...');
-    const quickOverviewData = {
+    // Immediate synchronous extraction of overview data
+    console.log('⚡ Instantly extracting overview information...');
+    canvas.overviewData = {
       companyName: companyName || this.extractCompanyFromTitle(allText) || 'Your Company',
       summary: this.extractSummary(allText),
       founders: this.extractFounders(allText),
       details: this.extractDetails(allText)
     };
-    
-    canvas.overviewData = quickOverviewData;
-    console.log('✅ Quick overview extraction complete:', quickOverviewData);
-
-    // Optionally enhance with AI analysis in background (non-blocking)
-    setTimeout(async () => {
-      try {
-        console.log('🤖 Enhancing with Microsoft Copilot analysis...');
-        const enhancedData = await overviewAnalyzer.analyzeBusinessContent(allText, companyName || 'Your Company');
-        // Merge enhanced data while preserving quick extracted data
-        canvas.overviewData = {
-          ...quickOverviewData,
-          ...enhancedData,
-          companyName: quickOverviewData.companyName // Preserve extracted company name
-        };
-        console.log('✅ Enhanced overview data updated:', canvas.overviewData);
-      } catch (error) {
-        console.log('AI enhancement failed, using quick extraction results');
-      }
-    }, 100);
+    console.log('✅ Instant overview extraction complete:', canvas.overviewData);
     
     return canvas;
   }
