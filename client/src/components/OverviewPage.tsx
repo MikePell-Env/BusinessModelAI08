@@ -15,14 +15,22 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   onNavigateOverview,
   currentPage 
 }) => {
-  const { canvas } = useCanvas();
-  const [isLoading, setIsLoading] = React.useState(true);
-  const overviewData = React.useMemo(() => canvas?.overviewData, [canvas]);
+  const [isLoading, setIsLoading] = React.useState(false); // Start with content visible
+  const [overviewData, setOverviewData] = React.useState<any>(null);
 
   React.useEffect(() => {
-    // Simulate immediate page load, then check for data updates
-    const timer = setTimeout(() => setIsLoading(false), 100);
-    return () => clearTimeout(timer);
+    // Async load overview data without blocking UI
+    const loadOverviewData = async () => {
+      try {
+        const { canvas } = await import('@/lib/stores/useCanvas').then(module => module.useCanvas.getState());
+        setOverviewData(canvas?.overviewData);
+      } catch (error) {
+        console.log('Overview data not available yet');
+      }
+    };
+    
+    // Small delay to ensure immediate page render
+    setTimeout(loadOverviewData, 50);
   }, []);
 
   const getContent = (section: string[] | undefined, fallback: string[]) => {
