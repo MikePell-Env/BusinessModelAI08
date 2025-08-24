@@ -529,18 +529,42 @@ export class PowerPointParser {
     try {
       const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 2);
       
-      // Find the FOUNDERS section
-      let foundFoundersSection = false;
+      // Look for Team slide or Founder/CEO titles
+      let foundTeamSection = false;
       let founderName = null;
       let founderDescriptions = [];
       
-      for (const line of lines) {
-        if (line.match(/FOUNDERS|LEADERSHIP/i)) {
-          foundFoundersSection = true;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Look for Team slide
+        if (line.match(/^TEAM$/i) || line.match(/TEAM SLIDE/i) || line.match(/OUR TEAM/i)) {
+          foundTeamSection = true;
           continue;
         }
         
-        if (foundFoundersSection) {
+        // Look for Founder/CEO titles
+        if (line.match(/\b(founder|ceo|chief executive|co-founder)\b/i)) {
+          // Extract name from this line or nearby lines
+          const nameMatch = line.match(/([A-Z][a-z]+\s+[A-Z][a-z]+)/);
+          if (nameMatch && !founderName) {
+            founderName = nameMatch[1];
+          }
+          
+          // Look for description in next few lines
+          for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+            const descLine = lines[j];
+            if (descLine.length > 20 && descLine.length < 200 && 
+                !descLine.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i)) {
+              founderDescriptions.push(descLine.replace(/\s+/g, ' ').trim());
+              break;
+            }
+          }
+          break; // Found founder info, stop looking
+        }
+        
+        // If we found a team section, extract from it
+        if (foundTeamSection) {
           if (line.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i)) {
             break; // Hit next section
           }
