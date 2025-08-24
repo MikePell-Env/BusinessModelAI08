@@ -120,7 +120,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       </div>
 
       {/* Fixed View Controls - positioned below header */}
-      <div className="fixed top-20 left-4 z-40 flex space-x-2">
+      <div className="fixed top-16 left-4 z-40 flex space-x-2">
         <Button
           onClick={handleToggleView}
           disabled={isTransitioning}
@@ -217,7 +217,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
       </div>
 
       {/* Canvas Views */}
-      <div className="w-full h-full relative">
+      <div className="w-full h-full relative pt-16">
         {is3D ? (
           <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} />
         ) : (
@@ -243,7 +243,6 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
           </div>
         </footer>
       )}
-    </div>
     </div>
   );
 };
