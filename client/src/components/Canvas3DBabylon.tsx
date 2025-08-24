@@ -799,19 +799,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
 
 
-    // Create optimized environment for PBR materials to work properly
-    const environmentHelper = scene.createDefaultEnvironment({
-      createGround: false, // We already have ground
-      createSkybox: false, // Disable skybox to show scene clearColor background
-      skyboxSize: 100,
-      skyboxColor: new Color3(0.95, 0.95, 0.97), // Not used since createSkybox is false
-      groundColor: new Color3(0.9, 0.9, 0.9)
-    });
+    // Force light grey background to match documentation: RGB(233, 236, 239)
+    // Remove createDefaultEnvironment as it can override clearColor with its own background
+    scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
     
-    // Set environment to moderate intensity for PBR materials
-    if (environmentHelper) {
-      scene.environmentIntensity = 0.5; // Moderate for PBR materials to work
-    }
+    // Set environment intensity for PBR materials
+    scene.environmentIntensity = 0.5; // Moderate for PBR materials to work
 
     // Create GUI for 3D billboard labels and content panels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
