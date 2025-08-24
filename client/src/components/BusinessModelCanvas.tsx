@@ -34,6 +34,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
     setPendingPowerPointFile
   } = useCanvas();
   
+  console.log(`🟡 BusinessModelCanvas render: isTransitioning=${isTransitioning}, isOrthographic=${isOrthographic}`);
+  
 
 
   useEffect(() => {
@@ -131,14 +133,19 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
         </Button>
 
         <Button
-          onClick={() => {
-            try {
-              console.log(`🔴 3D TOP BUTTON CLICKED!`);
-              console.log(`🔴 setOrthographicView function exists: ${typeof setOrthographicView}`);
+          onClick={(e) => {
+            console.log(`🟡 3D TOP BUTTON CLICKED!`);
+            console.log(`🟡 Event:`, e);
+            console.log(`🟡 isTransitioning: ${isTransitioning}`);
+            console.log(`🟡 Button disabled: ${isTransitioning}`);
+            console.log(`🟡 setOrthographicView exists: ${typeof setOrthographicView}`);
+            
+            if (!isTransitioning) {
+              console.log(`🟡 Calling setOrthographicView(true)...`);
               setOrthographicView(true);
-              console.log(`🔴 setOrthographicView(true) called successfully`);
-            } catch (error) {
-              console.error(`🔴 ERROR in 3D Top button:`, error);
+              console.log(`🟡 setOrthographicView(true) completed`);
+            } else {
+              console.log(`🟡 Button disabled due to isTransitioning=true`);
             }
           }}
           disabled={isTransitioning}
