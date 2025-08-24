@@ -650,7 +650,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // NOTE: 180° master transform rotation requires camera angle compensation (reversed coordinates)
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
-      0,             // 0° horizontal angle (accounts for reversed coordinate system)
+      -Math.PI/2,    // -90° horizontal angle (clockwise rotation for proper layout)
       Math.PI/4,     // 45° vertical angle (good elevation view)
       45,            // Increased distance to show more canvas area
       Vector3.Zero(),
