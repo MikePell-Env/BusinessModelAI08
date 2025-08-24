@@ -1,6 +1,5 @@
 import React from 'react';
 import { Header } from './Header';
-import { useCanvas } from '@/lib/stores/useCanvas';
 
 interface OverviewPageProps {
   onNavigateHome?: () => void;
@@ -19,18 +18,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   const [overviewData, setOverviewData] = React.useState<any>(null);
 
   React.useEffect(() => {
-    // Async load overview data without blocking UI
-    const loadOverviewData = async () => {
-      try {
-        const { canvas } = await import('@/lib/stores/useCanvas').then(module => module.useCanvas.getState());
-        setOverviewData(canvas?.overviewData);
-      } catch (error) {
-        console.log('Overview data not available yet');
-      }
-    };
-    
-    // Small delay to ensure immediate page render
-    setTimeout(loadOverviewData, 50);
+    // Optional: Load overview data later without importing canvas store
+    // For now, just use static content to ensure immediate rendering
+    console.log('Overview page mounted - immediate render');
   }, []);
 
   const getContent = (section: string[] | undefined, fallback: string[]) => {
