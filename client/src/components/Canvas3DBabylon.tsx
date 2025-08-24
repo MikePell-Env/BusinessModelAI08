@@ -661,17 +661,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.attachControl(canvasElement, true);
     perspectiveCamera.wheelPrecision = 50;
     
-    // TRUE ORTHOGRAPHIC: Use orthographic camera for 3D Top view
+    // PSEUDO-ORTHOGRAPHIC: Position camera high up with narrow FOV to minimize perspective distortion
     const topViewCamera = new FreeCamera("TopViewCamera", new Vector3(0, 200, 0), scene);
     topViewCamera.setTarget(new Vector3(0, 0, 0)); // Look straight down at center
-    topViewCamera.mode = Camera.ORTHOGRAPHIC_CAMERA; // Enable orthographic projection
     
-    // Set orthographic bounds for proper framing
-    const orthoSize = 50;
-    topViewCamera.orthoLeft = -orthoSize;
-    topViewCamera.orthoRight = orthoSize;
-    topViewCamera.orthoTop = orthoSize;
-    topViewCamera.orthoBottom = -orthoSize;
+    // Optimized field of view to fill window area while showing complete BMC layout
+    topViewCamera.fov = 0.2; // Sweet spot between filling window and showing complete layout
     
     // No orthographic bounds needed for perspective camera
     
