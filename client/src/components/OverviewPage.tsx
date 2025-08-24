@@ -132,9 +132,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                 </div>
               </div>
 
-              {/* Founders Section */}
+              {/* Founder Section */}
               <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-4">FOUNDERS</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">FOUNDER</h2>
                 <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
                   {getContent(overviewData?.founders, defaultFounders)}
                 </div>

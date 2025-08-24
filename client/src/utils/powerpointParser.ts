@@ -550,9 +550,16 @@ export class PowerPointParser {
           
           // Check if the line contains both name and title + description
           if (line.match(/Mike\s+Pell.*\b(founder|ceo|chief executive|co-founder|president)\b/i)) {
-            const titleMatch = line.match(/\b(founder|ceo|chief executive officer|chief executive|co-founder|president)\b/i);
+            const titleMatch = line.match(/\b(chief executive officer|ceo|founder|chief executive|co-founder|president)\b/i);
             if (titleMatch) {
-              title = titleMatch[0];
+              // Convert CEO to Chief Executive Officer
+              if (titleMatch[0].toLowerCase() === 'ceo') {
+                title = 'Chief Executive Officer';
+              } else if (titleMatch[0].toLowerCase().includes('chief executive')) {
+                title = 'Chief Executive Officer';
+              } else {
+                title = titleMatch[0];
+              }
               // Extract description after the title
               const afterTitle = line.split(titleMatch[0])[1];
               if (afterTitle && afterTitle.trim().length > 5) {
@@ -565,8 +572,20 @@ export class PowerPointParser {
             if (nextLine && nextLine.length > 0 && 
                 !nextLine.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i) &&
                 !nextLine.match(/https?:\/\/|www\.|\.com|\.ai|\.org/i)) {
-              if (nextLine.match(/\b(founder|ceo|chief|president)\b/i)) {
-                title = nextLine.trim();
+              if (nextLine.match(/\b(chief executive officer|ceo|founder|chief|president)\b/i)) {
+                const nextTitleMatch = nextLine.match(/\b(chief executive officer|ceo|founder|chief executive|co-founder|president)\b/i);
+                if (nextTitleMatch) {
+                  // Convert CEO to Chief Executive Officer
+                  if (nextTitleMatch[0].toLowerCase() === 'ceo') {
+                    title = 'Chief Executive Officer';
+                  } else if (nextTitleMatch[0].toLowerCase().includes('chief executive')) {
+                    title = 'Chief Executive Officer';
+                  } else {
+                    title = nextTitleMatch[0];
+                  }
+                } else {
+                  title = nextLine.trim();
+                }
               } else {
                 description = nextLine.trim();
               }
