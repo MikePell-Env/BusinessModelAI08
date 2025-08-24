@@ -647,13 +647,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("🎯 Scene initialized with SceneSetupAdapter");
 
     // CLEAN START: Create TWO cameras - perspective and orthographic
-    // NOTE: 180° master transform rotation + X-axis inversion requires specific camera compensation
+    // Camera positioned to center the tilted scene in window
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
       Math.PI/2 + Math.PI/12,  // +90° + 15° horizontal (slight additional rotation)
-      Math.PI/12,              // 15° vertical angle (much flatter perspective)
-      52,                      // Zoomed out slightly more to show more canvas area
-      Vector3.Zero(),
+      Math.PI/6,               // 30° vertical angle for better view of tilted scene
+      45,                      // Distance adjusted for centered framing
+      new Vector3(0, 0, 0),    // Look at scene center
       scene
     );
     // Camera positioned to show: Cost Structure (red) front-left, Revenue Streams (green) front-right
@@ -686,10 +686,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Lighting is now handled by SceneSetupAdapter
 
-    // MASTER TRANSFORM: Create root transform node to rotate entire scene 180 degrees + horizontal tilt
+    // MASTER TRANSFORM: Create root transform node to rotate entire scene 180 degrees + tilt away from viewer
     const masterTransform = new TransformNode("MasterTransform", scene);
     masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
-    masterTransform.rotation.z = Math.PI/8; // 22.5 degrees horizontal tilt to elevate back edge
+    masterTransform.rotation.x = -Math.PI/6; // 30 degrees tilt away from viewer (back edge elevated)
+    masterTransform.position.y = 2; // Lift scene up to center in window
     
     // DYNAMIC SCALING: Scale BMC to fill window like reference image
     const canvasForScaling = canvasRef.current;
