@@ -3,7 +3,7 @@
  * Manages perspective and orthographic camera modes
  */
 
-import { 
+import {
   Scene,
   ArcRotateCamera,
   FreeCamera,
@@ -31,16 +31,16 @@ export class CameraController {
 
   constructor(scene: Scene, canvas: HTMLCanvasElement) {
     this.scene = scene;
-    
+
     // Initialize perspective camera (3D View)
     this.perspectiveCamera = this.createPerspectiveCamera(canvas);
-    
+
     // Initialize orthographic camera (3D Top)
     this.orthographicCamera = this.createOrthographicCamera();
-    
+
     // Set initial active camera
     this.scene.activeCamera = this.perspectiveCamera;
-    
+
     debugLog.verbose('camera', 'Camera controller initialized');
   }
 
@@ -53,26 +53,26 @@ export class CameraController {
       new Vector3(0, 0, 0),  // target
       this.scene
     );
-    
+
     // Camera positioning and constraints
     camera.setPosition(new Vector3(-20, 15, -20));
     camera.setTarget(Vector3.Zero());
-    
+
     // Rotation limits
     camera.lowerBetaLimit = 0.1;
     camera.upperBetaLimit = Math.PI / 2 - 0.1;
-    
+
     // Zoom limits
     camera.lowerRadiusLimit = 10;
     camera.upperRadiusLimit = 50;
-    
+
     // Controls
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.panningSensibility = 100;
     camera.angularSensibilityX = 500;
     camera.angularSensibilityY = 500;
-    
+
     return camera;
   }
 
@@ -82,45 +82,45 @@ export class CameraController {
       new Vector3(0, 30, 0),
       this.scene
     );
-    
+
     // Look straight down with Y-axis rotation for reference image match
     camera.setTarget(new Vector3(0, 0, 0));
-    
+
     // Rotate camera to match reference image orientation:
-    // - Cost Structure (red) at bottom-left  
+    // - Cost Structure (red) at bottom-left
     // - Revenue Streams (green) at bottom-right
     camera.rotation.y = Math.PI; // 180-degree rotation around Y-axis
-    
+
     // Set orthographic mode
     camera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
-    
+
     // Define the orthographic view box
     const orthoSize = 15;
     camera.orthoLeft = -orthoSize;
     camera.orthoRight = orthoSize;
     camera.orthoTop = orthoSize;
     camera.orthoBottom = -orthoSize;
-    
+
     return camera;
   }
 
   public switchToMode(mode: CameraMode): void {
     // Save current camera state
     this.saveCameraState();
-    
+
     // Switch camera based on mode
     if (mode === '3D Top') {
       this.scene.activeCamera = this.orthographicCamera;
-      
+
       // Position for top-down view with proper orientation
       this.orthographicCamera.position = new Vector3(0, 30, 0);
       this.orthographicCamera.setTarget(new Vector3(0, 0, 0));
-      this.orthographicCamera.rotation.y = Math.PI; // 180-degree rotation around Y-axis
-      
+      this.orthographicCamera.rotation.y = 0; // No rotation for correct orientation
+
       debugLog.info('camera', 'Switched to 3D Top view (orthographic)');
     } else {
       this.scene.activeCamera = this.perspectiveCamera;
-      
+
       // Restore saved state if available
       const savedState = this.savedStates.get('3D View');
       if (savedState) {
@@ -130,10 +130,10 @@ export class CameraController {
         if (savedState.beta !== undefined) this.perspectiveCamera.beta = savedState.beta;
         if (savedState.radius !== undefined) this.perspectiveCamera.radius = savedState.radius;
       }
-      
+
       debugLog.info('camera', 'Switched to 3D View (perspective)');
     }
-    
+
     this.currentMode = mode;
   }
 
@@ -169,9 +169,9 @@ export class CameraController {
     } else {
       this.orthographicCamera.position = new Vector3(0, 30, 0);
       this.orthographicCamera.setTarget(new Vector3(0, 0, 0));
-      this.orthographicCamera.rotation.y = Math.PI; // 180-degree rotation around Y-axis
+      this.orthographicCamera.rotation.y = 0; // No rotation for correct orientation
     }
-    
+
     debugLog.info('camera', `Camera reset for ${this.currentMode} mode`);
   }
 }
