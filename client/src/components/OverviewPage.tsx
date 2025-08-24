@@ -17,6 +17,24 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   const [isLoading, setIsLoading] = React.useState(false); // Start with content visible
   const [overviewData, setOverviewData] = React.useState<any>(null);
 
+  const handleBusinessModelCanvasClick = async () => {
+    try {
+      // Load canvas store and switch to 3D Top view
+      const { useCanvas } = await import('@/lib/stores/useCanvas');
+      const { switchBMCView } = useCanvas.getState();
+      
+      // Switch to 3D Top view (view3DOrthographic)
+      switchBMCView('view3DOrthographic');
+      
+      // Navigate to home page which will show the canvas
+      onNavigateHome?.();
+    } catch (error) {
+      console.error('Error switching to Business Model Canvas:', error);
+      // Fallback to just navigate home
+      onNavigateHome?.();
+    }
+  };
+
   React.useEffect(() => {
     // Load overview data immediately from canvas store
     const loadData = async () => {
@@ -135,7 +153,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">WEBSITE</h2>
                 <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
-                  {(overviewData?.website || ['Website information will be extracted from your PowerPoint presentation.']).map((item, index) => (
+                  {(overviewData?.website || ['Website information will be extracted from your PowerPoint presentation.']).map((item: string, index: number) => (
                     <p 
                       key={index} 
                       className="opacity-0 transition-all duration-500 ease-in-out"
@@ -201,7 +219,10 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                     </div>
 
                     {/* Business Model Canvas Card */}
-                    <div className="bg-white border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
+                    <div 
+                      className="bg-white border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={handleBusinessModelCanvasClick}
+                    >
                       <div className="flex items-center justify-center mb-3">
                         <div className="w-16 h-16 border-2 border-gray-400 rounded flex items-center justify-center">
                           {/* Canvas Icon */}
