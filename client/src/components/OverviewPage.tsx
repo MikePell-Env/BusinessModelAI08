@@ -24,7 +24,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       />
 
       {/* Main Content */}
-      <main className="py-8 px-12" style={{ marginTop: '10vh' }}>
+      <main className="py-8 px-12" style={{ marginTop: '5vh' }}>
         <div className="max-w-7xl mx-auto">
           {/* Company Name */}
           <div className="mb-12">
@@ -86,7 +86,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                 {/* Vertical Divider */}
                 <div 
                   className="w-px mr-8 flex-shrink-0 bg-gray-300"
-                  style={{ height: 'calc(100vh - 180px)' }}
+                  style={{ height: 'calc(100vh - 280px)' }}
                 />
                 
                 {/* Explore Content */}
