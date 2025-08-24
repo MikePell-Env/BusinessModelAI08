@@ -28,41 +28,39 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-12 gap-8 h-full">
             
-            {/* Left Column - Summary */}
-            <div className="col-span-8 space-y-6">
-              {/* Summary Section */}
-              <div className="bg-white rounded-lg p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">SUMMARY</h2>
-                <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
-                  <p>
-                    Explore any of these aspects of the business model. Explore any of these aspects of the 
-                    business model. Explore any of these aspects of the business model. Explore any of 
-                    these aspects of the business model.
-                  </p>
-                  <p>
-                    Explore any of these aspects of the business model. Explore any of these aspects of the 
-                    business model. Explore any of these aspects of the business model. Explore any of 
-                    these aspects of the business model.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Company Name and Explore Section */}
-            <div className="col-span-4 space-y-6">
+            {/* Left Column - Company Name and Summary */}
+            <div className="col-span-8 space-y-8">
               {/* Company Name */}
-              <div className="flex items-start justify-center pt-16">
-                <h1 className="text-4xl font-normal text-gray-900 text-center">
+              <div className="ml-8 pt-16">
+                <h1 className="text-4xl font-normal text-gray-900">
                   Company Name, Inc.
                 </h1>
               </div>
 
-              {/* Horizontal Divider */}
-              <div className="flex justify-end">
-                <div className="w-3/4 border-t border-gray-400"></div>
+              {/* Summary Section */}
+              <div className="ml-8">
+                <div className="bg-white rounded-lg p-6 max-w-2xl">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">SUMMARY</h2>
+                  <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+                    <p>
+                      Explore any of these aspects of the business model. Explore any of these aspects of the 
+                      business model. Explore any of these aspects of the business model. Explore any of 
+                      these aspects of the business model.
+                    </p>
+                    <p>
+                      Explore any of these aspects of the business model. Explore any of these aspects of the 
+                      business model. Explore any of these aspects of the business model. Explore any of 
+                      these aspects of the business model.
+                    </p>
+                  </div>
+                </div>
               </div>
+            </div>
+
+            {/* Right Column - Explore Section */}
+            <div className="col-span-4 space-y-6">
               {/* Explore Header */}
-              <div className="flex justify-end">
+              <div className="flex justify-end pt-16">
                 <div className="text-right w-3/4">
                   <h2 className="text-xl font-bold text-gray-900 mb-2">EXPLORE</h2>
                   <p className="text-sm text-gray-600">
@@ -72,9 +70,18 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                 </div>
               </div>
 
-              {/* Explore Cards */}
+              {/* Explore Cards with Vertical Divider */}
               <div className="flex justify-end">
-                <div className="space-y-4 w-3/4">
+                <div className="flex items-start w-3/4">
+                  {/* Vertical Divider */}
+                  <img 
+                    src="/attached_assets/Labels_vertical_divider_1756071589388.png" 
+                    alt="Vertical Divider" 
+                    className="w-px h-96 mr-6 flex-shrink-0"
+                  />
+                  
+                  {/* Cards Container */}
+                  <div className="space-y-4 flex-1">
                 {/* SWOT Analysis Card */}
                 <div className="bg-white border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center justify-center mb-3">
@@ -120,8 +127,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                   </div>
                   <h3 className="text-center font-semibold text-gray-900">Financials</h3>
                 </div>
+                  </div>
+                </div>
               </div>
-            </div>
             </div>
           </div>
         </div>
