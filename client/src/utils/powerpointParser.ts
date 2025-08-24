@@ -654,8 +654,9 @@ export class PowerPointParser {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         
-        // Look for Market header - be more flexible
-        if (line.trim().toUpperCase() === 'MARKET' || line.match(/^MARKET$/i)) {
+        // Look for Market header - handle spacing issues from PowerPoint extraction
+        const normalizedLine = line.replace(/\s+/g, '').toUpperCase();
+        if (normalizedLine === 'MARKET' || line.match(/^M\s*A\s*R\s*K\s*E\s*T$/i)) {
           console.log('✅ Found MARKET header at line', i, ':', line);
           inMarketSection = true;
           continue;
