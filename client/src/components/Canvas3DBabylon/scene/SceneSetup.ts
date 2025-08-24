@@ -46,48 +46,58 @@ export class SceneSetup {
   }
 
   private setupLighting(): void {
-    // Dramatic lighting setup for strong top surface shading and shadows
+    // High-contrast dramatic lighting for maximum shadow definition and visual polish
     const hemisphericLight = new HemisphericLight(
       "hemisphericLight", 
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 0.4; // Much lower ambient for stronger shadows
-    hemisphericLight.diffuse = new Color3(0.6, 0.6, 0.7); // Darker ambient light
-    hemisphericLight.specular = new Color3(0.05, 0.05, 0.05); // Minimal specular from ambient
-    hemisphericLight.groundColor = new Color3(0.15, 0.15, 0.2); // Very dark ground for depth
+    hemisphericLight.intensity = 0.15; // Extremely low ambient for deep shadows
+    hemisphericLight.diffuse = new Color3(0.35, 0.35, 0.4); // Very dark ambient
+    hemisphericLight.specular = new Color3(0.02, 0.02, 0.02); // Almost no ambient specular
+    hemisphericLight.groundColor = new Color3(0.08, 0.08, 0.1); // Nearly black ground light
 
-    // Main directional light from upper angle to create top surface shadows
+    // Primary directional light for sharp shadow casting
     const directionalLight = new DirectionalLight(
       "directionalLight", 
-      new Vector3(-1.0, -0.8, -0.8), // Steeper angle for better top surface shadows
+      new Vector3(-1.2, -0.6, -1.0), // Sharp angle for dramatic shadows
       this.scene
     );
-    directionalLight.intensity = 1.8; // Strong directional lighting
-    directionalLight.diffuse = new Color3(1.0, 0.98, 0.95); // Warm white light
-    directionalLight.specular = new Color3(0.4, 0.38, 0.35); // Enhanced specular for surface detail
+    directionalLight.intensity = 2.2; // Very strong primary light
+    directionalLight.diffuse = new Color3(1.0, 0.96, 0.88); // Warm dramatic light
+    directionalLight.specular = new Color3(0.6, 0.55, 0.5); // Strong specular highlights
 
-    // Secondary angled light for additional surface definition
+    // Secondary light for depth and surface modeling
     const secondaryLight = new DirectionalLight(
       "secondaryLight",
-      new Vector3(0.6, -0.7, -1.0), // Different angle for cross-shadowing
+      new Vector3(0.8, -0.5, -1.2), // Opposing angle for complex shadows
       this.scene
     );
-    secondaryLight.intensity = 0.8; // Medium strength secondary light
-    secondaryLight.diffuse = new Color3(0.85, 0.88, 0.9); // Cool secondary light
-    secondaryLight.specular = new Color3(0.2, 0.22, 0.25);
+    secondaryLight.intensity = 0.6; // Reduced secondary for shadow preservation
+    secondaryLight.diffuse = new Color3(0.7, 0.75, 0.82); // Cool fill light
+    secondaryLight.specular = new Color3(0.15, 0.18, 0.22);
 
-    // Rim light from side for edge definition
+    // Key light from high angle for top surface definition
+    const keyLight = new DirectionalLight(
+      "keyLight",
+      new Vector3(-0.4, -0.9, -0.3), // High angle for top surface shadows
+      this.scene
+    );
+    keyLight.intensity = 1.0; // Strong key light
+    keyLight.diffuse = new Color3(0.95, 0.92, 0.85); // Warm key light
+    keyLight.specular = new Color3(0.3, 0.28, 0.25);
+
+    // Subtle rim light for edge separation
     const rimLight = new DirectionalLight(
       "rimLight",
-      new Vector3(1.5, -0.2, 0.5), // Low side angle for rim lighting
+      new Vector3(1.8, -0.1, 0.3), // Low grazing angle
       this.scene
     );
-    rimLight.intensity = 0.5; // Moderate rim lighting
-    rimLight.diffuse = new Color3(0.7, 0.75, 0.8); // Cool rim color
-    rimLight.specular = new Color3(0.15, 0.18, 0.2);
+    rimLight.intensity = 0.4; // Subtle but defined rim
+    rimLight.diffuse = new Color3(0.6, 0.65, 0.75); // Cool rim separation
+    rimLight.specular = new Color3(0.12, 0.15, 0.18);
 
-    debugLog.verbose('scene', 'Dramatic lighting system configured for strong top surface shading');
+    debugLog.verbose('scene', 'High-contrast lighting configured for maximum shadow definition');
   }
 
   private setupEnvironment(): void {
