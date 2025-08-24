@@ -39,9 +39,9 @@ import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
 import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
-import { SceneSetup } from './Canvas3DBabylon/scene/SceneSetup';
+// REMOVED: SceneSetup replaced with SceneSetupAdapter
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
-import { ViewTransitionManager } from './Canvas3DBabylon/animations/ViewTransitionManager';
+// REMOVED: ViewTransitionManager integrated into CanvasManager
 // REMOVED: MaterialManager - using direct property modification instead
 import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 
@@ -240,7 +240,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // REMOVED: MaterialManager - using direct property modification instead
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
-  const viewTransitionRef = useRef<ViewTransitionManager | null>(null);
+  // REMOVED: viewTransitionRef - functionality integrated into CanvasManager
   const [showBulletText, setShowBulletText] = useState(false);
   
   // UNIFIED SYSTEM: Single managers replacing competing systems  
@@ -617,7 +617,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
 
     // UNIFIED: Initialize Babylon.js using unified system (eliminates material recreation)
-    let sceneSetup: SceneSetup | null = null;
     let engine: Engine | null = null;
     let scene: Scene | null = null;
 
@@ -629,22 +628,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       engine = unifiedScene.getEngine();
       scene = unifiedScene.getScene();
       
-      // Keep legacy reference for gradual migration
-      sceneSetup = unifiedScene as any;
-      
       if (!engine || !scene) {
         throw new Error('Scene setup failed to initialize engine or scene');
       }
       
-      debugLog.info('scene', 'Babylon.js engine and scene initialized via SceneSetup module');
+      debugLog.info('scene', 'Babylon.js engine and scene initialized via SceneSetupAdapter');
     } catch (error) {
-      console.error('Failed to initialize Babylon.js via SceneSetup:', error);
+      console.error('Failed to initialize Babylon.js via SceneSetupAdapter:', error);
       return;
     }
     
     engineRef.current = engine;
     sceneRef.current = scene;
-    console.log("🎯 Scene initialized with SceneSetup module");
+    console.log("🎯 Scene initialized with SceneSetupAdapter");
 
     // UNIFIED: Use pre-created cameras (eliminates camera recreation)
     const unifiedCamera = new CameraControllerAdapter(scene, canvasElement);
@@ -675,7 +671,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Initialize label manager with scene
     // Simple BMC manager doesn't need scene setup
     
-    // Lighting is now handled by SceneSetup module
+    // Lighting is now handled by SceneSetupAdapter
 
     // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -1299,12 +1295,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
     ];
 
-    // Initialize model loader and view transitions
+    // Initialize model loader (view transitions integrated into CanvasManager)
     const modelLoader = new BMCModelLoader(scene);
-    const viewTransitionManager = new ViewTransitionManager(scene);
-    
-    // Store reference for later use
-    viewTransitionRef.current = viewTransitionManager;
     
     // REMOVED: MaterialManager initialization - using direct property modification instead
     
@@ -2787,7 +2779,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log('🎨 Material Manager initialized');
     console.log('🖱️ Unified Interaction Manager initialized');
 
-    // Start the render loop using SceneSetup module
+    // Start the render loop using SceneSetupAdapter
     let isDisposed = false;
     unifiedSceneRef.current?.startRenderLoop(() => {
       if (!isDisposed && scene && !scene.isDisposed) {
@@ -2844,7 +2836,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.warn('Error cleaning up unified systems and managers:', e);
       }
 
-      // Properly dispose of Babylon.js resources using SceneSetup module
+      // Properly dispose of Babylon.js resources using SceneSetupAdapter
       try {
         if (unifiedSceneRef.current) {
           unifiedSceneRef.current.dispose();
