@@ -131,7 +131,10 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
         </Button>
 
         <Button
-          onClick={() => setOrthographicView(true)}
+          onClick={() => {
+            console.log(`🔴 3D TOP BUTTON CLICKED!`);
+            setOrthographicView(true);
+          }}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
             isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
