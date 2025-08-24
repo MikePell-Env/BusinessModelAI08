@@ -99,7 +99,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           {/* Company Name */}
           <div className="mb-12">
             <h1 className="text-4xl font-normal text-gray-900">
-              {overviewData?.companyName || 'Company Name'}, Inc.
+              {overviewData?.companyName || 'Company Name'}
             </h1>
           </div>
 
