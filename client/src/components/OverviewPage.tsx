@@ -15,8 +15,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   onNavigateOverview,
   currentPage 
 }) => {
+  console.log('OverviewPage rendering...');
   const { canvas } = useCanvas();
-  const overviewData = canvas?.overviewData;
+  const overviewData = React.useMemo(() => canvas?.overviewData, [canvas]);
 
   return (
     <div className="min-h-screen bg-gray-100">
