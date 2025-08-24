@@ -326,17 +326,26 @@ export class CleanBMCSystem {
         // Rule 3: Other objects when something is selected
         material.alpha = 0.3; // 30% opacity
         mesh.scaling.y = 0.01; // Flattened
-        // Keep original color but dimmed
-        if (baseColor) {
-          material.diffuseColor.r = baseColor.r * 0.5;
-          material.diffuseColor.g = baseColor.g * 0.5;
-          material.diffuseColor.b = baseColor.b * 0.5;
+        
+        if (isSpecialSection) {
+          // Cost Structure and Revenue Streams: Use grey color when flattened
+          material.diffuseColor.r = 0.5;
+          material.diffuseColor.g = 0.5;
+          material.diffuseColor.b = 0.5;
+          console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & grey color`);
         } else {
-          material.diffuseColor.r = 0.25;
-          material.diffuseColor.g = 0.25;
-          material.diffuseColor.b = 0.25;
+          // Main BMC sections: Keep original color but dimmed
+          if (baseColor) {
+            material.diffuseColor.r = baseColor.r * 0.5;
+            material.diffuseColor.g = baseColor.g * 0.5;
+            material.diffuseColor.b = baseColor.b * 0.5;
+          } else {
+            material.diffuseColor.r = 0.25;
+            material.diffuseColor.g = 0.25;
+            material.diffuseColor.b = 0.25;
+          }
+          console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & 30% opacity`);
         }
-        console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & 30% opacity`);
       } else {
         // Rule 1: Normal state - full height, original color, 100% opaque
         material.alpha = 1.0;
