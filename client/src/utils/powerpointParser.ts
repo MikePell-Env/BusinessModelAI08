@@ -545,7 +545,7 @@ export class PowerPointParser {
         
         // Look for "Mike Pell" specifically
         if (line.match(/Mike\s+Pell/i)) {
-          let title = 'Founder';
+          let title = 'Chief Executive Officer';
           let description = '';
           
           // Check if the line contains both name and title + description
