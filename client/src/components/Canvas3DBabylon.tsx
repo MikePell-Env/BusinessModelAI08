@@ -149,7 +149,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Load BMC model with enterprise integration
     const modelLoader = new BMCModelLoader(scene);
 
-    modelLoader.loadMainBMC().then((model) => {
+    // Load all BMC models
+    Promise.all([
+      modelLoader.loadMainBMC(),
+      modelLoader.loadRevenueStreams(),
+      modelLoader.loadCostStructure()
+    ]).then((models) => {
+      const [mainModel, revenueModel, costModel] = models;
+      
+      // Process main BMC model
+      const model = mainModel;
       if (model.meshes.length === 0) {
         console.warn('⚠️ No meshes loaded from BMC model');
         return;
@@ -170,6 +179,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (mesh.name !== "__root__") {
           const sectionName = sectionNames[index] || `Section_${index}`;
           
+          // Apply enterprise materials FIRST
+          if (materialSystemRef.current) {
+            const materialKey = materialSystemRef.current.getMaterialKeyForState(sectionName, 'normal');
+            const success = materialSystemRef.current.applyMaterialSafely(mesh, materialKey);
+            console.log(`🎨 Applied material ${materialKey} to ${sectionName}: ${success ? 'SUCCESS' : 'FAILED'}`);
+          }
+          
           // Register with enterprise interaction manager
           if (interactionManagerRef.current) {
             interactionManagerRef.current.registerMesh(mesh, sectionName);
@@ -178,9 +194,51 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       });
 
-      console.log('✅ BMC model loaded with enterprise systems');
+      console.log('✅ Main BMC model loaded with enterprise systems');
+      
+      // Process Revenue Streams model
+      if (revenueModel && revenueModel.meshes.length > 0) {
+        revenueModel.meshes.forEach((mesh) => {
+          if (mesh.name !== "__root__") {
+            // Apply Revenue Streams specific material
+            if (materialSystemRef.current) {
+              const materialKey = materialSystemRef.current.getMaterialKeyForState('Revenue Streams', 'normal');
+              const success = materialSystemRef.current.applyMaterialSafely(mesh, materialKey);
+              console.log(`🎨 Applied ${materialKey} to Revenue Streams: ${success ? 'SUCCESS' : 'FAILED'}`);
+            }
+            
+            // Register with interaction manager
+            if (interactionManagerRef.current) {
+              interactionManagerRef.current.registerMesh(mesh, 'Revenue Streams');
+              console.log(`🏆 Enterprise registration: Revenue Streams`);
+            }
+          }
+        });
+      }
+      
+      // Process Cost Structure model
+      if (costModel && costModel.meshes.length > 0) {
+        costModel.meshes.forEach((mesh) => {
+          if (mesh.name !== "__root__") {
+            // Apply Cost Structure specific material
+            if (materialSystemRef.current) {
+              const materialKey = materialSystemRef.current.getMaterialKeyForState('Cost Structure', 'normal');
+              const success = materialSystemRef.current.applyMaterialSafely(mesh, materialKey);
+              console.log(`🎨 Applied ${materialKey} to Cost Structure: ${success ? 'SUCCESS' : 'FAILED'}`);
+            }
+            
+            // Register with interaction manager
+            if (interactionManagerRef.current) {
+              interactionManagerRef.current.registerMesh(mesh, 'Cost Structure');
+              console.log(`🏆 Enterprise registration: Cost Structure`);
+            }
+          }
+        });
+      }
+      
+      console.log('✅ All BMC models loaded with enterprise materials');
     }).catch((error) => {
-      console.error("❌ Failed to load BMC model:", error);
+      console.error("❌ Failed to load BMC models:", error);
     });
 
     // Background click handler for clearing selections
