@@ -15,13 +15,69 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   onNavigateOverview,
   currentPage 
 }) => {
-  console.log('OverviewPage rendering...');
   const { canvas } = useCanvas();
+  const [isLoading, setIsLoading] = React.useState(true);
   const overviewData = React.useMemo(() => canvas?.overviewData, [canvas]);
 
+  React.useEffect(() => {
+    // Simulate immediate page load, then check for data updates
+    const timer = setTimeout(() => setIsLoading(false), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const getContent = (section: string[] | undefined, fallback: string[]) => {
+    if (isLoading) {
+      return [1, 2, 3].map((_, index) => (
+        <div key={index} className="animate-pulse mb-4">
+          <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      ));
+    }
+    
+    return (section || fallback).map((paragraph, index) => (
+      <p 
+        key={index} 
+        className="opacity-0 transition-all duration-500 ease-in-out"
+        style={{ 
+          animation: `fadeIn 0.5s ease-in forwards`,
+          animationDelay: `${index * 200}ms` 
+        }}
+      >
+        {paragraph}
+      </p>
+    ));
+  };
+
+  const defaultSummary = [
+    'Business overview will be extracted from your PowerPoint presentation using Microsoft Copilot.',
+    'Upload a presentation to see detailed company summary and market analysis.',
+    'This section will provide AI-powered insights into your business model and opportunities.'
+  ];
+
+  const defaultFounders = [
+    'Founder and leadership information will be analyzed and displayed here.',
+    'Microsoft Copilot will extract details about the team background and experience.',
+    'Upload your presentation to see AI-analyzed team member profiles and expertise.'
+  ];
+
+  const defaultDetails = [
+    'Detailed business information will be extracted from your slides using Microsoft Graph insights.',
+    'This includes target market analysis, competitive advantages, and business strategy recommendations.',
+    'Provide a PowerPoint file to populate this section with Microsoft Copilot-powered analysis.'
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Header 
+    <>
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      <div className="min-h-screen bg-gray-100">
+        <Header 
         onNavigateHome={onNavigateHome} 
         onNavigateExplore={onNavigateExplore}
         onNavigateOverview={onNavigateOverview}
@@ -45,23 +101,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">SUMMARY</h2>
                 <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
-                  {overviewData?.summary?.map((paragraph, index) => (
-                    <p key={index}>
-                      {paragraph}
-                    </p>
-                  )) || (
-                    <>
-                      <p>
-                        Business overview will be extracted from your PowerPoint presentation using Microsoft Copilot.
-                      </p>
-                      <p>
-                        Upload a presentation to see detailed company summary and market analysis.
-                      </p>
-                      <p>
-                        This section will provide AI-powered insights into your business model and opportunities.
-                      </p>
-                    </>
-                  )}
+                  {getContent(overviewData?.summary, defaultSummary)}
                 </div>
               </div>
 
@@ -69,23 +109,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">FOUNDERS</h2>
                 <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
-                  {overviewData?.founders?.map((paragraph, index) => (
-                    <p key={index}>
-                      {paragraph}
-                    </p>
-                  )) || (
-                    <>
-                      <p>
-                        Founder and leadership information will be analyzed and displayed here.
-                      </p>
-                      <p>
-                        Microsoft Copilot will extract details about the team background and experience.
-                      </p>
-                      <p>
-                        Upload your presentation to see AI-analyzed team member profiles and expertise.
-                      </p>
-                    </>
-                  )}
+                  {getContent(overviewData?.founders, defaultFounders)}
                 </div>
               </div>
             </div>
@@ -95,23 +119,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">DETAILS</h2>
                 <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
-                  {overviewData?.details?.map((paragraph, index) => (
-                    <p key={index}>
-                      {paragraph}
-                    </p>
-                  )) || (
-                    <>
-                      <p>
-                        Detailed business information will be extracted from your slides using Microsoft Graph insights.
-                      </p>
-                      <p>
-                        This includes target market analysis, competitive advantages, and business strategy recommendations.
-                      </p>
-                      <p>
-                        Provide a PowerPoint file to populate this section with Microsoft Copilot-powered analysis.
-                      </p>
-                    </>
-                  )}
+                  {getContent(overviewData?.details, defaultDetails)}
                 </div>
               </div>
             </div>
@@ -198,5 +206,6 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         </div>
       </footer>
     </div>
+    </>
   );
 };

@@ -28,18 +28,9 @@ function App() {
       });
   }, []);
 
-  const navigateToHome = React.useCallback(() => {
-    console.log('Navigating to Home');
-    setCurrentPage('home');
-  }, []);
-  const navigateToExplore = React.useCallback(() => {
-    console.log('Navigating to Explore');
-    setCurrentPage('explore');
-  }, []);
-  const navigateToOverview = React.useCallback(() => {
-    console.log('Navigating to Overview');
-    setCurrentPage('overview');
-  }, []);
+  const navigateToHome = React.useCallback(() => setCurrentPage('home'), []);
+  const navigateToExplore = React.useCallback(() => setCurrentPage('explore'), []);
+  const navigateToOverview = React.useCallback(() => setCurrentPage('overview'), []);
 
   const handleCredentialsSubmit = async (apiKey: string, endpoint: string) => {
     try {
