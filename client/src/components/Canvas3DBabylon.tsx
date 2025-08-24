@@ -2239,10 +2239,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
             const scalingRatio = requiredWidth / currentRevWidth;
             
-            // Apply X-axis scaling and keep Y-axis matching X for correct height
+            // Apply X-axis scaling but preserve Y-axis height (don't change Y scaling)
             const currentScale = revenueStreamsMesh.scaling;
             const newXScale = currentScale.x * scalingRatio;
-            revenueStreamsMesh.scaling = new Vector3(newXScale, newXScale, currentScale.z);
+            revenueStreamsMesh.scaling = new Vector3(newXScale, currentScale.y, currentScale.z);
             
             console.log("🔧 Revenue Streams Width Adjustment:");
             console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
@@ -2295,9 +2295,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseWidth = currentRevWidth / revenueStreamsMesh.scaling.x; // Get unscaled width
             const requiredScaleX = targetWidth / baseWidth;
             
-            // Apply X-axis scaling and keep Y-axis matching X for correct height
+            // Apply X-axis scaling but preserve Y-axis height (don't change Y scaling)
             revenueStreamsMesh.scaling.x = requiredScaleX;
-            revenueStreamsMesh.scaling.y = requiredScaleX;
             
             console.log("🔧 DELAYED Revenue Streams Width Alignment:");
             console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
@@ -2811,6 +2810,47 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // REMOVED: Emergency label fix interval - CleanBMCSystem handles all label visibility
     
+    // Measure Key Partners height and sync Cost Structure and Revenue Streams
+    const syncObjectHeights = () => {
+      const keyPartnersMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Key Partners");
+      const costStructureMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Cost Structure");
+      const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
+      
+      if (keyPartnersMesh && costStructureMesh && revenueStreamsMesh) {
+        // Measure Key Partners actual physical height in world units
+        const keyPartnersBounds = keyPartnersMesh.getBoundingInfo();
+        const keyPartnersWorldMatrix = keyPartnersMesh.getWorldMatrix();
+        const minWorld = Vector3.TransformCoordinates(keyPartnersBounds.minimum, keyPartnersWorldMatrix);
+        const maxWorld = Vector3.TransformCoordinates(keyPartnersBounds.maximum, keyPartnersWorldMatrix);
+        const keyPartnersPhysicalHeight = maxWorld.y - minWorld.y;
+        
+        console.log(`📏 KEY PARTNERS Physical Height: ${keyPartnersPhysicalHeight.toFixed(3)} world units`);
+        
+        // Calculate required Y-scaling for Cost Structure to match this height
+        const costBounds = costStructureMesh.getBoundingInfo();
+        const costBaseHeight = costBounds.maximum.y - costBounds.minimum.y; // Unscaled height
+        const costRequiredYScale = keyPartnersPhysicalHeight / costBaseHeight;
+        costStructureMesh.scaling.y = costRequiredYScale;
+        
+        // Calculate required Y-scaling for Revenue Streams to match this height  
+        const revBounds = revenueStreamsMesh.getBoundingInfo();
+        const revBaseHeight = revBounds.maximum.y - revBounds.minimum.y; // Unscaled height
+        const revRequiredYScale = keyPartnersPhysicalHeight / revBaseHeight;
+        revenueStreamsMesh.scaling.y = revRequiredYScale;
+        
+        console.log(`📏 HEIGHT SYNC: Cost Y-scale set to ${costRequiredYScale.toFixed(3)}`);
+        console.log(`📏 HEIGHT SYNC: Revenue Y-scale set to ${revRequiredYScale.toFixed(3)}`);
+        console.log(`✅ All objects now have matching physical height: ${keyPartnersPhysicalHeight.toFixed(3)} units`);
+      } else {
+        console.log(`❌ HEIGHT SYNC: Missing meshes - KeyPartners: ${!!keyPartnersMesh}, Cost: ${!!costStructureMesh}, Revenue: ${!!revenueStreamsMesh}`);
+      }
+    };
+    
+    // Run height sync after all objects are loaded
+    setTimeout(() => {
+      syncObjectHeights();
+    }, 3000);
+
     // ENABLED: Restore selection using BMC State Manager for proper preservation
     setTimeout(() => {
       const existingSelection = bmcState.getSelectedObject();
