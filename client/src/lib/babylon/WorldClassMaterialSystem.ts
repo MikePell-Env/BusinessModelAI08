@@ -194,6 +194,7 @@ export class WorldClassMaterialSystem {
       // Fallback to default
       const defaultMaterial = this.materialPool.get('default_grey');
       if (defaultMaterial) {
+        console.log(`🔄 Applying fallback default material to ${mesh.name}`);
         mesh.material = defaultMaterial;
         return true;
       }
@@ -203,20 +204,26 @@ export class WorldClassMaterialSystem {
     try {
       // Store previous state for rollback
       const previousMaterial = mesh.material;
+      const hadMaterial = previousMaterial !== null;
       
-      // Apply new material
+      // Force material application
       mesh.material = material;
       
       // Verify success
       if (mesh.material !== material) {
-        console.error(`❌ Material application failed for ${mesh.name}`);
+        console.error(`❌ Material application failed for ${mesh.name} (had material: ${hadMaterial})`);
         mesh.material = previousMaterial;
         return false;
       }
 
+      // Force mesh visibility and enable state
+      mesh.isVisible = true;
+      mesh.setEnabled(true);
+      
+      console.log(`✅ Successfully applied ${materialKey} to ${mesh.name} (previous: ${hadMaterial ? 'had material' : 'no material'})`);
       return true;
     } catch (error) {
-      console.error(`❌ Critical error applying material ${materialKey}:`, error);
+      console.error(`❌ Critical error applying material ${materialKey} to ${mesh.name}:`, error);
       return false;
     }
   }

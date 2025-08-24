@@ -1,16 +1,16 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { 
-  Engine, 
-  Scene, 
+import {
+  Engine,
+  Scene,
   ArcRotateCamera,
-  FreeCamera, 
-  HemisphericLight, 
+  FreeCamera,
+  HemisphericLight,
   DirectionalLight,
-  MeshBuilder, 
+  MeshBuilder,
   StandardMaterial,
-  Color3, 
+  Color3,
   Color4,
-  Vector3, 
+  Vector3,
   AbstractMesh,
   ActionManager,
   ExecuteCodeAction,
@@ -38,10 +38,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const materialSystemRef = useRef<WorldClassMaterialSystem | null>(null);
   const interactionManagerRef = useRef<EnterpriseInteractionManager | null>(null);
 
-  const { 
-    saveCamera3DState, 
-    getCamera3DState, 
-    is3D, 
+  const {
+    saveCamera3DState,
+    getCamera3DState,
+    is3D,
     isOrthographic
   } = useCanvas();
 
@@ -217,35 +217,56 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
           // Create surface label directly on mesh - like reference implementation
           const createSurfaceLabel = (text: string, mesh: AbstractMesh) => {
-            const dynamicTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
-            dynamicTexture.hasAlpha = true;
-            dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
+            // Map section names to texture file names
+            const textureMap: { [key: string]: string } = {
+              'Key Partners': '/textures/Label_KeyPartners.png',
+              'Key Activities': '/textures/Label_KeyActivities.png',
+              'Key Resources': '/textures/Label_KeyResources.png',
+              'Value Propositions': '/textures/Label_ValueProposition.png',
+              'Customer Relationships': '/textures/Label_CustomerRelationships.png',
+              'Customer Channels': '/textures/Label_CustomerChannels.png',
+              'Customer Segments': '/textures/Label_CustomerSegments.png',
+              'Revenue Streams': '/textures/Label_RevenueStreams.png',
+              'Cost Structure': '/textures/Label_CostStructure_1754477996199.png'
+            };
+
+            const texturePath = textureMap[text];
+            if (!texturePath) {
+              console.warn(`No texture found for section: ${text}`);
+              return null;
+            }
+
+            // Load PNG texture
+            const labelTexture = new Texture(texturePath, scene);
+            labelTexture.hasAlpha = true;
 
             const labelMaterial = new StandardMaterial("surfaceLabelMaterial_" + text.replace(/\s+/g, ''), scene);
-            labelMaterial.diffuseTexture = dynamicTexture;
-            labelMaterial.emissiveTexture = dynamicTexture;
-            labelMaterial.emissiveColor = new Color3(1, 1, 1);
+            labelMaterial.diffuseTexture = labelTexture;
+            labelMaterial.emissiveTexture = labelTexture;
+            labelMaterial.emissiveColor = new Color3(0.9, 0.9, 0.9);
             labelMaterial.alpha = 1.0;
             labelMaterial.backFaceCulling = false;
+            labelMaterial.useAlphaFromDiffuseTexture = true;
 
             const bounds = mesh.getBoundingInfo();
-            const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.6;
-            const labelHeight = labelWidth * 0.3;
-            
-            const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), { 
-              width: labelWidth, 
-              height: labelHeight 
+            const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.8;
+            const labelHeight = labelWidth * 0.4; // Adjusted for PNG aspect ratio
+
+            const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), {
+              width: labelWidth,
+              height: labelHeight
             }, scene);
             labelPlane.material = labelMaterial;
             labelPlane.isPickable = false;
             labelPlane.renderingGroupId = 2; // Render on top
 
-            // Position ON the mesh surface (not above)
+            // Position ON the mesh surface
             labelPlane.position = mesh.position.clone();
             labelPlane.position.y = bounds.maximum.y + 0.001; // Barely above surface to prevent z-fighting
             labelPlane.rotation.x = -Math.PI / 2; // Lay flat on surface
             labelPlane.setParent(mesh);
 
+            console.log(`✅ Applied PNG label texture: ${texturePath} for ${text}`);
             return labelPlane;
           };
 
@@ -277,24 +298,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
             // Create surface label for Revenue Streams
             const createSurfaceLabel = (text: string, mesh: AbstractMesh) => {
-              const dynamicTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
-              dynamicTexture.hasAlpha = true;
-              dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
+              const labelTexture = new Texture('/textures/Label_RevenueStreams.png', scene);
+              labelTexture.hasAlpha = true;
 
               const labelMaterial = new StandardMaterial("surfaceLabelMaterial_" + text.replace(/\s+/g, ''), scene);
-              labelMaterial.diffuseTexture = dynamicTexture;
-              labelMaterial.emissiveTexture = dynamicTexture;
-              labelMaterial.emissiveColor = new Color3(1, 1, 1);
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.9, 0.9, 0.9);
               labelMaterial.alpha = 1.0;
               labelMaterial.backFaceCulling = false;
+              labelMaterial.useAlphaFromDiffuseTexture = true;
 
               const bounds = mesh.getBoundingInfo();
-              const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.6;
-              const labelHeight = labelWidth * 0.3;
-              
-              const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), { 
-                width: labelWidth, 
-                height: labelHeight 
+              const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.8;
+              const labelHeight = labelWidth * 0.4;
+
+              const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), {
+                width: labelWidth,
+                height: labelHeight
               }, scene);
               labelPlane.material = labelMaterial;
               labelPlane.isPickable = false;
@@ -306,6 +327,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.rotation.x = -Math.PI / 2;
               labelPlane.setParent(mesh);
 
+              console.log(`✅ Applied PNG label: ${text}`);
               return labelPlane;
             };
 
@@ -333,24 +355,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
             // Create surface label for Cost Structure
             const createSurfaceLabel = (text: string, mesh: AbstractMesh) => {
-              const dynamicTexture = new DynamicTexture("surfaceLabel_" + text.replace(/\s+/g, ''), { width: 512, height: 256 }, scene);
-              dynamicTexture.hasAlpha = true;
-              dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
+              const labelTexture = new Texture('/textures/Label_CostStructure_1754477996199.png', scene);
+              labelTexture.hasAlpha = true;
 
               const labelMaterial = new StandardMaterial("surfaceLabelMaterial_" + text.replace(/\s+/g, ''), scene);
-              labelMaterial.diffuseTexture = dynamicTexture;
-              labelMaterial.emissiveTexture = dynamicTexture;
-              labelMaterial.emissiveColor = new Color3(1, 1, 1);
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.9, 0.9, 0.9);
               labelMaterial.alpha = 1.0;
               labelMaterial.backFaceCulling = false;
+              labelMaterial.useAlphaFromDiffuseTexture = true;
 
               const bounds = mesh.getBoundingInfo();
-              const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.6;
-              const labelHeight = labelWidth * 0.3;
-              
-              const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), { 
-                width: labelWidth, 
-                height: labelHeight 
+              const labelWidth = (bounds.maximum.x - bounds.minimum.x) * 0.8;
+              const labelHeight = labelWidth * 0.4;
+
+              const labelPlane = MeshBuilder.CreatePlane("surfaceLabel_" + text.replace(/\s+/g, ''), {
+                width: labelWidth,
+                height: labelHeight
               }, scene);
               labelPlane.material = labelMaterial;
               labelPlane.isPickable = false;
@@ -362,6 +384,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.rotation.x = -Math.PI / 2;
               labelPlane.setParent(mesh);
 
+              console.log(`✅ Applied PNG label: ${text}`);
               return labelPlane;
             };
 
