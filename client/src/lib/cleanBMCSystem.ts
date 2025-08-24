@@ -236,6 +236,9 @@ export class CleanBMCSystem {
       material.emissiveColor = Color3.Black();
     }
     
+    // DIAGNOSTIC: Log current values before changes
+    console.log(`📊 BEFORE ${name}: alpha=${material.alpha}, color=(${material.diffuseColor.r},${material.diffuseColor.g},${material.diffuseColor.b}), visible=${mesh.isVisible}, scale=(${mesh.scaling.x},${mesh.scaling.y},${mesh.scaling.z})`);
+    
     // Apply colors by DIRECT property modification (no new objects)
     if (state === 'selected' || state === 'hover') {
       // Blue for selected/hover - direct property modification
@@ -262,6 +265,20 @@ export class CleanBMCSystem {
         material.diffuseColor.b = 0.5;
       }
       console.log(`🎨 Applied NORMAL: ${name} -> original color`);
+    }
+    
+    // DIAGNOSTIC: Log values after changes
+    console.log(`📊 AFTER ${name}: alpha=${material.alpha}, color=(${material.diffuseColor.r},${material.diffuseColor.g},${material.diffuseColor.b}), visible=${mesh.isVisible}, scale=(${mesh.scaling.x},${mesh.scaling.y},${mesh.scaling.z})`);
+    
+    // DIAGNOSTIC: Check for potential issues
+    if (material.alpha === 0) {
+      console.error(`⚠️ WARNING: ${name} has alpha=0 (INVISIBLE!)`);
+    }
+    if (mesh.scaling.x === 0 || mesh.scaling.y === 0 || mesh.scaling.z === 0) {
+      console.error(`⚠️ WARNING: ${name} has 0 scaling (INVISIBLE!)`);
+    }
+    if (!mesh.isVisible) {
+      console.error(`⚠️ WARNING: ${name} mesh.isVisible=false (HIDDEN!)`);
     }
     
     } catch (error) {
