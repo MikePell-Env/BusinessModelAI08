@@ -46,38 +46,38 @@ export class SceneSetup {
   }
 
   private setupLighting(): void {
-    // Dark, moody lighting for rich object definition
+    // Ultra-dark lighting for maximum contrast and depth
     const hemisphericLight = new HemisphericLight(
       "hemisphericLight", 
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 0.12; // Extremely low ambient for dark objects
-    hemisphericLight.diffuse = new Color3(0.25, 0.25, 0.28); // Very dark ambient
+    hemisphericLight.intensity = 0.08; // Ultra-low ambient for very dark objects
+    hemisphericLight.diffuse = new Color3(0.15, 0.15, 0.17); // Extremely dark ambient
     hemisphericLight.specular = new Color3(0.0, 0.0, 0.0); // No ambient specular
-    hemisphericLight.groundColor = new Color3(0.05, 0.05, 0.06); // Nearly black ground
+    hemisphericLight.groundColor = new Color3(0.02, 0.02, 0.03); // Almost black ground
 
-    // Primary light heavily reduced for darker objects
+    // Primary light dramatically reduced
     const directionalLight = new DirectionalLight(
       "directionalLight", 
-      new Vector3(-1.8, -0.3, -1.0), // Strong side angle
+      new Vector3(-2.0, -0.2, -1.2), // Extreme side angle for shadow definition
       this.scene
     );
-    directionalLight.intensity = 0.65; // Much lower intensity for darker scene
-    directionalLight.diffuse = new Color3(0.7, 0.68, 0.63); // Dimmer, warm light
-    directionalLight.specular = new Color3(0.1, 0.09, 0.08); // Minimal specular
+    directionalLight.intensity = 0.45; // Very low intensity for much darker objects
+    directionalLight.diffuse = new Color3(0.5, 0.48, 0.45); // Much dimmer light
+    directionalLight.specular = new Color3(0.05, 0.04, 0.03); // Barely any specular
 
-    // Extremely subtle fill light
+    // Minimal fill light
     const fillLight = new DirectionalLight(
       "fillLight",
-      new Vector3(1.2, -0.4, 0.6), // Opposite angle
+      new Vector3(1.5, -0.3, 0.8), // Opposite angle for subtle fill
       this.scene
     );
-    fillLight.intensity = 0.15; // Barely visible fill
-    fillLight.diffuse = new Color3(0.35, 0.37, 0.42); // Very dark cool fill
+    fillLight.intensity = 0.1; // Almost imperceptible fill
+    fillLight.diffuse = new Color3(0.25, 0.27, 0.32); // Extremely dark fill
     fillLight.specular = new Color3(0.0, 0.0, 0.0); // No specular
 
-    debugLog.verbose('scene', 'Dark moody lighting for rich object definition');
+    debugLog.verbose('scene', 'Ultra-dark lighting for maximum contrast');
   }
 
   private setupEnvironment(): void {

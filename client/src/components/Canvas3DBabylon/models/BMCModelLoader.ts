@@ -95,7 +95,7 @@ export class BMCModelLoader {
       // SCIENTIFIC FIX: Revenue Streams needs POSITIVE X to appear RIGHT
       rootMesh.position = new Vector3(10.1, 0.1, -10.5);
       rootMesh.rotation = Vector3.Zero();
-      rootMesh.scaling = new Vector3(7.7, 8, 8);
+      rootMesh.scaling = new Vector3(8.0, 8, 8); // Match Cost Structure exact size
       
       const model: LoadedModel = {
         rootMesh,

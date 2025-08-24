@@ -2224,10 +2224,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
             const scalingRatio = requiredWidth / currentRevWidth;
             
-            // Apply X-axis scaling but preserve Y-axis height (don't change Y scaling)
+            // DISABLED: Revenue Streams now uses exact same scaling as Cost Structure (8.0, 8, 8)
             const currentScale = revenueStreamsMesh.scaling;
             const newXScale = currentScale.x * scalingRatio;
-            revenueStreamsMesh.scaling = new Vector3(newXScale, currentScale.y, currentScale.z);
+            // revenueStreamsMesh.scaling = new Vector3(newXScale, currentScale.y, currentScale.z);
             
             console.log("🔧 Revenue Streams Width Adjustment:");
             console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
@@ -2280,8 +2280,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseWidth = currentRevWidth / revenueStreamsMesh.scaling.x; // Get unscaled width
             const requiredScaleX = targetWidth / baseWidth;
             
-            // Apply X-axis scaling but preserve Y-axis height (don't change Y scaling)
-            revenueStreamsMesh.scaling.x = requiredScaleX;
+            // DISABLED: Revenue Streams now uses exact same scaling as Cost Structure (8.0, 8, 8)
+            // revenueStreamsMesh.scaling.x = requiredScaleX;
             
             console.log("🔧 DELAYED Revenue Streams Width Alignment:");
             console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
