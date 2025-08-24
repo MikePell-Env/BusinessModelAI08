@@ -7,6 +7,11 @@ This project is a web application for creating and visualizing business model ca
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
+- **January 24, 2025**: Refined 3D View interaction colors - toned down bright blue to (0.0, 0.3, 0.7) for better shading and visual appeal
+- **January 24, 2025**: Fixed Cost Structure and Revenue Streams to turn grey when flattened (dimmed state) and return to original colors when restored
+- **January 24, 2025**: Implemented drag detection system - camera rotation (press-and-drag) no longer triggers selection changes, only clean clicks do
+- **January 24, 2025**: Enhanced hover behavior - BMC objects never change height on hover, only color changes occur
+- **January 24, 2025**: Updated 3D_VIEW_INTERACTION_RULES.md with comprehensive documentation of all interaction behaviors and color values
 - **January 23, 2025**: Updated Envisioner logo to new design while maintaining smaller size (h-5) for better header proportions
 - **January 23, 2025**: Unified ActionManager-based click handling system restored and verified working across all 3D view modes
 - **January 23, 2025**: Fixed 3D Top view single-click selection and double-click panel opening functionality
