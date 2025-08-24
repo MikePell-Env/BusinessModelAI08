@@ -2884,10 +2884,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const orthoCamera = orthoCameraRef.current;
       
       if (isOrthographic) {
-        // CRITICAL: Enable emergency shutdown to prevent ALL interactions in 3D Top
-        if (cleanBMCRef.current) {
-          cleanBMCRef.current.setEmergencyShutdown(true);
-        }
+        // CRITICAL: Prevent mesh recreation that causes WebGL crashes
+        console.log('🚫 CRITICAL: Preventing mesh disposal during view switch');
+        
         // Save current perspective camera state before switching
         saveCamera3DState(
           perspectiveCamera.alpha,
@@ -2895,49 +2894,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           perspectiveCamera.radius
         );
         
-        // Smooth transition to orthographic camera
-        if (viewTransitionRef.current) {
-          viewTransitionRef.current.transitionToCamera(perspectiveCamera, orthoCamera, {
-            duration: 600,
-            easing: true
-          });
-        } else {
-          // Fallback to instant switch
-          scene.activeCamera = orthoCamera;
-        }
+        // INSTANT camera switch to prevent mesh issues
+        scene.activeCamera = orthoCamera;
         
-        // CRITICAL FIX: Don't re-setup orthographic event handlers - UnifiedInteractionManager handles all interactions
-        // The built-in camera controls handle zoom/pan, UnifiedInteractionManager handles object interactions
-        console.log("🎯 3D Top view - using built-in camera controls + UnifiedInteractionManager (no manual event handlers)");
+        // CRITICAL: Disable ALL click handlers to prevent WebGL crashes
+        scene.meshes.forEach(mesh => {
+          if (mesh.actionManager) {
+            mesh.actionManager.dispose();
+            mesh.actionManager = null;
+          }
+          mesh.isPickable = false;
+        });
         
-        // CRASH PREVENTION: Minimal visual updates to prevent WebGL overload
-        console.log('🚫 3D Top view: Visual updates minimized to prevent crashes');
-        
-        console.log(`✅ SWITCHED TO 3D TOP VIEW - ALL INTERACTIONS DISABLED`);
+        console.log(`✅ SWITCHED TO 3D TOP VIEW - ALL INTERACTIONS COMPLETELY DISABLED`);
       } else {
-        // CRITICAL: Disable emergency shutdown to restore interactions in 3D View
-        if (cleanBMCRef.current) {
-          cleanBMCRef.current.setEmergencyShutdown(false);
-        }
+        // CRITICAL: Prevent mesh recreation that causes WebGL crashes
+        console.log('🚫 CRITICAL: Preventing mesh disposal during view switch');
         
-        // CRITICAL FIX: No manual event handler removal needed since we don't add them
-        console.log("🎯 Perspective view - using standard camera controls + UnifiedInteractionManager");
+        // INSTANT camera switch to prevent mesh issues
+        scene.activeCamera = perspectiveCamera;
         
-        // Smooth transition back to perspective camera
-        if (viewTransitionRef.current) {
-          viewTransitionRef.current.transitionToCamera(orthoCamera, perspectiveCamera, {
-            duration: 600,
-            easing: true
-          });
-        } else {
-          // Fallback to instant switch
-          scene.activeCamera = perspectiveCamera;
-        }
+        // CRITICAL: Keep ALL click handlers disabled to prevent WebGL crashes
+        scene.meshes.forEach(mesh => {
+          if (mesh.actionManager) {
+            mesh.actionManager.dispose();
+            mesh.actionManager = null;
+          }
+          mesh.isPickable = false;
+        });
         
-        // CRASH PREVENTION: Minimal visual updates to prevent WebGL overload
-        console.log('🚫 3D View: Visual updates minimized to prevent crashes');
-        
-        console.log(`✅ SWITCHED TO 3D VIEW`);
+        console.log(`✅ SWITCHED TO 3D VIEW - ALL INTERACTIONS REMAIN DISABLED`);
       }
     }
   }, [isOrthographic]);

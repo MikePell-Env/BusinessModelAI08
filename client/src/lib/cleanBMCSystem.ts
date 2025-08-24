@@ -215,49 +215,10 @@ export class CleanBMCSystem {
 
   // State application following documentation rules
   private applyState(name: string, state: string) {
-    console.log(`🔍 DEBUG CleanBMC: applyState called - name: ${name}, state: ${state}`);
+    console.log(`🚫 CRITICAL OVERRIDE: applyState COMPLETELY DISABLED for ${name} -> ${state}`);
     
-    try {
-      const item = this.items.get(name);
-      if (!item || !item.mesh || !item.material) {
-        console.warn(`⚠️ CleanBMC: Cannot apply state ${state} to ${name} - missing item, mesh, or material`);
-        return;
-      }
-
-      console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
-      const { mesh, material, originalHeight, baseColor } = item;
-
-    // FIXED: Height management - NO changes in 3D Top view (avoid scaling crashes)
-    // CRITICAL: NEVER change height on hover!
-    if (!this.isTopView && state !== 'hover') {
-      // Only do height changes in 3D View (not 3D Top) and NEVER on hover
-      if (state === 'selected') {
-        mesh.scaling.y = originalHeight * 1.4; // Elevated
-      } else if (state === 'dimmed') {
-        mesh.scaling.y = 0.01; // Flattened
-      } else {
-        mesh.scaling.y = originalHeight; // Normal height
-      }
-    }
-    // In 3D Top view OR hover state: skip ALL height changes
-
-    // Base visibility settings - always ensure visibility
-    mesh.setEnabled(true);
-    mesh.isVisible = true;
-
-    // FIXED: Direct material property modification (much simpler than swapping materials)
-    // Ensure material is assigned once
-    if (mesh.material !== material) {
-      mesh.material = material;
-    }
-    
-    // EMERGENCY: NO MATERIAL MODIFICATIONS TO PREVENT WEBGL CRASHES
-    console.log(`🚫 EMERGENCY MODE: Skipping all material modifications for ${name}`);
-    
-    // Only log state changes, no visual updates
-    console.log(`🔧 State change only: ${name} -> ${state} (no visuals to prevent crash)`);
-    
-    return; // Exit early to prevent any material operations
+    // CRITICAL: NO OPERATIONS AT ALL to prevent WebGL crashes
+    return;
     
     // Check if this is Cost Structure or Revenue Streams (special handling)
     const isSpecialSection = name === 'Cost Structure' || name === 'Revenue Streams';
