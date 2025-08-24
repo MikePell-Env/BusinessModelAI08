@@ -2859,23 +2859,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
   }, [canvas, saveCamera3DState]);
 
-  // SCIENTIFIC DEBUG: Camera switching with full analysis  
+  // BASIC DEBUG: Camera switching 
   useEffect(() => {
-    console.log(`🔬 SCIENTIFIC DEBUG: isOrthographic changed to ${isOrthographic}`);
-    console.log(`🔬 sceneRef.current exists: ${!!sceneRef.current}`);
-    console.log(`🔬 cameraRef.current exists: ${!!cameraRef.current}`);
-    console.log(`🔬 orthoCameraRef.current exists: ${!!orthoCameraRef.current}`);
+    console.log(`🟢 useEffect triggered: isOrthographic = ${isOrthographic}`);
+    console.log(`🟢 sceneRef.current exists: ${!!sceneRef.current}`);
+    console.log(`🟢 cameraRef.current exists: ${!!cameraRef.current}`);
+    console.log(`🟢 orthoCameraRef.current exists: ${!!orthoCameraRef.current}`);
     
     if (sceneRef.current && cameraRef.current && orthoCameraRef.current) {
       const targetCamera = isOrthographic ? orthoCameraRef.current : cameraRef.current;
       console.log(`🔬 Setting activeCamera to: ${targetCamera.name}`);
-      console.log(`🔬 Target camera position: ${targetCamera.position}`);
-      console.log(`🔬 Target camera mode: ${targetCamera.mode}`);
       
       sceneRef.current.activeCamera = targetCamera;
       
       console.log(`🔬 Scene activeCamera is now: ${sceneRef.current.activeCamera?.name}`);
-      console.log(`🔬 Scene activeCamera position: ${sceneRef.current.activeCamera?.position}`);
       
       if (cleanBMCRef.current) {
         cleanBMCRef.current.setTopViewMode(isOrthographic);
