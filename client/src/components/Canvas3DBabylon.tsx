@@ -647,12 +647,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("🎯 Scene initialized with SceneSetupAdapter");
 
     // CLEAN START: Create TWO cameras - perspective and orthographic
-    // NOTE: 180° master transform rotation + X-axis inversion requires specific camera compensation
+    // NOTE: 180° master transform rotation requires camera angle compensation
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
-      Math.PI/2 + Math.PI/12,  // +90° + 15° horizontal (slight additional rotation)
-      Math.PI/12,              // 15° vertical angle (much flatter perspective)
-      52,                      // Zoomed out slightly more to show more canvas area
+      -Math.PI/2,              // -90° horizontal angle (documented position)
+      Math.PI/3,               // 60° vertical angle (documented position)
+      25,                      // Standard distance for proper framing
       Vector3.Zero(),
       scene
     );
@@ -686,10 +686,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Lighting is now handled by SceneSetupAdapter
 
-    // MASTER TRANSFORM: Create root transform node to rotate entire scene 180 degrees + horizontal tilt
+    // MASTER TRANSFORM: Create root transform node to rotate entire scene 180 degrees
     const masterTransform = new TransformNode("MasterTransform", scene);
     masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
-    masterTransform.rotation.z = Math.PI/8; // 22.5 degrees horizontal tilt to elevate back edge
     
     // DYNAMIC SCALING: Scale BMC to fill window like reference image
     const canvasForScaling = canvasRef.current;
