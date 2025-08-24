@@ -78,12 +78,8 @@ export const useCanvas = create<CanvasState>()(
       set((state) => ({ 
         is3D: !state.is3D,
         isOrthographic: false,
-        isTransitioning: true 
+        isTransitioning: false // Always false to prevent flashing
       }));
-      
-      setTimeout(() => {
-        set({ isTransitioning: false });
-      }, 300);
     },
     
     setOrthographicView: (isOrtho: boolean) => {
@@ -91,13 +87,9 @@ export const useCanvas = create<CanvasState>()(
       set({ 
         is3D: true,
         isOrthographic: isOrtho,
-        isTransitioning: true 
+        isTransitioning: false // Always false to prevent flashing
       });
       console.log(`🔬 STATE SET: is3D=true, isOrthographic=${isOrtho}`);
-      
-      setTimeout(() => {
-        set({ isTransitioning: false });
-      }, 300);
     },
     
     updateCanvas: (updates) => {
