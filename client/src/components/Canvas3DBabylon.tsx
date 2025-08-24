@@ -694,7 +694,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       const handleWheel = (event: WheelEvent) => {
         // Only handle zoom when top view camera is active
-        if (scene.activeCamera !== topViewCamera) return;
+        if (scene.activeCamera !== topViewCamera) {
+          // Don't prevent default - let 3D view handle its own zoom
+          return;
+        }
         
         event.preventDefault();
         
