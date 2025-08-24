@@ -702,7 +702,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         event.preventDefault();
         
         // Smooth zoom like ArcRotateCamera wheelPrecision
-        const zoomSpeed = 0.0008; // Much finer control like wheelPrecision=50
+        const zoomSpeed = 0.0005; // Reduced sensitivity for more comfortable zooming
         const minFov = 0.05; // Maximum zoom in
         const maxFov = 0.4;  // Maximum zoom out
         
