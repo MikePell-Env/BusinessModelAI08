@@ -283,15 +283,15 @@ export class CleanBMCSystem {
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
           console.log(`🎨 3D View - Applied HOVER: ${name} -> brighter original (height unchanged)`);
         } else {
-          // Main sections: Very subtle blue for better shading
-          material.diffuseColor.r = 0.15;
-          material.diffuseColor.g = 0.25; 
-          material.diffuseColor.b = 0.6;
+          // Main sections: Bright blue as documented
+          material.diffuseColor.r = 0.0;
+          material.diffuseColor.g = 0.5; 
+          material.diffuseColor.b = 1.0;
           // Reset emissive for clean hover look
           material.emissiveColor.r = 0.0;
           material.emissiveColor.g = 0.0;
           material.emissiveColor.b = 0.0;
-          console.log(`🎨 3D View - Applied HOVER: ${name} -> soft blue (height unchanged)`);
+          console.log(`🎨 3D View - Applied HOVER: ${name} -> bright blue (height unchanged)`);
         }
       } else if (state === 'selected') {
         // Rule 3: Selected object
@@ -312,15 +312,15 @@ export class CleanBMCSystem {
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
           console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright original`);
         } else {
-          // Main sections: Darker blue with better shading
+          // Main sections: Bright blue as documented
           material.diffuseColor.r = 0.0;
-          material.diffuseColor.g = 0.2; 
-          material.diffuseColor.b = 0.7;
+          material.diffuseColor.g = 0.5; 
+          material.diffuseColor.b = 1.0;
           // Add subtle emissive for better depth perception
           material.emissiveColor.r = 0.0;
-          material.emissiveColor.g = 0.05;
-          material.emissiveColor.b = 0.15;
-          console.log(`🎨 3D View - Applied SELECTED: ${name} -> darker blue with depth`);
+          material.emissiveColor.g = 0.1;
+          material.emissiveColor.b = 0.2;
+          console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright blue with depth`);
         }
       } else if (state === 'dimmed') {
         // Rule 3: Other objects when something is selected
