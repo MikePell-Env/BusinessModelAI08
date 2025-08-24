@@ -56,19 +56,29 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
     }
   };
 
-  // Handle file selection and store file for processing in BusinessModelCanvas
+  // Handle file selection and process immediately
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.type.includes('presentation') || file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
         setLoading(true);
         
-        // Store the file in the canvas store for BusinessModelCanvas to process
-        const { setPendingPowerPointFile } = useCanvas.getState();
-        setPendingPowerPointFile(file);
+        try {
+          console.log('🚀 Processing PowerPoint file immediately...');
+          // Process the file immediately using the parser
+          const canvas = await powerpointParser.parseFile(file);
+          
+          // Load the canvas with extracted data
+          loadCanvas(canvas, true);
+          console.log('✅ PowerPoint processed, overview data:', canvas.overviewData);
+          
+          // Navigate to Overview page with the extracted content
+          onNavigateOverview?.();
+        } catch (error) {
+          console.error('PowerPoint processing error:', error);
+          alert('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');
+        }
         
-        // Go directly to Overview page to show the extracted content
-        onNavigateOverview?.();
         setLoading(false);
         
         // Reset file input for next use
