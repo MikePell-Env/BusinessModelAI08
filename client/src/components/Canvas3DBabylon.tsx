@@ -686,10 +686,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // Lighting is now handled by SceneSetupAdapter
 
-    // MASTER TRANSFORM: Create root transform node to rotate entire scene 180 degrees + tilt away from viewer
+    // MASTER TRANSFORM: Create root transform node to rotate entire scene 180 degrees + tilt toward viewer
     const masterTransform = new TransformNode("MasterTransform", scene);
     masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
-    masterTransform.rotation.x = -Math.PI/6; // 30 degrees tilt away from viewer (back edge elevated)
+    masterTransform.rotation.x = Math.PI/6; // 30 degrees tilt toward viewer (front edge elevated)
     masterTransform.position.y = 2; // Lift scene up to center in window
     
     // DYNAMIC SCALING: Scale BMC to fill window like reference image
