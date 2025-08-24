@@ -132,8 +132,14 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
 
         <Button
           onClick={() => {
-            console.log(`🔴 3D TOP BUTTON CLICKED!`);
-            setOrthographicView(true);
+            try {
+              console.log(`🔴 3D TOP BUTTON CLICKED!`);
+              console.log(`🔴 setOrthographicView function exists: ${typeof setOrthographicView}`);
+              setOrthographicView(true);
+              console.log(`🔴 setOrthographicView(true) called successfully`);
+            } catch (error) {
+              console.error(`🔴 ERROR in 3D Top button:`, error);
+            }
           }}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
