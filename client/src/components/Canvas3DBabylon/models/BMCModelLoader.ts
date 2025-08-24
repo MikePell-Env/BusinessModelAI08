@@ -92,8 +92,8 @@ export class BMCModelLoader {
       }
       
       const rootMesh = result.meshes[0];
-      // Position for bottom-right in reference image (corrected coordinates)
-      rootMesh.position = new Vector3(-10.1, 0.1, -10.5);
+      // Position for bottom-right: negative X (right due to inversion), positive Z (bottom)
+      rootMesh.position = new Vector3(-0.221, 0.1, 5.0);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(7.7, 8, 8);
       
@@ -147,8 +147,8 @@ export class BMCModelLoader {
       });
       
       const rootMesh = result.meshes[0];
-      // Position for bottom-left in reference image (corrected coordinates)  
-      rootMesh.position = new Vector3(-0.221, 0.1, -10.5);
+      // Position for bottom-left: positive X (left due to inversion), positive Z (bottom)
+      rootMesh.position = new Vector3(10.1, 0.1, 5.0);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(8.0, 8, 8);
       
