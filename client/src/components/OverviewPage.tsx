@@ -123,12 +123,41 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               </div>
             </div>
 
-            {/* Middle Column - Details */}
-            <div className="col-span-4">
+            {/* Middle Column - Details and Website */}
+            <div className="col-span-4 space-y-8">
               <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">DETAILS</h2>
                 <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
                   {getContent(overviewData?.details, defaultDetails)}
+                </div>
+              </div>
+
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">WEBSITE</h2>
+                <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+                  {(overviewData?.website || ['Website information will be extracted from your PowerPoint presentation.']).map((item, index) => (
+                    <p 
+                      key={index} 
+                      className="opacity-0 transition-all duration-500 ease-in-out"
+                      style={{ 
+                        animation: `fadeIn 0.5s ease-in forwards`,
+                        animationDelay: `${index * 200}ms` 
+                      }}
+                    >
+                      {typeof item === 'string' && item.startsWith('http') ? (
+                        <a 
+                          href={item} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 hover:underline break-all"
+                        >
+                          {item}
+                        </a>
+                      ) : (
+                        item
+                      )}
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>

@@ -28,6 +28,7 @@ export interface OverviewData {
   summary: string[];
   founders: string[];
   details: string[];
+  website: string[];
 }
 
 export interface ChatMessage {
