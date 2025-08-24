@@ -35,9 +35,9 @@ export class SceneSetup {
   }
 
   private setupScene(): void {
-    // Set background to much darker grey for better contrast
-    // Darker background for 3D Top view
-    this.scene.clearColor = new Color4(0.3, 0.3, 0.32, 1.0);
+    // Set background to light grey to match documentation
+    // RGB(229, 231, 235) = normalized (0.898, 0.906, 0.922) - light grey
+    this.scene.clearColor = new Color4(0.898, 0.906, 0.922, 1.0);
     
     // Enable pointer interactions on the scene
     this.scene.actionManager = new ActionManager(this.scene);
@@ -63,7 +63,7 @@ export class SceneSetup {
       new Vector3(-2.0, -0.2, -1.2), // Extreme side angle for shadow definition
       this.scene
     );
-    directionalLight.intensity = 0.45; // Very low intensity for much darker objects
+    directionalLight.intensity = 0.0; // Turned off for testing
     directionalLight.diffuse = new Color3(0.5, 0.48, 0.45); // Much dimmer light
     directionalLight.specular = new Color3(0.05, 0.04, 0.03); // Barely any specular
 
@@ -73,7 +73,7 @@ export class SceneSetup {
       new Vector3(1.5, -0.3, 0.8), // Opposite angle for subtle fill
       this.scene
     );
-    fillLight.intensity = 0.1; // Almost imperceptible fill
+    fillLight.intensity = 0.0; // Turned off for testing
     fillLight.diffuse = new Color3(0.25, 0.27, 0.32); // Extremely dark fill
     fillLight.specular = new Color3(0.0, 0.0, 0.0); // No specular
 
