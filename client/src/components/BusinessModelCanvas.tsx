@@ -243,6 +243,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
           </div>
         </footer>
       )}
+      </div>
     </div>
   );
 };
