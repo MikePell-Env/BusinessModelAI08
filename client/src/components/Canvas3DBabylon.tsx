@@ -76,12 +76,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return;
     }
 
-    // Create cameras with saved state
+    // Create cameras with saved state - per documentation specs
     const savedCameraState = getCamera3DState();
     const perspectiveCamera = new ArcRotateCamera(
       "perspectiveCamera",
-      savedCameraState?.alpha ?? -Math.PI / 2.5,
-      savedCameraState?.beta ?? Math.PI / 6,
+      savedCameraState?.alpha ?? -Math.PI / 2,
+      savedCameraState?.beta ?? Math.PI / 3,
       savedCameraState?.radius ?? 25,
       Vector3.Zero(),
       scene
@@ -93,17 +93,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.lowerBetaLimit = 0.1;
     perspectiveCamera.upperBetaLimit = Math.PI / 2.2;
 
-    const topViewCamera = new ArcRotateCamera(
+    const topViewCamera = new FreeCamera(
       "topViewCamera",
-      -Math.PI / 2,
-      0.01,
-      28,
-      Vector3.Zero(),
+      new Vector3(0, 22, -10),
       scene
     );
-    topViewCamera.fov = 0.6;
-    topViewCamera.lowerRadiusLimit = 15;
-    topViewCamera.upperRadiusLimit = 40;
+    topViewCamera.setTarget(Vector3.Zero());
+    topViewCamera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
+    
+    // Define orthographic viewing box
+    const orthoSize = 15;
+    topViewCamera.orthoLeft = -orthoSize;
+    topViewCamera.orthoRight = orthoSize;
+    topViewCamera.orthoTop = orthoSize;
+    topViewCamera.orthoBottom = -orthoSize;
 
     cameraRef.current = perspectiveCamera;
     orthoCameraRef.current = topViewCamera as any;
@@ -168,29 +171,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       rootMesh.position = new Vector3(0, 0.1, 0.9);
       rootMesh.scaling = new Vector3(8, 8, 8);
 
-      // Register meshes with enterprise systems
+      // Register meshes with enterprise systems - exact mapping per documentation
       const sectionNames = [
-        "Value Propositions", "Key Partners", "Customer Segments", 
-        "Key Resources", "Key Activities", "CustomerChannels", 
-        "Customer Relationships", "Cost Structure", "Revenue Streams"
+        "Key Partners", "Key Activities", "Key Resources", "Value Propositions",
+        "Customer Relationships", "Customer Channels", "Customer Segments"
       ];
 
       model.meshes.forEach((mesh, index) => {
         if (mesh.name !== "__root__") {
           const sectionName = sectionNames[index] || `Section_${index}`;
           
-          // Apply enterprise materials FIRST
-          if (materialSystemRef.current) {
-            const materialKey = materialSystemRef.current.getMaterialKeyForState(sectionName, 'normal');
-            const success = materialSystemRef.current.applyMaterialSafely(mesh, materialKey);
-            console.log(`🎨 Applied material ${materialKey} to ${sectionName}: ${success ? 'SUCCESS' : 'FAILED'}`);
-          }
-          
-          // Register with enterprise interaction manager
+          // Register with enterprise interaction manager FIRST
           if (interactionManagerRef.current) {
             interactionManagerRef.current.registerMesh(mesh, sectionName);
             console.log(`🏆 Enterprise registration: ${sectionName}`);
           }
+          
+          // Then apply enterprise materials (this happens inside registerMesh)
+          console.log(`✅ Processed ${sectionName} with enterprise systems`);
         }
       });
 
