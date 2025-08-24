@@ -1,4 +1,5 @@
-import { AbstractMesh, Color3, StandardMaterial } from '@babylonjs/core';
+
+import { AbstractMesh, Color3, StandardMaterial, Scene } from '@babylonjs/core';
 import { BMCStateManagerImpl } from './bmcStateManager';
 import { SafeMaterialManager } from '@/lib/babylon/SafeMaterialManager';
 
@@ -12,27 +13,27 @@ interface BMCItem {
 }
 
 export class CleanBMCSystem {
+  private scene: Scene | null = null;
   private items: Map<string, BMCItem> = new Map();
   private selectedObject: string | null = null;
   private hoveredObject: string | null = null;
   private isTopView: boolean = false;
   private bmcStateManager: BMCStateManagerImpl | null = null;
-  private emergencyShutdown: boolean = false;
   private safeMaterialManager: SafeMaterialManager | null = null;
 
   constructor() {
-    // Initialize silently
+    console.log('🎯 CleanBMCSystem initialized');
   }
 
-  // Emergency shutdown mode to prevent all operations
-  setEmergencyShutdown(shutdown: boolean) {
-    this.emergencyShutdown = shutdown;
-    if (shutdown) {
-      console.log('🚫 EMERGENCY SHUTDOWN: CleanBMCSystem disabled to prevent crashes');
-      // Clear all internal state to prevent stale references
-      this.items.clear();
-      this.selectedObject = null;
-      this.hoveredObject = null;
+  // Initialize the system with a Babylon.js scene
+  public initialize(scene: Scene): void {
+    this.scene = scene;
+
+    try {
+      this.safeMaterialManager = new SafeMaterialManager(scene);
+      console.log('✅ CleanBMCSystem initialized with SafeMaterialManager');
+    } catch (error) {
+      console.error('❌ Failed to initialize SafeMaterialManager:', error);
     }
   }
 
@@ -47,11 +48,26 @@ export class CleanBMCSystem {
     this.updateAllVisuals();
   }
 
-  // Register a BMC item
+  // Register a mesh with the system
+  registerMesh(mesh: AbstractMesh, sectionName: string) {
+    console.log(`📝 Registering mesh: ${sectionName}`);
+    
+    // Store mesh reference with section name
+    (mesh as any).bmcSectionName = sectionName;
+    
+    // Apply default material if SafeMaterialManager is available
+    if (this.safeMaterialManager) {
+      const success = this.safeMaterialManager.applyMaterialSafely(mesh, 'default_grey');
+      if (success) {
+        console.log(`✅ Default material applied to ${sectionName}`);
+      }
+    }
+  }
+
+  // Register a BMC item with full configuration
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
     const baseColor = this.getBaseColor(name);
 
-    // Ensure material is assigned
     if (!mesh.material) {
       mesh.material = material;
     }
@@ -63,64 +79,44 @@ export class CleanBMCSystem {
       baseColor: baseColor.clone()
     });
 
-    // Initialize with proper state
     this.applyState(name, 'normal');
+    console.log(`✅ Registered item: ${name}`);
   }
 
   // Handle selection
   onSelect(sectionName: string) {
-    if (this.emergencyShutdown) {
-      console.log(`🚫 EMERGENCY: onSelect blocked for ${sectionName} - shutdown mode active`);
-      // Silently handle the selection without any operations
-      return;
-    }
-
     console.log(`🔍 CleanBMC onSelect: ${sectionName}`);
 
-    try {
-      // Just track selection state, no visual operations
-      if (this.selectedObject === sectionName) {
-        this.selectedObject = null;
-      } else {
-        this.selectedObject = sectionName;
-      }
-
-      console.log(`✅ Selection state updated: ${this.selectedObject || 'none'}`);
-
-    } catch (error) {
-      console.error(`❌ Safe error in onSelect(${sectionName}):`, error);
-      // Don't re-throw, just log and continue
+    if (this.selectedObject === sectionName) {
+      this.selectedObject = null;
+      console.log('🔄 Deselected');
+    } else {
+      this.selectedObject = sectionName;
+      console.log(`🎯 Selected: ${sectionName}`);
     }
+
+    this.updateAllVisuals();
   }
 
   // Clear selection
   clearSelection() {
     this.selectedObject = null;
     this.hoveredObject = null;
-
-    if (this.emergencyShutdown) {
-      console.log(`🚫 EMERGENCY: clearSelection - no visual operations during shutdown`);
-      return;
-    }
-
-    console.log(`✅ Selection cleared safely`);
+    this.updateAllVisuals();
+    console.log('✅ Selection cleared');
   }
 
-  // Handle hover state changes - simplified direct approach
+  // Handle hover state changes
   onHover(sectionName: string, isHovering: boolean): void {
-    if (this.emergencyShutdown) {
-      console.log(`🚫 EMERGENCY: hover blocked for ${sectionName} - shutdown mode active`);
-      return;
-    }
-
-    // Just track hover state without any visual operations
     if (isHovering) {
       this.hoveredObject = sectionName;
+      console.log(`🖱️ Hovering: ${sectionName}`);
     } else {
       this.hoveredObject = null;
+      console.log('🖱️ Hover cleared');
     }
 
-    console.log(`🖱️ Hover state tracked: ${this.hoveredObject || 'none'}`);
+    this.updateAllVisuals();
   }
 
   // Get selected object
@@ -148,50 +144,67 @@ export class CleanBMCSystem {
 
   // Main visual update method
   private updateAllVisuals(): void {
-    if (this.emergencyShutdown) {
-      console.log(`🚫 EMERGENCY: updateAllVisuals blocked - shutdown mode active`);
-      return;
-    }
+    console.log(`🎨 Updating visuals - mode: ${this.isTopView ? '3D Top' : '3D View'}, selected: ${this.selectedObject || 'none'}, hovered: ${this.hoveredObject || 'none'}`);
 
-    console.log(`🎨 updateAllVisuals: mode=${this.isTopView ? '3D Top' : '3D View'}, selected=${this.selectedObject || 'none'}`);
-    // All visual operations disabled for safety
+    this.items.forEach((item, name) => {
+      let state = 'normal';
+
+      if (name === this.selectedObject) {
+        state = 'selected';
+      } else if (name === this.hoveredObject) {
+        state = 'hover';
+      } else if (this.selectedObject && name !== this.selectedObject) {
+        state = 'dimmed';
+      }
+
+      this.applyState(name, state);
+    });
   }
 
-  // State application following documentation rules
+  // Apply visual state to an item
   private applyState(name: string, state: string) {
-    console.log(`🚫 CRITICAL OVERRIDE: applyState COMPLETELY DISABLED for ${name} -> ${state}`);
+    const item = this.items.get(name);
+    if (!item || !this.safeMaterialManager) return;
 
-    // CRITICAL: NO OPERATIONS AT ALL to prevent WebGL crashes
-    return;
-  }
+    console.log(`🎨 Applying state: ${name} -> ${state}`);
 
-  // Initialize the system with a Babylon.js scene
-  public initialize(scene: Scene): void {
-    this.scene = scene;
+    let materialName: string;
+    let heightScale = 1.0;
 
-    // Initialize safe material manager
-    try {
-      this.safeMaterialManager = new SafeMaterialManager(scene);
-      console.log('🎯 CleanBMCSystem initialized with SafeMaterialManager');
-    } catch (error) {
-      console.error('❌ Failed to initialize SafeMaterialManager:', error);
-      this.isEmergencyShutdown = true;
-    }
-  }
-
-
-  // Convert string state to MaterialManager state type
-  private getMaterialStateFromString(state: string): 'normal' | 'selected' | 'hover' | 'dimmed' {
     switch (state) {
       case 'selected':
-        return 'selected';
+        materialName = 'selected_blue';
+        heightScale = this.isTopView ? 1.0 : 1.3;
+        break;
       case 'hover':
-        return 'hover';
+        materialName = 'hover_blue';
+        heightScale = this.isTopView ? 1.0 : 1.1;
+        break;
       case 'dimmed':
-        return 'dimmed';
+        materialName = 'default_grey';
+        heightScale = this.isTopView ? 1.0 : 0.8;
+        break;
       case 'normal':
       default:
-        return 'normal';
+        if (name === "Cost Structure") {
+          materialName = 'cost_red';
+        } else if (name === "Revenue Streams") {
+          materialName = 'revenue_green';
+        } else {
+          materialName = 'default_grey';
+        }
+        heightScale = 1.0;
+        break;
+    }
+
+    // Apply material
+    this.safeMaterialManager.applyMaterialSafely(item.mesh, materialName);
+
+    // Apply height scaling (only in 3D perspective view)
+    if (!this.isTopView) {
+      item.mesh.scaling.y = item.originalHeight * heightScale;
+    } else {
+      item.mesh.scaling.y = item.originalHeight;
     }
   }
 
@@ -206,55 +219,27 @@ export class CleanBMCSystem {
     }
   }
 
-  // Convert between section names and BMC component names
-  private convertNameToBMCComponent(sectionName: string): string | null {
-    const mapping: Record<string, string> = {
-      "Value Propositions": "valuePropositions",
-      "Key Partners": "keyPartners",
-      "Customer Segments": "customerSegments",
-      "Key Resources": "keyResources",
-      "Key Activities": "keyActivities",
-      "CustomerChannels": "channels",
-      "Customer Relationships": "customerRelationships",
-      "Cost Structure": "costStructure",
-      "Revenue Streams": "revenueStreams"
-    };
-
-    return mapping[sectionName] || null;
-  }
-
   // Get current state for debugging
   getCurrentState(): any {
     return {
       selectedObject: this.selectedObject,
       hoveredObject: this.hoveredObject,
       isTopView: this.isTopView,
-      itemCount: this.items.size
+      itemCount: this.items.size,
+      safeMaterialManagerStats: this.safeMaterialManager?.getStats()
     };
   }
 
-  // Safely apply material properties to a mesh
-  private applyMaterialSafely(mesh: AbstractMesh, color: Color3, emissiveColor?: Color3, alpha?: number): void {
-    if (this.isEmergencyShutdown || !this.safeMaterialManager) {
-      console.log('🚫 Material operations disabled - emergency shutdown active');
-      return;
+  // Dispose of resources
+  dispose(): void {
+    this.items.clear();
+    this.selectedObject = null;
+    this.hoveredObject = null;
+
+    if (this.safeMaterialManager) {
+      this.safeMaterialManager.dispose();
     }
 
-    // Create safe material configuration
-    const materialName = `${mesh.name}_${color.r.toFixed(2)}_${color.g.toFixed(2)}_${color.b.toFixed(2)}`;
-
-    const materialConfig = {
-      diffuseColor: color,
-      emissiveColor: emissiveColor,
-      alpha: alpha
-    };
-
-    // Create and apply material safely
-    this.safeMaterialManager.createMaterial(materialName, materialConfig);
-    const success = this.safeMaterialManager.applyMaterialSafely(mesh, materialName);
-
-    if (!success) {
-      console.warn(`⚠️ Failed to apply safe material to ${mesh.name}`);
-    }
+    console.log('🧹 CleanBMCSystem disposed');
   }
 }
