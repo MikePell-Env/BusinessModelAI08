@@ -652,7 +652,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       "PerspectiveCamera",
       Math.PI/2 + Math.PI/12,  // +90° + 15° horizontal (slight additional rotation)
       Math.PI/6,               // 30° vertical angle for better view of tilted scene
-      45,                      // Distance adjusted for centered framing
+      55,                      // Distance increased to show whole canvas
       new Vector3(0, 0, 0),    // Look at scene center
       scene
     );
@@ -689,7 +689,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // MASTER TRANSFORM: Create root transform node to rotate entire scene 180 degrees + tilt toward viewer
     const masterTransform = new TransformNode("MasterTransform", scene);
     masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
-    masterTransform.rotation.x = Math.PI/6; // 30 degrees tilt toward viewer (front edge elevated)
+    masterTransform.rotation.x = Math.PI/12; // 15 degrees tilt toward viewer (gentler front edge elevation)
     masterTransform.position.y = 2; // Lift scene up to center in window
     
     // DYNAMIC SCALING: Scale BMC to fill window like reference image
