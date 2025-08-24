@@ -476,10 +476,9 @@ export class PowerPointParser {
         // Simple cleanup of excessive spaces
         const cleanedLine = line.replace(/\s+/g, ' ').trim();
         
-        // Look for existing patterns with Corp, Inc, etc. and clean them
+        // Look for existing patterns with Corp, Inc, etc. - keep exactly as found
         if (cleanedLine.match(/\b\w+.*\s+(Corp|Inc|LLC|Ltd|Company|Technologies|Tech|Solutions|Group|Enterprises)\b/i)) {
-          // Remove common company suffixes to clean up the name
-          return cleanedLine.replace(/,?\s*(Corp|Inc|LLC|Ltd|Company|Technologies|Tech|Solutions|Group|Enterprises)\.?$/i, '').trim();
+          return cleanedLine;
         }
         
         // Look for all caps that look like company names (fix spacing issues)
@@ -533,39 +532,49 @@ export class PowerPointParser {
       let founderName = null;
       let founderDescriptions = [];
       
-      // First priority: Look for specific name "Mike Pell" or any name with founder context
+      // Look for founders throughout the document
+      let foundersData = [];
+      
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         
-        // Look for Mike Pell specifically or Name + Founder patterns
-        if (line.match(/Mike\s+Pell/i) || 
-            line.match(/([A-Z][a-z]+\s+[A-Z][a-z]+).*\b(founder|ceo|chief)\b/i) ||
-            line.match(/\b(founder|ceo|chief).*([A-Z][a-z]+\s+[A-Z][a-z]+)/i)) {
-          
-          // Extract the name
-          const nameMatch = line.match(/([A-Z][a-z]+\s+[A-Z][a-z]+)/);
-          if (nameMatch && !founderName) {
-            founderName = nameMatch[1];
-          }
-          
-          // Get the context from this line if it has founder info
-          if (line.length > 10 && line.match(/\b(founder|ceo|chief)\b/i)) {
-            founderDescriptions.push(line.replace(/\s+/g, ' ').trim());
-          }
-          
-          // Look for additional description in nearby lines
-          for (let j = i + 1; j < Math.min(i + 3, lines.length); j++) {
-            const descLine = lines[j];
-            if (descLine.length > 15 && descLine.length < 200 && 
-                !descLine.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i) &&
-                !descLine.match(/https?:\/\/|www\.|\.com|\.ai|\.org/i) && // Exclude website URLs
-                !descLine.match(/^W\s?EBSITE/i) && // Exclude "WEBSITE" headers
-                founderDescriptions.length < 2) {
-              founderDescriptions.push(descLine.replace(/\s+/g, ' ').trim());
-            }
-          }
-          break;
+        // Skip website sections and URLs
+        if (line.match(/^W\s?EBSITE/i) || line.match(/https?:\/\/|www\.|\.com|\.ai|\.org/i)) {
+          continue;
         }
+        
+        // Look for specific names we know (like Mike Pell)
+        if (line.match(/Mike\s+Pell/i)) {
+          const nextLine = i + 1 < lines.length ? lines[i + 1] : '';
+          const title = nextLine && nextLine.length > 0 && nextLine.length < 50 && 
+                       !nextLine.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i) &&
+                       !nextLine.match(/https?:\/\/|www\.|\.com|\.ai|\.org/i) ? nextLine : 'Founder';
+          foundersData.push(`Mike Pell, ${title}`);
+          continue;
+        }
+        
+        // Look for Name + Title patterns in the same line
+        const nameWithTitle = line.match(/([A-Z][a-z]+\s+[A-Z][a-z]+).*\b(founder|ceo|chief executive|co-founder|president)\b/i);
+        if (nameWithTitle && foundersData.length < 3) {
+          const name = nameWithTitle[1];
+          const titleMatch = line.match(/\b(founder|ceo|chief executive|co-founder|president)[^,\n]*/i);
+          const title = titleMatch ? titleMatch[0] : 'Founder';
+          foundersData.push(`${name}, ${title}`);
+          continue;
+        }
+        
+        // Look for Title + Name patterns
+        const titleWithName = line.match(/\b(founder|ceo|chief executive|co-founder|president)[^,\n]*([A-Z][a-z]+\s+[A-Z][a-z]+)/i);
+        if (titleWithName && foundersData.length < 3) {
+          const title = titleWithName[1];
+          const name = titleWithName[2];
+          foundersData.push(`${name}, ${title}`);
+          continue;
+        }
+      }
+      
+      if (foundersData.length > 0) {
+        return foundersData;
       }
       
       // Second priority: Look for Team slide sections
@@ -631,25 +640,33 @@ export class PowerPointParser {
       
       // First priority: Look for dedicated Market slide sections
       let foundMarketSection = false;
+      let inMarketSection = false;
+      
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         
-        // Look for Market slide titles
-        if (line.match(/^MARKET$/i) || line.match(/MARKET SLIDE/i) || line.match(/TARGET MARKET/i) || 
-            line.match(/MARKET ANALYSIS/i) || line.match(/MARKET OPPORTUNITY/i)) {
+        // Look for Market slide titles (be more flexible)
+        if (line.match(/^MARKET$/i) || line.match(/MARKET/i) && line.length < 20) {
           foundMarketSection = true;
+          inMarketSection = true;
           continue;
         }
         
+        // Check if we've left the market section
+        if (inMarketSection && line.match(/^(SUMMARY|FOUNDERS|MISSION|KEY|WEBSITE|TEAM)/i)) {
+          inMarketSection = false;
+        }
+        
         // Extract content from Market section
-        if (foundMarketSection) {
-          if (line.match(/^(SUMMARY|DETAILS|FOUNDERS|MISSION|KEY|WEBSITE|TEAM)/i)) {
-            break; // Hit next section
-          }
-          
-          // Add market content from this section
-          if (line.length > 15 && line.length < 250 && foundMarketInfo.length < 3) {
-            foundMarketInfo.push(line.replace(/\s+/g, ' ').trim());
+        if (inMarketSection && line.length > 5) {
+          // Skip URLs and website content
+          if (!line.match(/https?:\/\/|www\.|\.com|\.ai|\.org/i) && 
+              !line.match(/^W\s?EBSITE/i) &&
+              foundMarketInfo.length < 5) {
+            const cleanLine = line.replace(/\s+/g, ' ').trim();
+            if (cleanLine.length > 10) {
+              foundMarketInfo.push(cleanLine);
+            }
           }
         }
       }
