@@ -83,11 +83,8 @@ export class CameraController {
       this.scene
     );
     
-    // Look straight down with 180-degree rotation to match reference image orientation
+    // Look straight down - let coordinate system handle positioning naturally
     camera.setTarget(new Vector3(0, 0, 0));
-    
-    // Rotate camera 180 degrees around Y-axis (clockwise from top view)
-    camera.rotation.y = Math.PI;
     
     // Set orthographic mode
     camera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
@@ -110,10 +107,9 @@ export class CameraController {
     if (mode === '3D Top') {
       this.scene.activeCamera = this.orthographicCamera;
       
-      // Position for top-down view with 180-degree rotation
+      // Position for top-down view - natural coordinate system
       this.orthographicCamera.position = new Vector3(0, 30, 0);
       this.orthographicCamera.setTarget(new Vector3(0, 0, 0));
-      this.orthographicCamera.rotation.y = Math.PI; // 180-degree rotation
       
       debugLog.info('camera', 'Switched to 3D Top view (orthographic)');
     } else {
@@ -167,7 +163,6 @@ export class CameraController {
     } else {
       this.orthographicCamera.position = new Vector3(0, 30, 0);
       this.orthographicCamera.setTarget(new Vector3(0, 0, 0));
-      this.orthographicCamera.rotation.y = Math.PI; // 180-degree rotation
     }
     
     debugLog.info('camera', `Camera reset for ${this.currentMode} mode`);
