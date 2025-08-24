@@ -86,7 +86,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                 {/* Vertical Divider */}
                 <div 
                   className="w-px mr-8 flex-shrink-0 bg-gray-300"
-                  style={{ height: 'calc(100vh - 280px)' }}
+                  style={{ height: 'calc(100vh - 400px)' }}
                 />
                 
                 {/* Explore Content */}
