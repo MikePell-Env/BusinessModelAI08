@@ -29,6 +29,13 @@ export class UnifiedInteractionManager {
   private currentHoveredMesh: AbstractMesh | null = null;
   private hoverThrottleMs: number = 16; // ~60fps
   private lastHoverTime: number = 0;
+  
+  // Drag detection for camera rotation
+  private isMouseDown: boolean = false;
+  private mouseDownPosition: { x: number, y: number } | null = null;
+  private isDragging: boolean = false;
+  private dragThreshold: number = 5; // pixels
+  private pendingClickMesh: { sectionId: string, mesh: AbstractMesh, position: Vector3 } | null = null;
 
   constructor(scene: Scene, callbacks: InteractionCallbacks) {
     this.scene = scene;
@@ -52,6 +59,9 @@ export class UnifiedInteractionManager {
           case PointerEventTypes.POINTERMOVE:
             this.handlePointerMove(pointerInfo);
             break;
+          case PointerEventTypes.POINTERUP:
+            this.handlePointerUp(pointerInfo);
+            break;
         }
       } catch (error) {
         console.error('❌ UnifiedInteractionManager: Pointer event error:', error);
@@ -60,24 +70,26 @@ export class UnifiedInteractionManager {
   }
 
   /**
-   * Handle pointer down events (clicks)
+   * Handle pointer down events - track position for drag detection
    */
   private handlePointerDown(pointerInfo: any): void {
-    const pickResult = pointerInfo.pickInfo;
+    this.isMouseDown = true;
+    this.isDragging = false;
+    this.mouseDownPosition = { x: this.scene.pointerX, y: this.scene.pointerY };
     
+    // Store potential click target but don't process yet
+    const pickResult = pointerInfo.pickInfo;
     if (pickResult?.hit && pickResult.pickedMesh) {
       const mesh = pickResult.pickedMesh;
       const sectionId = this.getSectionId(mesh);
       
       if (sectionId) {
-        this.handleMeshClick(sectionId, mesh, pickResult.pickedPoint);
+        this.pendingClickMesh = { sectionId, mesh, position: pickResult.pickedPoint };
       } else {
-        // Clicked on non-selectable mesh, treat as background
-        this.callbacks.onBackgroundClick();
+        this.pendingClickMesh = null;
       }
     } else {
-      // Clicked on empty space
-      this.callbacks.onBackgroundClick();
+      this.pendingClickMesh = null;
     }
   }
 
@@ -116,44 +128,89 @@ export class UnifiedInteractionManager {
   }
 
   /**
-   * Handle pointer move events (hover)
+   * Handle pointer move events (hover and drag detection)
    */
   private handlePointerMove(pointerInfo: any): void {
-    const currentTime = Date.now();
-    
-    // Throttle hover events for performance
-    if (currentTime - this.lastHoverTime < this.hoverThrottleMs) {
-      return;
+    // Check for dragging during mouse down
+    if (this.isMouseDown && this.mouseDownPosition && !this.isDragging) {
+      const currentX = this.scene.pointerX;
+      const currentY = this.scene.pointerY;
+      const deltaX = Math.abs(currentX - this.mouseDownPosition.x);
+      const deltaY = Math.abs(currentY - this.mouseDownPosition.y);
+      
+      if (deltaX > this.dragThreshold || deltaY > this.dragThreshold) {
+        this.isDragging = true;
+        console.log(`🖱️ Drag detected: movement (${deltaX}, ${deltaY}) exceeds threshold ${this.dragThreshold}px`);
+      }
     }
-    this.lastHoverTime = currentTime;
-
-    const pickResult = this.scene.pick(
-      this.scene.pointerX, 
-      this.scene.pointerY,
-      (mesh) => this.isSelectableMesh(mesh)
-    );
-
-    const hoveredMesh = pickResult?.hit ? pickResult.pickedMesh : null;
     
-    // Check if hover state changed
-    if (hoveredMesh !== this.currentHoveredMesh) {
-      // Exit previous hover
-      if (this.currentHoveredMesh) {
-        const prevSectionId = this.getSectionId(this.currentHoveredMesh);
-        if (prevSectionId) {
-          this.callbacks.onHoverExit(prevSectionId, this.currentHoveredMesh);
-        }
-      }
+    // Handle hover state only if not dragging
+    if (!this.isDragging) {
+      const currentTime = Date.now();
       
-      // Enter new hover
-      if (hoveredMesh) {
-        const sectionId = this.getSectionId(hoveredMesh);
-        if (sectionId) {
-          this.callbacks.onHoverEnter(sectionId, hoveredMesh);
-        }
+      // Throttle hover events for performance
+      if (currentTime - this.lastHoverTime < this.hoverThrottleMs) {
+        return;
       }
+      this.lastHoverTime = currentTime;
+
+      const pickResult = this.scene.pick(
+        this.scene.pointerX, 
+        this.scene.pointerY,
+        (mesh) => this.isSelectableMesh(mesh)
+      );
+
+      const hoveredMesh = pickResult?.hit ? pickResult.pickedMesh : null;
       
-      this.currentHoveredMesh = hoveredMesh;
+      // Check if hover state changed
+      if (hoveredMesh !== this.currentHoveredMesh) {
+        // Exit previous hover
+        if (this.currentHoveredMesh) {
+          const prevSectionId = this.getSectionId(this.currentHoveredMesh);
+          if (prevSectionId) {
+            this.callbacks.onHoverExit(prevSectionId, this.currentHoveredMesh);
+          }
+        }
+        
+        // Enter new hover
+        if (hoveredMesh) {
+          const sectionId = this.getSectionId(hoveredMesh);
+          if (sectionId) {
+            this.callbacks.onHoverEnter(sectionId, hoveredMesh);
+          }
+        }
+        
+        this.currentHoveredMesh = hoveredMesh;
+      }
+    }
+  }
+
+  /**
+   * Handle pointer up events - process clicks only if no dragging occurred
+   */
+  private handlePointerUp(pointerInfo: any): void {
+    if (!this.isMouseDown) return;
+
+    try {
+      if (this.isDragging) {
+        // Was a drag operation (camera rotation) - don't process as click
+        console.log(`🖱️ Drag operation completed - no click processing`);
+      } else if (this.pendingClickMesh) {
+        // Was a clean click without dragging - process selection
+        const { sectionId, mesh, position } = this.pendingClickMesh;
+        console.log(`🖱️ Clean click detected: ${sectionId}`);
+        this.handleMeshClick(sectionId, mesh, position);
+      } else {
+        // Background click without dragging
+        console.log(`🖱️ Background click without drag`);
+        this.callbacks.onBackgroundClick();
+      }
+    } finally {
+      // Reset drag state
+      this.isMouseDown = false;
+      this.isDragging = false;
+      this.mouseDownPosition = null;
+      this.pendingClickMesh = null;
     }
   }
 
