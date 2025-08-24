@@ -283,15 +283,15 @@ export class CleanBMCSystem {
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
           console.log(`🎨 3D View - Applied HOVER: ${name} -> brighter original (height unchanged)`);
         } else {
-          // Main sections: Bright blue as documented
+          // Main sections: Toned down blue with better shading
           material.diffuseColor.r = 0.0;
-          material.diffuseColor.g = 0.5; 
-          material.diffuseColor.b = 1.0;
+          material.diffuseColor.g = 0.3; 
+          material.diffuseColor.b = 0.7;
           // Reset emissive for clean hover look
           material.emissiveColor.r = 0.0;
           material.emissiveColor.g = 0.0;
           material.emissiveColor.b = 0.0;
-          console.log(`🎨 3D View - Applied HOVER: ${name} -> bright blue (height unchanged)`);
+          console.log(`🎨 3D View - Applied HOVER: ${name} -> toned blue (height unchanged)`);
         }
       } else if (state === 'selected') {
         // Rule 3: Selected object
@@ -312,15 +312,15 @@ export class CleanBMCSystem {
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
           console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright original`);
         } else {
-          // Main sections: Bright blue as documented
+          // Main sections: Toned down blue with better shading
           material.diffuseColor.r = 0.0;
-          material.diffuseColor.g = 0.5; 
-          material.diffuseColor.b = 1.0;
+          material.diffuseColor.g = 0.3; 
+          material.diffuseColor.b = 0.7;
           // Add subtle emissive for better depth perception
           material.emissiveColor.r = 0.0;
-          material.emissiveColor.g = 0.1;
-          material.emissiveColor.b = 0.2;
-          console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright blue with depth`);
+          material.emissiveColor.g = 0.05;
+          material.emissiveColor.b = 0.1;
+          console.log(`🎨 3D View - Applied SELECTED: ${name} -> toned blue with depth`);
         }
       } else if (state === 'dimmed') {
         // Rule 3: Other objects when something is selected
