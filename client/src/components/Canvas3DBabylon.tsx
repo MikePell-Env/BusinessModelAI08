@@ -229,6 +229,8 @@ const STANDARD_POSITIONS = {
 };
 
 export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
+  console.log('🔵 Canvas3DBabylon RENDERING with isOrthographic from useCanvas...');
+  
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
@@ -261,6 +263,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     getBMCSelectedObject,
     bmcState
   } = useCanvas();
+  
+  console.log(`🔵 Canvas3DBabylon: isOrthographic from useCanvas = ${isOrthographic}`);
   
   // REMOVED: Unified transformation system - simplified for reliability
   
