@@ -527,12 +527,12 @@ export class PowerPointParser {
 
   private extractFounders(content: string): string[] {
     try {
-      // Look for any text after FOUNDERS keyword
       const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 2);
       
-      // Find lines containing founder-related info
-      const founderLines = [];
+      // Find the FOUNDERS section
       let foundFoundersSection = false;
+      let founderName = null;
+      let founderDescriptions = [];
       
       for (const line of lines) {
         if (line.match(/FOUNDERS|LEADERSHIP/i)) {
@@ -540,18 +540,35 @@ export class PowerPointParser {
           continue;
         }
         
-        if (foundFoundersSection && founderLines.length < 3) {
-          if (line.match(/^(SUMMARY|DETAILS|MISSION|KEY)/i)) {
+        if (foundFoundersSection) {
+          if (line.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i)) {
             break; // Hit next section
           }
-          if (line.length > 5 && line.length < 100) {
-            founderLines.push(line.replace(/\s+/g, ' ').trim());
+          
+          // Look for a name first (if we don't have one yet)
+          if (!founderName && line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+/) && line.length < 60) {
+            founderName = line.replace(/\s+/g, ' ').trim();
+          }
+          // Look for descriptive paragraphs
+          else if (line.length > 20 && line.length < 200 && !line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/)) {
+            founderDescriptions.push(line.replace(/\s+/g, ' ').trim());
           }
         }
       }
       
-      if (founderLines.length > 0) {
-        return founderLines;
+      // Build result with name first, then descriptions
+      const result = [];
+      if (founderName) {
+        result.push(founderName);
+      }
+      
+      // Add up to 2 descriptions
+      if (founderDescriptions.length > 0) {
+        result.push(...founderDescriptions.slice(0, 2));
+      }
+      
+      if (result.length > 0) {
+        return result;
       }
 
       return [
@@ -617,8 +634,6 @@ export class PowerPointParser {
 
   private extractWebsite(content: string): string[] {
     try {
-      const websites = [];
-      
       // Look for URLs in the content
       const urlPattern = /(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s<>"]*)?)/gi;
       const matches = content.match(urlPattern);
@@ -634,9 +649,8 @@ export class PowerPointParser {
           
           // Filter out common non-website patterns
           if (!cleanUrl.match(/\.(jpg|jpeg|png|gif|pdf|doc|docx|ppt|pptx)$/i) && 
-              cleanUrl.length > 5 && 
-              websites.length < 3) {
-            websites.push(cleanUrl);
+              cleanUrl.length > 5) {
+            return [cleanUrl]; // Return only the first valid URL
           }
         }
       }
@@ -645,17 +659,9 @@ export class PowerPointParser {
       const domainPattern = /\b([a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|co|io|ai|tech))\b/gi;
       const domainMatches = content.match(domainPattern);
       
-      if (domainMatches && websites.length < 3) {
-        for (const domain of domainMatches) {
-          const cleanDomain = 'https://' + domain.trim();
-          if (!websites.includes(cleanDomain) && websites.length < 3) {
-            websites.push(cleanDomain);
-          }
-        }
-      }
-      
-      if (websites.length > 0) {
-        return websites;
+      if (domainMatches) {
+        const cleanDomain = 'https://' + domainMatches[0].trim();
+        return [cleanDomain]; // Return only the first domain found
       }
       
       return ['Website information will be extracted from your PowerPoint presentation.'];
