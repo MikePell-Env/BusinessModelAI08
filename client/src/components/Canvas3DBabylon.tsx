@@ -238,6 +238,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
   const viewTransitionRef = useRef<ViewTransitionManager | null>(null);
   const [showBulletText, setShowBulletText] = useState(false);
+  
+  // CRASH FIX: Add unified canvas manager for testing crash fix
+  const unifiedCanvasTestRef = useRef<any>(null);
   const { 
     saveCamera3DState, 
     getCamera3DState, 
@@ -1370,6 +1373,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       onSingleClick: (sectionId: string, mesh: AbstractMesh) => {
         console.log(`🖱️ Single click: ${sectionId}`);
         console.log(`🔍 DEBUG: cleanBMCRef.current exists: ${!!cleanBMCRef.current}`);
+        
+        // REVENUE CRASH FIX: Prevent camera conflicts during Revenue clicks in 3D Top
+        if (sectionId === "Revenue Streams" && isOrthographic) {
+          console.log("🛡️ CRASH FIX: Revenue Streams click in 3D Top - preventing camera conflicts");
+          try {
+            if (cleanBMCRef.current) {
+              cleanBMCRef.current.onSelect(sectionId);
+            }
+            return; // Exit early to prevent conflicts
+          } catch (error) {
+            console.error("❌ Revenue crash fix failed:", error);
+            return;
+          }
+        }
         
         if (cleanBMCRef.current) {
           console.log(`🔍 DEBUG: About to call cleanBMCRef.current.onSelect(${sectionId})`);
@@ -2872,7 +2889,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       // Clean up unified systems and managers
       try {
+        // REVENUE CRASH FIX: Safely dispose interaction manager to prevent camera conflicts
         if (interactionManagerRef.current) {
+          console.log("🛡️ Safely disposing interaction manager to prevent crashes");
           interactionManagerRef.current.dispose();
           interactionManagerRef.current = null;
         }
@@ -2927,6 +2946,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // CRITICAL FIX: Don't re-setup orthographic event handlers - UnifiedInteractionManager handles all interactions
         // The built-in camera controls handle zoom/pan, UnifiedInteractionManager handles object interactions
         console.log("🎯 3D Top view - using built-in camera controls + UnifiedInteractionManager (no manual event handlers)");
+        
+        // REVENUE CRASH FIX: Add protective camera state for Revenue clicks
+        if (orthoCamera) {
+          orthoCamera.setTarget(Vector3.Zero());
+          console.log("🛡️ Protected camera state set for 3D Top view");
+        }
         
         // Apply visual state after camera switch - preserve selection in 3D Top view
         setTimeout(() => {
