@@ -45,6 +45,10 @@ import { ViewTransitionManager } from './Canvas3DBabylon/animations/ViewTransiti
 // REMOVED: MaterialManager - using direct property modification instead
 import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 
+// UNIFIED SYSTEM: Replace competing managers with unified architecture
+import { CameraControllerAdapter } from './Canvas3DBabylon/adapters/CameraControllerAdapter';
+import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter';
+
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
   isTransitioning?: boolean;
