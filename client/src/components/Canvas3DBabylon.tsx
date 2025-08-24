@@ -1,26 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
-import {
-  Engine,
-  Scene,
-  ArcRotateCamera,
-  FreeCamera,
-  HemisphericLight,
-  DirectionalLight,
-  MeshBuilder,
-  StandardMaterial,
-  Color3,
-  Color4,
-  Vector3,
-  AbstractMesh,
-  ActionManager,
-  ExecuteCodeAction,
-  DynamicTexture,
-  Texture
-} from '@babylonjs/core';
-import '@babylonjs/loaders/glTF';
-import { BusinessModelCanvas } from '@/types/canvas';
-import { useCanvas } from '@/lib/stores/useCanvas';
-import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
+import React, { useRef, useEffect } from 'react';
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, Color3, Vector3, Mesh, ActionManager, ExecuteCodeAction, FreeCamera, Tools } from '@babylonjs/core';
+import { AdvancedDynamicTexture, Rectangle, TextBlock, Control } from '@babylonjs/gui';
+import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -31,265 +12,234 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
-  const cameraRef = useRef<ArcRotateCamera | null>(null);
-  const orthoCameraRef = useRef<FreeCamera | null>(null);
-  const cleanBMCRef = useRef<CleanBMCSystem | null>(null);
-
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  const {
-    saveCamera3DState,
-    getCamera3DState,
-    is3D,
-    isOrthographic
-  } = useCanvas();
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
 
-    const canvasElement = canvasRef.current;
-    let engine: Engine | null = null;
-    let scene: Scene | null = null;
+    // Initialize Babylon.js engine and scene
+    const engine = new Engine(canvasRef.current, true);
+    const scene = new Scene(engine);
+    
+    engineRef.current = engine;
+    sceneRef.current = scene;
 
-    try {
-      console.log('🚀 Initializing 3D Canvas...');
-
-      // Initialize Babylon.js
-      engine = new Engine(canvasElement, true, {
-        preserveDrawingBuffer: true,
-        antialias: true,
-        powerPreference: "high-performance",
-        stencil: true,
-        adaptToDeviceRatio: true
-      });
-
-      scene = new Scene(engine);
-      scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
-
-      engineRef.current = engine;
-      sceneRef.current = scene;
-
-      // Initialize cameras
-      setupCameras(scene);
-      
-      // Initialize lighting
-      setupLighting(scene);
-      
-      // Initialize Clean BMC System
-      cleanBMCRef.current = new CleanBMCSystem();
-      cleanBMCRef.current.initialize(scene);
-      
-      // Load BMC model
-      loadBMCModel(scene);
-
-      console.log('✅ 3D Canvas initialized successfully');
-
-    } catch (error) {
-      console.error('❌ Failed to initialize 3D Canvas:', error);
-    }
-
-    return () => {
-      console.log('🧹 Cleaning up 3D Canvas...');
-      
-      if (cleanBMCRef.current) {
-        cleanBMCRef.current = null;
-      }
-      
-      if (scene) {
-        scene.dispose();
-      }
-      
-      if (engine) {
-        engine.dispose();
-      }
-    };
-  }, [canvas]); // Only recreate scene when canvas changes, not view mode
-
-  const setupCameras = (scene: Scene) => {
-    // 3D Perspective Camera
-    const camera3D = new ArcRotateCamera(
-      'camera3D',
-      -Math.PI / 2,
-      Math.PI / 2.5,
-      12,
-      Vector3.Zero(),
+    // Create camera with user controls
+    const camera = new ArcRotateCamera(
+      "camera",
+      -Math.PI / 2,    // Alpha (horizontal rotation)
+      Math.PI / 2.5,   // Beta (vertical rotation)
+      12,              // Radius (distance from target)
+      Vector3.Zero(),  // Target position
       scene
     );
-    camera3D.setTarget(Vector3.Zero());
-    camera3D.lowerRadiusLimit = 5;
-    camera3D.upperRadiusLimit = 25;
-    camera3D.lowerBetaLimit = 0.1;
-    camera3D.upperBetaLimit = Math.PI / 2.2;
+    camera.setTarget(Vector3.Zero());
     
-    // 3D Top Orthographic Camera
-    const cameraTop = new FreeCamera('cameraTop', new Vector3(0, 15, 0), scene);
-    cameraTop.setTarget(Vector3.Zero());
-    cameraTop.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
-    const orthoSize = 8;
-    cameraTop.orthoLeft = -orthoSize;
-    cameraTop.orthoRight = orthoSize;
-    cameraTop.orthoTop = orthoSize * 0.6;
-    cameraTop.orthoBottom = -orthoSize * 0.6;
-
-    cameraRef.current = camera3D;
-    orthoCameraRef.current = cameraTop;
-
-    // Set active camera and controls
-    const activeCamera = isOrthographic ? cameraTop : camera3D;
-    scene.activeCamera = activeCamera;
+    // Enable camera controls on the canvas
+    camera.attachControl(canvasRef.current, true);
     
-    if (!isOrthographic) {
-      camera3D.attachControl(canvasRef.current, true);
-    }
-  };
+    // Set camera limits for better user experience
+    camera.lowerRadiusLimit = 5;      // Minimum zoom distance
+    camera.upperRadiusLimit = 25;     // Maximum zoom distance
+    camera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
+    camera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
 
-  const setupLighting = (scene: Scene) => {
-    // Hemisphere light for general illumination
-    const hemiLight = new HemisphericLight('hemiLight', new Vector3(0, 1, 0), scene);
-    hemiLight.intensity = 0.6;
-    hemiLight.diffuse = new Color3(1, 1, 1);
-    hemiLight.specular = new Color3(1, 1, 1);
-    hemiLight.groundColor = new Color3(0.7, 0.7, 0.7);
+    // Create lighting
+    const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+    light.intensity = 0.8;
 
-    // Directional light for better depth perception
-    const dirLight = new DirectionalLight('dirLight', new Vector3(-1, -1, -1), scene);
-    dirLight.intensity = 0.4;
-    dirLight.diffuse = new Color3(1, 1, 1);
-    dirLight.specular = new Color3(0.8, 0.8, 0.8);
-  };
+    // Create ground
+    const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
+    const groundMaterial = new StandardMaterial("groundMaterial", scene);
+    groundMaterial.diffuseColor = new Color3(0.97, 0.98, 0.99);
+    ground.material = groundMaterial;
 
-  const loadBMCModel = async (scene: Scene) => {
-    try {
-      const { SceneLoader } = await import('@babylonjs/core/Loading/sceneLoader');
+    // Create GUI
+    const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+    // Helper function to create a business model block
+    const createBusinessBlock = (
+      element: CanvasElement,
+      position: Vector3,
+      size: Vector3,
+      color: Color3,
+      elementId: string
+    ) => {
+      // Create the main box
+      const box = MeshBuilder.CreateBox(`box_${elementId}`, {
+        width: size.x,
+        height: size.y,
+        depth: size.z
+      }, scene);
       
-      console.log('📦 Loading BMC model...');
+      box.position = position;
       
-      const result = await SceneLoader.ImportMeshAsync('', '/models/', 'BMC.glb', scene);
-      
-      if (result.meshes.length === 0) {
-        throw new Error('No meshes found in BMC model');
-      }
+      // Create material
+      const material = new StandardMaterial(`material_${elementId}`, scene);
+      material.diffuseColor = color;
+      material.alpha = 0.8;
+      box.material = material;
 
-      console.log(`✅ BMC model loaded with ${result.meshes.length} meshes`);
-      
-      // Initialize BMC System with meshes
-      if (cleanBMCRef.current) {
-        initializeBMCSystem(scene, result.meshes);
-      }
-      
-      setIsLoaded(true);
-      
-    } catch (error) {
-      console.error('❌ Failed to load BMC model:', error);
-    }
-  };
+      // Add interaction
+      box.actionManager = new ActionManager(scene);
+      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+        console.log(`Clicked on ${element.title}`);
+      }));
 
-  const initializeBMCSystem = (scene: Scene, meshes: AbstractMesh[]) => {
-    const cleanBMC = cleanBMCRef.current;
-    if (!cleanBMC) return;
+      // Add hover effect
+      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+        material.diffuseColor = new Color3(0.29, 0.56, 0.89); // Blue hover
+      }));
 
-    try {
-      console.log('🔧 Initializing BMC system...');
+      box.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+        material.diffuseColor = color; // Original color
+      }));
 
-      // Map meshes to BMC sections
-      const bmcSections = [
-        'Value Propositions', 'Key Partners', 'Customer Segments',
-        'Key Resources', 'Key Activities', 'CustomerChannels', 
-        'Customer Relationships', 'Revenue Streams', 'Cost Structure'
-      ];
+      // Create GUI elements for text
+      const rect = new Rectangle(`rect_${elementId}`);
+      rect.widthInPixels = 200;
+      rect.heightInPixels = 100;
+      rect.cornerRadius = 10;
+      rect.color = "transparent";
+      rect.thickness = 0;
+      advancedTexture.addControl(rect);
 
-      // Register meshes with CleanBMC system
-      meshes.forEach(mesh => {
-        const meshName = mesh.name;
-        let sectionName = '';
+      // Title text
+      const titleText = new TextBlock(`title_${elementId}`, element.title);
+      titleText.color = "#2D3748";
+      titleText.fontSize = 18;
+      titleText.fontWeight = "bold";
+      titleText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      titleText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+      titleText.paddingTop = "10px";
+      rect.addControl(titleText);
 
-        // Map mesh names to section names
-        if (meshName.includes('ValueProposition')) sectionName = 'Value Propositions';
-        else if (meshName.includes('KeyPartners')) sectionName = 'Key Partners';
-        else if (meshName.includes('CustomerSegments')) sectionName = 'Customer Segments';
-        else if (meshName.includes('KeyResources')) sectionName = 'Key Resources';
-        else if (meshName.includes('KeyActivities')) sectionName = 'Key Activities';
-        else if (meshName.includes('CustomerChannels')) sectionName = 'CustomerChannels';
-        else if (meshName.includes('CustomerRelationships')) sectionName = 'Customer Relationships';
-        else if (meshName.includes('RevenueStreams')) sectionName = 'Revenue Streams';
-        else if (meshName.includes('CostStructure')) sectionName = 'Cost Structure';
+      // Content text
+      const contentText = new TextBlock(`content_${elementId}`, 
+        element.content.slice(0, 2).join(' • ') + (element.content.length > 2 ? '...' : '')
+      );
+      contentText.color = "#4A5568";
+      contentText.fontSize = 12;
+      contentText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      contentText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+      contentText.paddingBottom = "10px";
+      rect.addControl(contentText);
 
-        if (sectionName && bmcSections.includes(sectionName)) {
-          cleanBMC.registerMesh(mesh, sectionName);
-        }
-      });
+      // Link GUI to 3D position
+      rect.linkWithMesh(box);
+      rect.linkOffsetY = -50;
 
-      // For now, disable interactions in both views to prevent crashes
-      // TODO: Re-enable interactions once stability is confirmed
-      console.log('🔒 All interactions disabled for stability');
-
-      console.log('✅ BMC system initialized');
-
-    } catch (error) {
-      console.error('❌ Failed to initialize BMC system:', error);
-    }
-  };
-
-  // Handle camera switching when view mode changes (separate from scene initialization)
-  useEffect(() => {
-    if (!sceneRef.current || !cameraRef.current || !orthoCameraRef.current) return;
-
-    const scene = sceneRef.current;
-    const activeCamera = isOrthographic ? orthoCameraRef.current : cameraRef.current;
-    
-    scene.activeCamera = activeCamera;
-
-    if (isOrthographic) {
-      // Disable controls in 3D Top view
-      cameraRef.current.detachControl();
-    } else {
-      // Enable controls for 3D View
-      cameraRef.current.attachControl(canvasRef.current, true);
-    }
-
-    // Update CleanBMC system view mode
-    if (cleanBMCRef.current) {
-      cleanBMCRef.current.setTopViewMode(isOrthographic);
-    }
-
-    console.log(`📷 Camera switched to: ${isOrthographic ? '3D Top' : '3D View'}`);
-  }, [isOrthographic]);
-
-  // Start render loop
-  useEffect(() => {
-    if (!engineRef.current) return;
-
-    const engine = engineRef.current;
-    
-    const renderLoop = () => {
-      if (sceneRef.current && !isTransitioning) {
-        sceneRef.current.render();
-      }
+      return box;
     };
 
-    engine.runRenderLoop(renderLoop);
+    // POSITIONING: Matches 2D grid layout exactly
+    const blocks = [
+      // Column 1-2: Key Partners (left, spans 2 rows)
+      createBusinessBlock(
+        canvas.keyPartners,
+        new Vector3(-4, 0.5, 0),    // Position: far left, centered vertically
+        new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
+        Color3.FromHexString(canvas.keyPartners.color || '#FFE5E5'),
+        canvas.keyPartners.id
+      ),
 
+      // Column 3-4: Key Activities (top)
+      createBusinessBlock(
+        canvas.keyActivities,
+        new Vector3(-2, 0.5, 1),    // Position: left-center, forward
+        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
+        Color3.FromHexString(canvas.keyActivities.color || '#E5F3FF'),
+        canvas.keyActivities.id
+      ),
+
+      // Column 3-4: Key Resources (bottom)
+      createBusinessBlock(
+        canvas.keyResources,
+        new Vector3(-2, 0.5, -1),   // Position: left-center, back
+        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
+        Color3.FromHexString(canvas.keyResources.color || '#E5FFE5'),
+        canvas.keyResources.id
+      ),
+
+      // Column 5-6: Value Propositions (center, spans 2 rows)
+      createBusinessBlock(
+        canvas.valuePropositions,
+        new Vector3(0, 0.5, 0),     // Position: center, centered vertically
+        new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
+        Color3.FromHexString(canvas.valuePropositions.color || '#FFF5E5'),
+        canvas.valuePropositions.id
+      ),
+
+      // Column 7-8: Customer Relationships (top)
+      createBusinessBlock(
+        canvas.customerRelationships,
+        new Vector3(2, 0.5, 1),     // Position: right-center, forward
+        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
+        Color3.FromHexString(canvas.customerRelationships.color || '#F5E5FF'),
+        canvas.customerRelationships.id
+      ),
+
+      // Column 7-8: Channels (bottom)
+      createBusinessBlock(
+        canvas.channels,
+        new Vector3(2, 0.5, -1),    // Position: right-center, back
+        new Vector3(1.8, 1, 1.2),   // Size: narrow width, short height
+        Color3.FromHexString(canvas.channels.color || '#E5FFFF'),
+        canvas.channels.id
+      ),
+
+      // Column 9-10: Customer Segments (right, spans 2 rows)
+      createBusinessBlock(
+        canvas.customerSegments,
+        new Vector3(4, 0.5, 0),     // Position: far right, centered vertically
+        new Vector3(1.8, 1, 2.5),   // Size: narrow width, tall height
+        Color3.FromHexString(canvas.customerSegments.color || '#FFE5F5'),
+        canvas.customerSegments.id
+      ),
+
+      // Row 3: Cost Structure (spans 5 columns)
+      createBusinessBlock(
+        canvas.costStructure,
+        new Vector3(-1, 0.5, -2.5), // Position: left side, back
+        new Vector3(4.5, 1, 1),     // Size: wide width, short height
+        Color3.FromHexString(canvas.costStructure.color || '#F0F0F0'),
+        canvas.costStructure.id
+      ),
+
+      // Row 3: Revenue Streams (spans 5 columns)
+      createBusinessBlock(
+        canvas.revenueStreams,
+        new Vector3(1, 0.5, -2.5),  // Position: right side, back
+        new Vector3(4.5, 1, 1),     // Size: wide width, short height
+        Color3.FromHexString(canvas.revenueStreams.color || '#E5F5E5'),
+        canvas.revenueStreams.id
+      )
+    ];
+
+    // Start the render loop
+    engine.runRenderLoop(() => {
+      if (scene) {
+        scene.render();
+      }
+    });
+
+    // Clean up on unmount
     return () => {
-      engine.stopRenderLoop(renderLoop);
+      if (engineRef.current) {
+        engineRef.current.dispose();
+      }
+      if (sceneRef.current) {
+        sceneRef.current.dispose();
+      }
     };
-  }, [isTransitioning]);
+  }, [canvas]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className={`w-full h-full ${isTransitioning ? 'opacity-50' : ''}`}>
       <canvas
         ref={canvasRef}
-        className="w-full h-full outline-none"
-        style={{ display: 'block' }}
+        className="w-full h-full"
+        style={{ outline: 'none' }}
       />
-      
-      {!isLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p className="text-sm text-gray-600">Loading 3D Model...</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
