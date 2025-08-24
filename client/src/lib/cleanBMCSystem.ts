@@ -282,10 +282,10 @@ export class CleanBMCSystem {
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
           console.log(`🎨 3D View - Applied HOVER: ${name} -> brighter original (height unchanged)`);
         } else {
-          // Main sections: Softer blue (less bright on top surface)
-          material.diffuseColor.r = 0.1;
-          material.diffuseColor.g = 0.4; 
-          material.diffuseColor.b = 0.8;
+          // Main sections: Very subtle blue for better shading
+          material.diffuseColor.r = 0.15;
+          material.diffuseColor.g = 0.25; 
+          material.diffuseColor.b = 0.6;
           console.log(`🎨 3D View - Applied HOVER: ${name} -> soft blue (height unchanged)`);
         }
       } else if (state === 'selected') {
