@@ -668,9 +668,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Optimized field of view to fill window area while showing complete BMC layout
     topViewCamera.fov = 0.2; // Sweet spot between filling window and showing complete layout
     
-    // Add mouse wheel zoom support for top view camera
+    // Add smooth mouse wheel zoom support for top view camera (like 3D view)
     const addTopViewZoomControls = () => {
       if (!canvasElement) return null;
+      
+      let targetFov = topViewCamera.fov;
+      let currentFov = topViewCamera.fov;
+      let animationId: number | null = null;
+      
+      const smoothZoomAnimation = () => {
+        // Smooth interpolation toward target FOV
+        const lerpSpeed = 0.1; // Similar smoothness to ArcRotateCamera
+        currentFov += (targetFov - currentFov) * lerpSpeed;
+        
+        // Apply the smoothed FOV
+        topViewCamera.fov = currentFov;
+        
+        // Continue animation if not close enough to target
+        if (Math.abs(targetFov - currentFov) > 0.001) {
+          animationId = requestAnimationFrame(smoothZoomAnimation);
+        } else {
+          animationId = null;
+        }
+      };
       
       const handleWheel = (event: WheelEvent) => {
         // Only handle zoom when top view camera is active
@@ -678,19 +698,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         
         event.preventDefault();
         
-        // Adjust FOV for zoom effect (smaller FOV = more zoomed in)
-        const zoomSpeed = 0.002;
+        // Smooth zoom like ArcRotateCamera wheelPrecision
+        const zoomSpeed = 0.0008; // Much finer control like wheelPrecision=50
         const minFov = 0.05; // Maximum zoom in
         const maxFov = 0.4;  // Maximum zoom out
         
         const deltaY = event.deltaY;
-        let newFov = topViewCamera.fov + (deltaY * zoomSpeed);
+        targetFov += (deltaY * zoomSpeed);
         
-        // Clamp FOV to reasonable limits
-        newFov = Math.max(minFov, Math.min(maxFov, newFov));
-        topViewCamera.fov = newFov;
+        // Clamp target FOV to reasonable limits
+        targetFov = Math.max(minFov, Math.min(maxFov, targetFov));
         
-        console.log(`🔍 Top view zoom: FOV = ${newFov.toFixed(3)}`);
+        // Start smooth animation if not already running
+        if (animationId === null) {
+          animationId = requestAnimationFrame(smoothZoomAnimation);
+        }
       };
       
       canvasElement.addEventListener('wheel', handleWheel, { passive: false });
