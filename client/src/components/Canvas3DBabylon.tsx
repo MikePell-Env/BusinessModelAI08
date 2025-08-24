@@ -1399,6 +1399,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.log(`🖱️ Single click: ${sectionId}`);
         console.log(`🔍 DEBUG: cleanBMCRef.current exists: ${!!cleanBMCRef.current}`);
         
+        // NEW LOGIC: If panel is open, refresh panel content instead of just selecting
+        if (currentBillboardPanel) {
+          console.log(`🔄 Panel is open - refreshing content for ${sectionId}`);
+          // First select the object to update visual state
+          if (cleanBMCRef.current) {
+            cleanBMCRef.current.onSelect(sectionId);
+          }
+          // Then refresh the panel content
+          const worldPosition = mesh.getAbsolutePosition();
+          createBillboardPanel(sectionId, worldPosition);
+          return; // Exit early since we've handled both selection and panel refresh
+        }
+        
         // REVENUE CRASH FIX: Prevent camera conflicts during Revenue clicks in 3D Top
         if (sectionId === "Revenue Streams" && isOrthographic) {
           console.log("🛡️ CRASH FIX: Revenue Streams click in 3D Top - preventing camera conflicts");
