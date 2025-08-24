@@ -14,7 +14,8 @@ import {
   Vector3, 
   AbstractMesh,
   ActionManager,
-  ExecuteCodeAction
+  ExecuteCodeAction,
+  DynamicTexture
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas } from '@/types/canvas';
@@ -141,13 +142,39 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return;
     }
 
-    // Create ground
+    // Create ground - matching target light blue base
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseColor = new Color3(0.8, 0.8, 0.9);
-    groundMaterial.alpha = 0.5;
+    groundMaterial.diffuseColor = new Color3(0.85, 0.92, 0.95); // Light blue like target
+    groundMaterial.alpha = 0.8;
     ground.material = groundMaterial;
     ground.isPickable = false;
+
+    // Add Internal/External labels to canvas base - matching target screenshots
+    const createCanvasLabel = (text: string, position: Vector3, size: number = 2) => {
+      const dynamicTexture = new DynamicTexture("labelTexture_" + text, { width: 512, height: 256 }, scene);
+      dynamicTexture.hasAlpha = true;
+      
+      // Clear and draw text - light grey to match target
+      dynamicTexture.drawText(text, null, null, "48px Arial", "#AAAAAA", "transparent", true);
+      
+      const labelMaterial = new StandardMaterial("labelMaterial_" + text, scene);
+      labelMaterial.diffuseTexture = dynamicTexture;
+      labelMaterial.alpha = 0.8;
+      labelMaterial.backFaceCulling = false;
+      
+      const labelPlane = MeshBuilder.CreatePlane("label_" + text, { width: size, height: size * 0.5 }, scene);
+      labelPlane.material = labelMaterial;
+      labelPlane.position = position;
+      labelPlane.rotation.x = -Math.PI / 2; // Lay flat on ground
+      labelPlane.isPickable = false;
+      
+      return labelPlane;
+    };
+    
+    // Add labels exactly like target screenshots
+    createCanvasLabel("Internal", new Vector3(-4, 0.02, -5), 3);
+    createCanvasLabel("External", new Vector3(4, 0.02, -5), 3);
 
     // Load BMC model with enterprise integration
     const modelLoader = new BMCModelLoader(scene);
@@ -187,8 +214,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             console.log(`🏆 Enterprise registration: ${sectionName}`);
           }
           
-          // Then apply enterprise materials (this happens inside registerMesh)
-          console.log(`✅ Processed ${sectionName} with enterprise systems`);
+          // Add 3D labels exactly like target screenshots
+          const create3DLabel = (text: string, mesh: AbstractMesh) => {
+            const dynamicTexture = new DynamicTexture("3DlabelTexture_" + text, { width: 512, height: 256 }, scene);
+            dynamicTexture.hasAlpha = true;
+            
+            // White text on transparent background - matching target
+            dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
+            
+            const labelMaterial = new StandardMaterial("3DlabelMaterial_" + text, scene);
+            labelMaterial.diffuseTexture = dynamicTexture;
+            labelMaterial.emissiveTexture = dynamicTexture; // Make text glow slightly
+            labelMaterial.alpha = 1.0;
+            labelMaterial.backFaceCulling = false;
+            
+            const labelPlane = MeshBuilder.CreatePlane("3Dlabel_" + text, { width: 2, height: 1 }, scene);
+            labelPlane.material = labelMaterial;
+            labelPlane.isPickable = false;
+            labelPlane.renderingGroupId = 1; // Render on top
+            
+            // Position label above mesh - matching target positioning
+            const bounds = mesh.getBoundingInfo();
+            const meshHeight = bounds.maximum.y - bounds.minimum.y;
+            
+            labelPlane.position = mesh.position.clone();
+            labelPlane.position.y = bounds.maximum.y + meshHeight * 0.3;
+            labelPlane.setParent(mesh); // Move with parent mesh
+            
+            return labelPlane;
+          };
+          
+          // Create label for this section
+          create3DLabel(sectionName, mesh);
+          
+          console.log(`✅ Processed ${sectionName} with enterprise systems and 3D label`);
         }
       });
 
@@ -210,6 +269,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               interactionManagerRef.current.registerMesh(mesh, 'Revenue Streams');
               console.log(`🏆 Enterprise registration: Revenue Streams`);
             }
+            
+            // Add 3D label for Revenue Streams
+            const create3DLabel = (text: string, mesh: AbstractMesh) => {
+              const dynamicTexture = new DynamicTexture("3DlabelTexture_" + text.replace(' ', '_'), { width: 512, height: 256 }, scene);
+              dynamicTexture.hasAlpha = true;
+              dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
+              
+              const labelMaterial = new StandardMaterial("3DlabelMaterial_" + text.replace(' ', '_'), scene);
+              labelMaterial.diffuseTexture = dynamicTexture;
+              labelMaterial.emissiveTexture = dynamicTexture;
+              labelMaterial.alpha = 1.0;
+              labelMaterial.backFaceCulling = false;
+              
+              const labelPlane = MeshBuilder.CreatePlane("3Dlabel_" + text.replace(' ', '_'), { width: 2, height: 1 }, scene);
+              labelPlane.material = labelMaterial;
+              labelPlane.isPickable = false;
+              labelPlane.renderingGroupId = 1;
+              
+              const bounds = mesh.getBoundingInfo();
+              const meshHeight = bounds.maximum.y - bounds.minimum.y;
+              labelPlane.position = mesh.position.clone();
+              labelPlane.position.y = bounds.maximum.y + meshHeight * 0.3;
+              labelPlane.setParent(mesh);
+              
+              return labelPlane;
+            };
+            
+            create3DLabel('Revenue Streams', mesh);
           }
         });
       }
@@ -230,6 +317,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               interactionManagerRef.current.registerMesh(mesh, 'Cost Structure');
               console.log(`🏆 Enterprise registration: Cost Structure`);
             }
+            
+            // Add 3D label for Cost Structure
+            const create3DLabel = (text: string, mesh: AbstractMesh) => {
+              const dynamicTexture = new DynamicTexture("3DlabelTexture_" + text.replace(' ', '_'), { width: 512, height: 256 }, scene);
+              dynamicTexture.hasAlpha = true;
+              dynamicTexture.drawText(text, null, null, "bold 36px Arial", "white", "transparent", true);
+              
+              const labelMaterial = new StandardMaterial("3DlabelMaterial_" + text.replace(' ', '_'), scene);
+              labelMaterial.diffuseTexture = dynamicTexture;
+              labelMaterial.emissiveTexture = dynamicTexture;
+              labelMaterial.alpha = 1.0;
+              labelMaterial.backFaceCulling = false;
+              
+              const labelPlane = MeshBuilder.CreatePlane("3Dlabel_" + text.replace(' ', '_'), { width: 2, height: 1 }, scene);
+              labelPlane.material = labelMaterial;
+              labelPlane.isPickable = false;
+              labelPlane.renderingGroupId = 1;
+              
+              const bounds = mesh.getBoundingInfo();
+              const meshHeight = bounds.maximum.y - bounds.minimum.y;
+              labelPlane.position = mesh.position.clone();
+              labelPlane.position.y = bounds.maximum.y + meshHeight * 0.3;
+              labelPlane.setParent(mesh);
+              
+              return labelPlane;
+            };
+            
+            create3DLabel('Cost Structure', mesh);
           }
         });
       }
