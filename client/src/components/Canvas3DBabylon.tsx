@@ -659,11 +659,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.attachControl(canvasElement, true);
     perspectiveCamera.wheelPrecision = 50;
     
-    const orthographicCamera = new FreeCamera("OrthographicCamera", new Vector3(0, 30, 0), scene);
-    orthographicCamera.setTarget(Vector3.Zero());
+    // FIXED: Perfect orthographic top-down view to match reference layout
+    const orthographicCamera = new FreeCamera("OrthographicCamera", new Vector3(0, 50, 0), scene);
+    orthographicCamera.setTarget(new Vector3(0, 0, -3)); // Adjust target to center the BMC layout
     orthographicCamera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
     
-    const orthoSize = 20;
+    // FIXED: Larger orthographic bounds to show full BMC canvas like reference image
+    const orthoSize = 25; // Increased from 20 to 25 to show more area
     orthographicCamera.orthoLeft = -orthoSize;
     orthographicCamera.orthoRight = orthoSize;
     orthographicCamera.orthoTop = orthoSize;
