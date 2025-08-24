@@ -113,11 +113,19 @@ export class CleanBMCSystem {
     if (isHovering) {
       this.applyState(sectionName, 'hover');
     } else {
-      // Return to proper state: normal if nothing selected, dimmed if something else is selected
-      if (this.selectedObject !== null && !this.isTopView) {
-        this.applyState(sectionName, 'dimmed');
-      } else {
+      // In 3D View: When hover ends, check if there's a selection
+      // If no selection, everything stays at full height (normal)
+      // If there is a selection, only non-selected objects are dimmed
+      if (this.selectedObject === null) {
+        // No selection - keep everything at full height
         this.applyState(sectionName, 'normal');
+      } else if (this.isTopView) {
+        // 3D Top view - no dimming, just normal colors
+        this.applyState(sectionName, 'normal');
+      } else {
+        // 3D View with selection - non-selected objects stay dimmed
+        // But we'll keep them at better visibility
+        this.applyState(sectionName, 'dimmed');
       }
     }
   }
@@ -264,20 +272,21 @@ export class CleanBMCSystem {
     } else {
       // 3D VIEW: Follow specific interaction rules
       if (state === 'hover') {
-        // Rule 2: Hover behavior
+        // Rule 2: Hover behavior - NEVER change height, just color and ensure 100% opaque
         material.alpha = 1.0; // 100% opaque
+        // IMPORTANT: Don't modify mesh.scaling.y - keep current height!
         if (isSpecialSection && baseColor) {
           // Cost/Revenue: Brighter shade of original color
           material.diffuseColor.r = Math.min(baseColor.r * 1.5, 1.0);
           material.diffuseColor.g = Math.min(baseColor.g * 1.5, 1.0);
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
-          console.log(`🎨 3D View - Applied HOVER: ${name} -> brighter original`);
+          console.log(`🎨 3D View - Applied HOVER: ${name} -> brighter original (height unchanged)`);
         } else {
-          // Main sections: Bright blue
-          material.diffuseColor.r = 0.0;
-          material.diffuseColor.g = 0.5; 
-          material.diffuseColor.b = 1.0;
-          console.log(`🎨 3D View - Applied HOVER: ${name} -> bright blue`);
+          // Main sections: Softer blue (less bright on top surface)
+          material.diffuseColor.r = 0.1;
+          material.diffuseColor.g = 0.4; 
+          material.diffuseColor.b = 0.8;
+          console.log(`🎨 3D View - Applied HOVER: ${name} -> soft blue (height unchanged)`);
         }
       } else if (state === 'selected') {
         // Rule 3: Selected object
