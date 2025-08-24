@@ -52,11 +52,12 @@ export class WorldClassMaterialSystem {
   }
 
   private defineMaterialStates(): void {
-    // Base section materials
+    // Base section materials - darker like target screenshot
     this.materialStates.set('default_grey', {
       name: 'default_grey',
-      diffuseColor: new Color3(0.07, 0.07, 0.07),
-      specularColor: new Color3(0.2, 0.2, 0.2),
+      diffuseColor: new Color3(0.15, 0.15, 0.15), // Lighter grey for better visibility
+      emissiveColor: new Color3(0.02, 0.02, 0.02), // Slight glow
+      specularColor: new Color3(0.3, 0.3, 0.3),
       specularPower: 32,
       alpha: 1.0
     });

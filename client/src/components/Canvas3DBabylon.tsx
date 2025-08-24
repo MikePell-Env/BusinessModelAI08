@@ -94,13 +94,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.lowerBetaLimit = 0.1;
     perspectiveCamera.upperBetaLimit = Math.PI / 2.2;
 
-    // Changed orthographic camera to perspective for top view
-    const topViewCamera = new FreeCamera(
-      "topViewCamera",
-      new Vector3(0, 22, -10), // Position for top view
+    // 3D Top view camera positioned directly above with slight angle to match target
+    const topViewCamera = new ArcRotateCamera(
+      "topViewCamera", 
+      0, // Alpha - directly above
+      Math.PI / 6, // Beta - slight angle from top (30 degrees)
+      30, // Radius - distance from target
+      Vector3.Zero(),
       scene
     );
-    topViewCamera.setTarget(Vector3.Zero());
+    topViewCamera.wheelPrecision = 100;
     // Removed orthographic mode, will be perspective
 
     // Define orthographic viewing box - not needed for perspective top view
@@ -111,7 +114,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // topViewCamera.orthoBottom = -orthoSize;
 
     cameraRef.current = perspectiveCamera;
-    orthoCameraRef.current = topViewCamera as any; // Cast to any if FreeCamera is expected elsewhere as orthographic
+    orthoCameraRef.current = topViewCamera;
 
     scene.activeCamera = isOrthographic ? topViewCamera : perspectiveCamera;
 
@@ -173,9 +176,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return labelPlane;
     };
 
-    // Add labels exactly like target screenshots
-    createCanvasLabel("Internal", new Vector3(-4, 0.02, -5), 3);
-    createCanvasLabel("External", new Vector3(4, 0.02, -5), 3);
+    // Add Internal/External labels to match target screenshot positioning
+    createCanvasLabel("Internal", new Vector3(-4, 0.02, 5), 4);
+    createCanvasLabel("External", new Vector3(4, 0.02, 5), 4);
 
     // Load BMC model with enterprise integration
     const modelLoader = new BMCModelLoader(scene);
@@ -209,7 +212,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (mesh.name !== "__root__") {
           const sectionName = sectionNames[index] || `Section_${index}`;
 
-          // Register with enterprise interaction manager FIRST
+          // Apply proper material FIRST
+          if (materialSystemRef.current) {
+            const materialKey = materialSystemRef.current.getMaterialKeyForState(sectionName, 'normal');
+            const success = materialSystemRef.current.applyMaterialSafely(mesh, materialKey);
+            console.log(`🎨 Applied ${materialKey} to ${sectionName}: ${success ? 'SUCCESS' : 'FAILED'}`);
+          }
+
+          // Register with enterprise interaction manager
           if (interactionManagerRef.current) {
             interactionManagerRef.current.registerMesh(mesh, sectionName);
             console.log(`🏆 Enterprise registration: ${sectionName}`);
@@ -260,11 +270,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.isPickable = false;
             labelPlane.renderingGroupId = 2; // Render on top
 
-            // Position ON the mesh surface
-            labelPlane.position = mesh.position.clone();
-            labelPlane.position.y = bounds.maximum.y + 0.001; // Barely above surface to prevent z-fighting
+            // Position ON the mesh surface - ensure visibility in all views
+            const meshCenter = bounds.boundingBox.centerWorld;
+            labelPlane.position = new Vector3(meshCenter.x, bounds.maximum.y + 0.01, meshCenter.z);
             labelPlane.rotation.x = -Math.PI / 2; // Lay flat on surface
             labelPlane.setParent(mesh);
+            
+            // Force visibility and rendering
+            labelPlane.isVisible = true;
+            labelPlane.setEnabled(true);
+            labelPlane.renderingGroupId = 1; // Ensure it renders on top
 
             console.log(`✅ Applied PNG label texture: ${texturePath} for ${text}`);
             return labelPlane;
