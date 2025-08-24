@@ -24,7 +24,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       />
 
       {/* Main Content */}
-      <main className="py-8 px-12">
+      <main className="py-8 px-12" style={{ marginTop: '10vh' }}>
         <div className="max-w-7xl mx-auto">
           {/* Company Name */}
           <div className="mb-12">
