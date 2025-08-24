@@ -46,37 +46,48 @@ export class SceneSetup {
   }
 
   private setupLighting(): void {
-    // Balanced lighting setup for better shading and less blown-out colors
+    // Dramatic lighting setup for strong top surface shading and shadows
     const hemisphericLight = new HemisphericLight(
       "hemisphericLight", 
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 0.7; // Reduced for more contrast and shadow definition
-    hemisphericLight.diffuse = new Color3(0.8, 0.8, 0.85); // Softer ambient light
-    hemisphericLight.specular = new Color3(0.1, 0.1, 0.1); // Minimal specular from ambient
-    hemisphericLight.groundColor = new Color3(0.25, 0.25, 0.3); // Darker ground for more depth
+    hemisphericLight.intensity = 0.4; // Much lower ambient for stronger shadows
+    hemisphericLight.diffuse = new Color3(0.6, 0.6, 0.7); // Darker ambient light
+    hemisphericLight.specular = new Color3(0.05, 0.05, 0.05); // Minimal specular from ambient
+    hemisphericLight.groundColor = new Color3(0.15, 0.15, 0.2); // Very dark ground for depth
 
+    // Main directional light from upper angle to create top surface shadows
     const directionalLight = new DirectionalLight(
       "directionalLight", 
-      new Vector3(-0.8, -1.2, -0.6), // Adjusted angle for better shadow casting
+      new Vector3(-1.0, -0.8, -0.8), // Steeper angle for better top surface shadows
       this.scene
     );
-    directionalLight.intensity = 1.4; // Reduced from 1.9 but still strong enough for definition
-    directionalLight.diffuse = new Color3(0.95, 0.95, 1.0); // Slightly cool tone
-    directionalLight.specular = new Color3(0.3, 0.3, 0.35); // Reduced specular highlights
+    directionalLight.intensity = 1.8; // Strong directional lighting
+    directionalLight.diffuse = new Color3(1.0, 0.98, 0.95); // Warm white light
+    directionalLight.specular = new Color3(0.4, 0.38, 0.35); // Enhanced specular for surface detail
 
-    // Add subtle rim light for edge definition
+    // Secondary angled light for additional surface definition
+    const secondaryLight = new DirectionalLight(
+      "secondaryLight",
+      new Vector3(0.6, -0.7, -1.0), // Different angle for cross-shadowing
+      this.scene
+    );
+    secondaryLight.intensity = 0.8; // Medium strength secondary light
+    secondaryLight.diffuse = new Color3(0.85, 0.88, 0.9); // Cool secondary light
+    secondaryLight.specular = new Color3(0.2, 0.22, 0.25);
+
+    // Rim light from side for edge definition
     const rimLight = new DirectionalLight(
       "rimLight",
-      new Vector3(1.2, 0.3, 0.8), // More side-angle for better edge separation
+      new Vector3(1.5, -0.2, 0.5), // Low side angle for rim lighting
       this.scene
     );
-    rimLight.intensity = 0.3; // Reduced for subtlety
-    rimLight.diffuse = new Color3(0.6, 0.65, 0.7); // Softer cool rim color
-    rimLight.specular = new Color3(0.1, 0.1, 0.15);
+    rimLight.intensity = 0.5; // Moderate rim lighting
+    rimLight.diffuse = new Color3(0.7, 0.75, 0.8); // Cool rim color
+    rimLight.specular = new Color3(0.15, 0.18, 0.2);
 
-    debugLog.verbose('scene', 'Balanced lighting system configured for better shading');
+    debugLog.verbose('scene', 'Dramatic lighting system configured for strong top surface shading');
   }
 
   private setupEnvironment(): void {
