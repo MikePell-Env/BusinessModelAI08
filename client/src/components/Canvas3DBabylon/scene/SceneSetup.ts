@@ -46,37 +46,37 @@ export class SceneSetup {
   }
 
   private setupLighting(): void {
-    // Enhanced lighting setup with better material highlighting
+    // Balanced lighting setup for better shading and less blown-out colors
     const hemisphericLight = new HemisphericLight(
       "hemisphericLight", 
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 1.3; // Slightly increased for better ambient
-    hemisphericLight.diffuse = new Color3(0.95, 0.95, 0.95); // Brighter neutral ambient
-    hemisphericLight.specular = new Color3(0.3, 0.3, 0.3); // Increased for better reflections
-    hemisphericLight.groundColor = new Color3(0.4, 0.4, 0.45); // Add ground color for depth
+    hemisphericLight.intensity = 0.7; // Reduced for more contrast and shadow definition
+    hemisphericLight.diffuse = new Color3(0.8, 0.8, 0.85); // Softer ambient light
+    hemisphericLight.specular = new Color3(0.1, 0.1, 0.1); // Minimal specular from ambient
+    hemisphericLight.groundColor = new Color3(0.25, 0.25, 0.3); // Darker ground for more depth
 
     const directionalLight = new DirectionalLight(
       "directionalLight", 
-      new Vector3(-1, -1, -1), 
+      new Vector3(-0.8, -1.2, -0.6), // Adjusted angle for better shadow casting
       this.scene
     );
-    directionalLight.intensity = 1.9; // Slightly stronger for better definition
-    directionalLight.diffuse = new Color3(1, 1, 1);
-    directionalLight.specular = new Color3(0.4, 0.4, 0.4); // Enhanced specular highlights
+    directionalLight.intensity = 1.4; // Reduced from 1.9 but still strong enough for definition
+    directionalLight.diffuse = new Color3(0.95, 0.95, 1.0); // Slightly cool tone
+    directionalLight.specular = new Color3(0.3, 0.3, 0.35); // Reduced specular highlights
 
     // Add subtle rim light for edge definition
     const rimLight = new DirectionalLight(
       "rimLight",
-      new Vector3(1, 0.5, 1),
+      new Vector3(1.2, 0.3, 0.8), // More side-angle for better edge separation
       this.scene
     );
-    rimLight.intensity = 0.5; // Subtle rim lighting
-    rimLight.diffuse = new Color3(0.8, 0.8, 0.9); // Cool rim color
-    rimLight.specular = new Color3(0.2, 0.2, 0.2);
+    rimLight.intensity = 0.3; // Reduced for subtlety
+    rimLight.diffuse = new Color3(0.6, 0.65, 0.7); // Softer cool rim color
+    rimLight.specular = new Color3(0.1, 0.1, 0.15);
 
-    debugLog.verbose('scene', 'Enhanced lighting system configured');
+    debugLog.verbose('scene', 'Balanced lighting system configured for better shading');
   }
 
   private setupEnvironment(): void {
