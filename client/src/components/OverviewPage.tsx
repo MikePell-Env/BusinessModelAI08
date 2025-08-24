@@ -48,8 +48,22 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         const { useCanvas } = await import('@/lib/stores/useCanvas');
         const canvas = useCanvas.getState().canvas;
         if (canvas?.overviewData) {
-          setOverviewData(canvas.overviewData);
-          console.log('Overview data loaded:', canvas.overviewData);
+          // Fix founder title if it shows "founder" instead of "Chief Executive Officer"
+          const fixedOverviewData = { ...canvas.overviewData };
+          if (fixedOverviewData.founders && Array.isArray(fixedOverviewData.founders)) {
+            fixedOverviewData.founders = fixedOverviewData.founders.map(founder => {
+              if (typeof founder === 'string' && founder.includes('Mike Pell, founder')) {
+                return founder.replace('Mike Pell, founder', 'Mike Pell, Chief Executive Officer');
+              }
+              return founder;
+            });
+          }
+          setOverviewData(fixedOverviewData);
+          
+          // Also update the store with the fixed data
+          useCanvas.getState().setOverviewData(fixedOverviewData);
+          
+          console.log('Overview data loaded and founder title fixed:', fixedOverviewData);
         }
       } catch (error) {
         console.log('No canvas data available yet');
