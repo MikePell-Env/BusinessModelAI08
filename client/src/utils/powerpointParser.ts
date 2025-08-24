@@ -532,8 +532,8 @@ export class PowerPointParser {
       let founderName = null;
       let founderDescriptions = [];
       
-      // Look for founders throughout the document
-      let foundersData = [];
+      // Look for founders throughout the document and deduplicate
+      let foundersMap = new Map(); // Use Map to avoid duplicates
       
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
@@ -543,35 +543,42 @@ export class PowerPointParser {
           continue;
         }
         
-        // Look for specific names we know (like Mike Pell)
+        // Look for "Mike Pell" specifically
         if (line.match(/Mike\s+Pell/i)) {
-          const nextLine = i + 1 < lines.length ? lines[i + 1] : '';
-          const title = nextLine && nextLine.length > 0 && nextLine.length < 50 && 
-                       !nextLine.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i) &&
-                       !nextLine.match(/https?:\/\/|www\.|\.com|\.ai|\.org/i) ? nextLine : 'Founder';
-          foundersData.push(`Mike Pell, ${title}`);
+          // Check if the line contains a title
+          if (line.match(/Mike\s+Pell.*\b(founder|ceo|chief executive|co-founder|president)\b/i)) {
+            const titleMatch = line.match(/\b(founder|ceo|chief executive officer|chief executive|co-founder|president)[^,\n]*/i);
+            const title = titleMatch ? titleMatch[0] : 'Founder';
+            foundersMap.set('Mike Pell', title);
+          } else {
+            // Look at next line for title
+            const nextLine = i + 1 < lines.length ? lines[i + 1] : '';
+            if (nextLine && nextLine.length > 0 && nextLine.length < 50 && 
+                !nextLine.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i) &&
+                !nextLine.match(/https?:\/\/|www\.|\.com|\.ai|\.org/i) &&
+                nextLine.match(/\b(founder|ceo|chief|president)\b/i)) {
+              foundersMap.set('Mike Pell', nextLine.trim());
+            } else if (!foundersMap.has('Mike Pell')) {
+              foundersMap.set('Mike Pell', 'Founder');
+            }
+          }
           continue;
         }
         
-        // Look for Name + Title patterns in the same line
+        // Look for other Name + Title patterns
         const nameWithTitle = line.match(/([A-Z][a-z]+\s+[A-Z][a-z]+).*\b(founder|ceo|chief executive|co-founder|president)\b/i);
-        if (nameWithTitle && foundersData.length < 3) {
+        if (nameWithTitle && foundersMap.size < 3) {
           const name = nameWithTitle[1];
-          const titleMatch = line.match(/\b(founder|ceo|chief executive|co-founder|president)[^,\n]*/i);
-          const title = titleMatch ? titleMatch[0] : 'Founder';
-          foundersData.push(`${name}, ${title}`);
-          continue;
-        }
-        
-        // Look for Title + Name patterns
-        const titleWithName = line.match(/\b(founder|ceo|chief executive|co-founder|president)[^,\n]*([A-Z][a-z]+\s+[A-Z][a-z]+)/i);
-        if (titleWithName && foundersData.length < 3) {
-          const title = titleWithName[1];
-          const name = titleWithName[2];
-          foundersData.push(`${name}, ${title}`);
-          continue;
+          if (name !== 'Mike Pell') { // Avoid duplicating Mike Pell
+            const titleMatch = line.match(/\b(founder|ceo|chief executive|co-founder|president)[^,\n]*/i);
+            const title = titleMatch ? titleMatch[0] : 'Founder';
+            foundersMap.set(name, title);
+          }
         }
       }
+      
+      // Convert Map to array
+      const foundersData = Array.from(foundersMap, ([name, title]) => `${name}, ${title}`);
       
       if (foundersData.length > 0) {
         return foundersData;
@@ -636,39 +643,48 @@ export class PowerPointParser {
   private extractMarket(content: string): string[] {
     try {
       const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 2);
-      let foundMarketInfo = [];
+      let foundMarketInfo: string[] = [];
       
-      // First priority: Look for dedicated Market slide sections
-      let foundMarketSection = false;
+      // First priority: Look for dedicated Market slide sections more precisely
       let inMarketSection = false;
+      let marketContent: string[] = [];
       
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         
-        // Look for Market slide titles (be more flexible)
-        if (line.match(/^MARKET$/i) || line.match(/MARKET/i) && line.length < 20) {
-          foundMarketSection = true;
+        // Look for Market header - be very specific
+        if (line.trim() === 'MARKET' || (line.match(/^MARKET$/i) && line.length < 15)) {
           inMarketSection = true;
           continue;
         }
         
-        // Check if we've left the market section
-        if (inMarketSection && line.match(/^(SUMMARY|FOUNDERS|MISSION|KEY|WEBSITE|TEAM)/i)) {
-          inMarketSection = false;
+        // Check if we've hit another major section (exit market section)
+        if (inMarketSection && line.match(/^(SUMMARY|FOUNDERS|MISSION|KEY|WEBSITE|TEAM|VALUE|CUSTOMER|COST|REVENUE)$/i)) {
+          break; // Stop when we hit another major section
         }
         
         // Extract content from Market section
-        if (inMarketSection && line.length > 5) {
+        if (inMarketSection) {
           // Skip URLs and website content
           if (!line.match(/https?:\/\/|www\.|\.com|\.ai|\.org/i) && 
               !line.match(/^W\s?EBSITE/i) &&
-              foundMarketInfo.length < 5) {
+              line.trim().length > 5) {
             const cleanLine = line.replace(/\s+/g, ' ').trim();
-            if (cleanLine.length > 10) {
-              foundMarketInfo.push(cleanLine);
+            if (cleanLine.length > 3 && !cleanLine.match(/^(•|\*|-|\d+\.)/)) {
+              // This looks like a paragraph or meaningful content
+              if (cleanLine.length > 20) {
+                marketContent.push(cleanLine);
+              } else {
+                // Short line, might be a heading or list item
+                marketContent.push(cleanLine);
+              }
             }
           }
         }
+      }
+      
+      if (marketContent.length > 0) {
+        foundMarketInfo = marketContent.slice(0, 3);
       }
       
       // If we found market section content, return it
@@ -701,7 +717,7 @@ export class PowerPointParser {
       }
 
       // Third priority: Look for market-related content in bullet points or general text
-      const marketContent = lines.filter(line => 
+      const fallbackMarketContent = lines.filter(line => 
         line.length > 20 && line.length < 200 &&
         (/\b(market|industry|customers|segments|target|addressable|billion|million|growth|demand)\b/i.test(line) ||
          /\b(enterprises|businesses|organizations|companies|consumers|users)\b/i.test(line) ||
@@ -709,8 +725,8 @@ export class PowerPointParser {
         !line.match(/^(SUMMARY|DETAILS|FOUNDERS|KEY|MISSION|WEBSITE|TEAM)/i)
       );
       
-      if (marketContent.length > 0) {
-        return marketContent.slice(0, 3);
+      if (fallbackMarketContent.length > 0) {
+        return fallbackMarketContent.slice(0, 3);
       }
 
       return [
