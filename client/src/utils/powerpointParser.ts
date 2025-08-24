@@ -159,34 +159,34 @@ export class PowerPointParser {
       'Business model canvas'
     );
 
-    // Analyze overview data with Microsoft Copilot
-    try {
-      console.log('🤖 Analyzing PowerPoint content for overview data with Microsoft Copilot...');
-      const overviewData = await overviewAnalyzer.analyzeBusinessContent(allText, companyName || 'Your Company');
-      canvas.overviewData = overviewData;
-      console.log('✅ Overview data analysis complete:', overviewData);
-    } catch (error) {
-      console.error('Failed to analyze overview data:', error);
-      // Set fallback overview data
-      canvas.overviewData = {
-        companyName: companyName || 'Your Company',
-        summary: [
-          'Business overview will be extracted from your PowerPoint presentation.',
-          'Upload a presentation to see detailed company summary and market analysis.',
-          'This section will provide insights into your business model and opportunities.'
-        ],
-        founders: [
-          'Founder and leadership information will be displayed here.',
-          'Details about the team background and experience will be shown.',
-          'Upload your presentation to see team member profiles and expertise.'
-        ],
-        details: [
-          'Detailed business information will be extracted from your slides.',
-          'This includes target market, competitive advantages, and business strategy.',
-          'Provide a PowerPoint file to populate this section with specific details.'
-        ]
-      };
-    }
+    // Quick direct extraction of overview data
+    console.log('⚡ Quickly extracting overview information...');
+    const quickOverviewData = {
+      companyName: companyName || this.extractCompanyFromTitle(allText) || 'Your Company',
+      summary: this.extractSummary(allText),
+      founders: this.extractFounders(allText),
+      details: this.extractDetails(allText)
+    };
+    
+    canvas.overviewData = quickOverviewData;
+    console.log('✅ Quick overview extraction complete:', quickOverviewData);
+
+    // Optionally enhance with AI analysis in background (non-blocking)
+    setTimeout(async () => {
+      try {
+        console.log('🤖 Enhancing with Microsoft Copilot analysis...');
+        const enhancedData = await overviewAnalyzer.analyzeBusinessContent(allText, companyName || 'Your Company');
+        // Merge enhanced data while preserving quick extracted data
+        canvas.overviewData = {
+          ...quickOverviewData,
+          ...enhancedData,
+          companyName: quickOverviewData.companyName // Preserve extracted company name
+        };
+        console.log('✅ Enhanced overview data updated:', canvas.overviewData);
+      } catch (error) {
+        console.log('AI enhancement failed, using quick extraction results');
+      }
+    }, 100);
     
     return canvas;
   }
@@ -480,6 +480,163 @@ export class PowerPointParser {
   private findSectionKey(normalizedTitle: string): string | undefined {
     const cleanTitle = normalizedTitle.replace(/[^\w\s]/g, '').trim();
     return this.sectionTitleMap.get(cleanTitle);
+  }
+
+  // Quick extraction methods for overview data
+  private extractCompanyFromTitle(content: string): string | null {
+    try {
+      // Look for company name in title slides or headers
+      const lines = content.split('\n').map(line => line.trim());
+      
+      // Check first few lines for company names (usually in title slide)
+      for (let i = 0; i < Math.min(lines.length, 10); i++) {
+        const line = lines[i];
+        // Look for patterns like "ABC Corp", "XYZ Inc", "Company Ltd"
+        if (line.match(/\b\w+\s+(Corp|Inc|LLC|Ltd|Company|Technologies|Tech|Solutions|Group|Enterprises)\b/i)) {
+          return line.trim();
+        }
+        // Look for capitalized company-like names
+        if (line.match(/^[A-Z][a-zA-Z\s&]+$/) && line.length > 3 && line.length < 50) {
+          return line.trim();
+        }
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  private extractSummary(content: string): string[] {
+    try {
+      const summaryPatterns = [
+        /(?:summary|overview|about|description|executive summary):\s*([^\n]+(?:\n[^\n]+)*)/gi,
+        /(?:what is|what we do|mission|vision):\s*([^\n]+(?:\n[^\n]+)*)/gi,
+        /(?:business overview|company overview):\s*([^\n]+(?:\n[^\n]+)*)/gi
+      ];
+
+      for (const pattern of summaryPatterns) {
+        const match = content.match(pattern);
+        if (match && match[1]) {
+          const summaryText = match[1].trim();
+          // Split into sentences and take up to 3
+          const sentences = summaryText.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 10);
+          return sentences.slice(0, 3);
+        }
+      }
+
+      // Fallback: Look for descriptive paragraphs
+      const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 30);
+      const businessDescriptions = lines.filter(line => 
+        /\b(company|business|organization|enterprise|firm|startup)\b/i.test(line) ||
+        /\b(provides|offers|delivers|specializes|focuses)\b/i.test(line)
+      );
+      
+      if (businessDescriptions.length > 0) {
+        return businessDescriptions.slice(0, 3);
+      }
+
+      return [
+        'Business overview will be extracted from your PowerPoint presentation using Microsoft Copilot.',
+        'Upload a presentation to see detailed company summary and market analysis.',
+        'This section will provide AI-powered insights into your business model and opportunities.'
+      ];
+    } catch (error) {
+      return ['Business summary extraction in progress...'];
+    }
+  }
+
+  private extractFounders(content: string): string[] {
+    try {
+      const founderPatterns = [
+        /(?:founder|co-founder|ceo|president|owner|established by|founded by|created by):\s*([^\n]+(?:\n[^\n]+)*)/gi,
+        /(?:leadership|management|team|executives?):\s*([^\n]+(?:\n[^\n]+)*)/gi
+      ];
+
+      for (const pattern of founderPatterns) {
+        const match = content.match(pattern);
+        if (match && match[1]) {
+          const founderText = match[1].trim();
+          // Split by common separators and take up to 3
+          const founders = founderText.split(/[,;|&]|and\s+/).map(f => f.trim()).filter(f => f.length > 2);
+          if (founders.length > 0) {
+            return founders.slice(0, 3);
+          }
+        }
+      }
+
+      // Look for names with titles
+      const lines = content.split('\n').map(line => line.trim());
+      const namePattern = /([A-Z][a-z]+ [A-Z][a-z]+)(?:\s*[-,]\s*)?(CEO|CTO|CFO|Founder|President|Director|VP)/i;
+      const foundNames = [];
+      
+      for (const line of lines) {
+        const match = line.match(namePattern);
+        if (match && foundNames.length < 3) {
+          foundNames.push(`${match[1]}, ${match[2]}`);
+        }
+      }
+      
+      if (foundNames.length > 0) {
+        return foundNames;
+      }
+
+      return [
+        'Founder and leadership information will be analyzed and displayed here.',
+        'Microsoft Copilot will extract details about the team background and experience.',
+        'Upload your presentation to see AI-analyzed team member profiles and expertise.'
+      ];
+    } catch (error) {
+      return ['Founder information extraction in progress...'];
+    }
+  }
+
+  private extractDetails(content: string): string[] {
+    try {
+      const detailPatterns = [
+        /(?:details|specifics|additional info|more info):\s*([^\n]+(?:\n[^\n]+)*)/gi,
+        /(?:target market|market|customers|clients):\s*([^\n]+(?:\n[^\n]+)*)/gi,
+        /(?:competitive advantage|advantages|benefits|unique):\s*([^\n]+(?:\n[^\n]+)*)/gi,
+        /(?:business model|revenue model|strategy):\s*([^\n]+(?:\n[^\n]+)*)/gi
+      ];
+
+      const foundDetails = [];
+      
+      for (const pattern of detailPatterns) {
+        let match;
+        while ((match = pattern.exec(content)) !== null && foundDetails.length < 3) {
+          if (match[1]) {
+            const detail = match[1].trim();
+            if (detail.length > 10) {
+              foundDetails.push(detail);
+            }
+          }
+        }
+      }
+
+      if (foundDetails.length > 0) {
+        return foundDetails;
+      }
+
+      // Look for bullet points or numbered lists with business details
+      const lines = content.split('\n').map(line => line.trim());
+      const businessDetails = lines.filter(line => 
+        (line.match(/^[•\-\*\d+\.]\s*/) || line.includes(':')) &&
+        line.length > 20 &&
+        /\b(market|customer|strategy|product|service|technology|innovation|growth|revenue|profit)\b/i.test(line)
+      );
+      
+      if (businessDetails.length > 0) {
+        return businessDetails.slice(0, 3).map(detail => detail.replace(/^[•\-\*\d+\.]\s*/, '').trim());
+      }
+
+      return [
+        'Detailed business information will be extracted from your slides using Microsoft Graph insights.',
+        'This includes target market analysis, competitive advantages, and business strategy recommendations.',
+        'Provide a PowerPoint file to populate this section with Microsoft Copilot-powered analysis.'
+      ];
+    } catch (error) {
+      return ['Business details extraction in progress...'];
+    }
   }
 
   private createCanvasFromMapping(
