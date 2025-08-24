@@ -1372,10 +1372,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // REMOVED: MaterialManager initialization - using direct property modification instead
     
-    // CRASH PREVENTION: Completely disable UnifiedInteractionManager - it's causing WebGL context loss
-    console.log('🚫 EMERGENCY: UnifiedInteractionManager COMPLETELY DISABLED to prevent crashes');
-    console.log('🚫 All interactions will be handled by simple click handlers only');
+    // CRASH PREVENTION: Completely disable ALL interaction managers to prevent WebGL crashes
+    console.log('🚫 EMERGENCY: ALL INTERACTION MANAGERS DISABLED to prevent crashes');
+    console.log('🚫 Using only basic hover/click detection without material creation');
     interactionManagerRef.current = null;
+    
+    // EMERGENCY: Disable material creation to prevent WebGL overload
+    const emergencyClickHandler = (mesh: any, sectionName: string) => {
+      console.log(`🚫 EMERGENCY MODE: Click detected on ${sectionName} - no material changes`);
+      
+      // Only log the click, no visual changes to prevent crashes
+      if (cleanBMCRef.current) {
+        cleanBMCRef.current.onSelect(sectionName);
+      }
+      
+      // Update BMC state without material operations
+      bmcState.selectObject(mapSectionNameToBMCComponent(sectionName));
+    };
+    
+    // Store emergency handler
+    (window as any).emergencyClickHandler = emergencyClickHandler;
     
     // Load complete BMC GLB model with individual section coloring
     modelLoader.loadMainBMC().then((model) => {
@@ -2111,9 +2127,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // CRASH PREVENTION: Always make meshes NON-PICKABLE - no interaction managers
-            mesh.isPickable = false;
-            console.log(`🚫 ${sectionName}: Mesh made NON-PICKABLE to prevent crashes (no interaction managers)`);
+            // EMERGENCY: Make meshes pickable but with minimal safe interaction only
+            mesh.isPickable = true;
+            
+            // EMERGENCY: Ultra-minimal click detection without material creation
+            mesh.actionManager = new ActionManager(scene);
+            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+              console.log(`🚫 EMERGENCY CLICK: ${sectionName}`);
+              
+              // Only selection state change, no visual updates
+              if (cleanBMCRef.current) {
+                cleanBMCRef.current.onSelect(sectionName);
+              }
+              bmcState.selectObject(mapSectionNameToBMCComponent(sectionName));
+            }));
+            
+            console.log(`🚫 ${sectionName}: Emergency click handler installed (no material operations)`);
             
             // REMOVED: Old click select function - replaced by unified BMC system
             

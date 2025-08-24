@@ -232,18 +232,13 @@ export class CleanBMCSystem {
       mesh.material = material;
     }
     
-    // ULTRA-SAFE: No new Color3 creation, just direct property modification
-    material.alpha = 1.0; // Always solid - no transparency crashes
+    // EMERGENCY: NO MATERIAL MODIFICATIONS TO PREVENT WEBGL CRASHES
+    console.log(`🚫 EMERGENCY MODE: Skipping all material modifications for ${name}`);
     
-    // SAFE: Ensure diffuseColor exists with minimal object creation
-    if (!material.diffuseColor) {
-      material.diffuseColor = Color3.Gray(); // Use static method, no new creation
-    }
+    // Only log state changes, no visual updates
+    console.log(`🔧 State change only: ${name} -> ${state} (no visuals to prevent crash)`);
     
-    // SAFE: Set emissiveColor without new object creation
-    if (!material.emissiveColor) {
-      material.emissiveColor = Color3.Black();
-    }
+    return; // Exit early to prevent any material operations
     
     // Check if this is Cost Structure or Revenue Streams (special handling)
     const isSpecialSection = name === 'Cost Structure' || name === 'Revenue Streams';
