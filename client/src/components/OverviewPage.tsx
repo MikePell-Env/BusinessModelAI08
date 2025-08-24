@@ -84,11 +84,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
             <div className="col-span-4">
               <div className="flex">
                 {/* Vertical Divider */}
-                <img 
-                  src="/attached_assets/Labels_vertical_divider_1756071589388.png" 
-                  alt="Vertical Divider" 
-                  className="w-px mr-8 flex-shrink-0"
-                  style={{ height: 'calc(100vh - 200px)' }}
+                <div 
+                  className="w-px mr-8 flex-shrink-0 bg-gray-300"
+                  style={{ height: 'calc(100vh - 180px)' }}
                 />
                 
                 {/* Explore Content */}
@@ -103,9 +101,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                   </div>
 
                   {/* Explore Cards */}
-                  <div className="space-y-8">
+                  <div className="space-y-4">
                     {/* SWOT Analysis Card */}
-                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity">
+                    <div className="bg-white border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
                       <div className="flex items-center justify-center mb-3">
                         <div className="w-16 h-16 border-2 border-gray-400 rounded flex items-center justify-center">
                           {/* SWOT Grid Icon */}
@@ -117,11 +115,11 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                           </div>
                         </div>
                       </div>
-                      <h3 className="font-medium text-gray-900 text-sm">SWOT Analysis</h3>
+                      <h3 className="text-center font-semibold text-gray-900">SWOT Analysis</h3>
                     </div>
 
                     {/* Business Model Canvas Card */}
-                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity">
+                    <div className="bg-white border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
                       <div className="flex items-center justify-center mb-3">
                         <div className="w-16 h-16 border-2 border-gray-400 rounded flex items-center justify-center">
                           {/* Canvas Icon */}
@@ -131,11 +129,11 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                           </div>
                         </div>
                       </div>
-                      <h3 className="font-medium text-gray-900 text-sm">Business Model Canvas</h3>
+                      <h3 className="text-center font-semibold text-gray-900">Business Model Canvas</h3>
                     </div>
 
                     {/* Financials Card */}
-                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity">
+                    <div className="bg-white border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
                       <div className="flex items-center justify-center mb-3">
                         <div className="w-16 h-16 border-2 border-gray-400 rounded flex items-center justify-center">
                           {/* Bar Chart Icon */}
@@ -147,7 +145,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                           </div>
                         </div>
                       </div>
-                      <h3 className="font-medium text-gray-900 text-sm">Financials</h3>
+                      <h3 className="text-center font-semibold text-gray-900">Financials</h3>
                     </div>
                   </div>
                 </div>
