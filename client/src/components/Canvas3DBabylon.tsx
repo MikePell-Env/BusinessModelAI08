@@ -598,11 +598,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
     console.log('✅ WebGL context available');
     
-    // DIAGNOSTIC: Detect WebGL context loss (canvas disappearing)
+    // EMERGENCY: Enhanced WebGL crash detection and recovery
     canvasElement.addEventListener('webglcontextlost', (e) => {
       console.error('🚨🚨🚨 WebGL CONTEXT LOST! Canvas disappeared!');
       console.error('This happens after too many material operations');
+      console.error('Current view mode:', isOrthographic ? '3D Top' : '3D View');
       e.preventDefault();
+      
+      // EMERGENCY: Force page reload to recover from crash
+      setTimeout(() => {
+        console.error('🔄 EMERGENCY: Reloading page to recover from WebGL crash...');
+        window.location.reload();
+      }, 2000);
     });
     canvasElement.addEventListener('webglcontextrestored', () => {
       console.log('✅ WebGL context restored - canvas should reappear');
@@ -1365,61 +1372,68 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // REMOVED: MaterialManager initialization - using direct property modification instead
     
-    // Setup unified interaction manager with callbacks  
-    interactionManagerRef.current = new UnifiedInteractionManager(scene, {
-      onSingleClick: (sectionId: string, mesh: AbstractMesh) => {
-        console.log(`🖱️ Single click: ${sectionId}`);
-        console.log(`🔍 DEBUG: cleanBMCRef.current exists: ${!!cleanBMCRef.current}`);
-        
-        if (cleanBMCRef.current) {
-          console.log(`🔍 DEBUG: About to call cleanBMCRef.current.onSelect(${sectionId})`);
-          try {
-            cleanBMCRef.current.onSelect(sectionId);
-            console.log(`🔍 DEBUG: cleanBMCRef.current.onSelect completed successfully`);
-          } catch (error) {
-            console.error(`❌ ERROR in cleanBMCRef.current.onSelect(${sectionId}):`, error);
-            console.error(`❌ Stack trace:`, error instanceof Error ? error.stack : 'No stack trace available');
+    // EMERGENCY CRASH ISOLATION: Disable ALL interaction managers in 3D Top view
+    if (!isOrthographic) {
+      // Setup unified interaction manager with callbacks ONLY for 3D View
+      interactionManagerRef.current = new UnifiedInteractionManager(scene, {
+        onSingleClick: (sectionId: string, mesh: AbstractMesh) => {
+          console.log(`🖱️ Single click: ${sectionId}`);
+          console.log(`🔍 DEBUG: cleanBMCRef.current exists: ${!!cleanBMCRef.current}`);
+          
+          if (cleanBMCRef.current) {
+            console.log(`🔍 DEBUG: About to call cleanBMCRef.current.onSelect(${sectionId})`);
+            try {
+              cleanBMCRef.current.onSelect(sectionId);
+              console.log(`🔍 DEBUG: cleanBMCRef.current.onSelect completed successfully`);
+            } catch (error) {
+              console.error(`❌ ERROR in cleanBMCRef.current.onSelect(${sectionId}):`, error);
+              console.error(`❌ Stack trace:`, error instanceof Error ? error.stack : 'No stack trace available');
+            }
+          } else {
+            console.error(`❌ cleanBMCRef.current is null/undefined!`);
           }
-        } else {
-          console.error(`❌ cleanBMCRef.current is null/undefined!`);
+        },
+        onDoubleClick: (sectionId: string, mesh: AbstractMesh, position: Vector3) => {
+          console.log(`🖱️🖱️ Double click: ${sectionId}`);
+          
+          // Close any existing panel first
+          if (currentBillboardPanel) {
+            advancedTexture.removeControl(currentBillboardPanel);
+            currentBillboardPanel = null;
+            billboardPanelRef.current = null;
+          }
+          
+          // Create new panel
+          const worldPosition = mesh.getAbsolutePosition();
+          createBillboardPanel(sectionId, worldPosition);
+        },
+        onHoverEnter: (sectionId: string, mesh: AbstractMesh) => {
+          if (cleanBMCRef.current) {
+            cleanBMCRef.current.onHover(sectionId, true);
+          }
+        },
+        onHoverExit: (sectionId: string, mesh: AbstractMesh) => {
+          if (cleanBMCRef.current) {
+            cleanBMCRef.current.onHover(sectionId, false);
+          }
+        },
+        onBackgroundClick: () => {
+          console.log('🖱️ Background click - clearing selection');
+          if (cleanBMCRef.current) {
+            cleanBMCRef.current.clearSelection();
+          }
+          if (currentBillboardPanel) {
+            advancedTexture.removeControl(currentBillboardPanel);
+            currentBillboardPanel = null;
+            billboardPanelRef.current = null;
+          }
         }
-      },
-      onDoubleClick: (sectionId: string, mesh: AbstractMesh, position: Vector3) => {
-        console.log(`🖱️🖱️ Double click: ${sectionId}`);
-        
-        // Close any existing panel first
-        if (currentBillboardPanel) {
-          advancedTexture.removeControl(currentBillboardPanel);
-          currentBillboardPanel = null;
-          billboardPanelRef.current = null;
-        }
-        
-        // Create new panel
-        const worldPosition = mesh.getAbsolutePosition();
-        createBillboardPanel(sectionId, worldPosition);
-      },
-      onHoverEnter: (sectionId: string, mesh: AbstractMesh) => {
-        if (cleanBMCRef.current) {
-          cleanBMCRef.current.onHover(sectionId, true);
-        }
-      },
-      onHoverExit: (sectionId: string, mesh: AbstractMesh) => {
-        if (cleanBMCRef.current) {
-          cleanBMCRef.current.onHover(sectionId, false);
-        }
-      },
-      onBackgroundClick: () => {
-        console.log('🖱️ Background click - clearing selection');
-        if (cleanBMCRef.current) {
-          cleanBMCRef.current.clearSelection();
-        }
-        if (currentBillboardPanel) {
-          advancedTexture.removeControl(currentBillboardPanel);
-          currentBillboardPanel = null;
-          billboardPanelRef.current = null;
-        }
-      }
-    });
+      });
+    } else {
+      // 3D TOP VIEW: NO INTERACTION MANAGERS - completely disable to prevent crashes
+      console.log('🚫 3D TOP VIEW: All interaction managers DISABLED to prevent crashes');
+      interactionManagerRef.current = null;
+    }
     
     // Load complete BMC GLB model with individual section coloring
     modelLoader.loadMainBMC().then((model) => {
@@ -2155,9 +2169,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Setup mesh for UnifiedInteractionManager
-            mesh.isPickable = true;
-            console.log(`🎯 ${sectionName}: Mesh configured for UnifiedInteractionManager`);
+            // Setup mesh for UnifiedInteractionManager - with crash prevention
+            if (!isOrthographic) {
+              mesh.isPickable = true;
+              console.log(`🎯 ${sectionName}: Mesh configured for UnifiedInteractionManager`);
+            } else {
+              // 3D TOP VIEW: Make meshes NON-PICKABLE to prevent crashes
+              mesh.isPickable = false;
+              console.log(`🚫 ${sectionName}: Mesh made NON-PICKABLE in 3D Top view to prevent crashes`);
+            }
             
             // REMOVED: Old click select function - replaced by unified BMC system
             
@@ -2388,9 +2408,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Setup mesh for UnifiedInteractionManager
-            mesh.isPickable = true;
-            console.log(`🎯 Revenue Streams: Mesh configured for UnifiedInteractionManager`);
+            // Setup mesh for UnifiedInteractionManager - with crash prevention
+            if (!isOrthographic) {
+              mesh.isPickable = true;
+              console.log(`🎯 Revenue Streams: Mesh configured for UnifiedInteractionManager`);
+            } else {
+              // 3D TOP VIEW: Make meshes NON-PICKABLE to prevent crashes
+              mesh.isPickable = false;
+              console.log(`🚫 Revenue Streams: Mesh made NON-PICKABLE in 3D Top view to prevent crashes`);
+            }
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
@@ -2530,9 +2556,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // Setup mesh for UnifiedInteractionManager
-            mesh.isPickable = true;
-            console.log(`🎯 Cost Structure: Mesh configured for UnifiedInteractionManager`);
+            // Setup mesh for UnifiedInteractionManager - with crash prevention
+            if (!isOrthographic) {
+              mesh.isPickable = true;
+              console.log(`🎯 Cost Structure: Mesh configured for UnifiedInteractionManager`);
+            } else {
+              // 3D TOP VIEW: Make meshes NON-PICKABLE to prevent crashes
+              mesh.isPickable = false;
+              console.log(`🚫 Cost Structure: Mesh made NON-PICKABLE in 3D Top view to prevent crashes`);
+            }
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
