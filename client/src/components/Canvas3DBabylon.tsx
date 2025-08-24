@@ -21,7 +21,6 @@ import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
-import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -35,7 +34,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const orthoCameraRef = useRef<FreeCamera | null>(null);
   const cleanBMCRef = useRef<CleanBMCSystem | null>(null);
-  const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -81,7 +79,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       cleanBMCRef.current = new CleanBMCSystem();
       cleanBMCRef.current.initialize(scene);
       
-      // Load BMC model and setup interactions
+      // Load BMC model
       loadBMCModel(scene);
 
       console.log('✅ 3D Canvas initialized successfully');
@@ -92,11 +90,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     return () => {
       console.log('🧹 Cleaning up 3D Canvas...');
-      
-      if (interactionManagerRef.current) {
-        interactionManagerRef.current.dispose();
-        interactionManagerRef.current = null;
-      }
       
       if (cleanBMCRef.current) {
         cleanBMCRef.current = null;
@@ -179,7 +172,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       console.log(`✅ BMC model loaded with ${result.meshes.length} meshes`);
       
-      // Initialize Clean BMC System with meshes
+      // Initialize BMC System with meshes
       if (cleanBMCRef.current) {
         initializeBMCSystem(scene, result.meshes);
       }
@@ -196,7 +189,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     if (!cleanBMC) return;
 
     try {
-      console.log('🔧 Initializing BMC interaction system...');
+      console.log('🔧 Initializing BMC system...');
 
       // Map meshes to BMC sections
       const bmcSections = [
@@ -226,29 +219,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       });
 
-      // Setup interaction manager only for 3D View
-      if (!isOrthographic) {
-        setupInteractionManager(scene, cleanBMC);
-      } else {
-        console.log('🔒 3D Top View: Interactions disabled for stability');
-      }
+      // For now, disable interactions in both views to prevent crashes
+      // TODO: Re-enable interactions once stability is confirmed
+      console.log('🔒 All interactions disabled for stability');
 
       console.log('✅ BMC system initialized');
 
     } catch (error) {
       console.error('❌ Failed to initialize BMC system:', error);
-    }
-  };
-
-  const setupInteractionManager = (scene: Scene, cleanBMC: CleanBMCSystem) => {
-    try {
-      // For now, skip interaction manager setup to prevent crashes
-      // TODO: Implement simpler interaction system
-      console.log('🔒 Interaction manager setup skipped for stability');
-
-      console.log('✅ Interaction manager initialized');
-    } catch (error) {
-      console.error('❌ Failed to setup interaction manager:', error);
     }
   };
 
@@ -262,19 +240,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     scene.activeCamera = activeCamera;
 
     if (isOrthographic) {
-      // Disable controls and interactions in 3D Top view
+      // Disable controls in 3D Top view
       cameraRef.current.detachControl();
-      
-      // Clear any interactions for 3D Top view
-      console.log('🔒 3D Top view: All interactions disabled');
     } else {
       // Enable controls for 3D View
       cameraRef.current.attachControl(canvasRef.current, true);
-      
-      // Re-initialize interaction manager if needed
-      if (!interactionManagerRef.current && cleanBMCRef.current && sceneRef.current) {
-        setupInteractionManager(sceneRef.current, cleanBMCRef.current);
-      }
     }
 
     // Update CleanBMC system view mode
