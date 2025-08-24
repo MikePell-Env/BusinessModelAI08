@@ -92,8 +92,8 @@ export class BMCModelLoader {
       }
       
       const rootMesh = result.meshes[0];
-      // FINAL FIX: Revenue Streams on RIGHT side of reference image
-      rootMesh.position = new Vector3(-0.221, 0.1, -10.5);
+      // SCIENTIFIC FIX: Revenue Streams needs POSITIVE X to appear RIGHT
+      rootMesh.position = new Vector3(10.1, 0.1, -10.5);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(7.7, 8, 8);
       
@@ -147,8 +147,8 @@ export class BMCModelLoader {
       });
       
       const rootMesh = result.meshes[0];
-      // FINAL FIX: Cost Structure on LEFT side - POSITIVE X for left with axis inversion
-      rootMesh.position = new Vector3(10.1, 0.1, -10.5);
+      // SCIENTIFIC FIX: Cost Structure needs NEGATIVE X to appear LEFT  
+      rootMesh.position = new Vector3(-0.221, 0.1, -10.5);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(8.0, 8, 8);
       
