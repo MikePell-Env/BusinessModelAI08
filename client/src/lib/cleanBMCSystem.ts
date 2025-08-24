@@ -18,10 +18,19 @@ export class CleanBMCSystem {
   private hoveredObject: string | null = null;
   private isTopView: boolean = false;
   private bmcStateManager: BMCStateManagerImpl | null = null;
+  private emergencyShutdown: boolean = false;
   // REMOVED: MaterialManager - using direct property modification instead
 
   constructor() {
     // Initialize silently
+  }
+  
+  // Emergency shutdown mode to prevent all operations
+  setEmergencyShutdown(shutdown: boolean) {
+    this.emergencyShutdown = shutdown;
+    if (shutdown) {
+      console.log('🚫 EMERGENCY SHUTDOWN: CleanBMCSystem disabled to prevent crashes');
+    }
   }
 
   // Set the BMC state manager
@@ -60,6 +69,11 @@ export class CleanBMCSystem {
 
   // Handle selection
   onSelect(sectionName: string) {
+    if (this.emergencyShutdown) {
+      console.log(`🚫 EMERGENCY: onSelect blocked for ${sectionName} - shutdown mode active`);
+      return;
+    }
+    
     console.log(`🔍 CleanBMC onSelect: ${sectionName}`);
 
     try {
@@ -98,6 +112,11 @@ export class CleanBMCSystem {
 
   // Handle hover state changes - simplified direct approach
   onHover(sectionName: string, isHovering: boolean): void {
+    if (this.emergencyShutdown) {
+      console.log(`🚫 EMERGENCY: hover blocked for ${sectionName} - shutdown mode active`);
+      return;
+    }
+    
     console.log(`🖱️ Simple hover: ${sectionName}, hovering=${isHovering}`);
 
     const item = this.items.get(sectionName);

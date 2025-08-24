@@ -2127,20 +2127,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // EMERGENCY: Make meshes pickable but with minimal safe interaction only
-            mesh.isPickable = true;
+            // CRITICAL: Make all meshes NON-PICKABLE to prevent any interactions
+            mesh.isPickable = false;
             
-            // EMERGENCY: Ultra-minimal click detection without material creation
-            mesh.actionManager = new ActionManager(scene);
-            mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              console.log(`🚫 EMERGENCY CLICK: ${sectionName}`);
-              
-              // Only selection state change, no visual updates
-              if (cleanBMCRef.current) {
-                cleanBMCRef.current.onSelect(sectionName);
-              }
-              bmcState.selectObject(mapSectionNameToBMCComponent(sectionName));
-            }));
+            // CRITICAL: No action managers at all to prevent WebGL crashes
+            mesh.actionManager = null;
             
             console.log(`🚫 ${sectionName}: Emergency click handler installed (no material operations)`);
             
@@ -2373,9 +2364,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // CRASH PREVENTION: Always make meshes NON-PICKABLE - no interaction managers
+            // CRITICAL: Make Revenue Streams NON-PICKABLE to prevent crashes
             mesh.isPickable = false;
-            console.log(`🚫 Revenue Streams: Mesh made NON-PICKABLE to prevent crashes (no interaction managers)`);
+            mesh.actionManager = null;
+            console.log(`🚫 Revenue Streams: All interactions DISABLED to prevent crashes`);
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
@@ -2515,9 +2507,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old BMC state initialization - CleanBMCSystem handles this
             
-            // CRASH PREVENTION: Always make meshes NON-PICKABLE - no interaction managers
+            // CRITICAL: Make Cost Structure NON-PICKABLE to prevent crashes  
             mesh.isPickable = false;
-            console.log(`🚫 Cost Structure: Mesh made NON-PICKABLE to prevent crashes (no interaction managers)`);
+            mesh.actionManager = null;
+            console.log(`🚫 Cost Structure: All interactions DISABLED to prevent crashes`);
             
             // REMOVED: Single click handler - now handled by manual double-click detection
             
@@ -2891,6 +2884,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const orthoCamera = orthoCameraRef.current;
       
       if (isOrthographic) {
+        // CRITICAL: Enable emergency shutdown to prevent ALL interactions in 3D Top
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.setEmergencyShutdown(true);
+        }
         // Save current perspective camera state before switching
         saveCamera3DState(
           perspectiveCamera.alpha,
@@ -2916,8 +2913,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // CRASH PREVENTION: Minimal visual updates to prevent WebGL overload
         console.log('🚫 3D Top view: Visual updates minimized to prevent crashes');
         
-        console.log(`✅ SWITCHED TO 3D TOP VIEW`);
+        console.log(`✅ SWITCHED TO 3D TOP VIEW - ALL INTERACTIONS DISABLED`);
       } else {
+        // CRITICAL: Disable emergency shutdown to restore interactions in 3D View
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.setEmergencyShutdown(false);
+        }
+        
         // CRITICAL FIX: No manual event handler removal needed since we don't add them
         console.log("🎯 Perspective view - using standard camera controls + UnifiedInteractionManager");
         
