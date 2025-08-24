@@ -52,7 +52,7 @@ export class SceneSetup {
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 0.05; // Even lower ambient for darker objects
+    hemisphericLight.intensity = 0.0; // Ambient light completely off - experiment
     hemisphericLight.diffuse = new Color3(0.15, 0.15, 0.17); // Extremely dark ambient
     hemisphericLight.specular = new Color3(0.0, 0.0, 0.0); // No ambient specular
     hemisphericLight.groundColor = new Color3(0.02, 0.02, 0.03); // Almost black ground
