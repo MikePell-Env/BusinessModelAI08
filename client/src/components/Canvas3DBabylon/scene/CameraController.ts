@@ -86,10 +86,7 @@ export class CameraController {
     // Look straight down with Y-axis rotation for reference image match
     camera.setTarget(new Vector3(0, 0, 0));
 
-    // Rotate camera to match reference image orientation:
-    // - Cost Structure (red) at bottom-left
-    // - Revenue Streams (green) at bottom-right
-    camera.rotation.y = Math.PI; // 180-degree rotation around Y-axis
+    // No rotation needed - object positions corrected
 
     // Set orthographic mode
     camera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
