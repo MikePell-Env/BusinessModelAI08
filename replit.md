@@ -7,6 +7,7 @@ This project is a web application for creating and visualizing business model ca
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
+- **January 24, 2025**: Finalized 3D Top view camera and scene positioning - camera at (0, 200, 0) with 0.2 FOV, scene transform with 0° X-rotation for perfectly flat top-down perspective. Documented optimal settings in ARCHITECTURE.md
 - **January 24, 2025**: Refined 3D View interaction colors - toned down bright blue to (0.0, 0.3, 0.7) for better shading and visual appeal
 - **January 24, 2025**: Fixed Cost Structure and Revenue Streams to turn grey when flattened (dimmed state) and return to original colors when restored
 - **January 24, 2025**: Implemented drag detection system - camera rotation (press-and-drag) no longer triggers selection changes, only clean clicks do
