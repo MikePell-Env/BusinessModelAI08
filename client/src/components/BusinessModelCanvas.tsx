@@ -113,7 +113,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
   }
 
   return (
-    <div className="w-full h-screen bg-white relative">
+    <div className="w-full h-screen relative" style={{ backgroundColor: '#e5e7eb' }}>
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header onNavigateHome={onNavigateHome} />
