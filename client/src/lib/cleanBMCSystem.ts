@@ -1,5 +1,5 @@
 
-import { AbstractMesh, Color3, StandardMaterial } from '@babylonjs/core';
+import { AbstractMesh, Color3, StandardMaterial, Animation } from '@babylonjs/core';
 import { BMCStateManagerImpl } from './bmcStateManager';
 import { MaterialManager } from './core/MaterialManager';
 
@@ -18,6 +18,8 @@ export class CleanBMCSystem {
   private hoveredObject: string | null = null;
   private isTopView: boolean = false;
   private bmcStateManager: BMCStateManagerImpl | null = null;
+  private animationSpeed: number = 15; // Slower, smooth animations (15 fps)
+  private animationDuration: number = 25; // 25 frames for even smoother, slower transitions
   // REMOVED: MaterialManager - using direct property modification instead
 
   constructor() {
@@ -208,20 +210,8 @@ export class CleanBMCSystem {
       // console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
       const { mesh, material, originalHeight, baseColor } = item;
 
-    // FIXED: Height management - NO changes in 3D Top view (avoid scaling crashes)
-    // CRITICAL: NEVER change height on hover!
-    if (!this.isTopView && state !== 'hover') {
-      // Only do height changes in 3D View (not 3D Top) and NEVER on hover
-      // MORE DRAMATIC height changes for better visual feedback
-      if (state === 'selected') {
-        mesh.scaling.y = originalHeight * 3.0; // Much more elevated for dramatic effect
-      } else if (state === 'dimmed') {
-        mesh.scaling.y = 0.1; // More visible when flattened
-      } else {
-        mesh.scaling.y = originalHeight; // Normal height
-      }
-    }
-    // In 3D Top view OR hover state: skip ALL height changes
+    // NO HEIGHT CHANGES - keep all objects at their original heights
+    // Only color/material changes with smooth animations
 
     // Base visibility settings - always ensure visibility
     mesh.setEnabled(true);
@@ -249,27 +239,21 @@ export class CleanBMCSystem {
     // Check if this is Cost Structure or Revenue Streams (special handling)
     const isSpecialSection = name === 'Cost Structure' || name === 'Revenue Streams';
     
+    // Store current colors for smooth transitions
+    const currentDiffuse = material.diffuseColor.clone();
+    const currentAlpha = material.alpha;
+    
     // Apply visual states based on view mode and interaction rules
     if (this.isTopView) {
       // 3D TOP VIEW: Simple color changes only, no transparency or height changes
       if (state === 'selected' || state === 'hover') {
-        // Blue for all sections in Top view
-        material.diffuseColor.r = 0.0;
-        material.diffuseColor.g = 0.3; 
-        material.diffuseColor.b = 0.8;
-        // console.log(`🎨 3D Top - Applied ${state.toUpperCase()}: ${name} -> blue`);
+        // Blue for all sections in Top view - smooth animation
+        const targetColor = new Color3(0.0, 0.3, 0.8);
+        this.animateColor(material, 'diffuseColor', currentDiffuse, targetColor);
       } else {
-        // Normal state - restore original color
-        if (baseColor) {
-          material.diffuseColor.r = baseColor.r;
-          material.diffuseColor.g = baseColor.g;
-          material.diffuseColor.b = baseColor.b;
-        } else {
-          material.diffuseColor.r = 0.5;
-          material.diffuseColor.g = 0.5;
-          material.diffuseColor.b = 0.5;
-        }
-        // console.log(`🎨 3D Top - Applied NORMAL: ${name} -> original color`);
+        // Normal state - restore original color with smooth animation
+        const targetColor = baseColor ? baseColor.clone() : new Color3(0.5, 0.5, 0.5);
+        this.animateColor(material, 'diffuseColor', currentDiffuse, targetColor);
       }
     } else {
       // 3D VIEW: Follow specific interaction rules
@@ -278,101 +262,74 @@ export class CleanBMCSystem {
         material.alpha = 1.0; // 100% opaque
         // IMPORTANT: Don't modify mesh.scaling.y - keep current height!
         if (isSpecialSection && baseColor) {
-          // Cost/Revenue: Brighter shade of original color
-          material.diffuseColor.r = Math.min(baseColor.r * 1.5, 1.0);
-          material.diffuseColor.g = Math.min(baseColor.g * 1.5, 1.0);
-          material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
+          // Cost/Revenue: Brighter shade of original color - smooth animation
+          const targetColor = new Color3(
+            Math.min(baseColor.r * 1.5, 1.0),
+            Math.min(baseColor.g * 1.5, 1.0),
+            Math.min(baseColor.b * 1.5, 1.0)
+          );
+          this.animateColor(material, 'diffuseColor', currentDiffuse, targetColor);
           // console.log(`🎨 3D View - Applied HOVER: ${name} -> brighter original (height unchanged)`);
         } else {
-          // Main sections: Toned down blue with better shading
-          material.diffuseColor.r = 0.0;
-          material.diffuseColor.g = 0.3; 
-          material.diffuseColor.b = 0.7;
-          // Reset emissive for clean hover look
-          material.emissiveColor.r = 0.0;
-          material.emissiveColor.g = 0.0;
-          material.emissiveColor.b = 0.0;
+          // Main sections: Toned down blue with better shading - smooth animation
+          const targetDiffuse = new Color3(0.0, 0.3, 0.7);
+          const targetEmissive = new Color3(0.0, 0.0, 0.0);
+          this.animateColor(material, 'diffuseColor', currentDiffuse, targetDiffuse);
+          this.animateColor(material, 'emissiveColor', material.emissiveColor.clone(), targetEmissive);
           // console.log(`🎨 3D View - Applied HOVER: ${name} -> toned blue (height unchanged)`);
         }
       } else if (state === 'selected') {
         // Rule 3: Selected object
-        material.alpha = 1.0; // 100% opaque
+        // Smooth alpha animation to 100% opaque
+        this.animateAlpha(material, currentAlpha, 1.0);
         
-        // Special handling for Cost Structure and Revenue Streams - dramatic elevation when selected
-        if (name === 'Cost Structure') {
-          mesh.scaling.y = 8.0 * 3.0; // 3x elevation from normal height
-        } else if (name === 'Revenue Streams') {
-          mesh.scaling.y = 7.7 * 3.0; // 3x elevation from normal height  
-        } else {
-          mesh.scaling.y = mesh.scaling.x * 3.0; // 3x elevation for main BMC objects
-        }
+        // Keep original heights - no elevation changes
+        // Heights remain constant for smooth visual experience
         if (isSpecialSection && baseColor) {
-          // Cost/Revenue: Bright version of original
-          material.diffuseColor.r = Math.min(baseColor.r * 1.5, 1.0);
-          material.diffuseColor.g = Math.min(baseColor.g * 1.5, 1.0);
-          material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
-          // console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright original`);
+          // Cost/Revenue: Bright version of original - smooth animation
+          const targetColor = new Color3(
+            Math.min(baseColor.r * 1.5, 1.0),
+            Math.min(baseColor.g * 1.5, 1.0),
+            Math.min(baseColor.b * 1.5, 1.0)
+          );
+          this.animateColor(material, 'diffuseColor', currentDiffuse, targetColor);
         } else {
-          // Main sections: Toned down blue with better shading
-          material.diffuseColor.r = 0.0;
-          material.diffuseColor.g = 0.3; 
-          material.diffuseColor.b = 0.7;
-          // Add subtle emissive for better depth perception
-          material.emissiveColor.r = 0.0;
-          material.emissiveColor.g = 0.05;
-          material.emissiveColor.b = 0.1;
-          // console.log(`🎨 3D View - Applied SELECTED: ${name} -> toned blue with depth`);
+          // Main sections: Toned down blue with better shading - smooth animation
+          const targetDiffuse = new Color3(0.0, 0.3, 0.7);
+          const targetEmissive = new Color3(0.0, 0.05, 0.1);
+          this.animateColor(material, 'diffuseColor', currentDiffuse, targetDiffuse);
+          this.animateColor(material, 'emissiveColor', material.emissiveColor.clone(), targetEmissive);
         }
       } else if (state === 'dimmed') {
         // Rule 3: Other objects when something is selected
-        material.alpha = 0.3; // 30% opacity
-        mesh.scaling.y = 0.1; // More visible when flattened
+        // Smooth alpha transition to 30% opacity
+        this.animateAlpha(material, currentAlpha, 0.3);
+        // No height change - keep original height for smooth transition
         
         if (isSpecialSection) {
-          // Cost Structure and Revenue Streams: Use grey color when flattened (same as other BMC objects)
-          material.diffuseColor.r = 0.25;
-          material.diffuseColor.g = 0.25;
-          material.diffuseColor.b = 0.25;
+          // Cost Structure and Revenue Streams: Use grey color when flattened - smooth animation
+          const targetColor = new Color3(0.25, 0.25, 0.25);
+          this.animateColor(material, 'diffuseColor', currentDiffuse, targetColor);
           // console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & grey color`);
         } else {
-          // Main BMC sections: Dimmed original colors
-          if (baseColor) {
-            material.diffuseColor.r = baseColor.r * 0.5;
-            material.diffuseColor.g = baseColor.g * 0.5;
-            material.diffuseColor.b = baseColor.b * 0.5;
-          } else {
-            material.diffuseColor.r = 0.25;
-            material.diffuseColor.g = 0.25;
-            material.diffuseColor.b = 0.25;
-          }
+          // Main BMC sections: Dimmed original colors - smooth animation
+          const targetColor = baseColor 
+            ? new Color3(baseColor.r * 0.5, baseColor.g * 0.5, baseColor.b * 0.5)
+            : new Color3(0.25, 0.25, 0.25);
+          this.animateColor(material, 'diffuseColor', currentDiffuse, targetColor);
           // console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & 30% opacity`);
         }
       } else {
         // Rule 1: Normal state - full height, original color, 100% opaque
-        material.alpha = 1.0;
+        // Smooth alpha animation to 100% opaque
+        this.animateAlpha(material, currentAlpha, 1.0);
         
-        // Special handling for Cost Structure and Revenue Streams - preserve original heights
-        if (name === 'Cost Structure') {
-          mesh.scaling.y = 8.0; // Original height for normal state
-        } else if (name === 'Revenue Streams') {
-          mesh.scaling.y = 7.7; // Original height for normal state  
-        } else {
-          mesh.scaling.y = mesh.scaling.x; // Original height for main BMC objects
-        }
-        if (baseColor) {
-          material.diffuseColor.r = baseColor.r;
-          material.diffuseColor.g = baseColor.g;
-          material.diffuseColor.b = baseColor.b;
-        } else {
-          material.diffuseColor.r = 0.5;
-          material.diffuseColor.g = 0.5;
-          material.diffuseColor.b = 0.5;
-        }
-        // Reset emissive color for clean normal state
-        material.emissiveColor.r = 0.0;
-        material.emissiveColor.g = 0.0;
-        material.emissiveColor.b = 0.0;
-        // console.log(`🎨 3D View - Applied NORMAL: ${name} -> full height & original color`);
+        // Keep original heights - no changes needed
+        // Smooth color animation to original colors
+        const targetDiffuse = baseColor ? baseColor.clone() : new Color3(0.5, 0.5, 0.5);
+        const targetEmissive = new Color3(0.0, 0.0, 0.0);
+        this.animateColor(material, 'diffuseColor', currentDiffuse, targetDiffuse);
+        this.animateColor(material, 'emissiveColor', material.emissiveColor.clone(), targetEmissive);
       }
     }
     
@@ -435,5 +392,53 @@ export class CleanBMCSystem {
       isTopView: this.isTopView,
       itemCount: this.items.size
     };
+  }
+
+  // Smooth color animation helper
+  private animateColor(material: StandardMaterial, property: 'diffuseColor' | 'emissiveColor', from: Color3, to: Color3) {
+    const animationName = `${property}_transition_${Date.now()}`;
+    const animation = new Animation(
+      animationName,
+      property,
+      this.animationSpeed,
+      Animation.ANIMATIONTYPE_COLOR3,
+      Animation.ANIMATIONLOOPMODE_CONSTANT
+    );
+
+    animation.setKeys([
+      { frame: 0, value: from },
+      { frame: this.animationDuration, value: to }
+    ]);
+
+    // Stop any existing animations on this property
+    material.getScene().stopAnimation(material, property);
+    
+    // Start the new animation
+    material.getScene().beginAnimation(material, 0, this.animationDuration, false);
+  }
+
+  // Smooth alpha animation helper
+  private animateAlpha(material: StandardMaterial, from: number, to: number) {
+    const animationName = `alpha_transition_${Date.now()}`;
+    const animation = new Animation(
+      animationName,
+      'alpha',
+      this.animationSpeed,
+      Animation.ANIMATIONTYPE_FLOAT,
+      Animation.ANIMATIONLOOPMODE_CONSTANT
+    );
+
+    animation.setKeys([
+      { frame: 0, value: from },
+      { frame: this.animationDuration, value: to }
+    ]);
+
+    // Stop any existing alpha animations
+    material.getScene().stopAnimation(material, 'alpha');
+    
+    // Apply and start the animation
+    material.animations = material.animations || [];
+    material.animations.push(animation);
+    material.getScene().beginAnimation(material, 0, this.animationDuration, false);
   }
 }
