@@ -649,13 +649,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // CLEAN START: Create TWO cameras - perspective and orthographic
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
-      -Math.PI/2,
-      Math.PI/3,
-      25,
+      -Math.PI/4,    // -45° horizontal angle (front-right perspective)
+      Math.PI/4,     // 45° vertical angle (elevated but not too steep)
+      30,            // Distance for good framing
       Vector3.Zero(),
       scene
     );
-    perspectiveCamera.setPosition(new Vector3(-20, 15, -20));
+    // Initial position will be set by ArcRotateCamera based on alpha/beta/radius
     perspectiveCamera.attachControl(canvasElement, true);
     perspectiveCamera.wheelPrecision = 50;
     
