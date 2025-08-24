@@ -286,6 +286,10 @@ export class CleanBMCSystem {
           material.diffuseColor.r = 0.15;
           material.diffuseColor.g = 0.25; 
           material.diffuseColor.b = 0.6;
+          // Reset emissive for clean hover look
+          material.emissiveColor.r = 0.0;
+          material.emissiveColor.g = 0.0;
+          material.emissiveColor.b = 0.0;
           console.log(`🎨 3D View - Applied HOVER: ${name} -> soft blue (height unchanged)`);
         }
       } else if (state === 'selected') {
@@ -307,11 +311,15 @@ export class CleanBMCSystem {
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
           console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright original`);
         } else {
-          // Main sections: Bright blue
+          // Main sections: Darker blue with better shading
           material.diffuseColor.r = 0.0;
-          material.diffuseColor.g = 0.5; 
-          material.diffuseColor.b = 1.0;
-          console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright blue`);
+          material.diffuseColor.g = 0.2; 
+          material.diffuseColor.b = 0.7;
+          // Add subtle emissive for better depth perception
+          material.emissiveColor.r = 0.0;
+          material.emissiveColor.g = 0.05;
+          material.emissiveColor.b = 0.15;
+          console.log(`🎨 3D View - Applied SELECTED: ${name} -> darker blue with depth`);
         }
       } else if (state === 'dimmed') {
         // Rule 3: Other objects when something is selected
@@ -349,6 +357,10 @@ export class CleanBMCSystem {
           material.diffuseColor.g = 0.5;
           material.diffuseColor.b = 0.5;
         }
+        // Reset emissive color for clean normal state
+        material.emissiveColor.r = 0.0;
+        material.emissiveColor.g = 0.0;
+        material.emissiveColor.b = 0.0;
         console.log(`🎨 3D View - Applied NORMAL: ${name} -> full height & original color`);
       }
     }
