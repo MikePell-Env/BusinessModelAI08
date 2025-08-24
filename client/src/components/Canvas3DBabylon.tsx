@@ -663,8 +663,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const topViewCamera = new FreeCamera("TopViewCamera", new Vector3(0, 200, 0), scene);
     topViewCamera.setTarget(new Vector3(0, 0, 0)); // Look straight down at center
     
-    // Narrow field of view to minimize perspective distortion (default is ~0.8, we use 0.15)
-    topViewCamera.fov = 0.15; // Much narrower FOV = more orthographic appearance
+    // Balanced field of view to show entire ground plane while minimizing perspective distortion
+    topViewCamera.fov = 0.25; // Wider FOV to fit entire ground plane within window bounds
     
     // No orthographic bounds needed for perspective camera
     
