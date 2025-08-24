@@ -113,8 +113,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
             {/* Combined Dialog Box with Demo Banner Inside */}
             <div className="mb-8 mt-32">
               <div className="bg-white rounded-lg shadow-2xl border border-black">
-                {/* Blue Demo Banner - Now inside the dialog */}
-                <div className="bg-blue-500 text-white p-4 rounded-t-lg">
+                {/* Dark Grey Demo Banner - Now inside the dialog */}
+                <div className="bg-gray-700 text-white p-4 rounded-t-lg">
                   <p className="text-base leading-tight">
                     <strong>DEMO:</strong> Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
                   </p>
