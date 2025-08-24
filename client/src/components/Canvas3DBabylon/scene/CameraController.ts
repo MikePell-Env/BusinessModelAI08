@@ -25,7 +25,7 @@ interface CameraState {
 export class CameraController {
   private scene: Scene;
   private perspectiveCamera: ArcRotateCamera;
-  private topViewCamera: ArcRotateCamera;
+  private orthographicCamera: FreeCamera;
   private currentMode: CameraMode = '3D View';
   private savedStates: Map<CameraMode, CameraState> = new Map();
 
@@ -35,8 +35,8 @@ export class CameraController {
     // Initialize perspective camera (3D View)
     this.perspectiveCamera = this.createPerspectiveCamera(canvas);
     
-    // Initialize top view camera (3D Top) - perspective, not orthographic
-    this.topViewCamera = this.createTopViewCamera(canvas);
+    // Initialize orthographic camera (3D Top)
+    this.orthographicCamera = this.createOrthographicCamera();
     
     // Set initial active camera
     this.scene.activeCamera = this.perspectiveCamera;
@@ -76,34 +76,25 @@ export class CameraController {
     return camera;
   }
 
-  private createTopViewCamera(canvas: HTMLCanvasElement): ArcRotateCamera {
-    const camera = new ArcRotateCamera(
-      "TopViewCamera",
-      Tools.ToRadians(-90),  // alpha (horizontal rotation)
-      Tools.ToRadians(0.1),  // beta (almost straight down)
-      30,                    // radius (distance)
-      new Vector3(0, 0, 0),  // target
+  private createOrthographicCamera(): FreeCamera {
+    const camera = new FreeCamera(
+      "OrthographicCamera",
+      new Vector3(0, 30, 0),
       this.scene
     );
     
-    // Position directly above looking down
-    camera.setPosition(new Vector3(0, 30, 0));
-    camera.setTarget(Vector3.Zero());
+    // Look straight down
+    camera.setTarget(new Vector3(0, 0, 0));
     
-    // Minimal rotation limits for top view
-    camera.lowerBetaLimit = 0.05;
-    camera.upperBetaLimit = 0.2; // Allow slight angle adjustment
+    // Set orthographic mode
+    camera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
     
-    // Zoom limits
-    camera.lowerRadiusLimit = 15;
-    camera.upperRadiusLimit = 50;
-    
-    // Controls
-    camera.attachControl(canvas, true);
-    camera.wheelPrecision = 50;
-    camera.panningSensibility = 100;
-    camera.angularSensibilityX = 500;
-    camera.angularSensibilityY = 500;
+    // Define the orthographic view box
+    const orthoSize = 15;
+    camera.orthoLeft = -orthoSize;
+    camera.orthoRight = orthoSize;
+    camera.orthoTop = orthoSize;
+    camera.orthoBottom = -orthoSize;
     
     return camera;
   }
@@ -114,15 +105,13 @@ export class CameraController {
     
     // Switch camera based on mode
     if (mode === '3D Top') {
-      this.scene.activeCamera = this.topViewCamera;
+      this.scene.activeCamera = this.orthographicCamera;
       
-      // Position for top-down view (perspective)
-      this.topViewCamera.position = new Vector3(0, 30, 0);
-      this.topViewCamera.setTarget(new Vector3(0, 0, 0));
-      this.topViewCamera.beta = Tools.ToRadians(0.1); // Almost straight down
-      this.topViewCamera.radius = 30;
+      // Position for top-down view
+      this.orthographicCamera.position = new Vector3(0, 30, 0);
+      this.orthographicCamera.setTarget(new Vector3(0, 0, 0));
       
-      debugLog.info('camera', 'Switched to 3D Top view (perspective)');
+      debugLog.info('camera', 'Switched to 3D Top view (orthographic)');
     } else {
       this.scene.activeCamera = this.perspectiveCamera;
       
@@ -151,13 +140,10 @@ export class CameraController {
         beta: this.perspectiveCamera.beta,
         radius: this.perspectiveCamera.radius
       });
-    } else if (this.currentMode === '3D Top' && this.topViewCamera) {
+    } else if (this.currentMode === '3D Top' && this.orthographicCamera) {
       this.savedStates.set('3D Top', {
-        position: this.topViewCamera.position.clone(),
-        target: this.topViewCamera.target.clone(),
-        alpha: this.topViewCamera.alpha,
-        beta: this.topViewCamera.beta,
-        radius: this.topViewCamera.radius
+        position: this.orthographicCamera.position.clone(),
+        target: this.orthographicCamera.getTarget().clone()
       });
     }
   }
@@ -166,8 +152,8 @@ export class CameraController {
     return this.currentMode;
   }
 
-  public getActiveCamera(): ArcRotateCamera {
-    return this.scene.activeCamera as ArcRotateCamera;
+  public getActiveCamera(): ArcRotateCamera | FreeCamera {
+    return this.scene.activeCamera as ArcRotateCamera | FreeCamera;
   }
 
   public resetCamera(): void {
@@ -175,10 +161,8 @@ export class CameraController {
       this.perspectiveCamera.setPosition(new Vector3(-20, 15, -20));
       this.perspectiveCamera.setTarget(Vector3.Zero());
     } else {
-      this.topViewCamera.position = new Vector3(0, 30, 0);
-      this.topViewCamera.setTarget(new Vector3(0, 0, 0));
-      this.topViewCamera.beta = Tools.ToRadians(0.1);
-      this.topViewCamera.radius = 30;
+      this.orthographicCamera.position = new Vector3(0, 30, 0);
+      this.orthographicCamera.setTarget(new Vector3(0, 0, 0));
     }
     
     debugLog.info('camera', `Camera reset for ${this.currentMode} mode`);

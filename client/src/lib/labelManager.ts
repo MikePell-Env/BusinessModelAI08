@@ -39,7 +39,7 @@ export class UnifiedBMCLabelManager {
   }
 
   /**
-   * Ensure a specific BMC component label remains visible on surface
+   * Ensure a specific BMC component label remains visible
    */
   ensureLabelVisibility(bmcComponent: BMCComponentName) {
     const label = this.labels.get(bmcComponent);
@@ -50,22 +50,18 @@ export class UnifiedBMCLabelManager {
       label.isVisible = true;
       label.setEnabled(true);
       
-      // Ensure material properties for surface application
+      // Ensure material alpha is full
       material.alpha = 1.0;
       material.backFaceCulling = false; // Ensure visibility from all angles
       
-      // Force emissive properties for visibility on surface
+      // Force emissive properties for visibility
       if (material.emissiveTexture) {
-        material.emissiveColor.set(0.9, 0.9, 0.9); // Brighter for surface visibility
+        material.emissiveColor.set(0.9, 0.9, 0.9); // Brighter
       }
       material.useAlphaFromDiffuseTexture = true;
       material.needDepthPrePass = false; // Prevent depth issues
       
-      // Ensure label renders on top
-      label.renderingGroupId = 1;
-      label.isPickable = false;
-      
-      console.log(`🔧 FORCED surface visibility for ${bmcComponent} label`);
+      console.log(`🔧 FORCED visibility for ${bmcComponent} label`);
     } else {
       console.warn(`⚠️ Label not found for visibility enforcement: ${bmcComponent}`);
     }
@@ -99,7 +95,7 @@ export class UnifiedBMCLabelManager {
   }
 
   /**
-   * Force visibility for all surface labels in the scene by pattern
+   * Force visibility for all labels in the scene by pattern
    */
   forceAllLabelsVisibleByPattern(pattern: string = "Label") {
     const allLabels = this.findLabelsByPattern(pattern);
@@ -107,10 +103,6 @@ export class UnifiedBMCLabelManager {
     allLabels.forEach(label => {
       label.isVisible = true;
       label.setEnabled(true);
-      
-      // Ensure surface rendering properties
-      label.renderingGroupId = 1;
-      label.isPickable = false;
       
       if (label.material) {
         const material = label.material as any;
@@ -122,11 +114,10 @@ export class UnifiedBMCLabelManager {
         }
         material.backFaceCulling = false;
         material.useAlphaFromDiffuseTexture = true;
-        material.needDepthPrePass = false;
       }
     });
     
-    console.log(`🔧 EMERGENCY: Forced surface visibility for ${allLabels.length} labels by pattern`);
+    console.log(`🔧 EMERGENCY: Forced visibility for ${allLabels.length} labels by pattern`);
   }
 
   /**
