@@ -34,7 +34,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
     setPendingPowerPointFile
   } = useCanvas();
   
-  console.log(`🟡 BusinessModelCanvas render: isTransitioning=${isTransitioning}, isOrthographic=${isOrthographic}`);
+  console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isOrthographic=${isOrthographic}, isTransitioning=${isTransitioning}`);
+  console.log(`🟡 Will render: ${is3D ? 'Canvas3DBabylon' : 'Canvas2D'}`);
   
 
 
