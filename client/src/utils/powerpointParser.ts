@@ -649,39 +649,41 @@ export class PowerPointParser {
       let inMarketSection = false;
       let marketContent: string[] = [];
       
+      console.log('🔍 Searching for Market section in lines:', lines.slice(0, 50)); // Debug first 50 lines
+      
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         
-        // Look for Market header - be very specific
-        if (line.trim() === 'MARKET' || (line.match(/^MARKET$/i) && line.length < 15)) {
+        // Look for Market header - be more flexible
+        if (line.trim().toUpperCase() === 'MARKET' || line.match(/^MARKET$/i)) {
+          console.log('✅ Found MARKET header at line', i, ':', line);
           inMarketSection = true;
           continue;
         }
         
         // Check if we've hit another major section (exit market section)
         if (inMarketSection && line.match(/^(SUMMARY|FOUNDERS|MISSION|KEY|WEBSITE|TEAM|VALUE|CUSTOMER|COST|REVENUE)$/i)) {
+          console.log('🛑 Exiting market section at line', i, ':', line);
           break; // Stop when we hit another major section
         }
         
         // Extract content from Market section
         if (inMarketSection) {
+          console.log('📝 Processing market line', i, ':', line);
           // Skip URLs and website content
           if (!line.match(/https?:\/\/|www\.|\.com|\.ai|\.org/i) && 
               !line.match(/^W\s?EBSITE/i) &&
-              line.trim().length > 5) {
+              line.trim().length > 0) {
             const cleanLine = line.replace(/\s+/g, ' ').trim();
-            if (cleanLine.length > 3 && !cleanLine.match(/^(•|\*|-|\d+\.)/)) {
-              // This looks like a paragraph or meaningful content
-              if (cleanLine.length > 20) {
-                marketContent.push(cleanLine);
-              } else {
-                // Short line, might be a heading or list item
-                marketContent.push(cleanLine);
-              }
+            if (cleanLine.length > 2) {
+              console.log('✅ Adding to market content:', cleanLine);
+              marketContent.push(cleanLine);
             }
           }
         }
       }
+      
+      console.log('📊 Final market content found:', marketContent);
       
       if (marketContent.length > 0) {
         foundMarketInfo = marketContent.slice(0, 3);
