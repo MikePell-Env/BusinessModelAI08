@@ -685,6 +685,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // MASTER TRANSFORM: Create root transform node to rotate entire scene 180 degrees
     const masterTransform = new TransformNode("MasterTransform", scene);
     masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
+    
+    // DYNAMIC SCALING: Scale BMC to fill window like reference image
+    const canvasForScaling = canvasRef.current;
+    if (canvasForScaling) {
+      const canvasWidth = canvasForScaling.clientWidth;
+      const canvasHeight = canvasForScaling.clientHeight;
+      // Scale based on smaller dimension to ensure fit, with padding
+      const baseSize = Math.min(canvasWidth, canvasHeight);
+      const scaleFactor = (baseSize / 600) * 1.2; // Base reference of 600px, scale up 20%
+      masterTransform.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+      console.log(`🔄 Master transform: 180° rotation + dynamic scale ${scaleFactor.toFixed(2)}`);
+    }
+    
     console.log("🔄 Master transform node created with 180° rotation");
 
     // Create ground with powder blue background and white gridlines
@@ -695,8 +708,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
     const gridContext = gridTexture.getContext();
     
-    // Fill with custom powder blue background
-    gridContext.fillStyle = "#a7dbfc"; // Custom powder blue background
+    // Fill with light grey background to match reference image
+    gridContext.fillStyle = "#e5e7eb"; // Light grey background matching reference
     gridContext.fillRect(0, 0, 1024, 1024);
     
     // Draw white grid lines
@@ -721,10 +734,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     gridTexture.update();
     
-    // Apply powder blue material with white grid texture to ground
+    // Apply light grey material with white grid texture to ground
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
     groundMaterial.diffuseTexture = gridTexture;
-    groundMaterial.specularColor = new Color3(0.1, 0.1, 0.2); // Subtle blue-tinted specular reflection
+    groundMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Neutral grey specular reflection
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
     groundMaterial.alpha = 0.5; // 50% opacity
     ground.material = groundMaterial;
