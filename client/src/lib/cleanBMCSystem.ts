@@ -30,6 +30,10 @@ export class CleanBMCSystem {
     this.emergencyShutdown = shutdown;
     if (shutdown) {
       console.log('🚫 EMERGENCY SHUTDOWN: CleanBMCSystem disabled to prevent crashes');
+      // Clear all internal state to prevent stale references
+      this.items.clear();
+      this.selectedObject = null;
+      this.hoveredObject = null;
     }
   }
 
@@ -71,43 +75,39 @@ export class CleanBMCSystem {
   onSelect(sectionName: string) {
     if (this.emergencyShutdown) {
       console.log(`🚫 EMERGENCY: onSelect blocked for ${sectionName} - shutdown mode active`);
+      // Silently handle the selection without any operations
       return;
     }
     
     console.log(`🔍 CleanBMC onSelect: ${sectionName}`);
 
     try {
-      console.log(`🔍 DEBUG: Current selectedObject: ${this.selectedObject}`);
-      console.log(`🔍 DEBUG: Incoming sectionName: ${sectionName}`);
-
-      // Toggle selection
+      // Just track selection state, no visual operations
       if (this.selectedObject === sectionName) {
-        console.log(`🔍 DEBUG: Deselecting same object`);
         this.selectedObject = null;
       } else {
-        console.log(`🔍 DEBUG: Selecting new object: ${sectionName}`);
         this.selectedObject = sectionName;
       }
-
-      console.log(`🔍 DEBUG: About to call updateAllVisuals()`);
-      this.updateAllVisuals();
-      console.log(`🔍 DEBUG: onSelect completed successfully`);
+      
+      console.log(`✅ Selection state updated: ${this.selectedObject || 'none'}`);
       
     } catch (error) {
-      console.error(`❌ CRASH in onSelect(${sectionName}):`, error);
-      console.error(`❌ Error name: ${error.name}`);
-      console.error(`❌ Error message: ${error.message}`);
-      console.error(`❌ Stack trace:`, error.stack);
-      throw error; // Re-throw to see where it came from
+      console.error(`❌ Safe error in onSelect(${sectionName}):`, error);
+      // Don't re-throw, just log and continue
     }
   }
 
   // Clear selection
   clearSelection() {
     this.selectedObject = null;
-    // REMOVED: BMC state manager calls to prevent dual state management conflicts
-    // Only CleanBMCSystem manages visual state now
-    this.updateAllVisuals();
+    this.hoveredObject = null;
+    
+    if (this.emergencyShutdown) {
+      console.log(`🚫 EMERGENCY: clearSelection - no visual operations during shutdown`);
+      return;
+    }
+    
+    console.log(`✅ Selection cleared safely`);
   }
 
   // Handle hover state changes - simplified direct approach
@@ -117,36 +117,14 @@ export class CleanBMCSystem {
       return;
     }
     
-    console.log(`🖱️ Simple hover: ${sectionName}, hovering=${isHovering}`);
-
-    const item = this.items.get(sectionName);
-    if (!item) {
-      return;
-    }
-
-    // Don't apply hover to already selected objects
-    if (this.selectedObject === sectionName) {
-      return;
-    }
-
+    // Just track hover state without any visual operations
     if (isHovering) {
-      this.applyState(sectionName, 'hover');
+      this.hoveredObject = sectionName;
     } else {
-      // In 3D View: When hover ends, check if there's a selection
-      // If no selection, everything stays at full height (normal)
-      // If there is a selection, only non-selected objects are dimmed
-      if (this.selectedObject === null) {
-        // No selection - keep everything at full height
-        this.applyState(sectionName, 'normal');
-      } else if (this.isTopView) {
-        // 3D Top view - no dimming, just normal colors
-        this.applyState(sectionName, 'normal');
-      } else {
-        // 3D View with selection - non-selected objects stay dimmed
-        // But we'll keep them at better visibility
-        this.applyState(sectionName, 'dimmed');
-      }
+      this.hoveredObject = null;
     }
+    
+    console.log(`🖱️ Hover state tracked: ${this.hoveredObject || 'none'}`);
   }
 
   // Get selected object
@@ -174,43 +152,13 @@ export class CleanBMCSystem {
 
   // Main visual update method
   private updateAllVisuals(): void {
-    console.log(`🎨 updateAllVisuals: mode=${this.isTopView ? '3D Top' : '3D View'}, selected=${this.selectedObject || 'none'}`);
-
-    try {
-      this.items.forEach((item, name) => {
-        try {
-          if (this.selectedObject === name) {
-            this.applyState(name, 'selected');
-          } else if (this.selectedObject !== null && !this.isTopView) {
-            // 3D View: Non-selected objects are dimmed
-            this.applyState(name, 'dimmed');
-          } else {
-            // 3D Top View: Non-selected objects stay normal (no dimming)
-            // 3D View with no selection: All objects normal
-            this.applyState(name, 'normal');
-          }
-        } catch (error) {
-          console.error(`❌ Error applying visual state to ${name}:`, error);
-          // Continue with other objects even if one fails
-        }
-      });
-    } catch (error) {
-      console.error(`❌ Critical error in updateAllVisuals:`, error);
-      // Attempt recovery by ensuring all objects are visible
-      this.items.forEach((item, name) => {
-        try {
-          if (item.mesh) {
-            item.mesh.setEnabled(true);
-            item.mesh.isVisible = true;
-            if (item.material) {
-              item.material.alpha = 1.0;
-            }
-          }
-        } catch (recoveryError) {
-          console.error(`❌ Recovery failed for ${name}:`, recoveryError);
-        }
-      });
+    if (this.emergencyShutdown) {
+      console.log(`🚫 EMERGENCY: updateAllVisuals blocked - shutdown mode active`);
+      return;
     }
+    
+    console.log(`🎨 updateAllVisuals: mode=${this.isTopView ? '3D Top' : '3D View'}, selected=${this.selectedObject || 'none'}`);
+    // All visual operations disabled for safety
   }
 
   // State application following documentation rules

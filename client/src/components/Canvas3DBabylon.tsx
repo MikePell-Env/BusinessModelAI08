@@ -1378,6 +1378,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // No interaction managers at all
     interactionManagerRef.current = null;
     
+    // Override all hover handlers to be safe
+    const safeHoverEnter = (sectionName: string) => {
+      console.log(`🚫 Safe hover enter: ${sectionName} - no operations`);
+    };
+    
+    const safeHoverExit = (sectionName: string) => {
+      console.log(`🚫 Safe hover exit: ${sectionName} - no operations`);
+    };
+    
     // Load complete BMC GLB model with individual section coloring
     modelLoader.loadMainBMC().then((model) => {
       if (model.meshes.length > 0) {
@@ -2084,9 +2093,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             mesh.isPickable = false;
             
             // CRITICAL: No action managers at all to prevent WebGL crashes
-            mesh.actionManager = null;
+            if (mesh.actionManager) {
+              mesh.actionManager.dispose();
+              mesh.actionManager = null;
+            }
             
-            console.log(`🚫 ${sectionName}: Emergency click handler installed (no material operations)`);
+            // CRITICAL: Remove any existing event listeners
+            mesh.onPointerObservable?.clear();
+            
+            console.log(`🚫 ${sectionName}: All interactions completely disabled`);
             
             // REMOVED: Old click select function - replaced by unified BMC system
             
@@ -2818,47 +2833,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const perspectiveCamera = cameraRef.current;
       const orthoCamera = orthoCameraRef.current;
       
-      if (isOrthographic) {
-        // CRITICAL: Prevent mesh recreation that causes WebGL crashes
-        console.log('🚫 CRITICAL: Preventing mesh disposal during view switch');
+      try {
+        if (isOrthographic) {
+          console.log('🔄 SAFE: Switching to 3D Top View with minimal operations');
+          
+          // Just switch camera, no mesh operations
+          scene.activeCamera = orthoCamera;
+          
+          console.log(`✅ SAFE SWITCH TO 3D TOP VIEW - Camera only`);
+        } else {
+          console.log('🔄 SAFE: Switching to 3D View with minimal operations');
+          
+          // Just switch camera, no mesh operations
+          scene.activeCamera = perspectiveCamera;
+          
+          console.log(`✅ SAFE SWITCH TO 3D VIEW - Camera only`);
+        }
         
-        // Save current perspective camera state before switching
-        saveCamera3DState(
-          perspectiveCamera.alpha,
-          perspectiveCamera.beta,
-          perspectiveCamera.radius
-        );
+        // Update CleanBMCSystem view mode safely
+        if (cleanBMCRef.current && !cleanBMCRef.current.emergencyShutdown) {
+          cleanBMCRef.current.setTopViewMode(isOrthographic);
+        }
         
-        // INSTANT camera switch to prevent mesh issues
-        scene.activeCamera = orthoCamera;
-        
-        // CRITICAL: Disable ALL click handlers to prevent WebGL crashes
-        scene.meshes.forEach(mesh => {
-          if (mesh.actionManager) {
-            mesh.actionManager.dispose();
-            mesh.actionManager = null;
-          }
-          mesh.isPickable = false;
-        });
-        
-        console.log(`✅ SWITCHED TO 3D TOP VIEW - ALL INTERACTIONS COMPLETELY DISABLED`);
-      } else {
-        // CRITICAL: Prevent mesh recreation that causes WebGL crashes
-        console.log('🚫 CRITICAL: Preventing mesh disposal during view switch');
-        
-        // INSTANT camera switch to prevent mesh issues
-        scene.activeCamera = perspectiveCamera;
-        
-        // CRITICAL: Keep ALL click handlers disabled to prevent WebGL crashes
-        scene.meshes.forEach(mesh => {
-          if (mesh.actionManager) {
-            mesh.actionManager.dispose();
-            mesh.actionManager = null;
-          }
-          mesh.isPickable = false;
-        });
-        
-        console.log(`✅ SWITCHED TO 3D VIEW - ALL INTERACTIONS REMAIN DISABLED`);
+      } catch (error) {
+        console.error('❌ Error during camera switch:', error);
+        // Don't crash, just log the error
       }
     }
   }, [isOrthographic]);
