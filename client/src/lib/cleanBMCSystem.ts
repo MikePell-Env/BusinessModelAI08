@@ -236,49 +236,96 @@ export class CleanBMCSystem {
       material.emissiveColor = Color3.Black();
     }
     
-    // DIAGNOSTIC: Log current values before changes
-    console.log(`📊 BEFORE ${name}: alpha=${material.alpha}, color=(${material.diffuseColor.r},${material.diffuseColor.g},${material.diffuseColor.b}), visible=${mesh.isVisible}, scale=(${mesh.scaling.x},${mesh.scaling.y},${mesh.scaling.z})`);
+    // Check if this is Cost Structure or Revenue Streams (special handling)
+    const isSpecialSection = name === 'Cost Structure' || name === 'Revenue Streams';
     
-    // Apply colors by DIRECT property modification (no new objects)
-    if (state === 'selected' || state === 'hover') {
-      // Blue for selected/hover - direct property modification
-      material.diffuseColor.r = 0.0;
-      material.diffuseColor.g = 0.3; 
-      material.diffuseColor.b = 0.8;
-      console.log(`🎨 Applied ${state.toUpperCase()}: ${name} -> blue`);
-    } else if (state === 'dimmed' && !this.isTopView) {
-      // Only dim in 3D View, not 3D Top
-      material.diffuseColor.r = 0.07;
-      material.diffuseColor.g = 0.07;
-      material.diffuseColor.b = 0.07;
-      material.alpha = 0.7; // Only transparency in 3D View
-      console.log(`🎨 Applied DIMMED: ${name} -> grey + transparent`);
-    } else {
-      // Normal state - restore original color by direct property copy
-      if (baseColor) {
-        material.diffuseColor.r = baseColor.r;
-        material.diffuseColor.g = baseColor.g;
-        material.diffuseColor.b = baseColor.b;
+    // Apply visual states based on view mode and interaction rules
+    if (this.isTopView) {
+      // 3D TOP VIEW: Simple color changes only, no transparency or height changes
+      if (state === 'selected' || state === 'hover') {
+        // Blue for all sections in Top view
+        material.diffuseColor.r = 0.0;
+        material.diffuseColor.g = 0.3; 
+        material.diffuseColor.b = 0.8;
+        console.log(`🎨 3D Top - Applied ${state.toUpperCase()}: ${name} -> blue`);
       } else {
-        material.diffuseColor.r = 0.5;
-        material.diffuseColor.g = 0.5;
-        material.diffuseColor.b = 0.5;
+        // Normal state - restore original color
+        if (baseColor) {
+          material.diffuseColor.r = baseColor.r;
+          material.diffuseColor.g = baseColor.g;
+          material.diffuseColor.b = baseColor.b;
+        } else {
+          material.diffuseColor.r = 0.5;
+          material.diffuseColor.g = 0.5;
+          material.diffuseColor.b = 0.5;
+        }
+        console.log(`🎨 3D Top - Applied NORMAL: ${name} -> original color`);
       }
-      console.log(`🎨 Applied NORMAL: ${name} -> original color`);
-    }
-    
-    // DIAGNOSTIC: Log values after changes
-    console.log(`📊 AFTER ${name}: alpha=${material.alpha}, color=(${material.diffuseColor.r},${material.diffuseColor.g},${material.diffuseColor.b}), visible=${mesh.isVisible}, scale=(${mesh.scaling.x},${mesh.scaling.y},${mesh.scaling.z})`);
-    
-    // DIAGNOSTIC: Check for potential issues
-    if (material.alpha === 0) {
-      console.error(`⚠️ WARNING: ${name} has alpha=0 (INVISIBLE!)`);
-    }
-    if (mesh.scaling.x === 0 || mesh.scaling.y === 0 || mesh.scaling.z === 0) {
-      console.error(`⚠️ WARNING: ${name} has 0 scaling (INVISIBLE!)`);
-    }
-    if (!mesh.isVisible) {
-      console.error(`⚠️ WARNING: ${name} mesh.isVisible=false (HIDDEN!)`);
+    } else {
+      // 3D VIEW: Follow specific interaction rules
+      if (state === 'hover') {
+        // Rule 2: Hover behavior
+        material.alpha = 1.0; // 100% opaque
+        if (isSpecialSection && baseColor) {
+          // Cost/Revenue: Brighter shade of original color
+          material.diffuseColor.r = Math.min(baseColor.r * 1.5, 1.0);
+          material.diffuseColor.g = Math.min(baseColor.g * 1.5, 1.0);
+          material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
+          console.log(`🎨 3D View - Applied HOVER: ${name} -> brighter original`);
+        } else {
+          // Main sections: Bright blue
+          material.diffuseColor.r = 0.0;
+          material.diffuseColor.g = 0.5; 
+          material.diffuseColor.b = 1.0;
+          console.log(`🎨 3D View - Applied HOVER: ${name} -> bright blue`);
+        }
+      } else if (state === 'selected') {
+        // Rule 3: Selected object
+        material.alpha = 1.0; // 100% opaque
+        mesh.scaling.y = mesh.scaling.x; // Full height
+        if (isSpecialSection && baseColor) {
+          // Cost/Revenue: Bright version of original
+          material.diffuseColor.r = Math.min(baseColor.r * 1.5, 1.0);
+          material.diffuseColor.g = Math.min(baseColor.g * 1.5, 1.0);
+          material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
+          console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright original`);
+        } else {
+          // Main sections: Bright blue
+          material.diffuseColor.r = 0.0;
+          material.diffuseColor.g = 0.5; 
+          material.diffuseColor.b = 1.0;
+          console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright blue`);
+        }
+      } else if (state === 'dimmed') {
+        // Rule 3: Other objects when something is selected
+        material.alpha = 0.3; // 30% opacity
+        mesh.scaling.y = 0.01; // Flattened
+        // Keep original color but dimmed
+        if (baseColor) {
+          material.diffuseColor.r = baseColor.r * 0.5;
+          material.diffuseColor.g = baseColor.g * 0.5;
+          material.diffuseColor.b = baseColor.b * 0.5;
+        } else {
+          material.diffuseColor.r = 0.25;
+          material.diffuseColor.g = 0.25;
+          material.diffuseColor.b = 0.25;
+        }
+        console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & 30% opacity`);
+      } else {
+        // Rule 1: Normal state - full height, original color, 100% opaque
+        material.alpha = 1.0;
+        mesh.scaling.y = mesh.scaling.x; // Full height
+        if (baseColor) {
+          material.diffuseColor.r = baseColor.r;
+          material.diffuseColor.g = baseColor.g;
+          material.diffuseColor.b = baseColor.b;
+        } else {
+          material.diffuseColor.r = 0.5;
+          material.diffuseColor.g = 0.5;
+          material.diffuseColor.b = 0.5;
+        }
+        console.log(`🎨 3D View - Applied NORMAL: ${name} -> full height & original color`);
+      }
     }
     
     } catch (error) {
