@@ -1,5 +1,6 @@
 import React from 'react';
 import { Header } from './Header';
+import { BusinessModelCanvas } from './BusinessModelCanvas';
 
 interface OverviewPageProps {
   onNavigateHome?: () => void;
@@ -16,6 +17,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
 }) => {
   const [isLoading, setIsLoading] = React.useState(false); // Start with content visible
   const [overviewData, setOverviewData] = React.useState<any>(null);
+  const [showCanvas, setShowCanvas] = React.useState(false);
 
   const handleBusinessModelCanvasClick = async () => {
     try {
@@ -54,6 +56,20 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       }
     };
     loadData();
+  }, []);
+
+  // Listen for Envisioner activation events
+  React.useEffect(() => {
+    const handleOpenEnvisioner = (event: CustomEvent) => {
+      console.log('📢 OverviewPage received openEnvisioner event:', event.detail);
+      setShowCanvas(true);
+    };
+    
+    window.addEventListener('openEnvisioner', handleOpenEnvisioner as EventListener);
+    
+    return () => {
+      window.removeEventListener('openEnvisioner', handleOpenEnvisioner as EventListener);
+    };
   }, []);
 
   const getContent = (section: string[] | undefined, fallback: string[]) => {
@@ -98,6 +114,11 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     'This includes market size, customer segments, and competitive landscape insights.',
     'Upload your PowerPoint presentation to see detailed market opportunity analysis.'
   ];
+
+  // When canvas is shown, render the BusinessModelCanvas component
+  if (showCanvas) {
+    return <BusinessModelCanvas onNavigateHome={() => setShowCanvas(false)} />;
+  }
 
   return (
     <>
