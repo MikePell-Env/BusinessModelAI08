@@ -92,8 +92,8 @@ export class BMCModelLoader {
       }
       
       const rootMesh = result.meshes[0];
-      // DRAMATIC TEST: Push Revenue Streams WAY to the right side
-      rootMesh.position = new Vector3(-15.0, 0.1, -10.5);
+      // VISIBLE TEST: Move Revenue Streams clearly within view bounds  
+      rootMesh.position = new Vector3(-8.0, 0.1, -8.0);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(4.0, 4.0, 4.0);  // Make it smaller
       
@@ -147,8 +147,8 @@ export class BMCModelLoader {
       });
       
       const rootMesh = result.meshes[0];
-      // DRAMATIC TEST: Push Cost Structure WAY to the left side  
-      rootMesh.position = new Vector3(15.0, 0.1, -10.5);
+      // VISIBLE TEST: Move Cost Structure clearly within view bounds
+      rootMesh.position = new Vector3(8.0, 0.1, -8.0);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(4.0, 4.0, 4.0);  // Make it smaller
       

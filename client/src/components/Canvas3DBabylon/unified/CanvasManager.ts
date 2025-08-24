@@ -131,7 +131,8 @@ export class CanvasManager {
     camera.setTarget(Vector3.Zero());
     camera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
     
-    const orthoSize = 15;
+    // EXPANDED VIEW: Make bounds much larger to see extreme positions
+    const orthoSize = 25;  // Increased from 15 to 25
     camera.orthoLeft = -orthoSize;
     camera.orthoRight = orthoSize;
     camera.orthoTop = orthoSize;
@@ -284,10 +285,10 @@ export class CanvasManager {
   
   private handleResize(): void {
     if (this.currentView === '3D Top') {
-      // Fix orthographic camera aspect ratio
+      // Fix orthographic camera aspect ratio with expanded bounds
       const canvas = this.engine.getRenderingCanvas()!;
       const aspect = canvas.width / canvas.height;
-      const orthoSize = 15;
+      const orthoSize = 25;  // Match expanded size
       
       this.orthographicCamera.orthoLeft = -orthoSize * aspect;
       this.orthographicCamera.orthoRight = orthoSize * aspect;
