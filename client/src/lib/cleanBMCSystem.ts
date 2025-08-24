@@ -18,8 +18,9 @@ export class CleanBMCSystem {
   private hoveredObject: string | null = null;
   private isTopView: boolean = false;
   private bmcStateManager: BMCStateManagerImpl | null = null;
-  private animationSpeed: number = 15; // Slower, smooth animations (15 fps)
-  private animationDuration: number = 25; // 25 frames for even smoother, slower transitions
+  private animationSpeed: number = 10; // Much slower animations for smoother effect (10 fps)
+  private animationDuration: number = 30; // 30 frames for very smooth, slow transitions (3 seconds)
+  private heightAnimationDuration: number = 40; // Even slower for height changes (4 seconds)
   // REMOVED: MaterialManager - using direct property modification instead
 
   constructor() {
@@ -210,8 +211,23 @@ export class CleanBMCSystem {
       // console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
       const { mesh, material, originalHeight, baseColor } = item;
 
-    // NO HEIGHT CHANGES - keep all objects at their original heights
-    // Only color/material changes with smooth animations
+    // Apply height changes with very slow, smooth animations
+    const currentHeight = mesh.scaling.y;
+    
+    // Calculate target height based on state
+    let targetHeight = originalHeight; // Default to original height
+    
+    if (!this.isTopView && state === 'dimmed') {
+      // Only flatten in 3D View when dimmed, with slow animation
+      targetHeight = originalHeight * 0.1; // Flatten to 10% of original height
+      this.animateHeight(mesh, currentHeight, targetHeight);
+    } else {
+      // All other states maintain original height
+      if (Math.abs(currentHeight - originalHeight) > 0.001) {
+        // Restore to original height if it was previously flattened
+        this.animateHeight(mesh, currentHeight, originalHeight);
+      }
+    }
 
     // Base visibility settings - always ensure visibility
     mesh.setEnabled(true);
@@ -440,5 +456,33 @@ export class CleanBMCSystem {
     material.animations = material.animations || [];
     material.animations.push(animation);
     material.getScene().beginAnimation(material, 0, this.animationDuration, false);
+  }
+
+  // Smooth height animation helper - very slow for dramatic effect
+  private animateHeight(mesh: AbstractMesh, from: number, to: number) {
+    // Skip if no change needed
+    if (Math.abs(from - to) < 0.001) return;
+    
+    const animationName = `height_transition_${Date.now()}`;
+    const animation = new Animation(
+      animationName,
+      'scaling.y',
+      this.animationSpeed, // Using slower speed
+      Animation.ANIMATIONTYPE_FLOAT,
+      Animation.ANIMATIONLOOPMODE_CONSTANT
+    );
+
+    animation.setKeys([
+      { frame: 0, value: from },
+      { frame: this.heightAnimationDuration, value: to } // Using longer duration for height
+    ]);
+
+    // Stop any existing height animations
+    mesh.getScene().stopAnimation(mesh, 'scaling.y');
+    
+    // Apply and start the animation
+    mesh.animations = mesh.animations || [];
+    mesh.animations.push(animation);
+    mesh.getScene().beginAnimation(mesh, 0, this.heightAnimationDuration, false);
   }
 }
