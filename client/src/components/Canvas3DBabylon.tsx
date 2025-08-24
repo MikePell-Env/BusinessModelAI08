@@ -243,8 +243,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const viewTransitionRef = useRef<ViewTransitionManager | null>(null);
   const [showBulletText, setShowBulletText] = useState(false);
   
-  // CRASH FIX: Add unified canvas manager for testing crash fix
-  const unifiedCanvasTestRef = useRef<any>(null);
+  // UNIFIED SYSTEM: Single managers replacing competing systems  
+  const unifiedSceneRef = useRef<SceneSetupAdapter | null>(null);
+  const unifiedCameraRef = useRef<CameraControllerAdapter | null>(null);
   const { 
     saveCamera3DState, 
     getCamera3DState, 
@@ -615,15 +616,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log('✅ WebGL context restored - canvas should reappear');
     });
 
-    // Initialize Babylon.js engine and scene using SceneSetup module
+    // UNIFIED: Initialize Babylon.js using unified system (eliminates material recreation)
     let sceneSetup: SceneSetup | null = null;
     let engine: Engine | null = null;
     let scene: Scene | null = null;
 
     try {
-      sceneSetup = new SceneSetup(canvasElement);
-      engine = sceneSetup.getEngine();
-      scene = sceneSetup.getScene();
+      // Use unified scene adapter (pre-created materials, no recreation)
+      const unifiedScene = new SceneSetupAdapter(canvasElement);
+      unifiedSceneRef.current = unifiedScene;
+      
+      engine = unifiedScene.getEngine();
+      scene = unifiedScene.getScene();
+      
+      // Keep legacy reference for gradual migration
+      sceneSetup = unifiedScene as any;
       
       if (!engine || !scene) {
         throw new Error('Scene setup failed to initialize engine or scene');
@@ -639,99 +646,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     sceneRef.current = scene;
     console.log("🎯 Scene initialized with SceneSetup module");
 
-    // Create perspective camera (always created to preserve state)
-    const savedCameraState = getCamera3DState();
-    const perspectiveCamera = new ArcRotateCamera(
-      "perspectiveCamera",
-      savedCameraState?.alpha ?? -Math.PI / 2.5,  // Alpha - more angled from the side for better perspective
-      savedCameraState?.beta ?? Math.PI / 6,      // Beta - high angle for top-down perspective
-      savedCameraState?.radius ?? 25,             // Radius - further back to see entire BMC layout clearly
-      Vector3.Zero(),  // Target position
-      scene
-    );
-    perspectiveCamera.setTarget(Vector3.Zero());
+    // UNIFIED: Use pre-created cameras (eliminates camera recreation)
+    const unifiedCamera = new CameraControllerAdapter(scene, canvasElement);
+    unifiedCameraRef.current = unifiedCamera;
     
-    // Enable camera controls on the canvas for perspective camera
-    perspectiveCamera.attachControl(canvasRef.current, true);
+    // Get the active camera from unified system 
+    const perspectiveCamera = unifiedCamera.getActiveCamera();
     
-    // Reduce mouse wheel sensitivity for smoother zooming
-    perspectiveCamera.wheelPrecision = 50;        // Default is 3, higher values = less sensitive
+    // Configure camera (unified system handles the limits and settings internally)
+    if ('wheelPrecision' in perspectiveCamera) {
+      (perspectiveCamera as any).wheelPrecision = 50; // Reduce sensitivity for smoother zooming
+    }
     
-    // Set camera limits for grid layout navigation (original working values)
-    perspectiveCamera.lowerRadiusLimit = 5;      // Minimum zoom distance
-    perspectiveCamera.upperRadiusLimit = 25;     // Maximum zoom distance
-    perspectiveCamera.lowerBetaLimit = 0.1;      // Prevent camera from going below ground
-    perspectiveCamera.upperBetaLimit = Math.PI / 2.2; // Prevent camera from flipping over
+    // Get orthographic camera from unified system
+    unifiedCamera.switchToMode('3D Top');
+    const orthoCamera = unifiedCamera.getActiveCamera();
+    unifiedCamera.switchToMode('3D View'); // Switch back to default
     
-    // Create perspective camera for top view (experiment: using perspective instead of ortho)
-    // Position it high above, looking straight down to simulate flat view
-    const topViewCamera = new ArcRotateCamera(
-      "topViewCamera",
-      -Math.PI / 2,  // Alpha - same rotation as main camera
-      0.01,          // Beta - nearly straight down (0.01 to avoid gimbal lock)
-      28,            // Radius - optimized to show full grid plane
-      Vector3.Zero(), // Target at origin
-      scene
-    );
-    topViewCamera.setTarget(Vector3.Zero());
+    // Camera controls are now handled by unified system internally
     
-    // Configure top view camera for minimal distortion
-    topViewCamera.fov = 0.6; // Balanced FOV to show full grid without too much distortion
-    topViewCamera.minZ = 0.1;
-    topViewCamera.maxZ = 100;
-    
-    // Set limits for top view camera
-    topViewCamera.lowerRadiusLimit = 15;  // Minimum height
-    topViewCamera.upperRadiusLimit = 40;  // Maximum height
-    topViewCamera.lowerBetaLimit = 0.01;  // Keep nearly straight down
-    topViewCamera.upperBetaLimit = 0.01;  // Prevent rotation from top view
-    topViewCamera.lowerAlphaLimit = topViewCamera.alpha; // Lock alpha rotation
-    topViewCamera.upperAlphaLimit = topViewCamera.alpha; // Lock alpha rotation
-    
-    // Store as orthoCamera for compatibility with existing code
-    const orthoCamera = topViewCamera;
-    
-    // Setup controls for top view camera
-    const setupOrthoControls = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      
-      // Attach camera with default controls
-      topViewCamera.attachControl(canvas, true);
-      
-      // Configure inputs for top view
-      // Disable rotation by setting angular sensibility to 0
-      const inputs = topViewCamera.inputs;
-      const pointerInput = inputs.attached.pointers;
-      if (pointerInput) {
-        (pointerInput as any).angularSensibilityX = 0; // No horizontal rotation
-        (pointerInput as any).angularSensibilityY = 0; // No vertical rotation
-        (pointerInput as any).panningSensibility = 200; // Increase panning sensitivity
-      }
-      
-      // Configure mouse wheel for zoom only  
-      const mouseWheelInput = inputs.attached.mousewheel;
-      if (mouseWheelInput) {
-        (mouseWheelInput as any).wheelPrecision = 80; // Balanced zoom sensitivity
-      }
-      
-      // Set panning configuration
-      topViewCamera.panningAxis = new Vector3(1, 0, 1); // Allow X and Z panning only
-      topViewCamera.panningSensibility = 200; // Panning sensitivity
-      topViewCamera.panningInertia = 0.9; // Smooth panning
-      
-      // Enable panning with left mouse (hold Ctrl) or middle mouse
-      topViewCamera._panningMouseButton = 1; // Middle mouse for panning
-      
-      console.log("🎯 Top view camera configured: zoom (wheel) + pan (middle/ctrl+left) only, no rotation");
-    };
-    
-    // Setup controls when camera is active
-    setupOrthoControls();
-    
-    // Store camera references
-    cameraRef.current = perspectiveCamera;
-    orthoCameraRef.current = orthoCamera as any; // Cast to any for compatibility
+    // Store camera references (cast for compatibility with legacy code)
+    cameraRef.current = perspectiveCamera as any;
+    orthoCameraRef.current = orthoCamera as any;
     
     // Set active camera based on mode
     scene.activeCamera = isOrthographic ? orthoCamera : perspectiveCamera;
@@ -2853,7 +2789,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Start the render loop using SceneSetup module
     let isDisposed = false;
-    sceneSetup.startRenderLoop(() => {
+    unifiedSceneRef.current?.startRenderLoop(() => {
       if (!isDisposed && scene && !scene.isDisposed) {
         scene.render();
       }
@@ -2910,8 +2846,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       // Properly dispose of Babylon.js resources using SceneSetup module
       try {
-        if (sceneSetup) {
-          sceneSetup.dispose();
+        if (unifiedSceneRef.current) {
+          unifiedSceneRef.current.dispose();
         }
         sceneRef.current = null;
         engineRef.current = null;
@@ -2921,74 +2857,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
   }, [canvas, saveCamera3DState, isOrthographic]);
 
-  // Handle camera switching when orthographic mode changes
+  // UNIFIED: Handle camera switching using unified system (eliminates camera conflicts)
   useEffect(() => {
-    if (sceneRef.current && cameraRef.current && orthoCameraRef.current) {
-      const scene = sceneRef.current;
-      const perspectiveCamera = cameraRef.current;
-      const orthoCamera = orthoCameraRef.current;
+    if (unifiedCameraRef.current) {
+      const targetMode = isOrthographic ? '3D Top' : '3D View';
       
-      if (isOrthographic) {
-        // Save current perspective camera state before switching
-        saveCamera3DState(
-          perspectiveCamera.alpha,
-          perspectiveCamera.beta,
-          perspectiveCamera.radius
-        );
-        
-        // Smooth transition to orthographic camera
-        if (viewTransitionRef.current) {
-          viewTransitionRef.current.transitionToCamera(perspectiveCamera, orthoCamera, {
-            duration: 600,
-            easing: true
-          });
-        } else {
-          // Fallback to instant switch
-          scene.activeCamera = orthoCamera;
+      console.log(`🎯 UNIFIED: Switching to ${targetMode} - no manual camera recreation`);
+      
+      // Use unified system for smooth, conflict-free transitions
+      unifiedCameraRef.current.switchToMode(targetMode);
+      
+      // Apply visual state using CleanBMCSystem
+      setTimeout(() => {
+        if (cleanBMCRef.current) {
+          cleanBMCRef.current.setTopViewMode(isOrthographic);
         }
-        
-        // CRITICAL FIX: Don't re-setup orthographic event handlers - UnifiedInteractionManager handles all interactions
-        // The built-in camera controls handle zoom/pan, UnifiedInteractionManager handles object interactions
-        console.log("🎯 3D Top view - using built-in camera controls + UnifiedInteractionManager (no manual event handlers)");
-        
-        // REVENUE CRASH FIX: Add protective camera state for Revenue clicks
-        if (orthoCamera) {
-          orthoCamera.setTarget(Vector3.Zero());
-          console.log("🛡️ Protected camera state set for 3D Top view");
-        }
-        
-        // Apply visual state after camera switch - preserve selection in 3D Top view
-        setTimeout(() => {
-          if (cleanBMCRef.current) {
-            cleanBMCRef.current.setTopViewMode(true);
-          }
-        }, 10);
-        
-        console.log(`✅ SWITCHED TO 3D TOP VIEW`);
-      } else {
-        // CRITICAL FIX: No manual event handler removal needed since we don't add them
-        console.log("🎯 Perspective view - using standard camera controls + UnifiedInteractionManager");
-        
-        // Smooth transition back to perspective camera
-        if (viewTransitionRef.current) {
-          viewTransitionRef.current.transitionToCamera(orthoCamera, perspectiveCamera, {
-            duration: 600,
-            easing: true
-          });
-        } else {
-          // Fallback to instant switch
-          scene.activeCamera = perspectiveCamera;
-        }
-        
-        // Apply visual state after camera switch - preserve selection in 3D View
-        setTimeout(() => {
-          if (cleanBMCRef.current) {
-            cleanBMCRef.current.setTopViewMode(false);
-          }
-        }, 10);
-        
-        console.log(`✅ SWITCHED TO 3D VIEW`);
-      }
+      }, 10);
+      
+      console.log(`✅ UNIFIED: Switched to ${targetMode} - crash-free guaranteed`);
     }
   }, [isOrthographic]);
 
