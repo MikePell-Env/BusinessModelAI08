@@ -92,8 +92,8 @@ export class BMCModelLoader {
       }
       
       const rootMesh = result.meshes[0];
-      // Position per ARCHITECTURE.md: X=-0.221 (appears right due to X-axis inversion)
-      rootMesh.position = new Vector3(-0.221, 0.1, -10.5);
+      // SWAPPED: Revenue Streams goes to RIGHT side, so needs MORE negative X value
+      rootMesh.position = new Vector3(-10.1, 0.1, -10.5);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(7.7, 8, 8);
       
@@ -147,8 +147,8 @@ export class BMCModelLoader {
       });
       
       const rootMesh = result.meshes[0];
-      // Position per ARCHITECTURE.md: X=-10.1 (appears left, farther negative = farther left)
-      rootMesh.position = new Vector3(-10.1, 0.1, -10.5);
+      // SWAPPED: Cost Structure goes to LEFT side, so needs LESS negative X value
+      rootMesh.position = new Vector3(-0.221, 0.1, -10.5);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(8.0, 8, 8);
       
