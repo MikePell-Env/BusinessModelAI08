@@ -708,8 +708,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const gridTexture = new DynamicTexture("gridTexture", {width: 1024, height: 1024}, scene, false);
     const gridContext = gridTexture.getContext();
     
-    // Fill with light grey background to match reference image
-    gridContext.fillStyle = "#e5e7eb"; // Light grey background matching reference
+    // Fill with custom powder blue background
+    gridContext.fillStyle = "#a7dbfc"; // Custom powder blue background
     gridContext.fillRect(0, 0, 1024, 1024);
     
     // Draw white grid lines
@@ -734,10 +734,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     gridTexture.update();
     
-    // Apply light grey material with white grid texture to ground
+    // Apply powder blue material with white grid texture to ground
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
     groundMaterial.diffuseTexture = gridTexture;
-    groundMaterial.specularColor = new Color3(0.1, 0.1, 0.1); // Neutral grey specular reflection
+    groundMaterial.specularColor = new Color3(0.1, 0.1, 0.2); // Subtle blue-tinted specular reflection
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
     groundMaterial.alpha = 0.5; // 50% opacity
     ground.material = groundMaterial;
