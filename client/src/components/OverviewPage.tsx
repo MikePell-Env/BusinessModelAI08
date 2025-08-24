@@ -1,5 +1,6 @@
 import React from 'react';
 import { Header } from './Header';
+import { useCanvas } from '@/lib/stores/useCanvas';
 
 interface OverviewPageProps {
   onNavigateHome?: () => void;
@@ -14,6 +15,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   onNavigateOverview,
   currentPage 
 }) => {
+  const { canvas } = useCanvas();
+  const overviewData = canvas?.overviewData;
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Header 
@@ -29,7 +33,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           {/* Company Name */}
           <div className="mb-12">
             <h1 className="text-4xl font-normal text-gray-900">
-              Company Name, Inc.
+              {overviewData?.companyName || 'Company Name'}, Inc.
             </h1>
           </div>
 
@@ -40,29 +44,47 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">SUMMARY</h2>
                 <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
-                  <p>
-                    Explore any of these aspects of the business model. Explore any of these aspects of the 
-                    business model. Explore any of these aspects of the business model. Explore any of 
-                    these aspects of the business model.
-                  </p>
-                  <p>
-                    Explore any of these aspects of the business model. Explore any of these aspects of the 
-                    business model. Explore any of these aspects of the business model. Explore any of 
-                    these aspects of the business model.
-                  </p>
-                  <p>
-                    Explore any of these aspects of the business model. Explore any of these aspects of the 
-                    business model. Explore any of these aspects of the business model. Explore any of 
-                    these aspects of the business model.
-                  </p>
+                  {overviewData?.summary?.map((paragraph, index) => (
+                    <p key={index}>
+                      {paragraph}
+                    </p>
+                  )) || (
+                    <>
+                      <p>
+                        Business overview will be extracted from your PowerPoint presentation using Microsoft Copilot.
+                      </p>
+                      <p>
+                        Upload a presentation to see detailed company summary and market analysis.
+                      </p>
+                      <p>
+                        This section will provide AI-powered insights into your business model and opportunities.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
 
               {/* Founders Section */}
               <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">FOUNDERS</h2>
-                <div className="space-y-2 text-gray-700 text-sm">
-                  <p>Founder information and details about the founding team would be displayed here.</p>
+                <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+                  {overviewData?.founders?.map((paragraph, index) => (
+                    <p key={index}>
+                      {paragraph}
+                    </p>
+                  )) || (
+                    <>
+                      <p>
+                        Founder and leadership information will be analyzed and displayed here.
+                      </p>
+                      <p>
+                        Microsoft Copilot will extract details about the team background and experience.
+                      </p>
+                      <p>
+                        Upload your presentation to see AI-analyzed team member profiles and expertise.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -72,10 +94,23 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">DETAILS</h2>
                 <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
-                  <p>
-                    Additional details about the organization and business model specifics would be 
-                    presented in this section.
-                  </p>
+                  {overviewData?.details?.map((paragraph, index) => (
+                    <p key={index}>
+                      {paragraph}
+                    </p>
+                  )) || (
+                    <>
+                      <p>
+                        Detailed business information will be extracted from your slides using Microsoft Graph insights.
+                      </p>
+                      <p>
+                        This includes target market analysis, competitive advantages, and business strategy recommendations.
+                      </p>
+                      <p>
+                        Provide a PowerPoint file to populate this section with Microsoft Copilot-powered analysis.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

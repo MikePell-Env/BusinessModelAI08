@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { microsoftAuth } from '../services/microsoftAuth';
-import { processCopilotChat, analyzeCopilotCanvas } from '../services/microsoftCopilot';
+import { processCopilotChat, analyzeCopilotCanvas, analyzeOverviewWithCopilot } from '../services/microsoftCopilot';
 import { BusinessModelCanvas } from '@/types/canvas';
 
 const router = Router();
@@ -15,7 +15,39 @@ router.post('/test-copilot', async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: `Microsoft Copilot test failed: ${error.message}`
+      message: `Microsoft Copilot test failed: ${(error as Error).message}`
+    });
+  }
+});
+
+/**
+ * Analyze PowerPoint content for business overview using Microsoft Copilot
+ */
+router.post('/analyze-overview', async (req, res) => {
+  try {
+    const { slideText, companyName }: { slideText: string; companyName: string } = req.body;
+    
+    if (!slideText) {
+      return res.status(400).json({
+        success: false,
+        error: 'Slide text is required'
+      });
+    }
+
+    // Use Microsoft Copilot to analyze the content
+    const analysis = await analyzeOverviewWithCopilot(slideText, companyName);
+    
+    res.json({
+      success: true,
+      overviewData: analysis
+    });
+    
+  } catch (error) {
+    console.error('Overview analysis error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to analyze overview content',
+      details: (error as Error).message
     });
   }
 });
@@ -45,7 +77,7 @@ router.post('/analyze-canvas', async (req, res) => {
     console.error('Canvas analysis error:', error);
     res.status(500).json({
       error: 'Failed to analyze canvas',
-      details: error.message
+      details: (error as Error).message
     });
   }
 });
@@ -68,7 +100,7 @@ router.post('/technology-recommendations', async (req, res) => {
     console.error('Technology recommendations error:', error);
     res.status(500).json({
       error: 'Failed to generate technology recommendations',
-      details: error.message
+      details: (error as Error).message
     });
   }
 });

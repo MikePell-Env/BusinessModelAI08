@@ -377,6 +377,201 @@ function identifyRisks(results: any[], canvas: BusinessModelCanvas): string[] {
 }
 
 /**
+ * Analyze PowerPoint content for business overview using Microsoft Copilot
+ */
+export async function analyzeOverviewWithCopilot(slideText: string, companyName: string): Promise<{
+  companyName: string;
+  summary: string[];
+  founders: string[];
+  details: string[];
+}> {
+  try {
+    console.log('🔄 Analyzing PowerPoint content with Microsoft Copilot...');
+    
+    // First try Azure OpenAI Service
+    const azureResult = await tryAzureOverviewAnalysis(slideText, companyName);
+    if (azureResult) {
+      return azureResult;
+    }
+
+    console.log('🔄 Azure OpenAI unavailable, trying Microsoft Graph Copilot API...');
+    // Fallback to Microsoft Graph Copilot API
+    const accessToken = await microsoftAuth.getAccessToken();
+    
+    const response = await fetch(`${COPILOT_API_BASE}/analyze`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        content: slideText,
+        task: 'business_overview_analysis',
+        parameters: {
+          companyName,
+          sections: ['summary', 'founders', 'details'],
+          paragraphs_per_section: 3
+        }
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Microsoft Copilot API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Microsoft Copilot via Graph API: Overview analysis complete');
+    
+    return formatOverviewData(data, companyName);
+
+  } catch (error) {
+    console.log('⚠️ Microsoft Copilot services not available, using fallback analysis...');
+    return getFallbackOverviewData(companyName);
+  }
+}
+
+/**
+ * Try Azure OpenAI Service for overview analysis
+ */
+async function tryAzureOverviewAnalysis(slideText: string, companyName: string): Promise<{
+  companyName: string;
+  summary: string[];
+  founders: string[];
+  details: string[];
+} | null> {
+  try {
+    const apiKey = process.env.AZURE_OPENAI_API_KEY;
+    if (!apiKey || !AZURE_OPENAI_ENDPOINT.includes('azure.com')) {
+      return null;
+    }
+
+    const prompt = `Analyze the following business presentation content and extract key information.
+
+Company Name: ${companyName}
+
+Presentation Content:
+${slideText}
+
+Please provide EXACTLY 3 paragraphs for each section below. Each paragraph should be 2-4 sentences long.
+
+Respond in JSON format with:
+{
+  "summary": ["paragraph 1", "paragraph 2", "paragraph 3"],
+  "founders": ["paragraph 1", "paragraph 2", "paragraph 3"], 
+  "details": ["paragraph 1", "paragraph 2", "paragraph 3"]
+}
+
+SUMMARY: Business overview, what the company does, market opportunity
+FOUNDERS: Information about founders, leadership team, their backgrounds
+DETAILS: Business model specifics, key differentiators, target market
+
+If any section lacks sufficient information, create relevant content based on typical business context.`;
+
+    const response = await fetch(`${AZURE_OPENAI_ENDPOINT}/openai/deployments/gpt-4/chat/completions?api-version=${AZURE_OPENAI_API_VERSION}`, {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a business analyst expert using Microsoft Copilot. Analyze presentation content and provide structured business overview information. Always provide exactly 3 paragraphs per section, even if information is limited.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+    
+    // Parse JSON response
+    const result = JSON.parse(content);
+    
+    console.log('✅ Microsoft Copilot via Azure OpenAI: Overview analysis complete');
+    return formatOverviewData(result, companyName);
+
+  } catch (error) {
+    console.log('Azure OpenAI overview analysis not available:', (error as Error).message);
+    return null;
+  }
+}
+
+/**
+ * Format overview data with proper structure
+ */
+function formatOverviewData(result: any, companyName: string): {
+  companyName: string;
+  summary: string[];
+  founders: string[];
+  details: string[];
+} {
+  const formatSection = (section: string[] | undefined): string[] => {
+    if (!section || !Array.isArray(section)) {
+      return [
+        'Content not available from presentation.',
+        'Upload a PowerPoint file for AI-powered analysis.',
+        'Microsoft Copilot will extract relevant information.'
+      ];
+    }
+    
+    // Ensure exactly 3 paragraphs
+    while (section.length < 3) {
+      section.push('Additional information will be populated from your presentation.');
+    }
+    
+    return section.slice(0, 3); // Take only first 3 if more exist
+  };
+
+  return {
+    companyName: companyName || 'Your Company',
+    summary: formatSection(result.summary),
+    founders: formatSection(result.founders),
+    details: formatSection(result.details)
+  };
+}
+
+/**
+ * Fallback overview data when Microsoft services are unavailable
+ */
+function getFallbackOverviewData(companyName: string): {
+  companyName: string;
+  summary: string[];
+  founders: string[];
+  details: string[];
+} {
+  return {
+    companyName: companyName || 'Your Company',
+    summary: [
+      'Business overview will be extracted from your PowerPoint presentation using Microsoft Copilot.',
+      'Upload a presentation to see detailed company summary and market analysis.',
+      'This section will provide AI-powered insights into your business model and opportunities.'
+    ],
+    founders: [
+      'Founder and leadership information will be analyzed and displayed here.',
+      'Microsoft Copilot will extract details about the team background and experience.',
+      'Upload your presentation to see AI-analyzed team member profiles and expertise.'
+    ],
+    details: [
+      'Detailed business information will be extracted from your slides using Microsoft Graph insights.',
+      'This includes target market analysis, competitive advantages, and business strategy recommendations.',
+      'Provide a PowerPoint file to populate this section with Microsoft Copilot-powered analysis.'
+    ]
+  };
+}
+
+/**
  * Fallback canvas analysis when Microsoft APIs are unavailable
  */
 async function fallbackCanvasAnalysis(canvas: BusinessModelCanvas): Promise<{
