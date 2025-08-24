@@ -2239,9 +2239,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
             const scalingRatio = requiredWidth / currentRevWidth;
             
-            // Apply only X-axis scaling to change width while keeping position
+            // Apply X-axis scaling and keep Y-axis matching X for correct height
             const currentScale = revenueStreamsMesh.scaling;
-            revenueStreamsMesh.scaling = new Vector3(currentScale.x * scalingRatio, currentScale.y, currentScale.z);
+            const newXScale = currentScale.x * scalingRatio;
+            revenueStreamsMesh.scaling = new Vector3(newXScale, newXScale, currentScale.z);
             
             console.log("🔧 Revenue Streams Width Adjustment:");
             console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
@@ -2294,8 +2295,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseWidth = currentRevWidth / revenueStreamsMesh.scaling.x; // Get unscaled width
             const requiredScaleX = targetWidth / baseWidth;
             
-            // Apply X-axis scaling to align right edge with Customer Segments
+            // Apply X-axis scaling and keep Y-axis matching X for correct height
             revenueStreamsMesh.scaling.x = requiredScaleX;
+            revenueStreamsMesh.scaling.y = requiredScaleX;
             
             console.log("🔧 DELAYED Revenue Streams Width Alignment:");
             console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
@@ -2356,7 +2358,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
         revenueRootMesh.position = new Vector3(-0.221, 0.1, -10.5); // Adjusted to align left edges
         revenueRootMesh.rotation = Vector3.Zero();
-        revenueRootMesh.scaling = new Vector3(7.7, 8.378, 8); // Y-scaling matches main BMC objects height
+        revenueRootMesh.scaling = new Vector3(7.7, 7.7, 8); // Y-scaling matches X-scaling for correct height
         
         console.log(`📦 Revenue Streams positioned at (-0.221, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
@@ -2498,7 +2500,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Place in lower left area with same width as Revenue Streams
         costRootMesh.position = new Vector3(-10.1, 0.1, -10.5); // Shifted farther left
         costRootMesh.rotation = Vector3.Zero();
-        costRootMesh.scaling = new Vector3(8.0, 8.378, 8); // Y-scaling matches main BMC objects height
+        costRootMesh.scaling = new Vector3(8.0, 8.0, 8); // Y-scaling matches X-scaling for correct height
         
         console.log(`📦 Cost Structure positioned at (-10.1, 0.1, -10.5) - width 8.0, positioned farther left`);
         
