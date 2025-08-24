@@ -87,11 +87,13 @@ export const useCanvas = create<CanvasState>()(
     },
     
     setOrthographicView: (isOrtho: boolean) => {
+      console.log(`🔬 BUTTON CLICKED: setOrthographicView(${isOrtho})`);
       set({ 
         is3D: true,
         isOrthographic: isOrtho,
         isTransitioning: true 
       });
+      console.log(`🔬 STATE SET: is3D=true, isOrthographic=${isOrtho}`);
       
       setTimeout(() => {
         set({ isTransitioning: false });

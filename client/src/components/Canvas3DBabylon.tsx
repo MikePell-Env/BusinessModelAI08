@@ -2853,16 +2853,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
   }, [canvas, saveCamera3DState, isOrthographic]);
 
-  // CLEAN: Simple camera switching
+  // SCIENTIFIC DEBUG: Camera switching with full analysis  
   useEffect(() => {
+    console.log(`🔬 SCIENTIFIC DEBUG: isOrthographic changed to ${isOrthographic}`);
+    console.log(`🔬 sceneRef.current exists: ${!!sceneRef.current}`);
+    console.log(`🔬 cameraRef.current exists: ${!!cameraRef.current}`);
+    console.log(`🔬 orthoCameraRef.current exists: ${!!orthoCameraRef.current}`);
+    
     if (sceneRef.current && cameraRef.current && orthoCameraRef.current) {
-      sceneRef.current.activeCamera = isOrthographic ? orthoCameraRef.current : cameraRef.current;
+      const targetCamera = isOrthographic ? orthoCameraRef.current : cameraRef.current;
+      console.log(`🔬 Setting activeCamera to: ${targetCamera.name}`);
+      console.log(`🔬 Target camera position: ${targetCamera.position}`);
+      console.log(`🔬 Target camera mode: ${targetCamera.mode}`);
+      
+      sceneRef.current.activeCamera = targetCamera;
+      
+      console.log(`🔬 Scene activeCamera is now: ${sceneRef.current.activeCamera?.name}`);
+      console.log(`🔬 Scene activeCamera position: ${sceneRef.current.activeCamera?.position}`);
       
       if (cleanBMCRef.current) {
         cleanBMCRef.current.setTopViewMode(isOrthographic);
       }
       
-      console.log(`📷 Switched to ${isOrthographic ? '3D Top' : '3D View'}`);
+      console.log(`📷 ✅ CAMERA SWITCH COMPLETE: ${isOrthographic ? '3D Top' : '3D View'}`);
+    } else {
+      console.error(`🔬 ❌ MISSING REFERENCES for camera switch!`);
     }
   }, [isOrthographic]);
 
