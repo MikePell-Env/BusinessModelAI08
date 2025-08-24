@@ -35,9 +35,9 @@ export class SceneSetup {
   }
 
   private setupScene(): void {
-    // Set background to light grey to match documentation
-    // RGB(229, 231, 235) = normalized (0.898, 0.906, 0.922) - light grey
-    this.scene.clearColor = new Color4(0.898, 0.906, 0.922, 1.0);
+    // Set background to much darker grey for better contrast
+    // Darker background for 3D Top view
+    this.scene.clearColor = new Color4(0.3, 0.3, 0.32, 1.0);
     
     // Enable pointer interactions on the scene
     this.scene.actionManager = new ActionManager(this.scene);
