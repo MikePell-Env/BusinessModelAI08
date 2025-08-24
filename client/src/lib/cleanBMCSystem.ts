@@ -212,10 +212,11 @@ export class CleanBMCSystem {
     // CRITICAL: NEVER change height on hover!
     if (!this.isTopView && state !== 'hover') {
       // Only do height changes in 3D View (not 3D Top) and NEVER on hover
+      // MORE DRAMATIC height changes for better visual feedback
       if (state === 'selected') {
-        mesh.scaling.y = originalHeight * 1.4; // Elevated
+        mesh.scaling.y = originalHeight * 3.0; // Much more elevated for dramatic effect
       } else if (state === 'dimmed') {
-        mesh.scaling.y = 0.01; // Flattened
+        mesh.scaling.y = 0.1; // More visible when flattened
       } else {
         mesh.scaling.y = originalHeight; // Normal height
       }
@@ -297,13 +298,13 @@ export class CleanBMCSystem {
         // Rule 3: Selected object
         material.alpha = 1.0; // 100% opaque
         
-        // Special handling for Cost Structure and Revenue Streams - preserve heights matching Customer Segments
+        // Special handling for Cost Structure and Revenue Streams - dramatic elevation
         if (name === 'Cost Structure') {
-          mesh.scaling.y = 8.0; // Height to match Customer Segments
+          mesh.scaling.y = 24.0; // 3x height for dramatic effect
         } else if (name === 'Revenue Streams') {
-          mesh.scaling.y = 7.7; // Height to match Customer Segments  
+          mesh.scaling.y = 23.1; // 3x height for dramatic effect  
         } else {
-          mesh.scaling.y = mesh.scaling.x; // Full height for main BMC objects
+          mesh.scaling.y = mesh.scaling.x * 3.0; // 3x height for main BMC objects
         }
         if (isSpecialSection && baseColor) {
           // Cost/Revenue: Bright version of original
@@ -325,7 +326,7 @@ export class CleanBMCSystem {
       } else if (state === 'dimmed') {
         // Rule 3: Other objects when something is selected
         material.alpha = 0.3; // 30% opacity
-        mesh.scaling.y = 0.01; // Flattened
+        mesh.scaling.y = 0.1; // More visible when flattened
         
         if (isSpecialSection) {
           // Cost Structure and Revenue Streams: Use grey color when flattened (same as other BMC objects)
@@ -350,13 +351,13 @@ export class CleanBMCSystem {
         // Rule 1: Normal state - full height, original color, 100% opaque
         material.alpha = 1.0;
         
-        // Special handling for Cost Structure and Revenue Streams - preserve heights matching Customer Segments
+        // Special handling for Cost Structure and Revenue Streams - dramatic elevation
         if (name === 'Cost Structure') {
-          mesh.scaling.y = 8.0; // Height to match Customer Segments
+          mesh.scaling.y = 24.0; // 3x height for dramatic effect
         } else if (name === 'Revenue Streams') {
-          mesh.scaling.y = 7.7; // Height to match Customer Segments  
+          mesh.scaling.y = 23.1; // 3x height for dramatic effect  
         } else {
-          mesh.scaling.y = mesh.scaling.x; // Full height for main BMC objects
+          mesh.scaling.y = mesh.scaling.x * 3.0; // 3x height for main BMC objects
         }
         if (baseColor) {
           material.diffuseColor.r = baseColor.r;
