@@ -87,7 +87,8 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                 <img 
                   src="/attached_assets/Labels_vertical_divider_1756071589388.png" 
                   alt="Vertical Divider" 
-                  className="w-px h-96 mr-8 flex-shrink-0"
+                  className="w-px mr-8 flex-shrink-0"
+                  style={{ height: 'calc(100vh - 200px)' }}
                 />
                 
                 {/* Explore Content */}
