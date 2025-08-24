@@ -529,53 +529,69 @@ export class PowerPointParser {
     try {
       const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 2);
       
-      // Look for Team slide or Founder/CEO titles
-      let foundTeamSection = false;
       let founderName = null;
       let founderDescriptions = [];
       
+      // First priority: Look for specific name "Mike Pell" or any name with founder context
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         
-        // Look for Team slide
-        if (line.match(/^TEAM$/i) || line.match(/TEAM SLIDE/i) || line.match(/OUR TEAM/i)) {
-          foundTeamSection = true;
-          continue;
-        }
-        
-        // Look for Founder/CEO titles
-        if (line.match(/\b(founder|ceo|chief executive|co-founder)\b/i)) {
-          // Extract name from this line or nearby lines
+        // Look for Mike Pell specifically or Name + Founder patterns
+        if (line.match(/Mike\s+Pell/i) || 
+            line.match(/([A-Z][a-z]+\s+[A-Z][a-z]+).*\b(founder|ceo|chief)\b/i) ||
+            line.match(/\b(founder|ceo|chief).*([A-Z][a-z]+\s+[A-Z][a-z]+)/i)) {
+          
+          // Extract the name
           const nameMatch = line.match(/([A-Z][a-z]+\s+[A-Z][a-z]+)/);
           if (nameMatch && !founderName) {
             founderName = nameMatch[1];
           }
           
-          // Look for description in next few lines
-          for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
-            const descLine = lines[j];
-            if (descLine.length > 20 && descLine.length < 200 && 
-                !descLine.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i)) {
-              founderDescriptions.push(descLine.replace(/\s+/g, ' ').trim());
-              break;
-            }
-          }
-          break; // Found founder info, stop looking
-        }
-        
-        // If we found a team section, extract from it
-        if (foundTeamSection) {
-          if (line.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i)) {
-            break; // Hit next section
+          // Get the context from this line if it has founder info
+          if (line.length > 10 && line.match(/\b(founder|ceo|chief)\b/i)) {
+            founderDescriptions.push(line.replace(/\s+/g, ' ').trim());
           }
           
-          // Look for a name first (if we don't have one yet)
-          if (!founderName && line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+/) && line.length < 60) {
-            founderName = line.replace(/\s+/g, ' ').trim();
+          // Look for additional description in nearby lines
+          for (let j = i + 1; j < Math.min(i + 3, lines.length); j++) {
+            const descLine = lines[j];
+            if (descLine.length > 15 && descLine.length < 200 && 
+                !descLine.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i) &&
+                founderDescriptions.length < 2) {
+              founderDescriptions.push(descLine.replace(/\s+/g, ' ').trim());
+            }
           }
-          // Look for descriptive paragraphs
-          else if (line.length > 20 && line.length < 200 && !line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/)) {
-            founderDescriptions.push(line.replace(/\s+/g, ' ').trim());
+          break;
+        }
+      }
+      
+      // Second priority: Look for Team slide sections
+      if (!founderName) {
+        let foundTeamSection = false;
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          
+          // Look for Team slide
+          if (line.match(/^TEAM$/i) || line.match(/TEAM SLIDE/i) || line.match(/OUR TEAM/i)) {
+            foundTeamSection = true;
+            continue;
+          }
+          
+          // If we found a team section, extract from it
+          if (foundTeamSection) {
+            if (line.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i)) {
+              break; // Hit next section
+            }
+            
+            // Look for a name first
+            if (!founderName && line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+/) && line.length < 60) {
+              founderName = line.replace(/\s+/g, ' ').trim();
+            }
+            // Look for descriptive paragraphs
+            else if (line.length > 20 && line.length < 200 && !line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+$/)) {
+              founderDescriptions.push(line.replace(/\s+/g, ' ').trim());
+            }
           }
         }
       }
@@ -586,7 +602,7 @@ export class PowerPointParser {
         result.push(founderName);
       }
       
-      // Add up to 2 descriptions
+      // Add descriptions (limit to 2)
       if (founderDescriptions.length > 0) {
         result.push(...founderDescriptions.slice(0, 2));
       }
@@ -607,6 +623,40 @@ export class PowerPointParser {
 
   private extractMarket(content: string): string[] {
     try {
+      const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 2);
+      let foundMarketInfo = [];
+      
+      // First priority: Look for dedicated Market slide sections
+      let foundMarketSection = false;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Look for Market slide titles
+        if (line.match(/^MARKET$/i) || line.match(/MARKET SLIDE/i) || line.match(/TARGET MARKET/i) || 
+            line.match(/MARKET ANALYSIS/i) || line.match(/MARKET OPPORTUNITY/i)) {
+          foundMarketSection = true;
+          continue;
+        }
+        
+        // Extract content from Market section
+        if (foundMarketSection) {
+          if (line.match(/^(SUMMARY|DETAILS|FOUNDERS|MISSION|KEY|WEBSITE|TEAM)/i)) {
+            break; // Hit next section
+          }
+          
+          // Add market content from this section
+          if (line.length > 15 && line.length < 250 && foundMarketInfo.length < 3) {
+            foundMarketInfo.push(line.replace(/\s+/g, ' ').trim());
+          }
+        }
+      }
+      
+      // If we found market section content, return it
+      if (foundMarketInfo.length > 0) {
+        return foundMarketInfo;
+      }
+      
+      // Second priority: Look for market-specific patterns
       const marketPatterns = [
         /(?:target market|market size|market opportunity|addressable market|tam|sam|som):\s*([^\n]+(?:\n[^\n]+)*)/gi,
         /(?:customers|customer segments|target customers|target audience):\s*([^\n]+(?:\n[^\n]+)*)/gi,
@@ -614,8 +664,6 @@ export class PowerPointParser {
         /(?:market trends|industry trends|market growth|market potential):\s*([^\n]+(?:\n[^\n]+)*)/gi
       ];
 
-      const foundMarketInfo = [];
-      
       for (const pattern of marketPatterns) {
         let match;
         while ((match = pattern.exec(content)) !== null && foundMarketInfo.length < 3) {
@@ -632,14 +680,13 @@ export class PowerPointParser {
         return foundMarketInfo;
       }
 
-      // Look for market-related content in bullet points or general text
-      const lines = content.split('\n').map(line => line.trim().replace(/\s+/g, ' '));
+      // Third priority: Look for market-related content in bullet points or general text
       const marketContent = lines.filter(line => 
         line.length > 20 && line.length < 200 &&
         (/\b(market|industry|customers|segments|target|addressable|billion|million|growth|demand)\b/i.test(line) ||
          /\b(enterprises|businesses|organizations|companies|consumers|users)\b/i.test(line) ||
          /\$[\d,.]+(B|M|K|billion|million|thousand)/i.test(line)) &&
-        !line.match(/^(SUMMARY|DETAILS|FOUNDERS|KEY|MISSION|WEBSITE)/i)
+        !line.match(/^(SUMMARY|DETAILS|FOUNDERS|KEY|MISSION|WEBSITE|TEAM)/i)
       );
       
       if (marketContent.length > 0) {
