@@ -25,7 +25,11 @@ import {
   Matrix,
   TransformNode,
   LinesMesh,
-  PointerEventTypes
+  PointerEventTypes,
+  Animation,
+  AnimationPropertiesOverride,
+  EasingFunction,
+  CubicEase
 } from '@babylonjs/core';
 import { 
   AdvancedDynamicTexture,
@@ -2887,7 +2891,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
   }, [canvas, saveCamera3DState]);
 
-  // BASIC DEBUG: Camera switching 
+  // Smooth camera animation for view transitions
   useEffect(() => {
     console.log(`🟢 useEffect triggered: isOrthographic = ${isOrthographic}`);
     console.log(`🟢 sceneRef.current exists: ${!!sceneRef.current}`);
@@ -2895,18 +2899,125 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log(`🟢 orthoCameraRef.current exists: ${!!orthoCameraRef.current}`);
     
     if (sceneRef.current && cameraRef.current && orthoCameraRef.current) {
-      const targetCamera = isOrthographic ? orthoCameraRef.current : cameraRef.current;
-      console.log(`🔬 Setting activeCamera to: ${targetCamera.name}`);
+      const scene = sceneRef.current;
+      const perspectiveCamera = cameraRef.current;
+      const topCamera = orthoCameraRef.current;
       
-      sceneRef.current.activeCamera = targetCamera;
+      // Animate camera transition
+      const animationDuration = 60; // frames (1 second at 60fps)
+      const easing = new CubicEase();
+      easing.setEasingMode(EasingFunction.EASINGMODE_EASEINOUT);
       
-      console.log(`🔬 Scene activeCamera is now: ${sceneRef.current.activeCamera?.name}`);
+      if (isOrthographic) {
+        // Transitioning from 3D View to 3D Top
+        console.log(`🎬 Animating to 3D Top view`);
+        
+        // Create smooth animation for perspective camera to top position
+        const alphaAnimation = Animation.CreateAndStartAnimation(
+          "cameraAlpha",
+          perspectiveCamera,
+          "alpha",
+          60, // fps
+          animationDuration,
+          perspectiveCamera.alpha,
+          -Math.PI / 2, // Top view alpha
+          Animation.ANIMATIONLOOPMODE_CONSTANT,
+          easing
+        );
+        
+        const betaAnimation = Animation.CreateAndStartAnimation(
+          "cameraBeta",
+          perspectiveCamera,
+          "beta",
+          60,
+          animationDuration,
+          perspectiveCamera.beta,
+          0.01, // Almost directly above (can't be exactly 0)
+          Animation.ANIMATIONLOOPMODE_CONSTANT,
+          easing
+        );
+        
+        const radiusAnimation = Animation.CreateAndStartAnimation(
+          "cameraRadius",
+          perspectiveCamera,
+          "radius",
+          60,
+          animationDuration,
+          perspectiveCamera.radius,
+          200, // Top view distance
+          Animation.ANIMATIONLOOPMODE_CONSTANT,
+          easing
+        );
+        
+        // Switch to ortho camera after animation completes
+        if (radiusAnimation) {
+          radiusAnimation.onAnimationEnd = () => {
+            scene.activeCamera = topCamera;
+            console.log(`📷 ✅ CAMERA SWITCH COMPLETE: 3D Top`);
+          };
+        }
+        
+      } else {
+        // Transitioning from 3D Top to 3D View
+        console.log(`🎬 Animating to 3D View`);
+        
+        // First switch to perspective camera
+        scene.activeCamera = perspectiveCamera;
+        
+        // Set perspective camera to top position initially
+        perspectiveCamera.alpha = -Math.PI / 2;
+        perspectiveCamera.beta = 0.01;
+        perspectiveCamera.radius = 200;
+        
+        // Animate to 3D View position
+        const alphaAnimation = Animation.CreateAndStartAnimation(
+          "cameraAlpha",
+          perspectiveCamera,
+          "alpha",
+          60,
+          animationDuration,
+          perspectiveCamera.alpha,
+          -0.9, // 3D View alpha
+          Animation.ANIMATIONLOOPMODE_CONSTANT,
+          easing
+        );
+        
+        const betaAnimation = Animation.CreateAndStartAnimation(
+          "cameraBeta",
+          perspectiveCamera,
+          "beta",
+          60,
+          animationDuration,
+          perspectiveCamera.beta,
+          1.0, // 3D View beta (nice angle)
+          Animation.ANIMATIONLOOPMODE_CONSTANT,
+          easing
+        );
+        
+        const radiusAnimation = Animation.CreateAndStartAnimation(
+          "cameraRadius",
+          perspectiveCamera,
+          "radius",
+          60,
+          animationDuration,
+          perspectiveCamera.radius,
+          45, // 3D View distance
+          Animation.ANIMATIONLOOPMODE_CONSTANT,
+          easing
+        );
+        
+        if (radiusAnimation) {
+          radiusAnimation.onAnimationEnd = () => {
+            console.log(`📷 ✅ CAMERA SWITCH COMPLETE: 3D View`);
+          };
+        }
+      }
       
+      // Update BMC system for the view mode
       if (cleanBMCRef.current) {
         cleanBMCRef.current.setTopViewMode(isOrthographic);
       }
       
-      console.log(`📷 ✅ CAMERA SWITCH COMPLETE: ${isOrthographic ? '3D Top' : '3D View'}`);
     } else {
       console.error(`🔬 ❌ MISSING REFERENCES for camera switch!`);
     }

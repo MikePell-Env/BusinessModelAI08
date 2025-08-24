@@ -52,7 +52,7 @@ export class SceneSetup {
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 0.0; // Ambient light completely off - experiment
+    hemisphericLight.intensity = 0.12; // Low ambient for subtle illumination
     hemisphericLight.diffuse = new Color3(0.15, 0.15, 0.17); // Extremely dark ambient
     hemisphericLight.specular = new Color3(0.0, 0.0, 0.0); // No ambient specular
     hemisphericLight.groundColor = new Color3(0.02, 0.02, 0.03); // Almost black ground
@@ -63,7 +63,7 @@ export class SceneSetup {
       new Vector3(-2.0, -0.2, -1.2), // Extreme side angle for shadow definition
       this.scene
     );
-    directionalLight.intensity = 0.0; // Turned off for testing
+    directionalLight.intensity = 0.65; // Low intensity for softer shadows
     directionalLight.diffuse = new Color3(0.5, 0.48, 0.45); // Much dimmer light
     directionalLight.specular = new Color3(0.05, 0.04, 0.03); // Barely any specular
 
@@ -73,7 +73,7 @@ export class SceneSetup {
       new Vector3(1.5, -0.3, 0.8), // Opposite angle for subtle fill
       this.scene
     );
-    fillLight.intensity = 0.0; // Turned off for testing
+    fillLight.intensity = 0.15; // Subtle fill light
     fillLight.diffuse = new Color3(0.25, 0.27, 0.32); // Extremely dark fill
     fillLight.specular = new Color3(0.0, 0.0, 0.0); // No specular
 
