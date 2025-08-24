@@ -466,19 +466,37 @@ export class PowerPointParser {
   // Quick extraction methods for overview data
   private extractCompanyFromTitle(content: string): string | null {
     try {
-      // Look for company name in title slides or headers
-      const lines = content.split('\n').map(line => line.trim());
+      // Clean up spacing issues in content
+      const cleanContent = content.replace(/\s+/g, ' ');
+      const lines = cleanContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
       
       // Check first few lines for company names (usually in title slide)
-      for (let i = 0; i < Math.min(lines.length, 10); i++) {
+      for (let i = 0; i < Math.min(lines.length, 15); i++) {
         const line = lines[i];
+        
         // Look for patterns like "ABC Corp", "XYZ Inc", "Company Ltd"
-        if (line.match(/\b\w+\s+(Corp|Inc|LLC|Ltd|Company|Technologies|Tech|Solutions|Group|Enterprises)\b/i)) {
-          return line.trim();
+        const corpMatch = line.match(/([A-Z][a-zA-Z\s&]+)\s*(Corp|Inc\.?|LLC|Ltd\.?|Company|Technologies|Tech|Solutions|Group|Enterprises)/i);
+        if (corpMatch) {
+          return `${corpMatch[1].trim()}, ${corpMatch[2]}`.replace(/\s+/g, ' ');
         }
-        // Look for capitalized company-like names
-        if (line.match(/^[A-Z][a-zA-Z\s&]+$/) && line.length > 3 && line.length < 50) {
-          return line.trim();
+        
+        // Look for "Company, Inc." patterns specifically
+        const incMatch = line.match(/([A-Z][a-zA-Z]+),?\s*Inc\.?/i);
+        if (incMatch) {
+          return `${incMatch[1]}, Inc.`;
+        }
+        
+        // Look for all caps company names and fix spacing
+        if (line.match(/^[A-Z\s]{3,20}$/) && line.length > 3 && line.length < 30) {
+          const cleaned = line.replace(/\s+/g, '').trim();
+          if (cleaned.length > 2) {
+            return cleaned;
+          }
+        }
+        
+        // Look for mixed case company-like names
+        if (line.match(/^[A-Z][a-zA-Z\s&]{2,40}$/) && line.length > 3 && line.length < 50 && !line.includes('SUMMARY') && !line.includes('DETAILS')) {
+          return line.trim().replace(/\s+/g, ' ');
         }
       }
       return null;
@@ -489,27 +507,33 @@ export class PowerPointParser {
 
   private extractSummary(content: string): string[] {
     try {
-      const summaryPatterns = [
-        /(?:summary|overview|about|description|executive summary):\s*([^\n]+(?:\n[^\n]+)*)/gi,
-        /(?:what is|what we do|mission|vision):\s*([^\n]+(?:\n[^\n]+)*)/gi,
-        /(?:business overview|company overview):\s*([^\n]+(?:\n[^\n]+)*)/gi
-      ];
-
-      for (const pattern of summaryPatterns) {
-        const match = content.match(pattern);
-        if (match && match[1]) {
-          const summaryText = match[1].trim();
-          // Split into sentences and take up to 3
-          const sentences = summaryText.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 10);
-          return sentences.slice(0, 3);
+      // Clean content and fix spacing
+      const cleanContent = content.replace(/\s+/g, ' ').replace(/([.!?])\s*([A-Z])/g, '$1 $2');
+      
+      // Find SUMMARY section specifically
+      const sections = cleanContent.split(/SUMMARY|OVERVIEW|ABOUT|MISSION/i);
+      
+      if (sections.length > 1) {
+        const summarySection = sections[1].split(/DETAILS|FOUNDERS|KEY|FINANCIAL/i)[0];
+        const sentences = summarySection
+          .split(/[.!?]+/)
+          .map(s => s.trim())
+          .filter(s => s.length > 20 && s.length < 300)
+          .slice(0, 3);
+        
+        if (sentences.length > 0) {
+          return sentences.map(s => s.replace(/\s+/g, ' ').trim());
         }
       }
 
       // Fallback: Look for descriptive paragraphs
-      const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 30);
+      const lines = cleanContent.split('\n')
+        .map(line => line.trim().replace(/\s+/g, ' '))
+        .filter(line => line.length > 30 && line.length < 300);
+      
       const businessDescriptions = lines.filter(line => 
-        /\b(company|business|organization|enterprise|firm|startup)\b/i.test(line) ||
-        /\b(provides|offers|delivers|specializes|focuses)\b/i.test(line)
+        /\b(company|business|organization|enterprise|delivers|provides|enables)\b/i.test(line) &&
+        !line.match(/^(SUMMARY|DETAILS|FOUNDERS|KEY)/i)
       );
       
       if (businessDescriptions.length > 0) {
@@ -528,29 +552,41 @@ export class PowerPointParser {
 
   private extractFounders(content: string): string[] {
     try {
-      const founderPatterns = [
-        /(?:founder|co-founder|ceo|president|owner|established by|founded by|created by):\s*([^\n]+(?:\n[^\n]+)*)/gi,
-        /(?:leadership|management|team|executives?):\s*([^\n]+(?:\n[^\n]+)*)/gi
-      ];
-
-      for (const pattern of founderPatterns) {
-        const match = content.match(pattern);
-        if (match && match[1]) {
-          const founderText = match[1].trim();
-          // Split by common separators and take up to 3
-          const founders = founderText.split(/[,;|&]|and\s+/).map(f => f.trim()).filter(f => f.length > 2);
-          if (founders.length > 0) {
-            return founders.slice(0, 3);
+      // Clean content and split into sections
+      const cleanContent = content.replace(/\s+/g, ' ');
+      const sections = cleanContent.split(/FOUNDERS|LEADERSHIP|TEAM|MANAGEMENT/i);
+      
+      if (sections.length > 1) {
+        // Extract from FOUNDERS section
+        const foundersSection = sections[1].split(/SUMMARY|DETAILS|MISSION|VISION/i)[0];
+        const lines = foundersSection.split('\n').map(line => line.trim()).filter(line => line.length > 3);
+        
+        const founders = [];
+        for (const line of lines) {
+          // Look for proper names (not generic text)
+          if (line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+/) && line.length < 60) {
+            founders.push(line.trim());
+            if (founders.length >= 3) break;
           }
+          // Look for titles with names
+          const titleMatch = line.match(/([A-Z][a-z]+\s+[A-Z][a-z]+)[\s,]+(CEO|CTO|CFO|Founder|President|Director|VP|Co-founder)/i);
+          if (titleMatch) {
+            founders.push(`${titleMatch[1]}, ${titleMatch[2]}`);
+            if (founders.length >= 3) break;
+          }
+        }
+        
+        if (founders.length > 0) {
+          return founders;
         }
       }
 
-      // Look for names with titles
-      const lines = content.split('\n').map(line => line.trim());
-      const namePattern = /([A-Z][a-z]+ [A-Z][a-z]+)(?:\s*[-,]\s*)?(CEO|CTO|CFO|Founder|President|Director|VP)/i;
+      // Fallback: Look for names with titles anywhere in content
+      const lines = cleanContent.split('\n').map(line => line.trim());
       const foundNames = [];
       
       for (const line of lines) {
+        const namePattern = /([A-Z][a-z]+\s+[A-Z][a-z]+)[\s,]+(CEO|CTO|CFO|Founder|President|Director|VP|Co-founder)/i;
         const match = line.match(namePattern);
         if (match && foundNames.length < 3) {
           foundNames.push(`${match[1]}, ${match[2]}`);
