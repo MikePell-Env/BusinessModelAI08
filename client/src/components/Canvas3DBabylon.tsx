@@ -286,12 +286,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
   }, [bmcState]);
   
-  // Update CleanBMCSystem when view mode changes
+  // EMERGENCY: Disable all CleanBMCSystem operations
   useEffect(() => {
-    if (cleanBMCRef.current) {
-      console.log(`📐 Updating CleanBMCSystem top view mode: ${isOrthographic}`);
-      cleanBMCRef.current.setTopViewMode(isOrthographic);
-    }
+    // No operations to prevent crashes
   }, [isOrthographic]);
   
   // REMOVED: Legacy transform utilities - now handled by unified BMC system
@@ -1372,26 +1369,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // REMOVED: MaterialManager initialization - using direct property modification instead
     
-    // CRASH PREVENTION: Completely disable ALL interaction managers to prevent WebGL crashes
-    console.log('🚫 EMERGENCY: ALL INTERACTION MANAGERS DISABLED to prevent crashes');
-    console.log('🚫 Using only basic hover/click detection without material creation');
+    // COMPLETE SHUTDOWN: Disable ALL material operations to prevent WebGL crashes
+    console.log('🚫 COMPLETE SHUTDOWN: All material operations disabled');
+    
+    // Disable CleanBMCSystem completely
+    cleanBMCRef.current.setEmergencyShutdown(true);
+    
+    // No interaction managers at all
     interactionManagerRef.current = null;
-    
-    // EMERGENCY: Disable material creation to prevent WebGL overload
-    const emergencyClickHandler = (mesh: any, sectionName: string) => {
-      console.log(`🚫 EMERGENCY MODE: Click detected on ${sectionName} - no material changes`);
-      
-      // Only log the click, no visual changes to prevent crashes
-      if (cleanBMCRef.current) {
-        cleanBMCRef.current.onSelect(sectionName);
-      }
-      
-      // Update BMC state without material operations
-      bmcState.selectObject(mapSectionNameToBMCComponent(sectionName));
-    };
-    
-    // Store emergency handler
-    (window as any).emergencyClickHandler = emergencyClickHandler;
     
     // Load complete BMC GLB model with individual section coloring
     modelLoader.loadMainBMC().then((model) => {
@@ -1444,21 +1429,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // TransformNode created for coordinate control
             
-            // Create StandardMaterial with PBR-compatible properties for hover behavior
-            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene) as any;
-            
-            // Enhanced material with better polish and depth
-            sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.2, 0.2, 0.2); // Slightly higher for better polish
-            sectionMaterial.specularPower = 64; // Tighter specular for cleaner reflections
-            sectionMaterial.ambientColor = baseColor.scale(0.4); // Add subtle ambient for depth
-            
-            // Add baseColor property for compatibility with hover behavior
-            sectionMaterial.baseColor = baseColor;
-            
-            // Store original colors for hover behavior
-            (sectionMaterial as any).originalBaseColor = baseColor.clone();
-            (sectionMaterial as any).originalDiffuseColor = baseColor.clone();
+            // EMERGENCY: No material creation at all
+            const sectionMaterial = null;
             
             // Add floating label planes for specific sections
             if (sectionName === "Customer Segments") {
@@ -1506,9 +1478,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system - use fixed height of 1.0 for all BMC sections
-              cleanBMCRef.current.registerItem("Customer Segments", mesh, sectionMaterial, 1.0);
-              cleanBMCRef.current.addLabel("Customer Segments", labelPlane, labelMaterial);
+              // EMERGENCY: No registration to prevent material operations
               
               console.log(`✅ Customer Segments label plane created`);
             }
@@ -1555,9 +1525,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system - use fixed height of 1.0 for all BMC sections
-              cleanBMCRef.current.registerItem("Key Partners", mesh, sectionMaterial, 1.0);
-              cleanBMCRef.current.addLabel("Key Partners", labelPlane, labelMaterial);
+              // EMERGENCY: No registration
               
               console.log(`✅ Key Partners label plane created`);
             }
@@ -1604,9 +1572,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system - use fixed height of 1.0 for all BMC sections
-              cleanBMCRef.current.registerItem("Customer Relationships", mesh, sectionMaterial, 1.0);
-              cleanBMCRef.current.addLabel("Customer Relationships", labelPlane, labelMaterial);
+              // EMERGENCY: No registration
               
               console.log(`✅ Customer Relationships label plane created`);
             }
@@ -1653,9 +1619,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system - use fixed height of 1.0 for all BMC sections
-              cleanBMCRef.current.registerItem("CustomerChannels", mesh, sectionMaterial, 1.0);
-              cleanBMCRef.current.addLabel("CustomerChannels", labelPlane, labelMaterial);
+              // EMERGENCY: No registration
               
               console.log(`✅ CustomerChannels label plane created`);
             }
@@ -1705,9 +1669,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system - use fixed height of 1.0 for all BMC sections
-              cleanBMCRef.current.registerItem("Key Activities", mesh, sectionMaterial, 1.0);
-              cleanBMCRef.current.addLabel("Key Activities", labelPlane, labelMaterial);
+              // EMERGENCY: No registration
               
               console.log(`✅ Key Activities label plane created`);
             }
@@ -1754,9 +1716,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system - use fixed height of 1.0 for all BMC sections
-              cleanBMCRef.current.registerItem("Key Resources", mesh, sectionMaterial, 1.0);
-              cleanBMCRef.current.addLabel("Key Resources", labelPlane, labelMaterial);
+              // EMERGENCY: No registration
               
               console.log(`✅ Key Resources label plane created`);
             }
@@ -1803,9 +1763,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               labelPlane.parent = mesh;
               labelPlane.isPickable = false;
               
-              // Register with clean system - use fixed height of 1.0 for all BMC sections
-              cleanBMCRef.current.registerItem("Value Propositions", mesh, sectionMaterial, 1.0);
-              cleanBMCRef.current.addLabel("Value Propositions", labelPlane, labelMaterial);
+              // EMERGENCY: No registration
               
               console.log(`✅ Value Propositions label plane created`);
               
@@ -2082,13 +2040,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               setTimeout(createBlueTracer, 100);
             }
             
-            mesh.material = sectionMaterial;
-            mesh.receiveShadows = true;
-            
-            // Store original color and material for hover/click effects
-            (mesh as any).originalColor = baseColor.clone();
-            (mesh as any).originalMaterial = sectionMaterial;
-            (mesh as any).isClicked = false;
+            // EMERGENCY: No material assignments
+            // Keep existing material, don't modify anything
             
             // Create billboard label above this mesh but make it invisible
             const labelContainer = new Rectangle(`label_${index}`);
@@ -2343,14 +2296,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           if (mesh.name !== "__root__") {
             console.log(`✅ Processing non-root Revenue Streams mesh ${index}: ${mesh.name}`);
             
-            // Create material for Revenue Streams mesh - Darker British Racing Green
-            const baseColor = new Color3(0.0, 0.20, 0.12); // Darker British Racing Green
-            const sectionMaterial = new StandardMaterial(`revenueStreams_${index}`, scene);
-            sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.2, 0.4, 0.3); // Enhanced green specular
-            sectionMaterial.specularPower = 64; // Tighter specular for cleaner reflections
-            sectionMaterial.ambientColor = baseColor.scale(0.4); // Add subtle ambient for depth
-            mesh.material = sectionMaterial;
+            // EMERGENCY: No material creation
             
             // Store section name for interactions and original properties 
             (mesh as any).bmcSectionName = "Revenue Streams";
@@ -2418,9 +2364,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Register with clean system - use fixed height of 1.0 for all BMC sections
-            cleanBMCRef.current.registerItem("Revenue Streams", mesh, sectionMaterial, 1.0);
-            cleanBMCRef.current.addLabel("Revenue Streams", labelPlane, labelMaterial);
+            // EMERGENCY: No registration
             
             // Apply proportional scaling - reduced by 20% from the 2x size
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0); // 80% of 2x size (2.0 * 0.8 = 1.6, 2.6 * 0.8 = 2.08)
@@ -2486,14 +2430,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           if (mesh.name !== "__root__") {
             console.log(`✅ Processing non-root Cost Structure mesh ${index}: ${mesh.name}`);
             
-            // Create material for Cost Structure mesh - Deeper Red
-            const baseColor = new Color3(0.35, 0.0, 0.0); // Deeper Red
-            const sectionMaterial = new StandardMaterial(`costStructure_${index}`, scene);
-            sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.4, 0.15, 0.15); // Enhanced red specular
-            sectionMaterial.specularPower = 64; // Tighter specular for cleaner reflections
-            sectionMaterial.ambientColor = baseColor.scale(0.4); // Add subtle ambient for depth
-            mesh.material = sectionMaterial;
+            // EMERGENCY: No material creation
             
             // Store section name for interactions and original properties 
             (mesh as any).bmcSectionName = "Cost Structure";
@@ -2561,9 +2498,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.parent = mesh;
             labelPlane.isPickable = false;
             
-            // Register with clean system - use fixed height of 1.0 for all BMC sections
-            cleanBMCRef.current.registerItem("Cost Structure", mesh, sectionMaterial, 1.0);
-            cleanBMCRef.current.addLabel("Cost Structure", labelPlane, labelMaterial);
+            // EMERGENCY: No registration
             
             // Apply same proportional scaling as Revenue Streams
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
@@ -2956,42 +2891,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
   }, [isOrthographic]);
 
-  // Handle restoration when entering 3D mode - optimized for smooth transitions
+  // EMERGENCY: No state management operations
   useEffect(() => {
-    if (is3D && sceneRef.current) {
-      const selectedObject = bmcState.getSelectedObject();
-      console.log(`🔄 ENTERING 3D MODE: Current selection="${selectedObject}"`);
-      
-      // FIXED: Coordinate with BMC State Manager for view transitions
-      bmcState.switchView('view3DPerspective');
-      
-      // Update visuals immediately to prevent white flash
-      if (cleanBMCRef.current) {
-        cleanBMCRef.current.setTopViewMode(false);
-      }
-    } else if (!is3D) {
-      const selectedObject = bmcState.getSelectedObject();
-      console.log(`🔄 ENTERING 2D MODE: Preserving selection="${selectedObject}"`);
-      
-      // FIXED: Coordinate with BMC State Manager for view transitions
-      bmcState.switchView('view2D');
-    }
+    // All operations disabled to prevent crashes
   }, [is3D]);
 
-  // Handle restoration when switching between 3D View and 3D Top View
+  // EMERGENCY: No transition operations
   useEffect(() => {
-    if (is3D && sceneRef.current) {
-      const selectedObject = bmcState.getSelectedObject();
-      console.log(`🔄 3D VIEW TRANSITION: ${isOrthographic ? '3D Top' : '3D View'}, selection="${selectedObject}"`);
-      
-      // FIXED: Coordinate with BMC State Manager for view transitions
-      bmcState.switchView(isOrthographic ? 'view3DOrthographic' : 'view3DPerspective');
-      
-      // Update visuals immediately without delay to prevent white flash
-      if (cleanBMCRef.current) {
-        cleanBMCRef.current.setTopViewMode(isOrthographic);
-      }
-    }
+    // All operations disabled to prevent crashes
   }, [isOrthographic, is3D]);
 
 
