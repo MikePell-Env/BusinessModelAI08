@@ -41,7 +41,7 @@ export class UnifiedInteractionManager {
     this.scene = scene;
     this.callbacks = callbacks;
     this.setupInteractions();
-    // console.log('🖱️ UnifiedInteractionManager initialized');
+    console.log('🖱️ UnifiedInteractionManager initialized');
   }
 
   /**
@@ -103,7 +103,7 @@ export class UnifiedInteractionManager {
     // Check for double-click
     if (this.lastClickedMesh === mesh && timeSinceLastClick < this.doubleClickThreshold) {
       // Double-click detected
-      // console.log(`🖱️🖱️ Double-click: ${sectionId}`);
+      console.log(`🖱️🖱️ Double-click: ${sectionId}`);
       this.callbacks.onDoubleClick(sectionId, mesh, position);
       
       // Reset to prevent triple-click
@@ -111,7 +111,7 @@ export class UnifiedInteractionManager {
       this.lastClickedMesh = null;
     } else {
       // Single click (might become double-click)
-      // console.log(`🖱️ Single-click: ${sectionId}`);
+      console.log(`🖱️ Single-click: ${sectionId}`);
       
       // Delay single-click callback to allow for potential double-click
       setTimeout(() => {
@@ -140,7 +140,7 @@ export class UnifiedInteractionManager {
       
       if (deltaX > this.dragThreshold || deltaY > this.dragThreshold) {
         this.isDragging = true;
-        // console.log(`🖱️ Drag detected: movement (${deltaX}, ${deltaY}) exceeds threshold ${this.dragThreshold}px`);
+        console.log(`🖱️ Drag detected: movement (${deltaX}, ${deltaY}) exceeds threshold ${this.dragThreshold}px`);
       }
     }
     
@@ -194,15 +194,15 @@ export class UnifiedInteractionManager {
     try {
       if (this.isDragging) {
         // Was a drag operation (camera rotation) - don't process as click
-        // console.log(`🖱️ Drag operation completed - no click processing`);
+        console.log(`🖱️ Drag operation completed - no click processing`);
       } else if (this.pendingClickMesh) {
         // Was a clean click without dragging - process selection
         const { sectionId, mesh, position } = this.pendingClickMesh;
-        // console.log(`🖱️ Clean click detected: ${sectionId}`);
+        console.log(`🖱️ Clean click detected: ${sectionId}`);
         this.handleMeshClick(sectionId, mesh, position);
       } else {
         // Background click without dragging
-        // console.log(`🖱️ Background click without drag`);
+        console.log(`🖱️ Background click without drag`);
         this.callbacks.onBackgroundClick();
       }
     } finally {
@@ -294,6 +294,6 @@ export class UnifiedInteractionManager {
     // and remove only this one with scene.onPointerObservable.remove(observer)
     
     this.disposed = true;
-    // console.log('🖱️ UnifiedInteractionManager disposed');
+    console.log('🖱️ UnifiedInteractionManager disposed');
   }
 }

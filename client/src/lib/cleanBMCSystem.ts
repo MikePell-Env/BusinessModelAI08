@@ -60,24 +60,24 @@ export class CleanBMCSystem {
 
   // Handle selection
   onSelect(sectionName: string) {
-    // console.log(`🔍 CleanBMC onSelect: ${sectionName}`);
+    console.log(`🔍 CleanBMC onSelect: ${sectionName}`);
 
     try {
-      // console.log(`🔍 DEBUG: Current selectedObject: ${this.selectedObject}`);
-      // console.log(`🔍 DEBUG: Incoming sectionName: ${sectionName}`);
+      console.log(`🔍 DEBUG: Current selectedObject: ${this.selectedObject}`);
+      console.log(`🔍 DEBUG: Incoming sectionName: ${sectionName}`);
 
       // Toggle selection
       if (this.selectedObject === sectionName) {
-        // console.log(`🔍 DEBUG: Deselecting same object`);
+        console.log(`🔍 DEBUG: Deselecting same object`);
         this.selectedObject = null;
       } else {
-        // console.log(`🔍 DEBUG: Selecting new object: ${sectionName}`);
+        console.log(`🔍 DEBUG: Selecting new object: ${sectionName}`);
         this.selectedObject = sectionName;
       }
 
-      // console.log(`🔍 DEBUG: About to call updateAllVisuals()`);
+      console.log(`🔍 DEBUG: About to call updateAllVisuals()`);
       this.updateAllVisuals();
-      // console.log(`🔍 DEBUG: onSelect completed successfully`);
+      console.log(`🔍 DEBUG: onSelect completed successfully`);
       
     } catch (error) {
       console.error(`❌ CRASH in onSelect(${sectionName}):`, error);
@@ -98,7 +98,7 @@ export class CleanBMCSystem {
 
   // Handle hover state changes - simplified direct approach
   onHover(sectionName: string, isHovering: boolean): void {
-    // console.log(`🖱️ Simple hover: ${sectionName}, hovering=${isHovering}`);
+    console.log(`🖱️ Simple hover: ${sectionName}, hovering=${isHovering}`);
 
     const item = this.items.get(sectionName);
     if (!item) {
@@ -155,7 +155,7 @@ export class CleanBMCSystem {
 
   // Main visual update method
   private updateAllVisuals(): void {
-    // console.log(`🎨 updateAllVisuals: mode=${this.isTopView ? '3D Top' : '3D View'}, selected=${this.selectedObject || 'none'}`);
+    console.log(`🎨 updateAllVisuals: mode=${this.isTopView ? '3D Top' : '3D View'}, selected=${this.selectedObject || 'none'}`);
 
     try {
       this.items.forEach((item, name) => {
@@ -196,7 +196,7 @@ export class CleanBMCSystem {
 
   // State application following documentation rules
   private applyState(name: string, state: string) {
-    // console.log(`🔍 DEBUG CleanBMC: applyState called - name: ${name}, state: ${state}`);
+    console.log(`🔍 DEBUG CleanBMC: applyState called - name: ${name}, state: ${state}`);
     
     try {
       const item = this.items.get(name);
@@ -205,18 +205,17 @@ export class CleanBMCSystem {
         return;
       }
 
-      // console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
+      console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
       const { mesh, material, originalHeight, baseColor } = item;
 
     // FIXED: Height management - NO changes in 3D Top view (avoid scaling crashes)
     // CRITICAL: NEVER change height on hover!
     if (!this.isTopView && state !== 'hover') {
       // Only do height changes in 3D View (not 3D Top) and NEVER on hover
-      // MORE DRAMATIC height changes for better visual feedback
       if (state === 'selected') {
-        mesh.scaling.y = originalHeight * 3.0; // Much more elevated for dramatic effect
+        mesh.scaling.y = originalHeight * 1.4; // Elevated
       } else if (state === 'dimmed') {
-        mesh.scaling.y = 0.1; // More visible when flattened
+        mesh.scaling.y = 0.01; // Flattened
       } else {
         mesh.scaling.y = originalHeight; // Normal height
       }
@@ -257,7 +256,7 @@ export class CleanBMCSystem {
         material.diffuseColor.r = 0.0;
         material.diffuseColor.g = 0.3; 
         material.diffuseColor.b = 0.8;
-        // console.log(`🎨 3D Top - Applied ${state.toUpperCase()}: ${name} -> blue`);
+        console.log(`🎨 3D Top - Applied ${state.toUpperCase()}: ${name} -> blue`);
       } else {
         // Normal state - restore original color
         if (baseColor) {
@@ -269,7 +268,7 @@ export class CleanBMCSystem {
           material.diffuseColor.g = 0.5;
           material.diffuseColor.b = 0.5;
         }
-        // console.log(`🎨 3D Top - Applied NORMAL: ${name} -> original color`);
+        console.log(`🎨 3D Top - Applied NORMAL: ${name} -> original color`);
       }
     } else {
       // 3D VIEW: Follow specific interaction rules
@@ -282,7 +281,7 @@ export class CleanBMCSystem {
           material.diffuseColor.r = Math.min(baseColor.r * 1.5, 1.0);
           material.diffuseColor.g = Math.min(baseColor.g * 1.5, 1.0);
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
-          // console.log(`🎨 3D View - Applied HOVER: ${name} -> brighter original (height unchanged)`);
+          console.log(`🎨 3D View - Applied HOVER: ${name} -> brighter original (height unchanged)`);
         } else {
           // Main sections: Toned down blue with better shading
           material.diffuseColor.r = 0.0;
@@ -292,26 +291,26 @@ export class CleanBMCSystem {
           material.emissiveColor.r = 0.0;
           material.emissiveColor.g = 0.0;
           material.emissiveColor.b = 0.0;
-          // console.log(`🎨 3D View - Applied HOVER: ${name} -> toned blue (height unchanged)`);
+          console.log(`🎨 3D View - Applied HOVER: ${name} -> toned blue (height unchanged)`);
         }
       } else if (state === 'selected') {
         // Rule 3: Selected object
         material.alpha = 1.0; // 100% opaque
         
-        // Special handling for Cost Structure and Revenue Streams - dramatic elevation
+        // Special handling for Cost Structure and Revenue Streams - preserve heights matching Customer Segments
         if (name === 'Cost Structure') {
-          mesh.scaling.y = 24.0; // 3x height for dramatic effect
+          mesh.scaling.y = 8.0; // Height to match Customer Segments
         } else if (name === 'Revenue Streams') {
-          mesh.scaling.y = 23.1; // 3x height for dramatic effect  
+          mesh.scaling.y = 7.7; // Height to match Customer Segments  
         } else {
-          mesh.scaling.y = mesh.scaling.x * 3.0; // 3x height for main BMC objects
+          mesh.scaling.y = mesh.scaling.x; // Full height for main BMC objects
         }
         if (isSpecialSection && baseColor) {
           // Cost/Revenue: Bright version of original
           material.diffuseColor.r = Math.min(baseColor.r * 1.5, 1.0);
           material.diffuseColor.g = Math.min(baseColor.g * 1.5, 1.0);
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
-          // console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright original`);
+          console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright original`);
         } else {
           // Main sections: Toned down blue with better shading
           material.diffuseColor.r = 0.0;
@@ -321,19 +320,19 @@ export class CleanBMCSystem {
           material.emissiveColor.r = 0.0;
           material.emissiveColor.g = 0.05;
           material.emissiveColor.b = 0.1;
-          // console.log(`🎨 3D View - Applied SELECTED: ${name} -> toned blue with depth`);
+          console.log(`🎨 3D View - Applied SELECTED: ${name} -> toned blue with depth`);
         }
       } else if (state === 'dimmed') {
         // Rule 3: Other objects when something is selected
         material.alpha = 0.3; // 30% opacity
-        mesh.scaling.y = 0.1; // More visible when flattened
+        mesh.scaling.y = 0.01; // Flattened
         
         if (isSpecialSection) {
           // Cost Structure and Revenue Streams: Use grey color when flattened (same as other BMC objects)
           material.diffuseColor.r = 0.25;
           material.diffuseColor.g = 0.25;
           material.diffuseColor.b = 0.25;
-          // console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & grey color`);
+          console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & grey color`);
         } else {
           // Main BMC sections: Dimmed original colors
           if (baseColor) {
@@ -345,19 +344,19 @@ export class CleanBMCSystem {
             material.diffuseColor.g = 0.25;
             material.diffuseColor.b = 0.25;
           }
-          // console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & 30% opacity`);
+          console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & 30% opacity`);
         }
       } else {
         // Rule 1: Normal state - full height, original color, 100% opaque
         material.alpha = 1.0;
         
-        // Special handling for Cost Structure and Revenue Streams - dramatic elevation
+        // Special handling for Cost Structure and Revenue Streams - preserve heights matching Customer Segments
         if (name === 'Cost Structure') {
-          mesh.scaling.y = 24.0; // 3x height for dramatic effect
+          mesh.scaling.y = 8.0; // Height to match Customer Segments
         } else if (name === 'Revenue Streams') {
-          mesh.scaling.y = 23.1; // 3x height for dramatic effect  
+          mesh.scaling.y = 7.7; // Height to match Customer Segments  
         } else {
-          mesh.scaling.y = mesh.scaling.x * 3.0; // 3x height for main BMC objects
+          mesh.scaling.y = mesh.scaling.x; // Full height for main BMC objects
         }
         if (baseColor) {
           material.diffuseColor.r = baseColor.r;
@@ -372,7 +371,7 @@ export class CleanBMCSystem {
         material.emissiveColor.r = 0.0;
         material.emissiveColor.g = 0.0;
         material.emissiveColor.b = 0.0;
-        // console.log(`🎨 3D View - Applied NORMAL: ${name} -> full height & original color`);
+        console.log(`🎨 3D View - Applied NORMAL: ${name} -> full height & original color`);
       }
     }
     
