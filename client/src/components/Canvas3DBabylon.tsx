@@ -2357,7 +2357,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
         revenueRootMesh.position = new Vector3(-0.221, 0.1, -10.5); // Adjusted to align left edges
         revenueRootMesh.rotation = Vector3.Zero();
-        revenueRootMesh.scaling = new Vector3(7.7, 7.7, 8); // Y-scaling matches X-scaling for correct height
+        revenueRootMesh.scaling = new Vector3(7.7, 15.4, 8); // Y-scaling 2x initial height
         
         console.log(`📦 Revenue Streams positioned at (-0.221, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
@@ -2499,7 +2499,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Place in lower left area with same width as Revenue Streams
         costRootMesh.position = new Vector3(-10.1, 0.1, -10.5); // Shifted farther left
         costRootMesh.rotation = Vector3.Zero();
-        costRootMesh.scaling = new Vector3(8.0, 8.0, 8); // Y-scaling matches X-scaling for correct height
+        costRootMesh.scaling = new Vector3(8.0, 16.0, 8); // Y-scaling 2x initial height
         
         console.log(`📦 Cost Structure positioned at (-10.1, 0.1, -10.5) - width 8.0, positioned farther left`);
         
@@ -2810,46 +2810,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // REMOVED: Emergency label fix interval - CleanBMCSystem handles all label visibility
     
-    // Measure Key Partners height and sync Cost Structure and Revenue Streams
-    const syncObjectHeights = () => {
-      const keyPartnersMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Key Partners");
-      const costStructureMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Cost Structure");
-      const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
-      
-      if (keyPartnersMesh && costStructureMesh && revenueStreamsMesh) {
-        // Measure Key Partners actual physical height in world units
-        const keyPartnersBounds = keyPartnersMesh.getBoundingInfo();
-        const keyPartnersWorldMatrix = keyPartnersMesh.getWorldMatrix();
-        const minWorld = Vector3.TransformCoordinates(keyPartnersBounds.minimum, keyPartnersWorldMatrix);
-        const maxWorld = Vector3.TransformCoordinates(keyPartnersBounds.maximum, keyPartnersWorldMatrix);
-        const keyPartnersPhysicalHeight = maxWorld.y - minWorld.y;
-        
-        console.log(`📏 KEY PARTNERS Physical Height: ${keyPartnersPhysicalHeight.toFixed(3)} world units`);
-        
-        // Calculate required Y-scaling for Cost Structure to match this height
-        const costBounds = costStructureMesh.getBoundingInfo();
-        const costBaseHeight = costBounds.maximum.y - costBounds.minimum.y; // Unscaled height
-        const costRequiredYScale = keyPartnersPhysicalHeight / costBaseHeight;
-        costStructureMesh.scaling.y = costRequiredYScale;
-        
-        // Calculate required Y-scaling for Revenue Streams to match this height  
-        const revBounds = revenueStreamsMesh.getBoundingInfo();
-        const revBaseHeight = revBounds.maximum.y - revBounds.minimum.y; // Unscaled height
-        const revRequiredYScale = keyPartnersPhysicalHeight / revBaseHeight;
-        revenueStreamsMesh.scaling.y = revRequiredYScale;
-        
-        console.log(`📏 HEIGHT SYNC: Cost Y-scale set to ${costRequiredYScale.toFixed(3)}`);
-        console.log(`📏 HEIGHT SYNC: Revenue Y-scale set to ${revRequiredYScale.toFixed(3)}`);
-        console.log(`✅ All objects now have matching physical height: ${keyPartnersPhysicalHeight.toFixed(3)} units`);
-      } else {
-        console.log(`❌ HEIGHT SYNC: Missing meshes - KeyPartners: ${!!keyPartnersMesh}, Cost: ${!!costStructureMesh}, Revenue: ${!!revenueStreamsMesh}`);
-      }
-    };
-    
-    // Run height sync after all objects are loaded
-    setTimeout(() => {
-      syncObjectHeights();
-    }, 3000);
 
     // ENABLED: Restore selection using BMC State Manager for proper preservation
     setTimeout(() => {
