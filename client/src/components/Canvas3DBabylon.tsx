@@ -659,9 +659,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.attachControl(canvasElement, true);
     perspectiveCamera.wheelPrecision = 50;
     
-    // FIXED: Perfect orthographic top-down view to match reference layout
+    // FIXED: Perfect orthographic top-down view with 180-degree rotation to match reference layout
     const orthographicCamera = new FreeCamera("OrthographicCamera", new Vector3(0, 50, 0), scene);
     orthographicCamera.setTarget(new Vector3(0, 0, -3)); // Adjust target to center the BMC layout
+    // Rotate camera 180 degrees to get correct orientation without breaking coordinate calculations
+    orthographicCamera.rotation.y = Math.PI; // 180 degrees to flip the view
     orthographicCamera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
     
     // FIXED: Larger orthographic bounds to show full BMC canvas like reference image
@@ -1397,8 +1399,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Position moved down by one row on ground plane (override default from loader)
         rootMesh.position = new Vector3(0, 0.1, 0.9);
         
-        // FIXED: Rotate entire BMC layout 180 degrees clockwise to match reference orientation
-        rootMesh.rotation = new Vector3(0, Math.PI, 0); // 180 degrees clockwise around Y-axis
+        // Keep model at normal rotation for all views
+        rootMesh.rotation = Vector3.Zero();
         
         // Position logging removed for better performance
         
