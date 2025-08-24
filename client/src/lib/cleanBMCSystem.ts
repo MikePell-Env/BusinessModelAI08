@@ -209,8 +209,9 @@ export class CleanBMCSystem {
       const { mesh, material, originalHeight, baseColor } = item;
 
     // FIXED: Height management - NO changes in 3D Top view (avoid scaling crashes)
-    if (!this.isTopView) {
-      // Only do height changes in 3D View (not 3D Top)
+    // CRITICAL: NEVER change height on hover!
+    if (!this.isTopView && state !== 'hover') {
+      // Only do height changes in 3D View (not 3D Top) and NEVER on hover
       if (state === 'selected') {
         mesh.scaling.y = originalHeight * 1.4; // Elevated
       } else if (state === 'dimmed') {
@@ -219,7 +220,7 @@ export class CleanBMCSystem {
         mesh.scaling.y = originalHeight; // Normal height
       }
     }
-    // In 3D Top view: skip ALL height changes to prevent crashes
+    // In 3D Top view OR hover state: skip ALL height changes
 
     // Base visibility settings - always ensure visibility
     mesh.setEnabled(true);
