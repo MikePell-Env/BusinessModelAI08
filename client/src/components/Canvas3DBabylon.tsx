@@ -3044,8 +3044,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
   }, [is3D, saveCamera3DState]);
 
-  // Keep console functions available as backup
+  // ADAPTER TESTING - Console functions to test new system safely
   React.useEffect(() => {
+    // Import adapter tester for console testing
+    import('./Canvas3DBabylon/adapters/AdapterTester').then(({ AdapterTester }) => {
+      (window as any).testNewSystem = () => AdapterTester.quickTest();
+    });
+    
+    // Keep console functions available as backup
     (window as any).bmcAnimationDemo = {
       runColorSequence: async () => {
         if (animationManagerRef.current) {
