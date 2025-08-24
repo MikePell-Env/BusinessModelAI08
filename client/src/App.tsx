@@ -1,18 +1,26 @@
 import React, { Suspense, useState, useEffect } from "react";
-import { HomePage } from "./components/HomePage";
-import { ExplorePage } from "./components/ExplorePage";
 import { OverviewPage } from "./components/OverviewPage";
 import { AzureCredentialSetup } from "./components/AzureCredentialSetup";
-import { useCanvas } from "./lib/stores/useCanvas";
 import "@fontsource/inter";
+
+// Lazy load heavy components to avoid blocking Overview
+const HomePage = React.lazy(() => import("./components/HomePage").then(module => ({ default: module.HomePage })));
+const ExplorePage = React.lazy(() => import("./components/ExplorePage").then(module => ({ default: module.ExplorePage })));
 
 function App() {
   const [currentPage, setCurrentPage] = useState<'home' | 'explore' | 'overview'>('home');
   const [azureConfigured, setAzureConfigured] = useState<boolean | null>(null);
   const [showCredentialSetup, setShowCredentialSetup] = useState(false);
-  const { toggleChat } = useCanvas();
+  const [toggleChat, setToggleChat] = useState<(() => void) | null>(null);
 
   useEffect(() => {
+    // Only load canvas store for non-Overview pages
+    if (currentPage !== 'overview') {
+      import('./lib/stores/useCanvas').then(module => {
+        setToggleChat(() => module.useCanvas.getState().toggleChat);
+      });
+    }
+
     // Check Azure OpenAI status on app load
     fetch('/api/azure/status')
       .then(res => res.json())
@@ -26,7 +34,7 @@ function App() {
         setAzureConfigured(false);
         setShowCredentialSetup(true);
       });
-  }, []);
+  }, [currentPage]);
 
   const navigateToHome = React.useCallback(() => setCurrentPage('home'), []);
   const navigateToExplore = React.useCallback(() => setCurrentPage('explore'), []);
@@ -106,7 +114,7 @@ function App() {
               src="/copilot-logo.png" 
               alt="Microsoft Copilot" 
               className="w-8 h-8 mr-3 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={toggleChat}
+              onClick={toggleChat || (() => {})}
               title="Click to open AI Assistant"
             />
             <div>
