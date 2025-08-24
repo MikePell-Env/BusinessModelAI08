@@ -12,7 +12,9 @@ import {
   Color3, 
   Color4,
   Vector3, 
-  AbstractMesh
+  AbstractMesh,
+  ActionManager,
+  ExecuteCodeAction
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas } from '@/types/canvas';
