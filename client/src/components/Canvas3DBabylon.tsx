@@ -660,9 +660,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.attachControl(canvasElement, true);
     perspectiveCamera.wheelPrecision = 50;
     
-    // PSEUDO-ORTHOGRAPHIC: Position camera high up with slight X-axis rotation toward viewer
-    const topViewCamera = new FreeCamera("TopViewCamera", new Vector3(0, 200, -15), scene);
-    topViewCamera.setTarget(new Vector3(0, 0, 0)); // Look down at center with slight tilt toward viewer
+    // PSEUDO-ORTHOGRAPHIC: Position camera high up with narrow FOV to minimize perspective distortion
+    const topViewCamera = new FreeCamera("TopViewCamera", new Vector3(0, 200, 0), scene);
+    topViewCamera.setTarget(new Vector3(0, 0, 0)); // Look straight down at center
+    
+    // Add slight X-axis rotation to tilt toward viewer
+    topViewCamera.rotation.x = -0.1; // Small negative rotation to tilt toward viewer
     
     // Optimized field of view to fill window area while showing complete BMC layout
     topViewCamera.fov = 0.2; // Sweet spot between filling window and showing complete layout
