@@ -476,9 +476,10 @@ export class PowerPointParser {
         // Simple cleanup of excessive spaces
         const cleanedLine = line.replace(/\s+/g, ' ').trim();
         
-        // Look for existing patterns with Corp, Inc, etc.
+        // Look for existing patterns with Corp, Inc, etc. and clean them
         if (cleanedLine.match(/\b\w+.*\s+(Corp|Inc|LLC|Ltd|Company|Technologies|Tech|Solutions|Group|Enterprises)\b/i)) {
-          return cleanedLine;
+          // Remove common company suffixes to clean up the name
+          return cleanedLine.replace(/,?\s*(Corp|Inc|LLC|Ltd|Company|Technologies|Tech|Solutions|Group|Enterprises)\.?$/i, '').trim();
         }
         
         // Look for all caps that look like company names (fix spacing issues)
@@ -557,6 +558,8 @@ export class PowerPointParser {
             const descLine = lines[j];
             if (descLine.length > 15 && descLine.length < 200 && 
                 !descLine.match(/^(SUMMARY|DETAILS|MARKET|MISSION|KEY|WEBSITE)/i) &&
+                !descLine.match(/https?:\/\/|www\.|\.com|\.ai|\.org/i) && // Exclude website URLs
+                !descLine.match(/^W\s?EBSITE/i) && // Exclude "WEBSITE" headers
                 founderDescriptions.length < 2) {
               founderDescriptions.push(descLine.replace(/\s+/g, ' ').trim());
             }
