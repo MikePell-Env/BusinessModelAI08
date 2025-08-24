@@ -668,6 +668,39 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Optimized field of view to fill window area while showing complete BMC layout
     topViewCamera.fov = 0.2; // Sweet spot between filling window and showing complete layout
     
+    // Add mouse wheel zoom support for top view camera
+    const addTopViewZoomControls = () => {
+      if (!canvasElement) return null;
+      
+      const handleWheel = (event: WheelEvent) => {
+        // Only handle zoom when top view camera is active
+        if (scene.activeCamera !== topViewCamera) return;
+        
+        event.preventDefault();
+        
+        // Adjust FOV for zoom effect (smaller FOV = more zoomed in)
+        const zoomSpeed = 0.002;
+        const minFov = 0.05; // Maximum zoom in
+        const maxFov = 0.4;  // Maximum zoom out
+        
+        const deltaY = event.deltaY;
+        let newFov = topViewCamera.fov + (deltaY * zoomSpeed);
+        
+        // Clamp FOV to reasonable limits
+        newFov = Math.max(minFov, Math.min(maxFov, newFov));
+        topViewCamera.fov = newFov;
+        
+        console.log(`🔍 Top view zoom: FOV = ${newFov.toFixed(3)}`);
+      };
+      
+      canvasElement.addEventListener('wheel', handleWheel, { passive: false });
+      
+      return { wheel: handleWheel, canvas: canvasElement };
+    };
+    
+    // Store event handlers for cleanup
+    orthoEventHandlersRef.current = addTopViewZoomControls();
+    
     // No orthographic bounds needed for perspective camera
     
     console.log(`🔬 TOP VIEW CAMERA CREATED:`);
