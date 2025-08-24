@@ -67,8 +67,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
         const { setPendingPowerPointFile } = useCanvas.getState();
         setPendingPowerPointFile(file);
         
-        // Go to 2D view - the BusinessModelCanvas will automatically process the file
-        setShowCanvas(true);
+        // Go directly to Overview page to show the extracted content
+        onNavigateOverview?.();
         setLoading(false);
         
         // Reset file input for next use
@@ -89,7 +89,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
   const handleImportSuccess = (canvasData: CanvasType) => {
     loadCanvas(canvasData, true); // Set isFromPowerPoint flag to true
     setShowImporter(false);
-    setShowCanvas(true); // Go to 2D view after successful import
+    onNavigateOverview?.(); // Go to Overview page after successful import
   };
 
   return (
