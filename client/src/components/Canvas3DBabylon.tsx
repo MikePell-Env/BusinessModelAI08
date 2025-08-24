@@ -2857,7 +2857,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, saveCamera3DState, isOrthographic]);
+  }, [canvas, saveCamera3DState]);
 
   // SCIENTIFIC DEBUG: Camera switching with full analysis  
   useEffect(() => {
