@@ -298,13 +298,13 @@ export class CleanBMCSystem {
         // Rule 3: Selected object
         material.alpha = 1.0; // 100% opaque
         
-        // Special handling for Cost Structure and Revenue Streams - dramatic elevation
+        // Special handling for Cost Structure and Revenue Streams - dramatic elevation when selected
         if (name === 'Cost Structure') {
-          mesh.scaling.y = 24.0; // 3x height for dramatic effect
+          mesh.scaling.y = 8.0 * 3.0; // 3x elevation from normal height
         } else if (name === 'Revenue Streams') {
-          mesh.scaling.y = 23.1; // 3x height for dramatic effect  
+          mesh.scaling.y = 7.7 * 3.0; // 3x elevation from normal height  
         } else {
-          mesh.scaling.y = mesh.scaling.x * 3.0; // 3x height for main BMC objects
+          mesh.scaling.y = mesh.scaling.x * 3.0; // 3x elevation for main BMC objects
         }
         if (isSpecialSection && baseColor) {
           // Cost/Revenue: Bright version of original
@@ -351,13 +351,13 @@ export class CleanBMCSystem {
         // Rule 1: Normal state - full height, original color, 100% opaque
         material.alpha = 1.0;
         
-        // Special handling for Cost Structure and Revenue Streams - dramatic elevation
+        // Special handling for Cost Structure and Revenue Streams - preserve original heights
         if (name === 'Cost Structure') {
-          mesh.scaling.y = 24.0; // 3x height for dramatic effect
+          mesh.scaling.y = 8.0; // Original height for normal state
         } else if (name === 'Revenue Streams') {
-          mesh.scaling.y = 23.1; // 3x height for dramatic effect  
+          mesh.scaling.y = 7.7; // Original height for normal state  
         } else {
-          mesh.scaling.y = mesh.scaling.x * 3.0; // 3x height for main BMC objects
+          mesh.scaling.y = mesh.scaling.x; // Original height for main BMC objects
         }
         if (baseColor) {
           material.diffuseColor.r = baseColor.r;
