@@ -46,38 +46,38 @@ export class SceneSetup {
   }
 
   private setupLighting(): void {
-    // Natural lighting setup matching 3D View shadow quality
+    // Minimal lighting to match 3D View's rich shadows and depth
     const hemisphericLight = new HemisphericLight(
       "hemisphericLight", 
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 0.3; // Low but not extreme ambient
-    hemisphericLight.diffuse = new Color3(0.5, 0.5, 0.55); // Neutral ambient
-    hemisphericLight.specular = new Color3(0.1, 0.1, 0.1); // Minimal ambient specular
-    hemisphericLight.groundColor = new Color3(0.2, 0.2, 0.25); // Subtle ground light
+    hemisphericLight.intensity = 0.25; // Very low ambient to preserve shadows
+    hemisphericLight.diffuse = new Color3(0.4, 0.4, 0.45); // Dark ambient light
+    hemisphericLight.specular = new Color3(0.05, 0.05, 0.05); // Almost no ambient specular
+    hemisphericLight.groundColor = new Color3(0.1, 0.1, 0.12); // Very dark ground
 
-    // Main directional light for natural shadow casting
+    // Single strong directional light from the side for dramatic shadows
     const directionalLight = new DirectionalLight(
       "directionalLight", 
-      new Vector3(-0.8, -1.0, -0.6), // Natural angle for good shadows
+      new Vector3(-1.5, -0.4, -0.8), // Extreme side angle for top-view shadows
       this.scene
     );
-    directionalLight.intensity = 1.2; // Moderate strength
-    directionalLight.diffuse = new Color3(0.9, 0.88, 0.82); // Warm natural light
-    directionalLight.specular = new Color3(0.25, 0.23, 0.2); // Moderate specular
+    directionalLight.intensity = 1.0; // Controlled intensity
+    directionalLight.diffuse = new Color3(0.85, 0.83, 0.78); // Slightly warm light
+    directionalLight.specular = new Color3(0.2, 0.18, 0.15); // Subtle specular only
 
-    // Fill light for shadow detail
+    // Very subtle fill to prevent complete blackness
     const fillLight = new DirectionalLight(
       "fillLight",
-      new Vector3(0.6, -0.8, -0.8), // Fill in shadows softly
+      new Vector3(1.0, -0.3, 0.5), // Opposite side for minimal fill
       this.scene
     );
-    fillLight.intensity = 0.4; // Gentle fill
-    fillLight.diffuse = new Color3(0.65, 0.68, 0.75); // Cool fill light
-    fillLight.specular = new Color3(0.08, 0.1, 0.12); // Very subtle specular
+    fillLight.intensity = 0.25; // Very gentle fill
+    fillLight.diffuse = new Color3(0.5, 0.52, 0.58); // Cool, dark fill
+    fillLight.specular = new Color3(0.0, 0.0, 0.0); // No specular from fill
 
-    debugLog.verbose('scene', 'Natural lighting configured to match 3D View shadow quality');
+    debugLog.verbose('scene', 'Minimal lighting for rich shadows matching 3D View depth');
   }
 
   private setupEnvironment(): void {
