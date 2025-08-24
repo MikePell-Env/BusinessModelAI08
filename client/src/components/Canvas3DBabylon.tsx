@@ -647,10 +647,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("🎯 Scene initialized with SceneSetupAdapter");
 
     // CLEAN START: Create TWO cameras - perspective and orthographic
-    // NOTE: 180° master transform rotation requires camera angle compensation
+    // NOTE: 180° master transform rotation requires camera angle compensation (reversed coordinates)
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
-      Math.PI,       // 180° horizontal angle (front-left perspective with scene rotation)
+      0,             // 0° horizontal angle (accounts for reversed coordinate system)
       Math.PI/4,     // 45° vertical angle (good elevation view)
       45,            // Increased distance to show more canvas area
       Vector3.Zero(),
