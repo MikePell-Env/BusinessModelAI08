@@ -3271,9 +3271,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       {/* Time Slider HUD - Floating at bottom with transparent background */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-8 py-4">
-        <div className="relative w-80">
+        <div className="relative w-240">
           {/* Slider track */}
-          <div className="h-3 bg-gray-400 rounded-full mb-4 relative">
+          <div className="h-1 bg-gray-400 rounded-full mb-4 relative">
             {/* Vertical thumb at PRESENT position (center) */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
               <div className="w-3 h-6 bg-gray-600 rounded-sm cursor-pointer hover:bg-gray-700 transition-colors shadow-lg border border-gray-500"></div>
