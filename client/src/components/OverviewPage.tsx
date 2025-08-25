@@ -286,6 +286,18 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                         <h3 className="text-center font-semibold text-gray-900 text-sm">Financials</h3>
                       </div>
                     </div>
+
+                    {/* What If Card */}
+                    <div className="hover:opacity-80 transition-opacity cursor-pointer">
+                      <img 
+                        src="/button_WhatIf_wireframe.png" 
+                        alt="What If?" 
+                        className="w-full h-auto border border-black"
+                      />
+                      <div className="mt-3 mb-2">
+                        <h3 className="text-center font-semibold text-gray-900 text-sm">What If?</h3>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
