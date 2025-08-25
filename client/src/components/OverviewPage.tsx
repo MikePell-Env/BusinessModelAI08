@@ -271,7 +271,8 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                       <img 
                         src="/button_BMC_blueprint_1756126246902.png" 
                         alt="Business Model Canvas" 
-                        className="w-full h-auto border-2 border-black shadow-xl hover:shadow-2xl transition-shadow"
+                        className="w-full h-auto border-2 border-black shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]"
+                        style={{ boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
                       />
                       <div className="mt-3 mb-2">
                         <h3 className="text-center font-semibold text-gray-900 text-sm">Business Model Canvas</h3>
@@ -283,7 +284,8 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                       <img 
                         src="/button_Financials_blueprint.png" 
                         alt="Financials" 
-                        className="w-full h-auto border-2 border-black shadow-xl hover:shadow-2xl transition-shadow"
+                        className="w-full h-auto border-2 border-black shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]"
+                        style={{ boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
                       />
                       <div className="mt-3 mb-2">
                         <h3 className="text-center font-semibold text-gray-900 text-sm">Financials</h3>
