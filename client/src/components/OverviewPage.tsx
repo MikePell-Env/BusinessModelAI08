@@ -249,52 +249,33 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                   {/* Explore Cards */}
                   <div className="space-y-4">
                     {/* SWOT Analysis Card */}
-                    <div className="bg-white border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
-                      <div className="flex items-center justify-center mb-3">
-                        <div className="w-16 h-16 border-2 border-gray-400 rounded flex items-center justify-center">
-                          {/* SWOT Grid Icon */}
-                          <div className="grid grid-cols-2 gap-1 w-8 h-8">
-                            <div className="bg-gray-400 rounded-sm"></div>
-                            <div className="bg-gray-400 rounded-sm"></div>
-                            <div className="bg-gray-400 rounded-sm"></div>
-                            <div className="bg-gray-400 rounded-sm"></div>
-                          </div>
-                        </div>
-                      </div>
-                      <h3 className="text-center font-semibold text-gray-900">SWOT Analysis</h3>
+                    <div className="hover:opacity-80 transition-opacity cursor-pointer">
+                      <img 
+                        src="/button_SWOT.png" 
+                        alt="SWOT Analysis" 
+                        className="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                      />
                     </div>
 
                     {/* Business Model Canvas Card */}
                     <div 
-                      className="bg-white border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
+                      className="hover:opacity-80 transition-opacity cursor-pointer"
                       onClick={handleBusinessModelCanvasClick}
                     >
-                      <div className="flex items-center justify-center mb-3">
-                        <div className="w-16 h-16 border-2 border-gray-400 rounded flex items-center justify-center">
-                          {/* Canvas Icon */}
-                          <div className="relative w-10 h-10">
-                            <div className="absolute inset-0 border-2 border-gray-400 rounded"></div>
-                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 border border-gray-400 rounded-full"></div>
-                          </div>
-                        </div>
-                      </div>
-                      <h3 className="text-center font-semibold text-gray-900">Business Model Canvas</h3>
+                      <img 
+                        src="/button_BMC.png" 
+                        alt="Business Model Canvas" 
+                        className="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                      />
                     </div>
 
                     {/* Financials Card */}
-                    <div className="bg-white border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
-                      <div className="flex items-center justify-center mb-3">
-                        <div className="w-16 h-16 border-2 border-gray-400 rounded flex items-center justify-center">
-                          {/* Bar Chart Icon */}
-                          <div className="flex items-end space-x-1 h-8">
-                            <div className="w-2 h-4 bg-gray-400 rounded-sm"></div>
-                            <div className="w-2 h-6 bg-gray-400 rounded-sm"></div>
-                            <div className="w-2 h-3 bg-gray-400 rounded-sm"></div>
-                            <div className="w-2 h-7 bg-gray-400 rounded-sm"></div>
-                          </div>
-                        </div>
-                      </div>
-                      <h3 className="text-center font-semibold text-gray-900">Financials</h3>
+                    <div className="hover:opacity-80 transition-opacity cursor-pointer">
+                      <img 
+                        src="/button_Financials.png" 
+                        alt="Financials" 
+                        className="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                      />
                     </div>
                   </div>
                 </div>
