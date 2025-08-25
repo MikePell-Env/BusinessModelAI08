@@ -3273,7 +3273,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-8 py-4">
         <div className="relative w-80">
           {/* Slider track */}
-          <div className="h-1 bg-gray-400 rounded-full mb-4 relative">
+          <div className="h-3 bg-gray-400 rounded-full mb-4 relative">
             {/* Vertical thumb at PRESENT position (center) */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
               <div className="w-3 h-6 bg-gray-600 rounded-sm cursor-pointer hover:bg-gray-700 transition-colors shadow-lg border border-gray-500"></div>
@@ -3282,9 +3282,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           
           {/* Labels */}
           <div className="flex justify-between text-xs font-medium text-gray-800 mt-2">
-            <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/80 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 PAST clicked')}>PAST</span>
-            <span className="cursor-pointer hover:text-gray-900 transition-colors font-semibold bg-white/90 px-2 py-1 rounded shadow-md" onClick={() => console.log('🕐 PRESENT clicked')}>PRESENT</span>
-            <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/80 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 FUTURE clicked')}>FUTURE</span>
+            <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 PAST clicked')}>PAST</span>
+            <span className="cursor-pointer hover:text-gray-900 transition-colors font-semibold bg-white/10 px-2 py-1 rounded shadow-md" onClick={() => console.log('🕐 PRESENT clicked')}>PRESENT</span>
+            <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 FUTURE clicked')}>FUTURE</span>
           </div>
         </div>
       </div>
