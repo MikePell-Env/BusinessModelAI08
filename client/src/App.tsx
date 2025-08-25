@@ -6,6 +6,7 @@ import "@fontsource/inter";
 // Lazy load heavy components to avoid blocking Overview
 const HomePage = React.lazy(() => import("./components/HomePage").then(module => ({ default: module.HomePage })));
 const ExplorePage = React.lazy(() => import("./components/ExplorePage").then(module => ({ default: module.ExplorePage })));
+const AIChat = React.lazy(() => import("./components/AIChat").then(module => ({ default: module.AIChat })));
 
 function App() {
   const [currentPage, setCurrentPage] = useState<'home' | 'explore' | 'overview'>('home');
@@ -14,12 +15,10 @@ function App() {
   const [toggleChat, setToggleChat] = useState<(() => void) | null>(null);
 
   useEffect(() => {
-    // Only load canvas store for non-Overview pages
-    if (currentPage !== 'overview') {
-      import('./lib/stores/useCanvas').then(module => {
-        setToggleChat(() => module.useCanvas.getState().toggleChat);
-      });
-    }
+    // Load canvas store and chat functionality for all pages
+    import('./lib/stores/useCanvas').then(module => {
+      setToggleChat(() => module.useCanvas.getState().toggleChat);
+    });
 
     // Check Azure OpenAI status on app load
     fetch('/api/azure/status')
@@ -106,6 +105,11 @@ function App() {
       {showCredentialSetup && (
         <AzureCredentialSetup onCredentialsSubmit={handleCredentialsSubmit} />
       )}
+
+      {/* Add AI Chat for all pages */}
+      <Suspense fallback={null}>
+        <AIChat />
+      </Suspense>
 
       {azureConfigured === true && (
         <div className="fixed bottom-4 right-4 bg-green-100 border border-green-300 rounded-lg p-3 w-72 z-50">
