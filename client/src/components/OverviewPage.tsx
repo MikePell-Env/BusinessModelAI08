@@ -269,7 +269,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                       onClick={handleBusinessModelCanvasClick}
                     >
                       <img 
-                        src="/button_BMC_blueprint.png" 
+                        src="/button_BMC_blueprint_new.png" 
                         alt="Business Model Canvas" 
                         className="w-full h-auto border-2 border-black shadow-xl hover:shadow-2xl transition-shadow"
                       />
@@ -281,7 +281,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                     {/* Financials Card */}
                     <div className="hover:opacity-80 transition-opacity cursor-pointer">
                       <img 
-                        src="/button_Financials_wireframe.png" 
+                        src="/button_Financials_blueprint.png" 
                         alt="Financials" 
                         className="w-full h-auto border-2 border-black shadow-xl hover:shadow-2xl transition-shadow"
                       />
