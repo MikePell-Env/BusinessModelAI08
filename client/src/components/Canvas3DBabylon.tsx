@@ -504,14 +504,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Rotate to be flat on top
     labelPlane.rotation.x = Math.PI / 2;
 
-    // Create material with content texture
+    // Create material with content texture - fully transparent background
     const labelMaterial = new StandardMaterial(`contentLabelMat_${sectionName}`, scene);
     labelMaterial.diffuseTexture = dynamicTexture;
-    labelMaterial.emissiveTexture = dynamicTexture;
-    labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Bright for visibility
     labelMaterial.useAlphaFromDiffuseTexture = true;
-    labelMaterial.disableLighting = false;
+    labelMaterial.disableLighting = true; // Disable lighting to ensure white text shows properly
     labelMaterial.backFaceCulling = false;
+    labelMaterial.alpha = 1.0; // Full opacity for the material itself (transparency comes from texture)
 
     labelPlane.material = labelMaterial;
     labelPlane.isPickable = false;
