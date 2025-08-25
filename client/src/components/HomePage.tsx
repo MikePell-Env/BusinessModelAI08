@@ -46,7 +46,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
 
   // When canvas is shown, render the BusinessModelCanvas component
   if (showCanvas) {
-    return <BusinessModelCanvas onNavigateHome={() => setShowCanvas(false)} />;
+    return (
+      <BusinessModelCanvas 
+        onNavigateHome={() => setShowCanvas(false)}
+        onNavigateExplore={onNavigateExplore}
+        onNavigateOverview={onNavigateOverview}
+        currentPage={currentPage}
+      />
+    );
   }
 
   // Handle direct file picker for PowerPoint import

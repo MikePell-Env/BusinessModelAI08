@@ -131,7 +131,14 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
 
   // When canvas is shown, render the BusinessModelCanvas component
   if (showCanvas) {
-    return <BusinessModelCanvas onNavigateHome={() => setShowCanvas(false)} />;
+    return (
+      <BusinessModelCanvas 
+        onNavigateHome={() => setShowCanvas(false)}
+        onNavigateExplore={onNavigateExplore}
+        onNavigateOverview={onNavigateOverview}
+        currentPage={currentPage}
+      />
+    );
   }
 
   return (
