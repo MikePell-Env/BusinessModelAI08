@@ -124,7 +124,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                 {/* Dark Grey Demo Banner - Now inside the dialog */}
                 <div className="bg-gray-700 text-white p-4 rounded-t-lg">
                   <p className="text-base leading-tight">
-                    <strong>DEMO:</strong> Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
+                    <strong className="text-blue-500">DEMO:</strong> Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very <strong>new way</strong>, unlocking the ability to play what-if and ask the hard questions...
                   </p>
                 </div>
                 
