@@ -17,9 +17,17 @@ import { powerpointParser } from '@/utils/powerpointParser';
 
 interface BusinessModelCanvasProps {
   onNavigateHome?: () => void;
+  onNavigateExplore?: () => void;
+  onNavigateOverview?: () => void;
+  currentPage?: 'home' | 'explore' | 'overview';
 }
 
-export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavigateHome }) => {
+export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ 
+  onNavigateHome, 
+  onNavigateExplore, 
+  onNavigateOverview, 
+  currentPage = 'home' 
+}) => {
   const {
     canvas,
     is3D,
@@ -116,7 +124,12 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ onNavi
     <div className="w-full h-screen bg-white relative">
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <Header onNavigateHome={onNavigateHome} />
+        <Header 
+          onNavigateHome={onNavigateHome} 
+          onNavigateExplore={onNavigateExplore}
+          onNavigateOverview={onNavigateOverview}
+          currentPage={currentPage}
+        />
       </div>
 
       {/* Fixed View Controls - positioned below header */}
