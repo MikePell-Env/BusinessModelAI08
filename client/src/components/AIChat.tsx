@@ -352,27 +352,8 @@ export const AIChat: React.FC = () => {
     <div className={`fixed top-6 bottom-6 right-6 w-96 bg-white shadow-xl z-[9999] transition-all duration-300 rounded-lg border flex flex-col ${
       isMinimized ? 'h-14 top-auto' : ''
     }`}>
-      {/* Voice Input Feedback - Prominent Blue Box */}
-      {(isListening || interimTranscript) && !isMinimized && (
-        <div className="bg-blue-500 text-white p-3 rounded-t-lg animate-pulse border-b border-blue-400">
-          <div className="flex items-center space-x-2">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-            </div>
-            <span className="text-sm font-medium flex-1">
-              {interimTranscript ? `"${interimTranscript}"` : 'Listening...'}
-            </span>
-            <Mic className="h-4 w-4" />
-          </div>
-        </div>
-      )}
-      
       {/* Header */}
-      <div className={`flex flex-row items-center justify-between space-y-0 p-4 pb-2 bg-white border-b ${
-        (isListening || interimTranscript) && !isMinimized ? '' : 'rounded-t-lg'
-      }`}>
+      <div className="flex flex-row items-center justify-between space-y-0 p-4 pb-2 bg-white border-b rounded-t-lg">
         <div className="flex flex-col space-y-1">
           <div className="flex items-center space-x-2">
             <img 
@@ -413,6 +394,23 @@ export const AIChat: React.FC = () => {
         <>
           {/* Messages Area - Takes up all available space */}
           <div className="flex-1 overflow-y-auto p-4 bg-white">
+            {/* Voice Input Feedback - Prominent Blue Box in Content Area */}
+            {(isListening || interimTranscript) && (
+              <div className="bg-blue-500 text-white p-3 rounded-lg animate-pulse mb-4 border border-blue-400">
+                <div className="flex items-center space-x-2">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  </div>
+                  <span className="text-sm font-medium flex-1">
+                    {interimTranscript ? `"${interimTranscript}"` : 'Listening...'}
+                  </span>
+                  <Mic className="h-4 w-4" />
+                </div>
+              </div>
+            )}
+            
             {chatMessages.length === 0 ? (
               <div className="text-center text-gray-500 text-sm mt-8">
                 Ask me anything about your business model canvas!
