@@ -269,7 +269,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                       onClick={handleBusinessModelCanvasClick}
                     >
                       <img 
-                        src="/button_BMC_blueprint_1756093101046.png" 
+                        src="/button_BMC_blueprint_1756126246902.png" 
                         alt="Business Model Canvas" 
                         className="w-full h-auto border-2 border-black shadow-xl hover:shadow-2xl transition-shadow"
                       />
