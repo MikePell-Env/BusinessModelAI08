@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { ChatMessage } from '@/types/canvas';
-import { Send, X, Minimize2, Plus, Mic, MicOff } from 'lucide-react';
+import { Send, X, Minimize2, Plus, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { AIServiceIndicator } from './AIServiceIndicator';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -37,6 +37,8 @@ export const AIChat: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
   const [interimTranscript, setInterimTranscript] = useState('');
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -46,6 +48,55 @@ export const AIChat: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [chatMessages, isProcessing]);
+
+  // Initialize Speech Synthesis
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      setSpeechSynthesis(window.speechSynthesis);
+    }
+  }, []);
+
+  // Function to speak text
+  const speakText = (text: string, messageId: string) => {
+    if (!speechSynthesis) return;
+    
+    // Stop any current speech
+    speechSynthesis.cancel();
+    
+    // Remove markdown formatting for speech
+    const cleanText = text
+      .replace(/[#*`_~\[\]()]/g, '') // Remove markdown characters
+      .replace(/\n+/g, ' ') // Replace newlines with spaces
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+    
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 0.8;
+    
+    utterance.onstart = () => {
+      setSpeakingMessageId(messageId);
+    };
+    
+    utterance.onend = () => {
+      setSpeakingMessageId(null);
+    };
+    
+    utterance.onerror = () => {
+      setSpeakingMessageId(null);
+    };
+    
+    speechSynthesis.speak(utterance);
+  };
+
+  // Function to stop speech
+  const stopSpeech = () => {
+    if (speechSynthesis) {
+      speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+    }
+  };
 
   // Initialize Speech Recognition
   useEffect(() => {
@@ -436,43 +487,67 @@ export const AIChat: React.FC = () => {
                       {message.role === 'user' ? (
                         message.content
                       ) : (
-                        <div className="prose prose-sm max-w-none text-gray-800">
-                          <ReactMarkdown 
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              h1: ({...props}) => <h1 className="text-lg font-bold mb-2 text-gray-900" {...props} />,
-                              h2: ({...props}) => <h2 className="text-base font-bold mb-2 text-gray-900" {...props} />,
-                              h3: ({...props}) => <h3 className="text-sm font-bold mb-1 text-gray-900" {...props} />,
-                              h4: ({...props}) => <h4 className="text-sm font-semibold mb-1 text-gray-900" {...props} />,
-                              p: ({...props}) => <p className="mb-2 leading-relaxed" {...props} />,
-                              ul: ({...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
-                              ol: ({...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
-                              li: ({...props}) => <li className="leading-relaxed" {...props} />,
-                              strong: ({...props}) => <strong className="font-semibold text-gray-900" {...props} />,
-                              em: ({...props}) => <em className="italic" {...props} />,
-                              code: ({...props}) => {
-                                const { children, className, ...rest } = props;
-                                const isInline = !className || !className.includes('language-');
-                                return isInline ? (
-                                  <code className="bg-gray-200 px-1 py-0.5 rounded text-xs font-mono" {...rest}>
-                                    {children}
-                                  </code>
-                                ) : (
-                                  <code className="block bg-gray-200 p-2 rounded text-xs font-mono overflow-x-auto" {...rest}>
-                                    {children}
-                                  </code>
-                                );
-                              },
-                              blockquote: ({...props}) => (
-                                <blockquote className="border-l-4 border-gray-300 pl-3 ml-2 italic text-gray-700" {...props} />
-                              ),
-                              a: ({...props}) => (
-                                <a className="text-blue-600 hover:text-blue-800 underline" {...props} />
-                              ),
-                            }}
-                          >
-                            {message.content}
-                          </ReactMarkdown>
+                        <div className="relative">
+                          <div className="prose prose-sm max-w-none text-gray-800">
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                h1: ({...props}) => <h1 className="text-lg font-bold mb-2 text-gray-900" {...props} />,
+                                h2: ({...props}) => <h2 className="text-base font-bold mb-2 text-gray-900" {...props} />,
+                                h3: ({...props}) => <h3 className="text-sm font-bold mb-1 text-gray-900" {...props} />,
+                                h4: ({...props}) => <h4 className="text-sm font-semibold mb-1 text-gray-900" {...props} />,
+                                p: ({...props}) => <p className="mb-2 leading-relaxed" {...props} />,
+                                ul: ({...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+                                ol: ({...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+                                li: ({...props}) => <li className="leading-relaxed" {...props} />,
+                                strong: ({...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                                em: ({...props}) => <em className="italic" {...props} />,
+                                code: ({...props}) => {
+                                  const { children, className, ...rest } = props;
+                                  const isInline = !className || !className.includes('language-');
+                                  return isInline ? (
+                                    <code className="bg-gray-200 px-1 py-0.5 rounded text-xs font-mono" {...rest}>
+                                      {children}
+                                    </code>
+                                  ) : (
+                                    <code className="block bg-gray-200 p-2 rounded text-xs font-mono overflow-x-auto" {...rest}>
+                                      {children}
+                                    </code>
+                                  );
+                                },
+                                blockquote: ({...props}) => (
+                                  <blockquote className="border-l-4 border-gray-300 pl-3 ml-2 italic text-gray-700" {...props} />
+                                ),
+                                a: ({...props}) => (
+                                  <a className="text-blue-600 hover:text-blue-800 underline" {...props} />
+                                ),
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                          {/* Text-to-Speech Button */}
+                          {speechSynthesis && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (speakingMessageId === message.id) {
+                                  stopSpeech();
+                                } else {
+                                  speakText(message.content, message.id);
+                                }
+                              }}
+                              className="absolute top-1 right-1 h-6 w-6 p-0 opacity-70 hover:opacity-100"
+                              title={speakingMessageId === message.id ? "Stop speaking" : "Read aloud"}
+                            >
+                              {speakingMessageId === message.id ? (
+                                <VolumeX className="h-3 w-3 text-red-500" />
+                              ) : (
+                                <Volume2 className="h-3 w-3 text-blue-500" />
+                              )}
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>
