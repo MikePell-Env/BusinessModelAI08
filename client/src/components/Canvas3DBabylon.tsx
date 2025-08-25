@@ -1046,7 +1046,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       };
       
       const sectionData = getSectionData(sectionName);
-      if (!sectionData || typeof sectionData === 'string' || !sectionData.content || sectionData.content.length === 0) {
+      if (!sectionData || typeof sectionData === 'string' || !('content' in sectionData) || !sectionData.content || sectionData.content.length === 0) {
         console.log(`❌ No content available for ${sectionName} - sectionData:`, sectionData);
         return;
       }
