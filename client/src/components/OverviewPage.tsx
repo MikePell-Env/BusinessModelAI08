@@ -248,27 +248,15 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
 
                   {/* Explore Cards */}
                   <div className="space-y-6">
-                    {/* SWOT Analysis Card */}
-                    <div className="hover:opacity-80 transition-opacity cursor-pointer">
+                    {/* SWOT Analysis Card - Disabled */}
+                    <div className="opacity-50 cursor-not-allowed">
                       <img 
-                        src="/button_SWOT.png" 
+                        src="/button_SWOT_wireframe.png" 
                         alt="SWOT Analysis" 
-                        className="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                        className="w-full h-auto border border-black"
                       />
                       <div className="mt-3 mb-2">
-                        <h3 className="text-center font-semibold text-gray-900 text-sm">SWOT Analysis</h3>
-                      </div>
-                    </div>
-
-                    {/* Financials Card */}
-                    <div className="hover:opacity-80 transition-opacity cursor-pointer">
-                      <img 
-                        src="/button_Financials.png" 
-                        alt="Financials" 
-                        className="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow"
-                      />
-                      <div className="mt-3 mb-2">
-                        <h3 className="text-center font-semibold text-gray-900 text-sm">Financials</h3>
+                        <h3 className="text-center font-semibold text-gray-500 text-sm">SWOT Analysis</h3>
                       </div>
                     </div>
 
@@ -278,12 +266,24 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                       onClick={handleBusinessModelCanvasClick}
                     >
                       <img 
-                        src="/button_BMC.png" 
+                        src="/button_BMC_wireframe.png" 
                         alt="Business Model Canvas" 
-                        className="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                        className="w-full h-auto border border-black"
                       />
                       <div className="mt-3 mb-2">
                         <h3 className="text-center font-semibold text-gray-900 text-sm">Business Model Canvas</h3>
+                      </div>
+                    </div>
+
+                    {/* Financials Card */}
+                    <div className="hover:opacity-80 transition-opacity cursor-pointer">
+                      <img 
+                        src="/button_Financials_wireframe.png" 
+                        alt="Financials" 
+                        className="w-full h-auto border border-black"
+                      />
+                      <div className="mt-3 mb-2">
+                        <h3 className="text-center font-semibold text-gray-900 text-sm">Financials</h3>
                       </div>
                     </div>
                   </div>
