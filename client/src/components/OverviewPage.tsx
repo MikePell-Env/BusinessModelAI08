@@ -251,7 +251,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                     {/* SWOT Analysis Card - Disabled */}
                     <div className="opacity-50 cursor-not-allowed">
                       <img 
-                        src="/button_SWOT_wireframe_grey.png" 
+                        src="/button_SWOT_wireframe_clean.png" 
                         alt="SWOT Analysis" 
                         className="w-full h-auto border border-black"
                       />
@@ -268,7 +268,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                       <img 
                         src="/button_BMC_wireframe_new.png" 
                         alt="Business Model Canvas" 
-                        className="w-full h-auto border border-black"
+                        className="w-full h-auto border border-black shadow-lg hover:shadow-xl transition-shadow"
                       />
                       <div className="mt-3 mb-2">
                         <h3 className="text-center font-semibold text-gray-900 text-sm">Business Model Canvas</h3>
@@ -280,22 +280,22 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                       <img 
                         src="/button_Financials_wireframe.png" 
                         alt="Financials" 
-                        className="w-full h-auto border border-black"
+                        className="w-full h-auto border border-black shadow-lg hover:shadow-xl transition-shadow"
                       />
                       <div className="mt-3 mb-2">
                         <h3 className="text-center font-semibold text-gray-900 text-sm">Financials</h3>
                       </div>
                     </div>
 
-                    {/* What If Card */}
-                    <div className="hover:opacity-80 transition-opacity cursor-pointer">
+                    {/* What If Card - Disabled */}
+                    <div className="opacity-50 cursor-not-allowed">
                       <img 
                         src="/button_WhatIf_wireframe_new.png" 
                         alt="What If?" 
                         className="w-full h-auto border border-black"
                       />
                       <div className="mt-3 mb-2">
-                        <h3 className="text-center font-semibold text-gray-900 text-sm">What If?</h3>
+                        <h3 className="text-center font-semibold text-gray-500 text-sm">What If?</h3>
                       </div>
                     </div>
                   </div>
