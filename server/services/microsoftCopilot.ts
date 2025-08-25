@@ -205,7 +205,52 @@ SPECIAL INSTRUCTIONS:
  * Generate business context for enhanced Copilot responses
  */
 function generateBusinessContext(canvas: BusinessModelCanvas): string {
-  return `
+  // Check if we have overview data from PowerPoint import
+  const hasOverviewData = canvas.overviewData && (
+    canvas.overviewData.companyName || 
+    canvas.overviewData.summary?.length || 
+    canvas.overviewData.founders?.length || 
+    canvas.overviewData.market?.length
+  );
+  
+  // Check if main BMC fields have actual content
+  const hasMainBMCData = canvas.valuePropositions?.content?.some(item => item.trim() !== '' && item !== 'go here') ||
+                         canvas.customerSegments?.content?.some(item => item.trim() !== '' && item !== 'go here');
+
+  if (hasOverviewData) {
+    // Use PowerPoint overview data
+    const { overviewData } = canvas;
+    return `
+Business Model Analysis Context for ${overviewData!.companyName || canvas.name}:
+
+Company Overview:
+- Name: ${overviewData!.companyName || canvas.name}
+- Summary: ${overviewData!.summary?.join(' | ') || 'Business simulation and analytics platform'}
+
+Leadership:
+- Founders: ${overviewData!.founders?.join(' | ') || 'Leadership information not provided'}
+
+Market Information:
+- Target Market: ${overviewData!.market?.join(' | ') || 'Enterprise business analytics market'}
+
+Key Business Focus:
+- ${overviewData!.summary?.[0] || 'AI-powered business simulation capabilities'}
+- Enables interactive business model exploration and decision-making
+- Targets the global business analytics software market ($70B annually)
+
+Microsoft Integration Opportunities:
+- Azure cloud services for scalability and global reach
+- Microsoft 365 for productivity and collaboration 
+- Power Platform for low-code automation and workflows
+- Teams for customer engagement and internal collaboration
+- Dynamics 365 for comprehensive CRM/ERP solutions
+- Azure AI services for enhanced customer insights
+- Microsoft Viva for employee experience optimization
+- Azure DevOps for development lifecycle management
+    `;
+  } else if (hasMainBMCData) {
+    // Use traditional BMC data
+    return `
 Business Model Analysis Context:
 - Company: ${canvas.name}
 - Key Value Props: ${canvas.valuePropositions.content.join(', ')}
@@ -222,7 +267,25 @@ Microsoft Integration Opportunities:
 - Azure AI services for enhanced customer insights
 - Microsoft Viva for employee experience optimization
 - Azure DevOps for development lifecycle management
-  `;
+    `;
+  } else {
+    // No specific business data available
+    return `
+General Business Model Discussion Context:
+- Business Model Canvas analysis and strategic planning
+- No specific company data currently loaded
+
+Microsoft Integration Opportunities:
+- Azure cloud services for scalability and global reach
+- Microsoft 365 for productivity and collaboration
+- Power Platform for low-code automation and workflows
+- Teams for customer engagement and internal collaboration  
+- Dynamics 365 for comprehensive CRM/ERP solutions
+- Azure AI services for enhanced customer insights
+- Microsoft Viva for employee experience optimization
+- Azure DevOps for development lifecycle management
+    `;
+  }
 }
 
 /**
