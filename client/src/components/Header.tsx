@@ -4,10 +4,11 @@ interface HeaderProps {
   onNavigateHome?: () => void;
   onNavigateExplore?: () => void;
   onNavigateOverview?: () => void;
-  currentPage?: 'home' | 'explore' | 'overview';
+  onNavigateAbout?: () => void;
+  currentPage?: 'home' | 'explore' | 'overview' | 'about';
 }
 
-export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplore, onNavigateOverview, currentPage = 'home' }) => {
+export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplore, onNavigateOverview, onNavigateAbout, currentPage = 'home' }) => {
   return (
     <header className="bg-black text-white py-4 relative z-50">
       <div className="w-full flex justify-between items-center px-8">
@@ -45,12 +46,14 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplor
           >
             Overview
           </button>
-          <a 
-            href="#about" 
-            className="text-white hover:text-gray-300 transition-colors text-sm font-medium"
+          <button
+            onClick={onNavigateAbout}
+            className={`hover:text-gray-300 transition-colors text-sm font-medium ${
+              currentPage === 'about' ? 'text-blue-400' : 'text-white'
+            }`}
           >
             About
-          </a>
+          </button>
           <a 
             href="#contact" 
             className="text-white hover:text-gray-300 transition-colors text-sm font-medium"

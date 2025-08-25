@@ -1,5 +1,6 @@
 import React, { Suspense, useState, useEffect } from "react";
 import { OverviewPage } from "./components/OverviewPage";
+import { AboutPage } from "./components/AboutPage";
 import { AzureCredentialSetup } from "./components/AzureCredentialSetup";
 import "@fontsource/inter";
 
@@ -9,7 +10,7 @@ const ExplorePage = React.lazy(() => import("./components/ExplorePage").then(mod
 const AIChat = React.lazy(() => import("./components/AIChat").then(module => ({ default: module.AIChat })));
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'explore' | 'overview'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'explore' | 'overview' | 'about'>('home');
   const [azureConfigured, setAzureConfigured] = useState<boolean | null>(null);
   const [showCredentialSetup, setShowCredentialSetup] = useState(false);
   const [toggleChat, setToggleChat] = useState<(() => void) | null>(null);
@@ -38,6 +39,7 @@ function App() {
   const navigateToHome = React.useCallback(() => setCurrentPage('home'), []);
   const navigateToExplore = React.useCallback(() => setCurrentPage('explore'), []);
   const navigateToOverview = React.useCallback(() => setCurrentPage('overview'), []);
+  const navigateToAbout = React.useCallback(() => setCurrentPage('about'), []);
 
   const handleCredentialsSubmit = async (apiKey: string, endpoint: string) => {
     try {
@@ -73,6 +75,15 @@ function App() {
           onNavigateHome={navigateToHome} 
           onNavigateExplore={navigateToExplore}
           onNavigateOverview={navigateToOverview}
+          onNavigateAbout={navigateToAbout}
+          currentPage={currentPage}
+        />
+      ) : currentPage === 'about' ? (
+        <AboutPage 
+          onNavigateHome={navigateToHome} 
+          onNavigateExplore={navigateToExplore}
+          onNavigateOverview={navigateToOverview}
+          onNavigateAbout={navigateToAbout}
           currentPage={currentPage}
         />
       ) : (
@@ -89,6 +100,7 @@ function App() {
               onNavigateHome={navigateToHome} 
               onNavigateExplore={navigateToExplore}
               onNavigateOverview={navigateToOverview}
+              onNavigateAbout={navigateToAbout}
               currentPage={currentPage}
             />
           ) : (
@@ -96,6 +108,7 @@ function App() {
               onNavigateHome={navigateToHome} 
               onNavigateExplore={navigateToExplore}
               onNavigateOverview={navigateToOverview}
+              onNavigateAbout={navigateToAbout}
               currentPage={currentPage}
             />
           )}

@@ -6,13 +6,15 @@ interface OverviewPageProps {
   onNavigateHome?: () => void;
   onNavigateExplore?: () => void;
   onNavigateOverview?: () => void;
-  currentPage?: 'home' | 'explore' | 'overview';
+  onNavigateAbout?: () => void;
+  currentPage?: 'home' | 'explore' | 'overview' | 'about';
 }
 
 export const OverviewPage: React.FC<OverviewPageProps> = ({ 
   onNavigateHome, 
   onNavigateExplore, 
   onNavigateOverview,
+  onNavigateAbout,
   currentPage 
 }) => {
   const [isLoading, setIsLoading] = React.useState(false); // Start with content visible
@@ -154,6 +156,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         onNavigateHome={onNavigateHome} 
         onNavigateExplore={onNavigateExplore}
         onNavigateOverview={onNavigateOverview}
+        onNavigateAbout={onNavigateAbout}
         currentPage={currentPage} 
       />
 
