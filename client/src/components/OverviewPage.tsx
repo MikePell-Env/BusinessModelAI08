@@ -268,7 +268,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                       <img 
                         src="/button_BMC_wireframe_new.png" 
                         alt="Business Model Canvas" 
-                        className="w-full h-auto border border-black shadow-lg hover:shadow-xl transition-shadow"
+                        className="w-full h-auto border-2 border-black shadow-xl hover:shadow-2xl transition-shadow"
                       />
                       <div className="mt-3 mb-2">
                         <h3 className="text-center font-semibold text-gray-900 text-sm">Business Model Canvas</h3>
@@ -280,7 +280,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                       <img 
                         src="/button_Financials_wireframe.png" 
                         alt="Financials" 
-                        className="w-full h-auto border border-black shadow-lg hover:shadow-xl transition-shadow"
+                        className="w-full h-auto border-2 border-black shadow-xl hover:shadow-2xl transition-shadow"
                       />
                       <div className="mt-3 mb-2">
                         <h3 className="text-center font-semibold text-gray-900 text-sm">Financials</h3>
