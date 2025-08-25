@@ -3269,6 +3269,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         <h1 className="text-xl font-medium text-gray-900" style={{ fontFamily: 'Segoe UI, sans-serif' }}>{canvas.name}</h1>
       </div>
       
+      {/* Time Slider HUD - Floating at bottom */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 bg-white/95 backdrop-blur-sm px-8 py-4 rounded-lg shadow-xl border border-gray-200">
+        <div className="relative w-80">
+          {/* Slider track */}
+          <div className="h-1 bg-gray-300 rounded-full mb-4"></div>
+          
+          {/* Slider pointer - positioned at center (PRESENT) */}
+          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+            <div className="w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-6 border-b-green-500"></div>
+          </div>
+          
+          {/* Labels */}
+          <div className="flex justify-between text-xs font-medium text-gray-700 mt-2">
+            <span className="cursor-pointer hover:text-gray-900 transition-colors" onClick={() => console.log('🕐 PAST clicked')}>PAST</span>
+            <span className="cursor-pointer hover:text-gray-900 transition-colors font-semibold" onClick={() => console.log('🕐 PRESENT clicked')}>PRESENT</span>
+            <span className="cursor-pointer hover:text-gray-900 transition-colors" onClick={() => console.log('🕐 FUTURE clicked')}>FUTURE</span>
+          </div>
+        </div>
+      </div>
+
       {/* Quick Animation Demo Controls - HIDDEN */}
       <div className="absolute top-4 right-4 z-10 bg-black/90 text-white p-4 rounded-lg shadow-lg hidden">
         <div className="text-sm font-semibold mb-3 text-center">🎬 Animation Demos</div>
