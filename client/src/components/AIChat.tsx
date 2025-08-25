@@ -36,6 +36,8 @@ export const AIChat: React.FC = () => {
   const [typingDots, setTypingDots] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
+  const [audioLevel, setAudioLevel] = useState(0);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -77,15 +79,24 @@ export const AIChat: React.FC = () => {
       recognitionInstance.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
+        setAudioLevel(0);
       };
       
       recognitionInstance.onend = () => {
         setIsListening(false);
+        setAudioLevel(0);
       };
       
       setRecognition(recognitionInstance);
     }
-  }, []);
+    
+    // Cleanup function
+    return () => {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [mediaStream]);
 
   // Animated typing indicator effect
   useEffect(() => {
@@ -104,7 +115,7 @@ export const AIChat: React.FC = () => {
     }
   }, [isProcessing]);
 
-  const handleVoiceInput = () => {
+  const handleVoiceInput = async () => {
     if (!recognition) {
       alert('Voice recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
       return;
@@ -112,7 +123,41 @@ export const AIChat: React.FC = () => {
     
     if (isListening) {
       recognition.stop();
+      // Stop audio monitoring
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        setMediaStream(null);
+      }
+      setAudioLevel(0);
     } else {
+      // Start audio monitoring for visual feedback
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setMediaStream(stream);
+        
+        const audioContext = new AudioContext();
+        const analyser = audioContext.createAnalyser();
+        const microphone = audioContext.createMediaStreamSource(stream);
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        
+        analyser.smoothingTimeConstant = 0.8;
+        analyser.fftSize = 1024;
+        microphone.connect(analyser);
+        
+        let animationId: number;
+        
+        const updateAudioLevel = () => {
+          analyser.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+          setAudioLevel(average / 255); // Normalize to 0-1
+          animationId = requestAnimationFrame(updateAudioLevel);
+        };
+        
+        updateAudioLevel();
+      } catch (error) {
+        console.error('Error accessing microphone:', error);
+      }
+      
       recognition.start();
     }
   };
@@ -475,24 +520,47 @@ export const AIChat: React.FC = () => {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Message Copilot or click microphone to speak"
-                  className="pr-20 placeholder:text-gray-400" // Increased right padding for two buttons
+                  className="pr-24 placeholder:text-gray-400" // Increased right padding for voice indicator + buttons
                 />
-                <button
-                  onClick={handleVoiceInput}
-                  className={`absolute right-10 top-1/2 transform -translate-y-1/2 p-1 rounded transition-colors ${
-                    isListening 
-                      ? 'bg-red-100 hover:bg-red-200 text-red-600' 
-                      : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
-                  }`}
-                  type="button"
-                  title={isListening ? 'Stop listening' : 'Start voice input'}
-                >
-                  {isListening ? (
-                    <MicOff className="h-4 w-4 animate-pulse" />
-                  ) : (
-                    <Mic className="h-4 w-4" />
+                <div className="absolute right-10 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                  {/* Voice level indicator */}
+                  {isListening && (
+                    <div className="flex items-center space-x-1">
+                      {[1, 2, 3, 4, 5].map((bar) => (
+                        <div
+                          key={bar}
+                          className={`w-1 rounded-full transition-all duration-100 ${
+                            audioLevel * 5 >= bar 
+                              ? 'bg-green-500' 
+                              : 'bg-gray-300'
+                          }`}
+                          style={{
+                            height: `${Math.max(4, audioLevel * 20 + (bar * 2))}px`,
+                            animation: audioLevel * 5 >= bar ? 'pulse 1s ease-in-out infinite' : 'none'
+                          }}
+                        />
+                      ))}
+                    </div>
                   )}
-                </button>
+                  
+                  {/* Microphone button */}
+                  <button
+                    onClick={handleVoiceInput}
+                    className={`p-1 rounded transition-colors ${
+                      isListening 
+                        ? 'bg-red-100 hover:bg-red-200 text-red-600' 
+                        : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+                    }`}
+                    type="button"
+                    title={isListening ? 'Stop listening' : 'Start voice input'}
+                  >
+                    {isListening ? (
+                      <MicOff className="h-4 w-4 animate-pulse" />
+                    ) : (
+                      <Mic className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
                 <button
                   onClick={() => {
                     // Trigger the same file import as "Import Office file..." button
