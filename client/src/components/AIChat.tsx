@@ -64,6 +64,14 @@ export const AIChat: React.FC = () => {
         const transcript = event.results[0][0].transcript;
         setInputValue(transcript);
         setIsListening(false);
+        
+        // Auto-submit the voice input after a brief delay
+        setTimeout(() => {
+          if (transcript.trim()) {
+            // Auto-send the voice message
+            handleSendMessage(transcript);
+          }
+        }, 500);
       };
       
       recognitionInstance.onerror = (event: any) => {
@@ -109,18 +117,19 @@ export const AIChat: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) {
+  const handleSendMessage = async (messageToSend?: string) => {
+    const messageContent = messageToSend || inputValue;
+    if (!messageContent.trim()) {
       return;
     }
 
     // Store the original input value before clearing
-    const originalMessage = inputValue;
+    const originalMessage = messageContent;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: inputValue,
+      content: originalMessage,
       timestamp: new Date()
     };
 
@@ -496,7 +505,7 @@ export const AIChat: React.FC = () => {
                 </button>
               </div>
               <Button 
-                onClick={handleSendMessage} 
+                onClick={() => handleSendMessage()} 
                 size="icon" 
                 disabled={!inputValue.trim()}
               >
