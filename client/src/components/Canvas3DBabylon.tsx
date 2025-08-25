@@ -244,7 +244,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
   // REMOVED: viewTransitionRef - functionality integrated into CanvasManager
-  const [showBulletText, setShowBulletText] = useState(false);
+  const [showBulletText, setShowBulletText] = useState(false); // DISABLED: Content labels experiment hidden
   
   // UNIFIED SYSTEM: Single managers replacing competing systems  
   const unifiedSceneRef = useRef<SceneSetupAdapter | null>(null);
@@ -1702,11 +1702,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Customer Segments", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Customer Segments", labelPlane, labelMaterial);
               
-              // Create content label showing bullet points
-              const contentLabel = createContentLabel("Customer Segments", mesh, scene);
-              if (contentLabel) {
-                cleanBMCRef.current.addLabel("Customer Segments", contentLabel, contentLabel.material as StandardMaterial);
-              }
+              // DISABLED: Create content label showing bullet points
+              // const contentLabel = createContentLabel("Customer Segments", mesh, scene);
+              // if (contentLabel) {
+              //   cleanBMCRef.current.addLabel("Customer Segments", contentLabel, contentLabel.material as StandardMaterial);
+              // }
               
               console.log(`✅ Customer Segments label plane created`);
             }
@@ -1757,11 +1757,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Key Partners", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Partners", labelPlane, labelMaterial);
               
-              // Create content label showing bullet points
-              const contentLabel = createContentLabel("Key Partners", mesh, scene);
-              if (contentLabel) {
-                cleanBMCRef.current.addLabel("Key Partners", contentLabel, contentLabel.material as StandardMaterial);
-              }
+              // DISABLED: Create content label showing bullet points
+              // const contentLabel = createContentLabel("Key Partners", mesh, scene);
+              // if (contentLabel) {
+              //   cleanBMCRef.current.addLabel("Key Partners", contentLabel, contentLabel.material as StandardMaterial);
+              // }
               
               console.log(`✅ Key Partners label plane created`);
             }
@@ -1812,11 +1812,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Customer Relationships", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Customer Relationships", labelPlane, labelMaterial);
               
-              // Create content label showing bullet points
-              const contentLabel = createContentLabel("Customer Relationships", mesh, scene);
-              if (contentLabel) {
-                cleanBMCRef.current.addLabel("Customer Relationships", contentLabel, contentLabel.material as StandardMaterial);
-              }
+              // DISABLED: Create content label showing bullet points
+              // const contentLabel = createContentLabel("Customer Relationships", mesh, scene);
+              // if (contentLabel) {
+              //   cleanBMCRef.current.addLabel("Customer Relationships", contentLabel, contentLabel.material as StandardMaterial);
+              // }
               
               console.log(`✅ Customer Relationships label plane created`);
             }
@@ -1867,11 +1867,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("CustomerChannels", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("CustomerChannels", labelPlane, labelMaterial);
               
-              // Create content label showing bullet points
-              const contentLabel = createContentLabel("CustomerChannels", mesh, scene);
-              if (contentLabel) {
-                cleanBMCRef.current.addLabel("CustomerChannels", contentLabel, contentLabel.material as StandardMaterial);
-              }
+              // DISABLED: Create content label showing bullet points
+              // const contentLabel = createContentLabel("CustomerChannels", mesh, scene);
+              // if (contentLabel) {
+              //   cleanBMCRef.current.addLabel("CustomerChannels", contentLabel, contentLabel.material as StandardMaterial);
+              // }
               
               console.log(`✅ CustomerChannels label plane created`);
             }
@@ -1925,11 +1925,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Key Activities", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Activities", labelPlane, labelMaterial);
               
-              // Create content label showing bullet points
-              const contentLabel = createContentLabel("Key Activities", mesh, scene);
-              if (contentLabel) {
-                cleanBMCRef.current.addLabel("Key Activities", contentLabel, contentLabel.material as StandardMaterial);
-              }
+              // DISABLED: Create content label showing bullet points
+              // const contentLabel = createContentLabel("Key Activities", mesh, scene);
+              // if (contentLabel) {
+              //   cleanBMCRef.current.addLabel("Key Activities", contentLabel, contentLabel.material as StandardMaterial);
+              // }
               
               console.log(`✅ Key Activities label plane created`);
             }
@@ -1980,11 +1980,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Key Resources", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Resources", labelPlane, labelMaterial);
               
-              // Create content label showing bullet points
-              const contentLabel = createContentLabel("Key Resources", mesh, scene);
-              if (contentLabel) {
-                cleanBMCRef.current.addLabel("Key Resources", contentLabel, contentLabel.material as StandardMaterial);
-              }
+              // DISABLED: Create content label showing bullet points
+              // const contentLabel = createContentLabel("Key Resources", mesh, scene);
+              // if (contentLabel) {
+              //   cleanBMCRef.current.addLabel("Key Resources", contentLabel, contentLabel.material as StandardMaterial);
+              // }
               
               console.log(`✅ Key Resources label plane created`);
             }
@@ -2035,11 +2035,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Value Propositions", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Value Propositions", labelPlane, labelMaterial);
               
-              // Create content label showing bullet points
-              const contentLabel = createContentLabel("Value Propositions", mesh, scene);
-              if (contentLabel) {
-                cleanBMCRef.current.addLabel("Value Propositions", contentLabel, contentLabel.material as StandardMaterial);
-              }
+              // DISABLED: Create content label showing bullet points
+              // const contentLabel = createContentLabel("Value Propositions", mesh, scene);
+              // if (contentLabel) {
+              //   cleanBMCRef.current.addLabel("Value Propositions", contentLabel, contentLabel.material as StandardMaterial);
+              // }
               
               console.log(`✅ Value Propositions label plane created`);
               
@@ -2652,11 +2652,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             cleanBMCRef.current.registerItem("Revenue Streams", mesh, sectionMaterial, 1.0);
             cleanBMCRef.current.addLabel("Revenue Streams", labelPlane, labelMaterial);
             
-            // Create content label showing bullet points
-            const contentLabel = createContentLabel("Revenue Streams", mesh, scene);
-            if (contentLabel) {
-              cleanBMCRef.current.addLabel("Revenue Streams", contentLabel, contentLabel.material as StandardMaterial);
-            }
+            // DISABLED: Create content label showing bullet points
+            // const contentLabel = createContentLabel("Revenue Streams", mesh, scene);
+            // if (contentLabel) {
+            //   cleanBMCRef.current.addLabel("Revenue Streams", contentLabel, contentLabel.material as StandardMaterial);
+            // }
             
             // Apply proportional scaling - reduced by 20% from the 2x size
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0); // 80% of 2x size (2.0 * 0.8 = 1.6, 2.6 * 0.8 = 2.08)
@@ -2801,11 +2801,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             cleanBMCRef.current.registerItem("Cost Structure", mesh, sectionMaterial, 1.0);
             cleanBMCRef.current.addLabel("Cost Structure", labelPlane, labelMaterial);
             
-            // Create content label showing bullet points
-            const contentLabel = createContentLabel("Cost Structure", mesh, scene);
-            if (contentLabel) {
-              cleanBMCRef.current.addLabel("Cost Structure", contentLabel, contentLabel.material as StandardMaterial);
-            }
+            // DISABLED: Create content label showing bullet points
+            // const contentLabel = createContentLabel("Cost Structure", mesh, scene);
+            // if (contentLabel) {
+            //   cleanBMCRef.current.addLabel("Cost Structure", contentLabel, contentLabel.material as StandardMaterial);
+            // }
             
             // Apply same proportional scaling as Revenue Streams
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
