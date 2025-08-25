@@ -13,10 +13,11 @@ interface ExplorePageProps {
   onNavigateHome?: () => void;
   onNavigateExplore?: () => void;
   onNavigateOverview?: () => void;
-  currentPage?: 'home' | 'explore' | 'overview';
+  onNavigateAbout?: () => void;
+  currentPage?: 'home' | 'explore' | 'overview' | 'about';
 }
 
-export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavigateExplore, onNavigateOverview, currentPage }) => {
+export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavigateExplore, onNavigateOverview, onNavigateAbout, currentPage }) => {
   const [showCanvas, setShowCanvas] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -93,7 +94,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavi
 
   return (
     <div className="min-h-screen bg-gray-200 relative">
-      <Header onNavigateHome={onNavigateHome} onNavigateExplore={onNavigateExplore} onNavigateOverview={onNavigateOverview} currentPage={currentPage} />
+      <Header onNavigateHome={onNavigateHome} onNavigateExplore={onNavigateExplore} onNavigateOverview={onNavigateOverview} onNavigateAbout={onNavigateAbout} currentPage={currentPage} />
 
       {/* Main Content */}
       <main className="bg-gray-200 min-h-screen py-12 relative">

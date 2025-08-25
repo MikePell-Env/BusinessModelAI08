@@ -19,13 +19,15 @@ interface BusinessModelCanvasProps {
   onNavigateHome?: () => void;
   onNavigateExplore?: () => void;
   onNavigateOverview?: () => void;
-  currentPage?: 'home' | 'explore' | 'overview';
+  onNavigateAbout?: () => void;
+  currentPage?: 'home' | 'explore' | 'overview' | 'about';
 }
 
 export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({ 
   onNavigateHome, 
   onNavigateExplore, 
   onNavigateOverview, 
+  onNavigateAbout,
   currentPage = 'home' 
 }) => {
   const {
@@ -128,6 +130,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           onNavigateHome={onNavigateHome} 
           onNavigateExplore={onNavigateExplore}
           onNavigateOverview={onNavigateOverview}
+          onNavigateAbout={onNavigateAbout}
           currentPage={currentPage}
         />
       </div>
