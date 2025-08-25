@@ -247,7 +247,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                   </div>
 
                   {/* Explore Cards */}
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {/* SWOT Analysis Card */}
                     <div className="hover:opacity-80 transition-opacity cursor-pointer">
                       <img 
@@ -255,6 +255,21 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                         alt="SWOT Analysis" 
                         className="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow"
                       />
+                      <div className="mt-3 mb-2">
+                        <h3 className="text-center font-semibold text-gray-900 text-sm">SWOT Analysis</h3>
+                      </div>
+                    </div>
+
+                    {/* Financials Card */}
+                    <div className="hover:opacity-80 transition-opacity cursor-pointer">
+                      <img 
+                        src="/button_Financials.png" 
+                        alt="Financials" 
+                        className="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                      />
+                      <div className="mt-3 mb-2">
+                        <h3 className="text-center font-semibold text-gray-900 text-sm">Financials</h3>
+                      </div>
                     </div>
 
                     {/* Business Model Canvas Card */}
@@ -267,15 +282,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                         alt="Business Model Canvas" 
                         className="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow"
                       />
-                    </div>
-
-                    {/* Financials Card */}
-                    <div className="hover:opacity-80 transition-opacity cursor-pointer">
-                      <img 
-                        src="/button_Financials.png" 
-                        alt="Financials" 
-                        className="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow"
-                      />
+                      <div className="mt-3 mb-2">
+                        <h3 className="text-center font-semibold text-gray-900 text-sm">Business Model Canvas</h3>
+                      </div>
                     </div>
                   </div>
                 </div>
