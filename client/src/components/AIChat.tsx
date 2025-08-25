@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
+import '../types/speech.d.ts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { ChatMessage } from '@/types/canvas';
-import { Send, X, Minimize2, Plus } from 'lucide-react';
+import { Send, X, Minimize2, Plus, Mic, MicOff } from 'lucide-react';
 import { AIServiceIndicator } from './AIServiceIndicator';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -33,6 +34,8 @@ export const AIChat: React.FC = () => {
   const [lastServiceInfo, setLastServiceInfo] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [typingDots, setTypingDots] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -42,6 +45,39 @@ export const AIChat: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [chatMessages, isProcessing]);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognitionConstructor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognitionConstructor();
+      
+      recognitionInstance.continuous = false;
+      recognitionInstance.interimResults = false;
+      recognitionInstance.lang = 'en-US';
+      
+      recognitionInstance.onstart = () => {
+        setIsListening(true);
+      };
+      
+      recognitionInstance.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInputValue(transcript);
+        setIsListening(false);
+      };
+      
+      recognitionInstance.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+      
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+      };
+      
+      setRecognition(recognitionInstance);
+    }
+  }, []);
 
   // Animated typing indicator effect
   useEffect(() => {
@@ -59,6 +95,19 @@ export const AIChat: React.FC = () => {
       setTypingDots('');
     }
   }, [isProcessing]);
+
+  const handleVoiceInput = () => {
+    if (!recognition) {
+      alert('Voice recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+      return;
+    }
+    
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) {
@@ -416,9 +465,25 @@ export const AIChat: React.FC = () => {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Message Copilot"
-                  className="pr-10 placeholder:text-gray-400" // Add right padding and light grey placeholder
+                  placeholder="Message Copilot or click microphone to speak"
+                  className="pr-20 placeholder:text-gray-400" // Increased right padding for two buttons
                 />
+                <button
+                  onClick={handleVoiceInput}
+                  className={`absolute right-10 top-1/2 transform -translate-y-1/2 p-1 rounded transition-colors ${
+                    isListening 
+                      ? 'bg-red-100 hover:bg-red-200 text-red-600' 
+                      : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+                  }`}
+                  type="button"
+                  title={isListening ? 'Stop listening' : 'Start voice input'}
+                >
+                  {isListening ? (
+                    <MicOff className="h-4 w-4 animate-pulse" />
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
+                </button>
                 <button
                   onClick={() => {
                     // Trigger the same file import as "Import Office file..." button
