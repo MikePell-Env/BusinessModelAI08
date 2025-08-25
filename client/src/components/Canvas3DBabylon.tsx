@@ -440,12 +440,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const dynamicTexture = new DynamicTexture(`contentLabel_${sectionName}`, textureSize, scene, false);
     const context = dynamicTexture.getContext();
 
-    // Clear with white background for better readability
-    context.fillStyle = 'rgba(255, 255, 255, 0.9)'; // Semi-transparent white background
-    context.fillRect(0, 0, textureSize, textureSize);
+    // Clear background - keep transparent
+    context.clearRect(0, 0, textureSize, textureSize);
 
-    // Set text properties - very small readable font
-    context.fillStyle = '#1a202c'; // Dark text for contrast
+    // Set text properties - white text for visibility
+    context.fillStyle = '#ffffff'; // White text
     context.font = 'bold 28px Arial'; // Small but readable font
     (context as any).textAlign = 'left';
     (context as any).textBaseline = 'top';
