@@ -56,7 +56,7 @@ export const useCanvas = create<CanvasState>()(
     canvas: null,
     isLoading: false,
     error: null,
-    is3D: false,
+    is3D: true,
     isOrthographic: false,
     isTransitioning: false,
     chatMessages: [],
