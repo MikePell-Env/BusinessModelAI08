@@ -38,9 +38,8 @@ export const CAMERA_PRESETS = {
   },
   TOP: {
     alpha: 0,
-    beta: 0,
-    radius: 40,
-    useTopViewCamera: true // Special flag to use the orthographic camera
+    beta: 0.01, // Almost perfectly top-down but still perspective
+    radius: 40
   }
 } as const;
 
