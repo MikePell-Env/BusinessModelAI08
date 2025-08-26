@@ -45,6 +45,8 @@ import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
 // REMOVED: ViewTransitionManager integrated into CanvasManager
 // REMOVED: MaterialManager - using direct property modification instead
 import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
+import { MODEL_POSITIONS, CAMERA_SETTINGS, MATERIAL_COLORS, TRANSFORM_SETTINGS, SCENE_DIMENSIONS } from './Canvas3DBabylon/constants/BMCConstants';
+import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabelTexture } from './Canvas3DBabylon/utils/BMCUtilities';
 
 // UNIFIED SYSTEM: Replace competing managers with unified architecture
 import { CameraControllerAdapter } from './Canvas3DBabylon/adapters/CameraControllerAdapter';
@@ -206,16 +208,7 @@ class UnifiedBMCTransformSystem {
 
 // REMOVED: Legacy BMCSectionController - replaced by unified BMC system
 
-// Standard grid positions for future consistency (doesn't affect current layout)
-const STANDARD_POSITIONS = {
-  'KeyPartners': { x: -15, y: 0, z: 10 },
-  'KeyActivities': { x: -5, y: 0, z: 10 },
-  'ValueProposition': { x: 5, y: 0, z: 10 },
-  'CustomerRelationships': { x: 15, y: 0, z: 10 },
-  'CustomerSegments': { x: 25, y: 0, z: 10 },
-  'KeyResources': { x: -5, y: 0, z: -10 },
-  'Channels': { x: 15, y: 0, z: -10 }
-};
+// Standard grid positions moved to constants file
 
 export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
   // Component rendering...
@@ -253,7 +246,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     bmcState
   } = useCanvas();
   
-  console.log(`🔵 Canvas3DBabylon: isOrthographic from useCanvas = ${isOrthographic}`);
+  debugLog.verbose('camera', `Canvas3DBabylon: isOrthographic from useCanvas = ${isOrthographic}`);
   
   // REMOVED: Unified transformation system - simplified for reliability
   
@@ -264,15 +257,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   
   // Inject BMC State Manager into CleanBMCSystem on first render
   useEffect(() => {
-    console.log("🔗 Injecting BMC State Manager into CleanBMCSystem...");
-    console.log("🔗 bmcState:", bmcState);
-    console.log("🔗 cleanBMCRef.current:", cleanBMCRef.current);
+    debugLog.verbose('init', 'Injecting BMC State Manager into CleanBMCSystem...');
+    debugLog.verbose('init', 'bmcState initialized');
+    debugLog.verbose('init', 'cleanBMCRef.current initialized');
     
     cleanBMCRef.current.setBMCStateManager(bmcState);
     
     // REMOVED: MaterialManager integration - using direct property modification instead
     
-    console.log("🔗 Injection complete");
+    debugLog.verbose('init', 'Injection complete');
     
     // RESTORED: Sync with BMC State Manager for selection preservation
     const currentSelection = bmcState.getSelectedObject();
@@ -280,7 +273,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       setTimeout(() => {
         if (cleanBMCRef.current) {
           cleanBMCRef.current.onSelect(currentSelection);
-          console.log(`✅ Initial visual state synced for: ${currentSelection}`);
+          // Initial visual state synced
         }
       }, 100);
     }
@@ -289,43 +282,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Update CleanBMCSystem when view mode changes
   useEffect(() => {
     if (cleanBMCRef.current) {
-      console.log(`📐 Updating CleanBMCSystem top view mode: ${isOrthographic}`);
+      // Updating CleanBMCSystem top view mode
       cleanBMCRef.current.setTopViewMode(isOrthographic);
     }
   }, [isOrthographic]);
   
   // REMOVED: Legacy transform utilities - now handled by unified BMC system
 
-  // BMC Section Name Mapping: Convert between display names and BMC component names
-  const mapSectionNameToBMCComponent = (sectionName: string): BMCComponentName | null => {
-    const nameMapping: { [key: string]: BMCComponentName } = {
-      'Key Partners': 'KeyPartners',
-      'Key Activities': 'KeyActivities', 
-      'Key Resources': 'KeyResources',
-      'Value Propositions': 'ValueProposition',
-      'Customer Relationships': 'CustomerRelationships',
-      'CustomerChannels': 'CustomerChannels',  // GLB mesh name is "CustomerChannels"
-      'Customer Segments': 'CustomerSegments',
-      'Cost Structure': 'CostStructure',
-      'Revenue Streams': 'RevenueStreams'
-    };
-    return nameMapping[sectionName] || null;
-  };
-
-  const mapBMCComponentToSectionName = (componentName: BMCComponentName): string => {
-    const nameMapping: { [key in BMCComponentName]: string } = {
-      'KeyPartners': 'Key Partners',
-      'KeyActivities': 'Key Activities', 
-      'KeyResources': 'Key Resources',
-      'ValueProposition': 'Value Propositions',
-      'CustomerRelationships': 'Customer Relationships',
-      'CustomerChannels': 'CustomerChannels',  // GLB mesh name is "CustomerChannels"
-      'CustomerSegments': 'Customer Segments',
-      'CostStructure': 'Cost Structure',
-      'RevenueStreams': 'Revenue Streams'
-    };
-    return nameMapping[componentName];
-  };
+  // BMC Section Name Mapping: Moved to separate utilities file
 
   // Removed old handleBMCObjectClick - using direct cleanBMCRef.current.onSelect calls
   
@@ -344,7 +308,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // Handle background click to clear selection (will be updated inside useEffect)
   let handleBackgroundClick = () => {
-    console.log('Background clicked - clearing selection');
+    debugLog.verbose('interaction', 'Background clicked - clearing selection');
     cleanBMCRef.current.clearSelection();
     // FIXED: Clear BMC selection for proper preservation
     bmcState.selectObject(null);
@@ -358,18 +322,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // REMOVED: Old restore logic - now handled by applyBMCVisualState
 
-  // Helper function to improve label texture quality - removes visual artifacts
-  const enhanceLabelTexture = (texture: Texture): void => {
-    // Use linear filtering for smooth, anti-aliased text
-    texture.updateSamplingMode(Texture.LINEAR_LINEAR);
-    
-    // Disable texture wrapping for labels
-    texture.wrapU = Texture.CLAMP_ADDRESSMODE;
-    texture.wrapV = Texture.CLAMP_ADDRESSMODE;
-    
-    // Enable anisotropic filtering for crisp text at all angles
-    texture.anisotropicFilteringLevel = 4;
-  };
+  // Helper function to improve label texture quality - moved to utilities file
 
   // Helper function to get section content from canvas data
   const getSectionContent = (sectionName: string): string => {
@@ -401,21 +354,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // Create content label plane showing bullet point content on top of BMC objects
   const createContentLabel = (sectionName: string, mesh: AbstractMesh, scene: Scene): Mesh | null => {
-    console.log(`🏷️ Creating content label for ${sectionName}`);
+    // Creating content label
     
     if (!canvas) {
-      console.log(`❌ No canvas data available for ${sectionName}`);
+      // No canvas data available
       return null;
     }
 
     // Get content for the section
     const contentText = getSectionContent(sectionName);
     if (!contentText || contentText.includes('No content available') || contentText.includes('No bullet points')) {
-      console.log(`❌ No content available for ${sectionName}`);
+      // No content available
       return null;
     }
 
-    console.log(`📝 Content for ${sectionName}:`, contentText);
+    debugLog.verbose('content', `Content for ${sectionName}: ${contentText.substring(0, 50)}...`);
 
     // Get mesh bounds for positioning
     const boundingInfo = mesh.getBoundingInfo();
@@ -533,7 +486,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
 
     if (content.length === 0) {
-      console.log(`❌ No content available for ${sectionName}`);
+      // No content available
       return null;
     }
 
@@ -605,7 +558,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const textMaterial = new StandardMaterial(`bulletTextMat_${sectionName}`, scene);
     textMaterial.diffuseTexture = dynamicTexture;
     textMaterial.emissiveTexture = dynamicTexture;
-    textMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Bright white for visibility
+    textMaterial.emissiveColor = MATERIAL_COLORS.BRIGHT_WHITE; // Bright white for visibility
     textMaterial.useAlphaFromDiffuseTexture = true;
     textMaterial.disableLighting = true;
     textMaterial.backFaceCulling = false;
@@ -702,7 +655,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.error('WebGL is not supported in this browser');
       return;
     }
-    console.log('✅ WebGL context available');
+    debugLog.info('webgl', 'WebGL context available');
     
     // DIAGNOSTIC: Detect WebGL context loss (canvas disappearing)
     canvasElement.addEventListener('webglcontextlost', (e) => {
@@ -711,7 +664,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       e.preventDefault();
     });
     canvasElement.addEventListener('webglcontextrestored', () => {
-      console.log('✅ WebGL context restored - canvas should reappear');
+      debugLog.info('webgl', 'WebGL context restored - canvas should reappear');
     });
 
     // UNIFIED: Initialize Babylon.js using unified system (eliminates material recreation)
@@ -755,8 +708,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.wheelPrecision = 50;
     
     // PSEUDO-ORTHOGRAPHIC: Position camera high up with narrow FOV to minimize perspective distortion
-    const topViewCamera = new FreeCamera("TopViewCamera", new Vector3(0, 200, 0), scene);
-    topViewCamera.setTarget(new Vector3(0, 0, 0)); // Look straight down at center
+    const topViewCamera = new FreeCamera("TopViewCamera", CAMERA_SETTINGS.TOP_VIEW_POSITION, scene);
+    topViewCamera.setTarget(CAMERA_SETTINGS.PERSPECTIVE_TARGET); // Look straight down at center
     
     // Optimized field of view to fill window area while showing complete BMC layout
     topViewCamera.fov = 0.2; // Sweet spot between filling window and showing complete layout
@@ -893,7 +846,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Apply powder blue material with white grid texture to ground
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
     groundMaterial.diffuseTexture = gridTexture;
-    groundMaterial.specularColor = new Color3(0.1, 0.1, 0.2); // Subtle blue-tinted specular reflection
+    groundMaterial.specularColor = MATERIAL_COLORS.GROUND_SPECULAR; // Subtle blue-tinted specular reflection
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
     groundMaterial.alpha = 0.5; // 50% opacity
     ground.material = groundMaterial;
@@ -904,12 +857,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Create extruded border rails on all sides
     const railHeight = 0.15; // Reduced from 0.3 to 0.15
     const railWidth = 0.2;
-    const railColor = new Color3(0.3, 0.3, 0.3); // Darker grey rail color
+    const railColor = MATERIAL_COLORS.RAIL_COLOR; // Darker grey rail color
     
     // Create rail material
     const railMaterial = new StandardMaterial("railMaterial", scene);
     railMaterial.diffuseColor = railColor;
-    railMaterial.specularColor = new Color3(0, 0, 0);
+    railMaterial.specularColor = MATERIAL_COLORS.RAIL_SPECULAR;
     
     // North rail (back) - extends full width including rail thickness for flush corners
     const northRail = MeshBuilder.CreateBox("northRail", {
@@ -2455,7 +2408,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Need to move right by 0.312 units to align: Current X position -0.533 becomes -0.221
         // X-axis: negative = LEFT, positive = RIGHT
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
-        revenueRootMesh.position = new Vector3(-0.221, 0.1, -10.5); // Adjusted to align left edges
+        revenueRootMesh.position = MODEL_POSITIONS.REVENUE_STREAMS.clone(); // Adjusted to align left edges
         revenueRootMesh.rotation = Vector3.Zero();
         revenueRootMesh.scaling = new Vector3(7.7, 7.7, 8); // Y-scaling matches X-scaling to match Customer Segments height
         revenueRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
@@ -2601,7 +2554,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // X-axis: negative = LEFT, positive = RIGHT
         // Z-axis: negative = UP (screen), positive = DOWN (screen)
         // Place in lower left area with same width as Revenue Streams
-        costRootMesh.position = new Vector3(-10.1, 0.1, -10.5); // Shifted farther left
+        costRootMesh.position = MODEL_POSITIONS.COST_STRUCTURE.clone(); // Shifted farther left
         costRootMesh.rotation = Vector3.Zero();
         costRootMesh.scaling = new Vector3(8.0, 8.0, 8); // Y-scaling matches X-scaling to match Customer Segments height
         costRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
