@@ -119,16 +119,20 @@ export class BMCModelLoader {
    */
   public async loadTemplateModel(templateName: string): Promise<LoadedModel> {
     debugLog.info('model', `Loading model for template: ${templateName}`);
+    console.log(`🔧 Template name received: "${templateName}"`);
     
     switch (templateName.toLowerCase()) {
       case 'business model':
       case 'businessmodel':
+        console.log(`✅ Loading Business Model (main BMC)`);
         return this.loadMainBMC();
       
       case 'financials':
+        console.log(`✅ Loading Financials model`);
         return this.loadFinancialsModel();
       
       default:
+        console.log(`❌ Unknown template: "${templateName}", falling back to main BMC`);
         debugLog.warn('model', `Unknown template: ${templateName}, falling back to main BMC`);
         return this.loadMainBMC();
     }
