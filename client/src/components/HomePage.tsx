@@ -139,9 +139,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                     {/* Option 1 - Import Office Files */}
                     <div className="text-center">
                       <div className="bg-white p-6 rounded-lg border-2 border-black hover:shadow-md transition-shadow relative h-full flex flex-col shadow-2xl">
-                        {/* Number 1 in top left */}
-                        <div className="absolute top-4 left-4 bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
-                          1
+                        {/* Number 1 in top left with Office label */}
+                        <div className="absolute top-4 left-4 flex items-center">
+                          <div className="bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                            1
+                          </div>
+                          <span className="ml-2 text-black text-lg font-medium">Office</span>
                         </div>
                         
                         {/* Office Icons in center - flexible space */}
@@ -172,9 +175,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                     {/* Option 2 - Ask Copilot (Enabled) */}
                     <div className="text-center">
                       <div className="bg-white p-6 rounded-lg border-2 border-black hover:shadow-md transition-shadow relative h-full flex flex-col shadow-2xl">
-                        {/* Number 2 in top left */}
-                        <div className="absolute top-4 left-4 bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
-                          2
+                        {/* Number 2 in top left with AI label */}
+                        <div className="absolute top-4 left-4 flex items-center">
+                          <div className="bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                            2
+                          </div>
+                          <span className="ml-2 text-black text-lg font-medium">AI</span>
                         </div>
                         
                         {/* Copilot Icon in center - flexible space */}
@@ -199,9 +205,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                     {/* Option 3 - Dev API (Disabled) */}
                     <div className="text-center opacity-50">
                       <div className="bg-white p-6 rounded-lg border-2 border-gray-400 relative h-full flex flex-col shadow-2xl">
-                        {/* Number 3 in top left */}
-                        <div className="absolute top-4 left-4 bg-gray-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
-                          3
+                        {/* Number 3 in top left with API label */}
+                        <div className="absolute top-4 left-4 flex items-center">
+                          <div className="bg-gray-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                            3
+                          </div>
+                          <span className="ml-2 text-gray-500 text-lg font-medium">API</span>
                         </div>
                         
                         {/* AI Foundry Icon in center - flexible space */}
