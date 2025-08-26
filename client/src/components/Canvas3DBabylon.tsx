@@ -784,7 +784,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("🎯 Scene initialized with SceneSetupAdapter");
 
     // CLEAN START: Create TWO cameras - perspective and orthographic
-    // Camera positioned using current preset (defaults to PERSPECTIVE_RIGHT)
+    // FIXED: Clear any saved camera state to ensure fresh TOP preset without restoration override
+    if (currentCameraPreset === 'TOP') {
+      console.log(`🧹 Clearing saved camera state to ensure fresh TOP preset initialization`);
+      // Clear saved state so restoration doesn't override our TOP preset
+      const currentState = getCamera3DState();
+      if (currentState) {
+        console.log(`🧹 Removed old camera state: alpha=${currentState.alpha.toFixed(3)}, beta=${currentState.beta.toFixed(3)}, radius=${currentState.radius.toFixed(3)}`);
+        // Clear the saved state completely
+        saveCamera3DState(0, 0, 0); // Clear with zeros, will be set to correct TOP values below
+      }
+    }
+    
+    // Camera positioned using current preset
     const currentPreset = CAMERA_PRESETS[currentCameraPreset];
     console.log(`📷 Initializing camera with preset: ${currentCameraPreset}`, currentPreset);
     const perspectiveCamera = new ArcRotateCamera(
@@ -798,6 +810,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Camera positioned to show: Cost Structure (red) front-left, Revenue Streams (green) front-right
     perspectiveCamera.attachControl(canvasElement, true);
     perspectiveCamera.wheelPrecision = 50;
+    
+    // FIXED: Save the correct TOP preset values to prevent future restoration conflicts
+    if (currentCameraPreset === 'TOP') {
+      console.log(`💾 Saving correct TOP preset values to prevent restoration conflicts`);
+      saveCamera3DState(currentPreset.alpha, currentPreset.beta, currentPreset.radius);
+    }
     
     // PSEUDO-ORTHOGRAPHIC: Position camera high up with narrow FOV to minimize perspective distortion
     const topViewCamera = new FreeCamera("TopViewCamera", CAMERA_SETTINGS.TOP_VIEW_POSITION, scene);
