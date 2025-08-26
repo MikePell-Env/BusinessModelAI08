@@ -26,15 +26,15 @@ export const CAMERA_SETTINGS = {
 
 // Camera Presets for 3D View
 export const CAMERA_PRESETS = {
-  PERSPECTIVE_LEFT: {
-    alpha: Math.PI/2 + Math.PI/12,  // Left side view
-    beta: Math.PI/6,
-    radius: 40
-  },
   PERSPECTIVE_RIGHT: {
-    alpha: Math.PI/2 + Math.PI/12 + Math.PI, // Rotate 180° from left view around Y-axis
+    alpha: Math.PI/2 + Math.PI/12,  // Original 3D View orientation (Right View)
     beta: Math.PI/6,
     radius: 55  // Zoomed out a bit
+  },
+  PERSPECTIVE_LEFT: {
+    alpha: Math.PI/2 + Math.PI/12 + Math.PI, // Rotate 180° from right view around Y-axis  
+    beta: Math.PI/6,
+    radius: 40
   },
   TOP: {
     alpha: 0,
