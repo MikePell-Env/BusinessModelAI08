@@ -535,7 +535,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     labelPlane.isPickable = false;
     labelPlane.parent = mesh;
 
-    console.log(`✅ Content label created for ${sectionName}`);
     return labelPlane;
   };
 
@@ -543,7 +542,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const createBulletTextPlane = (sectionName: string, mesh: AbstractMesh, scene: Scene) => {
     
     if (!canvas || !showBulletText) {
-      console.log(`❌ Early return: canvas=${!!canvas}, showBulletText=${showBulletText}`);
       return null;
     }
 
@@ -556,7 +554,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         break;
       // Add other sections later
       default:
-        console.log(`❌ Unsupported section: ${sectionName}`);
         return null;
     }
 
@@ -645,7 +642,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     textPlane.setEnabled(true); // Ensure it's enabled
     textPlane.isVisible = true; // Ensure it's visible
     
-    console.log(`✅ Bullet text plane created for ${sectionName}`);
     console.log(`📊 Text plane details:`, {
       name: textPlane.name,
       position: textPlane.position,
@@ -672,14 +668,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (!valuePropMesh) {
         }
         if (valuePropMesh) {
-          console.log(`📍 Mesh position:`, valuePropMesh.position);
-          console.log(`📏 Mesh scaling:`, valuePropMesh.scaling);
           const textPlane = createBulletTextPlane('Value Propositions', valuePropMesh, scene);
           if (textPlane) {
-            console.log(`💾 Storing text plane:`, textPlane.name);
             bulletTextPlanesRef.current.set('Value Propositions', textPlane);
-          } else {
-            console.log(`❌ Failed to create text plane for Value Propositions`);
           }
         }
       }
@@ -769,20 +760,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // CLEAN START: Create TWO cameras - perspective and orthographic
     // FIXED: Clear any saved camera state to ensure fresh TOP preset without restoration override
     if (currentCameraPreset === 'TOP') {
-      console.log(`🧹 Clearing saved camera state to ensure fresh TOP preset initialization`);
       // Clear saved state so restoration doesn't override our TOP preset
       const currentState = getCamera3DState();
       if (currentState) {
-        console.log(`🧹 Removed old camera state: alpha=${currentState.alpha.toFixed(3)}, beta=${currentState.beta.toFixed(3)}, radius=${currentState.radius.toFixed(3)}`);
         // Clear the saved state completely
         saveCamera3DState(0, 0, 0); // Clear with zeros, will be set to correct TOP values below
       }
       
       // CRITICAL: Also clear BMC State Manager camera state for view3DOrthographic
-      console.log(`🧹 Clearing BMC State Manager camera state for view3DOrthographic`);
       const bmcCameraState = bmcState.getCameraState();
       if (bmcCameraState) {
-        console.log(`🧹 Found BMC camera state, clearing it to prevent restoration conflicts`);
         bmcState.saveCameraState({ alpha: 0, beta: 0, radius: 0, target: new Vector3(0, 0, 0) }); // Clear it
       }
     }
@@ -803,7 +790,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // FIXED: Save the correct TOP preset values to prevent future restoration conflicts
     if (currentCameraPreset === 'TOP') {
-      console.log(`💾 Saving correct TOP preset values to prevent restoration conflicts`);
       saveCamera3DState(currentPreset.alpha, currentPreset.beta, currentPreset.radius);
     }
     
