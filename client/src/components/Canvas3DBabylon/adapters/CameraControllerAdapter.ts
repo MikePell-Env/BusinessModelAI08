@@ -37,8 +37,8 @@ export class CameraControllerAdapter {
   public switchToMode(mode: CameraMode): void {
     console.log(`[CameraAdapter] Switching to mode: ${mode}`);
     
-    // Translate to CanvasManager's view modes
-    const viewMode = mode === '3D Top' ? '3D Top' : '3D View';
+    // Only using 3D View mode now - removed 3D Top
+    const viewMode = '3D View';
     this.canvasManager.switchView(viewMode);
   }
 
@@ -46,8 +46,8 @@ export class CameraControllerAdapter {
    * EXACT API MATCH: getCurrentMode(): CameraMode
    */
   public getCurrentMode(): CameraMode {
-    const currentView = this.canvasManager.getCurrentView();
-    return currentView === '3D Top' ? '3D Top' : '3D View';
+    // Always return 3D View mode now
+    return '3D View';
   }
 
   /**
