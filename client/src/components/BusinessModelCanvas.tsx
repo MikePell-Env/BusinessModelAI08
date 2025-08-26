@@ -50,6 +50,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   const { currentTemplate, currentType, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
   
   console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isOrthographic=${isOrthographic}, isTransitioning=${isTransitioning}`);
+  console.log(`🟡 Current Envisioner Type: ${currentType}, Template: ${currentTemplate.name}`);
+  console.log(`🟡 Template sections count: ${currentTemplate.sections.length}`);
   console.log(`🟡 Will render: ${is3D ? 'Canvas3DBabylon' : 'Canvas2D'}`);
   
 

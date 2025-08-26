@@ -2996,7 +2996,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, saveCamera3DState]);
+  }, [canvas, template, saveCamera3DState]);
 
   // Camera is always perspective - no switching needed
 
