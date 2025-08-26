@@ -305,7 +305,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Complete transition
     setTimeout(() => {
       setIsTransitioningCamera(false);
-      console.log(`📷 ✨ Camera preset smoothly transitioned to: ${preset} (alpha: ${presetConfig.alpha.toFixed(3)}, beta: ${presetConfig.beta.toFixed(3)})`);
     }, duration);
   };
   
@@ -542,10 +541,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
   // Create bullet text plane for BMC section content
   const createBulletTextPlane = (sectionName: string, mesh: AbstractMesh, scene: Scene) => {
-    console.log(`🎯 createBulletTextPlane called for ${sectionName}`);
-    console.log(`🎯 canvas available:`, !!canvas);
-    console.log(`🎯 showBulletText:`, showBulletText);
-    console.log(`🎯 mesh:`, mesh?.name || 'NO MESH');
     
     if (!canvas || !showBulletText) {
       console.log(`❌ Early return: canvas=${!!canvas}, showBulletText=${showBulletText}`);
@@ -677,7 +672,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         if (!valuePropMesh) {
         }
         if (valuePropMesh) {
-          console.log(`🎯 Found mesh for Value Propositions:`, valuePropMesh.name);
           console.log(`📍 Mesh position:`, valuePropMesh.position);
           console.log(`📏 Mesh scaling:`, valuePropMesh.scaling);
           const textPlane = createBulletTextPlane('Value Propositions', valuePropMesh, scene);
@@ -771,7 +765,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     engineRef.current = engine;
     sceneRef.current = scene;
-    console.log("🎯 Scene initialized with SceneSetupAdapter");
 
     // CLEAN START: Create TWO cameras - perspective and orthographic
     // FIXED: Clear any saved camera state to ensure fresh TOP preset without restoration override
@@ -790,13 +783,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const bmcCameraState = bmcState.getCameraState();
       if (bmcCameraState) {
         console.log(`🧹 Found BMC camera state, clearing it to prevent restoration conflicts`);
-        bmcState.saveCameraState({ alpha: 0, beta: 0, radius: 0 }); // Clear it
+        bmcState.saveCameraState({ alpha: 0, beta: 0, radius: 0, target: new Vector3(0, 0, 0) }); // Clear it
       }
     }
     
     // Camera positioned using current preset
     const currentPreset = CAMERA_PRESETS[currentCameraPreset];
-    console.log(`📷 Initializing camera with preset: ${currentCameraPreset}`, currentPreset);
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
       currentPreset.alpha,     // Alpha from preset
