@@ -702,10 +702,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     if (!canvasRef.current || !canvas) return;
 
     // Check if Babylon.js is properly loaded
-    // Babylon.js library check
-    console.log('Engine available:', typeof Engine);
-    console.log('Scene available:', typeof Scene);
-    console.log('Vector3 available:', typeof Vector3);
     
     if (typeof Engine === 'undefined') {
       console.error('❌ Babylon.js Engine not loaded');
@@ -2802,10 +2798,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     (window as any).adjustEntireBMC = adjustEntireBMC;
     (window as any).listBMCSections = listBMCSections;
     
-    console.log("🔧 BMC manipulation functions available:");
-    console.log("   window.adjustBMCSection(sectionName, {height, transparency, color, scale}) - individual sections");
-    console.log("   window.adjustEntireBMC({position, rotation, scale}) - entire collection");
-    console.log("   window.listBMCSections() - shows all available section names");
     console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
 
     // SIMPLE: Save original heights when GLB model first loads
@@ -3004,47 +2996,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
   }, [is3D, saveCamera3DState]);
 
-  // ADAPTER TESTING - Console functions to test new system safely
-  React.useEffect(() => {
-    // Import adapter tester for console testing
-    import('./Canvas3DBabylon/adapters/AdapterTester').then(({ AdapterTester }) => {
-      (window as any).testNewSystem = () => AdapterTester.quickTest();
-    });
-    
-    // Keep console functions available as backup
-    (window as any).bmcAnimationDemo = {
-      runColorSequence: async () => {
-        if (animationManagerRef.current) {
-          await animationManagerRef.current.createColorSequence([
-            { section: "Value Propositions", color: "#00ff00", duration: 2000 },
-            { section: "Customer Segments", color: "#0066ff", duration: 1500 },
-            { section: "Key Partners", color: "#ff6600", duration: 1800 },
-            { section: "Revenue Streams", color: "#ffff00", duration: 1200 },
-            { section: "Cost Structure", color: "#ff0066", duration: 1500 }
-          ]);
-        }
-      },
-      applyBusinessThemes: () => {
-        if (animationManagerRef.current) {
-          animationManagerRef.current.applyBusinessTheme("Value Propositions", "high");
-          animationManagerRef.current.applyBusinessTheme("Customer Segments", "medium");
-          animationManagerRef.current.applyBusinessTheme("Key Partners", "low");
-          animationManagerRef.current.applyBusinessTheme("Revenue Streams", "revenue");
-          animationManagerRef.current.applyBusinessTheme("Cost Structure", "cost");
-        }
-      },
-      startDataBinding: () => {
-        if (animationManagerRef.current) {
-          animationManagerRef.current.bindColorToData("Revenue Streams", {
-            sectionId: "Revenue Streams",
-            dataField: "revenue.growth",
-            colorRange: ["#ff0000", "#00ff00"],
-            updateFrequency: 1000
-          });
-        }
-      }
-    };
-  }, []);
 
   return (
     <div className="w-full h-full relative">
@@ -3123,7 +3074,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         </div>
       </div>
 
-      {/* Quick Animation Demo Controls - HIDDEN */}
       <div className="absolute top-4 right-4 z-10 bg-black/90 text-white p-4 rounded-lg shadow-lg hidden">
         <div className="text-sm font-semibold mb-3 text-center">🎬 Animation Demos</div>
         <div className="flex flex-col space-y-2">
