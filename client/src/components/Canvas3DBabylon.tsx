@@ -225,7 +225,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const [showBulletText, setShowBulletText] = useState(false); // DISABLED: Content labels experiment hidden
   
   // Camera preset state  
-  const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP'>('PERSPECTIVE_RIGHT');
+  const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP'>('TOP');
   
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
