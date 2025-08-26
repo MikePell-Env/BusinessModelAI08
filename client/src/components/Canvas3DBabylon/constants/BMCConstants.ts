@@ -37,7 +37,7 @@ export const CAMERA_PRESETS = {
     radius: 55  // Same zoom as right view
   },
   TOP: {
-    alpha: 0,
+    alpha: Math.PI/2, // 90 degrees rotation to match proper BMC orientation
     beta: 0.01, // Almost perfectly top-down but still perspective
     radius: 40
   }
