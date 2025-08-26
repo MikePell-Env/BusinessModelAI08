@@ -44,7 +44,6 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavi
         onNavigateHome={() => setShowCanvas(false)}
         onNavigateExplore={onNavigateExplore}
         onNavigateOverview={onNavigateOverview}
-        onNavigateAbout={onNavigateAbout}
         currentPage={currentPage}
       />
     );
