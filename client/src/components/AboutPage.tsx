@@ -33,7 +33,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             src="/Envisioner_logo_21_1756231938437.png" 
             alt="Envisioner Logo" 
             className="max-w-full h-auto"
-            style={{ maxHeight: '400px' }}
+            style={{ maxHeight: '80px' }}
           />
         </div>
       </main>
