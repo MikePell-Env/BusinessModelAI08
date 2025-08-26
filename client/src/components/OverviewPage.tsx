@@ -254,7 +254,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                     {/* SWOT Analysis Card - Disabled */}
                     <div className="opacity-50 cursor-not-allowed">
                       <img 
-                        src="/button_SWOT_wireframe_clean.png" 
+                        src="/button_SWOT_disabled_1756238023919.png" 
                         alt="SWOT Analysis" 
                         className="w-full h-auto border border-black"
                       />
@@ -295,7 +295,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                     {/* What If Card - Disabled */}
                     <div className="opacity-50 cursor-not-allowed">
                       <img 
-                        src="/button_TM_blueprint_1756235971248.png" 
+                        src="/button_TM_disabled_1756238023919.png" 
                         alt="What If?" 
                         className="w-full h-auto border border-black"
                       />
