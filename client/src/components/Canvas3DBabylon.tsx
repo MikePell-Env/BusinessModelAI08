@@ -98,7 +98,7 @@ class UnifiedBMCTransformSystem {
   // Register objects in the unified system
   registerObject(sectionName: string, descriptor: BMCObjectDescriptor) {
     this.objects.set(sectionName, descriptor);
-    debugLog.verbose('transform', `Registered ${sectionName} as ${descriptor.objectType}`);
+    // Object registered
   }
   
   // Universal height manipulation (handles different object types)
@@ -112,11 +112,11 @@ class UnifiedBMCTransformSystem {
     if (obj.objectType === 'main_bmc' && obj.transformNode) {
       // Main BMC sections use transformNode scaling
       obj.transformNode.scaling.y = height;
-      debugLog.verbose('transform', `Main BMC: ${sectionName} height set to ${height}`);
+      // Height updated
     } else if (obj.objectType === 'separate_glb') {
       // Separate GLB objects use mesh scaling directly
       obj.mesh.scaling.y = height;
-      debugLog.verbose('transform', `Separate GLB: ${sectionName} height set to ${height}`);
+      // Height updated
     }
     return true;
   }
@@ -200,19 +200,7 @@ class UnifiedBMCTransformSystem {
   
   // Debug coordinate system
   debugCoordinateSystem() {
-    console.log("🌐 BMC COORDINATE SYSTEM DEBUG:");
-    console.log("📍 COORDINATE MAPPING:");
-    console.log("  Screen LEFT = Negative X");
-    console.log("  Screen RIGHT = Positive X"); 
-    console.log("  Screen UP = Negative Z");
-    console.log("  Screen DOWN = Positive Z");
-    console.log("  Height = Positive Y");
-    
-    console.log("🔍 REGISTERED OBJECTS:");
-    this.objects.forEach((obj, name) => {
-      const transform = this.getTransformData(name);
-      console.log(`  ${name} (${obj.objectType}):`, transform);
-    });
+    // Debug info removed for performance
   }
 }
 
@@ -230,7 +218,7 @@ const STANDARD_POSITIONS = {
 };
 
 export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
-  console.log('🔵 Canvas3DBabylon RENDERING with isOrthographic from useCanvas...');
+  // Component rendering...
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
@@ -289,7 +277,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // RESTORED: Sync with BMC State Manager for selection preservation
     const currentSelection = bmcState.getSelectedObject();
     if (currentSelection) {
-      console.log(`🔄 Syncing initial selection state: ${currentSelection}`);
       setTimeout(() => {
         if (cleanBMCRef.current) {
           cleanBMCRef.current.onSelect(currentSelection);
@@ -645,7 +632,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Toggle bullet text display
   const toggleBulletText = () => {
     const newState = !showBulletText;
-    console.log(`🔄 Toggling bullet text: ${showBulletText} → ${newState}`);
     setShowBulletText(newState);
     
     if (newState) {
@@ -656,7 +642,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         const valuePropMesh = scene.meshes.find(m => (m as any).bmcSectionName === 'Value Propositions');
         console.log('🔍 Looking for Value Propositions mesh:', valuePropMesh ? 'FOUND' : 'NOT FOUND');
         if (!valuePropMesh) {
-          console.log('🔍 Available meshes:', scene.meshes.map(m => m.name));
         }
         if (valuePropMesh) {
           console.log(`🎯 Found mesh for Value Propositions:`, valuePropMesh.name);
@@ -868,10 +853,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       const baseSize = Math.min(canvasWidth, canvasHeight);
       const scaleFactor = (baseSize / 600) * 1.2; // Base reference of 600px, scale up 20%
       masterTransform.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
-      console.log(`🔄 Master transform: 180° rotation + dynamic scale ${scaleFactor.toFixed(2)}`);
     }
     
-    console.log("🔄 Master transform node created with 180° rotation");
 
     // Create ground with powder blue background and white gridlines
     const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
@@ -1017,7 +1000,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         advancedTexture.removeControl(currentBillboardPanel);
         currentBillboardPanel = null;
         billboardPanelRef.current = null;
-        console.log(`🔄 Refreshing panel content - removed existing panel to show ${sectionName}`);
       }
       
       // Get section content from canvas data
@@ -1504,12 +1486,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     // Setup unified interaction manager with callbacks  
     interactionManagerRef.current = new UnifiedInteractionManager(scene, {
       onSingleClick: (sectionId: string, mesh: AbstractMesh) => {
-        console.log(`🖱️ Single click: ${sectionId}`);
-        console.log(`🔍 DEBUG: cleanBMCRef.current exists: ${!!cleanBMCRef.current}`);
+        // Single click detected
         
         // NEW LOGIC: If panel is open, refresh panel content instead of just selecting
         if (currentBillboardPanel) {
-          console.log(`🔄 Panel is open - refreshing content for ${sectionId}`);
           // First select the object to update visual state
           if (cleanBMCRef.current) {
             cleanBMCRef.current.onSelect(sectionId);
@@ -1535,10 +1515,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
         
         if (cleanBMCRef.current) {
-          console.log(`🔍 DEBUG: About to call cleanBMCRef.current.onSelect(${sectionId})`);
           try {
             cleanBMCRef.current.onSelect(sectionId);
-            console.log(`🔍 DEBUG: cleanBMCRef.current.onSelect completed successfully`);
           } catch (error) {
             console.error(`❌ ERROR in cleanBMCRef.current.onSelect(${sectionId}):`, error);
             console.error(`❌ Stack trace:`, error instanceof Error ? error.stack : 'No stack trace available');
@@ -1548,7 +1526,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       },
       onDoubleClick: (sectionId: string, mesh: AbstractMesh, position: Vector3) => {
-        console.log(`🖱️🖱️ Double click: ${sectionId}`);
+        // Double click detected
         
         // Close any existing panel first
         if (currentBillboardPanel) {
@@ -1572,7 +1550,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         }
       },
       onBackgroundClick: () => {
-        console.log('🖱️ Background click - clearing selection');
+        // Background click - clearing selection
         if (cleanBMCRef.current) {
           cleanBMCRef.current.clearSelection();
         }
@@ -1604,7 +1582,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Start with visible scale
         rootMesh.scaling = new Vector3(8, 8, 8);
         
-        console.log(`📦 BMC model positioned at origin with scale 8.0`);
         
         // Corrected BMC section mapping - based on user feedback that specific labels need to swap
         // Current observation: Key Activities label is where Customer Relationships should be
@@ -2363,7 +2340,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // Setup mesh for UnifiedInteractionManager
             mesh.isPickable = true;
-            console.log(`🎯 ${sectionName}: Mesh configured for UnifiedInteractionManager`);
             
             // REMOVED: Old click select function - replaced by unified BMC system
             
@@ -2377,102 +2353,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             
             // REMOVED: Old close button functionality - now handled by billboard panel system
             
-            console.log(`🎨 Mesh ${index}: ${mesh.name || 'unnamed'} - ${sectionName} - Interactive color: ${baseColor.r.toFixed(2)}, ${baseColor.g.toFixed(2)}, ${baseColor.b.toFixed(2)}`);
             sectionIndex++;
           }
         });
         
         // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
-        console.log("📏 Value Propositions height managed by unified BMC system");
 
         // REMOVED: Customer Channels special color treatment - now uses unified BMC system like all other objects
 
-        // Debug current coordinates to understand proper positioning
-        setTimeout(() => {
-          console.log("🔍 Debugging coordinates - legacy transformUtils removed");
-          
-          // Measure Customer Channels dimensions for precise Revenue Streams alignment
-          const channelsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "CustomerChannels");
-          if (channelsMesh) {
-            const boundingInfo = channelsMesh.getBoundingInfo();
-            const worldMatrix = channelsMesh.getWorldMatrix();
-            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
-            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
-            
-            console.log("🔍 Customer Channels Coordinates:");
-            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
-            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
-            console.log(`  Width: ${(max.x - min.x).toFixed(3)}`);
-            console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
-            console.log(`  Position: (${channelsMesh.position.x.toFixed(3)}, ${channelsMesh.position.y.toFixed(3)}, ${channelsMesh.position.z.toFixed(3)})`);
-            console.log(`  Scale: (${channelsMesh.scaling.x.toFixed(3)}, ${channelsMesh.scaling.y.toFixed(3)}, ${channelsMesh.scaling.z.toFixed(3)})`);
-          }
-          
-          // Measure Customer Segments dimensions for Revenue Streams width alignment
-          const segmentsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Customer Segments");
-          if (segmentsMesh) {
-            const boundingInfo = segmentsMesh.getBoundingInfo();
-            const worldMatrix = segmentsMesh.getWorldMatrix();
-            const min = Vector3.TransformCoordinates(boundingInfo.minimum, worldMatrix);
-            const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
-            
-            console.log("🔍 Customer Segments Coordinates:");
-            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
-            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
-            console.log(`  Width: ${(max.x - min.x).toFixed(3)}`);
-            console.log(`  Center X: ${((min.x + max.x) / 2).toFixed(3)}`);
-            console.log(`  Position: (${segmentsMesh.position.x.toFixed(3)}, ${segmentsMesh.position.y.toFixed(3)}, ${segmentsMesh.position.z.toFixed(3)})`);
-            console.log(`  Scale: (${segmentsMesh.scaling.x.toFixed(3)}, ${segmentsMesh.scaling.y.toFixed(3)}, ${segmentsMesh.scaling.z.toFixed(3)})`);
-          }
-          
-          // Calculate Revenue Streams scaling to align right edge with Customer Segments
-          const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
-          if (revenueStreamsMesh && segmentsMesh) {
-            // Get current Revenue Streams dimensions
-            const revBoundingInfo = revenueStreamsMesh.getBoundingInfo();
-            const revWorldMatrix = revenueStreamsMesh.getWorldMatrix();
-            const revMin = Vector3.TransformCoordinates(revBoundingInfo.minimum, revWorldMatrix);
-            const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
-            const currentRevWidth = revMax.x - revMin.x;
-            
-            // Get Customer Segments right edge
-            const segBoundingInfo = segmentsMesh.getBoundingInfo();
-            const segWorldMatrix = segmentsMesh.getWorldMatrix();
-            const segMin = Vector3.TransformCoordinates(segBoundingInfo.minimum, segWorldMatrix);
-            const segMax = Vector3.TransformCoordinates(segBoundingInfo.maximum, segWorldMatrix);
-            
-            // Calculate required width: Revenue Streams left edge (0.467) to Customer Segments right edge
-            const requiredWidth = segMax.x - 0.467; // 0.467 is the perfect left edge alignment
-            const scalingRatio = requiredWidth / currentRevWidth;
-            
-            // DISABLED: Revenue Streams now uses exact same scaling as Cost Structure (8.0, 8, 8)
-            const currentScale = revenueStreamsMesh.scaling;
-            const newXScale = currentScale.x * scalingRatio;
-            // revenueStreamsMesh.scaling = new Vector3(newXScale, currentScale.y, currentScale.z);
-            
-            console.log("🔧 Revenue Streams Width Adjustment:");
-            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
-            console.log(`  Required width: ${requiredWidth.toFixed(3)}`);
-            console.log(`  Scaling ratio: ${scalingRatio.toFixed(3)}`);
-            console.log(`  New X scale: ${(currentScale.x * scalingRatio).toFixed(3)}`);
-            console.log(`  Customer Segments right edge: ${segMax.x.toFixed(3)}`);
-            
-            console.log("✅ Revenue Streams mesh found and resized!");
-            console.log(`  Has label plane children: ${revenueStreamsMesh.getChildMeshes().length > 0}`);
-          } else {
-            console.log("❌ Revenue Streams mesh or Customer Segments NOT found - cannot resize width");
-          }
-        }, 2000);
+        // Revenue Streams alignment calculations (debug removed for performance)
         
         // Delayed Revenue Streams width adjustment to ensure both meshes are fully loaded
         setTimeout(() => {
-          console.log("🔍 DELAYED: Searching for meshes to resize Revenue Streams...");
           
           // Debug all available meshes
-          console.log(`🔍 Available meshes (${scene.meshes.length}):`);
           scene.meshes.forEach((mesh, i) => {
             const sectionName = (mesh as any).bmcSectionName;
-            console.log(`  ${i}: ${mesh.name} - section: ${sectionName || 'none'}`);
           });
           
           const revenueStreamsMesh = scene.meshes.find(mesh => (mesh as any).bmcSectionName === "Revenue Streams");
@@ -2548,11 +2444,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
 
     // Load Revenue Streams as separate GLB model positioned below Customer Channels
-    console.log(`🔄 Starting to load Revenue Streams model...`);
     modelLoader.loadRevenueStreams().then((model) => {
-      console.log(`🔄 Revenue Streams model load completed, meshes: ${model.meshes.length}`);
       if (model.meshes.length > 0) {
-        console.log(`✅ Revenue Streams model loaded with ${model.meshes.length} meshes`);
+        // Revenue Streams model loaded
         
         const revenueRootMesh = model.rootMesh;
         
@@ -2566,13 +2460,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         revenueRootMesh.scaling = new Vector3(7.7, 7.7, 8); // Y-scaling matches X-scaling to match Customer Segments height
         revenueRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
         
-        console.log(`📦 Revenue Streams positioned at (-0.221, 0.1, -10.5) - aligned with Customer Channels left edge`);
         
         // Apply basic material and label to Revenue Streams mesh  
-        console.log(`🔍 Revenue Streams meshes found: ${model.meshes.length}`);
+        // Processing Revenue Streams meshes
         model.meshes.forEach((mesh, index) => {
           if (mesh.name !== "__root__") {
-            console.log(`✅ Processing non-root Revenue Streams mesh ${index}: ${mesh.name}`);
+            // Processing Revenue Streams mesh
             
             // Create material for Revenue Streams mesh - Darker British Racing Green
             const baseColor = new Color3(0.0, 0.20, 0.12); // Darker British Racing Green
@@ -2698,11 +2591,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     });
 
     // Load Cost Structure as separate GLB model positioned in lower left area (yellow rectangle in diagram)
-    console.log(`🔄 Starting to load Cost Structure model...`);
     modelLoader.loadCostStructure().then((model) => {
-      console.log(`🔄 Cost Structure model load completed, meshes: ${model.meshes.length}`);
       if (model.meshes.length > 0) {
-        console.log(`✅ Cost Structure model loaded with ${model.meshes.length} meshes`);
+        // Cost Structure model loaded
         
         const costRootMesh = model.rootMesh;
         
@@ -2715,13 +2606,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         costRootMesh.scaling = new Vector3(8.0, 8.0, 8); // Y-scaling matches X-scaling to match Customer Segments height
         costRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
         
-        console.log(`📦 Cost Structure positioned at (-10.1, 0.1, -10.5) - width 8.0, positioned farther left`);
         
         // Apply basic material and label to Cost Structure mesh  
-        console.log(`🔍 Cost Structure meshes found: ${model.meshes.length}`);
+        // Processing Cost Structure meshes
         model.meshes.forEach((mesh, index) => {
           if (mesh.name !== "__root__") {
-            console.log(`✅ Processing non-root Cost Structure mesh ${index}: ${mesh.name}`);
+            // Processing Cost Structure mesh
             
             // Create material for Cost Structure mesh - Deeper Red
             const baseColor = new Color3(0.35, 0.0, 0.0); // Deeper Red
