@@ -136,7 +136,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
       </div>
 
       {/* Fixed View Controls - positioned below header */}
-      <div className="fixed top-14 left-4 z-40 flex space-x-2">
+      <div className="fixed top-14 left-4 z-40 flex space-x-2" style={{ marginTop: '10px' }}>
         {/* 2D View button - hidden but functionality preserved */}
         <Button
           onClick={handleToggleView}
