@@ -16,7 +16,7 @@ export class CleanBMCSystem {
   private items: Map<string, BMCItem> = new Map();
   private selectedObject: string | null = null;
   private hoveredObject: string | null = null;
-  private isTopView: boolean = false;
+  // REMOVED: isTopView - only using 3D View mode now
   private bmcStateManager: BMCStateManagerImpl | null = null;
   // REMOVED: MaterialManager - using direct property modification instead
 
@@ -32,11 +32,7 @@ export class CleanBMCSystem {
   // Set the material manager (CRITICAL: prevents material conflicts)
   // REMOVED: MaterialManager - using direct property modification instead
 
-  // Set whether we're in top view mode
-  setTopViewMode(isTopView: boolean) {
-    this.isTopView = isTopView;
-    this.updateAllVisuals();
-  }
+  // REMOVED: setTopViewMode - only using 3D View mode now
 
   // Register a BMC item
   registerItem(name: string, mesh: AbstractMesh, material: StandardMaterial, originalHeight: number) {
@@ -119,9 +115,6 @@ export class CleanBMCSystem {
       if (this.selectedObject === null) {
         // No selection - keep everything at full height
         this.applyState(sectionName, 'normal');
-      } else if (this.isTopView) {
-        // 3D Top view - no dimming, just normal colors
-        this.applyState(sectionName, 'normal');
       } else {
         // 3D View with selection - non-selected objects stay dimmed
         // But we'll keep them at better visibility
@@ -155,18 +148,17 @@ export class CleanBMCSystem {
 
   // Main visual update method
   private updateAllVisuals(): void {
-    console.log(`🎨 updateAllVisuals: mode=${this.isTopView ? '3D Top' : '3D View'}, selected=${this.selectedObject || 'none'}`);
+    console.log(`🎨 updateAllVisuals: mode=3D View, selected=${this.selectedObject || 'none'}`);
 
     try {
       this.items.forEach((item, name) => {
         try {
           if (this.selectedObject === name) {
             this.applyState(name, 'selected');
-          } else if (this.selectedObject !== null && !this.isTopView) {
+          } else if (this.selectedObject !== null) {
             // 3D View: Non-selected objects are dimmed
             this.applyState(name, 'dimmed');
           } else {
-            // 3D Top View: Non-selected objects stay normal (no dimming)
             // 3D View with no selection: All objects normal
             this.applyState(name, 'normal');
           }
@@ -208,10 +200,10 @@ export class CleanBMCSystem {
       console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
       const { mesh, material, originalHeight, baseColor } = item;
 
-    // FIXED: Height management - NO changes in 3D Top view (avoid scaling crashes)
+    // FIXED: Height management - 3D View mode only
     // CRITICAL: NEVER change height on hover!
-    if (!this.isTopView && state !== 'hover') {
-      // Only do height changes in 3D View (not 3D Top) and NEVER on hover
+    if (state !== 'hover') {
+      // Only do height changes for selection states, NEVER on hover
       if (state === 'selected') {
         mesh.scaling.y = originalHeight * 1.4; // Elevated
       } else if (state === 'dimmed') {
@@ -220,7 +212,7 @@ export class CleanBMCSystem {
         mesh.scaling.y = originalHeight; // Normal height
       }
     }
-    // In 3D Top view OR hover state: skip ALL height changes
+    // In hover state: skip ALL height changes
 
     // Base visibility settings - always ensure visibility
     mesh.setEnabled(true);
@@ -248,29 +240,8 @@ export class CleanBMCSystem {
     // Check if this is Cost Structure or Revenue Streams (special handling)
     const isSpecialSection = name === 'Cost Structure' || name === 'Revenue Streams';
     
-    // Apply visual states based on view mode and interaction rules
-    if (this.isTopView) {
-      // 3D TOP VIEW: Simple color changes only, no transparency or height changes
-      if (state === 'selected' || state === 'hover') {
-        // Blue for all sections in Top view
-        material.diffuseColor.r = 0.0;
-        material.diffuseColor.g = 0.3; 
-        material.diffuseColor.b = 0.8;
-        console.log(`🎨 3D Top - Applied ${state.toUpperCase()}: ${name} -> blue`);
-      } else {
-        // Normal state - restore original color
-        if (baseColor) {
-          material.diffuseColor.r = baseColor.r;
-          material.diffuseColor.g = baseColor.g;
-          material.diffuseColor.b = baseColor.b;
-        } else {
-          material.diffuseColor.r = 0.5;
-          material.diffuseColor.g = 0.5;
-          material.diffuseColor.b = 0.5;
-        }
-        console.log(`🎨 3D Top - Applied NORMAL: ${name} -> original color`);
-      }
-    } else {
+    // Apply visual states for 3D View mode
+    {
       // 3D VIEW: Follow specific interaction rules
       if (state === 'hover') {
         // Rule 2: Hover behavior - NEVER change height, just color and ensure 100% opaque
