@@ -43,6 +43,8 @@ import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
+import { EnvisionerTemplate } from '../lib/templates/EnvisionerTemplate';
+import { BusinessModelTemplate } from '../lib/templates/BusinessModelTemplate';
 
 import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 import { MODEL_POSITIONS, CAMERA_SETTINGS, MATERIAL_COLORS, TRANSFORM_SETTINGS, SCENE_DIMENSIONS, CAMERA_PRESETS } from './Canvas3DBabylon/constants/BMCConstants';
@@ -54,6 +56,7 @@ import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter'
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
   isTransitioning?: boolean;
+  template?: EnvisionerTemplate; // Template configuration for this Envisioner type
 }
 
 
@@ -208,7 +211,11 @@ class UnifiedBMCTransformSystem {
 
 // Standard grid positions moved to constants file
 
-export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTransitioning }) => {
+export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ 
+  canvas, 
+  isTransitioning, 
+  template = BusinessModelTemplate 
+}) => {
   // Component rendering...
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1426,16 +1433,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // All BMC elements are now loaded as GLB models - circular layout matching top view
 
-    // Define BMC section colors and names with corrected label order
-    const bmcSections = [
-      { color: new Color3(0.3, 0.6, 0.9), name: "Value Propositions" },      // Blue
-      { color: new Color3(0.4, 0.8, 0.4), name: "Key Partners" },           // Green  
-      { color: new Color3(0.9, 0.9, 0.3), name: "Key Activities" },         // Yellow (was Customer Relationships position)
-      { color: new Color3(0.9, 0.3, 0.3), name: "Key Resources" },          // Red
-      { color: new Color3(0.8, 0.4, 0.9), name: "Customer Relationships" }, // Purple (was Customer Segments position)
-      { color: new Color3(0.6, 0.9, 0.9), name: "CustomerChannels" },               // Cyan
-      { color: new Color3(0.9, 0.6, 0.3), name: "Customer Segments" },      // Orange (was Key Activities position)
-    ];
+    // Use template-defined sections instead of hardcoded BMC sections
+    const bmcSections = template.sections;
 
     // Initialize model loader (view transitions integrated into CanvasManager)
     const modelLoader = new BMCModelLoader(scene);
@@ -2401,8 +2400,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.error("❌ Failed to load BMC model:", error);
     });
 
-    // Load Revenue Streams as separate GLB model positioned below Customer Channels
-    modelLoader.loadRevenueStreams().then((model) => {
+    // Load Revenue Streams as separate GLB model positioned below Customer Channels (only if enabled in template)
+    if (template.revenueStreamsEnabled) {
+      modelLoader.loadRevenueStreams().then((model) => {
       if (model.meshes.length > 0) {
         // Revenue Streams model loaded
         
@@ -2543,13 +2543,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       } else {
         console.error("❌ No meshes found in Revenue Streams model");
       }
-    }).catch((error) => {
-      console.error("❌ Failed to load Revenue Streams model:", error);
-      console.error("❌ Revenue Streams model error details:", error.message);
-    });
+      }).catch((error) => {
+        console.error("❌ Failed to load Revenue Streams model:", error);
+        console.error("❌ Revenue Streams model error details:", error.message);
+      });
+    }
 
-    // Load Cost Structure as separate GLB model positioned in lower left area (yellow rectangle in diagram)
-    modelLoader.loadCostStructure().then((model) => {
+    // Load Cost Structure as separate GLB model positioned in lower left area (only if enabled in template)
+    if (template.costStructureEnabled) {
+      modelLoader.loadCostStructure().then((model) => {
       if (model.meshes.length > 0) {
         // Cost Structure model loaded
         
@@ -2689,10 +2691,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       } else {
         console.error("❌ No meshes found in Cost Structure model");
       }
-    }).catch((error) => {
-      console.error("❌ Failed to load Cost Structure model:", error);
-      console.error("❌ Cost Structure model error details:", error.message);
-    });
+      }).catch((error) => {
+        console.error("❌ Failed to load Cost Structure model:", error);
+        console.error("❌ Cost Structure model error details:", error.message);
+      });
+    }
 
     // Helper functions for manipulating individual BMC sections
     // IMPORTANT: GLB Model Coordinate System Behavior
