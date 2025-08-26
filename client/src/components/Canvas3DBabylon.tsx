@@ -221,7 +221,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
-  const [showBulletText, setShowBulletText] = useState(false); // DISABLED: Content labels experiment hidden
+  const [showBulletText, setShowBulletText] = useState(false);
   
   // Camera preset state  
   const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP'>('TOP');
@@ -393,7 +393,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     bmcState.selectObject(null);
   };
   
-  // REMOVED: Sync function caused infinite loops - legacy store no longer needed
   
 
   
@@ -1645,7 +1644,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Customer Segments", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Customer Segments", labelPlane, labelMaterial);
               
-              // DISABLED: Create content label showing bullet points
+
               // const contentLabel = createContentLabel("Customer Segments", mesh, scene);
               // if (contentLabel) {
               //   cleanBMCRef.current.addLabel("Customer Segments", contentLabel, contentLabel.material as StandardMaterial);
@@ -1700,7 +1699,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Key Partners", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Partners", labelPlane, labelMaterial);
               
-              // DISABLED: Create content label showing bullet points
+
               // const contentLabel = createContentLabel("Key Partners", mesh, scene);
               // if (contentLabel) {
               //   cleanBMCRef.current.addLabel("Key Partners", contentLabel, contentLabel.material as StandardMaterial);
@@ -1755,7 +1754,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Customer Relationships", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Customer Relationships", labelPlane, labelMaterial);
               
-              // DISABLED: Create content label showing bullet points
+
               // const contentLabel = createContentLabel("Customer Relationships", mesh, scene);
               // if (contentLabel) {
               //   cleanBMCRef.current.addLabel("Customer Relationships", contentLabel, contentLabel.material as StandardMaterial);
@@ -1810,7 +1809,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("CustomerChannels", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("CustomerChannels", labelPlane, labelMaterial);
               
-              // DISABLED: Create content label showing bullet points
+
               // const contentLabel = createContentLabel("CustomerChannels", mesh, scene);
               // if (contentLabel) {
               //   cleanBMCRef.current.addLabel("CustomerChannels", contentLabel, contentLabel.material as StandardMaterial);
@@ -1868,7 +1867,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Key Activities", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Activities", labelPlane, labelMaterial);
               
-              // DISABLED: Create content label showing bullet points
+
               // const contentLabel = createContentLabel("Key Activities", mesh, scene);
               // if (contentLabel) {
               //   cleanBMCRef.current.addLabel("Key Activities", contentLabel, contentLabel.material as StandardMaterial);
@@ -1923,7 +1922,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Key Resources", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Resources", labelPlane, labelMaterial);
               
-              // DISABLED: Create content label showing bullet points
+
               // const contentLabel = createContentLabel("Key Resources", mesh, scene);
               // if (contentLabel) {
               //   cleanBMCRef.current.addLabel("Key Resources", contentLabel, contentLabel.material as StandardMaterial);
@@ -1978,7 +1977,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
               cleanBMCRef.current.registerItem("Value Propositions", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Value Propositions", labelPlane, labelMaterial);
               
-              // DISABLED: Create content label showing bullet points
+
               // const contentLabel = createContentLabel("Value Propositions", mesh, scene);
               // if (contentLabel) {
               //   cleanBMCRef.current.addLabel("Value Propositions", contentLabel, contentLabel.material as StandardMaterial);
@@ -2363,7 +2362,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const baseWidth = currentRevWidth / revenueStreamsMesh.scaling.x; // Get unscaled width
             const requiredScaleX = targetWidth / baseWidth;
             
-            // DISABLED: Revenue Streams now uses exact same scaling as Cost Structure (8.0, 8, 8)
             // revenueStreamsMesh.scaling.x = requiredScaleX;
             
             console.log("🔧 DELAYED Revenue Streams Width Alignment:");
@@ -2879,7 +2877,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     
     // REMOVED: Emergency label fix - CleanBMCSystem handles all label visibility
     
-    // DISABLED: Don't clear selections automatically - interferes with view switching
     // setTimeout(() => {
     //   clearAllSelections();
     // }, 1000);
