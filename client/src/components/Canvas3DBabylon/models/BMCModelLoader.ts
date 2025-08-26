@@ -33,7 +33,7 @@ export class BMCModelLoader {
   }
 
   /**
-   * Load the main BMC model with 7 sections
+   * Load the main BMC model with 9 sections (Business Model template)
    */
   public async loadMainBMC(): Promise<LoadedModel> {
     debugLog.info('model', 'Loading main BMC model...');
@@ -70,6 +70,67 @@ export class BMCModelLoader {
     } catch (error) {
       debugLog.error('model', 'Failed to load main BMC model', error);
       throw error;
+    }
+  }
+
+  /**
+   * Load the Financials model (single Value Propositions cylinder)
+   */
+  public async loadFinancialsModel(): Promise<LoadedModel> {
+    debugLog.info('model', 'Loading Financials model...');
+    
+    try {
+      const result = await SceneLoader.ImportMeshAsync(
+        "", 
+        "/models/", 
+        "BMC_financials_single_cylinder.glb", // Placeholder name - will be updated when model is provided
+        this.scene
+      );
+      
+      if (result.meshes.length === 0) {
+        throw new Error('No meshes found in Financials model');
+      }
+      
+      const rootMesh = result.meshes[0];
+      rootMesh.position = new Vector3(0, 0.1, 0);
+      rootMesh.rotation = Vector3.Zero();
+      rootMesh.scaling = new Vector3(1, 1, 1);
+      
+      const model: LoadedModel = {
+        rootMesh,
+        meshes: result.meshes,
+        sectionName: 'FinancialsMain',
+        position: rootMesh.position.clone(),
+        scale: rootMesh.scaling.clone()
+      };
+      
+      this.loadedModels.set('FinancialsMain', model);
+      debugLog.info('model', `Financials model loaded with ${result.meshes.length} meshes`);
+      
+      return model;
+    } catch (error) {
+      debugLog.error('model', 'Failed to load Financials model', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Load template-specific model based on template type
+   */
+  public async loadTemplateModel(templateName: string): Promise<LoadedModel> {
+    debugLog.info('model', `Loading model for template: ${templateName}`);
+    
+    switch (templateName.toLowerCase()) {
+      case 'business model':
+      case 'businessmodel':
+        return this.loadMainBMC();
+      
+      case 'financials':
+        return this.loadFinancialsModel();
+      
+      default:
+        debugLog.warn('model', `Unknown template: ${templateName}, falling back to main BMC`);
+        return this.loadMainBMC();
     }
   }
 
