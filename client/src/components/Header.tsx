@@ -49,11 +49,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplor
           </button>
           <button
             onClick={() => {
-              console.log('🔍 Header: About button clicked, onNavigateAbout:', !!onNavigateAbout);
               if (onNavigateAbout) {
                 onNavigateAbout();
               } else {
-                console.error('❌ Header: onNavigateAbout is undefined! Using centralized navigation...');
                 centralizedNavigation.navigateToAbout();
               }
             }}

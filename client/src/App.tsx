@@ -40,21 +40,16 @@ function App() {
   const navigateToHome = React.useCallback(() => setCurrentPage('home'), []);
   const navigateToExplore = React.useCallback(() => setCurrentPage('explore'), []);
   const navigateToOverview = React.useCallback(() => setCurrentPage('overview'), []);
-  const navigateToAbout = React.useCallback(() => {
-    console.log('🔍 App: navigateToAbout called, setting page to about');
-    setCurrentPage('about');
-  }, []);
+  const navigateToAbout = React.useCallback(() => setCurrentPage('about'), []);
 
   // Register global navigation and emergency navigation handler
   useEffect(() => {
     registerGlobalNavigation((page: 'home' | 'explore' | 'overview' | 'about') => {
-      console.log(`🌐 Global navigation: ${page}`);
       setCurrentPage(page);
     });
 
     // Emergency navigation event listener
     const handleEmergencyNavigation = (event: CustomEvent) => {
-      console.log('🚨 Emergency navigation triggered:', event.detail.page);
       setCurrentPage(event.detail.page);
     };
 
