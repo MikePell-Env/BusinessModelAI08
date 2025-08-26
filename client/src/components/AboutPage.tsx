@@ -30,7 +30,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
       <main className="py-8 px-12 flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
         <div className="flex items-center justify-center">
           <img 
-            src="/attached_assets/Envisioner_logo_21_1756231938437.png" 
+            src="/Envisioner_logo_21_1756231938437.png" 
             alt="Envisioner Logo" 
             className="max-w-full h-auto"
             style={{ maxHeight: '400px' }}
