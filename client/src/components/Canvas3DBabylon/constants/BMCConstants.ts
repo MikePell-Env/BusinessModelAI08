@@ -28,8 +28,8 @@ export const CAMERA_SETTINGS = {
 export const CAMERA_PRESETS = {
   PERSPECTIVE_RIGHT: {
     alpha: Math.PI/2 + Math.PI/12,  // Original 3D View orientation (Right View)
-    beta: Math.PI/6,
-    radius: 55  // Zoomed out a bit
+    beta: Math.PI/4.5,  // Increased tilt to look more down at the canvas (from π/6 to π/4.5)
+    radius: 60  // Pulled back slightly for better overview
   },
   PERSPECTIVE_LEFT: {
     alpha: (Math.PI/2 + Math.PI/12) - (Math.PI/6), // 30° clockwise from right view
