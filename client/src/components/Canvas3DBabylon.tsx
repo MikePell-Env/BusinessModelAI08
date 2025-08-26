@@ -49,7 +49,6 @@ import { MODEL_POSITIONS, CAMERA_SETTINGS, MATERIAL_COLORS, TRANSFORM_SETTINGS, 
 import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabelTexture } from './Canvas3DBabylon/utils/BMCUtilities';
 
 // UNIFIED SYSTEM: Replace competing managers with unified architecture
-import { CameraControllerAdapter } from './Canvas3DBabylon/adapters/CameraControllerAdapter';
 import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter';
 
 interface Canvas3DBabylonProps {
@@ -296,12 +295,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Clean hover handlers
   const handleBMCObjectHoverEnter = (sectionName: string) => {
     cleanBMCRef.current.onHover(sectionName, true);
-    debugLog.verbose('hover', `Hover enter: ${sectionName}`);
+    // Hover enter event
   };
   
   const handleBMCObjectHoverExit = (sectionName: string) => {
     cleanBMCRef.current.onHover(sectionName, false);
-    debugLog.verbose('hover', `Hover exit: ${sectionName}`);
+    // Hover exit event
   };
 
   // REMOVED: Old applyBMCVisualState function - CleanBMCSystem handles all visual states
@@ -593,7 +592,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       if (scene) {
         // Find Value Propositions mesh directly from scene
         const valuePropMesh = scene.meshes.find(m => (m as any).bmcSectionName === 'Value Propositions');
-        console.log('🔍 Looking for Value Propositions mesh:', valuePropMesh ? 'FOUND' : 'NOT FOUND');
+        // Looking for Value Propositions mesh
         if (!valuePropMesh) {
         }
         if (valuePropMesh) {
@@ -638,7 +637,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     if (!canvasRef.current || !canvas) return;
 
     // Check if Babylon.js is properly loaded
-    console.log('🔍 Babylon.js library check:');
+    // Babylon.js library check
     console.log('Engine available:', typeof Engine);
     console.log('Scene available:', typeof Scene);
     console.log('Vector3 available:', typeof Vector3);
@@ -970,7 +969,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         };
         
         const key = mapping[name];
-        console.log(`🔍 Looking for section ${name} with key ${key}`);
+        // Looking for section with key
         if (key && canvas[key]) {
           console.log(`✅ Found section data for ${name}:`, canvas[key]);
           return canvas[key];
@@ -1248,7 +1247,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // Function to apply texture only to top face of mesh using proper UV mapping
     const applyTopFaceTexture = (mesh: Mesh, scene: Scene) => {
-      console.log(`🔍 Analyzing mesh vertex data for top face identification...`);
+      // Analyzing mesh vertex data for top face identification
       
       // Get vertex data
       const positions = mesh.getVerticesData("position");
@@ -1386,7 +1385,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       meshes.forEach((mesh) => {
         if ((mesh as any).bmcSectionName === sectionName && mesh.material) {
           foundMesh = true;
-          console.log(`🎨 Applying standard base color to ${sectionName} entire mesh`);
+          // Applying standard base color to entire mesh
           
           const material = mesh.material as any;
           const standardColor = new Color3(0.07, 0.07, 0.07); // Standard base color
@@ -2461,8 +2460,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const labelWidth = size.x * 0.65; // Same as Customer Channels
             const labelHeight = (labelWidth * 0.25) * 2.0; // Doubled height to prevent squishing
             console.log(`Revenue Streams Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
-            console.log(`🔍 Revenue Streams mesh center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
-            console.log(`🔍 Revenue Streams mesh size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
+            // Revenue Streams mesh center calculated
+            // Revenue Streams mesh size calculated
             
             const labelPlane = MeshBuilder.CreatePlane("revenueStreamsLabel", {
               width: labelWidth,
