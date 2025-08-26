@@ -29,6 +29,14 @@ export const AboutPage: React.FC<AboutPageProps> = ({
       {/* Main Content - Centered Text */}
       <main className="py-8 px-12 flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
         <div className="w-1/2 text-left space-y-6">
+          <div className="mb-8">
+            <img 
+              src="/Envisioner_logo_21_outline_1756233150361.png" 
+              alt="Envisioner Logo" 
+              className="h-auto"
+              style={{ width: '220px' }}
+            />
+          </div>
           <div>
             <h2 className="text-lg font-bold text-gray-900 mb-4">ABOUT THE COMPANY</h2>
             <p className="text-gray-700 leading-relaxed">
