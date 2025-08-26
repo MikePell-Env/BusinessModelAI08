@@ -23,7 +23,7 @@ import {
  * when switching between 2D, 3D Perspective, and 3D Orthographic views.
  */
 export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations {
-  public currentView: ViewMode = 'view2D';
+  public currentView: ViewMode = 'view3DPerspective';
   public activeSelection: BMCComponentName | null = null;
   public viewStates: Map<ViewMode, BMCViewState> = new Map();
   
