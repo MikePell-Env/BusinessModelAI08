@@ -3025,19 +3025,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             {isTransitioningCamera && currentCameraPreset !== 'PERSPECTIVE_LEFT' ? '...' : 'Left View'}
           </button>
           <button
-            onClick={() => switchCameraPreset('PERSPECTIVE_RIGHT')}
-            disabled={isTransitioningCamera}
-            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 ${
-              currentCameraPreset === 'PERSPECTIVE_RIGHT' 
-                ? 'bg-blue-600 text-white shadow-md' 
-                : isTransitioningCamera 
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-sm'
-            }`}
-          >
-            {isTransitioningCamera && currentCameraPreset !== 'PERSPECTIVE_RIGHT' ? '...' : 'Right View'}
-          </button>
-          <button
             onClick={() => switchCameraPreset('TOP')}
             disabled={isTransitioningCamera}
             className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 ${
@@ -3049,6 +3036,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             }`}
           >
             {isTransitioningCamera && currentCameraPreset !== 'TOP' ? '...' : 'Top View'}
+          </button>
+          <button
+            onClick={() => switchCameraPreset('PERSPECTIVE_RIGHT')}
+            disabled={isTransitioningCamera}
+            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 ${
+              currentCameraPreset === 'PERSPECTIVE_RIGHT' 
+                ? 'bg-blue-600 text-white shadow-md' 
+                : isTransitioningCamera 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-sm'
+            }`}
+          >
+            {isTransitioningCamera && currentCameraPreset !== 'PERSPECTIVE_RIGHT' ? '...' : 'Right View'}
           </button>
         </div>
         {isTransitioningCamera && (
