@@ -26,15 +26,28 @@ export const AboutPage: React.FC<AboutPageProps> = ({
         currentPage={currentPage} 
       />
 
-      {/* Main Content - Centered Logo */}
+      {/* Main Content - Centered Text */}
       <main className="py-8 px-12 flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
-        <div className="flex items-center justify-center">
-          <img 
-            src="/Envisioner_logo_21_1756231938437.png" 
-            alt="Envisioner Logo" 
-            className="max-w-full h-auto"
-            style={{ maxHeight: '80px' }}
-          />
+        <div className="w-1/2 text-center space-y-6">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">ABOUT THE COMPANY</h2>
+            <p className="text-gray-700 leading-relaxed">
+              Envisioner, Inc. delivers breakthrough business simulation capabilities that will enable anyone to see, interactively explore, and quickly understand the highly dynamic and ever-changing nature of global business, enabling better decisions, faster.
+            </p>
+          </div>
+
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">ABOUT THE SERVICE</h2>
+            <p className="text-gray-700 leading-relaxed">
+              The Envisioner is the world's first AI-powered assistant for Business Simulation. It leverages common Microsoft Office documents, web sites, and various data sources to provide an era of unparalleled insights and strategic decision-making, on any device, anywhere.
+            </p>
+          </div>
+
+          <div className="mt-8">
+            <p className="text-xl text-gray-900 font-medium italic">
+              "AI is a Time Machine for business."
+            </p>
+          </div>
         </div>
       </main>
 
