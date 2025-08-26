@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCanvas } from '@/lib/stores/useCanvas';
+import { useEnvisionerType } from '@/lib/stores/useEnvisionerType';
 import { Canvas2D } from './Canvas2D';
 import { Canvas3DBabylon } from './Canvas3DBabylon';
 import { AIChat } from './AIChat';
@@ -30,6 +31,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   onNavigateAbout,
   currentPage = 'home' 
 }) => {
+  // Canvas state
   const {
     canvas,
     is3D,
@@ -43,6 +45,9 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
     pendingPowerPointFile,
     setPendingPowerPointFile
   } = useCanvas();
+  
+  // Envisioner type state  
+  const { currentTemplate, currentType, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
   
   console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isOrthographic=${isOrthographic}, isTransitioning=${isTransitioning}`);
   console.log(`🟡 Will render: ${is3D ? 'Canvas3DBabylon' : 'Canvas2D'}`);
@@ -177,16 +182,29 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           3D Top
         </Button>
 
+        {/* Envisioner Type Buttons */}
         <Button
-          onClick={() => setOrthographicView(false)}
+          onClick={switchToBusinessModel}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
-            is3D && !isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+            currentType === 'business-model' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
           <Box className="w-4 h-4 mr-2" />
           Business Model
+        </Button>
+
+        <Button
+          onClick={switchToFinancials}
+          disabled={isTransitioning}
+          className={`border border-gray-300 shadow-md ${
+            currentType === 'financials' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+          }`}
+          size="sm"
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          Financials
         </Button>
 
         <Button
@@ -250,7 +268,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
       {/* Canvas Views */}
       <div className="w-full h-full relative">
         {is3D ? (
-          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} />
+          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} template={currentTemplate} />
         ) : (
           <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
         )}
