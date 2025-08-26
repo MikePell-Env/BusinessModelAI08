@@ -1520,8 +1520,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     });
     
-    // Load complete BMC GLB model with individual section coloring
-    modelLoader.loadMainBMC().then((model) => {
+    // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
+    modelLoader.loadTemplateModel(template.name).then((model) => {
       if (model.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
         
