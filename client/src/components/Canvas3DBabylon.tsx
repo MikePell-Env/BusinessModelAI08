@@ -373,7 +373,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   useEffect(() => {
     if (cleanBMCRef.current) {
       // Updating CleanBMCSystem top view mode
-      cleanBMCRef.current.setTopViewMode(isOrthographic);
+      // REMOVED: setTopViewMode - using only 3D View mode now
     }
   }, [isOrthographic]);
   
@@ -3111,7 +3111,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       // Update visuals immediately to prevent white flash
       if (cleanBMCRef.current) {
-        cleanBMCRef.current.setTopViewMode(false);
+        // REMOVED: setTopViewMode - using only 3D View mode now
       }
     } else if (!is3D) {
       const selectedObject = bmcState.getSelectedObject();
