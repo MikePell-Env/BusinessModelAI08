@@ -207,18 +207,6 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           Financials
         </Button>
 
-        <Button
-          onClick={() => {
-            console.log('Financials view clicked - placeholder functionality');
-            // TODO: Implement financials view functionality
-          }}
-          disabled={isTransitioning}
-          className="bg-white text-gray-800 hover:bg-gray-50 border border-gray-300 shadow-md"
-          size="sm"
-        >
-          <Box className="w-4 h-4 mr-2" />
-          Financials
-        </Button>
       </div>
       
       {/* Main content with minimal padding */}
