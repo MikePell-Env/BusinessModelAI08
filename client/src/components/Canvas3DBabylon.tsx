@@ -794,6 +794,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         // Clear the saved state completely
         saveCamera3DState(0, 0, 0); // Clear with zeros, will be set to correct TOP values below
       }
+      
+      // CRITICAL: Also clear BMC State Manager camera state for view3DOrthographic
+      console.log(`🧹 Clearing BMC State Manager camera state for view3DOrthographic`);
+      const bmcCameraState = bmcState.getCameraState();
+      if (bmcCameraState) {
+        console.log(`🧹 Found BMC camera state, clearing it to prevent restoration conflicts`);
+        bmcState.saveCameraState({ alpha: 0, beta: 0, radius: 0 }); // Clear it
+      }
     }
     
     // Camera positioned using current preset
