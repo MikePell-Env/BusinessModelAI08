@@ -83,7 +83,7 @@ export class BMCModelLoader {
       const result = await SceneLoader.ImportMeshAsync(
         "", 
         "/models/", 
-        "BMC_financials_single_cylinder.glb", // Placeholder name - will be updated when model is provided
+        "Financials_blender_02_1756252040436.glb",
         this.scene
       );
       
