@@ -7,6 +7,7 @@ This project is a web application for creating and visualizing business model ca
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
+- **January 26, 2025**: Updated camera preset system with optimized elevated perspective - PERSPECTIVE_RIGHT (alpha: π/2 + π/12, beta: π/4.5, radius: 60) now provides elevated 40° tilt angle for comprehensive canvas overview. Added auto-switch feature: 3D View loads with TOP preset then automatically transitions to PERSPECTIVE_RIGHT after 2 seconds for optimal user experience.
 - **January 26, 2025**: Finalized camera preset system with three optimized views - PERSPECTIVE_RIGHT (alpha: π/2 + π/12, beta: π/6, radius: 55), PERSPECTIVE_LEFT (alpha: π/2 + π/12 - π/6, beta: π/6 + π/9, radius: 55), and TOP (alpha: 0, beta: 0, radius: 40). Left view provides 30° rotation with 20° tilt for optimal label readability.
 - **January 24, 2025**: Finalized 3D Top view camera and scene positioning - camera at (0, 200, 0) with 0.2 FOV, scene transform with 0° X-rotation for perfectly flat top-down perspective. Documented optimal settings in ARCHITECTURE.md
 - **January 24, 2025**: Refined 3D View interaction colors - toned down bright blue to (0.0, 0.3, 0.7) for better shading and visual appeal
@@ -28,7 +29,7 @@ The application employs a full-stack monorepo architecture, separating client an
 ### Frontend Architecture
 - **Framework**: React with TypeScript, using Vite.
 - **UI Framework**: Radix UI components styled with Tailwind CSS.
-- **3D Rendering**: React Three Fiber with Three.js (initial concepts) and Babylon.js for advanced 3D canvas visualizations. The Babylon.js implementation supports GLB model integration, dual camera modes (Perspective 3D View and orthographic 3D Top View with persistent camera states), dynamic height management, interactive selection with content panels, hover effects, and billboard labels.
+- **3D Rendering**: Babylon.js for advanced 3D canvas visualizations with perspective-only camera system. Features GLB model integration, three camera presets (PERSPECTIVE_RIGHT with 40° elevated tilt, PERSPECTIVE_LEFT with dynamic angle, TOP with flat overview), automatic camera switching (TOP → PERSPECTIVE_RIGHT after 2s), dynamic height management, interactive selection with content panels, hover effects, and billboard labels.
 - **State Management**: Zustand for client-side application state.
 - **Data Fetching**: TanStack Query for server state management and data synchronization.
 
@@ -39,7 +40,7 @@ The application employs a full-stack monorepo architecture, separating client an
 - **Session Management**: In-memory session storage.
 
 ### Key Components & Technical Details
-- **Canvas Visualization System**: Features traditional 2D grid and an advanced 3D system. The 3D system uses a single GLB model with 7 interactive sections, supports dynamic object height manipulation, and an interactive selection system. View switching between 2D, 3D View, and 3D Top modes is seamless with state persistence. Additional GLB instances are used for Revenue Streams and Cost Structure sections.
+- **Canvas Visualization System**: Features traditional 2D grid and an advanced perspective-only 3D system. The 3D system uses a single GLB model with 7 interactive sections, supports dynamic object height manipulation, and an interactive selection system. Camera preset switching provides three optimized viewing angles with smooth transitions. Auto-switch behavior enhances initial user experience. Additional GLB instances are used for Revenue Streams and Cost Structure sections.
 - **Coordinate System Workarounds**: The system handles X-axis inversion for separate GLB models. Revenue Streams positioned at X=-0.221 (appears right) and Cost Structure at X=-10.1 (appears left). Main BMC model uses transformNode scaling while separate GLBs use direct mesh scaling.
 - **AI Chat Integration**: Utilizes GPT-4o for insights and recommendations, providing a real-time, context-aware conversational interface. Intelligent voice-activated 3D view switching is implemented through custom event systems.
 - **Data Management**: Employs shared TypeScript types for consistent data structures. Canvas elements are defined for the nine core BMC sections, with sample data loaded from JSON and support for canvas metadata and version control.

@@ -25,21 +25,25 @@ export const CAMERA_SETTINGS = {
 } as const;
 
 // Camera Presets for 3D View
+// These presets provide optimal viewing angles for business model canvas analysis
 export const CAMERA_PRESETS = {
+  // Default auto-switch target - elevated perspective showing canvas depth and structure
   PERSPECTIVE_RIGHT: {
-    alpha: Math.PI/2 + Math.PI/12,  // Original 3D View orientation (Right View)
-    beta: Math.PI/4.5,  // Increased tilt to look more down at the canvas (from π/6 to π/4.5)
-    radius: 60  // Pulled back slightly for better overview
+    alpha: Math.PI/2 + Math.PI/12,  // 105° horizontal rotation (right-side view)
+    beta: Math.PI/4.5,  // 40° tilt angle - elevated perspective looking down at canvas
+    radius: 60  // Distance from center - pulled back for comprehensive overview
   },
+  // Alternative left-side perspective with additional tilt
   PERSPECTIVE_LEFT: {
-    alpha: (Math.PI/2 + Math.PI/12) - (Math.PI/6), // 30° clockwise from right view
-    beta: Math.PI/6 + (Math.PI/9), // 20° additional tilt away from camera
-    radius: 55  // Same zoom as right view
+    alpha: (Math.PI/2 + Math.PI/12) - (Math.PI/6), // 75° horizontal (30° clockwise from right)
+    beta: Math.PI/6 + (Math.PI/9), // 50° tilt (20° additional tilt for dynamic angle)
+    radius: 55  // Closer zoom for detailed section analysis
   },
+  // Initial view on 3D load - flat overview before auto-switch
   TOP: {
-    alpha: Math.PI/2, // 90 degrees rotation to match proper BMC orientation
-    beta: 0.01, // Almost perfectly top-down but still perspective
-    radius: 55 // Zoomed in for better frame filling
+    alpha: Math.PI/2, // 90° rotation for proper BMC orientation alignment
+    beta: 0.01, // Near-flat top-down view (minimal tilt maintains perspective camera)
+    radius: 55 // Moderate zoom for complete canvas visibility
   }
 } as const;
 
