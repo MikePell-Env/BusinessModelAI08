@@ -176,9 +176,7 @@ export const useCanvas = create<CanvasState>()(
         case 'view3DPerspective':
           set({ is3D: true, isOrthographic: false });
           break;
-        case 'view3DOrthographic':
-          set({ is3D: true, isOrthographic: true });
-          break;
+          // Removed orthographic view - only perspective available
       }
     },
     

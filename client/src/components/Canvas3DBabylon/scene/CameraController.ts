@@ -12,7 +12,7 @@ import {
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
-export type CameraMode = '3D View' | '3D Top';
+export type CameraMode = '3D View';
 
 interface CameraState {
   position: Vector3;
@@ -25,7 +25,7 @@ interface CameraState {
 export class CameraController {
   private scene: Scene;
   private perspectiveCamera: ArcRotateCamera;
-  private orthographicCamera: FreeCamera;
+  // Removed orthographic camera - only perspective needed
   private currentMode: CameraMode = '3D View';
   private savedStates: Map<CameraMode, CameraState> = new Map();
 
@@ -35,8 +35,7 @@ export class CameraController {
     // Initialize perspective camera (3D View)
     this.perspectiveCamera = this.createPerspectiveCamera(canvas);
 
-    // Initialize orthographic camera (3D Top)
-    this.orthographicCamera = this.createOrthographicCamera();
+    // Only perspective camera needed
 
     // Set initial active camera
     this.scene.activeCamera = this.perspectiveCamera;
@@ -77,58 +76,13 @@ export class CameraController {
     return camera;
   }
 
-  private createOrthographicCamera(): FreeCamera {
-    const camera = new FreeCamera(
-      "OrthographicCamera",
-      new Vector3(0, 30, 0),
-      this.scene
-    );
-
-    // Look straight down with Y-axis rotation for reference image match
-    camera.setTarget(new Vector3(0, 0, 0));
-
-    // No rotation needed - object positions corrected
-
-    // Set orthographic mode
-    camera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
-
-    // Define the orthographic view box
-    const orthoSize = 15;
-    camera.orthoLeft = -orthoSize;
-    camera.orthoRight = orthoSize;
-    camera.orthoTop = orthoSize;
-    camera.orthoBottom = -orthoSize;
-
-    return camera;
-  }
+  // Removed orthographic camera - only perspective needed
 
   public switchToMode(mode: CameraMode): void {
-    // FIXED: Don't save camera state during mode switches to prevent interfering with TOP preset
-    // The main Canvas3DBabylon.tsx now handles camera state management properly
-    console.log('🔧 CameraController: Skipping camera state save to prevent TOP preset conflicts');
-
-    // Switch camera based on mode
-    if (mode === '3D Top') {
-      this.scene.activeCamera = this.orthographicCamera;
-
-      // Position for top-down view with proper orientation
-      this.orthographicCamera.position = new Vector3(0, 30, 0);
-      this.orthographicCamera.setTarget(new Vector3(0, 0, 0));
-      this.orthographicCamera.rotation.y = 0; // No rotation for correct orientation
-
-      debugLog.info('camera', 'Switched to 3D Top view (orthographic)');
-    } else {
-      this.scene.activeCamera = this.perspectiveCamera;
-
-      // FIXED: Don't restore saved state - let the main Canvas3DBabylon.tsx handle camera presets
-      // The main component now properly manages TOP preset without interference
-      // Restoration was overriding the TOP preset with old saved values
-      console.log('🔧 CameraController: Skipping state restoration to preserve TOP preset initialization');
-
-      debugLog.info('camera', 'Switched to 3D View (perspective)');
-    }
-
+    // Only 3D View mode available now
+    this.scene.activeCamera = this.perspectiveCamera;
     this.currentMode = mode;
+    debugLog.info('camera', 'Camera set to 3D View (perspective)');
   }
 
   private saveCameraState(): void {
@@ -139,11 +93,6 @@ export class CameraController {
         alpha: this.perspectiveCamera.alpha,
         beta: this.perspectiveCamera.beta,
         radius: this.perspectiveCamera.radius
-      });
-    } else if (this.currentMode === '3D Top' && this.orthographicCamera) {
-      this.savedStates.set('3D Top', {
-        position: this.orthographicCamera.position.clone(),
-        target: this.orthographicCamera.getTarget().clone()
       });
     }
   }
@@ -157,15 +106,11 @@ export class CameraController {
   }
 
   public resetCamera(): void {
-    if (this.currentMode === '3D View') {
-      this.perspectiveCamera.setPosition(new Vector3(-20, 15, -20));
-      this.perspectiveCamera.setTarget(Vector3.Zero());
-    } else {
-      this.orthographicCamera.position = new Vector3(0, 30, 0);
-      this.orthographicCamera.setTarget(new Vector3(0, 0, 0));
-      this.orthographicCamera.rotation.y = 0; // No rotation for correct orientation
-    }
-
-    debugLog.info('camera', `Camera reset for ${this.currentMode} mode`);
+    // Reset perspective camera to TOP preset values for consistent initialization
+    this.perspectiveCamera.alpha = Math.PI/2;
+    this.perspectiveCamera.beta = 0.01;
+    this.perspectiveCamera.radius = 55;
+    this.perspectiveCamera.setTarget(Vector3.Zero());
+    debugLog.info('camera', 'Camera reset to default state');
   }
 }

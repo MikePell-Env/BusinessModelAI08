@@ -215,9 +215,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
   const cameraRef = useRef<ArcRotateCamera | null>(null);
-  const orthoCameraRef = useRef<FreeCamera | null>(null);
+  // Removed orthographic camera - only perspective camera needed
   const rootMeshRef = useRef<AbstractMesh | null>(null);
-  const orthoEventHandlersRef = useRef<any>(null);
   const animationManagerRef = useRef<BabylonAnimationManager | null>(null);
   
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
@@ -237,14 +236,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     setCurrentCameraPreset(preset);
     setIsTransitioningCamera(true);
     
-    if (!cameraRef.current || !orthoCameraRef.current || !sceneRef.current) {
+    if (!cameraRef.current || !sceneRef.current) {
       setIsTransitioningCamera(false);
       return;
     }
     
     const scene = sceneRef.current;
     const perspectiveCamera = cameraRef.current;
-    const orthoCamera = orthoCameraRef.current;
+    // Only perspective camera used
     const presetConfig = CAMERA_PRESETS[preset];
     
     // Animation duration and easing
@@ -825,84 +824,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       saveCamera3DState(currentPreset.alpha, currentPreset.beta, currentPreset.radius);
     }
     
-    // PSEUDO-ORTHOGRAPHIC: Position camera high up with narrow FOV to minimize perspective distortion
-    const topViewCamera = new FreeCamera("TopViewCamera", CAMERA_SETTINGS.TOP_VIEW_POSITION, scene);
-    topViewCamera.setTarget(CAMERA_SETTINGS.PERSPECTIVE_TARGET); // Look straight down at center
-    
-    // Optimized field of view to fill window area while showing complete BMC layout
-    topViewCamera.fov = 0.2; // Sweet spot between filling window and showing complete layout
-    
-    // Add smooth mouse wheel zoom support for top view camera (like 3D view)
-    const addTopViewZoomControls = () => {
-      if (!canvasElement) return null;
-      
-      let targetFov = topViewCamera.fov;
-      let currentFov = topViewCamera.fov;
-      let animationId: number | null = null;
-      
-      const smoothZoomAnimation = () => {
-        // Smooth interpolation toward target FOV
-        const lerpSpeed = 0.1; // Similar smoothness to ArcRotateCamera
-        currentFov += (targetFov - currentFov) * lerpSpeed;
-        
-        // Apply the smoothed FOV
-        topViewCamera.fov = currentFov;
-        
-        // Continue animation if not close enough to target
-        if (Math.abs(targetFov - currentFov) > 0.001) {
-          animationId = requestAnimationFrame(smoothZoomAnimation);
-        } else {
-          animationId = null;
-        }
-      };
-      
-      const handleWheel = (event: WheelEvent) => {
-        // Only handle zoom when top view camera is active
-        if (scene.activeCamera !== topViewCamera) {
-          // Don't prevent default - let 3D view handle its own zoom
-          return;
-        }
-        
-        event.preventDefault();
-        
-        // Smooth zoom like ArcRotateCamera wheelPrecision
-        const zoomSpeed = 0.0005; // Reduced sensitivity for more comfortable zooming
-        const minFov = 0.05; // Maximum zoom in
-        const maxFov = 0.4;  // Maximum zoom out
-        
-        const deltaY = event.deltaY;
-        targetFov += (deltaY * zoomSpeed);
-        
-        // Clamp target FOV to reasonable limits
-        targetFov = Math.max(minFov, Math.min(maxFov, targetFov));
-        
-        // Start smooth animation if not already running
-        if (animationId === null) {
-          animationId = requestAnimationFrame(smoothZoomAnimation);
-        }
-      };
-      
-      canvasElement.addEventListener('wheel', handleWheel, { passive: false });
-      
-      return { wheel: handleWheel, canvas: canvasElement };
-    };
-    
-    // Store event handlers for cleanup
-    orthoEventHandlersRef.current = addTopViewZoomControls();
-    
-    // No orthographic bounds needed for perspective camera
-    
-    console.log(`🔬 TOP VIEW CAMERA CREATED:`);
-    console.log(`🔬 Name: ${topViewCamera.name}`);
-    console.log(`🔬 Position: ${topViewCamera.position}`);
-    console.log(`🔬 Target: ${topViewCamera.getTarget()}`);
-    
-    // Store references
+    // Store camera reference - only perspective camera needed
     cameraRef.current = perspectiveCamera;
-    orthoCameraRef.current = topViewCamera;
     
-    // Switch camera based on view mode
-    scene.activeCamera = isOrthographic ? topViewCamera : perspectiveCamera;
+    // Always use perspective camera - no orthographic mode
+    scene.activeCamera = perspectiveCamera;
     
     // Initialize label manager with scene
     // Simple BMC manager doesn't need scene setup
@@ -3024,16 +2950,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       isDisposed = true;
       // REMOVED: clearInterval(labelFixInterval) - CleanBMCSystem handles all label visibility
       
-      // Clean up orthographic camera event handlers
-      if (orthoEventHandlersRef.current && orthoEventHandlersRef.current.canvas) {
-        const canvas = orthoEventHandlersRef.current.canvas;
-        canvas.removeEventListener('wheel', orthoEventHandlersRef.current.wheel);
-        
-        orthoEventHandlersRef.current = null;
-      }
+      // No orthographic camera to clean up
       
-      // Save perspective camera state before disposing (only from perspective camera)
-      if (cameraRef.current && !isOrthographic) {
+      // Save perspective camera state before disposing
+      if (cameraRef.current) {
         try {
           saveCamera3DState(
             cameraRef.current.alpha,
@@ -3075,56 +2995,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     };
   }, [canvas, saveCamera3DState]);
 
-  // BASIC DEBUG: Camera switching 
-  useEffect(() => {
-    console.log(`🟢 useEffect triggered: isOrthographic = ${isOrthographic}`);
-    console.log(`🟢 sceneRef.current exists: ${!!sceneRef.current}`);
-    console.log(`🟢 cameraRef.current exists: ${!!cameraRef.current}`);
-    console.log(`🟢 orthoCameraRef.current exists: ${!!orthoCameraRef.current}`);
-    
-    if (sceneRef.current && cameraRef.current && orthoCameraRef.current) {
-      const targetCamera = isOrthographic ? orthoCameraRef.current : cameraRef.current;
-      console.log(`🔬 Setting activeCamera to: ${targetCamera.name}`);
-      
-      sceneRef.current.activeCamera = targetCamera;
-      
-      console.log(`🔬 Scene activeCamera is now: ${sceneRef.current.activeCamera?.name}`);
-      
-      // REMOVED: setTopViewMode - using only 3D View mode now
-      
-      console.log(`📷 ✅ CAMERA SWITCH COMPLETE: ${isOrthographic ? '3D Top' : '3D View'}`);
-    } else {
-      console.error(`🔬 ❌ MISSING REFERENCES for camera switch!`);
-    }
-  }, [isOrthographic]);
+  // Camera is always perspective - no switching needed
 
-  // Control animations based on view mode - pause in 3D Top, resume in 3D View
-  useEffect(() => {
-    if (sceneRef.current) {
-      const scene = sceneRef.current;
-      
-      // Find Value Proposition and Customer Segments meshes and control their animations
-      scene.meshes.forEach((mesh) => {
-        if (mesh.name && mesh.name.includes('Value Propositions')) {
-          const animationRef = (mesh as any).pulsatingEdge;
-          if (animationRef) {
-            animationRef.isPaused = isOrthographic; // Pause in 3D Top view
-            console.log(`🎬 Value Proposition animation ${isOrthographic ? 'PAUSED' : 'RESUMED'}`);
-          }
-        }
-        
-        if (mesh.name && mesh.name.includes('Customer Segments')) {
-          const animationRef = (mesh as any).blueTracer;
-          if (animationRef) {
-            animationRef.isPaused = isOrthographic; // Pause in 3D Top view
-            console.log(`🎬 Customer Segments animation ${isOrthographic ? 'PAUSED' : 'RESUMED'}`);
-          }
-        }
-      });
-      
-
-    }
-  }, [isOrthographic]);
+  // Animations always run - no view mode switching
 
   // Handle restoration when entering 3D mode - optimized for smooth transitions
   useEffect(() => {
@@ -3148,19 +3021,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }
   }, [is3D]);
 
-  // Handle restoration when switching between 3D View and 3D Top View
-  useEffect(() => {
-    if (is3D && sceneRef.current) {
-      const selectedObject = bmcState.getSelectedObject();
-      console.log(`🔄 3D VIEW TRANSITION: ${isOrthographic ? '3D Top' : '3D View'}, selection="${selectedObject}"`);
-      
-      // FIXED: Coordinate with BMC State Manager for view transitions
-      bmcState.switchView(isOrthographic ? 'view3DOrthographic' : 'view3DPerspective');
-      
-      // Update visuals immediately without delay to prevent white flash
-      // REMOVED: setTopViewMode - using only 3D View mode now
-    }
-  }, [isOrthographic, is3D]);
+  // Only one 3D view mode - no switching needed
 
 
 

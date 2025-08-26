@@ -34,7 +34,7 @@ export type BMCComponentName = typeof BMC_COMPONENTS[number];
 export type BMCObjectType = 'main_bmc' | 'separate_glb';
 
 // View modes supported by the application
-export type ViewMode = 'view2D' | 'view3DPerspective' | 'view3DOrthographic';
+export type ViewMode = 'view2D' | 'view3DPerspective';
 
 /**
  * Visual state for each BMC object - controls appearance and interaction

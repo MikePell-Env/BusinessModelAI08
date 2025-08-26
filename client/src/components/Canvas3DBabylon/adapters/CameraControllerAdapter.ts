@@ -12,7 +12,7 @@ import {
 } from '@babylonjs/core';
 import { CanvasManager } from '../unified/CanvasManager';
 
-export type CameraMode = '3D View' | '3D Top';
+export type CameraMode = '3D View';
 
 /**
  * Bridge adapter that makes CanvasManager look like the original CameraController

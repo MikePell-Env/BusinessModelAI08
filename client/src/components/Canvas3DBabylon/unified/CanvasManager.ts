@@ -23,7 +23,7 @@ const debugLog = {
   warn: (category: string, message: string) => console.warn(`[${category}] ${message}`)
 };
 
-export type ViewMode = '2D' | '3D View' | '3D Top';
+export type ViewMode = '2D' | '3D View';
 
 interface MaterialPresets {
   original: StandardMaterial;
@@ -61,7 +61,7 @@ export class CanvasManager {
   private engine: Engine;
   private scene: Scene;
   private perspectiveCamera: ArcRotateCamera;
-  private orthographicCamera: FreeCamera;
+  // Removed orthographic camera - only perspective needed
   
   // State management
   private currentView: ViewMode = '3D View';
@@ -85,9 +85,8 @@ export class CanvasManager {
     });
     this.scene = new Scene(this.engine);
     
-    // Pre-create cameras - NEVER recreated
+    // Create single perspective camera - NEVER recreated
     this.perspectiveCamera = this.createPerspectiveCamera(canvas);
-    this.orthographicCamera = this.createOrthographicCamera();
     
     // Set initial camera
     this.scene.activeCamera = this.perspectiveCamera;
@@ -126,20 +125,7 @@ export class CanvasManager {
     return camera;
   }
   
-  private createOrthographicCamera(): FreeCamera {
-    const camera = new FreeCamera("OrthographicCamera", new Vector3(0, 30, 0), this.scene);
-    camera.setTarget(Vector3.Zero());
-    camera.mode = FreeCamera.ORTHOGRAPHIC_CAMERA;
-    
-    // EXPANDED VIEW: Make bounds much larger to see extreme positions
-    const orthoSize = 25;  // Increased from 15 to 25
-    camera.orthoLeft = -orthoSize;
-    camera.orthoRight = orthoSize;
-    camera.orthoTop = orthoSize;
-    camera.orthoBottom = -orthoSize;
-    
-    return camera;
-  }
+  // Removed orthographic camera - only perspective needed
   
   // =====================================================================================
   // MATERIAL MANAGEMENT - Pre-created, reused
@@ -284,17 +270,7 @@ export class CanvasManager {
   }
   
   private handleResize(): void {
-    if (this.currentView === '3D Top') {
-      // Fix orthographic camera aspect ratio with expanded bounds
-      const canvas = this.engine.getRenderingCanvas()!;
-      const aspect = canvas.width / canvas.height;
-      const orthoSize = 25;  // Match expanded size
-      
-      this.orthographicCamera.orthoLeft = -orthoSize * aspect;
-      this.orthographicCamera.orthoRight = orthoSize * aspect;
-      this.orthographicCamera.orthoTop = orthoSize;
-      this.orthographicCamera.orthoBottom = -orthoSize;
-    }
+    // Only perspective camera used - no orthographic view
   }
   
   // =====================================================================================
@@ -336,18 +312,15 @@ export class CanvasManager {
     debugLog.info('canvas', `Switching view: ${this.currentView} → ${view}`);
     
     // Simple camera switching - NO recreation
-    if (view === '3D Top') {
-      this.scene.activeCamera = this.orthographicCamera;
-    } else if (view === '3D View') {
-      this.scene.activeCamera = this.perspectiveCamera;
-    }
+    // Only perspective camera used
+    this.scene.activeCamera = this.perspectiveCamera;
     
     this.currentView = view;
     
     // Notify BMC state manager
     if (this.bmcStateManager) {
       const bmcView = view === '2D' ? 'view2D' : 
-                     view === '3D Top' ? 'view3DOrthographic' : 'view3DPerspective';
+                     'view3DPerspective';
       this.bmcStateManager.switchView(bmcView);
     }
   }
@@ -458,7 +431,7 @@ export class CanvasManager {
   public dispose(): void {
     // Proper cleanup - detach controls first
     this.perspectiveCamera.detachControl();
-    // Don't detach orthographic camera controls - it doesn't have any
+    // Only perspective camera has controls
     
     // Dispose all pre-created materials
     this.baseMaterials.forEach(materials => {

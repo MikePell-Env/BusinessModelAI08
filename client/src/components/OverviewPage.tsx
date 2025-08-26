@@ -27,18 +27,18 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       const { useCanvas } = await import('@/lib/stores/useCanvas');
       const { switchBMCView } = useCanvas.getState();
       
-      // Switch to 3D Top view (view3DOrthographic)
-      switchBMCView('view3DOrthographic');
+      // Switch to 3D View
+      switchBMCView('view3DPerspective');
       
       // Directly trigger the canvas to open without navigating to home page
       window.dispatchEvent(new CustomEvent('openEnvisioner', { 
-        detail: { viewMode: 'view3DOrthographic' } 
+        detail: { viewMode: 'view3DPerspective' } 
       }));
     } catch (error) {
       console.error('Error switching to Business Model Canvas:', error);
       // Fallback: directly trigger canvas open
       window.dispatchEvent(new CustomEvent('openEnvisioner', { 
-        detail: { viewMode: 'view3DOrthographic' } 
+        detail: { viewMode: 'view3DPerspective' } 
       }));
     }
   };
