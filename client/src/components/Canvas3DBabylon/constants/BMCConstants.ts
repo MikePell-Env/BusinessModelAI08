@@ -33,7 +33,7 @@ export const CAMERA_PRESETS = {
   },
   PERSPECTIVE_LEFT: {
     alpha: (Math.PI/2 + Math.PI/12) - (Math.PI/6), // 30° clockwise from right view
-    beta: Math.PI/6,
+    beta: Math.PI/6 + (Math.PI/9), // 20° additional tilt away from camera
     radius: 55  // Same zoom as right view
   },
   TOP: {
