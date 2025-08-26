@@ -308,7 +308,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     }, duration);
   };
   
-  // UNIFIED SYSTEM: Single managers replacing competing systems  
+  
   const unifiedSceneRef = useRef<SceneSetupAdapter | null>(null);
   const { 
     saveCamera3DState, 
@@ -396,7 +396,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   
 
   
-  // REMOVED: Old height logic - now handled by applyBMCVisualState
 
   // REMOVED: Old restore logic - now handled by applyBMCVisualState
 
@@ -727,7 +726,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       debugLog.info('webgl', 'WebGL context restored - canvas should reappear');
     });
 
-    // UNIFIED: Initialize Babylon.js using unified system (eliminates material recreation)
+    // Initialize Babylon.js using unified system
     let engine: Engine | null = null;
     let scene: Scene | null = null;
 
@@ -752,8 +751,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // CLEAN START: Create TWO cameras - perspective and orthographic
-    // FIXED: Clear any saved camera state to ensure fresh TOP preset without restoration override
+    // Clear any saved camera state to ensure fresh TOP preset
     if (currentCameraPreset === 'TOP') {
       // Clear saved state so restoration doesn't override our TOP preset
       const currentState = getCamera3DState();
@@ -762,7 +760,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         saveCamera3DState(0, 0, 0); // Clear with zeros, will be set to correct TOP values below
       }
       
-      // CRITICAL: Also clear BMC State Manager camera state for view3DOrthographic
+      // Also clear BMC State Manager camera state
       const bmcCameraState = bmcState.getCameraState();
       if (bmcCameraState) {
         bmcState.saveCameraState({ alpha: 0, beta: 0, radius: 0, target: new Vector3(0, 0, 0) }); // Clear it
@@ -783,7 +781,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     perspectiveCamera.attachControl(canvasElement, true);
     perspectiveCamera.wheelPrecision = 50;
     
-    // FIXED: Save the correct TOP preset values to prevent future restoration conflicts
+    // Save the correct TOP preset values
     if (currentCameraPreset === 'TOP') {
       saveCamera3DState(currentPreset.alpha, currentPreset.beta, currentPreset.radius);
     }
@@ -2867,13 +2865,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       console.log("✅ All selections cleared, hover behavior enabled");
     };
     
-    // REMOVED: Emergency label fix - CleanBMCSystem handles all label visibility
     
     // setTimeout(() => {
     //   clearAllSelections();
     // }, 1000);
     
-    // REMOVED: Emergency label fix interval - CleanBMCSystem handles all label visibility
     
 
     // ENABLED: Restore selection using BMC State Manager for proper preservation
@@ -2925,7 +2921,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
       // Clean up unified systems and managers
       try {
-        // REVENUE CRASH FIX: Safely dispose interaction manager to prevent camera conflicts
+        // Safely dispose interaction manager
         if (interactionManagerRef.current) {
           console.log("🛡️ Safely disposing interaction manager to prevent crashes");
           interactionManagerRef.current.dispose();
@@ -2935,7 +2931,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
           animationManagerRef.current.dispose();
           animationManagerRef.current = null;
         }
-        // REMOVED: MaterialManager disposal - using direct property modification instead
       } catch (e) {
         console.warn('Error cleaning up unified systems and managers:', e);
       }
