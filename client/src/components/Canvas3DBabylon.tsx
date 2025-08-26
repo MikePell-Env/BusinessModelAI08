@@ -2936,8 +2936,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
 
     // Initialize Animation Manager (Material Manager already initialized above)
-    animationManagerRef.current = new BabylonAnimationManager(scene);
-    console.log('🎬 Animation Manager initialized');
+    // Only enable animations for Business Model template, disable for Financials
+    const enableAnimations = template.name.toLowerCase() !== 'financials';
+    if (enableAnimations) {
+      animationManagerRef.current = new BabylonAnimationManager(scene);
+      console.log('🎬 Animation Manager initialized');
+    } else {
+      animationManagerRef.current = null;
+      console.log('🎬 Animation Manager disabled for Financials template');
+    }
     console.log('🎨 Material Manager initialized');
     console.log('🖱️ Unified Interaction Manager initialized');
 
@@ -2978,7 +2985,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           interactionManagerRef.current = null;
         }
         if (animationManagerRef.current) {
-          animationManagerRef.current.dispose();
+          if (animationManagerRef.current) {
+        animationManagerRef.current.dispose();
+      }
           animationManagerRef.current = null;
         }
       } catch (e) {
