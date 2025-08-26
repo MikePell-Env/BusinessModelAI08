@@ -25,7 +25,9 @@ import {
   Matrix,
   TransformNode,
   LinesMesh,
-  PointerEventTypes
+  PointerEventTypes,
+  Animation,
+  CubicEase
 } from '@babylonjs/core';
 import { 
   AdvancedDynamicTexture,
@@ -225,28 +227,147 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   // Camera preset state  
   const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP'>('PERSPECTIVE_RIGHT');
   
-  // Camera preset switching function
+  // Camera transition state
+  const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
+  
+  // High-quality camera preset switching with smooth transitions
   const switchCameraPreset = (preset: 'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP') => {
+    if (isTransitioningCamera) return; // Prevent overlapping transitions
+    
     setCurrentCameraPreset(preset);
+    setIsTransitioningCamera(true);
     
-    if (!cameraRef.current || !orthoCameraRef.current || !sceneRef.current) return;
+    if (!cameraRef.current || !orthoCameraRef.current || !sceneRef.current) {
+      setIsTransitioningCamera(false);
+      return;
+    }
     
+    const scene = sceneRef.current;
+    const perspectiveCamera = cameraRef.current;
+    const orthoCamera = orthoCameraRef.current;
     const presetConfig = CAMERA_PRESETS[preset];
     
+    // Animation duration and easing
+    const duration = 800; // 800ms for smooth, professional feel
+    const frameRate = 60;
+    const totalFrames = Math.round((duration / 1000) * frameRate);
+    
+    // Easing function for smooth transitions
+    const easeInOutCubic = (t: number): number => {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    };
+    
     if (preset === 'TOP') {
-      // Switch to orthographic camera (same as 3D Top view)
-      sceneRef.current.activeCamera = orthoCameraRef.current;
-      console.log(`📷 Camera preset switched to: ${preset} (orthographic)`);
-    } else {
-      // Use perspective camera with preset position
-      const perspectiveCamera = cameraRef.current;
-      perspectiveCamera.alpha = presetConfig.alpha;
-      perspectiveCamera.beta = presetConfig.beta;
-      perspectiveCamera.radius = presetConfig.radius;
+      // Smooth transition from perspective to orthographic
+      const startAlpha = perspectiveCamera.alpha;
+      const startBeta = perspectiveCamera.beta;
+      const startRadius = perspectiveCamera.radius;
       
-      // Switch to perspective camera
-      sceneRef.current.activeCamera = perspectiveCamera;
-      console.log(`📷 Camera preset switched to: ${preset} (alpha: ${presetConfig.alpha.toFixed(3)}, beta: ${presetConfig.beta.toFixed(3)})`);
+      // Create smooth transition animation
+      const alphaAnimation = Animation.CreateAndStartAnimation(
+        "alphaTransition",
+        perspectiveCamera,
+        "alpha",
+        frameRate,
+        totalFrames,
+        startAlpha,
+        0, // Target alpha for top view
+        Animation.ANIMATIONLOOPMODE_CONSTANT,
+        new CubicEase()
+      );
+      
+      const betaAnimation = Animation.CreateAndStartAnimation(
+        "betaTransition", 
+        perspectiveCamera,
+        "beta",
+        frameRate,
+        totalFrames,
+        startBeta,
+        0.01, // Almost top-down
+        Animation.ANIMATIONLOOPMODE_CONSTANT,
+        new CubicEase()
+      );
+      
+      const radiusAnimation = Animation.CreateAndStartAnimation(
+        "radiusTransition",
+        perspectiveCamera,
+        "radius", 
+        frameRate,
+        totalFrames,
+        startRadius,
+        presetConfig.radius,
+        Animation.ANIMATIONLOOPMODE_CONSTANT,
+        new CubicEase()
+      );
+      
+      // Switch to orthographic after animation completes
+      setTimeout(() => {
+        scene.activeCamera = orthoCamera;
+        setIsTransitioningCamera(false);
+        console.log(`📷 ✨ Camera preset smoothly transitioned to: ${preset} (orthographic)`);
+      }, duration);
+      
+    } else {
+      // Smooth transition between perspective presets or from orthographic
+      const currentCamera = scene.activeCamera;
+      let startAlpha, startBeta, startRadius;
+      
+      if (currentCamera === orthoCamera) {
+        // Transitioning from orthographic - use current perspective camera values
+        startAlpha = perspectiveCamera.alpha;
+        startBeta = perspectiveCamera.beta; 
+        startRadius = perspectiveCamera.radius;
+        // Switch to perspective camera immediately for smooth transition
+        scene.activeCamera = perspectiveCamera;
+      } else {
+        // Already using perspective camera
+        startAlpha = perspectiveCamera.alpha;
+        startBeta = perspectiveCamera.beta;
+        startRadius = perspectiveCamera.radius;
+      }
+      
+      // Create smooth transition animations with cubic easing
+      const alphaAnimation = Animation.CreateAndStartAnimation(
+        "alphaTransition",
+        perspectiveCamera,
+        "alpha",
+        frameRate,
+        totalFrames,
+        startAlpha,
+        presetConfig.alpha,
+        Animation.ANIMATIONLOOPMODE_CONSTANT,
+        new CubicEase()
+      );
+      
+      const betaAnimation = Animation.CreateAndStartAnimation(
+        "betaTransition",
+        perspectiveCamera, 
+        "beta",
+        frameRate,
+        totalFrames,
+        startBeta,
+        presetConfig.beta,
+        Animation.ANIMATIONLOOPMODE_CONSTANT,
+        new CubicEase()
+      );
+      
+      const radiusAnimation = Animation.CreateAndStartAnimation(
+        "radiusTransition",
+        perspectiveCamera,
+        "radius",
+        frameRate, 
+        totalFrames,
+        startRadius,
+        presetConfig.radius,
+        Animation.ANIMATIONLOOPMODE_CONSTANT,
+        new CubicEase()
+      );
+      
+      // Complete transition
+      setTimeout(() => {
+        setIsTransitioningCamera(false);
+        console.log(`📷 ✨ Camera preset smoothly transitioned to: ${preset} (alpha: ${presetConfig.alpha.toFixed(3)}, beta: ${presetConfig.beta.toFixed(3)})`);
+      }, duration);
     }
   };
   
@@ -3134,40 +3255,54 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         <h1 className="text-xl font-medium text-gray-900" style={{ fontFamily: 'Segoe UI, sans-serif' }}>{canvas.name}</h1>
       </div>
       
-      {/* Camera Preset Buttons - Top Left (moved right to avoid overlap) */}
+      {/* Camera Preset Buttons - Top Left with transition feedback */}
 <div className="absolute top-5 left-96 z-10">
         <div className="flex gap-2">
           <button
             onClick={() => switchCameraPreset('PERSPECTIVE_LEFT')}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            disabled={isTransitioningCamera}
+            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 ${
               currentCameraPreset === 'PERSPECTIVE_LEFT' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-blue-600 text-white shadow-md' 
+                : isTransitioningCamera 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-sm'
             }`}
           >
-            Left View
+            {isTransitioningCamera && currentCameraPreset !== 'PERSPECTIVE_LEFT' ? '...' : 'Left View'}
           </button>
           <button
             onClick={() => switchCameraPreset('PERSPECTIVE_RIGHT')}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            disabled={isTransitioningCamera}
+            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 ${
               currentCameraPreset === 'PERSPECTIVE_RIGHT' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-blue-600 text-white shadow-md' 
+                : isTransitioningCamera 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-sm'
             }`}
           >
-            Right View
+            {isTransitioningCamera && currentCameraPreset !== 'PERSPECTIVE_RIGHT' ? '...' : 'Right View'}
           </button>
           <button
             onClick={() => switchCameraPreset('TOP')}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            disabled={isTransitioningCamera}
+            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 ${
               currentCameraPreset === 'TOP' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-blue-600 text-white shadow-md' 
+                : isTransitioningCamera 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-sm'
             }`}
           >
-            Top View
+            {isTransitioningCamera && currentCameraPreset !== 'TOP' ? '...' : 'Top View'}
           </button>
         </div>
+        {isTransitioningCamera && (
+          <div className="text-xs text-gray-600 mt-1 text-center animate-pulse">
+            ✨ Smoothly transitioning camera...
+          </div>
+        )}
       </div>
       
       {/* Time Slider HUD - Floating at bottom with transparent background */}
