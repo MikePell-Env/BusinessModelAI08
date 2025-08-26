@@ -3134,8 +3134,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
         <h1 className="text-xl font-medium text-gray-900" style={{ fontFamily: 'Segoe UI, sans-serif' }}>{canvas.name}</h1>
       </div>
       
-      {/* Camera Preset Buttons - Top Left */}
-      <div className="absolute top-5 left-5 z-10">
+      {/* Camera Preset Buttons - Top Left (moved right to avoid overlap) */}
+      <div className="absolute top-5 left-80 z-10">
         <div className="flex gap-2">
           <button
             onClick={() => switchCameraPreset('PERSPECTIVE_LEFT')}
