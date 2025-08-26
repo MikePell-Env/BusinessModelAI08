@@ -60,6 +60,9 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           const canvas = await powerpointParser.parseFile(pendingPowerPointFile);
           loadCanvas(canvas, true); // Same as PowerPointImporter
           setPendingPowerPointFile(null); // Clear the pending file
+          
+          // Auto-switch to 3D View mode after loading
+          setOrthographicView(false);
         } catch (error) {
           console.error('PowerPoint processing error:', error);
           alert('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');
@@ -67,6 +70,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           
           // Load sample canvas as fallback
           loadCanvas(sampleCanvasData as CanvasType);
+          // Auto-switch to 3D View mode after loading fallback
+          setOrthographicView(false);
         }
       };
       
@@ -75,6 +80,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
       // Only load sample canvas data if no canvas is loaded yet AND no PowerPoint file is pending
       try {
         loadCanvas(sampleCanvasData as CanvasType);
+        // Auto-switch to 3D View mode after loading
+        setOrthographicView(false);
       } catch (err) {
         console.error('Error loading canvas data:', err);
         setError('Failed to load canvas data');
