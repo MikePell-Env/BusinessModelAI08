@@ -45,11 +45,12 @@ export class CameraController {
   }
 
   private createPerspectiveCamera(canvas: HTMLCanvasElement): ArcRotateCamera {
+    // Use TOP preset values for default initialization
     const camera = new ArcRotateCamera(
       "PerspectiveCamera",
-      Tools.ToRadians(-90),  // alpha (horizontal rotation)
-      Tools.ToRadians(60),   // beta (vertical rotation)
-      25,                    // radius (distance)
+      Math.PI/2,             // alpha: TOP preset (90 degrees rotation)
+      0.01,                  // beta: TOP preset (almost perfectly top-down)
+      55,                    // radius: TOP preset (proper zoom level)
       new Vector3(0, 0, 0),  // target
       this.scene
     );
