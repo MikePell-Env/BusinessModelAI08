@@ -257,118 +257,66 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     };
     
-    if (preset === 'TOP') {
-      // Smooth transition from perspective to orthographic
-      const startAlpha = perspectiveCamera.alpha;
-      const startBeta = perspectiveCamera.beta;
-      const startRadius = perspectiveCamera.radius;
-      
-      // Create smooth transition animation
-      const alphaAnimation = Animation.CreateAndStartAnimation(
-        "alphaTransition",
-        perspectiveCamera,
-        "alpha",
-        frameRate,
-        totalFrames,
-        startAlpha,
-        0, // Target alpha for top view
-        Animation.ANIMATIONLOOPMODE_CONSTANT,
-        new CubicEase()
-      );
-      
-      const betaAnimation = Animation.CreateAndStartAnimation(
-        "betaTransition", 
-        perspectiveCamera,
-        "beta",
-        frameRate,
-        totalFrames,
-        startBeta,
-        0.01, // Almost top-down
-        Animation.ANIMATIONLOOPMODE_CONSTANT,
-        new CubicEase()
-      );
-      
-      const radiusAnimation = Animation.CreateAndStartAnimation(
-        "radiusTransition",
-        perspectiveCamera,
-        "radius", 
-        frameRate,
-        totalFrames,
-        startRadius,
-        presetConfig.radius,
-        Animation.ANIMATIONLOOPMODE_CONSTANT,
-        new CubicEase()
-      );
-      
-      // Switch to orthographic after animation completes
-      setTimeout(() => {
-        scene.activeCamera = orthoCamera;
-        setIsTransitioningCamera(false);
-        console.log(`📷 ✨ Camera preset smoothly transitioned to: ${preset} (orthographic)`);
-      }, duration);
-      
+    // All presets now use perspective camera for smooth transitions
+    const currentCamera = scene.activeCamera;
+    let startAlpha, startBeta, startRadius;
+    
+    if (currentCamera === orthoCamera) {
+      // Transitioning from orthographic - use current perspective camera values
+      startAlpha = perspectiveCamera.alpha;
+      startBeta = perspectiveCamera.beta; 
+      startRadius = perspectiveCamera.radius;
+      // Switch to perspective camera immediately for smooth transition
+      scene.activeCamera = perspectiveCamera;
     } else {
-      // Smooth transition between perspective presets or from orthographic
-      const currentCamera = scene.activeCamera;
-      let startAlpha, startBeta, startRadius;
-      
-      if (currentCamera === orthoCamera) {
-        // Transitioning from orthographic - use current perspective camera values
-        startAlpha = perspectiveCamera.alpha;
-        startBeta = perspectiveCamera.beta; 
-        startRadius = perspectiveCamera.radius;
-        // Switch to perspective camera immediately for smooth transition
-        scene.activeCamera = perspectiveCamera;
-      } else {
-        // Already using perspective camera
-        startAlpha = perspectiveCamera.alpha;
-        startBeta = perspectiveCamera.beta;
-        startRadius = perspectiveCamera.radius;
-      }
-      
-      // Create smooth transition animations with cubic easing
-      const alphaAnimation = Animation.CreateAndStartAnimation(
-        "alphaTransition",
-        perspectiveCamera,
-        "alpha",
-        frameRate,
-        totalFrames,
-        startAlpha,
-        presetConfig.alpha,
-        Animation.ANIMATIONLOOPMODE_CONSTANT,
-        new CubicEase()
-      );
-      
-      const betaAnimation = Animation.CreateAndStartAnimation(
-        "betaTransition",
-        perspectiveCamera, 
-        "beta",
-        frameRate,
-        totalFrames,
-        startBeta,
-        presetConfig.beta,
-        Animation.ANIMATIONLOOPMODE_CONSTANT,
-        new CubicEase()
-      );
-      
-      const radiusAnimation = Animation.CreateAndStartAnimation(
-        "radiusTransition",
-        perspectiveCamera,
-        "radius",
-        frameRate, 
-        totalFrames,
-        startRadius,
-        presetConfig.radius,
-        Animation.ANIMATIONLOOPMODE_CONSTANT,
-        new CubicEase()
-      );
-      
-      // Complete transition
-      setTimeout(() => {
-        setIsTransitioningCamera(false);
-        console.log(`📷 ✨ Camera preset smoothly transitioned to: ${preset} (alpha: ${presetConfig.alpha.toFixed(3)}, beta: ${presetConfig.beta.toFixed(3)})`);
-      }, duration);
+      // Already using perspective camera
+      startAlpha = perspectiveCamera.alpha;
+      startBeta = perspectiveCamera.beta;
+      startRadius = perspectiveCamera.radius;
     }
+    
+    // Create smooth transition animations with cubic easing
+    const alphaAnimation = Animation.CreateAndStartAnimation(
+      "alphaTransition",
+      perspectiveCamera,
+      "alpha",
+      frameRate,
+      totalFrames,
+      startAlpha,
+      presetConfig.alpha,
+      Animation.ANIMATIONLOOPMODE_CONSTANT,
+      new CubicEase()
+    );
+    
+    const betaAnimation = Animation.CreateAndStartAnimation(
+      "betaTransition",
+      perspectiveCamera, 
+      "beta",
+      frameRate,
+      totalFrames,
+      startBeta,
+      presetConfig.beta,
+      Animation.ANIMATIONLOOPMODE_CONSTANT,
+      new CubicEase()
+    );
+    
+    const radiusAnimation = Animation.CreateAndStartAnimation(
+      "radiusTransition",
+      perspectiveCamera,
+      "radius",
+      frameRate, 
+      totalFrames,
+      startRadius,
+      presetConfig.radius,
+      Animation.ANIMATIONLOOPMODE_CONSTANT,
+      new CubicEase()
+    );
+    
+    // Complete transition
+    setTimeout(() => {
+      setIsTransitioningCamera(false);
+      console.log(`📷 ✨ Camera preset smoothly transitioned to: ${preset} (alpha: ${presetConfig.alpha.toFixed(3)}, beta: ${presetConfig.beta.toFixed(3)})`);
+    }, duration);
   };
   
   // UNIFIED SYSTEM: Single managers replacing competing systems  
