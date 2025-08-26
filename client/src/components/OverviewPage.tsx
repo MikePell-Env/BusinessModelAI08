@@ -295,7 +295,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                     {/* What If Card - Disabled */}
                     <div className="opacity-50 cursor-not-allowed">
                       <img 
-                        src="/button_WhatIf_wireframe_new.png" 
+                        src="/button_TM_blueprint2_1756235359490.png" 
                         alt="What If?" 
                         className="w-full h-auto border border-black"
                       />
