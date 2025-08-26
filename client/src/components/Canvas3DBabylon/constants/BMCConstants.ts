@@ -32,7 +32,7 @@ export const CAMERA_PRESETS = {
     radius: 55  // Zoomed out a bit
   },
   PERSPECTIVE_LEFT: {
-    alpha: (Math.PI/2 + Math.PI/12) + Math.PI, // 180° around Y-axis from right view  
+    alpha: (Math.PI/2 + Math.PI/12) - Math.PI, // 180° opposite direction from right view  
     beta: Math.PI/6,
     radius: 55  // Same zoom as right view
   },
