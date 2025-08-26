@@ -3009,7 +3009,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       </div>
       
       {/* Camera Preset Buttons - Top Left with transition feedback */}
-<div className="absolute left-96 z-10" style={{ top: '66px' }}>
+<div className="absolute left-96 z-10" style={{ top: '25px' }}>
         <div className="flex gap-2">
           <button
             onClick={() => switchCameraPreset('PERSPECTIVE_LEFT')}
