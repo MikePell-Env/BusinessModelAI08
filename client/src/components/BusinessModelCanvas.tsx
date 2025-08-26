@@ -137,10 +137,11 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
 
       {/* Fixed View Controls - positioned below header */}
       <div className="fixed top-14 left-4 z-40 flex space-x-2">
+        {/* 2D View button - hidden but functionality preserved */}
         <Button
           onClick={handleToggleView}
           disabled={isTransitioning}
-          className={`border border-gray-300 shadow-md ${
+          className={`hidden border border-gray-300 shadow-md ${
             !is3D ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
@@ -149,6 +150,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           2D View
         </Button>
 
+        {/* 3D Top button - hidden but functionality preserved */}
         <Button
           onClick={(e) => {
             console.log(`🟡 3D TOP BUTTON CLICKED!`);
@@ -166,7 +168,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
             }
           }}
           disabled={isTransitioning}
-          className={`border border-gray-300 shadow-md ${
+          className={`hidden border border-gray-300 shadow-md ${
             isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
