@@ -2887,10 +2887,48 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
 
     // AUTO-SWITCH: After 2 seconds, automatically switch from TOP view to RIGHT view
     // Only applies when starting with TOP preset (initial load)
+    // SKIP auto-switch if user has manually moved the camera (dragged)
     if (currentCameraPreset === 'TOP') {
+      // Flag to track if user has manually moved camera - EASY TO REVERT: just remove this flag and the condition below
+      let userHasMovedCamera = false;
+      
+      // Listen for drag events to detect manual camera movement
+      const dragListener = () => {
+        userHasMovedCamera = true;
+        console.log("🚫 User moved camera - auto-switch will be skipped");
+      };
+      
+      // Add temporary event listener for drag detection (will be cleaned up after timeout)
+      const tempDragHandler = () => {
+        const logs = document.createElement('div');
+        logs.style.display = 'none';
+        document.body.appendChild(logs);
+        
+        // Listen for console logs containing drag detection
+        const originalLog = console.log;
+        console.log = (...args) => {
+          originalLog(...args);
+          if (args[0] && typeof args[0] === 'string' && args[0].includes('🖱️ Drag detected:')) {
+            dragListener();
+          }
+        };
+        
+        setTimeout(() => {
+          console.log = originalLog; // Restore original console.log
+          document.body.removeChild(logs);
+        }, 2100); // Clean up slightly after auto-switch timeout
+      };
+      
+      tempDragHandler();
+      
       setTimeout(() => {
-        console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds");
-        switchCameraPreset('PERSPECTIVE_RIGHT');
+        // Check if user moved camera before auto-switching
+        if (!userHasMovedCamera) {
+          console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds");
+          switchCameraPreset('PERSPECTIVE_RIGHT');
+        } else {
+          console.log("🎬 Auto-switch cancelled - user moved camera manually");
+        }
       }, 2000);
     }
 
