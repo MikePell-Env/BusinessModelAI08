@@ -2885,6 +2885,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       }
     }, 1000);
 
+    // AUTO-SWITCH: After 2 seconds, automatically switch from TOP view to RIGHT view
+    // Only applies when starting with TOP preset (initial load)
+    if (currentCameraPreset === 'TOP') {
+      setTimeout(() => {
+        console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds");
+        switchCameraPreset('PERSPECTIVE_RIGHT');
+      }, 2000);
+    }
+
     // Initialize Animation Manager (Material Manager already initialized above)
     animationManagerRef.current = new BabylonAnimationManager(scene);
     console.log('🎬 Animation Manager initialized');
