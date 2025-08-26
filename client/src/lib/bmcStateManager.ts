@@ -48,7 +48,7 @@ export class BMCStateManagerImpl implements BMCStateManager, BMCStateOperations 
 
   private initializeViews(): void {
     // Initialize all three view states
-    const viewModes: ViewMode[] = ['view2D', 'view3DPerspective', 'view3DOrthographic'];
+    const viewModes: ViewMode[] = ['view2D', 'view3DPerspective'];
     
     viewModes.forEach(viewMode => {
       const viewState = createBMCViewState(viewMode);
