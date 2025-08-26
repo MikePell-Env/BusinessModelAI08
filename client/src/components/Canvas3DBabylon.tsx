@@ -3064,9 +3064,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       
       console.log(`🔬 Scene activeCamera is now: ${sceneRef.current.activeCamera?.name}`);
       
-      if (cleanBMCRef.current) {
-        cleanBMCRef.current.setTopViewMode(isOrthographic);
-      }
+      // REMOVED: setTopViewMode - using only 3D View mode now
       
       console.log(`📷 ✅ CAMERA SWITCH COMPLETE: ${isOrthographic ? '3D Top' : '3D View'}`);
     } else {
@@ -3134,9 +3132,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       bmcState.switchView(isOrthographic ? 'view3DOrthographic' : 'view3DPerspective');
       
       // Update visuals immediately without delay to prevent white flash
-      if (cleanBMCRef.current) {
-        cleanBMCRef.current.setTopViewMode(isOrthographic);
-      }
+      // REMOVED: setTopViewMode - using only 3D View mode now
     }
   }, [isOrthographic, is3D]);
 
