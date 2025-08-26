@@ -260,19 +260,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     const currentCamera = scene.activeCamera;
     let startAlpha, startBeta, startRadius;
     
-    if (currentCamera === orthoCamera) {
-      // Transitioning from orthographic - use current perspective camera values
-      startAlpha = perspectiveCamera.alpha;
-      startBeta = perspectiveCamera.beta; 
-      startRadius = perspectiveCamera.radius;
-      // Switch to perspective camera immediately for smooth transition
-      scene.activeCamera = perspectiveCamera;
-    } else {
-      // Already using perspective camera
-      startAlpha = perspectiveCamera.alpha;
-      startBeta = perspectiveCamera.beta;
-      startRadius = perspectiveCamera.radius;
-    }
+    // Only perspective camera used now - use current values
+    startAlpha = perspectiveCamera.alpha;
+    startBeta = perspectiveCamera.beta;
+    startRadius = perspectiveCamera.radius;
     
     // Create smooth transition animations with cubic easing
     const alphaAnimation = Animation.CreateAndStartAnimation(
