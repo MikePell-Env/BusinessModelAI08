@@ -40,10 +40,8 @@ import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
 import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
-// REMOVED: SceneSetup replaced with SceneSetupAdapter
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
-// REMOVED: ViewTransitionManager integrated into CanvasManager
-// REMOVED: MaterialManager - using direct property modification instead
+
 import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 import { MODEL_POSITIONS, CAMERA_SETTINGS, MATERIAL_COLORS, TRANSFORM_SETTINGS, SCENE_DIMENSIONS } from './Canvas3DBabylon/constants/BMCConstants';
 import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabelTexture } from './Canvas3DBabylon/utils/BMCUtilities';
@@ -205,7 +203,6 @@ class UnifiedBMCTransformSystem {
   }
 }
 
-// REMOVED: Legacy BMCSectionController - replaced by unified BMC system
 
 // Standard grid positions moved to constants file
 
@@ -220,15 +217,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const rootMeshRef = useRef<AbstractMesh | null>(null);
   const orthoEventHandlersRef = useRef<any>(null);
   const animationManagerRef = useRef<BabylonAnimationManager | null>(null);
-  // REMOVED: MaterialManager - using direct property modification instead
+  
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
-  // REMOVED: viewTransitionRef - functionality integrated into CanvasManager
   const [showBulletText, setShowBulletText] = useState(false); // DISABLED: Content labels experiment hidden
   
   // UNIFIED SYSTEM: Single managers replacing competing systems  
   const unifiedSceneRef = useRef<SceneSetupAdapter | null>(null);
-  // REMOVED: Unified camera system - using simple direct cameras
   const { 
     saveCamera3DState, 
     getCamera3DState, 
@@ -247,7 +242,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   
   debugLog.verbose('camera', `Canvas3DBabylon: isOrthographic from useCanvas = ${isOrthographic}`);
   
-  // REMOVED: Unified transformation system - simplified for reliability
   
   // REMOVED: Old content panels system - now using clean billboard panel system
   
@@ -2507,11 +2501,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0); // 80% of 2x size (2.0 * 0.8 = 1.6, 2.6 * 0.8 = 2.08)
             
             console.log(`✅ Revenue Streams label plane created at position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
-            console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
-            console.log(`🔍 Label scale: (${labelPlane.scaling.x.toFixed(3)}, ${labelPlane.scaling.y.toFixed(3)}, ${labelPlane.scaling.z.toFixed(3)})`);
-            console.log(`🔍 Label dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}`);
+            // Label rotation configured
+            // Label scale configured
+            // Label dimensions calculated
             
-            console.log(`🎨 Revenue Streams Mesh ${index}: ${mesh.name || 'unnamed'} configured`);
+            // Revenue Streams mesh configured
           }
         });
         
@@ -2606,8 +2600,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             const labelWidth = size.x * 0.65;
             const labelHeight = (labelWidth * 0.25) * 2.0;
             console.log(`Cost Structure Label Dimensions: ${labelWidth} x ${labelHeight}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
-            console.log(`🔍 Cost Structure mesh center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
-            console.log(`🔍 Cost Structure mesh size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
+            // Cost Structure mesh center calculated
+            // Cost Structure mesh size calculated
             
             const labelPlane = MeshBuilder.CreatePlane("costStructureLabel", {
               width: labelWidth,
@@ -2653,11 +2647,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
             labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
             
             console.log(`✅ Cost Structure label plane created at position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
-            console.log(`🔍 Label rotation: (${labelPlane.rotation.x.toFixed(3)}, ${labelPlane.rotation.y.toFixed(3)}, ${labelPlane.rotation.z.toFixed(3)})`);
-            console.log(`🔍 Label scale: (${labelPlane.scaling.x.toFixed(3)}, ${labelPlane.scaling.y.toFixed(3)}, ${labelPlane.scaling.z.toFixed(3)})`);
-            console.log(`🔍 Label dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}`);
+            // Label rotation configured
+            // Label scale configured
+            // Label dimensions calculated
             
-            console.log(`🎨 Cost Structure Mesh ${index}: ${mesh.name || 'unnamed'} configured`);
+            // Cost Structure mesh configured
           }
         });
         
