@@ -784,8 +784,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("🎯 Scene initialized with SceneSetupAdapter");
 
     // CLEAN START: Create TWO cameras - perspective and orthographic
-    // Camera positioned using current preset (defaults to PERSPECTIVE_LEFT)
+    // Camera positioned using current preset (defaults to PERSPECTIVE_RIGHT)
     const currentPreset = CAMERA_PRESETS[currentCameraPreset];
+    console.log(`📷 Initializing camera with preset: ${currentCameraPreset}`, currentPreset);
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
       currentPreset.alpha,     // Alpha from preset
