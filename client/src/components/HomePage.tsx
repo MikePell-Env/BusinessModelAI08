@@ -52,6 +52,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
         onNavigateHome={() => setShowCanvas(false)}
         onNavigateExplore={onNavigateExplore}
         onNavigateOverview={onNavigateOverview}
+        onNavigateAbout={onNavigateAbout}
         currentPage={currentPage}
       />
     );
