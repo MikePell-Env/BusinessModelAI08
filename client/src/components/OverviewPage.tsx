@@ -295,7 +295,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                     {/* What If Card */}
                     <div className="cursor-pointer hover:scale-105 transition-transform duration-200">
                       <img 
-                        src="/button_TM_blueprint_1756235684344.png" 
+                        src="/button_TM_blueprint_1756235860370.png" 
                         alt="What If?" 
                         className="w-full h-auto border border-black"
                       />
