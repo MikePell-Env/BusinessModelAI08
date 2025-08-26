@@ -24,6 +24,26 @@ export const CAMERA_SETTINGS = {
   PERSPECTIVE_BETA: Math.PI / 4,
 } as const;
 
+// Camera Presets for 3D View
+export const CAMERA_PRESETS = {
+  PERSPECTIVE_LEFT: {
+    alpha: Math.PI/2 + Math.PI/12,  // Current default (left side view)
+    beta: Math.PI/6,
+    radius: 40
+  },
+  PERSPECTIVE_RIGHT: {
+    alpha: -Math.PI/2 - Math.PI/12, // Mirror of left (right side view)  
+    beta: Math.PI/6,
+    radius: 40
+  },
+  TOP: {
+    alpha: 0,
+    beta: 0,
+    radius: 40,
+    useTopViewCamera: true // Special flag to use the orthographic camera
+  }
+} as const;
+
 // Material Colors
 export const MATERIAL_COLORS = {
   // BMC Section Colors
