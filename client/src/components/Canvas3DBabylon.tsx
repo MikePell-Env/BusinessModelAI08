@@ -43,7 +43,7 @@ import { debugLog } from '@/lib/debug/DebugLogger';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
 
 import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
-import { MODEL_POSITIONS, CAMERA_SETTINGS, MATERIAL_COLORS, TRANSFORM_SETTINGS, SCENE_DIMENSIONS } from './Canvas3DBabylon/constants/BMCConstants';
+import { MODEL_POSITIONS, CAMERA_SETTINGS, MATERIAL_COLORS, TRANSFORM_SETTINGS, SCENE_DIMENSIONS, CAMERA_PRESETS } from './Canvas3DBabylon/constants/BMCConstants';
 import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabelTexture } from './Canvas3DBabylon/utils/BMCUtilities';
 
 // UNIFIED SYSTEM: Replace competing managers with unified architecture
@@ -221,6 +221,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
   const [showBulletText, setShowBulletText] = useState(false); // DISABLED: Content labels experiment hidden
+  
+  // Camera preset state
+  const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP'>('PERSPECTIVE_LEFT');
+  
+  // Camera preset switching function
+  const switchCameraPreset = (preset: 'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP') => {
+    setCurrentCameraPreset(preset);
+    
+    if (!cameraRef.current || !orthoCameraRef.current || !sceneRef.current) return;
+    
+    const presetConfig = CAMERA_PRESETS[preset];
+    
+    if (preset === 'TOP') {
+      // Switch to orthographic camera (same as 3D Top view)
+      sceneRef.current.activeCamera = orthoCameraRef.current;
+      console.log(`📷 Camera preset switched to: ${preset} (orthographic)`);
+    } else {
+      // Use perspective camera with preset position
+      const perspectiveCamera = cameraRef.current;
+      perspectiveCamera.alpha = presetConfig.alpha;
+      perspectiveCamera.beta = presetConfig.beta;
+      perspectiveCamera.radius = presetConfig.radius;
+      
+      // Switch to perspective camera
+      sceneRef.current.activeCamera = perspectiveCamera;
+      console.log(`📷 Camera preset switched to: ${preset} (alpha: ${presetConfig.alpha.toFixed(3)}, beta: ${presetConfig.beta.toFixed(3)})`);
+    }
+  };
   
   // UNIFIED SYSTEM: Single managers replacing competing systems  
   const unifiedSceneRef = useRef<SceneSetupAdapter | null>(null);
@@ -687,12 +715,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
     console.log("🎯 Scene initialized with SceneSetupAdapter");
 
     // CLEAN START: Create TWO cameras - perspective and orthographic
-    // Camera positioned to center the tilted scene in window
+    // Camera positioned using current preset (defaults to PERSPECTIVE_LEFT)
+    const currentPreset = CAMERA_PRESETS[currentCameraPreset];
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
-      Math.PI/2 + Math.PI/12,  // +90° + 15° horizontal (slight additional rotation)
-      Math.PI/6,               // 30° vertical angle for better view of tilted scene
-      55,                      // Distance increased to show whole canvas
+      currentPreset.alpha,     // Alpha from preset
+      currentPreset.beta,      // Beta from preset  
+      currentPreset.radius,    // Radius from preset
       new Vector3(0, 0, 0),    // Look at scene center
       scene
     );
@@ -3103,6 +3132,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({ canvas, isTran
       {/* Header - centered horizontally in upper area */}
       <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-10">
         <h1 className="text-xl font-medium text-gray-900" style={{ fontFamily: 'Segoe UI, sans-serif' }}>{canvas.name}</h1>
+      </div>
+      
+      {/* Camera Preset Buttons - Top Left */}
+      <div className="absolute top-5 left-5 z-10">
+        <div className="flex gap-2">
+          <button
+            onClick={() => switchCameraPreset('PERSPECTIVE_LEFT')}
+            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+              currentCameraPreset === 'PERSPECTIVE_LEFT' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Left View
+          </button>
+          <button
+            onClick={() => switchCameraPreset('PERSPECTIVE_RIGHT')}
+            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+              currentCameraPreset === 'PERSPECTIVE_RIGHT' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Right View
+          </button>
+          <button
+            onClick={() => switchCameraPreset('TOP')}
+            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+              currentCameraPreset === 'TOP' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Top View
+          </button>
+        </div>
       </div>
       
       {/* Time Slider HUD - Floating at bottom with transparent background */}
