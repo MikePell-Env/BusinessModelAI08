@@ -31,10 +31,9 @@ export const AboutPage: React.FC<AboutPageProps> = ({
         <div className="w-1/2 text-left space-y-6" style={{ marginTop: '-50px' }}>
           <div className="mb-4">
             <img 
-              src="/Envisioner_color_background_1756233404593.jpg" 
+              src="/images/envisioner-header.jpg" 
               alt="Envisioner Logo" 
-              className="h-auto"
-              style={{ width: '450px' }}
+              className="h-auto w-full"
             />
           </div>
           <div>
