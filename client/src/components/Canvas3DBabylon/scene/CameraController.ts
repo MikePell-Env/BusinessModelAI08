@@ -103,8 +103,9 @@ export class CameraController {
   }
 
   public switchToMode(mode: CameraMode): void {
-    // Save current camera state
-    this.saveCameraState();
+    // FIXED: Don't save camera state during mode switches to prevent interfering with TOP preset
+    // The main Canvas3DBabylon.tsx now handles camera state management properly
+    console.log('🔧 CameraController: Skipping camera state save to prevent TOP preset conflicts');
 
     // Switch camera based on mode
     if (mode === '3D Top') {
@@ -119,15 +120,10 @@ export class CameraController {
     } else {
       this.scene.activeCamera = this.perspectiveCamera;
 
-      // Restore saved state if available
-      const savedState = this.savedStates.get('3D View');
-      if (savedState) {
-        this.perspectiveCamera.setPosition(savedState.position);
-        this.perspectiveCamera.setTarget(savedState.target);
-        if (savedState.alpha !== undefined) this.perspectiveCamera.alpha = savedState.alpha;
-        if (savedState.beta !== undefined) this.perspectiveCamera.beta = savedState.beta;
-        if (savedState.radius !== undefined) this.perspectiveCamera.radius = savedState.radius;
-      }
+      // FIXED: Don't restore saved state - let the main Canvas3DBabylon.tsx handle camera presets
+      // The main component now properly manages TOP preset without interference
+      // Restoration was overriding the TOP preset with old saved values
+      console.log('🔧 CameraController: Skipping state restoration to preserve TOP preset initialization');
 
       debugLog.info('camera', 'Switched to 3D View (perspective)');
     }
