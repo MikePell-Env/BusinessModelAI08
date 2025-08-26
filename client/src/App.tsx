@@ -2,6 +2,7 @@ import React, { Suspense, useState, useEffect } from "react";
 import { OverviewPage } from "./components/OverviewPage";
 import { AboutPage } from "./components/AboutPage";
 import { AzureCredentialSetup } from "./components/AzureCredentialSetup";
+import { registerGlobalNavigation } from "./lib/centralizedNavigation";
 import "@fontsource/inter";
 
 // Lazy load heavy components to avoid blocking Overview
@@ -39,7 +40,30 @@ function App() {
   const navigateToHome = React.useCallback(() => setCurrentPage('home'), []);
   const navigateToExplore = React.useCallback(() => setCurrentPage('explore'), []);
   const navigateToOverview = React.useCallback(() => setCurrentPage('overview'), []);
-  const navigateToAbout = React.useCallback(() => setCurrentPage('about'), []);
+  const navigateToAbout = React.useCallback(() => {
+    console.log('🔍 App: navigateToAbout called, setting page to about');
+    setCurrentPage('about');
+  }, []);
+
+  // Register global navigation and emergency navigation handler
+  useEffect(() => {
+    registerGlobalNavigation((page: 'home' | 'explore' | 'overview' | 'about') => {
+      console.log(`🌐 Global navigation: ${page}`);
+      setCurrentPage(page);
+    });
+
+    // Emergency navigation event listener
+    const handleEmergencyNavigation = (event: CustomEvent) => {
+      console.log('🚨 Emergency navigation triggered:', event.detail.page);
+      setCurrentPage(event.detail.page);
+    };
+
+    window.addEventListener('emergencyNavigation', handleEmergencyNavigation as EventListener);
+    
+    return () => {
+      window.removeEventListener('emergencyNavigation', handleEmergencyNavigation as EventListener);
+    };
+  }, []);
 
   const handleCredentialsSubmit = async (apiKey: string, endpoint: string) => {
     try {

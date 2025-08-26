@@ -1,4 +1,5 @@
 import React from 'react';
+import { centralizedNavigation } from '../lib/centralizedNavigation';
 
 interface HeaderProps {
   onNavigateHome?: () => void;
@@ -47,7 +48,15 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onNavigateExplor
             Overview
           </button>
           <button
-            onClick={onNavigateAbout}
+            onClick={() => {
+              console.log('🔍 Header: About button clicked, onNavigateAbout:', !!onNavigateAbout);
+              if (onNavigateAbout) {
+                onNavigateAbout();
+              } else {
+                console.error('❌ Header: onNavigateAbout is undefined! Using centralized navigation...');
+                centralizedNavigation.navigateToAbout();
+              }
+            }}
             className={`hover:text-gray-300 transition-colors text-sm font-medium ${
               currentPage === 'about' ? 'text-blue-400' : 'text-white'
             }`}
