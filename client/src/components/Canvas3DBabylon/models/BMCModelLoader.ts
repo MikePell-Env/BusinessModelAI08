@@ -100,13 +100,13 @@ export class BMCModelLoader {
       result.meshes.forEach((mesh) => {
         console.log(`🔍 Found mesh: "${mesh.name}"`);
         
-        // Move P&L objects down slightly to rest on base objects
+        // Move P&L objects up to stack properly on base objects
         if (mesh.name === "RevenuePL") {
-          mesh.position.y -= 0.05; // Move down to rest on Revenue
-          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.05)`);
+          mesh.position.y += 0.1; // Move up to stack on Revenue
+          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved up 0.1)`);
         } else if (mesh.name === "ExpensesPL") {
-          mesh.position.y -= 0.05; // Move down to rest on Expenses
-          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.05)`);
+          mesh.position.y += 0.1; // Move up to stack on Expenses
+          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved up 0.1)`);
         }
       });
       
