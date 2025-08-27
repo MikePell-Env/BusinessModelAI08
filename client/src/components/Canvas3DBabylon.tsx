@@ -2457,31 +2457,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (mesh.name !== "__root__") {
               console.log(`🔧 Creating TransformNode wrapper for Financial object: ${mesh.name}`);
               
-              // Create TransformNode for this Financial object without changing position
+              // Create TransformNode wrapper WITHOUT changing existing transforms
               const transformNode = new TransformNode(`${mesh.name}Transform`, scene);
               
-              // Store current mesh world position before parenting
-              const currentWorldPosition = mesh.getAbsolutePosition().clone();
-              const currentWorldRotation = mesh.rotation.clone();
-              const currentWorldScaling = mesh.scaling.clone();
+              // Store mesh's current local transforms (these are already correct)
+              const currentPosition = mesh.position.clone();
+              const currentRotation = mesh.rotation.clone();  
+              const currentScaling = mesh.scaling.clone();
+              const currentParent = mesh.parent;
               
-              // Parent mesh to TransformNode
+              // Set TransformNode to identity and parent it to same master transform
+              transformNode.position = Vector3.Zero();
+              transformNode.rotation = Vector3.Zero();
+              transformNode.scaling = Vector3.One();
+              transformNode.parent = currentParent; // Same parent as mesh (master transform)
+              
+              // Parent mesh to TransformNode and restore its transforms
               mesh.parent = transformNode;
-              
-              // Restore exact positions after parenting to ensure no movement
-              transformNode.position = currentWorldPosition;
-              transformNode.rotation = currentWorldRotation; 
-              transformNode.scaling = currentWorldScaling;
-              
-              // Reset mesh local transform since TransformNode now handles world transform
-              mesh.position = Vector3.Zero();
-              mesh.rotation = Vector3.Zero();
-              mesh.scaling = Vector3.One();
+              mesh.position = currentPosition;
+              mesh.rotation = currentRotation;
+              mesh.scaling = currentScaling;
               
               // Store TransformNode reference on mesh for future access
               (mesh as any).bmcTransformNode = transformNode;
               
-              console.log(`✅ ${mesh.name} wrapped in TransformNode at position (${transformNode.position.x.toFixed(3)}, ${transformNode.position.y.toFixed(3)}, ${transformNode.position.z.toFixed(3)})`);
+              console.log(`✅ ${mesh.name} wrapped in TransformNode preserving local transform: pos(${currentPosition.x.toFixed(3)}, ${currentPosition.y.toFixed(3)}, ${currentPosition.z.toFixed(3)}) scale(${currentScaling.x.toFixed(3)}, ${currentScaling.y.toFixed(3)}, ${currentScaling.z.toFixed(3)})`);
               
               console.log(`🏷️ Creating front-facing label for Financial object: ${mesh.name}`);
               
