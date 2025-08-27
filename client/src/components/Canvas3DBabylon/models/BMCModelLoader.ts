@@ -96,11 +96,13 @@ export class BMCModelLoader {
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(1, 1, 1);
       
-      // Adjust positions and width for financial objects
+      // FINALIZED POSITIONING: Adjust positions and width for financial objects
+      // Configuration: 20% width reduction (0.8 scaling) with natural centering (0.0 positioning)
+      // This creates optimal spacing between Revenue and Expenses groups while maintaining visual balance
       result.meshes.forEach((mesh) => {
         console.log(`🔍 Found mesh: "${mesh.name}"`);
         
-        // Move P&L objects down to nest properly and reduce width by 20%
+        // Move P&L objects down to nest properly and apply finalized width/positioning
         if (mesh.name === "RevenuePL") {
           mesh.position.y -= 0.03; // Move down to nest in Revenue
           console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.03)`);
