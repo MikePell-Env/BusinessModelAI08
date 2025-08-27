@@ -260,6 +260,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       const isFirstTimeForThisTemplate = !hasInitializedTemplate;
       const currentState = getCamera3DState();
       
+      console.log(`🔍 DEBUG: Template=${template.name}, isFirstTime=${isFirstTimeForThisTemplate}, hasInitialized=${hasInitializedTemplate}, currentState=${JSON.stringify(currentState)}`);
+      
       if (!isFirstTimeForThisTemplate && currentState && (currentState.alpha !== 0 || currentState.beta !== 0 || currentState.radius !== 0)) {
         // Template switch: preserve current camera position
         console.log("🔄 Template switch: Preserving current camera position");
@@ -270,7 +272,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
         setCurrentCameraPreset(newPreset);
         setShouldAutoAnimate(true); // Enable auto-animation for first instantiation
-        console.log(`🎬 First instantiation: Setting default preset ${newPreset} for ${template.name}`);
+        console.log(`🎬 First instantiation: Setting default preset ${newPreset} for ${template.name} (shouldAutoAnimate=true)`);
       }
       setHasInitializedTemplate(template.name);
     }
