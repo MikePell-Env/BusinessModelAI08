@@ -7,7 +7,6 @@ This project is a web application for creating and visualizing business model ca
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
-- **January 27, 2025**: Implemented Financial Transform Node Architecture with CRITICAL ANCHORING SYSTEM - Revenue Group: Revenue (BOTTOM-ANCHORED, 80%), RevenuePL (TOP-ANCHORED, 20%); Expenses Group: Expenses (BOTTOM-ANCHORED, 80%), ExpensesPL (TOP-ANCHORED, 20%). Bottom-anchored objects have fixed bottom faces that never move during resize (top face moves), top-anchored objects have fixed top faces that never move during resize (bottom face moves). Both groups maintain equal total heights with proportional scaling and aspect-ratio preserved labels.
 - **January 27, 2025**: Finalized Financials template positioning - 20% width reduction (0.8 X-scaling) with natural centering (0.0 positioning) for all objects. Configuration provides optimal spacing between Revenue and Expenses groups while maintaining visual balance. Revenue/RevenuePL positioned left of center, Expenses/ExpensesPL positioned right of center, all with consistent front-facing labels and proper color scheme (Revenue: green, Loss: gold, Expenses: deep red, Profit: black).
 - **January 26, 2025**: Updated camera preset system with optimized elevated perspective - PERSPECTIVE_RIGHT (alpha: π/2 + π/12, beta: π/4.5, radius: 60) now provides elevated 40° tilt angle for comprehensive canvas overview. Added auto-switch feature: 3D View loads with TOP preset then automatically transitions to PERSPECTIVE_RIGHT after 2 seconds for optimal user experience.
 - **January 26, 2025**: Finalized camera preset system with three optimized views - PERSPECTIVE_RIGHT (alpha: π/2 + π/12, beta: π/6, radius: 55), PERSPECTIVE_LEFT (alpha: π/2 + π/12 - π/6, beta: π/6 + π/9, radius: 55), and TOP (alpha: 0, beta: 0, radius: 40). Left view provides 30° rotation with 20° tilt for optimal label readability.
@@ -43,15 +42,6 @@ The application employs a full-stack monorepo architecture, separating client an
 
 ### Key Components & Technical Details
 - **Canvas Visualization System**: Features traditional 2D grid and an advanced perspective-only 3D system. The 3D system uses a single GLB model with 7 interactive sections, supports dynamic object height manipulation, and an interactive selection system. Camera preset switching provides three optimized viewing angles with smooth transitions. Auto-switch behavior enhances initial user experience. Additional GLB instances are used for Revenue Streams and Cost Structure sections.
-
-#### Financial Template Architecture
-**CRITICAL ANCHORING REQUIREMENTS (NEVER CHANGE):**
-- **Revenue Group (Left)**: Revenue (BOTTOM-ANCHORED, 80% of group height), RevenuePL (TOP-ANCHORED, 20% of group height)
-- **Expenses Group (Right)**: Expenses (BOTTOM-ANCHORED, 80% of group height), ExpensesPL (TOP-ANCHORED, 20% of group height)
-- **Anchoring Behavior**: BOTTOM-ANCHORED objects have fixed bottom faces (Y=0) and expanding top faces during resize. TOP-ANCHORED objects have fixed top faces (Y=groupHeight) and moving bottom faces during resize.
-- **Equal Group Heights**: Both groups always maintain identical total heights through proportional scaling
-- **Aspect-Ratio Preservation**: Labels maintain original proportions during mesh scaling operations
-- **Transform Node Hierarchy**: Master → Group Transforms → Object Transforms → Meshes & Labels
 - **Coordinate System Workarounds**: The system handles X-axis inversion for separate GLB models. Revenue Streams positioned at X=-0.221 (appears right) and Cost Structure at X=-10.1 (appears left). Main BMC model uses transformNode scaling while separate GLBs use direct mesh scaling.
 - **AI Chat Integration**: Utilizes GPT-4o for insights and recommendations, providing a real-time, context-aware conversational interface. Intelligent voice-activated 3D view switching is implemented through custom event systems.
 - **Data Management**: Employs shared TypeScript types for consistent data structures. Canvas elements are defined for the nine core BMC sections, with sample data loaded from JSON and support for canvas metadata and version control.
