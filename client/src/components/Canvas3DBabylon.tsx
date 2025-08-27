@@ -235,13 +235,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP'
   );
   
-  // DISABLED: Auto camera preset switching when template changes
-  // This was causing the ground plane to shift during template transitions
-  // Camera preset now only changes via manual button clicks for steady transitions
-  // useEffect(() => {
-  //   const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
-  //   setCurrentCameraPreset(newPreset);
-  // }, [template.name]);
+  // Auto camera preset switching on initial template load only
+  // This ensures the proper starting preset for first-time template loading
+  useEffect(() => {
+    const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
+    setCurrentCameraPreset(newPreset);
+  }, [template.name]);
   
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
@@ -2918,11 +2917,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     }, 1000);
 
-    // DISABLED AUTO-SWITCH: For steady ground plane transitions
-    // Auto-switch was causing camera movement during template transitions
-    // Users can manually click view buttons to change camera presets
-    // Original logic: After 2 seconds, automatically switch from TOP view to RIGHT view
-    if (false && (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT')) {
+    // AUTO-SWITCH: After 3 seconds, automatically switch to PERSPECTIVE_RIGHT on first load
+    // Both Business Model (TOP) and Financials (FRONT) auto-animate to PERSPECTIVE_RIGHT
+    // Only happens on very first instantiation, not during template transitions
+    if (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') {
       // Flag to track if user has manually moved camera - EASY TO REVERT: just remove this flag and the condition below
       let userHasMovedCamera = false;
       
@@ -2958,17 +2956,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       setTimeout(() => {
         // Check if user moved camera before auto-switching
         if (!userHasMovedCamera) {
-          // Auto-switch logic: Business Model uses PERSPECTIVE_RIGHT, Financials stays on FRONT
-          if (template.name.toLowerCase() === 'financials') {
-            console.log("🎬 Financials template: staying on FRONT view (no auto-switch)");
-          } else {
-            console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds");
-            switchCameraPreset('PERSPECTIVE_RIGHT');
-          }
+          // Auto-switch logic: Both templates auto-animate to PERSPECTIVE_RIGHT on first load
+          const fromView = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
+          console.log(`🎬 Auto-switching camera from ${fromView} to PERSPECTIVE_RIGHT after 3 seconds`);
+          switchCameraPreset('PERSPECTIVE_RIGHT');
         } else {
           console.log("🎬 Auto-switch cancelled - user moved camera manually");
         }
-      }, 2000);
+      }, 3000); // 3 seconds
     }
 
     // Initialize Animation Manager (Material Manager already initialized above)
