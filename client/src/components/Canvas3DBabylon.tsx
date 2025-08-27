@@ -818,17 +818,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     const currentPreset = CAMERA_PRESETS[currentCameraPreset];
     const savedState = getCamera3DState();
     
-    // Use saved camera state if available and not switching to first-time template
+    // Use saved camera state if available and this is a template switch (not first instantiation)
     let cameraAlpha = currentPreset.alpha;
     let cameraBeta = currentPreset.beta; 
     let cameraRadius = currentPreset.radius;
     
-    if (savedState && hasInitializedTemplate && 
+    // Only restore saved state if we had a previous template initialized and have valid saved state
+    const hadPreviousTemplate = hasInitializedTemplate && hasInitializedTemplate !== template.name;
+    if (savedState && hadPreviousTemplate && 
         (savedState.alpha !== 0 || savedState.beta !== 0 || savedState.radius !== 0)) {
       cameraAlpha = savedState.alpha;
       cameraBeta = savedState.beta;
-      cameraRadius = savedState.radius;
+      cameraRadius = savedState.radius as 60 | 55; // Type assertion for radius
       console.log(`🔄 Restoring saved camera: α=${cameraAlpha.toFixed(2)}, β=${cameraBeta.toFixed(2)}, r=${cameraRadius.toFixed(2)}`);
+    } else {
+      console.log(`🎬 Using preset camera for ${hasInitializedTemplate ? 'first' : 'initial'} instantiation: ${currentCameraPreset}`);
     }
     
     // Use scene center (0,0,0) for all presets - same central pivot point for all templates
