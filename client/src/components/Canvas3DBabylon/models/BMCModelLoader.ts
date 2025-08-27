@@ -102,12 +102,17 @@ export class BMCModelLoader {
       result.meshes.forEach((mesh) => {
         console.log(`🔍 Found mesh: "${mesh.name}"`);
         
-        // Move P&L objects down to nest properly and apply finalized width/positioning
+        // Move P&L objects down to nest properly and apply finalized width/positioning with height adjustments
         if (mesh.name === "RevenuePL") {
+          // Loss (RevenuePL): Make zero height, top aligned to current position
+          const originalY = mesh.position.y;
           mesh.position.y -= 0.03; // Move down to nest in Revenue
-          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.03)`);
+          mesh.scaling.y = 0.01; // Flatten to near-zero height
+          // Adjust Y position to keep top edge at same position
+          mesh.position.y = originalY - 0.03; // Keep top aligned
+          console.log(`📦 RevenuePL (Loss): Flattened to zero height, top aligned`);
           
-          // Reduce width by 20% and stay on left side of divider
+          // Reduce width by 20%
           mesh.scaling.x = 0.8; // 20% reduction in width
           mesh.position.x += 0.00; // Move closer to center
           console.log(`📏 RevenuePL: Reduced width to 80%, moved closer to center`);
@@ -115,17 +120,22 @@ export class BMCModelLoader {
           mesh.position.y -= 0.03; // Move down to nest in Expenses
           console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.03)`);
           
-          // Reduce width by 20% and stay on right side of divider
+          // Reduce width by 20%
           mesh.scaling.x = 0.8; // 20% reduction in width
           mesh.position.x -= 0.00; // Move closer to center
           console.log(`📏 ExpensesPL: Reduced width to 80%, moved closer to center`);
         } else if (mesh.name === "Revenue") {
-          // Reduce width by 20% and stay on left side of divider
+          // Revenue: Double height with bottom anchored to ground
+          mesh.scaling.y = 2.0; // Double the height
+          mesh.position.y += 0.5; // Move up to keep bottom anchored (half of added height)
+          console.log(`📏 Revenue: Doubled height (2x), bottom anchored to ground`);
+          
+          // Reduce width by 20%
           mesh.scaling.x = 0.8; // 20% reduction in width
           mesh.position.x += 0.00; // Move closer to center
           console.log(`📏 Revenue: Reduced width to 80%, moved closer to center`);
         } else if (mesh.name === "Expenses") {
-          // Reduce width by 20% and stay on right side of divider
+          // Reduce width by 20%
           mesh.scaling.x = 0.8; // 20% reduction in width
           mesh.position.x -= 0.00; // Move closer to center
           console.log(`📏 Expenses: Reduced width to 80%, moved closer to center`);
