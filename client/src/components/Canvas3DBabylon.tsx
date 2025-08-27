@@ -240,7 +240,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   const [hasInitializedTemplate, setHasInitializedTemplate] = useState<string | null>(null);
   
   // Track if this specific template should auto-animate (first time only)
-  const [shouldAutoAnimate, setShouldAutoAnimate] = useState(false);
+  const shouldAutoAnimateRef = useRef(false);
   
   useEffect(() => {
     // Only set initial preset for first-time template loading, not during transitions
@@ -260,19 +260,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       const isFirstTimeForThisTemplate = !hasInitializedTemplate;
       const currentState = getCamera3DState();
       
-      console.log(`🔍 DEBUG: Template=${template.name}, isFirstTime=${isFirstTimeForThisTemplate}, hasInitialized=${hasInitializedTemplate}, currentState=${JSON.stringify(currentState)}`);
-      
       if (!isFirstTimeForThisTemplate && currentState && (currentState.alpha !== 0 || currentState.beta !== 0 || currentState.radius !== 0)) {
         // Template switch: preserve current camera position
         console.log("🔄 Template switch: Preserving current camera position");
-        setShouldAutoAnimate(false); // No auto-animation for template switches
+        shouldAutoAnimateRef.current = false; // No auto-animation for template switches
         // Don't change currentCameraPreset - keep the current view
       } else {
         // First time instantiation: set default preset and allow auto-animation
         const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
         setCurrentCameraPreset(newPreset);
-        setShouldAutoAnimate(true); // Enable auto-animation for first instantiation
-        console.log(`🎬 First instantiation: Setting default preset ${newPreset} for ${template.name} (shouldAutoAnimate=true)`);
+        shouldAutoAnimateRef.current = true; // Enable auto-animation for first instantiation
+        console.log(`🎬 First instantiation: Setting default preset ${newPreset} for ${template.name}`);
       }
       setHasInitializedTemplate(template.name);
     }
@@ -3000,13 +2998,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // AUTO-SWITCH: After 3 seconds, automatically switch on VERY FIRST instantiation only
     // Business Model (TOP) -> PERSPECTIVE_RIGHT, Financials (FRONT) -> FRONT  
     // This should NEVER happen when switching between templates - only on first-ever load
-    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && shouldAutoAnimate) {
+    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && shouldAutoAnimateRef.current) {
       console.log(`🎬 First-time instantiation: Will auto-animate ${template.name} after 3 seconds`);
-    } else if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && !shouldAutoAnimate) {
+    } else if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && !shouldAutoAnimateRef.current) {
       console.log(`🔄 Template switch: Skipping auto-animation for ${template.name} (preserving camera position)`);
     }
     
-    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && shouldAutoAnimate) {
+    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && shouldAutoAnimateRef.current) {
       // Flag to track if user has manually moved camera - EASY TO REVERT: just remove this flag and the condition below
       let userHasMovedCamera = false;
       
