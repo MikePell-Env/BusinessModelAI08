@@ -2482,44 +2482,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   return; // Skip if no texture mapping
               }
               
-              // Use consistent label dimensions for all Financial objects to prevent scaling distortion
-              const labelWidth = 0.54; // Fixed consistent width
-              let labelHeight;
+              // Calculate label size based on actual mesh width - 20% bigger than current = 0.51
+              const labelWidth = size.x * 0.51; // 20% bigger than 0.425
               
-              // Set proper aspect ratio for each label type based on actual texture proportions
-              switch (mesh.name) {
-                case "Revenue":
-                  labelHeight = 0.19; // Revenue texture has different proportions
-                  break;
-                case "Expenses":
-                  labelHeight = 0.20; // Standard height
-                  break;
-                case "RevenuePL":
-                  labelHeight = 0.20; // Standard height (Loss label)
-                  break;
-                case "ExpensesPL":
-                  labelHeight = 0.20; // Standard height (Profit label)
-                  break;
-                default:
-                  labelHeight = 0.20; // Default
+              // Fix Revenue label stretching by using proper aspect ratio for each label type
+              let labelHeight;
+              if (mesh.name === "Revenue") {
+                // Revenue label needs specific aspect ratio to prevent stretching
+                labelHeight = labelWidth * 0.35; // Proper aspect ratio for Revenue texture
+                console.log(`${mesh.name} Label (FIXED): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
+              } else {
+                // Other Financial labels use standard calculation
+                labelHeight = (labelWidth * 0.25) * 1.5;
+                console.log(`${mesh.name} Label: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
               }
               
-              console.log(`${mesh.name} Label (CONSISTENT): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
-              
-              // Create the label plane directly in world coordinates - no carrier needed
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
                 height: labelHeight
               }, scene);
               
-              // Calculate the front face position based on bounding box
-              const boundingBox = boundingInfo.boundingBox;
-              const frontZ = boundingBox.minimum.z; // Front face is at minimum Z
-              
-              // Position label on the front face of each mesh
+              // Position on front face (negative Z direction from center)
               labelPlane.position.x = center.x;
               labelPlane.position.y = center.y;
-              labelPlane.position.z = frontZ - 0.01; // Just in front of the front face
+              labelPlane.position.z = center.z - (size.z * 0.51); // Just in front based on actual mesh depth
+              
+              // No rotation needed - label faces forward by default
               labelPlane.rotation = Vector3.Zero();
               
               // Create material with texture
@@ -2536,10 +2524,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelMaterial.backFaceCulling = false; // Visible from both sides
               
               labelPlane.material = labelMaterial;
-              // DON'T parent to mesh - keep independent to avoid scaling inheritance
+              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
               
-              console.log(`✅ ${mesh.name} independent label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
             }
           });
         }
