@@ -105,24 +105,28 @@ export class BMCModelLoader {
           mesh.position.y -= 0.03; // Move down to nest in Revenue
           console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.03)`);
           
-          // Reduce width by 20% and center naturally
+          // Reduce width by 20% and move toward center
           mesh.scaling.x = 0.8; // 20% reduction in width
-          console.log(`📏 RevenuePL: Reduced width to 80%, naturally centered`);
+          mesh.position.x += 0.1; // Move toward center (positive X moves left in this coordinate system)
+          console.log(`📏 RevenuePL: Reduced width to 80%, moved toward center`);
         } else if (mesh.name === "ExpensesPL") {
           mesh.position.y -= 0.03; // Move down to nest in Expenses
           console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.03)`);
           
-          // Reduce width by 20% and center naturally
+          // Reduce width by 20% and move toward center
           mesh.scaling.x = 0.8; // 20% reduction in width
-          console.log(`📏 ExpensesPL: Reduced width to 80%, naturally centered`);
+          mesh.position.x -= 0.1; // Move toward center (negative X moves right in this coordinate system)
+          console.log(`📏 ExpensesPL: Reduced width to 80%, moved toward center`);
         } else if (mesh.name === "Revenue") {
-          // Reduce width by 20% and center naturally
+          // Reduce width by 20% and move toward center
           mesh.scaling.x = 0.8; // 20% reduction in width
-          console.log(`📏 Revenue: Reduced width to 80%, naturally centered`);
+          mesh.position.x += 0.1; // Move toward center (positive X moves left in this coordinate system)
+          console.log(`📏 Revenue: Reduced width to 80%, moved toward center`);
         } else if (mesh.name === "Expenses") {
-          // Reduce width by 20% and center naturally
+          // Reduce width by 20% and move toward center
           mesh.scaling.x = 0.8; // 20% reduction in width
-          console.log(`📏 Expenses: Reduced width to 80%, naturally centered`);
+          mesh.position.x -= 0.1; // Move toward center (negative X moves right in this coordinate system)
+          console.log(`📏 Expenses: Reduced width to 80%, moved toward center`);
         }
       });
       
