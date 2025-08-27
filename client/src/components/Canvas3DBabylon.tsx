@@ -388,7 +388,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     saveCamera3DState, 
     getCamera3DState, 
     is3D, 
-    isOrthographic, 
     // REPLACED: Using BMC State Manager for proper selection preservation
     // setSelectedObject, 
     // getSelectedObject, 
@@ -400,7 +399,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     bmcState
   } = useCanvas();
   
-  debugLog.verbose('camera', `Canvas3DBabylon: isOrthographic from useCanvas = ${isOrthographic}`);
+  debugLog.verbose('camera', `Canvas3DBabylon: perspective-only camera system`);
   
   
   // REMOVED: Old content panels system - now using clean billboard panel system
@@ -432,14 +431,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
   }, [bmcState]);
   
-  // Update camera preset when isOrthographic changes
-  useEffect(() => {
-    if (isOrthographic) {
-      // Switch to appropriate preset based on template
-      const preset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
-      switchCameraPreset(preset);
-    }
-  }, [isOrthographic, template.name]);
+  // Removed orthographic camera system - only perspective presets available
   
   // REMOVED: Legacy transform utilities - now handled by unified BMC system
 
@@ -1559,9 +1551,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           return; // Exit early since we've handled both selection and panel refresh
         }
         
-        // REVENUE CRASH FIX: Prevent camera conflicts during Revenue clicks in 3D Top
-        if (sectionId === "Revenue Streams" && isOrthographic) {
-          console.log("🛡️ CRASH FIX: Revenue Streams click in 3D Top - preventing camera conflicts");
+        // Revenue Streams interaction handling
+        if (sectionId === "Revenue Streams") {
+          console.log("🎯 Revenue Streams click detected");
           try {
             if (cleanBMCRef.current) {
               cleanBMCRef.current.onSelect(sectionId);
@@ -2493,7 +2485,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Calculate label size based on actual mesh width - 20% bigger than current = 0.51
               const labelWidth = size.x * 0.51; // 20% bigger than 0.425
               const labelHeight = (labelWidth * 0.25) * 1.5; // Same aspect ratio calculation
-              console.log(`${mesh.name} DEBUG: size.x=${size.x.toFixed(3)}, labelWidth=${labelWidth.toFixed(3)}, labelHeight=${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              console.log(`${mesh.name} Label: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
               
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
