@@ -2490,10 +2490,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   return; // Skip if no texture mapping
               }
               
-              // Calculate label size based on actual mesh width - 50% smaller as requested
-              const labelWidth = size.x * 0.325; // 50% smaller than previous 0.65
+              // Calculate label size based on actual mesh width - 30% bigger than 50% smaller = 0.425
+              const labelWidth = size.x * 0.425; // 30% bigger than 0.325
               const labelHeight = (labelWidth * 0.25) * 1.5; // Same aspect ratio calculation
-              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (50% smaller)`);
+              console.log(`${mesh.name} DEBUG: size.x=${size.x.toFixed(3)}, labelWidth=${labelWidth.toFixed(3)}, labelHeight=${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
               
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
