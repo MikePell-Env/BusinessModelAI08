@@ -35,12 +35,10 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   const {
     canvas,
     is3D,
-    isOrthographic,
     isTransitioning,
     error,
     loadCanvas,
     toggleView,
-    setOrthographicView,
     setError,
     pendingPowerPointFile,
     setPendingPowerPointFile
@@ -49,7 +47,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   // Envisioner type state  
   const { currentTemplate, currentType, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
   
-  console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isOrthographic=${isOrthographic}, isTransitioning=${isTransitioning}`);
+  console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isTransitioning=${isTransitioning}`);
   console.log(`🟡 Current Envisioner Type: ${currentType}, Template: ${currentTemplate.name}`);
   console.log(`🟡 Template sections count: ${currentTemplate.sections.length}`);
   console.log(`🟡 Will render: ${is3D ? 'Canvas3DBabylon' : 'Canvas2D'}`);
@@ -162,23 +160,10 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           onClick={(e) => {
             const buttonType = currentType === 'financials' ? 'FRONT' : 'TOP';
             console.log(`🟡 3D ${buttonType} BUTTON CLICKED!`);
-            console.log(`🟡 Event:`, e);
-            console.log(`🟡 isTransitioning: ${isTransitioning}`);
-            console.log(`🟡 Button disabled: ${isTransitioning}`);
-            console.log(`🟡 setOrthographicView exists: ${typeof setOrthographicView}`);
-            
-            if (!isTransitioning) {
-              console.log(`🟡 Calling setOrthographicView(true)...`);
-              setOrthographicView(true);
-              console.log(`🟡 setOrthographicView(true) completed`);
-            } else {
-              console.log(`🟡 Button disabled due to isTransitioning=true`);
-            }
+            // Orthographic view removed - only perspective camera available
           }}
           disabled={isTransitioning}
-          className={`hidden border border-gray-300 shadow-md ${
-            isOrthographic ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
-          }`}
+          className="hidden border border-gray-300 shadow-md bg-white text-gray-800 hover:bg-gray-50"
           size="sm"
         >
           <RectangleHorizontal className="w-4 h-4 mr-2" />

@@ -9,7 +9,6 @@ interface CanvasState {
   isLoading: boolean;
   error: string | null;
   is3D: boolean;
-  isOrthographic: boolean;
   isTransitioning: boolean;
   chatMessages: ChatMessage[];
   isChatOpen: boolean;
@@ -28,7 +27,6 @@ interface CanvasState {
   // Actions
   loadCanvas: (canvas: BusinessModelCanvas, isFromPowerPoint?: boolean) => void;
   toggleView: () => void;
-  setOrthographicView: (isOrtho: boolean) => void;
   updateCanvas: (updates: Partial<BusinessModelCanvas>) => void;
   addChatMessage: (message: ChatMessage) => void;
   clearChat: () => void;
@@ -79,19 +77,8 @@ export const useCanvas = create<CanvasState>()(
     toggleView: () => {
       set((state) => ({ 
         is3D: !state.is3D,
-        isOrthographic: false,
         isTransitioning: false // Always false to prevent flashing
       }));
-    },
-    
-    setOrthographicView: (isOrtho: boolean) => {
-      console.log(`🔬 BUTTON CLICKED: setOrthographicView(${isOrtho})`);
-      set({ 
-        is3D: true,
-        isOrthographic: isOrtho,
-        isTransitioning: false // Always false to prevent flashing
-      });
-      console.log(`🔬 STATE SET: is3D=true, isOrthographic=${isOrtho}`);
     },
     
     updateCanvas: (updates) => {
@@ -171,10 +158,10 @@ export const useCanvas = create<CanvasState>()(
       // Update Zustand state to match
       switch (viewMode) {
         case 'view2D':
-          set({ is3D: false, isOrthographic: false });
+          set({ is3D: false });
           break;
         case 'view3DPerspective':
-          set({ is3D: true, isOrthographic: false });
+          set({ is3D: true });
           break;
           // Removed orthographic view - only perspective available
       }
