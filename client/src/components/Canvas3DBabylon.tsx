@@ -1149,9 +1149,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       // Rotate to lie flat on the ground
       internalLabelPlane.rotation.x = Math.PI / 2;
       
-      // Create material with the new grey Internal label at 50% transparency
+      // Create material with the appropriate label based on template
       const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
-      const internalLabelTexture = new Texture("/textures/Labels_internal_grey.png", scene);
+      const texturePath = template.name.toLowerCase() === 'financials' ? "/textures/Labels_Expenses_grey.png" : "/textures/Labels_internal_grey.png";
+      const internalLabelTexture = new Texture(texturePath, scene);
       internalLabelTexture.hasAlpha = true;
       enhanceLabelTexture(internalLabelTexture);
       
@@ -1188,9 +1189,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       // Rotate to lie flat on the ground
       externalLabelPlane.rotation.x = Math.PI / 2;
       
-      // Create material with the External grey label at 50% transparency
+      // Create material with the appropriate label based on template
       const externalLabelMaterial = new StandardMaterial("externalLabelMat", scene);
-      const externalLabelTexture = new Texture("/textures/Labels_external_grey.png", scene);
+      const texturePath = template.name.toLowerCase() === 'financials' ? "/textures/Labels_Revenue_grey.png" : "/textures/Labels_external_grey.png";
+      const externalLabelTexture = new Texture(texturePath, scene);
       externalLabelTexture.hasAlpha = true;
       enhanceLabelTexture(externalLabelTexture);
       
