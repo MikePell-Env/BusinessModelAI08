@@ -1600,6 +1600,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     });
     
+    // Check if this is a template switch (happens every time we switch between Business Model and Financials)
+    // This should fire every time we switch templates, regardless of camera animation settings
+    const isTemplateSwitch = hasInitializedTemplate !== template.name;
+    console.log(`🔍 Opacity animation check: hasInitializedTemplate="${hasInitializedTemplate}", template.name="${template.name}", isTemplateSwitch=${isTemplateSwitch}`);
+
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then((model) => {
       if (model.meshes.length > 0) {
@@ -1647,8 +1652,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
         
-        // Check if this is a first-time instantiation (not a template switch) for opacity animation
-        const isFirstTimeView = shouldAutoAnimateRef.current;
+        // Template switch check moved to higher scope for accessibility across all model loading blocks
         
         model.meshes.forEach((mesh, index) => {
           if (mesh.material && mesh.name !== "__root__") {
@@ -2782,9 +2786,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }
         });
         
-        // Add elegant opacity fade-in animation for first-time view only
-        if (isFirstTimeView) {
-          console.log("✨ Applying elegant opacity fade-in for first-time view");
+        // Add elegant opacity fade-in animation for every template switch
+        if (isTemplateSwitch) {
+          console.log("✨ Applying elegant opacity fade-in for template switch");
           
           // Collect all meshes with materials (exclude root)
           const animatedMeshes = model.meshes.filter(mesh => 
