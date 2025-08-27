@@ -1720,14 +1720,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               const center = boundingInfo.boundingBox.center;
               const scaledSize = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Use fixed size for consistent labels across all Financial objects
-              // The Expenses object gives us the true unscaled dimensions
-              const originalSize = new Vector3(
-                1.323, // Fixed width from unscaled mesh
-                0.401, // Fixed height from unscaled mesh (same as Expenses)
-                0.390  // Fixed depth from unscaled mesh
-              );
-              
               // Determine label texture based on mesh name
               let labelTexturePath = "";
               switch (mesh.name) {
@@ -1748,9 +1740,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   return; // Skip if no texture mapping
               }
               
-              // Create label plane using same sizing as Business Model labels  
-              const labelWidth = originalSize.x * 0.65; // Same as BMC sections (Customer Channels, etc.)
-              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like BMC labels
+              // Use exact same dimensions for all Financial labels to ensure consistency
+              // Based on ExpensesPL (Profit) which works correctly
+              const labelWidth = 0.860; // Fixed width - same as Profit label
+              const labelHeight = 0.322; // Fixed height - same as Profit label
               console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (BMC style sizing)`);
               
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
@@ -1761,7 +1754,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Position on front face (negative Z direction from center)
               labelPlane.position.x = center.x;
               labelPlane.position.y = center.y;
-              labelPlane.position.z = center.z - (originalSize.z * 0.51); // Just in front of the mesh front face
+              labelPlane.position.z = center.z - (0.390 * 0.51); // Just in front of the mesh front face using fixed depth
               
               // No rotation needed - label faces forward by default
               labelPlane.rotation = Vector3.Zero();
