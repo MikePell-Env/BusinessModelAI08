@@ -5,10 +5,10 @@ import { createEnvisionerTemplate, EnvisionerTemplate } from './EnvisionerTempla
 export const FinancialsTemplate: EnvisionerTemplate = createEnvisionerTemplate(
   'Financials',
   [
-    { color: new Color3(0.0, 1.0, 0.0), name: "Revenue", displayName: "Revenue" }, // Bright Green
-    { color: new Color3(0.0, 0.5, 0.0), name: "RevenuePL", displayName: "Revenue P&L" }, // Dark Green  
-    { color: new Color3(1.0, 0.0, 0.0), name: "Expenses", displayName: "Expenses" }, // Bright Red
-    { color: new Color3(0.5, 0.0, 0.0), name: "ExpensesPL", displayName: "Expenses P&L" }, // Dark Red
+    { color: new Color3(0.0, 0.40, 0.24), name: "Revenue", displayName: "Revenue" }, // Revenue Streams Green (bright)
+    { color: new Color3(0.0, 0.20, 0.12), name: "RevenuePL", displayName: "Revenue P&L" }, // British Racing Green (dark)  
+    { color: new Color3(0.70, 0.0, 0.0), name: "Expenses", displayName: "Expenses" }, // Cost Structure Red (bright)
+    { color: new Color3(0.35, 0.0, 0.0), name: "ExpensesPL", displayName: "Expenses P&L" }, // Deep Red (dark)
   ],
   {
     revenueStreamsEnabled: false,
