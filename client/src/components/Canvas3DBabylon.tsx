@@ -2512,10 +2512,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
               
-              // Position label directly in world coordinates at mesh front face
+              // Calculate the front face position based on bounding box
+              const boundingBox = boundingInfo.boundingBox;
+              const frontZ = boundingBox.minimum.z; // Front face is at minimum Z
+              
+              // Position label on the front face of each mesh
               labelPlane.position.x = center.x;
               labelPlane.position.y = center.y;
-              labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of mesh
+              labelPlane.position.z = frontZ - 0.01; // Just in front of the front face
               labelPlane.rotation = Vector3.Zero();
               
               // Create material with texture
