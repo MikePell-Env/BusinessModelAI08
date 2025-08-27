@@ -96,19 +96,56 @@ export class BMCModelLoader {
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(1, 1, 1);
       
-      // Adjust positions for stacked financial objects
+      // Calculate original combined heights and adjust proportions for stacked financial objects
+      let revenueMesh: AbstractMesh | null = null;
+      let revenuePLMesh: AbstractMesh | null = null;
+      let expensesMesh: AbstractMesh | null = null;
+      let expensesPLMesh: AbstractMesh | null = null;
+      
+      // First pass: find all meshes and store references
       result.meshes.forEach((mesh) => {
         console.log(`🔍 Found mesh: "${mesh.name}"`);
         
-        // Move P&L objects down to nest properly
-        if (mesh.name === "RevenuePL") {
-          mesh.position.y -= 0.03; // Move down to nest in Revenue
-          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.03)`);
-        } else if (mesh.name === "ExpensesPL") {
-          mesh.position.y -= 0.03; // Move down to nest in Expenses
-          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.03)`);
-        }
+        if (mesh.name === "Revenue") revenueMesh = mesh;
+        else if (mesh.name === "RevenuePL") revenuePLMesh = mesh;
+        else if (mesh.name === "Expenses") expensesMesh = mesh;
+        else if (mesh.name === "ExpensesPL") expensesPLMesh = mesh;
       });
+      
+      // Calculate and adjust Revenue group proportions (Revenue=80%, RevenuePL=20%)
+      if (revenueMesh && revenuePLMesh) {
+        // Get original heights
+        const revenueBounds = revenueMesh.getBoundingInfo();
+        const revenuePLBounds = revenuePLMesh.getBoundingInfo();
+        const revenueOriginalHeight = (revenueBounds.maximum.y - revenueBounds.minimum.y) * revenueMesh.scaling.y;
+        const revenuePLOriginalHeight = (revenuePLBounds.maximum.y - revenuePLBounds.minimum.y) * revenuePLMesh.scaling.y;
+        const totalRevenueHeight = revenueOriginalHeight + revenuePLOriginalHeight;
+        
+        console.log(`📏 Revenue group original heights: Revenue=${revenueOriginalHeight.toFixed(3)}, RevenuePL=${revenuePLOriginalHeight.toFixed(3)}, Total=${totalRevenueHeight.toFixed(3)}`);
+        
+        // Set new proportions: Revenue=80%, RevenuePL=20% of total
+        const revenueNewHeight = totalRevenueHeight * 0.8;
+        const revenuePLNewHeight = totalRevenueHeight * 0.2;
+        
+        // Calculate scaling factors
+        const revenueScaleFactor = revenueNewHeight / revenueOriginalHeight;
+        const revenuePLScaleFactor = revenuePLNewHeight / revenuePLOriginalHeight;
+        
+        // Apply scaling
+        revenueMesh.scaling.y *= revenueScaleFactor;
+        revenuePLMesh.scaling.y *= revenuePLScaleFactor;
+        
+        // Position RevenuePL below Revenue
+        revenuePLMesh.position.y -= 0.03;
+        
+        console.log(`📊 Revenue group adjusted: Revenue=${revenueNewHeight.toFixed(3)} (80%, scale=${revenueScaleFactor.toFixed(3)}), RevenuePL=${revenuePLNewHeight.toFixed(3)} (20%, scale=${revenuePLScaleFactor.toFixed(3)})`);
+      }
+      
+      // Adjust Expenses group positions (keep original sizes for now)
+      if (expensesPLMesh) {
+        expensesPLMesh.position.y -= 0.03; // Move down to nest in Expenses
+        console.log(`📦 Adjusted ExpensesPL position: y=${expensesPLMesh.position.y} (moved down 0.03)`);
+      }
       
       const model: LoadedModel = {
         rootMesh,
