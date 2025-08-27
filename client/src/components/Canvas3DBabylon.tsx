@@ -3043,10 +3043,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           // Auto-switch logic: Business Model goes to PERSPECTIVE_RIGHT, Financials goes to FRONT
           if (template.name.toLowerCase() === 'financials') {
             console.log("🎬 Auto-switching camera to FRONT after 3 seconds for Financials");
-            switchCameraPreset('FRONT');
+            // Force transition to false to ensure switchCameraPreset works
+            setIsTransitioningCamera(false);
+            setTimeout(() => switchCameraPreset('FRONT'), 100);
           } else {
             console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 3 seconds");
-            switchCameraPreset('PERSPECTIVE_RIGHT');
+            // Force transition to false to ensure switchCameraPreset works
+            setIsTransitioningCamera(false);
+            setTimeout(() => switchCameraPreset('PERSPECTIVE_RIGHT'), 100);
           }
         } else {
           console.log("🎬 Auto-switch cancelled - user moved camera manually");
