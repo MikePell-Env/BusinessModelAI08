@@ -1711,73 +1711,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             (sectionMaterial as any).originalBaseColor = baseColor.clone();
             (sectionMaterial as any).originalDiffuseColor = baseColor.clone();
             
-            // Add front-facing labels for Financials objects
-            if (template.name.toLowerCase() === 'financials' && mesh.name !== "__root__") {
-              console.log(`🏷️ Creating front-facing label for Financial object: ${mesh.name}`);
-              
-              // Get mesh bounds for positioning - use ORIGINAL bounds before scaling
-              const boundingInfo = mesh.getBoundingInfo();
-              const center = boundingInfo.boundingBox.center;
-              const scaledSize = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
-              
-              // Determine label texture based on mesh name
-              let labelTexturePath = "";
-              switch (mesh.name) {
-                case "Revenue":
-                  labelTexturePath = "/textures/Label_Revenue.png";
-                  break;
-                case "RevenuePL":
-                  labelTexturePath = "/textures/Label_Loss.png"; // RevenuePL displays "Loss" label
-                  break;
-                case "Expenses":
-                  labelTexturePath = "/textures/Label_Expenses.png";
-                  break;
-                case "ExpensesPL":
-                  labelTexturePath = "/textures/Label_Profit.png"; // ExpensesPL displays "Profit" label
-                  break;
-                default:
-                  console.log(`⚠️ No label texture found for Financial object: ${mesh.name}`);
-                  return; // Skip if no texture mapping
-              }
-              
-              // Use exact same dimensions for all Financial labels to ensure consistency
-              // Based on ExpensesPL (Profit) which works correctly
-              const labelWidth = 0.860; // Fixed width - same as Profit label
-              const labelHeight = 0.322; // Fixed height - same as Profit label
-              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (BMC style sizing)`);
-              
-              const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
-                width: labelWidth,
-                height: labelHeight
-              }, scene);
-              
-              // Position on front face (negative Z direction from center)
-              labelPlane.position.x = center.x;
-              labelPlane.position.y = center.y;
-              labelPlane.position.z = center.z - (0.390 * 0.51); // Just in front of the mesh front face using fixed depth
-              
-              // No rotation needed - label faces forward by default
-              labelPlane.rotation = Vector3.Zero();
-              
-              // Create bright material for clear text visibility
-              const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
-              const labelTexture = new Texture(labelTexturePath, scene);
-              labelTexture.hasAlpha = true;
-              enhanceLabelTexture(labelTexture);
-              
-              labelMaterial.diffuseTexture = labelTexture;
-              labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // Reduced emissive to prevent blown out look
-              labelMaterial.useAlphaFromDiffuseTexture = true;
-              labelMaterial.disableLighting = true; // Ensure consistent brightness
-              labelMaterial.backFaceCulling = false; // Visible from both sides
-              
-              labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
-              labelPlane.isPickable = false; // Don't interfere with mesh interaction
-              
-              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
-            }
+            // Skip label creation during mesh setup - will be done after all transformations are complete
             
             // Add floating label planes for specific sections
             if (sectionName === "Customer Segments") {
@@ -2522,6 +2456,78 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             sectionIndex++;
           }
         });
+        
+        // Create Financial labels AFTER all mesh transformations are complete
+        if (template.name.toLowerCase() === 'financials') {
+          console.log(`🏷️ Creating Financial labels after all transformations are complete`);
+          
+          model.meshes.forEach((mesh) => {
+            if (mesh.name !== "__root__") {
+              console.log(`🏷️ Creating front-facing label for Financial object: ${mesh.name}`);
+              
+              // Get mesh bounds AFTER all scaling is complete
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              
+              // Determine label texture based on mesh name
+              let labelTexturePath = "";
+              switch (mesh.name) {
+                case "Revenue":
+                  labelTexturePath = "/textures/Label_Revenue.png";
+                  break;
+                case "RevenuePL":
+                  labelTexturePath = "/textures/Label_Loss.png"; // RevenuePL displays "Loss" label
+                  break;
+                case "Expenses":
+                  labelTexturePath = "/textures/Label_Expenses.png";
+                  break;
+                case "ExpensesPL":
+                  labelTexturePath = "/textures/Label_Profit.png"; // ExpensesPL displays "Profit" label
+                  break;
+                default:
+                  console.log(`⚠️ No label texture found for Financial object: ${mesh.name}`);
+                  return; // Skip if no texture mapping
+              }
+              
+              // Use consistent dimensions for all Financial labels
+              const labelWidth = 0.860; // Fixed width
+              const labelHeight = 0.322; // Fixed height
+              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (BMC style sizing)`);
+              
+              const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
+                width: labelWidth,
+                height: labelHeight
+              }, scene);
+              
+              // Position on front face (negative Z direction from center)
+              labelPlane.position.x = center.x;
+              labelPlane.position.y = center.y;
+              labelPlane.position.z = center.z - 0.2; // Fixed offset in front of mesh
+              
+              // No rotation needed - label faces forward by default
+              labelPlane.rotation = Vector3.Zero();
+              
+              // Create material with texture
+              const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
+              const labelTexture = new Texture(labelTexturePath, scene);
+              labelTexture.hasAlpha = true;
+              enhanceLabelTexture(labelTexture);
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // Reduced emissive to prevent blown out look
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = true; // Ensure consistent brightness
+              labelMaterial.backFaceCulling = false; // Visible from both sides
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
+              labelPlane.isPickable = false; // Don't interfere with mesh interaction
+              
+              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+            }
+          });
+        }
         
         // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
 
