@@ -888,23 +888,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Always use perspective camera - no orthographic mode
     scene.activeCamera = perspectiveCamera;
     
-    // Add permanent drag detection to clear button highlighting during manual camera movement
-    const permanentDragHandler = () => {
-      const originalLog = console.log;
-      console.log = (...args) => {
-        originalLog(...args);
-        if (args[0] && typeof args[0] === 'string' && args[0].includes('🖱️ Drag detected:')) {
-          // Clear button highlighting when user manually drags camera (but not during transitions)
-          if (!isTransitioningCamera) {
-            setIsInPresetPosition(false);
-            console.log("📹 Mouse navigation detected - clearing preset button highlighting");
-          }
-        }
-      };
-    };
-    
-    // Set up permanent drag listener
-    permanentDragHandler();
     
     // Initialize label manager with scene
     // Simple BMC manager doesn't need scene setup
