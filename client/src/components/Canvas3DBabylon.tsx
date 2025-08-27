@@ -310,6 +310,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       return;
     }
     
+    
     const scene = sceneRef.current;
     const perspectiveCamera = cameraRef.current;
     // Only perspective camera used
@@ -883,6 +884,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     
     // Store camera reference - only perspective camera needed
     cameraRef.current = perspectiveCamera;
+    
+    // Add camera movement listener to detect manual camera adjustments
+    const onCameraMove = () => {
+      // Only clear preset highlighting if not currently transitioning (i.e., user moved camera manually)
+      if (!isTransitioningCamera) {
+        setIsInPresetPosition(false);
+        console.log("📹 Manual camera movement detected - clearing preset button highlighting");
+      }
+    };
+    
+    // Listen for camera parameter changes (alpha, beta, radius)
+    perspectiveCamera.onViewMatrixChangedObservable.add(onCameraMove);
     
     // Always use perspective camera - no orthographic mode
     scene.activeCamera = perspectiveCamera;
