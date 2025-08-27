@@ -112,16 +112,20 @@ export class BMCModelLoader {
         else if (mesh.name === "ExpensesPL") expensesPLMesh = mesh;
       });
       
-      // Calculate and adjust Revenue group proportions (Revenue=80%, RevenuePL=20%)
+      // Calculate and adjust Revenue group proportions with anchored scaling
       if (revenueMesh && revenuePLMesh) {
-        // Get original heights
+        // Get original heights and positions
         const revenueBounds = revenueMesh.getBoundingInfo();
         const revenuePLBounds = revenuePLMesh.getBoundingInfo();
         const revenueOriginalHeight = (revenueBounds.maximum.y - revenueBounds.minimum.y) * revenueMesh.scaling.y;
         const revenuePLOriginalHeight = (revenuePLBounds.maximum.y - revenuePLBounds.minimum.y) * revenuePLMesh.scaling.y;
         const totalRevenueHeight = revenueOriginalHeight + revenuePLOriginalHeight;
         
-        console.log(`📏 Revenue group original heights: Revenue=${revenueOriginalHeight.toFixed(3)}, RevenuePL=${revenuePLOriginalHeight.toFixed(3)}, Total=${totalRevenueHeight.toFixed(3)}`);
+        // Store original positions before scaling
+        const revenueOriginalY = revenueMesh.position.y;
+        const revenuePLOriginalY = revenuePLMesh.position.y;
+        
+        console.log(`📏 Revenue group original: Revenue height=${revenueOriginalHeight.toFixed(3)} at y=${revenueOriginalY.toFixed(3)}, RevenuePL height=${revenuePLOriginalHeight.toFixed(3)} at y=${revenuePLOriginalY.toFixed(3)}, Total=${totalRevenueHeight.toFixed(3)}`);
         
         // Set new proportions: Revenue=80%, RevenuePL=20% of total
         const revenueNewHeight = totalRevenueHeight * 0.8;
@@ -135,10 +139,24 @@ export class BMCModelLoader {
         revenueMesh.scaling.y *= revenueScaleFactor;
         revenuePLMesh.scaling.y *= revenuePLScaleFactor;
         
-        // Position RevenuePL below Revenue
-        revenuePLMesh.position.y -= 0.03;
+        // ANCHORED POSITIONING:
         
-        console.log(`📊 Revenue group adjusted: Revenue=${revenueNewHeight.toFixed(3)} (80%, scale=${revenueScaleFactor.toFixed(3)}), RevenuePL=${revenuePLNewHeight.toFixed(3)} (20%, scale=${revenuePLScaleFactor.toFixed(3)})`);
+        // Revenue: Anchored at BOTTOM - grows upward from ground plane
+        // Bottom edge stays at original Y position (anchor point)
+        revenueMesh.position.y = revenueOriginalY; // Keep bottom anchor fixed
+        
+        // RevenuePL: Anchored at TOP - shrinks downward from fixed top surface
+        // Calculate where top surface was originally
+        const revenuePLOriginalTop = revenuePLOriginalY + (revenuePLOriginalHeight / 2);
+        // Calculate where top surface should be after scaling (same position)
+        const revenuePLNewTop = revenuePLOriginalTop;
+        // Calculate new center position to keep top surface fixed
+        const revenuePLNewCenter = revenuePLNewTop - (revenuePLNewHeight / 2);
+        revenuePLMesh.position.y = revenuePLNewCenter;
+        
+        console.log(`🔗 Anchored scaling applied:`);
+        console.log(`   Revenue: Bottom-anchored at y=${revenueMesh.position.y.toFixed(3)}, new height=${revenueNewHeight.toFixed(3)} (80%)`);
+        console.log(`   RevenuePL: Top-anchored with top at y=${revenuePLNewTop.toFixed(3)}, center at y=${revenuePLMesh.position.y.toFixed(3)}, new height=${revenuePLNewHeight.toFixed(3)} (20%)`);
       }
       
       // Adjust Expenses group positions (keep original sizes for now)
