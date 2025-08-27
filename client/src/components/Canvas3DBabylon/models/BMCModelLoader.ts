@@ -105,28 +105,24 @@ export class BMCModelLoader {
           mesh.position.y -= 0.03; // Move down to nest in Revenue
           console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.03)`);
           
-          // Reduce width by 20% and anchor to right edge (move right in coordinate system)
+          // Reduce width by 20% and center naturally
           mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x -= 0.01; // Move right to anchor right edge (negative X appears right)
-          console.log(`📏 RevenuePL: Reduced width to 80%, moved right to anchor right edge`);
+          console.log(`📏 RevenuePL: Reduced width to 80%, naturally centered`);
         } else if (mesh.name === "ExpensesPL") {
           mesh.position.y -= 0.03; // Move down to nest in Expenses
           console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.03)`);
           
-          // Reduce width by 20% and anchor to left edge (move left in coordinate system)
+          // Reduce width by 20% and center naturally
           mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x += 0.01; // Move left to anchor left edge (positive X appears left)
-          console.log(`📏 ExpensesPL: Reduced width to 80%, moved left to anchor left edge`);
+          console.log(`📏 ExpensesPL: Reduced width to 80%, naturally centered`);
         } else if (mesh.name === "Revenue") {
-          // Reduce width by 20% and anchor to right edge (move right in coordinate system)
+          // Reduce width by 20% and center naturally
           mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x -= 0.01; // Move right to anchor right edge (negative X appears right)
-          console.log(`📏 Revenue: Reduced width to 80%, moved right to anchor right edge`);
+          console.log(`📏 Revenue: Reduced width to 80%, naturally centered`);
         } else if (mesh.name === "Expenses") {
-          // Reduce width by 20% and anchor to left edge (move left in coordinate system)
+          // Reduce width by 20% and center naturally
           mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x += 0.01; // Move left to anchor left edge (positive X appears left)
-          console.log(`📏 Expenses: Reduced width to 80%, moved left to anchor left edge`);
+          console.log(`📏 Expenses: Reduced width to 80%, naturally centered`);
         }
       });
       
