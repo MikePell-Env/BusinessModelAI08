@@ -235,6 +235,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP'
   );
   
+  // Track if camera is actually in a preset position (for button highlighting)
+  const [isInPresetPosition, setIsInPresetPosition] = useState(true);
+  
   // Camera preset switching only for initial template load (not during transitions)
   // Preserve camera state during template transitions for steady ground plane
   const [hasInitializedTemplate, setHasInitializedTemplate] = useState<string | null>(null);
@@ -265,23 +268,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.log("🔄 Template switch: Preserving current camera position");
         shouldAutoAnimateRef.current = false; // No auto-animation for template switches
         
-        // Update currentCameraPreset to match the actual camera position for proper button highlighting
-        // Don't change the camera position, but ensure button state is correct
-        if (currentCameraPreset === 'FRONT' && template.name.toLowerCase() !== 'financials') {
-          // Switching from Financials (FRONT) to Business Model - camera stays in same position but button should not highlight TOP
-          // Keep the current perspective position without highlighting any specific preset button
-          console.log("🔄 Template switch: Clearing preset highlight to match preserved camera position");
-          setCurrentCameraPreset('PERSPECTIVE_RIGHT'); // Use a neutral perspective preset that matches the preserved position
-        } else if (currentCameraPreset === 'TOP' && template.name.toLowerCase() === 'financials') {
-          // Switching from Business Model (TOP) to Financials - similar logic
-          console.log("🔄 Template switch: Adjusting preset to match preserved camera position");
-          setCurrentCameraPreset('PERSPECTIVE_RIGHT'); // Use a neutral perspective preset
-        }
-        // Keep currentCameraPreset unchanged for other cases
+        // Camera position preserved - don't highlight any preset buttons since position is custom
+        console.log("🔄 Template switch: Camera in custom position - no button highlighting");
+        setIsInPresetPosition(false); // Don't highlight any buttons
       } else {
         // First time instantiation: set default preset and allow auto-animation
         const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
         setCurrentCameraPreset(newPreset);
+        setIsInPresetPosition(true); // Highlight the default preset button
         shouldAutoAnimateRef.current = true; // Enable auto-animation for first instantiation
         console.log(`🎬 First instantiation: Setting default preset ${newPreset} for ${template.name}`);
       }
@@ -297,6 +291,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     if (isTransitioningCamera) return; // Prevent overlapping transitions
     
     setCurrentCameraPreset(preset);
+    setIsInPresetPosition(true); // Camera will be in preset position after animation
     setIsTransitioningCamera(true);
     
     if (!cameraRef.current || !sceneRef.current) {
@@ -3206,7 +3201,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             onClick={() => switchCameraPreset('PERSPECTIVE_LEFT')}
             disabled={isTransitioningCamera}
             className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 w-24 ${
-              currentCameraPreset === 'PERSPECTIVE_LEFT' 
+              (currentCameraPreset === 'PERSPECTIVE_LEFT' && isInPresetPosition)
                 ? 'bg-blue-600 text-white shadow-md' 
                 : isTransitioningCamera 
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
@@ -3222,7 +3217,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             }}
             disabled={isTransitioningCamera}
             className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 w-24 ${
-              (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') 
+              ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && isInPresetPosition)
                 ? 'bg-blue-600 text-white shadow-md' 
                 : isTransitioningCamera 
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
@@ -3235,7 +3230,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             onClick={() => switchCameraPreset('PERSPECTIVE_RIGHT')}
             disabled={isTransitioningCamera}
             className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 w-24 ${
-              currentCameraPreset === 'PERSPECTIVE_RIGHT' 
+              (currentCameraPreset === 'PERSPECTIVE_RIGHT' && isInPresetPosition)
                 ? 'bg-blue-600 text-white shadow-md' 
                 : isTransitioningCamera 
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
