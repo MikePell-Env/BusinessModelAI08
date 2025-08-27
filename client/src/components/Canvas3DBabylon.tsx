@@ -241,9 +241,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   
   useEffect(() => {
     // Only set initial preset for first-time template loading, not during transitions
+    // Preserve camera position when switching between templates that have been initialized
     if (hasInitializedTemplate !== template.name) {
-      const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
-      setCurrentCameraPreset(newPreset);
+      // Check if we have a saved camera state to preserve
+      const currentState = getCamera3DState();
+      if (currentState && (currentState.alpha !== 0 || currentState.beta !== 0 || currentState.radius !== 0)) {
+        // Preserve current camera position instead of resetting to template default
+        console.log("🔄 Template switch: Preserving current camera position");
+        // Don't change currentCameraPreset - keep the current view
+      } else {
+        // Only set default preset if no valid camera state exists
+        const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
+        setCurrentCameraPreset(newPreset);
+        console.log(`🔄 Template switch: Setting default preset ${newPreset} for ${template.name}`);
+      }
       setHasInitializedTemplate(template.name);
     }
   }, [template.name, hasInitializedTemplate]);
@@ -776,16 +787,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Clear camera state only on true first-time template initialization
-    // This ensures fresh preset for new templates while preserving state during transitions
-    if (hasInitializedTemplate !== template.name) {
+    // Preserve camera state when switching between templates for seamless transitions
+    // Only clear state on very first app initialization, not during template switches
+    if (!hasInitializedTemplate) {
+      // First time ever - clear any stale state
       const currentState = getCamera3DState();
       if (currentState) {
-        // Clear the saved state completely for new template
         saveCamera3DState(0, 0, 0);
       }
       
-      // Also clear BMC State Manager camera state for new template
       const bmcCameraState = bmcState.getCameraState();
       if (bmcCameraState) {
         bmcState.saveCameraState({ alpha: 0, beta: 0, radius: 0, target: new Vector3(0, 0, 0) });
