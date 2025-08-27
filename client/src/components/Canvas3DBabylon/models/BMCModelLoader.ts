@@ -102,43 +102,52 @@ export class BMCModelLoader {
       result.meshes.forEach((mesh) => {
         console.log(`🔍 Found mesh: "${mesh.name}"`);
         
-        // Move P&L objects down to nest properly and apply finalized width/positioning with height adjustments
+        // SOLID ANCHORING SYSTEM: Store original positions and apply anchor-based height adjustments
+        
+        // Store original mesh properties for anchor calculations
+        const originalY = mesh.position.y;
+        const originalHeight = 1.0; // Assume unit height in GLB model
+        
+        // Apply universal width reduction first
+        mesh.scaling.x = 0.8; // 20% reduction in width
+        mesh.position.x += 0.00; // Centered positioning
+        
+        // Apply anchor-based height system
         if (mesh.name === "RevenuePL") {
-          // Loss (RevenuePL): Make zero height, top aligned to current position
-          const originalY = mesh.position.y;
-          mesh.position.y -= 0.03; // Move down to nest in Revenue
-          mesh.scaling.y = 0.01; // Flatten to near-zero height
-          // Adjust Y position to keep top edge at same position
-          mesh.position.y = originalY - 0.03; // Keep top aligned
-          console.log(`📦 RevenuePL (Loss): Flattened to zero height, top aligned`);
+          // TOP-ANCHORED: Top surface stays fixed, bottom moves with height change
+          const targetHeight = 0.01; // Near-zero height for Loss
+          const anchorY = originalY - 0.03; // Top anchor position (after nesting adjustment)
           
-          // Reduce width by 20%
-          mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x += 0.00; // Move closer to center
-          console.log(`📏 RevenuePL: Reduced width to 80%, moved closer to center`);
+          mesh.scaling.y = targetHeight;
+          mesh.position.y = anchorY - (originalHeight * targetHeight) / 2; // Position = anchor - half scaled height
+          console.log(`📦 RevenuePL (Loss): TOP-anchored at ${anchorY}, height=${targetHeight}`);
+          
         } else if (mesh.name === "ExpensesPL") {
-          mesh.position.y -= 0.03; // Move down to nest in Expenses
-          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.03)`);
+          // TOP-ANCHORED: Top surface stays fixed, bottom moves with height change
+          const targetHeight = 1.0; // Normal height for Profit
+          const anchorY = originalY - 0.03; // Top anchor position (after nesting adjustment)
           
-          // Reduce width by 20%
-          mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x -= 0.00; // Move closer to center
-          console.log(`📏 ExpensesPL: Reduced width to 80%, moved closer to center`);
+          mesh.scaling.y = targetHeight;
+          mesh.position.y = anchorY - (originalHeight * targetHeight) / 2; // Position = anchor - half scaled height
+          console.log(`📦 ExpensesPL (Profit): TOP-anchored at ${anchorY}, height=${targetHeight}`);
+          
         } else if (mesh.name === "Revenue") {
-          // Revenue: Double height with bottom anchored to ground
-          mesh.scaling.y = 2.0; // Double the height
-          mesh.position.y += 0.5; // Move up to keep bottom anchored (half of added height)
-          console.log(`📏 Revenue: Doubled height (2x), bottom anchored to ground`);
+          // BOTTOM-ANCHORED: Bottom surface stays fixed, top moves with height change
+          const targetHeight = 2.0; // Double height for Revenue
+          const anchorY = originalY + 0.1; // Bottom anchor position (ground level)
           
-          // Reduce width by 20%
-          mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x += 0.00; // Move closer to center
-          console.log(`📏 Revenue: Reduced width to 80%, moved closer to center`);
+          mesh.scaling.y = targetHeight;
+          mesh.position.y = anchorY + (originalHeight * targetHeight) / 2; // Position = anchor + half scaled height
+          console.log(`📦 Revenue: BOTTOM-anchored at ${anchorY}, height=${targetHeight}`);
+          
         } else if (mesh.name === "Expenses") {
-          // Reduce width by 20%
-          mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x -= 0.00; // Move closer to center
-          console.log(`📏 Expenses: Reduced width to 80%, moved closer to center`);
+          // BOTTOM-ANCHORED: Bottom surface stays fixed, top moves with height change
+          const targetHeight = 1.0; // Normal height for Expenses
+          const anchorY = originalY + 0.1; // Bottom anchor position (ground level)
+          
+          mesh.scaling.y = targetHeight;
+          mesh.position.y = anchorY + (originalHeight * targetHeight) / 2; // Position = anchor + half scaled height
+          console.log(`📦 Expenses: BOTTOM-anchored at ${anchorY}, height=${targetHeight}`);
         }
       });
       
