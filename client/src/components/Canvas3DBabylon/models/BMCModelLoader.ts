@@ -114,12 +114,12 @@ export class BMCModelLoader {
         // Group-specific positioning to maintain outer edge alignment
         if (mesh.name === "Revenue" || mesh.name === "RevenuePL") {
           // Revenue Group: Keep right edge fixed, move left edge inward
-          // When width reduces by 20%, shift left by 10% of original width to keep right edge fixed
-          mesh.position.x += 0.1; // Move left (positive X moves object leftward in this coordinate system)
+          // When width reduces by 20%, shift away from center by 10% of original width to keep right edge fixed
+          mesh.position.x += -0.1; // Move left (away from center)
         } else if (mesh.name === "Expenses" || mesh.name === "ExpensesPL") {
           // Expenses Group: Keep left edge fixed, move right edge inward  
-          // When width reduces by 20%, shift right by 10% of original width to keep left edge fixed
-          mesh.position.x += -0.1; // Move right (negative X moves object rightward in this coordinate system)
+          // When width reduces by 20%, shift away from center by 10% of original width to keep left edge fixed
+          mesh.position.x += 0.1; // Move right (away from center)
         }
         
         // SIMPLE ANCHORING: Save anchor points, apply height, adjust position to maintain anchor
