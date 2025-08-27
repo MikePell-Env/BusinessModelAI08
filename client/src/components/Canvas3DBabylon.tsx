@@ -2482,10 +2482,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   return; // Skip if no texture mapping
               }
               
-              // Calculate label size based on actual mesh width - 20% bigger than current = 0.51
-              const labelWidth = size.x * 0.51; // 20% bigger than 0.425
-              const labelHeight = (labelWidth * 0.25) * 1.5; // Same aspect ratio calculation
-              console.log(`${mesh.name} Label: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
+              // Use consistent label dimensions for all Financial objects to prevent scaling distortion
+              const labelWidth = 0.54; // Fixed consistent width
+              let labelHeight;
+              
+              // Set proper aspect ratio for each label type based on actual texture proportions
+              switch (mesh.name) {
+                case "Revenue":
+                  labelHeight = 0.19; // Revenue texture has different proportions
+                  break;
+                case "Expenses":
+                  labelHeight = 0.20; // Standard height
+                  break;
+                case "RevenuePL":
+                  labelHeight = 0.20; // Standard height (Loss label)
+                  break;
+                case "ExpensesPL":
+                  labelHeight = 0.20; // Standard height (Profit label)
+                  break;
+                default:
+                  labelHeight = 0.20; // Default
+              }
+              
+              console.log(`${mesh.name} Label (CONSISTENT): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
               
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
