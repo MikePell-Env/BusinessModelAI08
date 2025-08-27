@@ -1742,10 +1742,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
               
-              // Position on front face (positive Z direction from center)
+              // Position on front face (negative Z direction from center)
               labelPlane.position.x = center.x;
               labelPlane.position.y = center.y;
-              labelPlane.position.z = center.z + (size.z * 0.51); // Just in front of the mesh front face
+              labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of the mesh front face
               
               // No rotation needed - label faces forward by default
               labelPlane.rotation = Vector3.Zero();
