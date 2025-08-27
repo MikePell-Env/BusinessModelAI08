@@ -1151,7 +1151,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       
       // Create material with the appropriate label based on template
       const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
-      const texturePath = template.name.toLowerCase() === 'financials' ? "/textures/Labels_Expenses_grey.png" : "/textures/Labels_internal_grey.png";
+      const texturePath = template.name.toLowerCase() === 'financials' ? "/textures/Labels_Revenue_grey.png" : "/textures/Labels_internal_grey.png";
       const internalLabelTexture = new Texture(texturePath, scene);
       internalLabelTexture.hasAlpha = true;
       enhanceLabelTexture(internalLabelTexture);
@@ -1191,7 +1191,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       
       // Create material with the appropriate label based on template
       const externalLabelMaterial = new StandardMaterial("externalLabelMat", scene);
-      const texturePath = template.name.toLowerCase() === 'financials' ? "/textures/Labels_Revenue_grey.png" : "/textures/Labels_external_grey.png";
+      const texturePath = template.name.toLowerCase() === 'financials' ? "/textures/Labels_Expenses_grey.png" : "/textures/Labels_external_grey.png";
       const externalLabelTexture = new Texture(texturePath, scene);
       externalLabelTexture.hasAlpha = true;
       enhanceLabelTexture(externalLabelTexture);
