@@ -2449,87 +2449,91 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }
         });
         
-        // Create Financial labels AFTER all mesh transformations are complete
+        // Create Financial labels with timing-independent approach - delayed creation to avoid geometry conflicts
         if (template.name.toLowerCase() === 'financials') {
-          console.log(`🏷️ Creating Financial labels after all transformations are complete`);
+          console.log(`🏷️ Creating Financial labels with delay to avoid timing issues`);
           
-          model.meshes.forEach((mesh) => {
-            if (mesh.name !== "__root__") {
-              console.log(`🏷️ Creating front-facing label for Financial object: ${mesh.name}`);
-              
-              // Get mesh bounds AFTER all scaling is complete
-              const boundingInfo = mesh.getBoundingInfo();
-              const center = boundingInfo.boundingBox.center;
-              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
-              
-              // Determine label texture based on mesh name
-              let labelTexturePath = "";
-              switch (mesh.name) {
-                case "Revenue":
-                  labelTexturePath = "/textures/Label_Revenue.png";
-                  break;
-                case "RevenuePL":
-                  labelTexturePath = "/textures/Label_Loss.png"; // RevenuePL displays "Loss" label
-                  break;
-                case "Expenses":
-                  labelTexturePath = "/textures/Label_Expenses.png";
-                  break;
-                case "ExpensesPL":
-                  labelTexturePath = "/textures/Label_Profit.png"; // ExpensesPL displays "Profit" label
-                  break;
-                default:
-                  console.log(`⚠️ No label texture found for Financial object: ${mesh.name}`);
-                  return; // Skip if no texture mapping
+          // Use multiple timeouts to ensure all mesh transformations are complete
+          setTimeout(() => {
+            model.meshes.forEach((mesh) => {
+              if (mesh.name !== "__root__") {
+                console.log(`🏷️ Creating delayed front-facing label for Financial object: ${mesh.name}`);
+                
+                // Force bounding box recalculation to get final dimensions
+                mesh.refreshBoundingInfo();
+                const boundingInfo = mesh.getBoundingInfo();
+                const center = boundingInfo.boundingBox.center;
+                const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+                
+                // Determine label texture based on mesh name
+                let labelTexturePath = "";
+                switch (mesh.name) {
+                  case "Revenue":
+                    labelTexturePath = "/textures/Label_Revenue.png";
+                    break;
+                  case "RevenuePL":
+                    labelTexturePath = "/textures/Label_Loss.png"; // RevenuePL displays "Loss" label
+                    break;
+                  case "Expenses":
+                    labelTexturePath = "/textures/Label_Expenses.png";
+                    break;
+                  case "ExpensesPL":
+                    labelTexturePath = "/textures/Label_Profit.png"; // ExpensesPL displays "Profit" label
+                    break;
+                  default:
+                    console.log(`⚠️ No label texture found for Financial object: ${mesh.name}`);
+                    return; // Skip if no texture mapping
+                }
+                
+                // Calculate label size based on final mesh dimensions - 20% bigger = 0.51
+                const labelWidth = size.x * 0.51;
+                
+                // Fix Revenue label stretching by using proper aspect ratio for each label type
+                let labelHeight;
+                if (mesh.name === "Revenue") {
+                  // Revenue label needs specific aspect ratio to prevent stretching
+                  labelHeight = labelWidth * 0.35; // Proper aspect ratio for Revenue texture
+                  console.log(`${mesh.name} Label (DELAYED FIXED): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
+                } else {
+                  // Other Financial labels use standard calculation
+                  labelHeight = (labelWidth * 0.25) * 1.5;
+                  console.log(`${mesh.name} Label (DELAYED): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
+                }
+                
+                const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
+                  width: labelWidth,
+                  height: labelHeight
+                }, scene);
+                
+                // Position on front face (negative Z direction from center)
+                labelPlane.position.x = center.x;
+                labelPlane.position.y = center.y;
+                labelPlane.position.z = center.z - (size.z * 0.51); // Just in front based on actual mesh depth
+                
+                // No rotation needed - label faces forward by default
+                labelPlane.rotation = Vector3.Zero();
+                
+                // Create material with texture
+                const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
+                const labelTexture = new Texture(labelTexturePath, scene);
+                labelTexture.hasAlpha = true;
+                enhanceLabelTexture(labelTexture);
+                
+                labelMaterial.diffuseTexture = labelTexture;
+                labelMaterial.emissiveTexture = labelTexture;
+                labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // Reduced emissive to prevent blown out look
+                labelMaterial.useAlphaFromDiffuseTexture = true;
+                labelMaterial.disableLighting = true; // Ensure consistent brightness
+                labelMaterial.backFaceCulling = false; // Visible from both sides
+                
+                labelPlane.material = labelMaterial;
+                labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
+                labelPlane.isPickable = false; // Don't interfere with mesh interaction
+                
+                console.log(`✅ ${mesh.name} delayed label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
               }
-              
-              // Calculate label size based on actual mesh width - 20% bigger than current = 0.51
-              const labelWidth = size.x * 0.51; // 20% bigger than 0.425
-              
-              // Fix Revenue label stretching by using proper aspect ratio for each label type
-              let labelHeight;
-              if (mesh.name === "Revenue") {
-                // Revenue label needs specific aspect ratio to prevent stretching
-                labelHeight = labelWidth * 0.35; // Proper aspect ratio for Revenue texture
-                console.log(`${mesh.name} Label (FIXED): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
-              } else {
-                // Other Financial labels use standard calculation
-                labelHeight = (labelWidth * 0.25) * 1.5;
-                console.log(`${mesh.name} Label: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
-              }
-              
-              const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
-                width: labelWidth,
-                height: labelHeight
-              }, scene);
-              
-              // Position on front face (negative Z direction from center)
-              labelPlane.position.x = center.x;
-              labelPlane.position.y = center.y;
-              labelPlane.position.z = center.z - (size.z * 0.51); // Just in front based on actual mesh depth
-              
-              // No rotation needed - label faces forward by default
-              labelPlane.rotation = Vector3.Zero();
-              
-              // Create material with texture
-              const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
-              const labelTexture = new Texture(labelTexturePath, scene);
-              labelTexture.hasAlpha = true;
-              enhanceLabelTexture(labelTexture);
-              
-              labelMaterial.diffuseTexture = labelTexture;
-              labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // Reduced emissive to prevent blown out look
-              labelMaterial.useAlphaFromDiffuseTexture = true;
-              labelMaterial.disableLighting = true; // Ensure consistent brightness
-              labelMaterial.backFaceCulling = false; // Visible from both sides
-              
-              labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
-              labelPlane.isPickable = false; // Don't interfere with mesh interaction
-              
-              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
-            }
-          });
+            });
+          }, 1000); // 1 second delay to ensure all geometry operations are complete
         }
         
         // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
