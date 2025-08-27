@@ -235,12 +235,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP'
   );
   
-  // Auto camera preset switching on initial template load only
-  // This ensures the proper starting preset for first-time template loading
+  // Camera preset switching only for initial template load (not during transitions)
+  // Preserve camera state during template transitions for steady ground plane
+  const [hasInitializedTemplate, setHasInitializedTemplate] = useState<string | null>(null);
+  
   useEffect(() => {
-    const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
-    setCurrentCameraPreset(newPreset);
-  }, [template.name]);
+    // Only set initial preset for first-time template loading, not during transitions
+    if (hasInitializedTemplate !== template.name) {
+      const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
+      setCurrentCameraPreset(newPreset);
+      setHasInitializedTemplate(template.name);
+    }
+  }, [template.name, hasInitializedTemplate]);
   
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
@@ -281,7 +287,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     startBeta = perspectiveCamera.beta;
     startRadius = perspectiveCamera.radius;
     
-    // All presets use scene center (0,0,0) for steady ground plane transitions
+    // Handle custom target for FRONT preset to position objects lower in viewport
+    const targetVector = preset === 'FRONT' && presetConfig.target 
+      ? new Vector3(presetConfig.target.x, presetConfig.target.y, presetConfig.target.z)
+      : Vector3.Zero();
+    
+    if (preset === 'FRONT' && presetConfig.target) {
+      perspectiveCamera.setTarget(targetVector);
+    }
     
     // Create smooth transition animations with cubic easing
     const alphaAnimation = Animation.CreateAndStartAnimation(
@@ -770,15 +783,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // DISABLED: Clearing camera state for steady ground plane transitions
-    // Don't clear saved camera state - preserve current camera position across template switches
-    // This maintains the steady ground plane during template transitions
+    // Clear camera state only on true first-time template initialization
+    // This ensures fresh preset for new templates while preserving state during transitions
+    if (hasInitializedTemplate !== template.name) {
+      const currentState = getCamera3DState();
+      if (currentState) {
+        // Clear the saved state completely for new template
+        saveCamera3DState(0, 0, 0);
+      }
+      
+      // Also clear BMC State Manager camera state for new template
+      const bmcCameraState = bmcState.getCameraState();
+      if (bmcCameraState) {
+        bmcState.saveCameraState({ alpha: 0, beta: 0, radius: 0, target: new Vector3(0, 0, 0) });
+      }
+    }
     
     // Camera positioned using current preset
     const currentPreset = CAMERA_PRESETS[currentCameraPreset];
     
-    // Use scene center for all presets to keep ground plane steady
-    const cameraTarget = new Vector3(0, 0, 0);
+    // Use custom target for FRONT preset, scene center for others to keep ground plane steady
+    const cameraTarget = currentCameraPreset === 'FRONT' && currentPreset.target 
+      ? new Vector3(currentPreset.target.x, currentPreset.target.y, currentPreset.target.z)
+      : new Vector3(0, 0, 0);
     
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
@@ -2956,10 +2983,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       setTimeout(() => {
         // Check if user moved camera before auto-switching
         if (!userHasMovedCamera) {
-          // Auto-switch logic: Both templates auto-animate to PERSPECTIVE_RIGHT on first load
-          const fromView = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
-          console.log(`🎬 Auto-switching camera from ${fromView} to PERSPECTIVE_RIGHT after 3 seconds`);
-          switchCameraPreset('PERSPECTIVE_RIGHT');
+          // Auto-switch logic: Business Model goes to PERSPECTIVE_RIGHT, Financials goes to FRONT
+          if (template.name.toLowerCase() === 'financials') {
+            console.log("🎬 Auto-switching camera to FRONT after 3 seconds for Financials");
+            switchCameraPreset('FRONT');
+          } else {
+            console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 3 seconds");
+            switchCameraPreset('PERSPECTIVE_RIGHT');
+          }
         } else {
           console.log("🎬 Auto-switch cancelled - user moved camera manually");
         }
