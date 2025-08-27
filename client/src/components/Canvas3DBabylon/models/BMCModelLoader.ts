@@ -96,14 +96,25 @@ export class BMCModelLoader {
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(1, 1, 1);
       
-      // Adjust positions for stacked objects - move RevenuePL and ExpensesPL down slightly to rest on base objects
+      // Map mesh names to financial objects and adjust positions
       result.meshes.forEach((mesh) => {
-        if (mesh.name === "RevenuePL") {
-          mesh.position.y -= 0.05; // Move down slightly to rest on Revenue object
-          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.05 to rest on Revenue)`);
-        } else if (mesh.name === "ExpensesPL") {
-          mesh.position.y -= 0.05; // Move down slightly to rest on Expenses object  
-          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.05 to rest on Expenses)`);
+        console.log(`🔍 Found mesh: "${mesh.name}"`);
+        
+        // Map GLB mesh names to financial object names
+        if (mesh.name === "Value Propositions") {
+          mesh.name = "Revenue";
+          console.log(`🔄 Renamed "Value Propositions" → "Revenue"`);
+        } else if (mesh.name === "Key Partners") {
+          mesh.name = "RevenuePL";
+          mesh.position.y -= 0.05; // Move down to rest on Revenue
+          console.log(`🔄 Renamed "Key Partners" → "RevenuePL" (moved down 0.05)`);
+        } else if (mesh.name === "Customer Segments") {
+          mesh.name = "Expenses";
+          console.log(`🔄 Renamed "Customer Segments" → "Expenses"`);
+        } else if (mesh.name === "Key Resources") {
+          mesh.name = "ExpensesPL";
+          mesh.position.y -= 0.05; // Move down to rest on Expenses
+          console.log(`🔄 Renamed "Key Resources" → "ExpensesPL" (moved down 0.05)`);
         }
       });
       
