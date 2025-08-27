@@ -49,8 +49,8 @@ export const CAMERA_PRESETS = {
   FRONT: {
     alpha: Math.PI/2, // Same horizontal rotation as TOP
     beta: Math.PI/2, // 90° rotation around X axis from TOP (straight-on front view)
-    radius: 55, // Same distance as TOP for consistency
-    target: { x: 0, y: -3, z: 0 } // Lower target to move objects down in viewport
+    radius: 55 // Same distance as TOP for consistency
+    // Use same central pivot point (0,0,0) as Business Model for consistent rotation center
   }
 } as const;
 
