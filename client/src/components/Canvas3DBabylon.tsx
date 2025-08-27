@@ -1758,7 +1758,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Bright for good visibility
+              labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // Reduced emissive to prevent blown out look
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = true; // Ensure consistent brightness
               labelMaterial.backFaceCulling = false; // Visible from both sides
