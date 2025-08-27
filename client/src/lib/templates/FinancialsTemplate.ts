@@ -6,9 +6,9 @@ export const FinancialsTemplate: EnvisionerTemplate = createEnvisionerTemplate(
   'Financials',
   [
     { color: new Color3(0.0, 0.40, 0.24), name: "Revenue", displayName: "Revenue" }, // Revenue Streams Green (bright)
-    { color: new Color3(0.70, 0.0, 0.0), name: "RevenuePL", displayName: "Revenue P&L" }, // Red for Loss
+    { color: new Color3(0.7, 0.45, 0.08), name: "RevenuePL", displayName: "Revenue P&L" }, // Gold for Loss
     { color: new Color3(0.4, 0.08, 0.08), name: "Expenses", displayName: "Expenses" }, // Deep red with more red tone
-    { color: new Color3(0.7, 0.45, 0.08), name: "ExpensesPL", displayName: "Expenses P&L" }, // Toned down gold for Profit
+    { color: new Color3(0.1, 0.1, 0.1), name: "ExpensesPL", displayName: "Expenses P&L" }, // Black for Profit
   ],
   {
     revenueStreamsEnabled: false,
