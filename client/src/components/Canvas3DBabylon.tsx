@@ -1562,7 +1562,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         let sectionIndex = 0;
         model.meshes.forEach((mesh, index) => {
           if (mesh.material && mesh.name !== "__root__") {
-            const section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
+            // For Financials template, use the mesh name directly to find the correct section
+            let section;
+            if (template.name.toLowerCase() === 'financials') {
+              section = template.sections.find(s => s.name === mesh.name) || template.sections[0];
+              console.log(`💰 Financials: Mapping mesh "${mesh.name}" to section "${section.name}" with color (${section.color.r}, ${section.color.g}, ${section.color.b})`);
+            } else {
+              section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
+            }
             const baseColor = section.color;
             const sectionName = section.name;
             
