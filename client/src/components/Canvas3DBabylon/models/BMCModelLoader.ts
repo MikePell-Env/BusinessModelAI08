@@ -102,11 +102,11 @@ export class BMCModelLoader {
         
         // Move P&L objects down to nest properly
         if (mesh.name === "RevenuePL") {
-          mesh.position.y -= 0.04; // Move down to nest in Revenue
-          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.04)`);
+          mesh.position.y -= 0.03; // Move down to nest in Revenue
+          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.03)`);
         } else if (mesh.name === "ExpensesPL") {
-          mesh.position.y -= 0.04; // Move down to nest in Expenses
-          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.04)`);
+          mesh.position.y -= 0.03; // Move down to nest in Expenses
+          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.03)`);
         }
       });
       
