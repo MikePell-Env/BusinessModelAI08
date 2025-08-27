@@ -230,9 +230,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
   const [showBulletText, setShowBulletText] = useState(false);
   
-  // Camera preset state - initialize based on template
-  const getInitialPreset = () => template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
-  const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT'>(getInitialPreset());
+  // Camera preset state - initialize with FRONT for Financials, TOP for others
+  const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT'>(
+    template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP'
+  );
+  
+  // Update camera preset when template changes
+  useEffect(() => {
+    const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
+    setCurrentCameraPreset(newPreset);
+  }, [template.name]);
   
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
