@@ -108,9 +108,19 @@ export class BMCModelLoader {
         const originalY = mesh.position.y;
         const originalHeight = 1.0; // Assume unit height in GLB model
         
-        // Apply universal width reduction first
+        // Apply 20% width reduction for both groups, but keep outer edges fixed to center line
         mesh.scaling.x = 0.8; // 20% reduction in width
-        mesh.position.x += 0.00; // Centered positioning
+        
+        // Group-specific positioning to maintain outer edge alignment
+        if (mesh.name === "Revenue" || mesh.name === "RevenuePL") {
+          // Revenue Group: Keep right edge fixed, move left edge inward
+          // When width reduces by 20%, shift left by 10% of original width to keep right edge fixed
+          mesh.position.x += 0.1; // Move left (positive X moves object leftward in this coordinate system)
+        } else if (mesh.name === "Expenses" || mesh.name === "ExpensesPL") {
+          // Expenses Group: Keep left edge fixed, move right edge inward  
+          // When width reduces by 20%, shift right by 10% of original width to keep left edge fixed
+          mesh.position.x += -0.1; // Move right (negative X moves object rightward in this coordinate system)
+        }
         
         // SIMPLE ANCHORING: Save anchor points, apply height, adjust position to maintain anchor
         if (mesh.name === "Revenue") {
