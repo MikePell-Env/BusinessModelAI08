@@ -107,26 +107,26 @@ export class BMCModelLoader {
           
           // Reduce width by 20% and stay on left side of divider
           mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x -= 0.05; // Keep on left side of vertical divider
-          console.log(`📏 RevenuePL: Reduced width to 80%, positioned left of divider`);
+          mesh.position.x += 0.00; // Move closer to center
+          console.log(`📏 RevenuePL: Reduced width to 80%, moved closer to center`);
         } else if (mesh.name === "ExpensesPL") {
           mesh.position.y -= 0.03; // Move down to nest in Expenses
           console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.03)`);
           
           // Reduce width by 20% and stay on right side of divider
           mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x += 0.05; // Keep on right side of vertical divider
-          console.log(`📏 ExpensesPL: Reduced width to 80%, positioned right of divider`);
+          mesh.position.x -= 0.00; // Move closer to center
+          console.log(`📏 ExpensesPL: Reduced width to 80%, moved closer to center`);
         } else if (mesh.name === "Revenue") {
           // Reduce width by 20% and stay on left side of divider
           mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x -= 0.05; // Keep on left side of vertical divider
-          console.log(`📏 Revenue: Reduced width to 80%, positioned left of divider`);
+          mesh.position.x += 0.00; // Move closer to center
+          console.log(`📏 Revenue: Reduced width to 80%, moved closer to center`);
         } else if (mesh.name === "Expenses") {
           // Reduce width by 20% and stay on right side of divider
           mesh.scaling.x = 0.8; // 20% reduction in width
-          mesh.position.x += 0.05; // Keep on right side of vertical divider
-          console.log(`📏 Expenses: Reduced width to 80%, positioned right of divider`);
+          mesh.position.x -= 0.00; // Move closer to center
+          console.log(`📏 Expenses: Reduced width to 80%, moved closer to center`);
         }
       });
       
