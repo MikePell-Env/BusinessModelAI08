@@ -2449,15 +2449,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }
         });
         
-        // Create Financial labels with fixed dimensions - timing independent solution
+        // Create Financial labels AFTER all mesh transformations are complete
         if (template.name.toLowerCase() === 'financials') {
-          console.log(`🏷️ Creating Financial labels with fixed dimensions`);
+          console.log(`🏷️ Creating Financial labels after all transformations are complete`);
           
           model.meshes.forEach((mesh) => {
             if (mesh.name !== "__root__") {
-              console.log(`🏷️ Creating fixed-dimension label for Financial object: ${mesh.name}`);
+              console.log(`🏷️ Creating front-facing label for Financial object: ${mesh.name}`);
               
-              // Get mesh center for positioning (don't use size for calculations)
+              // Get mesh bounds AFTER all scaling is complete
               const boundingInfo = mesh.getBoundingInfo();
               const center = boundingInfo.boundingBox.center;
               const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
@@ -2482,16 +2482,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   return; // Skip if no texture mapping
               }
               
-              // Use FIXED dimensions - no dependency on mesh scaling
-              const labelWidth = 0.54; // Fixed width
-              let labelHeight;
-              if (mesh.name === "Revenue") {
-                labelHeight = 0.19; // Fixed height for Revenue to prevent stretching
-                console.log(`${mesh.name} Label (FIXED DIMS): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
-              } else {
-                labelHeight = 0.20; // Fixed height for other labels
-                console.log(`${mesh.name} Label (FIXED DIMS): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
-              }
+              // Calculate label size based on actual mesh width - 20% bigger than current = 0.51
+              const labelWidth = size.x * 0.51; // 20% bigger than 0.425
+              const labelHeight = (labelWidth * 0.25) * 1.5; // Same aspect ratio calculation
+              console.log(`${mesh.name} Label: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
               
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
@@ -2520,10 +2514,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelMaterial.backFaceCulling = false; // Visible from both sides
               
               labelPlane.material = labelMaterial;
-              // DON'T parent to mesh - create independently to avoid scaling inheritance
+              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
               
-              console.log(`✅ ${mesh.name} fixed-dimension label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
             }
           });
         }
