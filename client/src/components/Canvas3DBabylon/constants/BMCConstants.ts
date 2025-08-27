@@ -44,6 +44,12 @@ export const CAMERA_PRESETS = {
     alpha: Math.PI/2, // 90° rotation for proper BMC orientation alignment
     beta: 0.01, // Near-flat top-down view (minimal tilt maintains perspective camera)
     radius: 55 // Moderate zoom for complete canvas visibility
+  },
+  // Front view for Financials template - starts from TOP then rotates 90° around X axis
+  FRONT: {
+    alpha: Math.PI/2, // Same horizontal rotation as TOP
+    beta: Math.PI/2, // 90° rotation around X axis from TOP (straight-on front view)
+    radius: 55 // Same distance as TOP for consistency
   }
 } as const;
 

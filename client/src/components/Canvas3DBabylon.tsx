@@ -231,13 +231,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   const [showBulletText, setShowBulletText] = useState(false);
   
   // Camera preset state  
-  const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP'>('TOP');
+  const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT'>('TOP');
   
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
   
   // High-quality camera preset switching with smooth transitions
-  const switchCameraPreset = (preset: 'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP') => {
+  const switchCameraPreset = (preset: 'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT') => {
     if (isTransitioningCamera) return; // Prevent overlapping transitions
     
     setCurrentCameraPreset(preset);
@@ -3100,17 +3100,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             {isTransitioningCamera && currentCameraPreset !== 'PERSPECTIVE_LEFT' ? '...' : 'Left View'}
           </button>
           <button
-            onClick={() => switchCameraPreset('TOP')}
+            onClick={() => {
+              const preset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
+              switchCameraPreset(preset);
+            }}
             disabled={isTransitioningCamera}
             className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 ${
-              currentCameraPreset === 'TOP' 
+              (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') 
                 ? 'bg-blue-600 text-white shadow-md' 
                 : isTransitioningCamera 
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-sm'
             }`}
           >
-            {isTransitioningCamera && currentCameraPreset !== 'TOP' ? '...' : 'Top View'}
+            {isTransitioningCamera && currentCameraPreset !== 'TOP' && currentCameraPreset !== 'FRONT' ? '...' : (template.name.toLowerCase() === 'financials' ? 'Front View' : 'Top View')}
           </button>
           <button
             onClick={() => switchCameraPreset('PERSPECTIVE_RIGHT')}
