@@ -100,13 +100,13 @@ export class BMCModelLoader {
       result.meshes.forEach((mesh) => {
         console.log(`🔍 Found mesh: "${mesh.name}"`);
         
-        // Move P&L objects up slightly to prevent overlapping artifacts
+        // Move P&L objects down slightly to nest properly
         if (mesh.name === "RevenuePL") {
-          mesh.position.y += 0.005; // Tiny separation to prevent overlap
-          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved up 0.005)`);
+          mesh.position.y -= 0.01; // Move down to nest in Revenue
+          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.01)`);
         } else if (mesh.name === "ExpensesPL") {
-          mesh.position.y += 0.005; // Tiny separation to prevent overlap
-          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved up 0.005)`);
+          mesh.position.y -= 0.01; // Move down to nest in Expenses
+          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.01)`);
         }
       });
       
