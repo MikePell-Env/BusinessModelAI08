@@ -1190,6 +1190,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       internalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
       internalLabelMaterial.disableLighting = true;
+      internalLabelMaterial.backFaceCulling = false; // Visible from underneath
       
       internalLabelPlane.material = internalLabelMaterial;
       internalLabelPlane.isPickable = false;
@@ -1230,6 +1231,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       externalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
       externalLabelMaterial.useAlphaFromDiffuseTexture = true;
       externalLabelMaterial.disableLighting = true;
+      externalLabelMaterial.backFaceCulling = false; // Visible from underneath
       
       externalLabelPlane.material = externalLabelMaterial;
       externalLabelPlane.isPickable = false;
@@ -1268,6 +1270,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       verticalDividerMaterial.alpha = 0.3; // 30% opacity (same as Internal/External)
       verticalDividerMaterial.useAlphaFromDiffuseTexture = true;
       verticalDividerMaterial.disableLighting = true;
+      verticalDividerMaterial.backFaceCulling = false; // Visible from underneath
       
       verticalDividerPlane.material = verticalDividerMaterial;
       verticalDividerPlane.isPickable = false;
