@@ -11,7 +11,8 @@ import {
   StandardMaterial,
   Color3,
   ActionManager,
-  Mesh
+  Mesh,
+  TransformNode
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import { debugLog } from '@/lib/debug/DebugLogger';
@@ -96,19 +97,53 @@ export class BMCModelLoader {
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(1, 1, 1);
       
-      // Adjust positions for stacked financial objects
+      // Create Transform nodes for each financial object and set initial heights
+      const transformNodes = new Map<string, TransformNode>();
+      
       result.meshes.forEach((mesh) => {
         console.log(`🔍 Found mesh: "${mesh.name}"`);
         
-        // Move P&L objects down to nest properly
-        if (mesh.name === "RevenuePL") {
-          mesh.position.y -= 0.03; // Move down to nest in Revenue
-          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.03)`);
-        } else if (mesh.name === "ExpensesPL") {
-          mesh.position.y -= 0.03; // Move down to nest in Expenses
-          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.03)`);
+        if (mesh.name !== "__root__") {
+          // Create Transform node for each financial object
+          const transformNode = new TransformNode(`${mesh.name}_Transform`, this.scene);
+          transformNode.position = mesh.position.clone();
+          transformNode.rotation = mesh.rotation.clone();
+          transformNode.scaling = mesh.scaling.clone();
+          
+          // Parent mesh to transform node
+          mesh.parent = transformNode;
+          mesh.position = Vector3.Zero(); // Reset mesh position since transform handles it
+          mesh.rotation = Vector3.Zero(); // Reset mesh rotation since transform handles it
+          mesh.scaling = new Vector3(1, 1, 1); // Reset mesh scaling since transform handles it
+          
+          transformNodes.set(mesh.name, transformNode);
+          console.log(`🔧 Created Transform node for ${mesh.name}`);
+          
+          // Set initial heights based on design: Revenue Group = 20%/80%, Expenses Group = equal for now
+          if (mesh.name === "Revenue") {
+            // Revenue (top) = 20% of group height
+            transformNode.scaling.y = 0.2;
+            console.log(`📏 Set Revenue height to 20% of group`);
+          } else if (mesh.name === "RevenuePL") {
+            // RevenuePL (bottom) = 80% of group height, positioned below Revenue
+            transformNode.scaling.y = 0.8;
+            transformNode.position.y -= 0.03; // Position below Revenue
+            console.log(`📏 Set RevenuePL height to 80% of group, positioned below Revenue`);
+          } else if (mesh.name === "Expenses") {
+            // Expenses (top) = 50% for now (can be adjusted later)
+            transformNode.scaling.y = 0.5;
+            console.log(`📏 Set Expenses height to 50% of group`);
+          } else if (mesh.name === "ExpensesPL") {
+            // ExpensesPL (bottom) = 50% for now, positioned below Expenses
+            transformNode.scaling.y = 0.5;
+            transformNode.position.y -= 0.03; // Position below Expenses
+            console.log(`📏 Set ExpensesPL height to 50% of group, positioned below Expenses`);
+          }
         }
       });
+      
+      // Store transform nodes for later manipulation
+      (rootMesh as any).financialTransforms = transformNodes;
       
       const model: LoadedModel = {
         rootMesh,
