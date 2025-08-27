@@ -96,6 +96,17 @@ export class BMCModelLoader {
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(1, 1, 1);
       
+      // Adjust positions for stacked objects - move RevenuePL and ExpensesPL down to rest on base objects
+      result.meshes.forEach((mesh) => {
+        if (mesh.name === "RevenuePL") {
+          mesh.position.y -= 0.5; // Move down to rest on Revenue object
+          console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down to rest on Revenue)`);
+        } else if (mesh.name === "ExpensesPL") {
+          mesh.position.y -= 0.5; // Move down to rest on Expenses object  
+          console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down to rest on Expenses)`);
+        }
+      });
+      
       const model: LoadedModel = {
         rootMesh,
         meshes: result.meshes,
