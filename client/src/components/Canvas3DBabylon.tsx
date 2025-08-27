@@ -1692,9 +1692,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             
             // Enhanced material with better polish and depth
             sectionMaterial.diffuseColor = baseColor;
-            sectionMaterial.specularColor = new Color3(0.2, 0.2, 0.2); // Slightly higher for better polish
-            sectionMaterial.specularPower = 64; // Tighter specular for cleaner reflections
-            sectionMaterial.ambientColor = baseColor.scale(0.4); // Add subtle ambient for depth
+            
+            // Reduce lighting for Loss and Profit shapes to prevent blown-out look
+            if (template.name.toLowerCase() === 'financials' && (mesh.name === 'RevenuePL' || mesh.name === 'ExpensesPL')) {
+              sectionMaterial.specularColor = new Color3(0.05, 0.05, 0.05); // Much lower specular for Loss/Profit
+              sectionMaterial.specularPower = 32; // Lower specular power for softer reflections
+              sectionMaterial.ambientColor = baseColor.scale(0.15); // Reduced ambient for less blown-out look
+            } else {
+              sectionMaterial.specularColor = new Color3(0.2, 0.2, 0.2); // Slightly higher for better polish
+              sectionMaterial.specularPower = 64; // Tighter specular for cleaner reflections
+              sectionMaterial.ambientColor = baseColor.scale(0.4); // Add subtle ambient for depth
+            }
             
             // Add baseColor property for compatibility with hover behavior
             sectionMaterial.baseColor = baseColor;
