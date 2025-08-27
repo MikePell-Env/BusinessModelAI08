@@ -264,7 +264,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // Template switch: preserve current camera position
         console.log("🔄 Template switch: Preserving current camera position");
         shouldAutoAnimateRef.current = false; // No auto-animation for template switches
-        // Don't change currentCameraPreset - keep the current view
+        
+        // Update currentCameraPreset to match the actual camera position for proper button highlighting
+        // Don't change the camera position, but ensure button state is correct
+        if (currentCameraPreset === 'FRONT' && template.name.toLowerCase() !== 'financials') {
+          // Switching from Financials (FRONT) to Business Model - camera stays in same position but button should not highlight TOP
+          // Keep the current perspective position without highlighting any specific preset button
+          console.log("🔄 Template switch: Clearing preset highlight to match preserved camera position");
+          setCurrentCameraPreset('PERSPECTIVE_RIGHT'); // Use a neutral perspective preset that matches the preserved position
+        } else if (currentCameraPreset === 'TOP' && template.name.toLowerCase() === 'financials') {
+          // Switching from Business Model (TOP) to Financials - similar logic
+          console.log("🔄 Template switch: Adjusting preset to match preserved camera position");
+          setCurrentCameraPreset('PERSPECTIVE_RIGHT'); // Use a neutral perspective preset
+        }
+        // Keep currentCameraPreset unchanged for other cases
       } else {
         // First time instantiation: set default preset and allow auto-animation
         const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
