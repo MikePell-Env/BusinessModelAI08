@@ -889,6 +889,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     groundMaterial.specularColor = MATERIAL_COLORS.GROUND_SPECULAR; // Subtle blue-tinted specular reflection
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
     groundMaterial.alpha = 0.5; // 50% opacity
+    groundMaterial.backFaceCulling = false; // Render from both sides (visible from underneath)
     ground.material = groundMaterial;
 
     // Background click handling is done by SimpleClickHandler callbacks
