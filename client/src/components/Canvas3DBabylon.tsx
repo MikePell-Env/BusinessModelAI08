@@ -1747,10 +1747,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   return; // Skip if no texture mapping
               }
               
-              // Create label plane with FIXED dimensions using original unscaled size
-              const labelWidth = originalSize.x * 0.8; // 80% of original mesh width (before scaling)
-              const labelHeight = labelWidth * 0.25; // Keep consistent aspect ratio
-              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (original size, not stretched)`);
+              // Create label plane using same sizing as Business Model labels  
+              const labelWidth = originalSize.x * 0.65; // Same as BMC sections (Customer Channels, etc.)
+              const labelHeight = (labelWidth * 0.25) * 1.5; // 50% bigger like BMC labels
+              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (BMC style sizing)`);
               
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
