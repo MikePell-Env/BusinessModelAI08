@@ -2449,308 +2449,87 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }
         });
         
-        // Financial Helper Functions for Dynamic Architecture
-        const createFinancialLabel = (mesh: any, objectTransform: TransformNode, scene: Scene, objectConfig: any) => {
-          console.log(`🏷️ Creating aspect-preserved label for ${mesh.name}`);
-          
-          // Get mesh bounds for size calculations
-          const boundingInfo = mesh.getBoundingInfo();
-          const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
-          
-          // Determine label texture path
-          let labelTexturePath = "";
-          switch (mesh.name) {
-            case "Revenue":
-              labelTexturePath = "/textures/Label_Revenue.png";
-              break;
-            case "RevenuePL":
-              labelTexturePath = "/textures/Label_Loss.png";
-              break;
-            case "Expenses":
-              labelTexturePath = "/textures/Label_Expenses.png";
-              break;
-            case "ExpensesPL":
-              labelTexturePath = "/textures/Label_Profit.png";
-              break;
-            default:
-              console.log(`⚠️ No label texture for ${mesh.name}`);
-              return;
-          }
-          
-          // Calculate label dimensions with preserved aspect ratios
-          const baseWidth = size.x * 0.51;
-          let labelHeight;
-          
-          // Fixed aspect ratios for each label type to prevent stretching
-          switch (mesh.name) {
-            case "Revenue":
-              labelHeight = baseWidth * 0.35; // Revenue-specific aspect ratio
-              break;
-            case "RevenuePL":
-              labelHeight = baseWidth * 0.37; // Loss-specific aspect ratio
-              break;
-            case "Expenses":
-              labelHeight = baseWidth * 0.37; // Expenses-specific aspect ratio
-              break;
-            case "ExpensesPL":
-              labelHeight = baseWidth * 0.37; // Profit-specific aspect ratio
-              break;
-            default:
-              labelHeight = baseWidth * 0.37; // Default ratio
-          }
-          
-          // Create label plane
-          const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
-            width: baseWidth,
-            height: labelHeight
-          }, scene);
-          
-          // Create label transform node for independent scaling
-          const labelTransform = new TransformNode(`${mesh.name}LabelTransform`, scene);
-          labelTransform.parent = objectTransform;
-          labelPlane.parent = labelTransform;
-          
-          // Position label in front of mesh face
-          labelTransform.position.x = 0; // Centered horizontally
-          labelTransform.position.y = 0; // Centered vertically on mesh
-          labelTransform.position.z = size.z * 0.501; // Just in front of mesh face
-          
-          // Create material with texture
-          const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
-          const labelTexture = new Texture(labelTexturePath, scene);
-          labelTexture.hasAlpha = true;
-          enhanceLabelTexture(labelTexture);
-          
-          labelMaterial.diffuseTexture = labelTexture;
-          labelMaterial.emissiveTexture = labelTexture;
-          labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4);
-          labelMaterial.useAlphaFromDiffuseTexture = true;
-          labelMaterial.disableLighting = true;
-          labelMaterial.backFaceCulling = false;
-          
-          labelPlane.material = labelMaterial;
-          labelPlane.isPickable = false;
-          
-          // Store references for dynamic operations
-          objectConfig.labelNode = labelTransform;
-          objectConfig.labelPlane = labelPlane;
-          objectConfig.originalLabelWidth = baseWidth;
-          objectConfig.originalLabelHeight = labelHeight;
-          
-          console.log(`✅ ${mesh.name} label created with preserved aspect ratio ${(baseWidth/labelHeight).toFixed(2)}`);
-        };
-        
-        const equalizeFinancialGroupHeights = (financialConfig: any, totalHeight: number) => {
-          console.log(`📏 Equalizing Financial group heights to ${totalHeight} units with ANCHORED positioning`);
-          
-          // Calculate current group heights
-          const leftHeight = financialConfig.leftGroup.objects.reduce((sum: number, obj: any) => 
-            sum + (obj.originalHeight * obj.percentage), 0);
-          const rightHeight = financialConfig.rightGroup.objects.reduce((sum: number, obj: any) => 
-            sum + (obj.originalHeight * obj.percentage), 0);
-          
-          console.log(`📊 Current heights - Left: ${leftHeight.toFixed(3)}, Right: ${rightHeight.toFixed(3)}`);
-          
-          // Calculate scaling factors to achieve target height
-          const leftScale = totalHeight / leftHeight;
-          const rightScale = totalHeight / rightHeight;
-          
-          // Apply ANCHORED scaling to left group
-          for (const obj of financialConfig.leftGroup.objects) {
-            if (obj.mesh && obj.transformNode) {
-              const scaledHeight = obj.originalHeight * obj.percentage * leftScale;
-              
-              // Scale the mesh itself
-              obj.mesh.scaling.y = leftScale * obj.percentage;
-              
-              // ANCHORED POSITIONING: Different logic based on anchor type
-              if (obj.anchor === 'BOTTOM') {
-                // Bottom-anchored (Revenue): Bottom at Y=0 (ground level)
-                obj.transformNode.position.y = 0;
-                obj.mesh.position.y = scaledHeight / 2; // Lift mesh up by half its height to sit on ground
-                console.log(`📐 ${obj.name} (BOTTOM-ANCHORED): Height ${scaledHeight.toFixed(3)}, grounded at Y=0`);
-              } else if (obj.anchor === 'TOP') {
-                // Top-anchored (RevenuePL): Stack directly on top of bottom object
-                const bottomObject = financialConfig.leftGroup.objects.find((o: any) => o.anchor === 'BOTTOM');
-                const bottomHeight = bottomObject ? bottomObject.originalHeight * leftScale * bottomObject.percentage : 0;
-                obj.transformNode.position.y = bottomHeight;
-                obj.mesh.position.y = scaledHeight / 2; // Lift mesh up by half its height
-                console.log(`📐 ${obj.name} (TOP-ANCHORED): Height ${scaledHeight.toFixed(3)}, stacked at Y=${bottomHeight.toFixed(3)}`);
-              }
-              
-              // Preserve label aspect ratio during mesh scaling
-              if (obj.labelNode && obj.labelPlane) {
-                const labelScaleY = 1.0; // Don't scale labels vertically to preserve aspect ratio
-                obj.labelNode.scaling = new Vector3(1.0, labelScaleY, 1.0);
-              }
-            }
-          }
-          
-          // Apply ANCHORED scaling to right group  
-          for (const obj of financialConfig.rightGroup.objects) {
-            if (obj.mesh && obj.transformNode) {
-              const scaledHeight = obj.originalHeight * obj.percentage * rightScale;
-              
-              // Scale the mesh itself
-              obj.mesh.scaling.y = rightScale * obj.percentage;
-              
-              // ANCHORED POSITIONING: Different logic based on anchor type
-              if (obj.anchor === 'BOTTOM') {
-                // Bottom-anchored (Expenses): Bottom at Y=0 (ground level)
-                obj.transformNode.position.y = 0;
-                obj.mesh.position.y = scaledHeight / 2; // Lift mesh up by half its height to sit on ground
-                console.log(`📐 ${obj.name} (BOTTOM-ANCHORED): Height ${scaledHeight.toFixed(3)}, grounded at Y=0`);
-              } else if (obj.anchor === 'TOP') {
-                // Top-anchored (ExpensesPL): Stack directly on top of bottom object
-                const bottomObject = financialConfig.rightGroup.objects.find((o: any) => o.anchor === 'BOTTOM');
-                const bottomHeight = bottomObject ? bottomObject.originalHeight * rightScale * bottomObject.percentage : 0;
-                obj.transformNode.position.y = bottomHeight;
-                obj.mesh.position.y = scaledHeight / 2; // Lift mesh up by half its height
-                console.log(`📐 ${obj.name} (TOP-ANCHORED): Height ${scaledHeight.toFixed(3)}, stacked at Y=${bottomHeight.toFixed(3)}`);
-              }
-              
-              // Preserve label aspect ratio during mesh scaling
-              if (obj.labelNode && obj.labelPlane) {
-                const labelScaleY = 1.0; // Don't scale labels vertically to preserve aspect ratio
-                obj.labelNode.scaling = new Vector3(1.0, labelScaleY, 1.0);
-              }
-            }
-          }
-          
-          console.log(`✅ Financial groups equalized with ANCHORED positioning - Both groups now ${totalHeight} units tall`);
-        };
-
-        // Financial Template: Dynamic Transform Node Architecture
+        // Create Financial labels AFTER all mesh transformations are complete
         if (template.name.toLowerCase() === 'financials') {
-          console.log(`🏗️ Setting up Financial Transform Node Architecture`);
+          console.log(`🏷️ Creating Financial labels after all transformations are complete`);
           
-          // Create Financial Configuration with dynamic proportions and anchoring rules
-          // CRITICAL: Each object has specific anchoring behavior during resize operations
-          const financialConfig = {
-            leftGroup: {
-              name: 'LeftGroup',
-              position: new Vector3(-2.0, 0, 0), // Left side positioning - further apart
-              objects: [
-                { 
-                  name: 'Revenue', 
-                  percentage: 0.80, 
-                  anchor: 'BOTTOM', // Bottom face stays fixed, top face moves during resize
-                  mesh: null as any, 
-                  originalHeight: 0, 
-                  transformNode: null as any, 
-                  labelNode: null as any 
-                },
-                { 
-                  name: 'RevenuePL', 
-                  percentage: 0.20, 
-                  anchor: 'TOP', // Top face stays fixed, bottom face moves during resize
-                  mesh: null as any, 
-                  originalHeight: 0, 
-                  transformNode: null as any, 
-                  labelNode: null as any 
-                }
-              ]
-            },
-            rightGroup: {
-              name: 'RightGroup', 
-              position: new Vector3(2.0, 0, 0), // Right side positioning - further apart
-              objects: [
-                { 
-                  name: 'Expenses', 
-                  percentage: 0.80, 
-                  anchor: 'BOTTOM', // Bottom face stays fixed, top face moves during resize
-                  mesh: null as any, 
-                  originalHeight: 0, 
-                  transformNode: null as any, 
-                  labelNode: null as any 
-                },
-                { 
-                  name: 'ExpensesPL', 
-                  percentage: 0.20, 
-                  anchor: 'TOP', // Top face stays fixed, bottom face moves during resize
-                  mesh: null as any, 
-                  originalHeight: 0, 
-                  transformNode: null as any, 
-                  labelNode: null as any 
-                }
-              ]
-            }
-          };
-          
-          // Create group transform nodes
-          const leftGroupTransform = new TransformNode('LeftGroupTransform', scene);
-          const rightGroupTransform = new TransformNode('RightGroupTransform', scene);
-          leftGroupTransform.position = financialConfig.leftGroup.position;
-          rightGroupTransform.position = financialConfig.rightGroup.position;
-          leftGroupTransform.parent = masterTransform;
-          rightGroupTransform.parent = masterTransform;
-          
-          // Map meshes to configuration and create individual transform nodes
           model.meshes.forEach((mesh) => {
             if (mesh.name !== "__root__") {
-              console.log(`🔧 Processing Financial mesh: ${mesh.name}`);
+              console.log(`🏷️ Creating front-facing label for Financial object: ${mesh.name}`);
               
-              // Store original mesh bounds for calculations
+              // Get mesh bounds AFTER all scaling is complete
               const boundingInfo = mesh.getBoundingInfo();
-              const originalHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Create individual transform node for this object
-              const objectTransform = new TransformNode(`${mesh.name}Transform`, scene);
-              
-              // Find which group this mesh belongs to and configure it
-              let groupConfig = null;
-              let groupTransform = null;
-              
-              if (mesh.name === 'Revenue' || mesh.name === 'RevenuePL') {
-                groupConfig = financialConfig.leftGroup;
-                groupTransform = leftGroupTransform;
-              } else if (mesh.name === 'Expenses' || mesh.name === 'ExpensesPL') {
-                groupConfig = financialConfig.rightGroup;
-                groupTransform = rightGroupTransform;
+              // Determine label texture based on mesh name
+              let labelTexturePath = "";
+              switch (mesh.name) {
+                case "Revenue":
+                  labelTexturePath = "/textures/Label_Revenue.png";
+                  break;
+                case "RevenuePL":
+                  labelTexturePath = "/textures/Label_Loss.png"; // RevenuePL displays "Loss" label
+                  break;
+                case "Expenses":
+                  labelTexturePath = "/textures/Label_Expenses.png";
+                  break;
+                case "ExpensesPL":
+                  labelTexturePath = "/textures/Label_Profit.png"; // ExpensesPL displays "Profit" label
+                  break;
+                default:
+                  console.log(`⚠️ No label texture found for Financial object: ${mesh.name}`);
+                  return; // Skip if no texture mapping
               }
               
-              if (groupConfig && groupTransform) {
-                // Find the object config for this mesh
-                const objectConfig = groupConfig.objects.find(obj => obj.name === mesh.name);
-                if (objectConfig) {
-                  // Store references
-                  objectConfig.mesh = mesh;
-                  objectConfig.originalHeight = originalHeight;
-                  objectConfig.transformNode = objectTransform;
-                  
-                  // Parent the object transform to the group
-                  objectTransform.parent = groupTransform;
-                  
-                  // Parent the mesh to the object transform node
-                  mesh.parent = objectTransform;
-                  
-                  // INITIAL POSITIONING: Set base position first, anchoring logic happens during scaling
-                  // For now, just position based on stacking order
-                  let yOffset = 0;
-                  for (const obj of groupConfig.objects) {
-                    if (obj.name === mesh.name) break;
-                    yOffset += obj.originalHeight;
-                  }
-                  objectTransform.position.y = yOffset;
-                  
-                  console.log(`📍 ${mesh.name}: Positioned at Y offset ${yOffset.toFixed(3)} in ${groupConfig.name}`);
-                  
-                  // Create label with aspect-ratio preservation
-                  createFinancialLabel(mesh, objectTransform, scene, objectConfig);
-                }
+              // Calculate label size based on actual mesh width - 20% bigger than current = 0.51
+              const labelWidth = size.x * 0.51; // 20% bigger than 0.425
+              
+              // Fix Revenue label stretching by using proper aspect ratio for each label type
+              let labelHeight;
+              if (mesh.name === "Revenue") {
+                // Revenue label needs specific aspect ratio to prevent stretching
+                labelHeight = labelWidth * 0.35; // Proper aspect ratio for Revenue texture
+                console.log(`${mesh.name} Label (FIXED): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
+              } else {
+                // Other Financial labels use standard calculation
+                labelHeight = (labelWidth * 0.25) * 1.5;
+                console.log(`${mesh.name} Label: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
               }
+              
+              const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
+                width: labelWidth,
+                height: labelHeight
+              }, scene);
+              
+              // Position on front face (negative Z direction from center)
+              labelPlane.position.x = center.x;
+              labelPlane.position.y = center.y;
+              labelPlane.position.z = center.z - (size.z * 0.51); // Just in front based on actual mesh depth
+              
+              // No rotation needed - label faces forward by default
+              labelPlane.rotation = Vector3.Zero();
+              
+              // Create material with texture
+              const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
+              const labelTexture = new Texture(labelTexturePath, scene);
+              labelTexture.hasAlpha = true;
+              enhanceLabelTexture(labelTexture);
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // Reduced emissive to prevent blown out look
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = true; // Ensure consistent brightness
+              labelMaterial.backFaceCulling = false; // Visible from both sides
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
+              labelPlane.isPickable = false; // Don't interfere with mesh interaction
+              
+              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
             }
           });
-          
-          // Store financial configuration for dynamic scaling operations
-          (rootMesh as any).financialConfig = financialConfig;
-          (rootMesh as any).leftGroupTransform = leftGroupTransform;
-          (rootMesh as any).rightGroupTransform = rightGroupTransform;
-          
-          // Initialize with equal group heights - use a reasonable height for stacking
-          equalizeFinancialGroupHeights(financialConfig, 6.0); // Taller height for proper stacking
-          
-          console.log(`✅ Financial Transform Node Architecture initialized`);
         }
         
         // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
