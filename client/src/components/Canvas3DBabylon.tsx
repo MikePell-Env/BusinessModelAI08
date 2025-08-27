@@ -243,17 +243,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Only set initial preset for first-time template loading, not during transitions
     // Preserve camera position when switching between templates that have been initialized
     if (hasInitializedTemplate !== template.name) {
-      // Check if we have a saved camera state to preserve
+      // Save current camera position before switching (if camera exists)
+      if (cameraRef.current) {
+        saveCamera3DState(
+          cameraRef.current.alpha,
+          cameraRef.current.beta,
+          cameraRef.current.radius
+        );
+        console.log(`💾 Saved camera position: α=${cameraRef.current.alpha.toFixed(2)}, β=${cameraRef.current.beta.toFixed(2)}, r=${cameraRef.current.radius.toFixed(2)}`);
+      }
+      
+      // Check if this template has been initialized before
+      const isFirstTimeForThisTemplate = !hasInitializedTemplate;
       const currentState = getCamera3DState();
-      if (currentState && (currentState.alpha !== 0 || currentState.beta !== 0 || currentState.radius !== 0)) {
-        // Preserve current camera position instead of resetting to template default
+      
+      if (!isFirstTimeForThisTemplate && currentState && (currentState.alpha !== 0 || currentState.beta !== 0 || currentState.radius !== 0)) {
+        // Template switch: preserve current camera position
         console.log("🔄 Template switch: Preserving current camera position");
         // Don't change currentCameraPreset - keep the current view
       } else {
-        // Only set default preset if no valid camera state exists
+        // First time instantiation: set default preset and allow auto-animation
         const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
         setCurrentCameraPreset(newPreset);
-        console.log(`🔄 Template switch: Setting default preset ${newPreset} for ${template.name}`);
+        console.log(`🎬 First instantiation: Setting default preset ${newPreset} for ${template.name}`);
       }
       setHasInitializedTemplate(template.name);
     }
@@ -802,18 +814,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     }
     
-    // Camera positioned using current preset
+    // Camera positioned using current preset or saved state
     const currentPreset = CAMERA_PRESETS[currentCameraPreset];
+    const savedState = getCamera3DState();
+    
+    // Use saved camera state if available and not switching to first-time template
+    let cameraAlpha = currentPreset.alpha;
+    let cameraBeta = currentPreset.beta; 
+    let cameraRadius = currentPreset.radius;
+    
+    if (savedState && hasInitializedTemplate && 
+        (savedState.alpha !== 0 || savedState.beta !== 0 || savedState.radius !== 0)) {
+      cameraAlpha = savedState.alpha;
+      cameraBeta = savedState.beta;
+      cameraRadius = savedState.radius;
+      console.log(`🔄 Restoring saved camera: α=${cameraAlpha.toFixed(2)}, β=${cameraBeta.toFixed(2)}, r=${cameraRadius.toFixed(2)}`);
+    }
     
     // Use scene center (0,0,0) for all presets - same central pivot point for all templates
     const cameraTarget = new Vector3(0, 0, 0);
     
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
-      currentPreset.alpha,     // Alpha from preset
-      currentPreset.beta,      // Beta from preset  
-      currentPreset.radius,    // Radius from preset
-      cameraTarget,            // Custom target for FRONT, scene center for others
+      cameraAlpha,     // Alpha from preset or saved state
+      cameraBeta,      // Beta from preset or saved state
+      cameraRadius,    // Radius from preset or saved state
+      cameraTarget,    // Custom target for FRONT, scene center for others
       scene
     );
     // Camera positioned to show: Cost Structure (red) front-left, Revenue Streams (green) front-right
@@ -2961,16 +2987,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }, 1000);
 
     // AUTO-SWITCH: After 3 seconds, automatically switch on VERY FIRST instantiation only
-    // Business Model (TOP) -> PERSPECTIVE_RIGHT, Financials (FRONT) -> FRONT
+    // Business Model (TOP) -> PERSPECTIVE_RIGHT, Financials (FRONT) -> FRONT  
     // This should NEVER happen when switching between templates - only on first-ever load
-    const isFirstTimeInstantiation = !hasInitializedTemplate || hasInitializedTemplate !== template.name;
-    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && isFirstTimeInstantiation) {
+    const isReallyFirstTime = hasInitializedTemplate === template.name; // Just got set to this template name
+    const wasJustInitialized = hasInitializedTemplate === template.name;
+    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && wasJustInitialized) {
       console.log(`🎬 First-time instantiation: Will auto-animate ${template.name} after 3 seconds`);
-    } else if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && !isFirstTimeInstantiation) {
+    } else if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && !wasJustInitialized) {
       console.log(`🔄 Template switch: Skipping auto-animation for ${template.name} (preserving camera position)`);
     }
     
-    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && isFirstTimeInstantiation) {
+    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && wasJustInitialized) {
       // Flag to track if user has manually moved camera - EASY TO REVERT: just remove this flag and the condition below
       let userHasMovedCamera = false;
       
