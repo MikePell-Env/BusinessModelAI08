@@ -235,11 +235,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP'
   );
   
-  // Update camera preset when template changes
-  useEffect(() => {
-    const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
-    setCurrentCameraPreset(newPreset);
-  }, [template.name]);
+  // DISABLED: Auto camera preset switching when template changes
+  // This was causing the ground plane to shift during template transitions
+  // Camera preset now only changes via manual button clicks for steady transitions
+  // useEffect(() => {
+  //   const newPreset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
+  //   setCurrentCameraPreset(newPreset);
+  // }, [template.name]);
   
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
@@ -769,21 +771,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Clear any saved camera state to ensure fresh preset
-    if (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') {
-      // Clear saved state so restoration doesn't override our TOP preset
-      const currentState = getCamera3DState();
-      if (currentState) {
-        // Clear the saved state completely
-        saveCamera3DState(0, 0, 0); // Clear with zeros, will be set to correct preset values below
-      }
-      
-      // Also clear BMC State Manager camera state
-      const bmcCameraState = bmcState.getCameraState();
-      if (bmcCameraState) {
-        bmcState.saveCameraState({ alpha: 0, beta: 0, radius: 0, target: new Vector3(0, 0, 0) }); // Clear it
-      }
-    }
+    // DISABLED: Clearing camera state for steady ground plane transitions
+    // Don't clear saved camera state - preserve current camera position across template switches
+    // This maintains the steady ground plane during template transitions
     
     // Camera positioned using current preset
     const currentPreset = CAMERA_PRESETS[currentCameraPreset];
@@ -2928,10 +2918,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     }, 1000);
 
-    // AUTO-SWITCH: After 2 seconds, automatically switch from TOP view to RIGHT view
-    // Only applies when starting with TOP preset (initial load)
-    // SKIP auto-switch if user has manually moved the camera (dragged)
-    if (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') {
+    // DISABLED AUTO-SWITCH: For steady ground plane transitions
+    // Auto-switch was causing camera movement during template transitions
+    // Users can manually click view buttons to change camera presets
+    // Original logic: After 2 seconds, automatically switch from TOP view to RIGHT view
+    if (false && (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT')) {
       // Flag to track if user has manually moved camera - EASY TO REVERT: just remove this flag and the condition below
       let userHasMovedCamera = false;
       
