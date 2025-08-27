@@ -25,20 +25,50 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     try {
       // Load canvas store and switch to 3D Top view
       const { useCanvas } = await import('@/lib/stores/useCanvas');
+      const { useEnvisionerType } = await import('@/lib/stores/useEnvisionerType');
       const { switchBMCView } = useCanvas.getState();
+      
+      // Switch to Business Model template
+      useEnvisionerType.getState().switchToBusinessModel();
       
       // Switch to 3D View
       switchBMCView('view3DPerspective');
       
       // Directly trigger the canvas to open without navigating to home page
       window.dispatchEvent(new CustomEvent('openEnvisioner', { 
-        detail: { viewMode: 'view3DPerspective' } 
+        detail: { viewMode: 'view3DPerspective', template: 'business-model' } 
       }));
     } catch (error) {
       console.error('Error switching to Business Model Canvas:', error);
       // Fallback: directly trigger canvas open
       window.dispatchEvent(new CustomEvent('openEnvisioner', { 
-        detail: { viewMode: 'view3DPerspective' } 
+        detail: { viewMode: 'view3DPerspective', template: 'business-model' } 
+      }));
+    }
+  };
+
+  const handleFinancialsClick = async () => {
+    try {
+      // Load stores and switch to Financials template
+      const { useCanvas } = await import('@/lib/stores/useCanvas');
+      const { useEnvisionerType } = await import('@/lib/stores/useEnvisionerType');
+      const { switchBMCView } = useCanvas.getState();
+      
+      // Switch to Financials template
+      useEnvisionerType.getState().switchToFinancials();
+      
+      // Switch to 3D View
+      switchBMCView('view3DPerspective');
+      
+      // Directly trigger the canvas to open with Financials template
+      window.dispatchEvent(new CustomEvent('openEnvisioner', { 
+        detail: { viewMode: 'view3DPerspective', template: 'financials' } 
+      }));
+    } catch (error) {
+      console.error('Error switching to Financials:', error);
+      // Fallback: directly trigger canvas open with Financials
+      window.dispatchEvent(new CustomEvent('openEnvisioner', { 
+        detail: { viewMode: 'view3DPerspective', template: 'financials' } 
       }));
     }
   };
@@ -280,7 +310,10 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                     </div>
 
                     {/* Financials Card */}
-                    <div className="hover:opacity-80 transition-opacity cursor-pointer">
+                    <div 
+                      className="hover:opacity-80 transition-opacity cursor-pointer"
+                      onClick={handleFinancialsClick}
+                    >
                       <img 
                         src="/button_Financials_blueprint.png" 
                         alt="Financials" 
