@@ -830,7 +830,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     const masterTransform = new TransformNode("MasterTransform", scene);
     masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
     masterTransform.rotation.x = Math.PI/12 + (5 * Math.PI/180) + (-10 * Math.PI/180) + (-10 * Math.PI/180); // 15 degrees + 5 degrees - 10 degrees - 10 degrees tilt around X axis
-    masterTransform.position.y = 2; // Lift scene up to center in window
+    // Adjust master transform based on template for optimal positioning
+    if (template.name.toLowerCase() === 'financials') {
+      masterTransform.position.y = 0.5; // Lower position for Financials to center vertically
+    } else {
+      masterTransform.position.y = 2; // Original position for Business Model
+    }
     
     // DYNAMIC SCALING: Scale BMC to fill window like reference image
     const canvasForScaling = canvasRef.current;
@@ -1552,8 +1557,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         const rootMesh = model.rootMesh;
         rootMeshRef.current = rootMesh;
         
-        // Position at same central pivot point as Business Model for consistent rotation center
-        rootMesh.position = new Vector3(0, 0.1, 0); // Centered at origin, same as Business Model
+        // Position for template-specific layout
+        if (template.name.toLowerCase() === 'financials') {
+          // Financials: Center horizontally but move down vertically for better positioning
+          rootMesh.position = new Vector3(0, 0.1, 1.5); // Centered X, moved down Z for vertical centering
+        } else {
+          // Business Model: Original position to avoid overlap with Revenue/Cost objects
+          rootMesh.position = new Vector3(0, 0.1, 0.9); // Original position to avoid overlaps
+        }
         
         // Keep model at normal rotation for all views
         rootMesh.rotation = Vector3.Zero();
