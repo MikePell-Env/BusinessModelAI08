@@ -2468,6 +2468,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Get mesh bounds AFTER all scaling is complete
               const boundingInfo = mesh.getBoundingInfo();
               const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
               // Determine label texture based on mesh name
               let labelTexturePath = "";
@@ -2489,10 +2490,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   return; // Skip if no texture mapping
               }
               
-              // Use consistent dimensions for all Financial labels
-              const labelWidth = 0.860; // Fixed width
-              const labelHeight = 0.322; // Fixed height
-              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (BMC style sizing)`);
+              // Calculate label size based on actual mesh width - 50% smaller as requested
+              const labelWidth = size.x * 0.325; // 50% smaller than previous 0.65
+              const labelHeight = (labelWidth * 0.25) * 1.5; // Same aspect ratio calculation
+              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (50% smaller)`);
               
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
@@ -2502,7 +2503,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Position on front face (negative Z direction from center)
               labelPlane.position.x = center.x;
               labelPlane.position.y = center.y;
-              labelPlane.position.z = center.z - 0.2; // Fixed offset in front of mesh
+              labelPlane.position.z = center.z - (size.z * 0.51); // Just in front based on actual mesh depth
               
               // No rotation needed - label faces forward by default
               labelPlane.rotation = Vector3.Zero();
