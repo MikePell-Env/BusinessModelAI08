@@ -287,14 +287,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     startBeta = perspectiveCamera.beta;
     startRadius = perspectiveCamera.radius;
     
-    // Handle custom target for FRONT preset to position objects lower in viewport
-    const targetVector = preset === 'FRONT' && presetConfig.target 
-      ? new Vector3(presetConfig.target.x, presetConfig.target.y, presetConfig.target.z)
-      : Vector3.Zero();
-    
-    if (preset === 'FRONT' && presetConfig.target) {
-      perspectiveCamera.setTarget(targetVector);
-    }
+    // All presets use same central pivot point (0,0,0) for consistent rotation center
     
     // Create smooth transition animations with cubic easing
     const alphaAnimation = Animation.CreateAndStartAnimation(
@@ -802,10 +795,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Camera positioned using current preset
     const currentPreset = CAMERA_PRESETS[currentCameraPreset];
     
-    // Use custom target for FRONT preset, scene center for others to keep ground plane steady
-    const cameraTarget = currentCameraPreset === 'FRONT' && currentPreset.target 
-      ? new Vector3(currentPreset.target.x, currentPreset.target.y, currentPreset.target.z)
-      : new Vector3(0, 0, 0);
+    // Use scene center (0,0,0) for all presets - same central pivot point for all templates
+    const cameraTarget = new Vector3(0, 0, 0);
     
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
@@ -1561,8 +1552,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         const rootMesh = model.rootMesh;
         rootMeshRef.current = rootMesh;
         
-        // Position moved down by one row on ground plane (override default from loader)
-        rootMesh.position = new Vector3(0, 0.1, 0.9);
+        // Position at same central pivot point as Business Model for consistent rotation center
+        rootMesh.position = new Vector3(0, 0.1, 0); // Centered at origin, same as Business Model
         
         // Keep model at normal rotation for all views
         rootMesh.rotation = Vector3.Zero();
