@@ -1740,10 +1740,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   return; // Skip if no texture mapping
               }
               
-              // Create label plane sized appropriately for front-face placement
-              const labelWidth = size.x * 0.8; // 80% of mesh width to fit nicely on front face
-              const labelHeight = labelWidth * 0.25; // Keep aspect ratio similar to BMC labels
-              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              // Create label plane with FIXED dimensions that don't scale with mesh
+              // Use original mesh width (before any scaling) for consistent label sizing
+              const originalMeshWidth = size.x / mesh.scaling.x; // Compensate for any X scaling applied
+              const labelWidth = originalMeshWidth * 0.8; // 80% of original mesh width
+              const labelHeight = labelWidth * 0.25; // Keep consistent aspect ratio
+              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (fixed size, not stretched)`);
               
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
