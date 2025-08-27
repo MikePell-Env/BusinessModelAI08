@@ -2449,159 +2449,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }
         });
         
-        // Financial Template: Dynamic Transform Node Architecture
-        if (template.name.toLowerCase() === 'financials') {
-          console.log(`🏗️ Setting up Financial Transform Node Architecture`);
-          
-          // Create Financial Configuration with dynamic proportions and anchoring rules
-          // CRITICAL: Each object has specific anchoring behavior during resize operations
-          const financialConfig = {
-            leftGroup: {
-              name: 'LeftGroup',
-              position: new Vector3(-1.2, 0, 0), // Left side positioning
-              objects: [
-                { 
-                  name: 'Revenue', 
-                  percentage: 0.80, 
-                  anchor: 'BOTTOM', // Bottom face stays fixed, top face moves during resize
-                  mesh: null as any, 
-                  originalHeight: 0, 
-                  transformNode: null as any, 
-                  labelNode: null as any 
-                },
-                { 
-                  name: 'RevenuePL', 
-                  percentage: 0.20, 
-                  anchor: 'TOP', // Top face stays fixed, bottom face moves during resize
-                  mesh: null as any, 
-                  originalHeight: 0, 
-                  transformNode: null as any, 
-                  labelNode: null as any 
-                }
-              ]
-            },
-            rightGroup: {
-              name: 'RightGroup', 
-              position: new Vector3(1.2, 0, 0), // Right side positioning
-              objects: [
-                { 
-                  name: 'Expenses', 
-                  percentage: 0.80, 
-                  anchor: 'BOTTOM', // Bottom face stays fixed, top face moves during resize
-                  mesh: null as any, 
-                  originalHeight: 0, 
-                  transformNode: null as any, 
-                  labelNode: null as any 
-                },
-                { 
-                  name: 'ExpensesPL', 
-                  percentage: 0.20, 
-                  anchor: 'TOP', // Top face stays fixed, bottom face moves during resize
-                  mesh: null as any, 
-                  originalHeight: 0, 
-                  transformNode: null as any, 
-                  labelNode: null as any 
-                }
-              ]
-            }
-          };
-          
-          // Create group transform nodes
-          const leftGroupTransform = new TransformNode('LeftGroupTransform', scene);
-          const rightGroupTransform = new TransformNode('RightGroupTransform', scene);
-          leftGroupTransform.position = financialConfig.leftGroup.position;
-          rightGroupTransform.position = financialConfig.rightGroup.position;
-          leftGroupTransform.parent = masterTransform;
-          rightGroupTransform.parent = masterTransform;
-          
-          // Map meshes to configuration and create individual transform nodes
-          model.meshes.forEach((mesh) => {
-            if (mesh.name !== "__root__") {
-              console.log(`🔧 Processing Financial mesh: ${mesh.name}`);
-              
-              // Store original mesh bounds for calculations
-              const boundingInfo = mesh.getBoundingInfo();
-              const originalHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
-              
-              // Create individual transform node for this object
-              const objectTransform = new TransformNode(`${mesh.name}Transform`, scene);
-              
-              // Find which group this mesh belongs to and configure it
-              let groupConfig = null;
-              let groupTransform = null;
-              
-              if (mesh.name === 'Revenue' || mesh.name === 'RevenuePL') {
-                groupConfig = financialConfig.leftGroup;
-                groupTransform = leftGroupTransform;
-              } else if (mesh.name === 'Expenses' || mesh.name === 'ExpensesPL') {
-                groupConfig = financialConfig.rightGroup;
-                groupTransform = rightGroupTransform;
-              }
-              
-              if (groupConfig && groupTransform) {
-                // Find the object config for this mesh
-                const objectConfig = groupConfig.objects.find(obj => obj.name === mesh.name);
-                if (objectConfig) {
-                  // Store references
-                  objectConfig.mesh = mesh;
-                  objectConfig.originalHeight = originalHeight;
-                  objectConfig.transformNode = objectTransform;
-                  
-                  // Parent the object transform to the group
-                  objectTransform.parent = groupTransform;
-                  
-                  // Parent the mesh to the object transform node
-                  mesh.parent = objectTransform;
-                  
-                  // Calculate anchored positioning based on object type and group layout
-                  // CRITICAL: Bottom-anchored objects stack from bottom (Y=0), top-anchored from group top
-                  let yOffset = 0;
-                  
-                  if (objectConfig.anchor === 'BOTTOM') {
-                    // Bottom-anchored: Stack from group bottom (Y=0)
-                    for (const obj of groupConfig.objects) {
-                      if (obj.anchor === 'BOTTOM' && obj.name === mesh.name) break;
-                      if (obj.anchor === 'BOTTOM') {
-                        yOffset += obj.originalHeight * obj.percentage;
-                      }
-                    }
-                  } else if (objectConfig.anchor === 'TOP') {
-                    // Top-anchored: Position from group top (requires total group height calculation)
-                    const totalGroupHeight = groupConfig.objects.reduce((sum: number, obj: any) => 
-                      sum + (obj.originalHeight * obj.percentage), 0);
-                    
-                    // Start from top and work down for top-anchored objects
-                    yOffset = totalGroupHeight;
-                    for (const obj of groupConfig.objects) {
-                      if (obj.anchor === 'TOP') {
-                        yOffset -= obj.originalHeight * obj.percentage;
-                        if (obj.name === mesh.name) break;
-                      }
-                    }
-                  }
-                  
-                  objectTransform.position.y = yOffset;
-                  
-                  console.log(`📍 ${mesh.name}: Positioned at Y offset ${yOffset.toFixed(3)} in ${groupConfig.name}`);
-                  
-                  // Create label with aspect-ratio preservation
-                  createFinancialLabel(mesh, objectTransform, scene, objectConfig);
-                }
-              }
-            }
-          });
-          
-          // Store financial configuration for dynamic scaling operations
-          (rootMesh as any).financialConfig = financialConfig;
-          (rootMesh as any).leftGroupTransform = leftGroupTransform;
-          (rootMesh as any).rightGroupTransform = rightGroupTransform;
-          
-          // Initialize with equal group heights
-          equalizeFinancialGroupHeights(financialConfig, 4.0); // Default total height
-          
-          console.log(`✅ Financial Transform Node Architecture initialized`);
-        }
-        
         // Financial Helper Functions for Dynamic Architecture
         const createFinancialLabel = (mesh: any, objectTransform: TransformNode, scene: Scene, objectConfig: any) => {
           console.log(`🏷️ Creating aspect-preserved label for ${mesh.name}`);
@@ -2719,12 +2566,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               
               // ANCHORED POSITIONING: Different logic based on anchor type
               if (obj.anchor === 'BOTTOM') {
-                // Bottom-anchored (Revenue): Bottom face at Y=0, grows upward
+                // Bottom-anchored (Revenue): Bottom at group bottom (Y=0), grows upward
                 obj.transformNode.position.y = 0;
+                // Scale mesh from bottom by adjusting mesh position within transform
+                obj.mesh.position.y = scaledHeight / 2; // Center mesh within its height
                 console.log(`📐 ${obj.name} (BOTTOM-ANCHORED): Height ${scaledHeight.toFixed(3)}, bottom at Y=0`);
               } else if (obj.anchor === 'TOP') {
-                // Top-anchored (RevenuePL): Top face at group top, grows downward
+                // Top-anchored (RevenuePL): Top at group top, grows downward  
                 obj.transformNode.position.y = totalHeight - scaledHeight;
+                // Scale mesh from top by adjusting mesh position within transform
+                obj.mesh.position.y = scaledHeight / 2; // Center mesh within its height
                 console.log(`📐 ${obj.name} (TOP-ANCHORED): Height ${scaledHeight.toFixed(3)}, top at Y=${totalHeight.toFixed(3)}`);
               }
               
@@ -2746,12 +2597,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               
               // ANCHORED POSITIONING: Different logic based on anchor type
               if (obj.anchor === 'BOTTOM') {
-                // Bottom-anchored (Expenses): Bottom face at Y=0, grows upward
+                // Bottom-anchored (Expenses): Bottom at group bottom (Y=0), grows upward
                 obj.transformNode.position.y = 0;
+                // Scale mesh from bottom by adjusting mesh position within transform
+                obj.mesh.position.y = scaledHeight / 2; // Center mesh within its height
                 console.log(`📐 ${obj.name} (BOTTOM-ANCHORED): Height ${scaledHeight.toFixed(3)}, bottom at Y=0`);
               } else if (obj.anchor === 'TOP') {
-                // Top-anchored (ExpensesPL): Top face at group top, grows downward
+                // Top-anchored (ExpensesPL): Top at group top, grows downward  
                 obj.transformNode.position.y = totalHeight - scaledHeight;
+                // Scale mesh from top by adjusting mesh position within transform
+                obj.mesh.position.y = scaledHeight / 2; // Center mesh within its height
                 console.log(`📐 ${obj.name} (TOP-ANCHORED): Height ${scaledHeight.toFixed(3)}, top at Y=${totalHeight.toFixed(3)}`);
               }
               
@@ -2765,6 +2620,139 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           
           console.log(`✅ Financial groups equalized with ANCHORED positioning - Both groups now ${totalHeight} units tall`);
         };
+
+        // Financial Template: Dynamic Transform Node Architecture
+        if (template.name.toLowerCase() === 'financials') {
+          console.log(`🏗️ Setting up Financial Transform Node Architecture`);
+          
+          // Create Financial Configuration with dynamic proportions and anchoring rules
+          // CRITICAL: Each object has specific anchoring behavior during resize operations
+          const financialConfig = {
+            leftGroup: {
+              name: 'LeftGroup',
+              position: new Vector3(-2.0, 0, 0), // Left side positioning - further apart
+              objects: [
+                { 
+                  name: 'Revenue', 
+                  percentage: 0.80, 
+                  anchor: 'BOTTOM', // Bottom face stays fixed, top face moves during resize
+                  mesh: null as any, 
+                  originalHeight: 0, 
+                  transformNode: null as any, 
+                  labelNode: null as any 
+                },
+                { 
+                  name: 'RevenuePL', 
+                  percentage: 0.20, 
+                  anchor: 'TOP', // Top face stays fixed, bottom face moves during resize
+                  mesh: null as any, 
+                  originalHeight: 0, 
+                  transformNode: null as any, 
+                  labelNode: null as any 
+                }
+              ]
+            },
+            rightGroup: {
+              name: 'RightGroup', 
+              position: new Vector3(2.0, 0, 0), // Right side positioning - further apart
+              objects: [
+                { 
+                  name: 'Expenses', 
+                  percentage: 0.80, 
+                  anchor: 'BOTTOM', // Bottom face stays fixed, top face moves during resize
+                  mesh: null as any, 
+                  originalHeight: 0, 
+                  transformNode: null as any, 
+                  labelNode: null as any 
+                },
+                { 
+                  name: 'ExpensesPL', 
+                  percentage: 0.20, 
+                  anchor: 'TOP', // Top face stays fixed, bottom face moves during resize
+                  mesh: null as any, 
+                  originalHeight: 0, 
+                  transformNode: null as any, 
+                  labelNode: null as any 
+                }
+              ]
+            }
+          };
+          
+          // Create group transform nodes
+          const leftGroupTransform = new TransformNode('LeftGroupTransform', scene);
+          const rightGroupTransform = new TransformNode('RightGroupTransform', scene);
+          leftGroupTransform.position = financialConfig.leftGroup.position;
+          rightGroupTransform.position = financialConfig.rightGroup.position;
+          leftGroupTransform.parent = masterTransform;
+          rightGroupTransform.parent = masterTransform;
+          
+          // Map meshes to configuration and create individual transform nodes
+          model.meshes.forEach((mesh) => {
+            if (mesh.name !== "__root__") {
+              console.log(`🔧 Processing Financial mesh: ${mesh.name}`);
+              
+              // Store original mesh bounds for calculations
+              const boundingInfo = mesh.getBoundingInfo();
+              const originalHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
+              
+              // Create individual transform node for this object
+              const objectTransform = new TransformNode(`${mesh.name}Transform`, scene);
+              
+              // Find which group this mesh belongs to and configure it
+              let groupConfig = null;
+              let groupTransform = null;
+              
+              if (mesh.name === 'Revenue' || mesh.name === 'RevenuePL') {
+                groupConfig = financialConfig.leftGroup;
+                groupTransform = leftGroupTransform;
+              } else if (mesh.name === 'Expenses' || mesh.name === 'ExpensesPL') {
+                groupConfig = financialConfig.rightGroup;
+                groupTransform = rightGroupTransform;
+              }
+              
+              if (groupConfig && groupTransform) {
+                // Find the object config for this mesh
+                const objectConfig = groupConfig.objects.find(obj => obj.name === mesh.name);
+                if (objectConfig) {
+                  // Store references
+                  objectConfig.mesh = mesh;
+                  objectConfig.originalHeight = originalHeight;
+                  objectConfig.transformNode = objectTransform;
+                  
+                  // Parent the object transform to the group
+                  objectTransform.parent = groupTransform;
+                  
+                  // Parent the mesh to the object transform node
+                  mesh.parent = objectTransform;
+                  
+                  // INITIAL POSITIONING: Set base position first, anchoring logic happens during scaling
+                  // For now, just position based on stacking order
+                  let yOffset = 0;
+                  for (const obj of groupConfig.objects) {
+                    if (obj.name === mesh.name) break;
+                    yOffset += obj.originalHeight;
+                  }
+                  objectTransform.position.y = yOffset;
+                  
+                  console.log(`📍 ${mesh.name}: Positioned at Y offset ${yOffset.toFixed(3)} in ${groupConfig.name}`);
+                  
+                  // Create label with aspect-ratio preservation
+                  createFinancialLabel(mesh, objectTransform, scene, objectConfig);
+                }
+              }
+            }
+          });
+          
+          // Store financial configuration for dynamic scaling operations
+          (rootMesh as any).financialConfig = financialConfig;
+          (rootMesh as any).leftGroupTransform = leftGroupTransform;
+          (rootMesh as any).rightGroupTransform = rightGroupTransform;
+          
+          // Initialize with equal group heights - use a reasonable height for stacking
+          equalizeFinancialGroupHeights(financialConfig, 6.0); // Taller height for proper stacking
+          
+          console.log(`✅ Financial Transform Node Architecture initialized`);
+        }
         
         // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
 
