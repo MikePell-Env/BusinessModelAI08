@@ -145,13 +145,14 @@ export class BMCModelLoader {
         // Bottom edge stays at original Y position (anchor point)
         revenueMesh.position.y = revenueOriginalY; // Keep bottom anchor fixed
         
-        // RevenuePL: Anchored at TOP - shrinks downward from fixed top surface
-        // Calculate where top surface was originally
-        const revenuePLOriginalTop = revenuePLOriginalY + (revenuePLOriginalHeight / 2);
-        // Calculate where top surface should be after scaling (same position)
-        const revenuePLNewTop = revenuePLOriginalTop;
-        // Calculate new center position to keep top surface fixed
-        const revenuePLNewCenter = revenuePLNewTop - (revenuePLNewHeight / 2);
+        // RevenuePL: Anchored at TOP - shrinks downward from the highest point of the original Revenue group
+        // Find the original highest point of the entire Revenue group (Revenue + RevenuePL combined)
+        const revenueOriginalTop = revenueOriginalY + (revenueOriginalHeight / 2);
+        const revenuePLOriginalTopSurface = revenuePLOriginalY + (revenuePLOriginalHeight / 2);
+        const originalGroupTop = Math.max(revenueOriginalTop, revenuePLOriginalTopSurface);
+        
+        // Keep RevenuePL anchored to this original group top
+        const revenuePLNewCenter = originalGroupTop - (revenuePLNewHeight / 2);
         revenuePLMesh.position.y = revenuePLNewCenter;
         
         console.log(`🔗 Anchored scaling applied:`);
