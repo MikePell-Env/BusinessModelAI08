@@ -2449,12 +2449,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }
         });
         
-        // Create Financial labels AFTER all mesh transformations are complete
+        // Create TransformNodes and Financial labels AFTER all mesh transformations are complete
         if (template.name.toLowerCase() === 'financials') {
-          console.log(`🏷️ Creating Financial labels after all transformations are complete`);
+          console.log(`🏷️ Creating TransformNodes and Financial labels after all transformations are complete`);
           
           model.meshes.forEach((mesh) => {
             if (mesh.name !== "__root__") {
+              console.log(`🔧 Creating TransformNode wrapper for Financial object: ${mesh.name}`);
+              
+              // Create TransformNode for this Financial object without changing position
+              const transformNode = new TransformNode(`${mesh.name}Transform`, scene);
+              
+              // Store current mesh world position before parenting
+              const currentWorldPosition = mesh.getAbsolutePosition().clone();
+              const currentWorldRotation = mesh.rotation.clone();
+              const currentWorldScaling = mesh.scaling.clone();
+              
+              // Parent mesh to TransformNode
+              mesh.parent = transformNode;
+              
+              // Restore exact positions after parenting to ensure no movement
+              transformNode.position = currentWorldPosition;
+              transformNode.rotation = currentWorldRotation; 
+              transformNode.scaling = currentWorldScaling;
+              
+              // Reset mesh local transform since TransformNode now handles world transform
+              mesh.position = Vector3.Zero();
+              mesh.rotation = Vector3.Zero();
+              mesh.scaling = Vector3.One();
+              
+              // Store TransformNode reference on mesh for future access
+              (mesh as any).bmcTransformNode = transformNode;
+              
+              console.log(`✅ ${mesh.name} wrapped in TransformNode at position (${transformNode.position.x.toFixed(3)}, ${transformNode.position.y.toFixed(3)}, ${transformNode.position.z.toFixed(3)})`);
+              
               console.log(`🏷️ Creating front-facing label for Financial object: ${mesh.name}`);
               
               // Get mesh bounds AFTER all scaling is complete
