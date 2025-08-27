@@ -356,10 +356,67 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       new CubicEase()
     );
     
+    // Add elegant opacity fade-in animation for visual polish
+    animateObjectsOpacityFadeIn(duration);
+    
     // Complete transition
     setTimeout(() => {
       setIsTransitioningCamera(false);
     }, duration);
+  };
+
+  // High-quality opacity fade-in animation for visual polish during view transitions
+  const animateObjectsOpacityFadeIn = (transitionDuration: number) => {
+    if (!sceneRef.current) return;
+    
+    const scene = sceneRef.current;
+    const fadeDelay = 200; // Start fade slightly after camera movement begins
+    const fadeDuration = transitionDuration - fadeDelay - 100; // Complete before camera stops
+    
+    // Find all relevant meshes to animate
+    const meshesToAnimate: any[] = [];
+    scene.meshes.forEach(mesh => {
+      if (mesh.name !== '__root__' && mesh.material && mesh.isVisible) {
+        meshesToAnimate.push(mesh);
+      }
+    });
+    
+    if (meshesToAnimate.length === 0) return;
+    
+    // Set initial opacity to 0 immediately
+    meshesToAnimate.forEach(mesh => {
+      if (mesh.material) {
+        mesh.material.alpha = 0;
+        // Enable transparency for smooth animation
+        if (!mesh.material.useAlphaFromAlbedoTexture) {
+          mesh.material.useAlphaFromAlbedoTexture = false;
+        }
+      }
+    });
+    
+    // Start fade-in after slight delay for elegant timing
+    setTimeout(() => {
+      meshesToAnimate.forEach((mesh, index) => {
+        if (mesh.material) {
+          // Stagger animations slightly for cascading effect
+          const staggerDelay = index * 30; // 30ms between each object
+          
+          setTimeout(() => {
+            Animation.CreateAndStartAnimation(
+              `opacityFadeIn_${mesh.name}`,
+              mesh.material,
+              "alpha",
+              60, // 60 FPS for smooth animation
+              Math.round((fadeDuration / 1000) * 60), // Convert to frames
+              0, // Start opacity
+              1, // End opacity
+              Animation.ANIMATIONLOOPMODE_CONSTANT,
+              new CubicEase()
+            );
+          }, staggerDelay);
+        }
+      });
+    }, fadeDelay);
   };
   
   
