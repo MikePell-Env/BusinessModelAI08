@@ -2506,34 +2506,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               
               console.log(`${mesh.name} Label (CONSISTENT): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth/labelHeight).toFixed(2)}`);
               
-              // Create independent transparent carrier plane that doesn't scale with parent
-              const carrierPlane = MeshBuilder.CreatePlane(`${mesh.name}Carrier`, {
-                width: 1,
-                height: 1
-              }, scene);
-              
-              // Position carrier plane at mesh center
-              carrierPlane.position.x = center.x;
-              carrierPlane.position.y = center.y;
-              carrierPlane.position.z = center.z - (size.z * 0.51); // Just in front of mesh
-              carrierPlane.rotation = Vector3.Zero();
-              
-              // Make carrier completely transparent
-              const carrierMaterial = new StandardMaterial(`${mesh.name}CarrierMat`, scene);
-              carrierMaterial.alpha = 0; // Completely transparent
-              carrierMaterial.disableLighting = true;
-              carrierPlane.material = carrierMaterial;
-              carrierPlane.isPickable = false;
-              // DON'T parent carrier to mesh - keep it independent
-              
-              // Create the actual label plane as child of carrier
+              // Create the label plane directly in world coordinates - no carrier needed
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
                 height: labelHeight
               }, scene);
               
-              // Position label at carrier center (relative positioning)
-              labelPlane.position = Vector3.Zero();
+              // Position label directly in world coordinates at mesh front face
+              labelPlane.position.x = center.x;
+              labelPlane.position.y = center.y;
+              labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of mesh
               labelPlane.rotation = Vector3.Zero();
               
               // Create material with texture
@@ -2550,10 +2532,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelMaterial.backFaceCulling = false; // Visible from both sides
               
               labelPlane.material = labelMaterial;
-              labelPlane.parent = carrierPlane; // Parent to carrier, not to mesh
+              // DON'T parent to mesh - keep independent to avoid scaling inheritance
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
               
-              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+              console.log(`✅ ${mesh.name} independent label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
             }
           });
         }
