@@ -112,46 +112,38 @@ export class BMCModelLoader {
         mesh.scaling.x = 0.8; // 20% reduction in width
         mesh.position.x += 0.00; // Centered positioning
         
-        // Apply anchor-based height system with proper stacking
+        // Apply anchor-based height system using original GLB positions
         if (mesh.name === "Revenue") {
-          // BOTTOM-ANCHORED: Bottom surface stays fixed at ground level
+          // BOTTOM-ANCHORED: Bottom surface stays at original position
           const targetHeight = 2.0; // Double height for Revenue
-          const bottomAnchor = 0.1; // Ground level
+          const bottomAnchor = originalY - (originalHeight / 2); // Calculate original bottom surface
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = bottomAnchor + (originalHeight * targetHeight) / 2; // Position center above anchor
           console.log(`📦 Revenue: BOTTOM-anchored at ${bottomAnchor}, height=${targetHeight}, center at ${mesh.position.y}`);
           
         } else if (mesh.name === "RevenuePL") {
-          // TOP-ANCHORED: Top surface stays fixed at top of Revenue box
+          // TOP-ANCHORED: Top surface stays at original position
           const targetHeight = 0.01; // Near-zero height for Loss
-          // Calculate Revenue's top surface position
-          const revenueHeight = 2.0;
-          const revenueBottom = 0.1;
-          const revenueTop = revenueBottom + revenueHeight;
-          const topAnchor = revenueTop; // Anchor to Revenue's top surface
+          const topAnchor = originalY + (originalHeight / 2); // Calculate original top surface
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = topAnchor - (originalHeight * targetHeight) / 2; // Position center below anchor
           console.log(`📦 RevenuePL (Loss): TOP-anchored at ${topAnchor}, height=${targetHeight}, center at ${mesh.position.y}`);
           
         } else if (mesh.name === "Expenses") {
-          // BOTTOM-ANCHORED: Bottom surface stays fixed at ground level
+          // BOTTOM-ANCHORED: Bottom surface stays at original position
           const targetHeight = 1.0; // Normal height for Expenses
-          const bottomAnchor = 0.1; // Ground level
+          const bottomAnchor = originalY - (originalHeight / 2); // Calculate original bottom surface
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = bottomAnchor + (originalHeight * targetHeight) / 2; // Position center above anchor
           console.log(`📦 Expenses: BOTTOM-anchored at ${bottomAnchor}, height=${targetHeight}, center at ${mesh.position.y}`);
           
         } else if (mesh.name === "ExpensesPL") {
-          // TOP-ANCHORED: Top surface stays fixed at top of Expenses box
+          // TOP-ANCHORED: Top surface stays at original position
           const targetHeight = 1.0; // Normal height for Profit
-          // Calculate Expenses' top surface position
-          const expensesHeight = 1.0;
-          const expensesBottom = 0.1;
-          const expensesTop = expensesBottom + expensesHeight;
-          const topAnchor = expensesTop; // Anchor to Expenses' top surface
+          const topAnchor = originalY + (originalHeight / 2); // Calculate original top surface
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = topAnchor - (originalHeight * targetHeight) / 2; // Position center below anchor
