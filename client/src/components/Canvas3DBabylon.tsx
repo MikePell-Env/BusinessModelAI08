@@ -3192,7 +3192,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           <button
             onClick={() => switchCameraPreset('PERSPECTIVE_LEFT')}
             disabled={isTransitioningCamera}
-            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 ${
+            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 w-16 ${
               currentCameraPreset === 'PERSPECTIVE_LEFT' 
                 ? 'bg-blue-600 text-white shadow-md' 
                 : isTransitioningCamera 
@@ -3208,7 +3208,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               switchCameraPreset(preset);
             }}
             disabled={isTransitioningCamera}
-            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 ${
+            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 w-20 ${
               (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') 
                 ? 'bg-blue-600 text-white shadow-md' 
                 : isTransitioningCamera 
@@ -3221,7 +3221,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           <button
             onClick={() => switchCameraPreset('PERSPECTIVE_RIGHT')}
             disabled={isTransitioningCamera}
-            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 ${
+            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 w-20 ${
               currentCameraPreset === 'PERSPECTIVE_RIGHT' 
                 ? 'bg-blue-600 text-white shadow-md' 
                 : isTransitioningCamera 
