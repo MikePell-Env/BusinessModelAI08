@@ -142,7 +142,7 @@ export class BMCModelLoader {
           
         } else if (mesh.name === "ExpensesPL") {
           // TOP-ANCHORED: Save top surface, then keep it fixed
-          const topSurface = originalY - 0.08; // Move down 0.08 units (0.01 up from before)
+          const topSurface = originalY - 0.06; // Move down 0.06 units (0.02 up from before)
           const targetHeight = 1.0;
           
           mesh.scaling.y = targetHeight;

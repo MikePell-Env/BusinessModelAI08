@@ -1720,16 +1720,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               const center = boundingInfo.boundingBox.center;
               const scaledSize = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Calculate original size before any scaling to prevent label stretching
-              console.log(`DEBUG ${mesh.name}: scaledSize=(${scaledSize.x.toFixed(3)}, ${scaledSize.y.toFixed(3)}, ${scaledSize.z.toFixed(3)}), scaling=(${mesh.scaling.x.toFixed(3)}, ${mesh.scaling.y.toFixed(3)}, ${mesh.scaling.z.toFixed(3)})`);
-              
+              // Use fixed size for consistent labels across all Financial objects
+              // The Expenses object gives us the true unscaled dimensions
               const originalSize = new Vector3(
-                scaledSize.x / mesh.scaling.x,
-                scaledSize.y / mesh.scaling.y, 
-                scaledSize.z / mesh.scaling.z
+                1.323, // Fixed width from unscaled mesh
+                0.401, // Fixed height from unscaled mesh (same as Expenses)
+                0.390  // Fixed depth from unscaled mesh
               );
-              
-              console.log(`DEBUG ${mesh.name}: originalSize=(${originalSize.x.toFixed(3)}, ${originalSize.y.toFixed(3)}, ${originalSize.z.toFixed(3)})`);
               
               // Determine label texture based on mesh name
               let labelTexturePath = "";
