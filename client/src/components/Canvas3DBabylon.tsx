@@ -1703,6 +1703,73 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             (sectionMaterial as any).originalBaseColor = baseColor.clone();
             (sectionMaterial as any).originalDiffuseColor = baseColor.clone();
             
+            // Add front-facing labels for Financials objects
+            if (template.name.toLowerCase() === 'financials' && mesh.name !== "__root__") {
+              console.log(`🏷️ Creating front-facing label for Financial object: ${mesh.name}`);
+              
+              // Get mesh bounds for positioning
+              const boundingInfo = mesh.getBoundingInfo();
+              const center = boundingInfo.boundingBox.center;
+              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Determine label texture based on mesh name
+              let labelTexturePath = "";
+              switch (mesh.name) {
+                case "Revenue":
+                  labelTexturePath = "/textures/Label_Revenue.png";
+                  break;
+                case "RevenuePL":
+                  labelTexturePath = "/textures/Label_Loss.png"; // RevenuePL displays "Loss" label
+                  break;
+                case "Expenses":
+                  labelTexturePath = "/textures/Label_Expenses.png";
+                  break;
+                case "ExpensesPL":
+                  labelTexturePath = "/textures/Label_Profit.png"; // ExpensesPL displays "Profit" label
+                  break;
+                default:
+                  console.log(`⚠️ No label texture found for Financial object: ${mesh.name}`);
+                  return; // Skip if no texture mapping
+              }
+              
+              // Create label plane sized appropriately for front-face placement
+              const labelWidth = size.x * 0.8; // 80% of mesh width to fit nicely on front face
+              const labelHeight = labelWidth * 0.25; // Keep aspect ratio similar to BMC labels
+              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)}`);
+              
+              const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
+                width: labelWidth,
+                height: labelHeight
+              }, scene);
+              
+              // Position on front face (positive Z direction from center)
+              labelPlane.position.x = center.x;
+              labelPlane.position.y = center.y;
+              labelPlane.position.z = center.z + (size.z * 0.51); // Just in front of the mesh front face
+              
+              // No rotation needed - label faces forward by default
+              labelPlane.rotation = Vector3.Zero();
+              
+              // Create bright material for clear text visibility
+              const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
+              const labelTexture = new Texture(labelTexturePath, scene);
+              labelTexture.hasAlpha = true;
+              enhanceLabelTexture(labelTexture);
+              
+              labelMaterial.diffuseTexture = labelTexture;
+              labelMaterial.emissiveTexture = labelTexture;
+              labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Bright for good visibility
+              labelMaterial.useAlphaFromDiffuseTexture = true;
+              labelMaterial.disableLighting = true; // Ensure consistent brightness
+              labelMaterial.backFaceCulling = false; // Visible from both sides
+              
+              labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
+              labelPlane.isPickable = false; // Don't interfere with mesh interaction
+              
+              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+            }
+            
             // Add floating label planes for specific sections
             if (sectionName === "Customer Segments") {
               // FIX: Ensure bmcSectionName matches exactly what we search for
