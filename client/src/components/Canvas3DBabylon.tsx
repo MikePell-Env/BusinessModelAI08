@@ -1720,12 +1720,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               const center = boundingInfo.boundingBox.center;
               const scaledSize = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Use fixed unscaled dimensions - assume GLB has unit dimensions
+              // Calculate original size before any scaling to prevent label stretching
+              console.log(`DEBUG ${mesh.name}: scaledSize=(${scaledSize.x.toFixed(3)}, ${scaledSize.y.toFixed(3)}, ${scaledSize.z.toFixed(3)}), scaling=(${mesh.scaling.x.toFixed(3)}, ${mesh.scaling.y.toFixed(3)}, ${mesh.scaling.z.toFixed(3)})`);
+              
               const originalSize = new Vector3(
-                1.323, // Fixed original width from GLB (before any scaling)
-                1.0,   // Fixed original height from GLB (before any scaling)
-                1.0    // Fixed original depth from GLB (before any scaling)
+                scaledSize.x / mesh.scaling.x,
+                scaledSize.y / mesh.scaling.y, 
+                scaledSize.z / mesh.scaling.z
               );
+              
+              console.log(`DEBUG ${mesh.name}: originalSize=(${originalSize.x.toFixed(3)}, ${originalSize.y.toFixed(3)}, ${originalSize.z.toFixed(3)})`);
               
               // Determine label texture based on mesh name
               let labelTexturePath = "";
