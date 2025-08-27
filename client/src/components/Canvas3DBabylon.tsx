@@ -1715,10 +1715,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (template.name.toLowerCase() === 'financials' && mesh.name !== "__root__") {
               console.log(`🏷️ Creating front-facing label for Financial object: ${mesh.name}`);
               
-              // Get mesh bounds for positioning
+              // Get mesh bounds for positioning - use ORIGINAL bounds before scaling
               const boundingInfo = mesh.getBoundingInfo();
               const center = boundingInfo.boundingBox.center;
-              const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              const scaledSize = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+              
+              // Calculate original size before any scaling to prevent label stretching
+              const originalSize = new Vector3(
+                scaledSize.x / mesh.scaling.x,
+                scaledSize.y / mesh.scaling.y, 
+                scaledSize.z / mesh.scaling.z
+              );
               
               // Determine label texture based on mesh name
               let labelTexturePath = "";
@@ -1740,12 +1747,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   return; // Skip if no texture mapping
               }
               
-              // Create label plane with FIXED dimensions that don't scale with mesh
-              // Use original mesh width (before any scaling) for consistent label sizing
-              const originalMeshWidth = size.x / mesh.scaling.x; // Compensate for any X scaling applied
-              const labelWidth = originalMeshWidth * 0.8; // 80% of original mesh width
+              // Create label plane with FIXED dimensions using original unscaled size
+              const labelWidth = originalSize.x * 0.8; // 80% of original mesh width (before scaling)
               const labelHeight = labelWidth * 0.25; // Keep consistent aspect ratio
-              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (fixed size, not stretched)`);
+              console.log(`${mesh.name} Label Dimensions: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect Ratio: ${(labelWidth/labelHeight).toFixed(2)} (original size, not stretched)`);
               
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
@@ -1755,7 +1760,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Position on front face (negative Z direction from center)
               labelPlane.position.x = center.x;
               labelPlane.position.y = center.y;
-              labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of the mesh front face
+              labelPlane.position.z = center.z - (originalSize.z * 0.51); // Just in front of the mesh front face
               
               // No rotation needed - label faces forward by default
               labelPlane.rotation = Vector3.Zero();
