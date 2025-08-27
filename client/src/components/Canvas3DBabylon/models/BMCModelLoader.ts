@@ -96,9 +96,23 @@ export class BMCModelLoader {
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(1, 1, 1);
       
-      // FINALIZED POSITIONING: Adjust positions and width for financial objects
-      // Configuration: 20% width reduction (0.8 scaling) with natural centering (0.0 positioning)
-      // This creates optimal spacing between Revenue and Expenses groups while maintaining visual balance
+      // ========================================================================
+      // FINALIZED STARTING POSITIONS AND SIZES FOR FINANCIAL OBJECTS
+      // ========================================================================
+      // BASELINE CONFIGURATION (January 27, 2025):
+      // 
+      // WIDTH SCALING: All objects use 0.64 scaling (40% total reduction)
+      // POSITIONING: All groups centered at X=0.00 (center line alignment)
+      // 
+      // STARTING HEIGHTS AND POSITIONS:
+      // - Revenue:    Height=1.0, Bottom-anchored at Y=0.0    (green)
+      // - RevenuePL:  Height=1.0, Top-anchored at Y=-0.02     (gold)  
+      // - Expenses:   Height=1.0, Bottom-anchored at Y=0.0    (deep red)
+      // - ExpensesPL: Height=1.0, Top-anchored at Y=-0.02     (black)
+      // 
+      // ALIGNMENT: RevenuePL and ExpensesPL top surfaces aligned at Y=-0.02
+      // VISUAL BALANCE: Revenue/Expenses groups have matching heights and centering
+      // ========================================================================
       result.meshes.forEach((mesh) => {
         console.log(`🔍 Found mesh: "${mesh.name}"`);
         
