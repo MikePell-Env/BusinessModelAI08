@@ -2453,22 +2453,55 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (template.name.toLowerCase() === 'financials') {
           console.log(`🏗️ Setting up Financial Transform Node Architecture`);
           
-          // Create Financial Configuration with dynamic proportions
+          // Create Financial Configuration with dynamic proportions and anchoring rules
+          // CRITICAL: Each object has specific anchoring behavior during resize operations
           const financialConfig = {
             leftGroup: {
               name: 'LeftGroup',
               position: new Vector3(-1.2, 0, 0), // Left side positioning
               objects: [
-                { name: 'Revenue', percentage: 0.80, mesh: null as any, originalHeight: 0, transformNode: null as any, labelNode: null as any },
-                { name: 'RevenuePL', percentage: 0.20, mesh: null as any, originalHeight: 0, transformNode: null as any, labelNode: null as any }
+                { 
+                  name: 'Revenue', 
+                  percentage: 0.80, 
+                  anchor: 'BOTTOM', // Bottom face stays fixed, top face moves during resize
+                  mesh: null as any, 
+                  originalHeight: 0, 
+                  transformNode: null as any, 
+                  labelNode: null as any 
+                },
+                { 
+                  name: 'RevenuePL', 
+                  percentage: 0.20, 
+                  anchor: 'TOP', // Top face stays fixed, bottom face moves during resize
+                  mesh: null as any, 
+                  originalHeight: 0, 
+                  transformNode: null as any, 
+                  labelNode: null as any 
+                }
               ]
             },
             rightGroup: {
               name: 'RightGroup', 
               position: new Vector3(1.2, 0, 0), // Right side positioning
               objects: [
-                { name: 'Expenses', percentage: 0.80, mesh: null as any, originalHeight: 0, transformNode: null as any, labelNode: null as any },
-                { name: 'ExpensesPL', percentage: 0.20, mesh: null as any, originalHeight: 0, transformNode: null as any, labelNode: null as any }
+                { 
+                  name: 'Expenses', 
+                  percentage: 0.80, 
+                  anchor: 'BOTTOM', // Bottom face stays fixed, top face moves during resize
+                  mesh: null as any, 
+                  originalHeight: 0, 
+                  transformNode: null as any, 
+                  labelNode: null as any 
+                },
+                { 
+                  name: 'ExpensesPL', 
+                  percentage: 0.20, 
+                  anchor: 'TOP', // Top face stays fixed, bottom face moves during resize
+                  mesh: null as any, 
+                  originalHeight: 0, 
+                  transformNode: null as any, 
+                  labelNode: null as any 
+                }
               ]
             }
           };
@@ -2520,12 +2553,33 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   // Parent the mesh to the object transform node
                   mesh.parent = objectTransform;
                   
-                  // Calculate base positioning (stacking)
+                  // Calculate anchored positioning based on object type and group layout
+                  // CRITICAL: Bottom-anchored objects stack from bottom (Y=0), top-anchored from group top
                   let yOffset = 0;
-                  for (const obj of groupConfig.objects) {
-                    if (obj.name === mesh.name) break;
-                    yOffset += obj.originalHeight * obj.percentage;
+                  
+                  if (objectConfig.anchor === 'BOTTOM') {
+                    // Bottom-anchored: Stack from group bottom (Y=0)
+                    for (const obj of groupConfig.objects) {
+                      if (obj.anchor === 'BOTTOM' && obj.name === mesh.name) break;
+                      if (obj.anchor === 'BOTTOM') {
+                        yOffset += obj.originalHeight * obj.percentage;
+                      }
+                    }
+                  } else if (objectConfig.anchor === 'TOP') {
+                    // Top-anchored: Position from group top (requires total group height calculation)
+                    const totalGroupHeight = groupConfig.objects.reduce((sum: number, obj: any) => 
+                      sum + (obj.originalHeight * obj.percentage), 0);
+                    
+                    // Start from top and work down for top-anchored objects
+                    yOffset = totalGroupHeight;
+                    for (const obj of groupConfig.objects) {
+                      if (obj.anchor === 'TOP') {
+                        yOffset -= obj.originalHeight * obj.percentage;
+                        if (obj.name === mesh.name) break;
+                      }
+                    }
                   }
+                  
                   objectTransform.position.y = yOffset;
                   
                   console.log(`📍 ${mesh.name}: Positioned at Y offset ${yOffset.toFixed(3)} in ${groupConfig.name}`);
@@ -2549,7 +2603,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         }
         
         // Financial Helper Functions for Dynamic Architecture
-        function createFinancialLabel(mesh: any, objectTransform: TransformNode, scene: Scene, objectConfig: any) {
+        const createFinancialLabel = (mesh: any, objectTransform: TransformNode, scene: Scene, objectConfig: any) => {
           console.log(`🏷️ Creating aspect-preserved label for ${mesh.name}`);
           
           // Get mesh bounds for size calculations
@@ -2638,10 +2692,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           objectConfig.originalLabelHeight = labelHeight;
           
           console.log(`✅ ${mesh.name} label created with preserved aspect ratio ${(baseWidth/labelHeight).toFixed(2)}`);
-        }
+        };
         
-        function equalizeFinancialGroupHeights(financialConfig: any, totalHeight: number) {
-          console.log(`📏 Equalizing Financial group heights to ${totalHeight} units`);
+        const equalizeFinancialGroupHeights = (financialConfig: any, totalHeight: number) => {
+          console.log(`📏 Equalizing Financial group heights to ${totalHeight} units with ANCHORED positioning`);
           
           // Calculate current group heights
           const leftHeight = financialConfig.leftGroup.objects.reduce((sum: number, obj: any) => 
@@ -2655,52 +2709,62 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           const leftScale = totalHeight / leftHeight;
           const rightScale = totalHeight / rightHeight;
           
-          // Apply proportional scaling to left group
-          let leftYOffset = 0;
+          // Apply ANCHORED scaling to left group
           for (const obj of financialConfig.leftGroup.objects) {
             if (obj.mesh && obj.transformNode) {
               const scaledHeight = obj.originalHeight * obj.percentage * leftScale;
               
               // Scale the mesh itself
               obj.mesh.scaling.y = leftScale * obj.percentage;
-              obj.transformNode.position.y = leftYOffset;
+              
+              // ANCHORED POSITIONING: Different logic based on anchor type
+              if (obj.anchor === 'BOTTOM') {
+                // Bottom-anchored (Revenue): Bottom face at Y=0, grows upward
+                obj.transformNode.position.y = 0;
+                console.log(`📐 ${obj.name} (BOTTOM-ANCHORED): Height ${scaledHeight.toFixed(3)}, bottom at Y=0`);
+              } else if (obj.anchor === 'TOP') {
+                // Top-anchored (RevenuePL): Top face at group top, grows downward
+                obj.transformNode.position.y = totalHeight - scaledHeight;
+                console.log(`📐 ${obj.name} (TOP-ANCHORED): Height ${scaledHeight.toFixed(3)}, top at Y=${totalHeight.toFixed(3)}`);
+              }
               
               // Preserve label aspect ratio during mesh scaling
               if (obj.labelNode && obj.labelPlane) {
-                // Keep label dimensions fixed relative to original proportions
                 const labelScaleY = 1.0; // Don't scale labels vertically to preserve aspect ratio
                 obj.labelNode.scaling = new Vector3(1.0, labelScaleY, 1.0);
               }
-              
-              leftYOffset += scaledHeight;
-              console.log(`📐 ${obj.name}: Scaled to ${scaledHeight.toFixed(3)} height at Y ${leftYOffset.toFixed(3)}`);
             }
           }
           
-          // Apply proportional scaling to right group  
-          let rightYOffset = 0;
+          // Apply ANCHORED scaling to right group  
           for (const obj of financialConfig.rightGroup.objects) {
             if (obj.mesh && obj.transformNode) {
               const scaledHeight = obj.originalHeight * obj.percentage * rightScale;
               
               // Scale the mesh itself
               obj.mesh.scaling.y = rightScale * obj.percentage;
-              obj.transformNode.position.y = rightYOffset;
+              
+              // ANCHORED POSITIONING: Different logic based on anchor type
+              if (obj.anchor === 'BOTTOM') {
+                // Bottom-anchored (Expenses): Bottom face at Y=0, grows upward
+                obj.transformNode.position.y = 0;
+                console.log(`📐 ${obj.name} (BOTTOM-ANCHORED): Height ${scaledHeight.toFixed(3)}, bottom at Y=0`);
+              } else if (obj.anchor === 'TOP') {
+                // Top-anchored (ExpensesPL): Top face at group top, grows downward
+                obj.transformNode.position.y = totalHeight - scaledHeight;
+                console.log(`📐 ${obj.name} (TOP-ANCHORED): Height ${scaledHeight.toFixed(3)}, top at Y=${totalHeight.toFixed(3)}`);
+              }
               
               // Preserve label aspect ratio during mesh scaling
               if (obj.labelNode && obj.labelPlane) {
-                // Keep label dimensions fixed relative to original proportions
                 const labelScaleY = 1.0; // Don't scale labels vertically to preserve aspect ratio
                 obj.labelNode.scaling = new Vector3(1.0, labelScaleY, 1.0);
               }
-              
-              rightYOffset += scaledHeight;
-              console.log(`📐 ${obj.name}: Scaled to ${scaledHeight.toFixed(3)} height at Y ${rightYOffset.toFixed(3)}`);
             }
           }
           
-          console.log(`✅ Financial groups equalized - Both groups now ${totalHeight} units tall`);
-        }
+          console.log(`✅ Financial groups equalized with ANCHORED positioning - Both groups now ${totalHeight} units tall`);
+        };
         
         // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
 
