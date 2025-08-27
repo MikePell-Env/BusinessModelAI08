@@ -157,10 +157,11 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           2D View
         </Button>
 
-        {/* 3D Top button - hidden but functionality preserved */}
+        {/* 3D Top/Front button - changes based on template */}
         <Button
           onClick={(e) => {
-            console.log(`🟡 3D TOP BUTTON CLICKED!`);
+            const buttonType = currentType === 'financials' ? 'FRONT' : 'TOP';
+            console.log(`🟡 3D ${buttonType} BUTTON CLICKED!`);
             console.log(`🟡 Event:`, e);
             console.log(`🟡 isTransitioning: ${isTransitioning}`);
             console.log(`🟡 Button disabled: ${isTransitioning}`);
@@ -181,7 +182,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           size="sm"
         >
           <RectangleHorizontal className="w-4 h-4 mr-2" />
-          3D Top
+          {currentType === 'financials' ? 'Front View' : '3D Top'}
         </Button>
 
         {/* Envisioner Type Buttons */}
