@@ -2999,7 +2999,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Business Model (TOP) -> PERSPECTIVE_RIGHT, Financials (FRONT) -> FRONT  
     // This should NEVER happen when switching between templates - only on first-ever load
     if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && shouldAutoAnimateRef.current) {
-      console.log(`🎬 First-time instantiation: Will auto-animate ${template.name} after 3 seconds`);
+      console.log(`🎬 First-time instantiation: Will auto-animate ${template.name} after 2 seconds`);
     } else if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && !shouldAutoAnimateRef.current) {
       console.log(`🔄 Template switch: Skipping auto-animation for ${template.name} (preserving camera position)`);
     }
@@ -3042,12 +3042,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (!userHasMovedCamera) {
           // Auto-switch logic: Business Model goes to PERSPECTIVE_RIGHT, Financials goes to FRONT
           if (template.name.toLowerCase() === 'financials') {
-            console.log("🎬 Auto-switching camera to FRONT after 3 seconds for Financials");
+            console.log("🎬 Auto-switching camera to FRONT after 2 seconds for Financials");
             // Force transition to false to ensure switchCameraPreset works
             setIsTransitioningCamera(false);
             setTimeout(() => switchCameraPreset('FRONT'), 100);
           } else {
-            console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 3 seconds");
+            console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds");
             // Force transition to false to ensure switchCameraPreset works
             setIsTransitioningCamera(false);
             setTimeout(() => switchCameraPreset('PERSPECTIVE_RIGHT'), 100);
@@ -3055,7 +3055,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         } else {
           console.log("🎬 Auto-switch cancelled - user moved camera manually");
         }
-      }, 3000); // 3 seconds
+      }, 2000); // 2 seconds
     }
 
     // Initialize Animation Manager (Material Manager already initialized above)
