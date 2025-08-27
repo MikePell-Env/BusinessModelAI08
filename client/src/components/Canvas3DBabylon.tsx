@@ -316,6 +316,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     startRadius = perspectiveCamera.radius;
     
     // All presets use same central pivot point (0,0,0) for consistent rotation center
+    // Ensure target remains at scene center during all transitions
+    perspectiveCamera.setTarget(new Vector3(0, 0, 0));
     
     // Create smooth transition animations with cubic easing
     const alphaAnimation = Animation.CreateAndStartAnimation(
