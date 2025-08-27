@@ -2087,7 +2087,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               };
               
               // Create the pulsating edge after a short delay to ensure mesh is ready
-              setTimeout(createPulsatingEdge, 100);
+              // Only create for Business Model template
+              if (template.name.toLowerCase() !== 'financials') {
+                setTimeout(createPulsatingEdge, 100);
+              } else {
+                console.log(`⏸️ Pulsating edge animation disabled for Financials template`);
+              }
             }
 
             // Create blue tracer animation for Customer Segments
@@ -2238,17 +2243,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   }
                 };
                 
-                // Start animation
-                animateTracer();
-                
-                console.log(`✅ Blue tracer animation created for Customer Segments with ${pathPoints.length} path points:`);
-                pathPoints.forEach((point, index) => {
-                  console.log(`  Point ${index}: (${point.x.toFixed(3)}, ${point.y.toFixed(3)}, ${point.z.toFixed(3)})`);
-                });
+                // Start animation only if not Financials template
+                if (template.name.toLowerCase() !== 'financials') {
+                  animateTracer();
+                  console.log(`✅ Blue tracer animation created for Customer Segments with ${pathPoints.length} path points:`);
+                } else {
+                  console.log(`⏸️ Blue tracer animation disabled for Financials template`);
+                }
+                // Only log path points for Business Model template
+                if (template.name.toLowerCase() !== 'financials') {
+                  pathPoints.forEach((point, index) => {
+                    console.log(`  Point ${index}: (${point.x.toFixed(3)}, ${point.y.toFixed(3)}, ${point.z.toFixed(3)})`);
+                  });
+                }
               };
               
               // Create the blue tracer after a short delay to ensure mesh is ready
-              setTimeout(createBlueTracer, 100);
+              // Only create tracer for Business Model template
+              if (template.name.toLowerCase() !== 'financials') {
+                setTimeout(createBlueTracer, 100);
+              } else {
+                console.log(`⏸️ Blue tracer creation skipped for Financials template`);
+              }
             }
             
             mesh.material = sectionMaterial;
