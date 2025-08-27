@@ -2510,10 +2510,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           labelTransform.parent = objectTransform;
           labelPlane.parent = labelTransform;
           
-          // Position label in front of mesh center
-          labelTransform.position.x = 0; // Relative to mesh center
-          labelTransform.position.y = 0; // Relative to mesh center
-          labelTransform.position.z = size.z * 0.51; // In front of mesh
+          // Position label in front of mesh face
+          labelTransform.position.x = 0; // Centered horizontally
+          labelTransform.position.y = 0; // Centered vertically on mesh
+          labelTransform.position.z = size.z * 0.501; // Just in front of mesh face
           
           // Create material with texture
           const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
@@ -2565,17 +2565,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               
               // ANCHORED POSITIONING: Different logic based on anchor type
               if (obj.anchor === 'BOTTOM') {
-                // Bottom-anchored (Revenue): Bottom at group bottom (Y=0), grows upward
-                obj.transformNode.position.y = scaledHeight / 2; // Position transform at center of scaled height
-                obj.mesh.position.y = 0; // Keep mesh centered in transform
-                console.log(`📐 ${obj.name} (BOTTOM-ANCHORED): Height ${scaledHeight.toFixed(3)}, bottom at Y=0`);
+                // Bottom-anchored (Revenue): Bottom at Y=0 (ground level)
+                obj.transformNode.position.y = 0;
+                obj.mesh.position.y = scaledHeight / 2; // Lift mesh up by half its height to sit on ground
+                console.log(`📐 ${obj.name} (BOTTOM-ANCHORED): Height ${scaledHeight.toFixed(3)}, grounded at Y=0`);
               } else if (obj.anchor === 'TOP') {
-                // Top-anchored (RevenuePL): Stack on top of bottom object
+                // Top-anchored (RevenuePL): Stack directly on top of bottom object
                 const bottomObject = financialConfig.leftGroup.objects.find((o: any) => o.anchor === 'BOTTOM');
                 const bottomHeight = bottomObject ? bottomObject.originalHeight * leftScale * bottomObject.percentage : 0;
-                obj.transformNode.position.y = bottomHeight + scaledHeight / 2; // Stack on top
-                obj.mesh.position.y = 0; // Keep mesh centered in transform
-                console.log(`📐 ${obj.name} (TOP-ANCHORED): Height ${scaledHeight.toFixed(3)}, stacked on top`);
+                obj.transformNode.position.y = bottomHeight;
+                obj.mesh.position.y = scaledHeight / 2; // Lift mesh up by half its height
+                console.log(`📐 ${obj.name} (TOP-ANCHORED): Height ${scaledHeight.toFixed(3)}, stacked at Y=${bottomHeight.toFixed(3)}`);
               }
               
               // Preserve label aspect ratio during mesh scaling
@@ -2596,17 +2596,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               
               // ANCHORED POSITIONING: Different logic based on anchor type
               if (obj.anchor === 'BOTTOM') {
-                // Bottom-anchored (Expenses): Bottom at group bottom (Y=0), grows upward
-                obj.transformNode.position.y = scaledHeight / 2; // Position transform at center of scaled height
-                obj.mesh.position.y = 0; // Keep mesh centered in transform
-                console.log(`📐 ${obj.name} (BOTTOM-ANCHORED): Height ${scaledHeight.toFixed(3)}, bottom at Y=0`);
+                // Bottom-anchored (Expenses): Bottom at Y=0 (ground level)
+                obj.transformNode.position.y = 0;
+                obj.mesh.position.y = scaledHeight / 2; // Lift mesh up by half its height to sit on ground
+                console.log(`📐 ${obj.name} (BOTTOM-ANCHORED): Height ${scaledHeight.toFixed(3)}, grounded at Y=0`);
               } else if (obj.anchor === 'TOP') {
-                // Top-anchored (ExpensesPL): Stack on top of bottom object
+                // Top-anchored (ExpensesPL): Stack directly on top of bottom object
                 const bottomObject = financialConfig.rightGroup.objects.find((o: any) => o.anchor === 'BOTTOM');
                 const bottomHeight = bottomObject ? bottomObject.originalHeight * rightScale * bottomObject.percentage : 0;
-                obj.transformNode.position.y = bottomHeight + scaledHeight / 2; // Stack on top
-                obj.mesh.position.y = 0; // Keep mesh centered in transform
-                console.log(`📐 ${obj.name} (TOP-ANCHORED): Height ${scaledHeight.toFixed(3)}, stacked on top`);
+                obj.transformNode.position.y = bottomHeight;
+                obj.mesh.position.y = scaledHeight / 2; // Lift mesh up by half its height
+                console.log(`📐 ${obj.name} (TOP-ANCHORED): Height ${scaledHeight.toFixed(3)}, stacked at Y=${bottomHeight.toFixed(3)}`);
               }
               
               // Preserve label aspect ratio during mesh scaling
