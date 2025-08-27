@@ -230,8 +230,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
   const [showBulletText, setShowBulletText] = useState(false);
   
-  // Camera preset state  
-  const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT'>('TOP');
+  // Camera preset state - initialize based on template
+  const getInitialPreset = () => template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
+  const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT'>(getInitialPreset());
   
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
@@ -365,13 +366,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
   }, [bmcState]);
   
-  // Update CleanBMCSystem when view mode changes
+  // Update camera preset when isOrthographic changes
   useEffect(() => {
-    if (cleanBMCRef.current) {
-      // Updating CleanBMCSystem top view mode
-      // REMOVED: setTopViewMode - using only 3D View mode now
+    if (isOrthographic) {
+      // Switch to appropriate preset based on template
+      const preset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
+      switchCameraPreset(preset);
     }
-  }, [isOrthographic]);
+  }, [isOrthographic, template.name]);
   
   // REMOVED: Legacy transform utilities - now handled by unified BMC system
 
@@ -758,13 +760,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Clear any saved camera state to ensure fresh TOP preset
-    if (currentCameraPreset === 'TOP') {
+    // Clear any saved camera state to ensure fresh preset
+    if (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') {
       // Clear saved state so restoration doesn't override our TOP preset
       const currentState = getCamera3DState();
       if (currentState) {
         // Clear the saved state completely
-        saveCamera3DState(0, 0, 0); // Clear with zeros, will be set to correct TOP values below
+        saveCamera3DState(0, 0, 0); // Clear with zeros, will be set to correct preset values below
       }
       
       // Also clear BMC State Manager camera state
@@ -788,8 +790,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     perspectiveCamera.attachControl(canvasElement, true);
     perspectiveCamera.wheelPrecision = 50;
     
-    // Save the correct TOP preset values
-    if (currentCameraPreset === 'TOP') {
+    // Save the correct preset values
+    if (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') {
       saveCamera3DState(currentPreset.alpha, currentPreset.beta, currentPreset.radius);
     }
     
@@ -2916,7 +2918,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // AUTO-SWITCH: After 2 seconds, automatically switch from TOP view to RIGHT view
     // Only applies when starting with TOP preset (initial load)
     // SKIP auto-switch if user has manually moved the camera (dragged)
-    if (currentCameraPreset === 'TOP') {
+    if (currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') {
       // Flag to track if user has manually moved camera - EASY TO REVERT: just remove this flag and the condition below
       let userHasMovedCamera = false;
       
@@ -2952,8 +2954,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       setTimeout(() => {
         // Check if user moved camera before auto-switching
         if (!userHasMovedCamera) {
-          console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds");
-          switchCameraPreset('PERSPECTIVE_RIGHT');
+          // Auto-switch logic: Business Model uses PERSPECTIVE_RIGHT, Financials stays on FRONT
+          if (template.name.toLowerCase() === 'financials') {
+            console.log("🎬 Financials template: staying on FRONT view (no auto-switch)");
+          } else {
+            console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds");
+            switchCameraPreset('PERSPECTIVE_RIGHT');
+          }
         } else {
           console.log("🎬 Auto-switch cancelled - user moved camera manually");
         }
