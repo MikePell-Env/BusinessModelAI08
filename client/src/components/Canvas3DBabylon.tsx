@@ -1720,11 +1720,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               const center = boundingInfo.boundingBox.center;
               const scaledSize = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
               
-              // Calculate original size before any scaling to prevent label stretching
+              // Use fixed unscaled dimensions - assume GLB has unit dimensions
               const originalSize = new Vector3(
-                scaledSize.x / mesh.scaling.x,
-                scaledSize.y / mesh.scaling.y, 
-                scaledSize.z / mesh.scaling.z
+                1.323, // Fixed original width from GLB (before any scaling)
+                1.0,   // Fixed original height from GLB (before any scaling)
+                1.0    // Fixed original depth from GLB (before any scaling)
               );
               
               // Determine label texture based on mesh name
