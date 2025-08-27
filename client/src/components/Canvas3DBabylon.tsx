@@ -1600,11 +1600,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     });
     
-    // Check if this is a template switch (happens every time we switch between Business Model and Financials)
-    // This should fire every time we switch templates, regardless of camera animation settings
-    const isTemplateSwitch = hasInitializedTemplate !== template.name;
-    console.log(`🔍 Opacity animation check: hasInitializedTemplate="${hasInitializedTemplate}", template.name="${template.name}", isTemplateSwitch=${isTemplateSwitch}`);
-
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then((model) => {
       if (model.meshes.length > 0) {
@@ -1652,7 +1647,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // Apply corrected colors, interactivity, and labels to each BMC section mesh
         let sectionIndex = 0;
         
-        // Template switch check moved to higher scope for accessibility across all model loading blocks
         
         model.meshes.forEach((mesh, index) => {
           if (mesh.material && mesh.name !== "__root__") {
@@ -2786,44 +2780,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }
         });
         
-        // Add elegant opacity fade-in animation for every template switch
-        if (isTemplateSwitch) {
-          console.log("✨ Applying elegant opacity fade-in for template switch");
-          
-          // Collect all meshes with materials (exclude root)
-          const animatedMeshes = model.meshes.filter(mesh => 
-            mesh.material && mesh.name !== "__root__"
-          );
-          
-          // Set initial opacity to 0 for smooth fade-in
-          animatedMeshes.forEach(mesh => {
-            if (mesh.material) {
-              (mesh.material as any).alpha = 0;
-            }
-          });
-          
-          // Start cascading fade-in after slight delay
-          setTimeout(() => {
-            animatedMeshes.forEach((mesh, index) => {
-              if (mesh.material) {
-                // Stagger each object by 80ms for elegant cascading effect
-                setTimeout(() => {
-                  Animation.CreateAndStartAnimation(
-                    `fadeIn_${mesh.name}`,
-                    mesh.material,
-                    "alpha",
-                    60, // 60 FPS
-                    30, // 0.5 seconds (30 frames at 60 FPS)
-                    0,  // Start opacity
-                    1,  // End opacity
-                    Animation.ANIMATIONLOOPMODE_CONSTANT,
-                    new CubicEase()
-                  );
-                }, index * 80);
-              }
-            });
-          }, 300); // 300ms delay after mesh loading
-        }
         
         // Debug Cost Structure dimensions
         setTimeout(() => {
