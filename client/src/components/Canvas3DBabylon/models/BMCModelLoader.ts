@@ -112,42 +112,58 @@ export class BMCModelLoader {
         mesh.scaling.x = 0.8; // 20% reduction in width
         mesh.position.x += 0.00; // Centered positioning
         
-        // Apply anchor-based height system using original GLB positions
+        // Apply anchor-based height system: SCALE FIRST, then POSITION
         if (mesh.name === "Revenue") {
           // BOTTOM-ANCHORED: Bottom surface stays at original position
           const targetHeight = 2.0; // Double height for Revenue
-          const bottomAnchor = originalY - (originalHeight / 2); // Calculate original bottom surface
           
+          // Step 1: Apply scaling
           mesh.scaling.y = targetHeight;
-          mesh.position.y = bottomAnchor + (originalHeight * targetHeight) / 2; // Position center above anchor
-          console.log(`📦 Revenue: BOTTOM-anchored at ${bottomAnchor}, height=${targetHeight}, center at ${mesh.position.y}`);
+          
+          // Step 2: Calculate position after scaling
+          const scaledHeight = originalHeight * targetHeight; // New height after scaling
+          const bottomAnchor = originalY - (originalHeight / 2); // Original bottom surface
+          mesh.position.y = bottomAnchor + (scaledHeight / 2); // Position center above anchor
+          console.log(`📦 Revenue: BOTTOM-anchored at ${bottomAnchor}, scaled height=${scaledHeight}, center at ${mesh.position.y}`);
           
         } else if (mesh.name === "RevenuePL") {
           // TOP-ANCHORED: Top surface stays at original position
           const targetHeight = 0.01; // Near-zero height for Loss
-          const topAnchor = originalY + (originalHeight / 2); // Calculate original top surface
           
+          // Step 1: Apply scaling
           mesh.scaling.y = targetHeight;
-          mesh.position.y = topAnchor - (originalHeight * targetHeight) / 2; // Position center below anchor
-          console.log(`📦 RevenuePL (Loss): TOP-anchored at ${topAnchor}, height=${targetHeight}, center at ${mesh.position.y}`);
+          
+          // Step 2: Calculate position after scaling
+          const scaledHeight = originalHeight * targetHeight; // New height after scaling
+          const topAnchor = originalY + (originalHeight / 2); // Original top surface
+          mesh.position.y = topAnchor - (scaledHeight / 2); // Position center below anchor
+          console.log(`📦 RevenuePL (Loss): TOP-anchored at ${topAnchor}, scaled height=${scaledHeight}, center at ${mesh.position.y}`);
           
         } else if (mesh.name === "Expenses") {
           // BOTTOM-ANCHORED: Bottom surface stays at original position
           const targetHeight = 1.0; // Normal height for Expenses
-          const bottomAnchor = originalY - (originalHeight / 2); // Calculate original bottom surface
           
+          // Step 1: Apply scaling
           mesh.scaling.y = targetHeight;
-          mesh.position.y = bottomAnchor + (originalHeight * targetHeight) / 2; // Position center above anchor
-          console.log(`📦 Expenses: BOTTOM-anchored at ${bottomAnchor}, height=${targetHeight}, center at ${mesh.position.y}`);
+          
+          // Step 2: Calculate position after scaling
+          const scaledHeight = originalHeight * targetHeight; // New height after scaling
+          const bottomAnchor = originalY - (originalHeight / 2); // Original bottom surface
+          mesh.position.y = bottomAnchor + (scaledHeight / 2); // Position center above anchor
+          console.log(`📦 Expenses: BOTTOM-anchored at ${bottomAnchor}, scaled height=${scaledHeight}, center at ${mesh.position.y}`);
           
         } else if (mesh.name === "ExpensesPL") {
           // TOP-ANCHORED: Top surface stays at original position
           const targetHeight = 1.0; // Normal height for Profit
-          const topAnchor = originalY + (originalHeight / 2); // Calculate original top surface
           
+          // Step 1: Apply scaling
           mesh.scaling.y = targetHeight;
-          mesh.position.y = topAnchor - (originalHeight * targetHeight) / 2; // Position center below anchor
-          console.log(`📦 ExpensesPL (Profit): TOP-anchored at ${topAnchor}, height=${targetHeight}, center at ${mesh.position.y}`);
+          
+          // Step 2: Calculate position after scaling
+          const scaledHeight = originalHeight * targetHeight; // New height after scaling
+          const topAnchor = originalY + (originalHeight / 2); // Original top surface
+          mesh.position.y = topAnchor - (scaledHeight / 2); // Position center below anchor
+          console.log(`📦 ExpensesPL (Profit): TOP-anchored at ${topAnchor}, scaled height=${scaledHeight}, center at ${mesh.position.y}`);
         }
       });
       
