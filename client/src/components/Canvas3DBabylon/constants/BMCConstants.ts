@@ -49,8 +49,8 @@ export const CAMERA_PRESETS = {
   FRONT: {
     alpha: Math.PI/2, // Same horizontal rotation as TOP
     beta: Math.PI/2, // 90° rotation around X axis from TOP (straight-on front view)
-    radius: 55, // Same distance as TOP for consistency
-    target: { x: 0, y: 6, z: 0 } // Move scene lower in viewport by looking higher up
+    radius: 55 // Same distance as TOP for consistency
+    // REMOVED: custom target - now uses scene center (0,0,0) for steady ground plane
   }
 } as const;
 

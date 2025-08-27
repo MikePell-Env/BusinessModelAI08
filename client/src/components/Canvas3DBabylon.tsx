@@ -280,14 +280,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     startBeta = perspectiveCamera.beta;
     startRadius = perspectiveCamera.radius;
     
-    // Handle custom target for FRONT preset
-    const targetVector = preset === 'FRONT' && presetConfig.target 
-      ? new Vector3(presetConfig.target.x, presetConfig.target.y, presetConfig.target.z)
-      : Vector3.Zero();
-    
-    if (preset === 'FRONT' && presetConfig.target) {
-      perspectiveCamera.setTarget(targetVector);
-    }
+    // All presets use scene center (0,0,0) for steady ground plane transitions
     
     // Create smooth transition animations with cubic easing
     const alphaAnimation = Animation.CreateAndStartAnimation(
@@ -795,10 +788,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Camera positioned using current preset
     const currentPreset = CAMERA_PRESETS[currentCameraPreset];
     
-    // Use custom target for FRONT preset, otherwise scene center
-    const cameraTarget = currentCameraPreset === 'FRONT' && currentPreset.target 
-      ? new Vector3(currentPreset.target.x, currentPreset.target.y, currentPreset.target.z)
-      : new Vector3(0, 0, 0);
+    // Use scene center for all presets to keep ground plane steady
+    const cameraTarget = new Vector3(0, 0, 0);
     
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
