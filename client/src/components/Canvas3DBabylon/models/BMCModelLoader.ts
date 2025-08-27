@@ -133,7 +133,7 @@ export class BMCModelLoader {
         } else if (mesh.name === "RevenuePL") {
           // TOP-ANCHORED: Save top surface, then keep it fixed  
           const topSurface = originalY; // Keep this position fixed
-          const targetHeight = 0.01; // Restored to original height
+          const targetHeight = 1.0; // Same height as Revenue object
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = topSurface; // Keep top surface at original position
