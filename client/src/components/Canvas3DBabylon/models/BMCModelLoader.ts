@@ -96,17 +96,37 @@ export class BMCModelLoader {
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(1, 1, 1);
       
-      // Adjust positions for stacked financial objects
+      // Adjust positions and width for financial objects
       result.meshes.forEach((mesh) => {
         console.log(`🔍 Found mesh: "${mesh.name}"`);
         
-        // Move P&L objects down to nest properly
+        // Move P&L objects down to nest properly and reduce width by 20%
         if (mesh.name === "RevenuePL") {
           mesh.position.y -= 0.03; // Move down to nest in Revenue
           console.log(`📦 Adjusted RevenuePL position: y=${mesh.position.y} (moved down 0.03)`);
+          
+          // Reduce width by 20% and anchor to right edge (move left)
+          mesh.scaling.x = 0.8; // 20% reduction in width
+          mesh.position.x += 0.1; // Move left to anchor right edge
+          console.log(`📏 RevenuePL: Reduced width to 80%, moved left to anchor right edge`);
         } else if (mesh.name === "ExpensesPL") {
           mesh.position.y -= 0.03; // Move down to nest in Expenses
           console.log(`📦 Adjusted ExpensesPL position: y=${mesh.position.y} (moved down 0.03)`);
+          
+          // Reduce width by 20% and anchor to left edge (move right)
+          mesh.scaling.x = 0.8; // 20% reduction in width
+          mesh.position.x -= 0.1; // Move right to anchor left edge
+          console.log(`📏 ExpensesPL: Reduced width to 80%, moved right to anchor left edge`);
+        } else if (mesh.name === "Revenue") {
+          // Reduce width by 20% and anchor to right edge (move left)
+          mesh.scaling.x = 0.8; // 20% reduction in width
+          mesh.position.x += 0.1; // Move left to anchor right edge
+          console.log(`📏 Revenue: Reduced width to 80%, moved left to anchor right edge`);
+        } else if (mesh.name === "Expenses") {
+          // Reduce width by 20% and anchor to left edge (move right)
+          mesh.scaling.x = 0.8; // 20% reduction in width
+          mesh.position.x -= 0.1; // Move right to anchor left edge
+          console.log(`📏 Expenses: Reduced width to 80%, moved right to anchor left edge`);
         }
       });
       
