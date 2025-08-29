@@ -2566,7 +2566,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             }, scene);
             
             labelPlane.position.x = center.x;
-            labelPlane.position.y = center.y;
+            labelPlane.position.y = Math.max(center.y, 0.6); // Ensure labels stay above ground
             labelPlane.position.z = center.z - (size.z * 0.51);
             labelPlane.rotation = Vector3.Zero();
             
@@ -2636,7 +2636,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           };
           
           // Initially hide dynamic geometry - toggle will control visibility
-          Object.values(dynamicObjects).forEach(obj => obj.setEnabled(false));
+          Object.values(dynamicObjects).forEach(obj => {
+            if (obj && obj.setEnabled) {
+              obj.setEnabled(false);
+            }
+          });
           
           // Show GLB labels by default
           glbLabel.setEnabled(true);
@@ -3499,8 +3503,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         <div className="absolute left-96 z-10" style={{ top: '80px' }}>
           <button
             onClick={() => {
+              console.log("🔘 Toggle button clicked! showDynamicGeometry:", showDynamicGeometry);
               if (toggleGeometryRef.current) {
+                console.log("🔘 Calling toggle function...");
                 toggleGeometryRef.current();
+              } else {
+                console.log("❌ Toggle function not available");
               }
             }}
             className={`px-4 py-2 rounded text-sm font-medium transition-all duration-200 ${
