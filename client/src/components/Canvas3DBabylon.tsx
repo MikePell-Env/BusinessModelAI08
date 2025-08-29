@@ -2622,9 +2622,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             return labelPlane;
           };
           
-          // Create comparison labels
-          const glbLabel = createComparisonLabel(new Vector3(0, -0.8, 1.5), "GLB Models");
-          const dynamicLabel = createComparisonLabel(new Vector3(-2.5, -0.8, 1.5), "Dynamic Geometry");
+          // Create comparison labels positioned above ground
+          const glbLabel = createComparisonLabel(new Vector3(0, 1.5, 1.5), "GLB Models");
+          const dynamicLabel = createComparisonLabel(new Vector3(-2.5, 1.5, 1.5), "Dynamic Geometry");
           
           // Store references for toggle functionality
           const dynamicObjects = {
@@ -2635,8 +2635,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             comparisonLabel: dynamicLabel
           };
           
-          // Make dynamic geometry visible by default for side-by-side comparison
-          Object.values(dynamicObjects).forEach(obj => obj.setEnabled(true));
+          // Initially hide dynamic geometry - toggle will control visibility
+          Object.values(dynamicObjects).forEach(obj => obj.setEnabled(false));
+          
+          // Show GLB labels by default
+          glbLabel.setEnabled(true);
+          dynamicLabel.setEnabled(false);
           
           // Register dynamic objects with interaction system
           (dynamicRevenue as any).bmcSectionName = "Revenue (Dynamic)";
@@ -2670,6 +2674,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               glbLabel.setEnabled(false);
               
               Object.values(dynamicObjects).forEach(obj => obj.setEnabled(true));
+              dynamicLabel.setEnabled(true);
               console.log("🔄 Switched to Dynamic Geometry Revenue Group");
             } else {
               // Show GLB, hide dynamic
@@ -2678,6 +2683,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               glbLabel.setEnabled(true);
               
               Object.values(dynamicObjects).forEach(obj => obj.setEnabled(false));
+              dynamicLabel.setEnabled(false);
               console.log("🔄 Switched to GLB Revenue Group");
             }
           };
