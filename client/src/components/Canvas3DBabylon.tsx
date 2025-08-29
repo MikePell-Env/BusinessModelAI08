@@ -1653,11 +1653,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           (window as any).financialsDemo = financialsDemo;
           
           // Initialize with base financial data showing proper proportions
+          // Revenue: $10M (100% height), Expenses: $8M (80% height), Profit: $2M (20% height)
           const initialData: FinancialBusinessData = {
-            totalRevenue: 200,
-            totalExpenses: 150, 
-            netProfit: 50,
-            netLoss: 0
+            totalRevenue: 1000,  // $10 million (represents 100% height for Revenue)
+            totalExpenses: 800,  // $8 million (represents 80% height for Expenses)
+            netProfit: 200,      // $2 million profit (represents 20% height for ExpensesPL)
+            netLoss: 0           // No loss
           };
           financialsDataAdapter.updateFromBusinessData(initialData, false); // No animation on init
           
@@ -3419,15 +3420,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               <label className="block text-xs mb-1">Revenue Total</label>
               <input 
                 type="range" 
-                min="50" 
-                max="500" 
-                defaultValue="200"
+                min="100" 
+                max="2000" 
+                defaultValue="1000"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
                   const revenue = parseInt(e.target.value);
                   // Get current expenses value from the other slider
                   const expensesSlider = document.querySelector('input[type="range"]:nth-of-type(2)') as HTMLInputElement;
-                  const currentExpenses = expensesSlider ? parseInt(expensesSlider.value) : 150;
+                  const currentExpenses = expensesSlider ? parseInt(expensesSlider.value) : 800;
                   
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
@@ -3439,21 +3440,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   }
                 }}
               />
-              <span className="text-xs text-gray-300">$50k - $500k</span>
+              <span className="text-xs text-gray-300">$100k - $20M</span>
             </div>
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
               <input 
                 type="range" 
-                min="50" 
-                max="400" 
-                defaultValue="150"
+                min="100" 
+                max="1600" 
+                defaultValue="800"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
                   const expenses = parseInt(e.target.value);
                   // Get current revenue value from the other slider
                   const revenueSlider = document.querySelector('input[type="range"]:nth-of-type(1)') as HTMLInputElement;
-                  const currentRevenue = revenueSlider ? parseInt(revenueSlider.value) : 200;
+                  const currentRevenue = revenueSlider ? parseInt(revenueSlider.value) : 1000;
                   
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
@@ -3465,7 +3466,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   }
                 }}
               />
-              <span className="text-xs text-gray-300">$50k - $400k</span>
+              <span className="text-xs text-gray-300">$100k - $16M</span>
             </div>
           </div>
           <div className="flex gap-2 justify-center">
