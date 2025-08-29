@@ -138,7 +138,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                   <div className="grid grid-cols-3 gap-6">
                     {/* Option 1 - Import Office Files */}
                     <div className="text-center">
-                      <div className="bg-white p-6 rounded-lg border-2 border-black hover:shadow-md transition-shadow relative h-full flex flex-col shadow-2xl">
+                      <div 
+                        className="bg-white p-6 rounded-lg border-2 border-black hover:shadow-md transition-shadow relative h-full flex flex-col shadow-2xl cursor-pointer"
+                        onClick={handleDirectImport}
+                      >
                         {/* Number 1 in top left with Office label */}
                         <div className="absolute top-4 left-4 flex items-center">
                           <div className="bg-blue-500 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
