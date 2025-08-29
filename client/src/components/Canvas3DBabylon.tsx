@@ -965,6 +965,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     railMaterial.diffuseColor = railColor;
     railMaterial.specularColor = MATERIAL_COLORS.RAIL_SPECULAR;
     
+    // TEMPORARILY DISABLED: Border rails (suspected cause of black stray geometry with shadows)
+    /*
     // North rail (back) - extends full width including rail thickness for flush corners
     const northRail = MeshBuilder.CreateBox("northRail", {
       width: 20 + railWidth*2, // Ground width + rail thickness on both sides for flush corners
@@ -1004,6 +1006,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     westRail.position = new Vector3(-10 - railWidth/2, railHeight/2, 0); // 20/2 = 10
     westRail.material = railMaterial;
     westRail.parent = masterTransform; // Parent to master transform
+    */
 
 
     
