@@ -3425,12 +3425,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
                   const revenue = parseInt(e.target.value);
+                  // Get current expenses value from the other slider
+                  const expensesSlider = document.querySelector('input[type="range"]:nth-of-type(2)') as HTMLInputElement;
+                  const currentExpenses = expensesSlider ? parseInt(expensesSlider.value) : 150;
+                  
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
                       totalRevenue: revenue,
-                      totalExpenses: 150,
-                      netProfit: Math.max(0, revenue - 150),
-                      netLoss: Math.max(0, 150 - revenue)
+                      totalExpenses: currentExpenses,
+                      netProfit: Math.max(0, revenue - currentExpenses),
+                      netLoss: Math.max(0, currentExpenses - revenue)
                     });
                   }
                 }}
@@ -3447,12 +3451,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
                   const expenses = parseInt(e.target.value);
+                  // Get current revenue value from the other slider
+                  const revenueSlider = document.querySelector('input[type="range"]:nth-of-type(1)') as HTMLInputElement;
+                  const currentRevenue = revenueSlider ? parseInt(revenueSlider.value) : 200;
+                  
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
-                      totalRevenue: 200,
+                      totalRevenue: currentRevenue,
                       totalExpenses: expenses,
-                      netProfit: Math.max(0, 200 - expenses),
-                      netLoss: Math.max(0, expenses - 200)
+                      netProfit: Math.max(0, currentRevenue - expenses),
+                      netLoss: Math.max(0, expenses - currentRevenue)
                     });
                   }
                 }}
