@@ -174,13 +174,17 @@ export class FinancialsHeightManager {
       if (anchorType === 'top') {
         // TOP-ANCHORED OBJECTS: Stack on top of their base objects
         if (objectName === 'ExpensesPL') {
-          // ExpensesPL stacks on top of Expenses
+          // CALIBRATED POSITIONING: Use the 0.3 factor that was working well
           const expensesMesh = this.financialMeshes.get('Expenses');
           if (expensesMesh) {
-            const expensesHeight = expensesMesh.scaling.y;
-            const expensesPosition = expensesMesh.position.y;
-            // Position ExpensesPL on top of Expenses with proper offset
-            targetPosition = expensesPosition + (expensesHeight / 2) + (targetHeight / 2);
+            const expensesOriginalPos = this.originalPositions.get('Expenses');
+            if (expensesOriginalPos) {
+              // Use the calibrated 0.3 positioning factor
+              const positioningFactor = 0.3;
+              targetPosition = expensesOriginalPos.y + (expensesMesh.scaling.y * positioningFactor);
+            } else {
+              targetPosition = originalPos.y + (targetHeight / 2);
+            }
           } else {
             targetPosition = originalPos.y + (targetHeight / 2);
           }
