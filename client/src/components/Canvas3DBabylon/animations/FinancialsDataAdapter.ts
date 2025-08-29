@@ -84,12 +84,22 @@ export class FinancialsDataAdapter {
    * Ensures Revenue slider controls Revenue group and Expenses slider controls Expenses group
    */
   private transformBusinessData(data: FinancialBusinessData): FinancialData {
-    return {
+    console.log('🔄 Transforming business data:', {
+      totalRevenue: data.totalRevenue,
+      totalExpenses: data.totalExpenses,
+      netProfit: data.netProfit,
+      netLoss: data.netLoss
+    });
+    
+    const result = {
       revenue: Math.max(0.5, data.totalRevenue), // Revenue slider → Revenue group
       expenses: Math.max(0.5, data.totalExpenses), // Expenses slider → Expenses group
       profit: Math.max(0, data.netProfit),
       loss: Math.max(0, data.netLoss)
     };
+    
+    console.log('💰 Transformed to visualization data:', result);
+    return result;
   }
 
   /**

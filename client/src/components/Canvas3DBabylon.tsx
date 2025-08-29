@@ -3451,6 +3451,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                       netLoss: Math.max(0, currentExpenses - revenue)
                     });
                   }
+                  
+                  // Update the display values
+                  const revenueDisplay = document.querySelector('.revenue-display');
+                  const expensesDisplay = document.querySelector('.expenses-display');
+                  if (revenueDisplay) revenueDisplay.textContent = `$${revenue}k - $${revenue * 10}k`;
+                  if (expensesDisplay) expensesDisplay.textContent = `$${currentExpenses}k - $${currentExpenses * 10}k`;
                 }}
               />
               <span className="text-xs text-gray-300">$100k - $20M</span>
@@ -3477,6 +3483,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                       netLoss: Math.max(0, expenses - currentRevenue)
                     });
                   }
+                  
+                  // Update the display values
+                  const revenueDisplay = document.querySelector('.revenue-display');
+                  const expensesDisplay = document.querySelector('.expenses-display');
+                  if (revenueDisplay) revenueDisplay.textContent = `$${currentRevenue}k - $${currentRevenue * 10}k`;
+                  if (expensesDisplay) expensesDisplay.textContent = `$${expenses}k - $${expenses * 10}k`;
                 }}
               />
               <span className="text-xs text-gray-300">$100k - $16M</span>
