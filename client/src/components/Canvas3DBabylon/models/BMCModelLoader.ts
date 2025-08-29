@@ -138,58 +138,38 @@ export class BMCModelLoader {
         // Top-anchored: RevenuePL, ExpensesPL (fixed top surface, adjust position based on height)
         
         if (mesh.name === "Revenue") {
-          // ALGORITHMIC POSITIONING SYSTEM - Bottom-anchored objects
-          // CALIBRATED FOR INITIAL STATE: Revenue $10M, Expenses $8M
-          // Revenue is always 100% in profit scenario
-          const totalGroupHeight = 2.0;
-          const revenueHeight = totalGroupHeight; // 100% height
+          // DOCUMENTED POSITIONING: Height=1.0, Bottom-anchored at Y=0.0
+          const revenueHeight = 1.0; // Documented value
           
           mesh.scaling.y = revenueHeight;
           mesh.position.y = originalY; // Bottom-anchored: position stays at ground plane
           
         } else if (mesh.name === "Expenses") {
-          // ALGORITHMIC POSITIONING SYSTEM - Bottom-anchored objects  
-          // CALIBRATED FOR INITIAL STATE: Revenue $10M, Expenses $8M
-          // Expenses = (8M / 10M) * 100% = 80% of total height
-          const totalGroupHeight = 2.0;
-          const expensesRatio = 8.0 / 10.0; // 8M expenses / 10M revenue
-          const expensesHeight = expensesRatio * totalGroupHeight; // 80% height
+          // DOCUMENTED POSITIONING: Height=1.0, Bottom-anchored at Y=0.0
+          const expensesHeight = 1.0; // Documented value
           
           mesh.scaling.y = expensesHeight;
           mesh.position.y = originalY; // Bottom-anchored: position stays at ground plane
           
         } else if (mesh.name === "RevenuePL") {
-          // FIXED TOP SURFACE ANCHORING SYSTEM
-          // RevenuePL top surface stays at originalY + 2.0 (fixed group top)
-          const totalGroupHeight = 2.0;
-          const revenuePLHeight = 0; // No loss in initial state
+          // DOCUMENTED POSITIONING: Height=1.0, Top-anchored at Y=-0.02
+          const revenuePLHeight = 1.0; // Documented value
           
           mesh.scaling.y = revenuePLHeight;
           
-          // TOP-ANCHORED POSITIONING: position = originalY + totalGroupHeight - height
-          mesh.position.y = originalY + totalGroupHeight - revenuePLHeight;
+          // TOP-ANCHORED POSITIONING: Use documented position
+          mesh.position.y = originalY - 0.02;
           
           console.log(`🔧 ANCHORED: RevenuePL at ${mesh.position.y} (top-anchored, height: ${revenuePLHeight})`);
           
         } else if (mesh.name === "ExpensesPL") {
-          // FIXED TOP SURFACE ANCHORING SYSTEM
-          // ========================================================================
-          // ANCHORING PRINCIPLE: ExpensesPL top surface stays at originalY + 2.0 (fixed group top)
-          // As height changes, position adjusts to maintain top surface anchoring
-          // Formula: position = originalY + totalGroupHeight - height
-          // ========================================================================
-          
-          // CALIBRATED FOR INITIAL STATE: Revenue $10M, Expenses $8M, Profit $2M
-          const totalGroupHeight = 2.0;
-          const profitRatio = 2.0 / 10.0; // 2M profit / 10M revenue = 0.2
-          const expensesPLHeight = profitRatio * totalGroupHeight; // 20% of total group height
+          // DOCUMENTED POSITIONING: Height=1.0, Top-anchored at Y=-0.02
+          const expensesPLHeight = 1.0; // Documented value
           
           mesh.scaling.y = expensesPLHeight;
           
-          // TOP-ANCHORED POSITIONING: Use calibrated position that we know works
-          // From calibration: ExpensesPL at originalY + 0.48 when height = 0.4
-          // This corresponds to our documented correct positioning
-          mesh.position.y = originalY + 0.48;
+          // TOP-ANCHORED POSITIONING: Use documented position
+          mesh.position.y = originalY - 0.02;
           
           console.log(`🔧 ANCHORED: ExpensesPL at ${mesh.position.y} (top-anchored, height: ${expensesPLHeight})`);
         }
