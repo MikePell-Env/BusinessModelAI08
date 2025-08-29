@@ -138,7 +138,7 @@ export class BMCModelLoader {
         if (mesh.name === "Revenue") {
           // BOTTOM-ANCHORED: Save bottom surface, then keep it fixed
           const bottomSurface = originalY; // Keep this position fixed
-          const targetHeight = 1.0; // Original height
+          const targetHeight = 1.0; // Reduced by 50% from 2.0 to 1.0
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = bottomSurface; // Keep bottom surface at original position
@@ -147,7 +147,7 @@ export class BMCModelLoader {
         } else if (mesh.name === "RevenuePL") {
           // TOP-ANCHORED: Align top surface with ExpensesPL top surface
           const topSurface = -0.02; // Aligned with ExpensesPL top surface
-          const targetHeight = 1.0; // Original height
+          const targetHeight = 1.0; // Same height as Revenue object
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = topSurface; // Align top surface with ExpensesPL
