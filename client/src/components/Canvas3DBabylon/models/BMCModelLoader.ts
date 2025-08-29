@@ -154,10 +154,11 @@ export class BMCModelLoader {
           mesh.position.y = originalY + 2.0 - mesh.scaling.y;
           
         } else if (mesh.name === "ExpensesPL") {
-          // TOP-ANCHORED: Fixed top surface, adjust position based on height
-          mesh.scaling.y = 0.4; // 20% of total group height (2.0)  
-          // Position so top surface is at the original top of the group (originalY + 2.0 total height)
-          mesh.position.y = originalY + 2.0 - mesh.scaling.y;
+          // DEBUGGING: Gradually moving up from ground plane
+          mesh.scaling.y = 0.4; // 20% of total group height (2.0)
+          // Move up by the height of the Expenses object (1.6) to position on top
+          mesh.position.y = originalY + 1.6; // Ground plane + Expenses height
+          console.log(`🔧 ExpensesPL positioned at Y: ${mesh.position.y} (originalY: ${originalY} + Expenses height: 1.6), scaling: ${mesh.scaling.y}`);
         }
       });
       
