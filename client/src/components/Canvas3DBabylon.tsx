@@ -2513,8 +2513,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (template.name.toLowerCase() === 'financials') {
           console.log(`🔄 Creating dynamic geometry versions of Revenue Group for comparison...`);
           
-          // Create toggle state for switching between GLB and dynamic geometry
-          let showDynamicGeometry = false;
+          // Use React state for toggle functionality
           
           // Create dynamic Revenue object (bottom-anchored)
           const dynamicRevenue = MeshBuilder.CreateBox("DynamicRevenue", {
@@ -2636,6 +2635,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             comparisonLabel: dynamicLabel
           };
           
+          // Make dynamic geometry visible by default for side-by-side comparison
+          Object.values(dynamicObjects).forEach(obj => obj.setEnabled(true));
+          
           // Register dynamic objects with interaction system
           (dynamicRevenue as any).bmcSectionName = "Revenue (Dynamic)";
           (dynamicRevenuePL as any).bmcSectionName = "RevenuePL (Dynamic)";
@@ -2654,14 +2656,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           
           // Create toggle function and store reference for UI button
           const toggleFunction = () => {
-            showDynamicGeometry = !showDynamicGeometry;
-            setShowDynamicGeometry(showDynamicGeometry);
+            const newState = !showDynamicGeometry;
+            setShowDynamicGeometry(newState);
             
             // Find GLB Revenue and RevenuePL objects
             const glbRevenue = model.meshes.find(m => m.name === "Revenue");
             const glbRevenuePL = model.meshes.find(m => m.name === "RevenuePL");
             
-            if (showDynamicGeometry) {
+            if (newState) {
               // Hide GLB, show dynamic
               if (glbRevenue) glbRevenue.setEnabled(false);
               if (glbRevenuePL) glbRevenuePL.setEnabled(false);
