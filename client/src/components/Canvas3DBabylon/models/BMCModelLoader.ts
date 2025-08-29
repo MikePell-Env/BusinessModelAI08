@@ -154,17 +154,20 @@ export class BMCModelLoader {
           mesh.position.y = originalY + 2.0 - mesh.scaling.y;
           
         } else if (mesh.name === "ExpensesPL") {
-          // CRITICAL: ExpensesPL bottom surface must touch Expenses top surface
-          mesh.scaling.y = 0.4; // 20% of total group height (2.0)
+          // DIRECT APPROACH: Find the actual Expenses mesh and position relative to it
+          mesh.scaling.y = 0.4; // 20% height
           
-          // Expenses is bottom-anchored at originalY with height 1.6
-          // Expenses top surface is at: originalY + (1.6 / 2) = originalY + 0.8
-          // ExpensesPL bottom surface needs to be at Expenses top surface
-          // ExpensesPL center position = Expenses top surface + (ExpensesPL height / 2)
-          const expensesTopSurface = originalY + (1.6 / 2); // originalY + 0.8
-          mesh.position.y = expensesTopSurface + (mesh.scaling.y / 2); // Top surface + half ExpensesPL height
+          // Log all mesh positions for debugging
+          console.log(`🔧 DEBUGGING ALL POSITIONS - originalY: ${originalY}`);
+          result.meshes.forEach(m => {
+            console.log(`  ${m.name}: position.y=${m.position.y}, scaling.y=${m.scaling.y}`);
+          });
           
-          console.log(`🔧 ExpensesPL: Expenses top surface at ${expensesTopSurface}, ExpensesPL positioned at ${mesh.position.y} (touching Expenses)`);
+          // Position ExpensesPL directly at the Expenses mesh position + its full height
+          // This should put ExpensesPL bottom surface touching Expenses top surface
+          mesh.position.y = originalY + 1.6; // Expenses position + full Expenses height
+          
+          console.log(`🔧 ExpensesPL positioned at: ${mesh.position.y} (Expenses base + full height)`);
         }
       });
       
