@@ -1652,15 +1652,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           (window as any).financialsDataAdapter = financialsDataAdapter;
           (window as any).financialsDemo = financialsDemo;
           
-          // Initialize with base financial data showing proper proportions
-          // Revenue: $10M (100% height for Revenue object, 0% height for RevenuePL object)
-          // Expenses: $8M (80% height for Expenses object, 20% height for ExpensesPL object)
-          // This creates a $2M profit shown in ExpensesPL with 20% height
+          // Initialize with corrected financial data
+          // Revenue slider default: 1000 → Revenue object height
+          // Expenses slider default: 800 → Expenses object height  
+          // Profit: 200 → ExpensesPL object height
+          // Loss: 0 → RevenuePL object height
           const initialData: FinancialBusinessData = {
-            totalRevenue: 1000,  // $10 million (100% height for Revenue, 0% for RevenuePL)
-            totalExpenses: 800,  // $8 million (80% height for Expenses, 20% for ExpensesPL)
-            netProfit: 200,      // $2 million profit (shown as 20% height in ExpensesPL)
-            netLoss: 0           // No loss (RevenuePL stays at 0% height)
+            totalRevenue: 1000,  // Revenue slider value → Revenue height
+            totalExpenses: 800,  // Expenses slider value → Expenses height
+            netProfit: 200,      // Profit → ExpensesPL height
+            netLoss: 0           // Loss → RevenuePL height
           };
           
           // Apply initial data with a small delay to ensure meshes are fully registered
