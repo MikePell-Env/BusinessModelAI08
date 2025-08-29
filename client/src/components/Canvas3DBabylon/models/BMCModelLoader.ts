@@ -139,31 +139,31 @@ export class BMCModelLoader {
         
         if (mesh.name === "Revenue") {
           // ALGORITHMIC POSITIONING SYSTEM - Bottom-anchored objects
-          const revenueHeightPercent = 80; // Will be dynamic in future
+          // CALIBRATED FOR INITIAL STATE: Revenue $10M, Expenses $8M
+          // Revenue is always 100% in profit scenario
           const totalGroupHeight = 2.0;
-          const revenueHeight = (revenueHeightPercent / 100) * totalGroupHeight;
+          const revenueHeight = totalGroupHeight; // 100% height
           
           mesh.scaling.y = revenueHeight;
           mesh.position.y = originalY; // Bottom-anchored: position stays at ground plane
           
         } else if (mesh.name === "Expenses") {
-          // ALGORITHMIC POSITIONING SYSTEM - Bottom-anchored objects
-          const expensesHeightPercent = 80; // Will be dynamic in future
+          // ALGORITHMIC POSITIONING SYSTEM - Bottom-anchored objects  
+          // CALIBRATED FOR INITIAL STATE: Revenue $10M, Expenses $8M
+          // Expenses = (8M / 10M) * 100% = 80% of total height
           const totalGroupHeight = 2.0;
-          const expensesHeight = (expensesHeightPercent / 100) * totalGroupHeight;
+          const expensesRatio = 8.0 / 10.0; // 8M expenses / 10M revenue
+          const expensesHeight = expensesRatio * totalGroupHeight; // 80% height
           
           mesh.scaling.y = expensesHeight;
           mesh.position.y = originalY; // Bottom-anchored: position stays at ground plane
           
         } else if (mesh.name === "RevenuePL") {
           // ALGORITHMIC POSITIONING SYSTEM - Apply same logic to RevenuePL
-          const revenuePLHeightPercent = 20; // Will be dynamic in future
-          const revenueHeightPercent = 80;   // Will be dynamic in future
-          
-          // Calculate heights
+          // CALIBRATED FOR INITIAL STATE: No loss scenario (Revenue > Expenses)
           const totalGroupHeight = 2.0;
-          const revenuePLHeight = (revenuePLHeightPercent / 100) * totalGroupHeight;
-          const revenueHeight = (revenueHeightPercent / 100) * totalGroupHeight;
+          const revenuePLHeight = 0; // No loss in initial state
+          const revenueHeight = totalGroupHeight; // 100% height
           
           mesh.scaling.y = revenuePLHeight;
           
@@ -187,13 +187,13 @@ export class BMCModelLoader {
           // VALIDATION: 1.6 * 0.3 = 0.48 ✓ (matches documented correct position)
           // ========================================================================
           
-          const expensesPLHeightPercent = 20; // Will be dynamic in future
-          const expensesHeightPercent = 80;   // Will be dynamic in future
-          
-          // Calculate heights as percentages of total group height (2.0)
+          // CALIBRATED FOR INITIAL STATE: Revenue $10M, Expenses $8M, Profit $2M
+          // ExpensesPL = (2M profit / 10M revenue) * expenses total height = 20% of expenses group
           const totalGroupHeight = 2.0;
-          const expensesPLHeight = (expensesPLHeightPercent / 100) * totalGroupHeight;
-          const expensesHeight = (expensesHeightPercent / 100) * totalGroupHeight;
+          const profitRatio = 2.0 / 10.0; // 2M profit / 10M revenue = 0.2
+          const expensesRatio = 8.0 / 10.0; // 8M expenses / 10M revenue = 0.8
+          const expensesPLHeight = profitRatio * totalGroupHeight; // 20% of total group height
+          const expensesHeight = expensesRatio * totalGroupHeight; // 80% of total group height
           
           mesh.scaling.y = expensesPLHeight;
           
