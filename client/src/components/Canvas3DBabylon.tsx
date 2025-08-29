@@ -3452,7 +3452,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
-                      totalRevenue: revenue,
+                      totalRevenue: revenue,  // Revenue slider → Revenue group
                       totalExpenses: currentExpenses,
                       netProfit: Math.max(0, revenue - currentExpenses),
                       netLoss: Math.max(0, currentExpenses - revenue)
@@ -3486,7 +3486,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
                       totalRevenue: currentRevenue,
-                      totalExpenses: expenses,
+                      totalExpenses: expenses,  // Expenses slider → Expenses group
                       netProfit: Math.max(0, currentRevenue - expenses),
                       netLoss: Math.max(0, expenses - currentRevenue)
                     });
