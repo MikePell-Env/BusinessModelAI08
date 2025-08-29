@@ -1664,12 +1664,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           // Apply initial data with a small delay to ensure meshes are fully registered
           setTimeout(async () => {
             try {
-              await financialsDataAdapter.updateFromBusinessData(initialData, false);
-              console.log('💰 Initial Financials data applied successfully');
-              
-              // Verify heights were applied
-              const heights = financialsHeightManager.getCurrentHeights();
-              console.log('💰 Current heights after initialization:', heights);
+              if (financialsDataAdapter && financialsHeightManager) {
+                await financialsDataAdapter.updateFromBusinessData(initialData, false);
+                console.log('💰 Initial Financials data applied successfully');
+                
+                // Verify heights were applied
+                const heights = financialsHeightManager.getCurrentHeights();
+                console.log('💰 Current heights after initialization:', heights);
+              } else {
+                console.error('❌ Financials managers not properly initialized');
+              }
             } catch (error) {
               console.error('❌ Failed to apply initial Financials data:', error);
             }
