@@ -142,14 +142,14 @@ export class BMCModelLoader {
           const revenueHeight = 1.0; // Documented value
           
           mesh.scaling.y = revenueHeight;
-          mesh.position.y = originalY; // Bottom-anchored: position stays at ground plane
+          mesh.position.y = 0; // Bottom-anchored: force to ground plane
           
         } else if (mesh.name === "Expenses") {
           // DOCUMENTED POSITIONING: Height=1.0, Bottom-anchored at Y=0.0
           const expensesHeight = 1.0; // Documented value
           
           mesh.scaling.y = expensesHeight;
-          mesh.position.y = originalY; // Bottom-anchored: position stays at ground plane
+          mesh.position.y = 0; // Bottom-anchored: force to ground plane
           
         } else if (mesh.name === "RevenuePL") {
           // DOCUMENTED POSITIONING: Height=1.0, Top-anchored at Y=-0.02
@@ -158,7 +158,7 @@ export class BMCModelLoader {
           mesh.scaling.y = revenuePLHeight;
           
           // TOP-ANCHORED POSITIONING: Use documented position
-          mesh.position.y = originalY - 0.02;
+          mesh.position.y = -0.02;
           
           console.log(`🔧 ANCHORED: RevenuePL at ${mesh.position.y} (top-anchored, height: ${revenuePLHeight})`);
           
@@ -169,7 +169,7 @@ export class BMCModelLoader {
           mesh.scaling.y = expensesPLHeight;
           
           // TOP-ANCHORED POSITIONING: Use documented position
-          mesh.position.y = originalY - 0.02;
+          mesh.position.y = -0.02;
           
           console.log(`🔧 ANCHORED: ExpensesPL at ${mesh.position.y} (top-anchored, height: ${expensesPLHeight})`);
         }
