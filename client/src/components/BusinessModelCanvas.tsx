@@ -125,6 +125,15 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
 
   return (
     <div className="w-full h-screen bg-gray-200 relative">
+      {/* Canvas Views - Full screen behind everything */}
+      <div className="absolute inset-0 w-full h-full">
+        {is3D ? (
+          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} template={currentTemplate} />
+        ) : (
+          <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
+        )}
+      </div>
+
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header 
@@ -193,11 +202,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
 
       </div>
       
-      {/* Main content positioned directly under the header */}
-      <div className="pt-0 h-full relative">
-
-      {/* Reset Button & Microsoft Stack Status */}
-      <div className="absolute top-4 right-4 z-40 flex space-x-2">
+      {/* Reset Button & Microsoft Stack Status - positioned as overlay */}
+      <div className="fixed top-20 right-4 z-40 flex space-x-2">
         <Dialog>
           <DialogTrigger asChild>
             <Button
@@ -237,15 +243,6 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
         </Button>
       </div>
 
-      {/* Canvas Views */}
-      <div className="w-full h-full relative">
-        {is3D ? (
-          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} template={currentTemplate} />
-        ) : (
-          <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
-        )}
-      </div>
-
       {/* AI Chat Component */}
       <AIChat />
 
@@ -264,7 +261,6 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           </div>
         </footer>
       )}
-      </div>
     </div>
   );
 };
