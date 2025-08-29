@@ -947,13 +947,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     
     gridTexture.update();
     
-    // Apply powder blue material with white grid texture to ground
+    // PERFORMANCE: Simplified ground material
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
     groundMaterial.diffuseTexture = gridTexture;
     groundMaterial.specularColor = MATERIAL_COLORS.GROUND_SPECULAR; // Subtle blue-tinted specular reflection
-    groundMaterial.specularPower = 64; // Higher value for sharper reflections
+    groundMaterial.specularPower = 32; // Reduced for better performance
     groundMaterial.alpha = 0.5; // 50% opacity
-    groundMaterial.backFaceCulling = false; // Render from both sides (visible from underneath)
+    groundMaterial.backFaceCulling = true; // Enable back face culling for performance
+    groundMaterial.disableLighting = true; // Disable lighting for ground plane
     ground.material = groundMaterial;
 
     // Background click handling is done by SimpleClickHandler callbacks
@@ -1017,8 +1018,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Remove createDefaultEnvironment as it can override clearColor with its own background
     scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
     
-    // Set environment intensity for PBR materials
-    scene.environmentIntensity = 0.5; // Moderate for PBR materials to work
+    // PERFORMANCE: Reduce environment intensity for better performance
+    scene.environmentIntensity = 0.2; // Lower intensity for better performance
+    
+    // PERFORMANCE: Engine optimizations
+    engine.setHardwareScalingLevel(1.0); // Default scaling
+    scene.skipPointerMovePicking = true; // Disable pointer move picking for better performance
+    scene.autoClear = false; // Manual clearing for better control
+    scene.autoClearDepthAndStencil = false; // Manual depth clearing
 
     // Create GUI for 3D billboard labels and content panels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -2178,27 +2185,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 
                 // Create pulsating animation
                 let animationTime = 0;
+                // PERFORMANCE: Disable expensive pulsating animation
                 const animateEdge = () => {
+                  // Static green color for better performance
                   if (edgeLine && !edgeLine.isDisposed()) {
-                    const animationRef = (mesh as any).pulsatingEdge;
-                    
-                    // Check if animation should be paused (3D Top view)
-                    if (!animationRef.isPaused) {
-                      animationTime += 0.02; // Animation speed
-                      
-                      // Pulsate opacity and glow
-                      const pulse = (Math.sin(animationTime * 2) + 1) / 2; // 0 to 1
-                      const intensity = 0.3 + (pulse * 0.7); // 0.3 to 1.0
-                      
-                      // Update line color with pulsating intensity
-                      edgeLine.color = new Color3(0, intensity, 0);
-                    } else {
-                      // Keep static bright color when paused
-                      edgeLine.color = new Color3(0, 1, 0);
-                    }
-                    
-                    // Continue animation loop
-                    requestAnimationFrame(animateEdge);
+                    edgeLine.color = new Color3(0, 0.8, 0);
                   }
                 };
                 
@@ -2315,53 +2306,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 const totalPathLength = pathPoints.length; // Use actual path length
                 let updateCounter = 0;
                 
+                // PERFORMANCE: Disable expensive tracer animation
                 const animateTracer = () => {
-                  if (tracerSphere && !tracerSphere.isDisposed() && trailLine && !trailLine.isDisposed()) {
-                    const animationRef = (mesh as any).blueTracer;
-                    
-                    // Check if animation should be paused (3D Top view)
-                    if (!animationRef.isPaused) {
-                      animationTime += 0.5; // Double speed - faster movement around edges
-                      
-                      // Calculate position along the edge-based rectangular path
-                      const effectivePathLength = pathPoints.length;
-                      const progress = (animationTime % (effectivePathLength * 2)) / (effectivePathLength * 2);
-                      const scaledProgress = progress * effectivePathLength;
-                      const segmentIndex = Math.floor(scaledProgress) % effectivePathLength;
-                      const segmentProgress = scaledProgress - Math.floor(scaledProgress);
-                      
-                      // Get current and next points, wrapping around for smooth loop
-                      const currentPoint = pathPoints[segmentIndex];
-                      const nextPoint = pathPoints[(segmentIndex + 1) % pathPoints.length];
-                      
-                      // Interpolate position smoothly along the rectangular edges only
-                      const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
-                      tracerSphere.position = currentPos;
-                      
-                      // Update trail positions more frequently for smoother trail with faster speed
-                      updateCounter++;
-                      if (updateCounter % 3 === 0) { // Update every 3rd frame for longer trail with faster speed
-                        // Shift trail positions
-                        for (let i = trailPositions.length - 1; i > 0; i--) {
-                          trailPositions[i] = trailPositions[i - 1].clone();
-                        }
-                        trailPositions[0] = currentPos.clone();
-                        
-                        // Safely update line geometry with simpler approach
-                        try {
-                          MeshBuilder.CreateLines("customerSegmentsTrail", {
-                            points: trailPositions,
-                            instance: trailLine
-                          }, scene);
-                        } catch (error) {
-                          // Skip trail update if it fails
-                        }
-                      }
-                    }
-                    // Note: When paused, tracer sphere stays at current position
-                    
-                    // Continue animation loop
-                    requestAnimationFrame(animateTracer);
+                  // Static position for better performance
+                  if (tracerSphere && !tracerSphere.isDisposed()) {
+                    // Position at first path point
+                    tracerSphere.position = pathPoints[0];
                   }
                 };
                 
@@ -3376,6 +3326,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let isDisposed = false;
     unifiedSceneRef.current?.startRenderLoop(() => {
       if (!isDisposed && scene && !scene.isDisposed) {
+        // PERFORMANCE: Clear manually for better control
+        engine.clear(new Color4(233/255, 236/255, 239/255, 1.0), true, true, true);
         scene.render();
       }
     });
