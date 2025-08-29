@@ -948,7 +948,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     groundMaterial.diffuseTexture = gridTexture;
     groundMaterial.specularColor = MATERIAL_COLORS.GROUND_SPECULAR; // Subtle blue-tinted specular reflection
     groundMaterial.specularPower = 64; // Higher value for sharper reflections
-    groundMaterial.alpha = 0.5; // 50% opacity
+    groundMaterial.alpha = 1.0; // Full opacity to prevent rendering artifacts
     groundMaterial.backFaceCulling = false; // Render from both sides (visible from underneath)
     ground.material = groundMaterial;
 
@@ -1011,7 +1011,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Force light grey background to match documentation: RGB(233, 236, 239)
     // Remove createDefaultEnvironment as it can override clearColor with its own background
-    scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
+    scene.clearColor = new Color4(0.9, 0.9, 0.9, 1.0); // Light grey background
     
     // Set environment intensity for PBR materials
     scene.environmentIntensity = 0.5; // Moderate for PBR materials to work
@@ -1247,7 +1247,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       internalLabelMaterial.diffuseTexture = internalLabelTexture;
       internalLabelMaterial.emissiveTexture = internalLabelTexture;
       internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
-      internalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
+      internalLabelMaterial.alpha = 0.8; // Increased opacity to reduce artifacts
       internalLabelMaterial.useAlphaFromDiffuseTexture = true;
       internalLabelMaterial.disableLighting = true;
       internalLabelMaterial.backFaceCulling = false; // Visible from underneath
@@ -1288,7 +1288,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       externalLabelMaterial.diffuseTexture = externalLabelTexture;
       externalLabelMaterial.emissiveTexture = externalLabelTexture;
       externalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
-      externalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
+      externalLabelMaterial.alpha = 0.8; // Increased opacity to reduce artifacts
       externalLabelMaterial.useAlphaFromDiffuseTexture = true;
       externalLabelMaterial.disableLighting = true;
       externalLabelMaterial.backFaceCulling = false; // Visible from underneath
@@ -1327,7 +1327,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       verticalDividerMaterial.diffuseTexture = verticalDividerTexture;
       verticalDividerMaterial.emissiveTexture = verticalDividerTexture;
       verticalDividerMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
-      verticalDividerMaterial.alpha = 0.3; // 30% opacity (same as Internal/External)
+      verticalDividerMaterial.alpha = 0.8; // Increased opacity to reduce artifacts
       verticalDividerMaterial.useAlphaFromDiffuseTexture = true;
       verticalDividerMaterial.disableLighting = true;
       verticalDividerMaterial.backFaceCulling = false; // Visible from underneath
