@@ -153,14 +153,18 @@ export class BMCModelLoader {
           console.log(`📦 Revenue: Bottom fixed at ${bottomSurface}, height=${targetHeight} (80% of total group)`);
           
         } else if (mesh.name === "RevenuePL") {
-          // TOP-ANCHORED: Keep top surface at original position, extend downward for 20% of total group height
-          const originalTopSurface = -0.02; // Keep original top position fixed
-          const totalGroupHeight = 1.0; // Total combined height of Revenue + RevenuePL  
-          const targetHeight = totalGroupHeight * 0.2; // 20% of total group height = 0.2
+          // CALCULATE POSITION: RevenuePL should sit on top of Revenue (20% of total height)
+          const totalGroupHeight = 1.0; // Total combined height
+          const revenueHeight = totalGroupHeight * 0.8; // Revenue takes 80% = 0.8
+          const revenuePLHeight = totalGroupHeight * 0.2; // RevenuePL takes 20% = 0.2
           
-          mesh.scaling.y = targetHeight;
-          mesh.position.y = originalTopSurface; // Keep top surface at original position
-          console.log(`📦 RevenuePL (Loss): Top fixed at original position ${originalTopSurface}, height=${targetHeight} (20% of total group)`);
+          // Position RevenuePL so its bottom surface touches the top of Revenue
+          // Revenue bottom = 0.0, Revenue top = 0.8, so RevenuePL bottom should be at 0.8
+          const revenuePLBottomPosition = revenueHeight; // 0.8
+          
+          mesh.scaling.y = revenuePLHeight;
+          mesh.position.y = revenuePLBottomPosition; // Position bottom of RevenuePL at top of Revenue
+          console.log(`📦 RevenuePL (Loss): Bottom positioned at ${revenuePLBottomPosition}, height=${revenuePLHeight} (20% of total group)`);
           
         } else if (mesh.name === "Expenses") {
           // BOTTOM-ANCHORED: Save bottom surface, then keep it fixed
