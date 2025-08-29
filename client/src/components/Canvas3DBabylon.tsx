@@ -238,6 +238,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Track if camera is actually in a preset position (for button highlighting)
   const [isInPresetPosition, setIsInPresetPosition] = useState(true);
   
+  // State for toggling between GLB and dynamic geometry
+  const [showDynamicGeometry, setShowDynamicGeometry] = useState(false);
+  const toggleGeometryRef = useRef<(() => void) | null>(null);
+  
   // Camera preset switching only for initial template load (not during transitions)
   // Preserve camera state during template transitions for steady ground plane
   const [hasInitializedTemplate, setHasInitializedTemplate] = useState<string | null>(null);
@@ -2699,9 +2703,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           unifiedInteractionManager.registerObject("Revenue (Dynamic)", dynamicRevenue);
           unifiedInteractionManager.registerObject("RevenuePL (Dynamic)", dynamicRevenuePL);
           
-          // Add toggle function to global window for testing
-          (window as any).toggleRevenueGeometry = () => {
+          // Create toggle function and store reference for UI button
+          const toggleFunction = () => {
             showDynamicGeometry = !showDynamicGeometry;
+            setShowDynamicGeometry(showDynamicGeometry);
             
             // Find GLB Revenue and RevenuePL objects
             const glbRevenue = model.meshes.find(m => m.name === "Revenue");
@@ -2726,8 +2731,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             }
           };
           
+          // Store toggle function reference for UI button
+          toggleGeometryRef.current = toggleFunction;
+          
+          // Also add to global window for testing
+          (window as any).toggleRevenueGeometry = toggleFunction;
+          
           console.log("✅ Dynamic geometry Revenue Group created side-by-side");
-          console.log("💡 Use toggleRevenueGeometry() in console to switch between GLB and Dynamic versions");
+          console.log("💡 Use toggle button or toggleRevenueGeometry() in console to switch between approaches");
         }
         
         // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
@@ -3523,6 +3534,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           </div>
         )}
       </div>
+      
+      {/* Toggle Button for GLB vs Dynamic Geometry - Only show for Financials template */}
+      {template.name.toLowerCase() === 'financials' && (
+        <div className="absolute left-96 z-10" style={{ top: '80px' }}>
+          <button
+            onClick={() => {
+              if (toggleGeometryRef.current) {
+                toggleGeometryRef.current();
+              }
+            }}
+            className={`px-4 py-2 rounded text-sm font-medium transition-all duration-200 ${
+              showDynamicGeometry 
+                ? 'bg-purple-600 text-white shadow-md hover:bg-purple-700' 
+                : 'bg-green-600 text-white shadow-md hover:bg-green-700'
+            }`}
+          >
+            {showDynamicGeometry ? '🔄 Switch to GLB Models' : '🔄 Switch to Dynamic Geometry'}
+          </button>
+          <div className="text-xs text-gray-600 mt-1 text-center">
+            Compare rendering approaches
+          </div>
+        </div>
+      )}
       
       {/* Time Slider HUD - Floating at bottom with transparent background */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-8 py-4">
