@@ -81,11 +81,12 @@ export class FinancialsDataAdapter {
 
   /**
    * Transform business data into visualization format
+   * Ensures Revenue slider controls Revenue group and Expenses slider controls Expenses group
    */
   private transformBusinessData(data: FinancialBusinessData): FinancialData {
     return {
-      revenue: Math.max(0.1, data.totalRevenue),
-      expenses: Math.max(0.1, data.totalExpenses),
+      revenue: Math.max(0.5, data.totalRevenue), // Revenue slider → Revenue group
+      expenses: Math.max(0.5, data.totalExpenses), // Expenses slider → Expenses group
       profit: Math.max(0, data.netProfit),
       loss: Math.max(0, data.netLoss)
     };

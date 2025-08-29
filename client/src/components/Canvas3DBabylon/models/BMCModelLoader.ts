@@ -133,38 +133,36 @@ export class BMCModelLoader {
           mesh.position.x += 0.00; // At center line
         }
         
-        // SIMPLE ANCHORING: Save anchor points, apply height, adjust position to maintain anchor
+        // PROPER STACKING: Revenue group (80%/20%) and Expenses group (80%/20%) with no overlaps
         if (mesh.name === "Revenue") {
-          // BOTTOM-ANCHORED: Save bottom surface, then keep it fixed
-          const bottomSurface = originalY; // Keep this position fixed
-          const targetHeight = 1.0; // Reduced by 50% from 2.0 to 1.0
+          // BOTTOM-ANCHORED: Base object for Revenue group (80% of total)
+          const bottomSurface = originalY;
+          const targetHeight = 1.6; // 80% of total group height (2.0)
           
           mesh.scaling.y = targetHeight;
-          mesh.position.y = bottomSurface; // Keep bottom surface at original position
+          mesh.position.y = bottomSurface;
           
         } else if (mesh.name === "RevenuePL") {
-          // TOP-ANCHORED: Align top surface with ExpensesPL top surface
-          const topSurface = -0.02; // Aligned with ExpensesPL top surface
-          const targetHeight = 1.0; // Same height as Revenue object
+          // TOP-ANCHORED: Stacks on top of Revenue (20% of total)
+          const targetHeight = 0.4; // 20% of total group height (2.0)
           
           mesh.scaling.y = targetHeight;
-          mesh.position.y = topSurface; // Align top surface with ExpensesPL
+          mesh.position.y = originalY + 1.6; // Position on top of Revenue (1.6 height)
           
         } else if (mesh.name === "Expenses") {
-          // BOTTOM-ANCHORED: Save bottom surface, then keep it fixed
-          const bottomSurface = originalY; // Keep this position fixed
-          const targetHeight = 1.0;
+          // BOTTOM-ANCHORED: Base object for Expenses group (80% of total)
+          const bottomSurface = originalY;
+          const targetHeight = 1.6; // 80% of total group height (2.0)
           
           mesh.scaling.y = targetHeight;
-          mesh.position.y = bottomSurface; // Keep bottom surface at original position
+          mesh.position.y = bottomSurface;
           
         } else if (mesh.name === "ExpensesPL") {
-          // TOP-ANCHORED: Save top surface, then keep it fixed
-          const topSurface = originalY - 0.02; // Move down 0.02 units (even higher)
-          const targetHeight = 1.0;
+          // TOP-ANCHORED: Stacks on top of Expenses (20% of total)
+          const targetHeight = 0.4; // 20% of total group height (2.0)
           
           mesh.scaling.y = targetHeight;
-          mesh.position.y = topSurface; // Keep top surface at adjusted position
+          mesh.position.y = originalY + 1.6; // Position on top of Expenses (1.6 height)
         }
       });
       

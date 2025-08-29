@@ -1,11 +1,10 @@
-
 /**
  * Financials Height Manager
  * Handles proportional height manipulation for Revenue/Expenses groups
  * while maintaining proper anchoring and label positioning
  */
 
-import { 
+import {
   Scene,
   AbstractMesh,
   Mesh,
@@ -54,50 +53,94 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Calculate proportional heights based on financial data
+   * Calculate balanced heights based on income statement logic
+   * Maintains visual balance: both sides always have equal total height
    */
-  public calculateProportionalHeights(data: FinancialData): GroupHeights {
-    const revenueTotal = data.revenue;
-    const expensesTotal = data.expenses;
-    const maxValue = Math.max(revenueTotal, expensesTotal);
+  private calculateProportionalHeights(data: FinancialData): GroupHeights {
+    const baseHeight = 2.0; // Base visualization height
     
-    // Scale to visualization range (0.5 to maxVisualizationHeight)
-    const scaleFactor = maxValue > 0 ? (this.maxVisualizationHeight - 0.5) / maxValue : 1;
+    // Ensure minimum values for visualization
+    const revenue = Math.max(data.revenue, 0.1);
+    const expenses = Math.max(data.expenses, 0.1);
+    
+    // Calculate profit/loss
+    const profit = revenue - expenses;
+    const loss = expenses - revenue;
+    
+    let revenueTotal: number, expensesTotal: number;
+    
+    if (profit >= 0) {
+      // PROFIT SCENARIO: Revenue side is 100%, Expenses side scales to match
+      revenueTotal = baseHeight;
+      expensesTotal = baseHeight; // Both sides equal height for balance
+    } else {
+      // LOSS SCENARIO: Expenses side is 100%, Revenue side scales to match  
+      expensesTotal = baseHeight;
+      revenueTotal = baseHeight; // Both sides equal height for balance
+    }
     
     return {
-      revenueTotal: Math.max(0.5, revenueTotal * scaleFactor),
-      expensesTotal: Math.max(0.5, expensesTotal * scaleFactor),
-      maxHeight: this.maxVisualizationHeight
+      revenueTotal,
+      expensesTotal,
+      maxHeight: baseHeight
     };
   }
 
   /**
-   * Update heights based on financial data with smooth animation
+   * Update heights from financial data with balanced income statement logic
+   * Implements: Revenue - Expenses = Profit/Loss with visual balance
    */
   public async updateHeightsFromData(
-    data: FinancialData, 
+    data: FinancialData,
     duration: number = 1000
   ): Promise<void> {
     const heights = this.calculateProportionalHeights(data);
     
-    // Calculate individual object heights based on proportions
-    const revenueHeight = heights.revenueTotal * 0.8; // 80% for Revenue
-    const revenuePLHeight = heights.revenueTotal * 0.2; // 20% for RevenuePL
-    const expensesHeight = heights.expensesTotal * 0.8; // 80% for Expenses  
-    const expensesPLHeight = heights.expensesTotal * 0.2; // 20% for ExpensesPL
+    // Ensure minimum values for calculation
+    const revenue = Math.max(data.revenue, 0.1);
+    const expenses = Math.max(data.expenses, 0.1);
+    
+    // Calculate profit/loss
+    const profit = revenue - expenses;
+    const loss = expenses - revenue;
+    
+    let revenueHeight: number, revenuePLHeight: number;
+    let expensesHeight: number, expensesPLHeight: number;
+    
+    if (profit >= 0) {
+      // PROFIT SCENARIO: Revenue - Expenses = Profit
+      revenueHeight = heights.revenueTotal;        // Revenue: 100% height
+      revenuePLHeight = 0;                         // RevenuePL: 0% (no loss)
+      expensesHeight = (expenses / revenue) * heights.expensesTotal;     // Expenses: proportional
+      expensesPLHeight = (profit / revenue) * heights.expensesTotal;     // ExpensesPL: profit portion
+      
+      debugLog.info('financials', `PROFIT scenario - Revenue: 100%, Expenses: ${(expenses/revenue*100).toFixed(1)}%, Profit: ${(profit/revenue*100).toFixed(1)}%`);
+    } else {
+      // LOSS SCENARIO: Expenses - Revenue = Loss  
+      expensesHeight = heights.expensesTotal;      // Expenses: 100% height
+      expensesPLHeight = 0;                        // ExpensesPL: 0% (no profit)
+      revenueHeight = (revenue / expenses) * heights.revenueTotal;       // Revenue: proportional
+      revenuePLHeight = (Math.abs(loss) / expenses) * heights.revenueTotal; // RevenuePL: loss portion
+      
+      debugLog.info('financials', `LOSS scenario - Expenses: 100%, Revenue: ${(revenue/expenses*100).toFixed(1)}%, Loss: ${(Math.abs(loss)/expenses*100).toFixed(1)}%`);
+    }
 
-    debugLog.info('financials', `Updating heights - Revenue: ${revenueHeight}, RevenuePL: ${revenuePLHeight}, Expenses: ${expensesHeight}, ExpensesPL: ${expensesPLHeight}`);
+    debugLog.info('financials', `Updating heights - Revenue: ${revenueHeight.toFixed(2)}, RevenuePL: ${revenuePLHeight.toFixed(2)}, Expenses: ${expensesHeight.toFixed(2)}, ExpensesPL: ${expensesPLHeight.toFixed(2)}`);
 
-    // Animate all heights simultaneously while maintaining anchoring
-    const animations = [
-      this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration),
-      this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration),
-      this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration),
-      this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration)
-    ];
+    // Animate base objects first, then stacked objects to prevent overlaps
+    // Step 1: Animate bottom-anchored objects (Revenue, Expenses)
+    await Promise.all([
+      this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration / 2),
+      this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration / 2)
+    ]);
 
-    await Promise.all(animations);
-    debugLog.info('financials', 'All height animations completed');
+    // Step 2: Animate top-anchored objects (RevenuePL, ExpensesPL) after base is positioned
+    await Promise.all([
+      this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration / 2),
+      this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration / 2)
+    ]);
+
+    debugLog.info('financials', 'All height animations completed with proper stacking');
   }
 
   /**
@@ -118,16 +161,24 @@ export class FinancialsHeightManager {
     return new Promise((resolve) => {
       const startHeight = mesh.scaling.y;
       const startPosition = mesh.position.y;
-      
-      // Calculate anchor-preserved positioning
+      const originalPos = this.originalPositions.get(objectName);
+
+      if (!originalPos) {
+        debugLog.error('financials', `Original position not found for ${objectName}`);
+        resolve();
+        return;
+      }
+
+      // Calculate target position based on anchor and height change
       let targetPosition = startPosition;
       if (anchorType === 'top') {
-        // Top-anchored: adjust position to keep top surface fixed
-        const heightDiff = targetHeight - startHeight;
-        targetPosition = startPosition; // Top surface stays fixed
+        // For top-anchored objects, adjust position so the top surface stays in place
+        // The amount to move up is the difference in height if the new height is greater,
+        // or down if the new height is smaller.
+        targetPosition = originalPos.y - (targetHeight - startHeight);
       } else {
-        // Bottom-anchored: position stays the same, bottom surface fixed
-        targetPosition = startPosition;
+        // For bottom-anchored objects, the bottom surface stays fixed at its original position.
+        targetPosition = originalPos.y;
       }
 
       // Create height animation
@@ -139,7 +190,7 @@ export class FinancialsHeightManager {
         Animation.ANIMATIONLOOPMODE_CONSTANT
       );
 
-      // Create position animation for top-anchored objects
+      // Create position animation
       const positionAnimation = new Animation(
         `${objectName}_position`,
         'position.y',
@@ -151,7 +202,7 @@ export class FinancialsHeightManager {
       // Set up easing
       const easingFunction = new CubicEase();
       easingFunction.setEasingMode(EasingFunction.EASINGMODE_EASEINOUT);
-      
+
       // Height animation keys
       const heightKeys = [
         { frame: 0, value: startHeight },
@@ -160,7 +211,7 @@ export class FinancialsHeightManager {
       heightAnimation.setKeys(heightKeys);
       heightAnimation.setEasingFunction(easingFunction);
 
-      // Position animation keys (for top-anchored objects)
+      // Position animation keys
       const positionKeys = [
         { frame: 0, value: startPosition },
         { frame: 60, value: targetPosition }
@@ -170,7 +221,7 @@ export class FinancialsHeightManager {
 
       // Apply animations
       mesh.animations = [heightAnimation, positionAnimation];
-      
+
       this.scene.beginAnimation(
         mesh,
         0,
@@ -187,14 +238,35 @@ export class FinancialsHeightManager {
 
   /**
    * Set immediate heights without animation (for initialization)
+   * Uses balanced income statement logic
    */
   public setImmediateHeights(data: FinancialData): void {
     const heights = this.calculateProportionalHeights(data);
     
-    const revenueHeight = heights.revenueTotal * 0.8;
-    const revenuePLHeight = heights.revenueTotal * 0.2;
-    const expensesHeight = heights.expensesTotal * 0.8;
-    const expensesPLHeight = heights.expensesTotal * 0.2;
+    // Ensure minimum values for calculation
+    const revenue = Math.max(data.revenue, 0.1);
+    const expenses = Math.max(data.expenses, 0.1);
+    
+    // Calculate profit/loss
+    const profit = revenue - expenses;
+    const loss = expenses - revenue;
+    
+    let revenueHeight: number, revenuePLHeight: number;
+    let expensesHeight: number, expensesPLHeight: number;
+    
+    if (profit >= 0) {
+      // PROFIT SCENARIO
+      revenueHeight = heights.revenueTotal;
+      revenuePLHeight = 0;
+      expensesHeight = (expenses / revenue) * heights.expensesTotal;
+      expensesPLHeight = (profit / revenue) * heights.expensesTotal;
+    } else {
+      // LOSS SCENARIO
+      expensesHeight = heights.expensesTotal;
+      expensesPLHeight = 0;
+      revenueHeight = (revenue / expenses) * heights.revenueTotal;
+      revenuePLHeight = (Math.abs(loss) / expenses) * heights.revenueTotal;
+    }
 
     this.setObjectHeight('Revenue', revenueHeight, 'bottom');
     this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
@@ -217,10 +289,10 @@ export class FinancialsHeightManager {
     if (!originalPos) return;
 
     mesh.scaling.y = height;
-    
+
     if (anchorType === 'top') {
       // Keep top surface fixed by adjusting position
-      mesh.position.y = originalPos.y;
+      mesh.position.y = originalPos.y - (height - mesh.scaling.y); // Adjust position to keep top at originalPos.y
     } else {
       // Keep bottom surface fixed
       mesh.position.y = originalPos.y;
