@@ -2554,6 +2554,181 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             }
           });
         }
+
+        // ===== DYNAMIC GEOMETRY COMPARISON SYSTEM =====
+        // Create dynamic geometry versions of Revenue Group side-by-side with GLB models
+        if (template.name.toLowerCase() === 'financials') {
+          console.log(`🔄 Creating dynamic geometry versions of Revenue Group for comparison...`);
+          
+          // Create toggle state for switching between GLB and dynamic geometry
+          let showDynamicGeometry = false;
+          
+          // Create dynamic Revenue object (bottom-anchored)
+          const dynamicRevenue = MeshBuilder.CreateBox("DynamicRevenue", {
+            width: 0.64, // Same width scaling as GLB
+            height: 1.0, // Same baseline height
+            depth: 1.0
+          }, scene);
+          
+          // Position side-by-side with GLB Revenue (offset to the right)
+          dynamicRevenue.position = new Vector3(-2.5, 0.1, 1.5); // Match GLB Y position (0.1) with offset
+          dynamicRevenue.parent = masterTransform;
+          
+          // Apply same color as GLB Revenue
+          const dynamicRevenueMaterial = new StandardMaterial("dynamicRevenueMat", scene);
+          dynamicRevenueMaterial.diffuseColor = new Color3(0, 0.4, 0.24); // Same green as GLB
+          dynamicRevenueMaterial.specularColor = new Color3(0.2, 0.2, 0.2);
+          dynamicRevenueMaterial.specularPower = 64;
+          dynamicRevenue.material = dynamicRevenueMaterial;
+          
+          // Create dynamic RevenuePL object (top-anchored)
+          const dynamicRevenuePL = MeshBuilder.CreateBox("DynamicRevenuePL", {
+            width: 0.64, // Same width scaling as GLB
+            height: 1.0, // Same baseline height 
+            depth: 1.0
+          }, scene);
+          
+          // Position side-by-side with GLB RevenuePL (offset to the right, top-anchored) 
+          dynamicRevenuePL.position = new Vector3(-2.5, 0.08, 1.5); // Top-anchored: 0.1 - 0.02 = 0.08
+          dynamicRevenuePL.parent = masterTransform;
+          
+          // Apply same color as GLB RevenuePL
+          const dynamicRevenuePLMaterial = new StandardMaterial("dynamicRevenuePLMat", scene);
+          dynamicRevenuePLMaterial.diffuseColor = new Color3(0.7, 0.45, 0.08); // Same gold as GLB
+          dynamicRevenuePLMaterial.specularColor = new Color3(0.05, 0.05, 0.05);
+          dynamicRevenuePLMaterial.specularPower = 32;
+          dynamicRevenuePL.material = dynamicRevenuePLMaterial;
+          
+          // Create labels for dynamic geometry objects
+          const createDynamicLabel = (mesh: Mesh, name: string, texturePath: string) => {
+            const boundingInfo = mesh.getBoundingInfo();
+            const center = boundingInfo.boundingBox.center;
+            const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+            
+            const labelWidth = size.x * 0.51;
+            const labelHeight = name === "Revenue" ? labelWidth * 0.35 : labelWidth * 0.375;
+            
+            const labelPlane = MeshBuilder.CreatePlane(`${name}DynamicLabel`, {
+              width: labelWidth,
+              height: labelHeight
+            }, scene);
+            
+            labelPlane.position.x = center.x;
+            labelPlane.position.y = center.y;
+            labelPlane.position.z = center.z - (size.z * 0.51);
+            labelPlane.rotation = Vector3.Zero();
+            
+            const labelMaterial = new StandardMaterial(`${name}DynamicLabelMat`, scene);
+            const labelTexture = new Texture(texturePath, scene);
+            labelTexture.hasAlpha = true;
+            
+            labelMaterial.diffuseTexture = labelTexture;
+            labelMaterial.emissiveTexture = labelTexture;
+            labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4);
+            labelMaterial.useAlphaFromDiffuseTexture = true;
+            labelMaterial.disableLighting = true;
+            
+            labelPlane.material = labelMaterial;
+            labelPlane.parent = mesh.parent;
+            
+            return labelPlane;
+          };
+          
+          // Create labels for dynamic geometry
+          const dynamicRevenueLabel = createDynamicLabel(dynamicRevenue, "Revenue", "/textures/Label_Revenue.png");
+          const dynamicRevenuePLLabel = createDynamicLabel(dynamicRevenuePL, "RevenuePL", "/textures/Label_Loss.png");
+          
+          // Add text labels to distinguish GLB vs Dynamic
+          const createComparisonLabel = (position: Vector3, text: string) => {
+            const labelPlane = MeshBuilder.CreatePlane(`ComparisonLabel_${text}`, {
+              width: 1.5,
+              height: 0.3
+            }, scene);
+            
+            labelPlane.position = position;
+            labelPlane.parent = masterTransform;
+            
+            // Create text texture
+            const dynamicTexture = new DynamicTexture(`ComparisonText_${text}`, {width: 512, height: 128}, scene);
+            const context = dynamicTexture.getContext();
+            
+            context.fillStyle = '#FFFFFF';
+            context.fillRect(0, 0, 512, 128);
+            context.fillStyle = '#333333';
+            context.font = 'bold 32px Arial';
+            (context as any).textAlign = 'center';
+            (context as any).textBaseline = 'middle';
+            context.fillText(text, 256, 64);
+            
+            dynamicTexture.update();
+            
+            const labelMaterial = new StandardMaterial(`ComparisonLabelMat_${text}`, scene);
+            labelMaterial.diffuseTexture = dynamicTexture;
+            labelMaterial.disableLighting = true;
+            
+            labelPlane.material = labelMaterial;
+            return labelPlane;
+          };
+          
+          // Create comparison labels
+          const glbLabel = createComparisonLabel(new Vector3(0, -0.8, 1.5), "GLB Models");
+          const dynamicLabel = createComparisonLabel(new Vector3(-2.5, -0.8, 1.5), "Dynamic Geometry");
+          
+          // Store references for toggle functionality
+          const dynamicObjects = {
+            revenue: dynamicRevenue,
+            revenuePL: dynamicRevenuePL,
+            revenueLabel: dynamicRevenueLabel,
+            revenuePLLabel: dynamicRevenuePLLabel,
+            comparisonLabel: dynamicLabel
+          };
+          
+          // Register dynamic objects with interaction system
+          (dynamicRevenue as any).bmcSectionName = "Revenue (Dynamic)";
+          (dynamicRevenuePL as any).bmcSectionName = "RevenuePL (Dynamic)";
+          
+          // Register with CleanBMCSystem for proper hover/click behavior
+          cleanBMCRef.current.registerItem("Revenue (Dynamic)", dynamicRevenue, dynamicRevenueMaterial, 1.0);
+          cleanBMCRef.current.registerItem("RevenuePL (Dynamic)", dynamicRevenuePL, dynamicRevenuePLMaterial, 1.0);
+          
+          // Configure dynamic objects for interaction
+          dynamicRevenue.isPickable = true;
+          dynamicRevenuePL.isPickable = true;
+          
+          // Register with UnifiedInteractionManager
+          unifiedInteractionManager.registerObject("Revenue (Dynamic)", dynamicRevenue);
+          unifiedInteractionManager.registerObject("RevenuePL (Dynamic)", dynamicRevenuePL);
+          
+          // Add toggle function to global window for testing
+          (window as any).toggleRevenueGeometry = () => {
+            showDynamicGeometry = !showDynamicGeometry;
+            
+            // Find GLB Revenue and RevenuePL objects
+            const glbRevenue = model.meshes.find(m => m.name === "Revenue");
+            const glbRevenuePL = model.meshes.find(m => m.name === "RevenuePL");
+            
+            if (showDynamicGeometry) {
+              // Hide GLB, show dynamic
+              if (glbRevenue) glbRevenue.setEnabled(false);
+              if (glbRevenuePL) glbRevenuePL.setEnabled(false);
+              glbLabel.setEnabled(false);
+              
+              Object.values(dynamicObjects).forEach(obj => obj.setEnabled(true));
+              console.log("🔄 Switched to Dynamic Geometry Revenue Group");
+            } else {
+              // Show GLB, hide dynamic
+              if (glbRevenue) glbRevenue.setEnabled(true);
+              if (glbRevenuePL) glbRevenuePL.setEnabled(true);
+              glbLabel.setEnabled(true);
+              
+              Object.values(dynamicObjects).forEach(obj => obj.setEnabled(false));
+              console.log("🔄 Switched to GLB Revenue Group");
+            }
+          };
+          
+          console.log("✅ Dynamic geometry Revenue Group created side-by-side");
+          console.log("💡 Use toggleRevenueGeometry() in console to switch between GLB and Dynamic versions");
+        }
         
         // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
 
