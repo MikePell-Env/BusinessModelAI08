@@ -2635,10 +2635,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             comparisonLabel: dynamicLabel
           };
           
-          // Initially hide dynamic geometry - toggle will control visibility
+          // Make dynamic geometry visible by default for side-by-side comparison
           Object.values(dynamicObjects).forEach(obj => {
             if (obj && obj.setEnabled) {
-              obj.setEnabled(false);
+              obj.setEnabled(true);
             }
           });
           
@@ -2694,7 +2694,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           
           // Store toggle function reference for UI button
           toggleGeometryRef.current = toggleFunction;
-          console.log("🔧 Toggle function stored in ref:", !!toggleGeometryRef.current);
           
           // Also add to global window for testing
           (window as any).toggleRevenueGeometry = toggleFunction;
@@ -2778,10 +2777,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           const fallbackToggleFunction = () => {
             const newState = !showDynamicGeometry;
             setShowDynamicGeometry(newState);
-            console.log(newState ? "🔄 Would show dynamic geometry" : "🔄 Would show GLB models");
+            
+            // Find dynamic objects and control visibility
+            const dynamicRevenue = scene.getMeshByName("DynamicRevenue");
+            const dynamicRevenuePL = scene.getMeshByName("DynamicRevenuePL");
+            const dynamicLabel = scene.getMeshByName("ComparisonLabel_Dynamic Geometry");
+            
+            if (newState) {
+              if (dynamicRevenue) dynamicRevenue.setEnabled(true);
+              if (dynamicRevenuePL) dynamicRevenuePL.setEnabled(true);
+              if (dynamicLabel) dynamicLabel.setEnabled(true);
+            } else {
+              if (dynamicRevenue) dynamicRevenue.setEnabled(false);
+              if (dynamicRevenuePL) dynamicRevenuePL.setEnabled(false);
+              if (dynamicLabel) dynamicLabel.setEnabled(false);
+            }
           };
           toggleGeometryRef.current = fallbackToggleFunction;
-          console.log("🔧 Fallback toggle function stored:", !!toggleGeometryRef.current);
         }
       }
     }).catch((error) => {
@@ -2793,10 +2805,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         const fallbackToggleFunction = () => {
           const newState = !showDynamicGeometry;
           setShowDynamicGeometry(newState);
-          console.log(newState ? "🔄 Would show dynamic geometry" : "🔄 Would show GLB models");
+          
+          // Find dynamic objects and control visibility
+          const dynamicRevenue = scene.getMeshByName("DynamicRevenue");
+          const dynamicRevenuePL = scene.getMeshByName("DynamicRevenuePL");
+          const dynamicLabel = scene.getMeshByName("ComparisonLabel_Dynamic Geometry");
+          
+          if (newState) {
+            if (dynamicRevenue) dynamicRevenue.setEnabled(true);
+            if (dynamicRevenuePL) dynamicRevenuePL.setEnabled(true);
+            if (dynamicLabel) dynamicLabel.setEnabled(true);
+          } else {
+            if (dynamicRevenue) dynamicRevenue.setEnabled(false);
+            if (dynamicRevenuePL) dynamicRevenuePL.setEnabled(false);
+            if (dynamicLabel) dynamicLabel.setEnabled(false);
+          }
         };
         toggleGeometryRef.current = fallbackToggleFunction;
-        console.log("🔧 Fallback toggle function stored:", !!toggleGeometryRef.current);
       }
     });
 
@@ -3528,12 +3553,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         <div className="absolute left-96 z-10" style={{ top: '80px' }}>
           <button
             onClick={() => {
-              console.log("🔘 Toggle button clicked! showDynamicGeometry:", showDynamicGeometry);
               if (toggleGeometryRef.current) {
-                console.log("🔘 Calling toggle function...");
                 toggleGeometryRef.current();
-              } else {
-                console.log("❌ Toggle function not available");
               }
             }}
             className={`px-4 py-2 rounded text-sm font-medium transition-all duration-200 ${
