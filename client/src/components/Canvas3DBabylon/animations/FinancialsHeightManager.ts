@@ -181,12 +181,12 @@ export class FinancialsHeightManager {
             if (expensesOriginalPos) {
               // Use the calibrated 0.3 positioning factor
               const positioningFactor = 0.3;
-              targetPosition = expensesOriginalPos.y + (expensesMesh.scaling.y * positioningFactor);
+              targetPosition = 0 + (expensesMesh.scaling.y * positioningFactor);
             } else {
-              targetPosition = originalPos.y + (targetHeight / 2);
+              targetPosition = 0 + (targetHeight / 2);
             }
           } else {
-            targetPosition = originalPos.y + (targetHeight / 2);
+            targetPosition = 0 + (targetHeight / 2);
           }
         } else if (objectName === 'RevenuePL') {
           // RevenuePL stacks on top of Revenue
@@ -197,16 +197,16 @@ export class FinancialsHeightManager {
             // Position RevenuePL on top of Revenue with proper offset
             targetPosition = revenuePosition + (revenueHeight / 2) + (targetHeight / 2);
           } else {
-            targetPosition = originalPos.y + (targetHeight / 2);
+            targetPosition = 0 + (targetHeight / 2);
           }
         } else {
           // For other top-anchored objects, use center positioning
-          targetPosition = originalPos.y + (targetHeight / 2);
+          targetPosition = 0 + (targetHeight / 2);
         }
       } else {
         // BOTTOM-ANCHORED OBJECTS: Fixed bottom surface at ground level
-        // Revenue and Expenses objects keep their bottom surface at originalY
-        targetPosition = originalPos.y;
+        // Revenue and Expenses objects keep their bottom surface at Y=0 (ground plane)
+        targetPosition = 0;
       }
 
       // Create height animation
@@ -314,7 +314,7 @@ export class FinancialsHeightManager {
           const positioningFactor = 0.3;
           mesh.position.y = 0 + (expensesMesh.scaling.y * positioningFactor);
         } else {
-          mesh.position.y = originalPos.y + (height / 2);
+          mesh.position.y = 0 + (height / 2);
         }
       } else if (objectName === 'RevenuePL') {
         const revenueMesh = this.financialMeshes.get('Revenue');
@@ -323,10 +323,10 @@ export class FinancialsHeightManager {
           const revenuePosition = revenueMesh.position.y;
           mesh.position.y = revenuePosition + (revenueHeight / 2) + (height / 2);
         } else {
-          mesh.position.y = originalPos.y + (height / 2);
+          mesh.position.y = 0 + (height / 2);
         }
       } else {
-        mesh.position.y = originalPos.y + (height / 2);
+        mesh.position.y = 0 + (height / 2);
       }
     } else {
       // Bottom-anchored: keep bottom surface on ground plane
