@@ -2368,7 +2368,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 } else {
                   console.log(`⏸️ Blue tracer animation disabled for Financials template`);
                 }
-                // Path points logged only for debugging - removed for performance
+                // Only log path points for Business Model template
+                if (template.name.toLowerCase() !== 'financials') {
+                  pathPoints.forEach((point, index) => {
+                    console.log(`  Point ${index}: (${point.x.toFixed(3)}, ${point.y.toFixed(3)}, ${point.z.toFixed(3)})`);
+                  });
+                }
               };
               
               // Create the blue tracer after a short delay to ensure mesh is ready
@@ -2597,7 +2602,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             
             // revenueStreamsMesh.scaling.x = requiredScaleX;
             
-            // Revenue Streams alignment calculation completed
+            console.log("🔧 DELAYED Revenue Streams Width Alignment:");
+            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            console.log(`  Revenue left edge (A): ${revenueLeftEdge.toFixed(3)}`);
+            console.log(`  Customer Segments right edge (B): ${segMax.x.toFixed(3)}`);
+            console.log(`  Target width (A to B): ${targetWidth.toFixed(3)}`);
+            console.log(`  Base width (unscaled): ${baseWidth.toFixed(3)}`);
+            console.log(`  Required X scale: ${requiredScaleX.toFixed(3)}`);
+            console.log("✅ Revenue Streams right edge aligned with Customer Segments!");
           } else {
             console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
           }
@@ -2613,9 +2625,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
             const currentRevWidth = revMax.x - revMin.x;
             
-            // Revenue Streams dimensions calculated
+            console.log("📏 CURRENT Revenue Streams Dimensions:");
+            console.log(`  Left edge (min X): ${revMin.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${revMax.x.toFixed(3)}`);
+            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            console.log(`  Current X scale: ${revenueStreamsMesh.scaling.x.toFixed(3)}`);
+            console.log(`  Position: (${revenueStreamsMesh.position.x.toFixed(3)}, ${revenueStreamsMesh.position.y.toFixed(3)}, ${revenueStreamsMesh.position.z.toFixed(3)})`);
           } else {
-            // Revenue Streams mesh not found for width check
+            console.log("❌ Revenue Streams mesh not found for width check");
           }
         }, 5000);
 
@@ -3300,7 +3317,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
 
   return (
-    <div className="w-full h-full relative overflow-hidden">
+    <div className="w-full h-full relative">
       {/* Header - centered horizontally in upper area */}
       <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-10">
         <h1 className="text-xl font-medium text-gray-900" style={{ fontFamily: 'Segoe UI, sans-serif' }}>{canvas.name}</h1>
@@ -3376,6 +3393,106 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             <span className="cursor-pointer hover:text-gray-900 transition-colors font-semibold bg-white/10 px-2 py-1 rounded shadow-md" onClick={() => console.log('🕐 PRESENT clicked')}>PRESENT</span>
             <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 FUTURE clicked')}>FUTURE</span>
           </div>
+        </div>
+      </div>
+
+      <div className="absolute top-4 right-4 z-10 bg-black/90 text-white p-4 rounded-lg shadow-lg hidden">
+        <div className="text-sm font-semibold mb-3 text-center">🎬 Animation Demos</div>
+        <div className="flex flex-col space-y-2">
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🎨 Running BMC Color Sequence Demo...');
+                animationManagerRef.current.createColorSequence([
+                  { section: "Value Propositions", color: "#00ff00", duration: 2000 },
+                  { section: "Customer Segments", color: "#0066ff", duration: 1500 },
+                  { section: "Key Partners", color: "#ff6600", duration: 1800 },
+                  { section: "Revenue Streams", color: "#ffff00", duration: 1200 },
+                  { section: "Cost Structure", color: "#ff0066", duration: 1500 }
+                ]).then(() => console.log('🎨 Color sequence complete!'));
+              }
+            }}
+            className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Color Sequence
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🎭 Applying Business Performance Themes...');
+                
+                // Debug: List all available meshes
+                const allMeshes = sceneRef.current?.meshes || [];
+                console.log('🔍 Available meshes:', allMeshes.map(m => ({ name: m.name, metadata: m.metadata })));
+                
+                // Apply themes to each section
+                animationManagerRef.current.applyBusinessTheme("Value Propositions", "high");
+                animationManagerRef.current.applyBusinessTheme("Customer Segments", "medium");
+                animationManagerRef.current.applyBusinessTheme("Key Partners", "low");
+                animationManagerRef.current.applyBusinessTheme("Revenue Streams", "revenue");
+                animationManagerRef.current.applyBusinessTheme("Cost Structure", "cost");
+                console.log('🎭 Business themes applied!');
+              }
+            }}
+            className="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Business Themes
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🔗 Starting data-driven color animation...');
+                animationManagerRef.current.bindColorToData("Revenue Streams", {
+                  sectionId: "Revenue Streams",
+                  dataField: "revenue.growth",
+                  colorRange: ["#ff0000", "#00ff00"],
+                  updateFrequency: 1000
+                });
+                console.log('🔗 Data binding active - Revenue Streams will animate based on simulated data');
+              }
+            }}
+            className="bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Data Binding
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (animationManagerRef.current) {
+                console.log('🔄 Clearing all animations...');
+                animationManagerRef.current.clearAllAnimations();
+                
+                // Reset materials to safe defaults
+                const scene = sceneRef.current;
+                if (scene) {
+                  scene.meshes.forEach(mesh => {
+                    if (mesh.name.includes('BMC') || mesh.name.includes('Customer') || 
+                        mesh.name.includes('Value') || mesh.name.includes('Key') ||
+                        mesh.name.includes('Revenue') || mesh.name.includes('Cost')) {
+                      
+                      // Create safe default material
+                      const defaultMaterial = new StandardMaterial(`reset_${mesh.name}`, scene);
+                      defaultMaterial.diffuseColor = new Color3(0.07, 0.07, 0.07); // Original dark grey
+                      defaultMaterial.emissiveColor = new Color3(0.01, 0.01, 0.01); // Slight glow for visibility
+                      defaultMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+                      defaultMaterial.backFaceCulling = false;
+                      defaultMaterial.alpha = 1.0;
+                      
+                      (mesh as Mesh).material = defaultMaterial;
+                      mesh.isVisible = true;
+                      mesh.setEnabled(true);
+                    }
+                  });
+                }
+                console.log('🔄 All animations cleared, materials safely reset');
+              }
+            }}
+            className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+          >
+            Reset All
+          </button>
         </div>
       </div>
       
