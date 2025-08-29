@@ -4,6 +4,8 @@
  * Connects business data to 3D visualization height updates
  */
 
+import { FinancialsHeightManager, FinancialData } from './FinancialsHeightManager';
+
 export interface FinancialBusinessData {
   totalRevenue: number;
   totalExpenses: number;

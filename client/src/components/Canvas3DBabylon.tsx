@@ -53,7 +53,7 @@ import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabe
 // UNIFIED SYSTEM: Replace competing managers with unified architecture
 import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
-import { FinancialsDataAdapter } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
+import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -1610,6 +1610,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     });
 
+    // Initialize Financials height management system
+    let financialsHeightManager: FinancialsHeightManager | null = null;
+    let financialsDataAdapter: FinancialsDataAdapter | null = null;
+
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then((model) => {
       if (model.meshes.length > 0) {
@@ -1617,6 +1621,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
         const rootMesh = model.rootMesh;
         rootMeshRef.current = rootMesh;
+
+        // Initialize Financials height management if this is Financials template
+        if (template.name.toLowerCase() === 'financials') {
+          financialsHeightManager = new FinancialsHeightManager(scene);
+          financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
+          
+          // Register financial meshes for height manipulation
+          const financialMeshes = model.meshes.filter(mesh => 
+            ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(mesh.name)
+          );
+          financialsHeightManager.registerFinancialMeshes(financialMeshes);
+          
+          console.log('💰 Financials height management system initialized');
+          
+          // Create comprehensive demo system
+          const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
+          const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
+          
+          // Expose controls for testing and real-time manipulation
+          (window as any).financialsHeightManager = financialsHeightManager;
+          (window as any).financialsDataAdapter = financialsDataAdapter;
+          (window as any).financialsDemo = financialsDemo;
+          
+          // Initialize with base financial data showing proper proportions
+          const initialData: FinancialBusinessData = {
+            totalRevenue: 200,
+            totalExpenses: 150, 
+            netProfit: 50,
+            netLoss: 0
+          };
+          financialsDataAdapter.updateFromBusinessData(initialData, false); // No animation on init
+          
+          console.log('💰 Financials demo system ready - try: financialsDemo.demonstrateProportionalHeights()');
+        }
 
         // Position for template-specific layout
         if (template.name.toLowerCase() === 'financials') {
@@ -3352,25 +3390,112 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         )}
       </div>
 
-      {/* Time Slider HUD - Floating at bottom with transparent background */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-8 py-4">
-        <div className="relative" style={{ width: '600px' }}>
-          {/* Slider track */}
-          <div className="h-1 bg-gray-400 rounded-full mb-4 relative">
-            {/* Vertical thumb at PRESENT position (center) */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-3 h-6 bg-gray-600 rounded-sm cursor-pointer hover:bg-gray-700 transition-colors shadow-lg border border-gray-500"></div>
+      {/* Financials Real-Time Controls - Only show for Financials template */}
+      {template.name.toLowerCase() === 'financials' && (
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 bg-black/90 text-white p-6 rounded-lg shadow-lg">
+          <div className="text-sm font-semibold mb-4 text-center">💰 Real-Time Financial Controls</div>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-xs mb-1">Revenue Total</label>
+              <input 
+                type="range" 
+                min="50" 
+                max="500" 
+                defaultValue="200"
+                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                onChange={(e) => {
+                  const revenue = parseInt(e.target.value);
+                  if ((window as any).financialsDataAdapter) {
+                    (window as any).financialsDataAdapter.updateFromBusinessData({
+                      totalRevenue: revenue,
+                      totalExpenses: 150,
+                      netProfit: Math.max(0, revenue - 150),
+                      netLoss: Math.max(0, 150 - revenue)
+                    });
+                  }
+                }}
+              />
+              <span className="text-xs text-gray-300">$50k - $500k</span>
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Expenses Total</label>
+              <input 
+                type="range" 
+                min="50" 
+                max="400" 
+                defaultValue="150"
+                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                onChange={(e) => {
+                  const expenses = parseInt(e.target.value);
+                  if ((window as any).financialsDataAdapter) {
+                    (window as any).financialsDataAdapter.updateFromBusinessData({
+                      totalRevenue: 200,
+                      totalExpenses: expenses,
+                      netProfit: Math.max(0, 200 - expenses),
+                      netLoss: Math.max(0, expenses - 200)
+                    });
+                  }
+                }}
+              />
+              <span className="text-xs text-gray-300">$50k - $400k</span>
             </div>
           </div>
-
-          {/* Labels */}
-          <div className="flex justify-between text-xs font-medium text-gray-800 mt-2">
-            <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 PAST clicked')}>PAST</span>
-            <span className="cursor-pointer hover:text-gray-900 transition-colors font-semibold bg-white/10 px-2 py-1 rounded shadow-md" onClick={() => console.log('🕐 PRESENT clicked')}>PRESENT</span>
-            <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 FUTURE clicked')}>FUTURE</span>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={() => {
+                if ((window as any).financialsDataAdapter) {
+                  (window as any).financialsDataAdapter.startSimulation();
+                }
+              }}
+              className="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+            >
+              Start Simulation
+            </button>
+            <button
+              onClick={() => {
+                if ((window as any).financialsDataAdapter) {
+                  (window as any).financialsDataAdapter.stopRealTimeUpdates();
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+            >
+              Stop Simulation
+            </button>
+            <button
+              onClick={() => {
+                if ((window as any).financialsHeightManager) {
+                  (window as any).financialsHeightManager.resetToBaseHeight();
+                }
+              }}
+              className="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+            >
+              Reset Heights
+            </button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Time Slider HUD - Only show for Business Model template */}
+      {template.name.toLowerCase() !== 'financials' && (
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-8 py-4">
+          <div className="relative" style={{ width: '600px' }}>
+            {/* Slider track */}
+            <div className="h-1 bg-gray-400 rounded-full mb-4 relative">
+              {/* Vertical thumb at PRESENT position (center) */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <div className="w-3 h-6 bg-gray-600 rounded-sm cursor-pointer hover:bg-gray-700 transition-colors shadow-lg border border-gray-500"></div>
+              </div>
+            </div>
+
+            {/* Labels */}
+            <div className="flex justify-between text-xs font-medium text-gray-800 mt-2">
+              <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 PAST clicked')}>PAST</span>
+              <span className="cursor-pointer hover:text-gray-900 transition-colors font-semibold bg-white/10 px-2 py-1 rounded shadow-md" onClick={() => console.log('🕐 PRESENT clicked')}>PRESENT</span>
+              <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 FUTURE clicked')}>FUTURE</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="absolute top-4 right-4 z-10 bg-black/90 text-white p-4 rounded-lg shadow-lg hidden">
         <div className="text-sm font-semibold mb-3 text-center">🎬 Animation Demos</div>
