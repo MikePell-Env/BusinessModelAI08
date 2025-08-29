@@ -238,10 +238,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Track if camera is actually in a preset position (for button highlighting)
   const [isInPresetPosition, setIsInPresetPosition] = useState(true);
   
-  // State for toggling between GLB and dynamic geometry
-  const [showDynamicGeometry, setShowDynamicGeometry] = useState(false);
-  const toggleGeometryRef = useRef<(() => void) | null>(null);
-  
   // Camera preset switching only for initial template load (not during transitions)
   // Preserve camera state during template transitions for steady ground plane
   const [hasInitializedTemplate, setHasInitializedTemplate] = useState<string | null>(null);
@@ -1017,14 +1013,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Remove createDefaultEnvironment as it can override clearColor with its own background
     scene.clearColor = new Color4(233/255, 236/255, 239/255, 1.0);
     
-    // PERFORMANCE: Reduce environment intensity for better performance
-    scene.environmentIntensity = 0.2; // Lower intensity for better performance
-    
-    // PERFORMANCE: Engine optimizations
-    engine.setHardwareScalingLevel(1.0); // Default scaling
-    scene.skipPointerMovePicking = true; // Disable pointer move picking for better performance
-    scene.autoClear = false; // Manual clearing for better control
-    scene.autoClearDepthAndStencil = false; // Manual depth clearing
+    // Set environment intensity for PBR materials
+    scene.environmentIntensity = 0.5; // Moderate for PBR materials to work
 
     // Create GUI for 3D billboard labels and content panels
     const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -2184,11 +2174,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 
                 // Create pulsating animation
                 let animationTime = 0;
-                // PERFORMANCE: Disable expensive pulsating animation
                 const animateEdge = () => {
-                  // Static green color for better performance
                   if (edgeLine && !edgeLine.isDisposed()) {
-                    edgeLine.color = new Color3(0, 0.8, 0);
+                    const animationRef = (mesh as any).pulsatingEdge;
+                    
+                    // Check if animation should be paused (3D Top view)
+                    if (!animationRef.isPaused) {
+                      animationTime += 0.02; // Animation speed
+                      
+                      // Pulsate opacity and glow
+                      const pulse = (Math.sin(animationTime * 2) + 1) / 2; // 0 to 1
+                      const intensity = 0.3 + (pulse * 0.7); // 0.3 to 1.0
+                      
+                      // Update line color with pulsating intensity
+                      edgeLine.color = new Color3(0, intensity, 0);
+                    } else {
+                      // Keep static bright color when paused
+                      edgeLine.color = new Color3(0, 1, 0);
+                    }
+                    
+                    // Continue animation loop
+                    requestAnimationFrame(animateEdge);
                   }
                 };
                 
@@ -2305,23 +2311,69 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 const totalPathLength = pathPoints.length; // Use actual path length
                 let updateCounter = 0;
                 
-                // PERFORMANCE: Disable expensive tracer animation
                 const animateTracer = () => {
-                  // Static position for better performance
-                  if (tracerSphere && !tracerSphere.isDisposed()) {
-                    // Position at first path point
-                    tracerSphere.position = pathPoints[0];
+                  if (tracerSphere && !tracerSphere.isDisposed() && trailLine && !trailLine.isDisposed()) {
+                    const animationRef = (mesh as any).blueTracer;
+                    
+                    // Check if animation should be paused (3D Top view)
+                    if (!animationRef.isPaused) {
+                      animationTime += 0.5; // Double speed - faster movement around edges
+                      
+                      // Calculate position along the edge-based rectangular path
+                      const effectivePathLength = pathPoints.length;
+                      const progress = (animationTime % (effectivePathLength * 2)) / (effectivePathLength * 2);
+                      const scaledProgress = progress * effectivePathLength;
+                      const segmentIndex = Math.floor(scaledProgress) % effectivePathLength;
+                      const segmentProgress = scaledProgress - Math.floor(scaledProgress);
+                      
+                      // Get current and next points, wrapping around for smooth loop
+                      const currentPoint = pathPoints[segmentIndex];
+                      const nextPoint = pathPoints[(segmentIndex + 1) % pathPoints.length];
+                      
+                      // Interpolate position smoothly along the rectangular edges only
+                      const currentPos = Vector3.Lerp(currentPoint, nextPoint, segmentProgress);
+                      tracerSphere.position = currentPos;
+                      
+                      // Update trail positions more frequently for smoother trail with faster speed
+                      updateCounter++;
+                      if (updateCounter % 3 === 0) { // Update every 3rd frame for longer trail with faster speed
+                        // Shift trail positions
+                        for (let i = trailPositions.length - 1; i > 0; i--) {
+                          trailPositions[i] = trailPositions[i - 1].clone();
+                        }
+                        trailPositions[0] = currentPos.clone();
+                        
+                        // Safely update line geometry with simpler approach
+                        try {
+                          MeshBuilder.CreateLines("customerSegmentsTrail", {
+                            points: trailPositions,
+                            instance: trailLine
+                          }, scene);
+                        } catch (error) {
+                          // Skip trail update if it fails
+                        }
+                      }
+                    }
+                    // Note: When paused, tracer sphere stays at current position
+                    
+                    // Continue animation loop
+                    requestAnimationFrame(animateTracer);
                   }
                 };
                 
                 // Start animation only if not Financials template
                 if (template.name.toLowerCase() !== 'financials') {
                   animateTracer();
-                  // Blue tracer animation created
+                  console.log(`✅ Blue tracer animation created for Customer Segments with ${pathPoints.length} path points:`);
                 } else {
                   console.log(`⏸️ Blue tracer animation disabled for Financials template`);
                 }
-                // Path points ready
+                // Only log path points for Business Model template
+                if (template.name.toLowerCase() !== 'financials') {
+                  pathPoints.forEach((point, index) => {
+                    console.log(`  Point ${index}: (${point.x.toFixed(3)}, ${point.y.toFixed(3)}, ${point.z.toFixed(3)})`);
+                  });
+                }
               };
               
               // Create the blue tracer after a short delay to ensure mesh is ready
@@ -2507,200 +2559,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             }
           });
         }
-
-        // ===== DYNAMIC GEOMETRY COMPARISON SYSTEM =====
-        // Create dynamic geometry versions of Revenue Group side-by-side with GLB models
-        if (template.name.toLowerCase() === 'financials') {
-          console.log(`🔄 Creating dynamic geometry versions of Revenue Group for comparison...`);
-          
-          // Use React state for toggle functionality
-          
-          // Create dynamic Revenue object (bottom-anchored)
-          const dynamicRevenue = MeshBuilder.CreateBox("DynamicRevenue", {
-            width: 0.64, // Same width scaling as GLB
-            height: 1.0, // Same baseline height
-            depth: 1.0
-          }, scene);
-          
-          // Position side-by-side with GLB Revenue (offset to the right)
-          dynamicRevenue.position = new Vector3(-2.5, 0.1, 1.5); // Match GLB Y position (0.1) with offset
-          dynamicRevenue.parent = masterTransform;
-          
-          // Apply same color as GLB Revenue
-          const dynamicRevenueMaterial = new StandardMaterial("dynamicRevenueMat", scene);
-          dynamicRevenueMaterial.diffuseColor = new Color3(0, 0.4, 0.24); // Same green as GLB
-          dynamicRevenueMaterial.specularColor = new Color3(0.2, 0.2, 0.2);
-          dynamicRevenueMaterial.specularPower = 64;
-          dynamicRevenue.material = dynamicRevenueMaterial;
-          
-          // Create dynamic RevenuePL object (top-anchored)
-          const dynamicRevenuePL = MeshBuilder.CreateBox("DynamicRevenuePL", {
-            width: 0.64, // Same width scaling as GLB
-            height: 1.0, // Same baseline height 
-            depth: 1.0
-          }, scene);
-          
-          // Position side-by-side with GLB RevenuePL (offset to the right, top-anchored) 
-          dynamicRevenuePL.position = new Vector3(-2.5, 0.08, 1.5); // Top-anchored: 0.1 - 0.02 = 0.08
-          dynamicRevenuePL.parent = masterTransform;
-          
-          // Apply same color as GLB RevenuePL
-          const dynamicRevenuePLMaterial = new StandardMaterial("dynamicRevenuePLMat", scene);
-          dynamicRevenuePLMaterial.diffuseColor = new Color3(0.7, 0.45, 0.08); // Same gold as GLB
-          dynamicRevenuePLMaterial.specularColor = new Color3(0.05, 0.05, 0.05);
-          dynamicRevenuePLMaterial.specularPower = 32;
-          dynamicRevenuePL.material = dynamicRevenuePLMaterial;
-          
-          // Create labels for dynamic geometry objects
-          const createDynamicLabel = (mesh: Mesh, name: string, texturePath: string) => {
-            const boundingInfo = mesh.getBoundingInfo();
-            const center = boundingInfo.boundingBox.center;
-            const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
-            
-            const labelWidth = size.x * 0.51;
-            const labelHeight = name === "Revenue" ? labelWidth * 0.35 : labelWidth * 0.375;
-            
-            const labelPlane = MeshBuilder.CreatePlane(`${name}DynamicLabel`, {
-              width: labelWidth,
-              height: labelHeight
-            }, scene);
-            
-            labelPlane.position.x = center.x;
-            labelPlane.position.y = Math.max(center.y, 0.6); // Ensure labels stay above ground
-            labelPlane.position.z = center.z - (size.z * 0.51);
-            labelPlane.rotation = Vector3.Zero();
-            
-            const labelMaterial = new StandardMaterial(`${name}DynamicLabelMat`, scene);
-            const labelTexture = new Texture(texturePath, scene);
-            labelTexture.hasAlpha = true;
-            
-            labelMaterial.diffuseTexture = labelTexture;
-            labelMaterial.emissiveTexture = labelTexture;
-            labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4);
-            labelMaterial.useAlphaFromDiffuseTexture = true;
-            labelMaterial.disableLighting = true;
-            
-            labelPlane.material = labelMaterial;
-            labelPlane.parent = mesh.parent;
-            
-            return labelPlane;
-          };
-          
-          // Create labels for dynamic geometry
-          const dynamicRevenueLabel = createDynamicLabel(dynamicRevenue, "Revenue", "/textures/Label_Revenue.png");
-          const dynamicRevenuePLLabel = createDynamicLabel(dynamicRevenuePL, "RevenuePL", "/textures/Label_Loss.png");
-          
-          // Add text labels to distinguish GLB vs Dynamic
-          const createComparisonLabel = (position: Vector3, text: string) => {
-            const labelPlane = MeshBuilder.CreatePlane(`ComparisonLabel_${text}`, {
-              width: 1.5,
-              height: 0.3
-            }, scene);
-            
-            labelPlane.position = position;
-            labelPlane.parent = masterTransform;
-            
-            // Create text texture
-            const dynamicTexture = new DynamicTexture(`ComparisonText_${text}`, {width: 512, height: 128}, scene);
-            const context = dynamicTexture.getContext();
-            
-            context.fillStyle = '#FFFFFF';
-            context.fillRect(0, 0, 512, 128);
-            context.fillStyle = '#333333';
-            context.font = 'bold 32px Arial';
-            (context as any).textAlign = 'center';
-            (context as any).textBaseline = 'middle';
-            context.fillText(text, 256, 64);
-            
-            dynamicTexture.update();
-            
-            const labelMaterial = new StandardMaterial(`ComparisonLabelMat_${text}`, scene);
-            labelMaterial.diffuseTexture = dynamicTexture;
-            labelMaterial.disableLighting = true;
-            
-            labelPlane.material = labelMaterial;
-            return labelPlane;
-          };
-          
-          // Create comparison labels positioned above ground
-          const glbLabel = createComparisonLabel(new Vector3(0, 1.5, 1.5), "GLB Models");
-          const dynamicLabel = createComparisonLabel(new Vector3(-2.5, 1.5, 1.5), "Dynamic Geometry");
-          
-          // Store references for toggle functionality
-          const dynamicObjects = {
-            revenue: dynamicRevenue,
-            revenuePL: dynamicRevenuePL,
-            revenueLabel: dynamicRevenueLabel,
-            revenuePLLabel: dynamicRevenuePLLabel,
-            comparisonLabel: dynamicLabel
-          };
-          
-          // Make dynamic geometry visible by default for side-by-side comparison
-          Object.values(dynamicObjects).forEach(obj => {
-            if (obj && obj.setEnabled) {
-              obj.setEnabled(true);
-            }
-          });
-          
-          // Show GLB labels by default
-          glbLabel.setEnabled(true);
-          dynamicLabel.setEnabled(false);
-          
-          // Register dynamic objects with interaction system
-          (dynamicRevenue as any).bmcSectionName = "Revenue (Dynamic)";
-          (dynamicRevenuePL as any).bmcSectionName = "RevenuePL (Dynamic)";
-          
-          // Register with CleanBMCSystem for proper hover/click behavior
-          cleanBMCRef.current.registerItem("Revenue (Dynamic)", dynamicRevenue, dynamicRevenueMaterial, 1.0);
-          cleanBMCRef.current.registerItem("RevenuePL (Dynamic)", dynamicRevenuePL, dynamicRevenuePLMaterial, 1.0);
-          
-          // Configure dynamic objects for interaction
-          dynamicRevenue.isPickable = true;
-          dynamicRevenuePL.isPickable = true;
-          
-          // Register with UnifiedInteractionManager
-          unifiedInteractionManager.registerObject("Revenue (Dynamic)", dynamicRevenue);
-          unifiedInteractionManager.registerObject("RevenuePL (Dynamic)", dynamicRevenuePL);
-          
-          // Create toggle function and store reference for UI button
-          const toggleFunction = () => {
-            const newState = !showDynamicGeometry;
-            setShowDynamicGeometry(newState);
-            
-            // Find GLB Revenue and RevenuePL objects
-            const glbRevenue = model.meshes.find(m => m.name === "Revenue");
-            const glbRevenuePL = model.meshes.find(m => m.name === "RevenuePL");
-            
-            if (newState) {
-              // Hide GLB, show dynamic
-              if (glbRevenue) glbRevenue.setEnabled(false);
-              if (glbRevenuePL) glbRevenuePL.setEnabled(false);
-              glbLabel.setEnabled(false);
-              
-              Object.values(dynamicObjects).forEach(obj => obj.setEnabled(true));
-              dynamicLabel.setEnabled(true);
-              console.log("🔄 Switched to Dynamic Geometry Revenue Group");
-            } else {
-              // Show GLB, hide dynamic
-              if (glbRevenue) glbRevenue.setEnabled(true);
-              if (glbRevenuePL) glbRevenuePL.setEnabled(true);
-              glbLabel.setEnabled(true);
-              
-              Object.values(dynamicObjects).forEach(obj => obj.setEnabled(false));
-              dynamicLabel.setEnabled(false);
-              console.log("🔄 Switched to GLB Revenue Group");
-            }
-          };
-          
-          // Store toggle function reference for UI button
-          toggleGeometryRef.current = toggleFunction;
-          
-          // Also add to global window for testing
-          (window as any).toggleRevenueGeometry = toggleFunction;
-          
-          console.log("✅ Dynamic geometry Revenue Group created side-by-side");
-          console.log("💡 Use toggle button or toggleRevenueGeometry() in console to switch between approaches");
-        }
         
         // REMOVED: Value Proposition height adjustment - now handled by unified BMC system
 
@@ -2744,7 +2602,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             
             // revenueStreamsMesh.scaling.x = requiredScaleX;
             
-            // Width alignment calculations completed
+            console.log("🔧 DELAYED Revenue Streams Width Alignment:");
+            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            console.log(`  Revenue left edge (A): ${revenueLeftEdge.toFixed(3)}`);
+            console.log(`  Customer Segments right edge (B): ${segMax.x.toFixed(3)}`);
+            console.log(`  Target width (A to B): ${targetWidth.toFixed(3)}`);
+            console.log(`  Base width (unscaled): ${baseWidth.toFixed(3)}`);
+            console.log(`  Required X scale: ${requiredScaleX.toFixed(3)}`);
+            console.log("✅ Revenue Streams right edge aligned with Customer Segments!");
           } else {
             console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
           }
@@ -2760,9 +2625,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
             const currentRevWidth = revMax.x - revMin.x;
             
-            // Dimensions calculated
+            console.log("📏 CURRENT Revenue Streams Dimensions:");
+            console.log(`  Left edge (min X): ${revMin.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${revMax.x.toFixed(3)}`);
+            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
+            console.log(`  Current X scale: ${revenueStreamsMesh.scaling.x.toFixed(3)}`);
+            console.log(`  Position: (${revenueStreamsMesh.position.x.toFixed(3)}, ${revenueStreamsMesh.position.y.toFixed(3)}, ${revenueStreamsMesh.position.z.toFixed(3)})`);
           } else {
-            // Revenue Streams mesh not found
+            console.log("❌ Revenue Streams mesh not found for width check");
           }
         }, 5000);
 
@@ -2770,59 +2640,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         
       } else {
         console.error("❌ No meshes found in BMC model");
-        
-        // Still create toggle function even if model fails to load
-        if (template.name.toLowerCase() === 'financials') {
-          console.log("🔄 Creating fallback toggle function for Financials (no GLB objects)");
-          const fallbackToggleFunction = () => {
-            const newState = !showDynamicGeometry;
-            setShowDynamicGeometry(newState);
-            
-            // Find dynamic objects and control visibility
-            const dynamicRevenue = scene.getMeshByName("DynamicRevenue");
-            const dynamicRevenuePL = scene.getMeshByName("DynamicRevenuePL");
-            const dynamicLabel = scene.getMeshByName("ComparisonLabel_Dynamic Geometry");
-            
-            if (newState) {
-              if (dynamicRevenue) dynamicRevenue.setEnabled(true);
-              if (dynamicRevenuePL) dynamicRevenuePL.setEnabled(true);
-              if (dynamicLabel) dynamicLabel.setEnabled(true);
-            } else {
-              if (dynamicRevenue) dynamicRevenue.setEnabled(false);
-              if (dynamicRevenuePL) dynamicRevenuePL.setEnabled(false);
-              if (dynamicLabel) dynamicLabel.setEnabled(false);
-            }
-          };
-          toggleGeometryRef.current = fallbackToggleFunction;
-        }
       }
     }).catch((error) => {
       console.error("❌ Failed to load BMC model:", error);
-      
-      // Still create toggle function even if model fails to load
-      if (template.name.toLowerCase() === 'financials') {
-        console.log("🔄 Creating fallback toggle function for Financials (model load failed)");
-        const fallbackToggleFunction = () => {
-          const newState = !showDynamicGeometry;
-          setShowDynamicGeometry(newState);
-          
-          // Find dynamic objects and control visibility
-          const dynamicRevenue = scene.getMeshByName("DynamicRevenue");
-          const dynamicRevenuePL = scene.getMeshByName("DynamicRevenuePL");
-          const dynamicLabel = scene.getMeshByName("ComparisonLabel_Dynamic Geometry");
-          
-          if (newState) {
-            if (dynamicRevenue) dynamicRevenue.setEnabled(true);
-            if (dynamicRevenuePL) dynamicRevenuePL.setEnabled(true);
-            if (dynamicLabel) dynamicLabel.setEnabled(true);
-          } else {
-            if (dynamicRevenue) dynamicRevenue.setEnabled(false);
-            if (dynamicRevenuePL) dynamicRevenuePL.setEnabled(false);
-            if (dynamicLabel) dynamicLabel.setEnabled(false);
-          }
-        };
-        toggleGeometryRef.current = fallbackToggleFunction;
-      }
     });
 
     // Load Revenue Streams as separate GLB model positioned below Customer Channels (only if enabled in template)
@@ -2956,7 +2776,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
             const width = max.x - min.x;
             
-            // Revenue Streams dimensions calculated
+            console.log("📏 Revenue Streams Fixed Dimensions (X-scale 7.7):");
+            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
+            console.log(`  Width: ${width.toFixed(3)}`);
+            console.log(`  Position: (${revenueRootMesh.position.x.toFixed(3)}, ${revenueRootMesh.position.y.toFixed(3)}, ${revenueRootMesh.position.z.toFixed(3)})`);
+            console.log(`  Scale: (${revenueRootMesh.scaling.x.toFixed(3)}, ${revenueRootMesh.scaling.y.toFixed(3)}, ${revenueRootMesh.scaling.z.toFixed(3)})`);
           }
         }, 500);
         
@@ -3100,7 +2925,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             const max = Vector3.TransformCoordinates(boundingInfo.maximum, worldMatrix);
             const width = max.x - min.x;
             
-            // Cost Structure dimensions calculated
+            console.log("📏 Cost Structure Fixed Dimensions (X-scale 7.7):");
+            console.log(`  Left edge (min X): ${min.x.toFixed(3)}`);
+            console.log(`  Right edge (max X): ${max.x.toFixed(3)}`);
+            console.log(`  Width: ${width.toFixed(3)}`);
+            console.log(`  Position: (${costRootMesh.position.x.toFixed(3)}, ${costRootMesh.position.y.toFixed(3)}, ${costRootMesh.position.z.toFixed(3)})`);
+            console.log(`  Scale: (${costRootMesh.scaling.x.toFixed(3)}, ${costRootMesh.scaling.y.toFixed(3)}, ${costRootMesh.scaling.z.toFixed(3)})`);
           }
         }, 500);
         
@@ -3387,8 +3217,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let isDisposed = false;
     unifiedSceneRef.current?.startRenderLoop(() => {
       if (!isDisposed && scene && !scene.isDisposed) {
-        // PERFORMANCE: Clear manually for better control
-        engine.clear(new Color4(233/255, 236/255, 239/255, 1.0), true, true, true);
         scene.render();
       }
     });
@@ -3547,29 +3375,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           </div>
         )}
       </div>
-      
-      {/* Toggle Button for GLB vs Dynamic Geometry - Only show for Financials template */}
-      {template.name.toLowerCase() === 'financials' && (
-        <div className="absolute left-96 z-10" style={{ top: '80px' }}>
-          <button
-            onClick={() => {
-              if (toggleGeometryRef.current) {
-                toggleGeometryRef.current();
-              }
-            }}
-            className={`px-4 py-2 rounded text-sm font-medium transition-all duration-200 ${
-              showDynamicGeometry 
-                ? 'bg-purple-600 text-white shadow-md hover:bg-purple-700' 
-                : 'bg-green-600 text-white shadow-md hover:bg-green-700'
-            }`}
-          >
-            {showDynamicGeometry ? '🔄 Switch to GLB Models' : '🔄 Switch to Dynamic Geometry'}
-          </button>
-          <div className="text-xs text-gray-600 mt-1 text-center">
-            Compare rendering approaches
-          </div>
-        </div>
-      )}
       
       {/* Time Slider HUD - Floating at bottom with transparent background */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-8 py-4">
