@@ -157,8 +157,8 @@ export class BMCModelLoader {
           // FINAL APPROACH: Direct positioning to ensure bottom surface touches Expenses top
           mesh.scaling.y = 0.4; // 20% height
           
-          // Move down 0.1 unit
-          mesh.position.y = originalY + 0.45;
+          // Move up 0.05 unit
+          mesh.position.y = originalY + 0.5;
           
           console.log(`🔧 FINAL: ExpensesPL at ${mesh.position.y}, should have bottom touching Expenses top`);
         }
