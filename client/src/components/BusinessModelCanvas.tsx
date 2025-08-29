@@ -129,8 +129,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
 
   return (
     <div className="w-full h-screen bg-white relative">
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50">
+      {/* Fixed Header - Hidden in 3D canvas view */}
+      <div className="hidden">
         <Header 
           onNavigateHome={onNavigateHome} 
           onNavigateExplore={onNavigateExplore}
