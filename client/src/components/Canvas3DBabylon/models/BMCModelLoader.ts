@@ -134,37 +134,24 @@ export class BMCModelLoader {
           mesh.position.x += 0.00; // At center line
         }
         
-        // ========================================================================
-        // REVENUE GROUP PROPORTIONAL ADJUSTMENT (80/20 split)
-        // ========================================================================
-        // CURRENT: Revenue=0.8 height (80%), RevenuePL=0.2 height (20%)  
-        // TO REVERT: Change Revenue targetHeight to 1.0, RevenuePL targetHeight to 1.0
-        // ========================================================================
-        
         // SIMPLE ANCHORING: Save anchor points, apply height, adjust position to maintain anchor
         if (mesh.name === "Revenue") {
-          // BOTTOM-ANCHORED: Keep bottom surface fixed, extend upward for 80% of total group height
-          const bottomSurface = originalY; // Keep this position fixed at Y=0.0
-          const totalGroupHeight = 1.0; // Total combined height of Revenue + RevenuePL
-          const targetHeight = totalGroupHeight * 0.8; // 80% of total group height = 0.8
+          // BOTTOM-ANCHORED: Save bottom surface, then keep it fixed
+          const bottomSurface = originalY; // Keep this position fixed
+          const targetHeight = 1.0; // Restored to baseline height
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = bottomSurface; // Keep bottom surface at original position
-          console.log(`📦 Revenue: Bottom fixed at ${bottomSurface}, height=${targetHeight} (80% of total group)`);
+          console.log(`📦 Revenue: Bottom fixed at ${bottomSurface}, height=${targetHeight}`);
           
         } else if (mesh.name === "RevenuePL") {
-          // CALCULATE POSITION: RevenuePL should sit on top of Revenue (20% of total height)
-          const totalGroupHeight = 1.0; // Total combined height
-          const revenueHeight = totalGroupHeight * 0.8; // Revenue takes 80% = 0.8
-          const revenuePLHeight = totalGroupHeight * 0.2; // RevenuePL takes 20% = 0.2
+          // TOP-ANCHORED: Align top surface with ExpensesPL top surface
+          const topSurface = -0.02; // Aligned with ExpensesPL top surface
+          const targetHeight = 1.0; // Restored to baseline height
           
-          // Position RevenuePL so its bottom surface touches the top of Revenue
-          // Revenue bottom = 0.0, Revenue top = 0.8, so RevenuePL bottom should be at 0.8
-          const revenuePLBottomPosition = revenueHeight; // 0.8
-          
-          mesh.scaling.y = revenuePLHeight;
-          mesh.position.y = revenuePLBottomPosition; // Position bottom of RevenuePL at top of Revenue
-          console.log(`📦 RevenuePL (Loss): Bottom positioned at ${revenuePLBottomPosition}, height=${revenuePLHeight} (20% of total group)`);
+          mesh.scaling.y = targetHeight;
+          mesh.position.y = topSurface; // Align top surface with ExpensesPL
+          console.log(`📦 RevenuePL (Loss): Top aligned with ExpensesPL at ${topSurface}, height=${targetHeight}`);
           
         } else if (mesh.name === "Expenses") {
           // BOTTOM-ANCHORED: Save bottom surface, then keep it fixed
