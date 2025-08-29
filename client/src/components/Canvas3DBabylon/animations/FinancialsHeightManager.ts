@@ -329,8 +329,8 @@ export class FinancialsHeightManager {
         mesh.position.y = originalPos.y + (height / 2);
       }
     } else {
-      // Bottom-anchored: center the object at its original position
-      mesh.position.y = originalPos.y + (height / 2);
+      // Bottom-anchored: keep bottom surface on ground plane
+      mesh.position.y = 0;
     }
   }
 
