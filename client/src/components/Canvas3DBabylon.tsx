@@ -3437,6 +3437,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-xs mb-1">Revenue Total</label>
+              <div className="revenue-display text-xs text-green-400 mb-1">$10M (Default)</div>
               <input 
                 type="range" 
                 min="100" 
@@ -3461,14 +3462,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   // Update the display values
                   const revenueDisplay = document.querySelector('.revenue-display');
                   const expensesDisplay = document.querySelector('.expenses-display');
-                  if (revenueDisplay) revenueDisplay.textContent = `$${revenue}k - $${revenue * 10}k`;
-                  if (expensesDisplay) expensesDisplay.textContent = `$${currentExpenses}k - $${currentExpenses * 10}k`;
+                  if (revenueDisplay) revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
+                  if (expensesDisplay) expensesDisplay.textContent = `$${(currentExpenses * 10 / 1000).toFixed(0)}M`;
                 }}
               />
               <span className="text-xs text-gray-300">$100k - $20M</span>
             </div>
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
+              <div className="expenses-display text-xs text-red-400 mb-1">$8M (Default)</div>
               <input 
                 type="range" 
                 min="100" 
@@ -3493,8 +3495,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   // Update the display values
                   const revenueDisplay = document.querySelector('.revenue-display');
                   const expensesDisplay = document.querySelector('.expenses-display');
-                  if (revenueDisplay) revenueDisplay.textContent = `$${currentRevenue}k - $${currentRevenue * 10}k`;
-                  if (expensesDisplay) expensesDisplay.textContent = `$${expenses}k - $${expenses * 10}k`;
+                  if (revenueDisplay) revenueDisplay.textContent = `$${(currentRevenue * 10 / 1000).toFixed(0)}M`;
+                  if (expensesDisplay) expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
                 }}
               />
               <span className="text-xs text-gray-300">$100k - $16M</span>
