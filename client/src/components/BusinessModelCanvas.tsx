@@ -197,8 +197,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
 
       </div>
       
-      {/* Main content with proper header spacing */}
-      <div className="pt-20 h-full relative">
+      {/* Main content aligned just under header */}
+      <div className="pt-16 h-full relative">
 
       {/* Reset Button & Microsoft Stack Status */}
       <div className="absolute top-4 right-4 z-40 flex space-x-2">
