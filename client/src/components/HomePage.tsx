@@ -166,7 +166,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                         
                         {/* Button at bottom */}
                         <Button 
-                          onClick={handleDirectImport}
                           disabled={loading}
                           className="w-full bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-600 border border-gray-400 rounded-lg py-2 mt-4 transition-colors"
                         >
@@ -200,7 +199,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                         
                         {/* Button at bottom */}
                         <Button 
-                          onClick={toggleChat}
                           className="w-full bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-600 border border-gray-400 rounded-lg py-2 mt-4 transition-colors"
                         >
                           Ask Copilot...
