@@ -1660,7 +1660,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             netProfit: 200,      // $2 million profit (represents 20% height for ExpensesPL)
             netLoss: 0           // No loss
           };
-          financialsDataAdapter.updateFromBusinessData(initialData, false); // No animation on init
+          
+          // Apply initial data with a small delay to ensure meshes are fully registered
+          setTimeout(async () => {
+            try {
+              await financialsDataAdapter.updateFromBusinessData(initialData, false);
+              console.log('💰 Initial Financials data applied successfully');
+              
+              // Verify heights were applied
+              const heights = financialsHeightManager.getCurrentHeights();
+              console.log('💰 Current heights after initialization:', heights);
+            } catch (error) {
+              console.error('❌ Failed to apply initial Financials data:', error);
+            }
+          }, 1000); // 1 second delay to ensure proper initialization
           
           console.log('💰 Financials demo system ready - try: financialsDemo.demonstrateProportionalHeights()');
         }
