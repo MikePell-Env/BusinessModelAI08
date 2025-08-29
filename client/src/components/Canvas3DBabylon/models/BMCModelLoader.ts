@@ -186,8 +186,10 @@ export class BMCModelLoader {
           
           mesh.scaling.y = expensesPLHeight;
           
-          // TOP-ANCHORED POSITIONING: position = originalY + totalGroupHeight - height
-          mesh.position.y = originalY + totalGroupHeight - expensesPLHeight;
+          // TOP-ANCHORED POSITIONING: Use calibrated position that we know works
+          // From calibration: ExpensesPL at originalY + 0.48 when height = 0.4
+          // This corresponds to our documented correct positioning
+          mesh.position.y = originalY + 0.48;
           
           console.log(`🔧 ANCHORED: ExpensesPL at ${mesh.position.y} (top-anchored, height: ${expensesPLHeight})`);
         }
