@@ -947,14 +947,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     
     gridTexture.update();
     
-    // PERFORMANCE: Simplified ground material
+    // Apply powder blue material with white grid texture to ground
     const groundMaterial = new StandardMaterial("groundMaterial", scene);
     groundMaterial.diffuseTexture = gridTexture;
     groundMaterial.specularColor = MATERIAL_COLORS.GROUND_SPECULAR; // Subtle blue-tinted specular reflection
-    groundMaterial.specularPower = 32; // Reduced for better performance
+    groundMaterial.specularPower = 64; // Higher value for sharper reflections
     groundMaterial.alpha = 0.5; // 50% opacity
-    groundMaterial.backFaceCulling = true; // Enable back face culling for performance
-    groundMaterial.disableLighting = true; // Disable lighting for ground plane
+    groundMaterial.backFaceCulling = false; // Render from both sides (visible from underneath)
     ground.material = groundMaterial;
 
     // Background click handling is done by SimpleClickHandler callbacks
