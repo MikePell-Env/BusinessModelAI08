@@ -134,24 +134,31 @@ export class BMCModelLoader {
           mesh.position.x += 0.00; // At center line
         }
         
+        // ========================================================================
+        // REVENUE GROUP PROPORTIONAL ADJUSTMENT (80/20 split)
+        // ========================================================================
+        // CURRENT: Revenue=0.8 height (80%), RevenuePL=0.2 height (20%)  
+        // TO REVERT: Change Revenue targetHeight to 1.0, RevenuePL targetHeight to 1.0
+        // ========================================================================
+        
         // SIMPLE ANCHORING: Save anchor points, apply height, adjust position to maintain anchor
         if (mesh.name === "Revenue") {
           // BOTTOM-ANCHORED: Save bottom surface, then keep it fixed
           const bottomSurface = originalY; // Keep this position fixed
-          const targetHeight = 1.0; // Restored to baseline height
+          const targetHeight = 0.8; // 80% of original height (0.8 * 1.0)
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = bottomSurface; // Keep bottom surface at original position
-          console.log(`📦 Revenue: Bottom fixed at ${bottomSurface}, height=${targetHeight}`);
+          console.log(`📦 Revenue: Bottom fixed at ${bottomSurface}, height=${targetHeight} (80% of group)`);
           
         } else if (mesh.name === "RevenuePL") {
           // TOP-ANCHORED: Align top surface with ExpensesPL top surface
           const topSurface = -0.02; // Aligned with ExpensesPL top surface
-          const targetHeight = 1.0; // Restored to baseline height
+          const targetHeight = 0.2; // 20% of original height (0.2 * 1.0)
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = topSurface; // Align top surface with ExpensesPL
-          console.log(`📦 RevenuePL (Loss): Top aligned with ExpensesPL at ${topSurface}, height=${targetHeight}`);
+          console.log(`📦 RevenuePL (Loss): Top aligned with ExpensesPL at ${topSurface}, height=${targetHeight} (20% of group)`);
           
         } else if (mesh.name === "Expenses") {
           // BOTTOM-ANCHORED: Save bottom surface, then keep it fixed
