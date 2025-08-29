@@ -306,13 +306,13 @@ export class FinancialsHeightManager {
     mesh.scaling.y = height;
 
     if (anchorType === 'top') {
-      // Stack on top of base objects
+      // Use calibrated positioning for ExpensesPL
       if (objectName === 'ExpensesPL') {
         const expensesMesh = this.financialMeshes.get('Expenses');
         if (expensesMesh) {
-          const expensesHeight = expensesMesh.scaling.y;
-          const expensesPosition = expensesMesh.position.y;
-          mesh.position.y = expensesPosition + (expensesHeight / 2) + (height / 2);
+          // Use the calibrated 0.3 positioning factor that was working
+          const positioningFactor = 0.3;
+          mesh.position.y = 0 + (expensesMesh.scaling.y * positioningFactor);
         } else {
           mesh.position.y = originalPos.y + (height / 2);
         }
