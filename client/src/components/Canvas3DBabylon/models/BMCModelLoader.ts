@@ -114,7 +114,6 @@ export class BMCModelLoader {
       // VISUAL BALANCE: Revenue/Expenses groups have matching heights and centering
       // ========================================================================
       result.meshes.forEach((mesh) => {
-        console.log(`🔍 Found mesh: "${mesh.name}"`);
         
         // SOLID ANCHORING SYSTEM: Store original positions and apply anchor-based height adjustments
         
@@ -142,7 +141,6 @@ export class BMCModelLoader {
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = bottomSurface; // Keep bottom surface at original position
-          console.log(`📦 Revenue: Bottom fixed at ${bottomSurface}, height=${targetHeight}`);
           
         } else if (mesh.name === "RevenuePL") {
           // TOP-ANCHORED: Align top surface with ExpensesPL top surface
@@ -151,7 +149,6 @@ export class BMCModelLoader {
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = topSurface; // Align top surface with ExpensesPL
-          console.log(`📦 RevenuePL (Loss): Top aligned with ExpensesPL at ${topSurface}, height=${targetHeight}`);
           
         } else if (mesh.name === "Expenses") {
           // BOTTOM-ANCHORED: Save bottom surface, then keep it fixed
@@ -160,7 +157,6 @@ export class BMCModelLoader {
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = bottomSurface; // Keep bottom surface at original position
-          console.log(`📦 Expenses: Bottom fixed at ${bottomSurface}, height=${targetHeight}`);
           
         } else if (mesh.name === "ExpensesPL") {
           // TOP-ANCHORED: Save top surface, then keep it fixed
@@ -169,7 +165,6 @@ export class BMCModelLoader {
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = topSurface; // Keep top surface at adjusted position
-          console.log(`📦 ExpensesPL (Profit): Top fixed at ${topSurface}, height=${targetHeight}`);
         }
       });
       
