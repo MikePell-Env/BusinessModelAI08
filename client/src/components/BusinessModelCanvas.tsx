@@ -47,6 +47,10 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   // Envisioner type state  
   const { currentTemplate, currentType, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
   
+  console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isTransitioning=${isTransitioning}`);
+  console.log(`🟡 Current Envisioner Type: ${currentType}, Template: ${currentTemplate.name}`);
+  console.log(`🟡 Template sections count: ${currentTemplate.sections.length}`);
+  console.log(`🟡 Will render: ${is3D ? 'Canvas3DBabylon' : 'Canvas2D'}`);
   
 
 
@@ -124,16 +128,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   }
 
   return (
-    <div className="w-full h-screen bg-gray-200 relative">
-      {/* Canvas Views - Full screen behind everything */}
-      <div className="absolute inset-0 w-full h-full">
-        {is3D ? (
-          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} template={currentTemplate} />
-        ) : (
-          <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
-        )}
-      </div>
-
+    <div className="w-full h-screen bg-white relative">
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header 
@@ -146,7 +141,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
       </div>
 
       {/* Fixed View Controls - positioned below header */}
-      <div className="fixed top-16 left-4 z-40 flex space-x-2">
+      <div className="fixed top-14 left-4 z-40 flex space-x-2" style={{ marginTop: '10px' }}>
         {/* 2D View button - hidden but functionality preserved */}
         <Button
           onClick={handleToggleView}
@@ -202,8 +197,11 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
 
       </div>
       
-      {/* Reset Button & Microsoft Stack Status - positioned as overlay */}
-      <div className="fixed top-20 right-4 z-40 flex space-x-2">
+      {/* Main content with minimal padding */}
+      <div className="pt-12 h-full relative">
+
+      {/* Reset Button & Microsoft Stack Status */}
+      <div className="absolute top-4 right-4 z-40 flex space-x-2">
         <Dialog>
           <DialogTrigger asChild>
             <Button
@@ -243,6 +241,15 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
         </Button>
       </div>
 
+      {/* Canvas Views */}
+      <div className="w-full h-full relative">
+        {is3D ? (
+          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} template={currentTemplate} />
+        ) : (
+          <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
+        )}
+      </div>
+
       {/* AI Chat Component */}
       <AIChat />
 
@@ -261,6 +268,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           </div>
         </footer>
       )}
+      </div>
     </div>
   );
 };
