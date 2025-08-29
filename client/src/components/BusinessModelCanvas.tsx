@@ -193,8 +193,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
 
       </div>
       
-      {/* Main content positioned directly under the header */}
-      <div className="pt-0 h-full relative">
+      {/* Main content with proper spacing for overlay elements */}
+      <div className="pt-0 h-full relative" style={{ marginTop: '64px' }}>
 
       {/* Reset Button & Microsoft Stack Status */}
       <div className="absolute top-4 right-4 z-40 flex space-x-2">

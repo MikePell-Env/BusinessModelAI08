@@ -3454,8 +3454,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         className="w-full h-full"
         style={{ 
           outline: 'none',
-          backgroundColor: '#e5e7eb', // Match scene clear color to prevent white flash
-          zIndex: 1 // Ensure canvas is behind overlay elements
+          backgroundColor: '#e5e7eb' // Match scene clear color to prevent white flash
         }}
       />
     </div>
