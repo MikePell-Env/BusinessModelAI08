@@ -2364,16 +2364,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 // Start animation only if not Financials template
                 if (template.name.toLowerCase() !== 'financials') {
                   animateTracer();
-                  console.log(`✅ Blue tracer animation created for Customer Segments with ${pathPoints.length} path points:`);
+                  // Blue tracer animation created for Customer Segments
                 } else {
-                  console.log(`⏸️ Blue tracer animation disabled for Financials template`);
+                  // Blue tracer animation disabled for Financials template
                 }
-                // Only log path points for Business Model template
-                if (template.name.toLowerCase() !== 'financials') {
-                  pathPoints.forEach((point, index) => {
-                    console.log(`  Point ${index}: (${point.x.toFixed(3)}, ${point.y.toFixed(3)}, ${point.z.toFixed(3)})`);
-                  });
-                }
+                // Path points calculated for Business Model template
               };
               
               // Create the blue tracer after a short delay to ensure mesh is ready
@@ -2381,7 +2376,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               if (template.name.toLowerCase() !== 'financials') {
                 setTimeout(createBlueTracer, 100);
               } else {
-                console.log(`⏸️ Blue tracer creation skipped for Financials template`);
+                // Blue tracer creation skipped for Financials template
               }
             }
             
@@ -2602,16 +2597,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             
             // revenueStreamsMesh.scaling.x = requiredScaleX;
             
-            console.log("🔧 DELAYED Revenue Streams Width Alignment:");
-            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
-            console.log(`  Revenue left edge (A): ${revenueLeftEdge.toFixed(3)}`);
-            console.log(`  Customer Segments right edge (B): ${segMax.x.toFixed(3)}`);
-            console.log(`  Target width (A to B): ${targetWidth.toFixed(3)}`);
-            console.log(`  Base width (unscaled): ${baseWidth.toFixed(3)}`);
-            console.log(`  Required X scale: ${requiredScaleX.toFixed(3)}`);
-            console.log("✅ Revenue Streams right edge aligned with Customer Segments!");
+            // Revenue Streams width alignment completed
           } else {
-            console.log(`❌ DELAYED: Missing meshes - Revenue Streams: ${!!revenueStreamsMesh}, Customer Segments: ${!!segmentsMesh}`);
+            // Missing meshes detected
           }
         }, 4000);
         
@@ -2625,14 +2613,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             const revMax = Vector3.TransformCoordinates(revBoundingInfo.maximum, revWorldMatrix);
             const currentRevWidth = revMax.x - revMin.x;
             
-            console.log("📏 CURRENT Revenue Streams Dimensions:");
-            console.log(`  Left edge (min X): ${revMin.x.toFixed(3)}`);
-            console.log(`  Right edge (max X): ${revMax.x.toFixed(3)}`);
-            console.log(`  Current width: ${currentRevWidth.toFixed(3)}`);
-            console.log(`  Current X scale: ${revenueStreamsMesh.scaling.x.toFixed(3)}`);
-            console.log(`  Position: (${revenueStreamsMesh.position.x.toFixed(3)}, ${revenueStreamsMesh.position.y.toFixed(3)}, ${revenueStreamsMesh.position.z.toFixed(3)})`);
+            // Revenue Streams dimensions calculated
           } else {
-            console.log("❌ Revenue Streams mesh not found for width check");
+            // Revenue Streams mesh not found
           }
         }, 5000);
 

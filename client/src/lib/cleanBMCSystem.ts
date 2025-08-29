@@ -69,10 +69,11 @@ export class CleanBMCSystem {
       this.updateAllVisuals();
       
     } catch (error) {
+      const err = error as Error;
       console.error(`❌ CRASH in onSelect(${sectionName}):`, error);
-      console.error(`❌ Error name: ${error.name}`);
-      console.error(`❌ Error message: ${error.message}`);
-      console.error(`❌ Stack trace:`, error.stack);
+      console.error(`❌ Error name: ${err.name}`);
+      console.error(`❌ Error message: ${err.message}`);
+      console.error(`❌ Stack trace:`, err.stack);
       throw error; // Re-throw to see where it came from
     }
   }
@@ -384,7 +385,7 @@ export class CleanBMCSystem {
     return {
       selectedObject: this.selectedObject,
       hoveredObject: this.hoveredObject,
-      isTopView: this.isTopView,
+      // isTopView removed - only using 3D View mode now
       itemCount: this.items.size
     };
   }

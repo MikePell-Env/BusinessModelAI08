@@ -11,7 +11,7 @@ export interface Checkpoint {
 
 export class CheckpointSystem {
   constructor() {
-    console.log("🎯 CheckpointSystem initialized (disabled)");
+    // CheckpointSystem disabled
   }
 
   createCheckpoint(...args: any[]): void {
@@ -51,7 +51,7 @@ export class CheckpointSystem {
   }
   
   showSummary(): void {
-    console.log("Checkpoint system disabled");
+    // Checkpoint system disabled
   }
 }
 
