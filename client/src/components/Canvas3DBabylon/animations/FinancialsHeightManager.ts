@@ -107,60 +107,22 @@ export class FinancialsHeightManager {
     let revenueHeight: number, revenuePLHeight: number;
     let expensesHeight: number, expensesPLHeight: number;
     
-    // MINIMUM VISIBILITY CONSTANTS - Ensure objects never disappear
-    const MIN_HEIGHT_PERCENT = 0.05; // 5% minimum visibility
-    const MIN_HEIGHT = heights.expensesTotal * MIN_HEIGHT_PERCENT;
-    
     if (profit >= 0) {
       // PROFIT SCENARIO: Revenue - Expenses = Profit
       revenueHeight = heights.revenueTotal;        // Revenue: 100% height
       revenuePLHeight = 0;                         // RevenuePL: 0% (no loss)
+      expensesHeight = (expenses / revenue) * heights.expensesTotal;     // Expenses: proportional
+      expensesPLHeight = (profit / revenue) * heights.expensesTotal;     // ExpensesPL: profit portion
       
-      // Calculate proportional heights with minimum visibility guarantee
-      const expensesRatio = expenses / revenue;
-      const profitRatio = profit / revenue;
-      
-      // Ensure minimum heights while maintaining proportions
-      if (profitRatio < MIN_HEIGHT_PERCENT) {
-        // When profit is very small, give it minimum height and adjust expenses
-        expensesPLHeight = MIN_HEIGHT;
-        expensesHeight = heights.expensesTotal - expensesPLHeight;
-      } else if (expensesRatio < MIN_HEIGHT_PERCENT) {
-        // When expenses is very small, give it minimum height and adjust profit
-        expensesHeight = MIN_HEIGHT;
-        expensesPLHeight = heights.expensesTotal - expensesHeight;
-      } else {
-        // Normal proportional distribution
-        expensesHeight = expensesRatio * heights.expensesTotal;
-        expensesPLHeight = profitRatio * heights.expensesTotal;
-      }
-      
-      debugLog.info('financials', `PROFIT scenario - Revenue: 100%, Expenses: ${(expensesHeight/heights.expensesTotal*100).toFixed(1)}%, Profit: ${(expensesPLHeight/heights.expensesTotal*100).toFixed(1)}%`);
+      debugLog.info('financials', `PROFIT scenario - Revenue: 100%, Expenses: ${(expenses/revenue*100).toFixed(1)}%, Profit: ${(profit/revenue*100).toFixed(1)}%`);
     } else {
       // LOSS SCENARIO: Expenses - Revenue = Loss  
       expensesHeight = heights.expensesTotal;      // Expenses: 100% height
-      expensesPLHeight = MIN_HEIGHT;               // ExpensesPL: minimum visibility (represents break-even line)
+      expensesPLHeight = 0;                        // ExpensesPL: 0% (no profit)
+      revenueHeight = (revenue / expenses) * heights.revenueTotal;       // Revenue: proportional
+      revenuePLHeight = (Math.abs(loss) / expenses) * heights.revenueTotal; // RevenuePL: loss portion
       
-      // Calculate proportional heights with minimum visibility guarantee
-      const revenueRatio = revenue / expenses;
-      const lossRatio = Math.abs(loss) / expenses;
-      
-      // Ensure minimum heights while maintaining proportions
-      if (lossRatio < MIN_HEIGHT_PERCENT) {
-        // When loss is very small, give it minimum height and adjust revenue
-        revenuePLHeight = MIN_HEIGHT;
-        revenueHeight = heights.revenueTotal - revenuePLHeight;
-      } else if (revenueRatio < MIN_HEIGHT_PERCENT) {
-        // When revenue is very small, give it minimum height and adjust loss
-        revenueHeight = MIN_HEIGHT;
-        revenuePLHeight = heights.revenueTotal - revenueHeight;
-      } else {
-        // Normal proportional distribution
-        revenueHeight = revenueRatio * heights.revenueTotal;
-        revenuePLHeight = lossRatio * heights.revenueTotal;
-      }
-      
-      debugLog.info('financials', `LOSS scenario - Expenses: 100%, Revenue: ${(revenueHeight/heights.revenueTotal*100).toFixed(1)}%, Loss: ${(revenuePLHeight/heights.revenueTotal*100).toFixed(1)}%`);
+      debugLog.info('financials', `LOSS scenario - Expenses: 100%, Revenue: ${(revenue/expenses*100).toFixed(1)}%, Loss: ${(Math.abs(loss)/expenses*100).toFixed(1)}%`);
     }
 
     debugLog.info('financials', `Updating heights - Revenue: ${revenueHeight.toFixed(2)}, RevenuePL: ${revenuePLHeight.toFixed(2)}, Expenses: ${expensesHeight.toFixed(2)}, ExpensesPL: ${expensesPLHeight.toFixed(2)}`);
