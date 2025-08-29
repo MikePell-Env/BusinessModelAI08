@@ -206,7 +206,7 @@ export class FinancialsHeightManager {
       } else {
         // BOTTOM-ANCHORED OBJECTS: Fixed bottom surface at ground level
         // Revenue and Expenses objects keep their bottom surface at originalY
-        targetPosition = originalPos.y + (targetHeight / 2); // Center the object at its position
+        targetPosition = originalPos.y;
       }
 
       // Create height animation
