@@ -2694,6 +2694,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           
           // Store toggle function reference for UI button
           toggleGeometryRef.current = toggleFunction;
+          console.log("🔧 Toggle function stored in ref:", !!toggleGeometryRef.current);
           
           // Also add to global window for testing
           (window as any).toggleRevenueGeometry = toggleFunction;
@@ -2770,9 +2771,33 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         
       } else {
         console.error("❌ No meshes found in BMC model");
+        
+        // Still create toggle function even if model fails to load
+        if (template.name.toLowerCase() === 'financials') {
+          console.log("🔄 Creating fallback toggle function for Financials (no GLB objects)");
+          const fallbackToggleFunction = () => {
+            const newState = !showDynamicGeometry;
+            setShowDynamicGeometry(newState);
+            console.log(newState ? "🔄 Would show dynamic geometry" : "🔄 Would show GLB models");
+          };
+          toggleGeometryRef.current = fallbackToggleFunction;
+          console.log("🔧 Fallback toggle function stored:", !!toggleGeometryRef.current);
+        }
       }
     }).catch((error) => {
       console.error("❌ Failed to load BMC model:", error);
+      
+      // Still create toggle function even if model fails to load
+      if (template.name.toLowerCase() === 'financials') {
+        console.log("🔄 Creating fallback toggle function for Financials (model load failed)");
+        const fallbackToggleFunction = () => {
+          const newState = !showDynamicGeometry;
+          setShowDynamicGeometry(newState);
+          console.log(newState ? "🔄 Would show dynamic geometry" : "🔄 Would show GLB models");
+        };
+        toggleGeometryRef.current = fallbackToggleFunction;
+        console.log("🔧 Fallback toggle function stored:", !!toggleGeometryRef.current);
+      }
     });
 
     // Load Revenue Streams as separate GLB model positioned below Customer Channels (only if enabled in template)
