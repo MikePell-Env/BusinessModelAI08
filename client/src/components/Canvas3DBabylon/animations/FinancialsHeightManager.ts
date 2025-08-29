@@ -1,11 +1,10 @@
-
 /**
  * Financials Height Manager
  * Handles proportional height manipulation for Revenue/Expenses groups
  * while maintaining proper anchoring and label positioning
  */
 
-import { 
+import {
   Scene,
   AbstractMesh,
   Mesh,
@@ -54,50 +53,62 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Calculate proportional heights based on financial data
+   * Calculate proportional heights based on data while maintaining group totals
    */
-  public calculateProportionalHeights(data: FinancialData): GroupHeights {
-    const revenueTotal = data.revenue;
-    const expensesTotal = data.expenses;
-    const maxValue = Math.max(revenueTotal, expensesTotal);
-    
-    // Scale to visualization range (0.5 to maxVisualizationHeight)
-    const scaleFactor = maxValue > 0 ? (this.maxVisualizationHeight - 0.5) / maxValue : 1;
-    
+  private calculateProportionalHeights(data: FinancialData): GroupHeights {
+    // Both groups start with combined height of 2.0 (original GLB models stacked)
+    const baseGroupHeight = 2.0;
+
+    // Normalize data for visualization (minimum 0.5 to ensure visibility)
+    const normalizedRevenue = Math.max(data.revenue, 0.5);
+    const normalizedExpenses = Math.max(data.expenses, 0.5);
+    const maxValue = Math.max(normalizedRevenue, normalizedExpenses);
+
+    // Scale groups proportionally while maintaining minimum base height
+    const scaleFactor = Math.min(maxValue / Math.max(normalizedRevenue, normalizedExpenses), this.maxVisualizationHeight / baseGroupHeight);
+
+    const revenueTotal = normalizedRevenue * scaleFactor;
+    const expensesTotal = normalizedExpenses * scaleFactor;
+
     return {
-      revenueTotal: Math.max(0.5, revenueTotal * scaleFactor),
-      expensesTotal: Math.max(0.5, expensesTotal * scaleFactor),
-      maxHeight: this.maxVisualizationHeight
+      revenueTotal,
+      expensesTotal,
+      maxHeight: Math.max(revenueTotal, expensesTotal)
     };
   }
 
   /**
-   * Update heights based on financial data with smooth animation
+   * Update heights from financial data with smooth animations
+   * Maintains proper stacking order: Revenue + RevenuePL, Expenses + ExpensesPL
    */
   public async updateHeightsFromData(
-    data: FinancialData, 
+    data: FinancialData,
     duration: number = 1000
   ): Promise<void> {
     const heights = this.calculateProportionalHeights(data);
-    
-    // Calculate individual object heights based on proportions
-    const revenueHeight = heights.revenueTotal * 0.8; // 80% for Revenue
-    const revenuePLHeight = heights.revenueTotal * 0.2; // 20% for RevenuePL
-    const expensesHeight = heights.expensesTotal * 0.8; // 80% for Expenses  
-    const expensesPLHeight = heights.expensesTotal * 0.2; // 20% for ExpensesPL
 
-    debugLog.info('financials', `Updating heights - Revenue: ${revenueHeight}, RevenuePL: ${revenuePLHeight}, Expenses: ${expensesHeight}, ExpensesPL: ${expensesPLHeight}`);
+    // Calculate 80/20 split for each group with proper stacking
+    const revenueHeight = heights.revenueTotal * 0.8;
+    const revenuePLHeight = heights.revenueTotal * 0.2;
+    const expensesHeight = heights.expensesTotal * 0.8;
+    const expensesPLHeight = heights.expensesTotal * 0.2;
 
-    // Animate all heights simultaneously while maintaining anchoring
-    const animations = [
-      this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration),
-      this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration),
-      this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration),
-      this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration)
-    ];
+    debugLog.info('financials', `Updating heights - Revenue: ${revenueHeight.toFixed(2)}, RevenuePL: ${revenuePLHeight.toFixed(2)}, Expenses: ${expensesHeight.toFixed(2)}, ExpensesPL: ${expensesPLHeight.toFixed(2)}`);
 
-    await Promise.all(animations);
-    debugLog.info('financials', 'All height animations completed');
+    // Animate base objects first, then stacked objects to prevent overlaps
+    // Step 1: Animate bottom-anchored objects (Revenue, Expenses)
+    await Promise.all([
+      this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration / 2),
+      this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration / 2)
+    ]);
+
+    // Step 2: Animate top-anchored objects (RevenuePL, ExpensesPL) after base is positioned
+    await Promise.all([
+      this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration / 2),
+      this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration / 2)
+    ]);
+
+    debugLog.info('financials', 'All height animations completed with proper stacking');
   }
 
   /**
@@ -118,16 +129,24 @@ export class FinancialsHeightManager {
     return new Promise((resolve) => {
       const startHeight = mesh.scaling.y;
       const startPosition = mesh.position.y;
-      
-      // Calculate anchor-preserved positioning
+      const originalPos = this.originalPositions.get(objectName);
+
+      if (!originalPos) {
+        debugLog.error('financials', `Original position not found for ${objectName}`);
+        resolve();
+        return;
+      }
+
+      // Calculate target position based on anchor and height change
       let targetPosition = startPosition;
       if (anchorType === 'top') {
-        // Top-anchored: adjust position to keep top surface fixed
-        const heightDiff = targetHeight - startHeight;
-        targetPosition = startPosition; // Top surface stays fixed
+        // For top-anchored objects, adjust position so the top surface stays in place
+        // The amount to move up is the difference in height if the new height is greater,
+        // or down if the new height is smaller.
+        targetPosition = originalPos.y - (targetHeight - startHeight);
       } else {
-        // Bottom-anchored: position stays the same, bottom surface fixed
-        targetPosition = startPosition;
+        // For bottom-anchored objects, the bottom surface stays fixed at its original position.
+        targetPosition = originalPos.y;
       }
 
       // Create height animation
@@ -139,7 +158,7 @@ export class FinancialsHeightManager {
         Animation.ANIMATIONLOOPMODE_CONSTANT
       );
 
-      // Create position animation for top-anchored objects
+      // Create position animation
       const positionAnimation = new Animation(
         `${objectName}_position`,
         'position.y',
@@ -151,7 +170,7 @@ export class FinancialsHeightManager {
       // Set up easing
       const easingFunction = new CubicEase();
       easingFunction.setEasingMode(EasingFunction.EASINGMODE_EASEINOUT);
-      
+
       // Height animation keys
       const heightKeys = [
         { frame: 0, value: startHeight },
@@ -160,7 +179,7 @@ export class FinancialsHeightManager {
       heightAnimation.setKeys(heightKeys);
       heightAnimation.setEasingFunction(easingFunction);
 
-      // Position animation keys (for top-anchored objects)
+      // Position animation keys
       const positionKeys = [
         { frame: 0, value: startPosition },
         { frame: 60, value: targetPosition }
@@ -170,7 +189,7 @@ export class FinancialsHeightManager {
 
       // Apply animations
       mesh.animations = [heightAnimation, positionAnimation];
-      
+
       this.scene.beginAnimation(
         mesh,
         0,
@@ -190,7 +209,7 @@ export class FinancialsHeightManager {
    */
   public setImmediateHeights(data: FinancialData): void {
     const heights = this.calculateProportionalHeights(data);
-    
+
     const revenueHeight = heights.revenueTotal * 0.8;
     const revenuePLHeight = heights.revenueTotal * 0.2;
     const expensesHeight = heights.expensesTotal * 0.8;
@@ -217,10 +236,10 @@ export class FinancialsHeightManager {
     if (!originalPos) return;
 
     mesh.scaling.y = height;
-    
+
     if (anchorType === 'top') {
       // Keep top surface fixed by adjusting position
-      mesh.position.y = originalPos.y;
+      mesh.position.y = originalPos.y - (height - mesh.scaling.y); // Adjust position to keep top at originalPos.y
     } else {
       // Keep bottom surface fixed
       mesh.position.y = originalPos.y;
