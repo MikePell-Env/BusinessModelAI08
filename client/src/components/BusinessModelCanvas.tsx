@@ -175,7 +175,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           onClick={switchToBusinessModel}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
-            currentType === 'business-model' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white text-gray-800 hover:bg-gray-50'
+            currentType === 'business-model' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
@@ -187,7 +187,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           onClick={switchToFinancials}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
-            currentType === 'financials' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white text-gray-800 hover:bg-gray-50'
+            currentType === 'financials' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
@@ -197,8 +197,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
 
       </div>
       
-      {/* Main content aligned just under header */}
-      <div className="pt-16 h-full relative">
+      {/* Main content with minimal padding */}
+      <div className="pt-12 h-full relative">
 
       {/* Reset Button & Microsoft Stack Status */}
       <div className="absolute top-4 right-4 z-40 flex space-x-2">
