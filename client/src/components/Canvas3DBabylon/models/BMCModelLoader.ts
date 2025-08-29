@@ -133,7 +133,11 @@ export class BMCModelLoader {
           mesh.position.x += 0.00; // At center line
         }
         
-        // PROPER STACKING: Revenue group (80%/20%) and Expenses group (80%/20%) with no overlaps
+        // Store base mesh positions for proper stacking calculations
+        let revenueBasePosition: number | null = null;
+        let expensesBasePosition: number | null = null;
+        
+        // First pass: Set up base objects (Revenue, Expenses)
         if (mesh.name === "Revenue") {
           // BOTTOM-ANCHORED: Base object for Revenue group (80% of total)
           const bottomSurface = originalY;
@@ -141,13 +145,7 @@ export class BMCModelLoader {
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = bottomSurface;
-          
-        } else if (mesh.name === "RevenuePL") {
-          // TOP-ANCHORED: Stacks on top of Revenue (20% of total)
-          const targetHeight = 0.4; // 20% of total group height (2.0)
-          
-          mesh.scaling.y = targetHeight;
-          mesh.position.y = originalY + 1.6; // Position on top of Revenue (1.6 height)
+          revenueBasePosition = bottomSurface;
           
         } else if (mesh.name === "Expenses") {
           // BOTTOM-ANCHORED: Base object for Expenses group (80% of total)
@@ -156,13 +154,33 @@ export class BMCModelLoader {
           
           mesh.scaling.y = targetHeight;
           mesh.position.y = bottomSurface;
+          expensesBasePosition = bottomSurface;
+        }
+      });
+      
+      // Second pass: Set up stacked objects (RevenuePL, ExpensesPL) after base objects are positioned
+      result.meshes.forEach((mesh) => {
+        const originalY = mesh.position.y;
+        
+        if (mesh.name === "RevenuePL") {
+          // Find Revenue mesh to stack on top of it
+          const revenueMesh = result.meshes.find(m => m.name === "Revenue");
+          if (revenueMesh) {
+            const targetHeight = 0.4; // 20% of total group height (2.0)
+            mesh.scaling.y = targetHeight;
+            // Position directly on top of Revenue object
+            mesh.position.y = revenueMesh.position.y + revenueMesh.scaling.y;
+          }
           
         } else if (mesh.name === "ExpensesPL") {
-          // TOP-ANCHORED: Stacks on top of Expenses (20% of total)
-          const targetHeight = 0.4; // 20% of total group height (2.0)
-          
-          mesh.scaling.y = targetHeight;
-          mesh.position.y = originalY + 1.6; // Position on top of Expenses (1.6 height)
+          // Find Expenses mesh to stack on top of it
+          const expensesMesh = result.meshes.find(m => m.name === "Expenses");
+          if (expensesMesh) {
+            const targetHeight = 0.4; // 20% of total group height (2.0)
+            mesh.scaling.y = targetHeight;
+            // Position directly on top of Expenses object
+            mesh.position.y = expensesMesh.position.y + expensesMesh.scaling.y;
+          }
         }
       });
       
