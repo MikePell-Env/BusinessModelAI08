@@ -192,21 +192,12 @@ export class FinancialsHeightManager {
         const totalGroupHeight = 2.0; // Fixed total group height
         
         if (objectName === 'ExpensesPL') {
-          // ExpensesPL: Use the calibrated positioning that matches our documented system
-          // Position based on the current Expenses height to maintain proper stacking
-          const expensesMesh = this.financialMeshes.get('Expenses');
-          if (expensesMesh) {
-            const expensesOriginalPos = this.originalPositions.get('Expenses');
-            if (expensesOriginalPos) {
-              // Use the calibrated 0.3 positioning factor that we know works
-              const positioningFactor = 0.3;
-              targetPosition = expensesOriginalPos.y + (expensesMesh.scaling.y * positioningFactor);
-            } else {
-              targetPosition = originalPos.y + totalGroupHeight - targetHeight;
-            }
-          } else {
-            targetPosition = originalPos.y + totalGroupHeight - targetHeight;
-          }
+          // TOP SURFACE ANCHORED: Keep ExpensesPL top surface at fixed 3D position
+          // From initial calibration: position = originalY + 0.48, height = 0.4
+          // Top surface position = 0.48 + (0.4 / 2) = 0.68
+          // For any height: position = topSurface - (height / 2)
+          const topSurfaceAnchor = originalPos.y + 0.48 + (0.4 / 2); // Initial top surface position
+          targetPosition = topSurfaceAnchor - (targetHeight / 2);
         } else if (objectName === 'RevenuePL') {
           // RevenuePL: Top surface stays at originalY + 2.0 (same logic as ExpensesPL)
           targetPosition = originalPos.y + totalGroupHeight - targetHeight;
