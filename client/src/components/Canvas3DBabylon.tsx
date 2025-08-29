@@ -1660,7 +1660,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             netProfit: 200,      // $2 million profit (represents 20% height for ExpensesPL)
             netLoss: 0           // No loss
           };
-          financialsDataAdapter.updateFromBusinessData(initialData, false); // No animation on init
+          
+          // Apply initial data with a small delay to ensure meshes are fully registered
+          setTimeout(async () => {
+            try {
+              if (financialsDataAdapter && financialsHeightManager) {
+                await financialsDataAdapter.updateFromBusinessData(initialData, false);
+                console.log('💰 Initial Financials data applied successfully');
+                
+                // Verify heights were applied
+                const heights = financialsHeightManager.getCurrentHeights();
+                console.log('💰 Current heights after initialization:', heights);
+              } else {
+                console.error('❌ Financials managers not properly initialized');
+              }
+            } catch (error) {
+              console.error('❌ Failed to apply initial Financials data:', error);
+            }
+          }, 1000); // 1 second delay to ensure proper initialization
           
           console.log('💰 Financials demo system ready - try: financialsDemo.demonstrateProportionalHeights()');
         }
@@ -3438,6 +3455,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                       netLoss: Math.max(0, currentExpenses - revenue)
                     });
                   }
+                  
+                  // Update the display values
+                  const revenueDisplay = document.querySelector('.revenue-display');
+                  const expensesDisplay = document.querySelector('.expenses-display');
+                  if (revenueDisplay) revenueDisplay.textContent = `$${revenue}k - $${revenue * 10}k`;
+                  if (expensesDisplay) expensesDisplay.textContent = `$${currentExpenses}k - $${currentExpenses * 10}k`;
                 }}
               />
               <span className="text-xs text-gray-300">$100k - $20M</span>
@@ -3464,6 +3487,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                       netLoss: Math.max(0, expenses - currentRevenue)
                     });
                   }
+                  
+                  // Update the display values
+                  const revenueDisplay = document.querySelector('.revenue-display');
+                  const expensesDisplay = document.querySelector('.expenses-display');
+                  if (revenueDisplay) revenueDisplay.textContent = `$${currentRevenue}k - $${currentRevenue * 10}k`;
+                  if (expensesDisplay) expensesDisplay.textContent = `$${expenses}k - $${expenses * 10}k`;
                 }}
               />
               <span className="text-xs text-gray-300">$100k - $16M</span>
