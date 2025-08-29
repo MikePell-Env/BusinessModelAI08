@@ -56,24 +56,17 @@ export class CleanBMCSystem {
 
   // Handle selection
   onSelect(sectionName: string) {
-    console.log(`🔍 CleanBMC onSelect: ${sectionName}`);
 
     try {
-      console.log(`🔍 DEBUG: Current selectedObject: ${this.selectedObject}`);
-      console.log(`🔍 DEBUG: Incoming sectionName: ${sectionName}`);
 
       // Toggle selection
       if (this.selectedObject === sectionName) {
-        console.log(`🔍 DEBUG: Deselecting same object`);
         this.selectedObject = null;
       } else {
-        console.log(`🔍 DEBUG: Selecting new object: ${sectionName}`);
         this.selectedObject = sectionName;
       }
 
-      console.log(`🔍 DEBUG: About to call updateAllVisuals()`);
       this.updateAllVisuals();
-      console.log(`🔍 DEBUG: onSelect completed successfully`);
       
     } catch (error) {
       console.error(`❌ CRASH in onSelect(${sectionName}):`, error);
@@ -94,7 +87,6 @@ export class CleanBMCSystem {
 
   // Handle hover state changes - simplified direct approach
   onHover(sectionName: string, isHovering: boolean): void {
-    console.log(`🖱️ Simple hover: ${sectionName}, hovering=${isHovering}`);
 
     const item = this.items.get(sectionName);
     if (!item) {
@@ -148,7 +140,6 @@ export class CleanBMCSystem {
 
   // Main visual update method
   private updateAllVisuals(): void {
-    console.log(`🎨 updateAllVisuals: mode=3D View, selected=${this.selectedObject || 'none'}`);
 
     try {
       this.items.forEach((item, name) => {
@@ -188,7 +179,6 @@ export class CleanBMCSystem {
 
   // State application following documentation rules
   private applyState(name: string, state: string) {
-    console.log(`🔍 DEBUG CleanBMC: applyState called - name: ${name}, state: ${state}`);
     
     try {
       const item = this.items.get(name);
@@ -197,7 +187,6 @@ export class CleanBMCSystem {
         return;
       }
 
-      console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
       const { mesh, material, originalHeight, baseColor } = item;
 
     // FIXED: Height management - 3D View mode only
@@ -252,7 +241,6 @@ export class CleanBMCSystem {
           material.diffuseColor.r = Math.min(baseColor.r * 1.5, 1.0);
           material.diffuseColor.g = Math.min(baseColor.g * 1.5, 1.0);
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
-          console.log(`🎨 3D View - Applied HOVER: ${name} -> brighter original (height unchanged)`);
         } else {
           // Main sections: Toned down blue with better shading
           material.diffuseColor.r = 0.0;
@@ -262,7 +250,6 @@ export class CleanBMCSystem {
           material.emissiveColor.r = 0.0;
           material.emissiveColor.g = 0.0;
           material.emissiveColor.b = 0.0;
-          console.log(`🎨 3D View - Applied HOVER: ${name} -> toned blue (height unchanged)`);
         }
       } else if (state === 'selected') {
         // Rule 3: Selected object
@@ -281,7 +268,6 @@ export class CleanBMCSystem {
           material.diffuseColor.r = Math.min(baseColor.r * 1.5, 1.0);
           material.diffuseColor.g = Math.min(baseColor.g * 1.5, 1.0);
           material.diffuseColor.b = Math.min(baseColor.b * 1.5, 1.0);
-          console.log(`🎨 3D View - Applied SELECTED: ${name} -> bright original`);
         } else {
           // Main sections: Toned down blue with better shading
           material.diffuseColor.r = 0.0;
@@ -291,7 +277,6 @@ export class CleanBMCSystem {
           material.emissiveColor.r = 0.0;
           material.emissiveColor.g = 0.05;
           material.emissiveColor.b = 0.1;
-          console.log(`🎨 3D View - Applied SELECTED: ${name} -> toned blue with depth`);
         }
       } else if (state === 'dimmed') {
         // Rule 3: Other objects when something is selected
@@ -303,7 +288,6 @@ export class CleanBMCSystem {
           material.diffuseColor.r = 0.25;
           material.diffuseColor.g = 0.25;
           material.diffuseColor.b = 0.25;
-          console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & grey color`);
         } else {
           // Main BMC sections: Dimmed original colors
           if (baseColor) {
@@ -315,7 +299,6 @@ export class CleanBMCSystem {
             material.diffuseColor.g = 0.25;
             material.diffuseColor.b = 0.25;
           }
-          console.log(`🎨 3D View - Applied DIMMED: ${name} -> flattened & 30% opacity`);
         }
       } else {
         // Rule 1: Normal state - full height, original color, 100% opaque
@@ -342,7 +325,6 @@ export class CleanBMCSystem {
         material.emissiveColor.r = 0.0;
         material.emissiveColor.g = 0.0;
         material.emissiveColor.b = 0.0;
-        console.log(`🎨 3D View - Applied NORMAL: ${name} -> full height & original color`);
       }
     }
     

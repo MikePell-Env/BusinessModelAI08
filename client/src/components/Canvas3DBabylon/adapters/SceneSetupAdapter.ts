@@ -24,7 +24,6 @@ export class SceneSetupAdapter {
     this.engine = this.canvasManager.getEngine();
     this.scene = this.canvasManager.getScene();
     
-    console.log('[SceneAdapter] Bridge adapter initialized - using CanvasManager internally');
   }
 
   /**
@@ -45,7 +44,6 @@ export class SceneSetupAdapter {
    * EXACT API MATCH: startRenderLoop(renderCallback: () => void): void
    */
   public startRenderLoop(renderCallback: () => void): void {
-    console.log('[SceneAdapter] Starting render loop');
     this.canvasManager.startRenderLoop();
   }
 
@@ -53,7 +51,6 @@ export class SceneSetupAdapter {
    * EXACT API MATCH: dispose(): void
    */
   public dispose(): void {
-    console.log('[SceneAdapter] Disposing scene setup');
     this.canvasManager.dispose();
   }
 

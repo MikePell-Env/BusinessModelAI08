@@ -28,14 +28,12 @@ export class CameraControllerAdapter {
     this.canvasManager = new CanvasManager(canvas);
     this.scene = this.canvasManager.getScene();
     
-    console.log('[CameraAdapter] Bridge adapter initialized - using CanvasManager internally');
   }
 
   /**
    * EXACT API MATCH: switchToMode(mode: CameraMode): void
    */
   public switchToMode(mode: CameraMode): void {
-    console.log(`[CameraAdapter] Switching to mode: ${mode}`);
     
     // Only using 3D View mode now - removed 3D Top
     const viewMode = '3D View';
@@ -61,7 +59,6 @@ export class CameraControllerAdapter {
    * EXACT API MATCH: resetCamera(): void
    */
   public resetCamera(): void {
-    console.log('[CameraAdapter] Reset camera requested');
     // CanvasManager handles camera reset internally
     // For now, just log - can implement specific reset logic if needed
   }
