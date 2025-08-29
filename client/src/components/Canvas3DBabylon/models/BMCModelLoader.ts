@@ -168,8 +168,9 @@ export class BMCModelLoader {
           if (revenueMesh) {
             const targetHeight = 0.4; // 20% of total group height (2.0)
             mesh.scaling.y = targetHeight;
-            // Position directly on top of Revenue object
-            mesh.position.y = revenueMesh.position.y + revenueMesh.scaling.y;
+            // Position directly on top of Revenue object (accounting for mesh scaling)
+            mesh.position.y = revenueMesh.position.y + (revenueMesh.scaling.y / 2) + (targetHeight / 2);
+            console.log(`🔧 RevenuePL positioned at Y: ${mesh.position.y}, based on Revenue Y: ${revenueMesh.position.y}, Revenue height: ${revenueMesh.scaling.y}`);
           }
           
         } else if (mesh.name === "ExpensesPL") {
@@ -178,8 +179,10 @@ export class BMCModelLoader {
           if (expensesMesh) {
             const targetHeight = 0.4; // 20% of total group height (2.0)
             mesh.scaling.y = targetHeight;
-            // Position directly on top of Expenses object
-            mesh.position.y = expensesMesh.position.y + expensesMesh.scaling.y;
+            // Position directly on top of Expenses object (accounting for mesh scaling)
+            // The position should be at the top surface of the Expenses object
+            mesh.position.y = expensesMesh.position.y + (expensesMesh.scaling.y / 2) + (targetHeight / 2);
+            console.log(`🔧 ExpensesPL positioned at Y: ${mesh.position.y}, based on Expenses Y: ${expensesMesh.position.y}, Expenses height: ${expensesMesh.scaling.y}`);
           }
         }
       });
