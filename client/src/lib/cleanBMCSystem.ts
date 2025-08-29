@@ -56,24 +56,15 @@ export class CleanBMCSystem {
 
   // Handle selection
   onSelect(sectionName: string) {
-    console.log(`🔍 CleanBMC onSelect: ${sectionName}`);
-
     try {
-      console.log(`🔍 DEBUG: Current selectedObject: ${this.selectedObject}`);
-      console.log(`🔍 DEBUG: Incoming sectionName: ${sectionName}`);
-
       // Toggle selection
       if (this.selectedObject === sectionName) {
-        console.log(`🔍 DEBUG: Deselecting same object`);
         this.selectedObject = null;
       } else {
-        console.log(`🔍 DEBUG: Selecting new object: ${sectionName}`);
         this.selectedObject = sectionName;
       }
 
-      console.log(`🔍 DEBUG: About to call updateAllVisuals()`);
       this.updateAllVisuals();
-      console.log(`🔍 DEBUG: onSelect completed successfully`);
       
     } catch (error) {
       console.error(`❌ CRASH in onSelect(${sectionName}):`, error);
@@ -188,16 +179,11 @@ export class CleanBMCSystem {
 
   // State application following documentation rules
   private applyState(name: string, state: string) {
-    console.log(`🔍 DEBUG CleanBMC: applyState called - name: ${name}, state: ${state}`);
-    
     try {
       const item = this.items.get(name);
       if (!item || !item.mesh || !item.material) {
-        console.warn(`⚠️ CleanBMC: Cannot apply state ${state} to ${name} - missing item, mesh, or material`);
         return;
       }
-
-      console.log(`🔍 DEBUG CleanBMC: Found item for ${name}, mesh: ${!!item.mesh}, material: ${!!item.material}`);
       const { mesh, material, originalHeight, baseColor } = item;
 
     // FIXED: Height management - 3D View mode only
