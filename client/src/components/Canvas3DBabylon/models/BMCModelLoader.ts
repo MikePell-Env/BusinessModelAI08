@@ -378,7 +378,7 @@ export class BMCModelLoader {
       throw error;
     }
   }
-}
+
   /**
    * Check if mesh is a financial object
    */
@@ -392,3 +392,4 @@ export class BMCModelLoader {
   private getAnchorType(name: string): 'top' | 'bottom' {
     return ['RevenuePL', 'ExpensesPL'].includes(name) ? 'top' : 'bottom';
   }
+}

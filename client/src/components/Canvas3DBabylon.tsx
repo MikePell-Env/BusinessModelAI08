@@ -1615,7 +1615,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
-    modelLoader.loadTemplateModel(template.name).then((model) => {
+    modelLoader.loadTemplateModel(template.name).then(async (model) => {
       if (model.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
 
