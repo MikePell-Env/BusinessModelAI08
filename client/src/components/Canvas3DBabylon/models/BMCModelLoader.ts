@@ -133,57 +133,31 @@ export class BMCModelLoader {
           mesh.position.x += 0.00; // At center line
         }
         
-        // Store base mesh positions for proper stacking calculations
-        let revenueBasePosition: number | null = null;
-        let expensesBasePosition: number | null = null;
+        // SIMPLE ANCHORING SYSTEM based on documentation:
+        // Bottom-anchored: Revenue, Expenses (fixed bottom surface, grow upward)
+        // Top-anchored: RevenuePL, ExpensesPL (fixed top surface, adjust position based on height)
         
-        // First pass: Set up base objects (Revenue, Expenses)
         if (mesh.name === "Revenue") {
-          // BOTTOM-ANCHORED: Base object for Revenue group (80% of total)
-          const bottomSurface = originalY;
-          const targetHeight = 1.6; // 80% of total group height (2.0)
-          
-          mesh.scaling.y = targetHeight;
-          mesh.position.y = bottomSurface;
-          revenueBasePosition = bottomSurface;
+          // BOTTOM-ANCHORED: Fixed bottom surface at ground plane
+          mesh.scaling.y = 1.6; // 80% of total group height (2.0)
+          mesh.position.y = originalY; // Bottom surface stays fixed
           
         } else if (mesh.name === "Expenses") {
-          // BOTTOM-ANCHORED: Base object for Expenses group (80% of total)
-          const bottomSurface = originalY;
-          const targetHeight = 1.6; // 80% of total group height (2.0)
+          // BOTTOM-ANCHORED: Fixed bottom surface at ground plane  
+          mesh.scaling.y = 1.6; // 80% of total group height (2.0)
+          mesh.position.y = originalY; // Bottom surface stays fixed
           
-          mesh.scaling.y = targetHeight;
-          mesh.position.y = bottomSurface;
-          expensesBasePosition = bottomSurface;
-        }
-      });
-      
-      // Second pass: Set up stacked objects (RevenuePL, ExpensesPL) after base objects are positioned
-      result.meshes.forEach((mesh) => {
-        const originalY = mesh.position.y;
-        
-        if (mesh.name === "RevenuePL") {
-          // Find Revenue mesh to stack on top of it
-          const revenueMesh = result.meshes.find(m => m.name === "Revenue");
-          if (revenueMesh) {
-            const targetHeight = 0.4; // 20% of total group height (2.0)
-            mesh.scaling.y = targetHeight;
-            // Position directly on top of Revenue object (accounting for mesh scaling)
-            mesh.position.y = revenueMesh.position.y + (revenueMesh.scaling.y / 2) + (targetHeight / 2);
-            console.log(`🔧 RevenuePL positioned at Y: ${mesh.position.y}, based on Revenue Y: ${revenueMesh.position.y}, Revenue height: ${revenueMesh.scaling.y}`);
-          }
+        } else if (mesh.name === "RevenuePL") {
+          // TOP-ANCHORED: Fixed top surface, adjust position based on height
+          mesh.scaling.y = 0.4; // 20% of total group height (2.0)
+          // Position so top surface is at the original top of the group (originalY + 2.0 total height)
+          mesh.position.y = originalY + 2.0 - mesh.scaling.y;
           
         } else if (mesh.name === "ExpensesPL") {
-          // Find Expenses mesh to stack on top of it
-          const expensesMesh = result.meshes.find(m => m.name === "Expenses");
-          if (expensesMesh) {
-            const targetHeight = 0.4; // 20% of total group height (2.0)
-            mesh.scaling.y = targetHeight;
-            // Position directly on top of Expenses object (accounting for mesh scaling)
-            // The position should be at the top surface of the Expenses object
-            mesh.position.y = expensesMesh.position.y + (expensesMesh.scaling.y / 2) + (targetHeight / 2);
-            console.log(`🔧 ExpensesPL positioned at Y: ${mesh.position.y}, based on Expenses Y: ${expensesMesh.position.y}, Expenses height: ${expensesMesh.scaling.y}`);
-          }
+          // TOP-ANCHORED: Fixed top surface, adjust position based on height
+          mesh.scaling.y = 0.4; // 20% of total group height (2.0)  
+          // Position so top surface is at the original top of the group (originalY + 2.0 total height)
+          mesh.position.y = originalY + 2.0 - mesh.scaling.y;
         }
       });
       
