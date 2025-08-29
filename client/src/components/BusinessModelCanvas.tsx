@@ -175,7 +175,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           onClick={switchToBusinessModel}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
-            currentType === 'business-model' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+            currentType === 'business-model' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
@@ -187,7 +187,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           onClick={switchToFinancials}
           disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
-            currentType === 'financials' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+            currentType === 'financials' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
