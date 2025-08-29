@@ -141,7 +141,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
       </div>
 
       {/* Fixed View Controls - positioned below header */}
-      <div className="fixed top-14 left-4 z-40 flex space-x-2" style={{ marginTop: '10px' }}>
+      <div className="fixed top-16 left-4 z-40 flex space-x-2">
         {/* 2D View button - hidden but functionality preserved */}
         <Button
           onClick={handleToggleView}
@@ -197,8 +197,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
 
       </div>
       
-      {/* Main content with minimal padding */}
-      <div className="pt-12 h-full relative">
+      {/* Main content with proper padding to account for header */}
+      <div className="pt-14 h-full relative">
 
       {/* Reset Button & Microsoft Stack Status */}
       <div className="absolute top-4 right-4 z-40 flex space-x-2">
