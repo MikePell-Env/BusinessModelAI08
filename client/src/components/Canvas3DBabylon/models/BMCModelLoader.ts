@@ -143,9 +143,7 @@ export class BMCModelLoader {
           const totalGroupHeight = 2.0;
           const revenueHeight = (revenueHeightPercent / 100) * totalGroupHeight;
           
-          // MINIMUM HEIGHT GUARANTEE: Never less than 5% visibility
-          const minHeight = totalGroupHeight * 0.05;
-          mesh.scaling.y = Math.max(revenueHeight, minHeight);
+          mesh.scaling.y = revenueHeight;
           mesh.position.y = originalY; // Bottom-anchored: position stays at ground plane
           
         } else if (mesh.name === "Expenses") {
@@ -154,9 +152,7 @@ export class BMCModelLoader {
           const totalGroupHeight = 2.0;
           const expensesHeight = (expensesHeightPercent / 100) * totalGroupHeight;
           
-          // MINIMUM HEIGHT GUARANTEE: Never less than 5% visibility
-          const minHeight = totalGroupHeight * 0.05;
-          mesh.scaling.y = Math.max(expensesHeight, minHeight);
+          mesh.scaling.y = expensesHeight;
           mesh.position.y = originalY; // Bottom-anchored: position stays at ground plane
           
         } else if (mesh.name === "RevenuePL") {
@@ -169,9 +165,7 @@ export class BMCModelLoader {
           const revenuePLHeight = (revenuePLHeightPercent / 100) * totalGroupHeight;
           const revenueHeight = (revenueHeightPercent / 100) * totalGroupHeight;
           
-          // MINIMUM HEIGHT GUARANTEE: Never less than 5% visibility
-          const minHeight = totalGroupHeight * 0.05;
-          mesh.scaling.y = Math.max(revenuePLHeight, minHeight);
+          mesh.scaling.y = revenuePLHeight;
           
           // ALGORITHMIC POSITIONING: Same formula as ExpensesPL
           const positioningFactor = 0.3; // Same factor for consistent stacking
@@ -201,13 +195,11 @@ export class BMCModelLoader {
           const expensesPLHeight = (expensesPLHeightPercent / 100) * totalGroupHeight;
           const expensesHeight = (expensesHeightPercent / 100) * totalGroupHeight;
           
-          // MINIMUM HEIGHT GUARANTEE: Never less than 5% visibility
-          const minHeight = totalGroupHeight * 0.05;
-          mesh.scaling.y = Math.max(expensesPLHeight, minHeight);
+          mesh.scaling.y = expensesPLHeight;
           
           // ALGORITHMIC POSITIONING: ExpensesPL center = originalY + (ExpensesHeight * 0.3)
           const positioningFactor = 0.3; // Derived from correct position: 0.48 / 1.6 = 0.3
-          mesh.position.y = originalY + (Math.max(expensesHeight, minHeight) * positioningFactor);
+          mesh.position.y = originalY + (expensesHeight * positioningFactor);
           
           console.log(`🔧 ALGORITHMIC: ExpensesPL at ${mesh.position.y} (${expensesHeight} * ${positioningFactor})`);
         }
