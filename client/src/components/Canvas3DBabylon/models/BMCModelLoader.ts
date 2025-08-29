@@ -159,49 +159,37 @@ export class BMCModelLoader {
           mesh.position.y = originalY; // Bottom-anchored: position stays at ground plane
           
         } else if (mesh.name === "RevenuePL") {
-          // ALGORITHMIC POSITIONING SYSTEM - Apply same logic to RevenuePL
-          // CALIBRATED FOR INITIAL STATE: No loss scenario (Revenue > Expenses)
+          // FIXED TOP SURFACE ANCHORING SYSTEM
+          // RevenuePL top surface stays at originalY + 2.0 (fixed group top)
           const totalGroupHeight = 2.0;
           const revenuePLHeight = 0; // No loss in initial state
-          const revenueHeight = totalGroupHeight; // 100% height
           
           mesh.scaling.y = revenuePLHeight;
           
-          // ALGORITHMIC POSITIONING: Same formula as ExpensesPL
-          const positioningFactor = 0.3; // Same factor for consistent stacking
-          mesh.position.y = originalY + (revenueHeight * positioningFactor);
+          // TOP-ANCHORED POSITIONING: position = originalY + totalGroupHeight - height
+          mesh.position.y = originalY + totalGroupHeight - revenuePLHeight;
           
-          console.log(`🔧 ALGORITHMIC: RevenuePL at ${mesh.position.y} (${revenueHeight} * ${positioningFactor})`);
+          console.log(`🔧 ANCHORED: RevenuePL at ${mesh.position.y} (top-anchored, height: ${revenuePLHeight})`);
           
         } else if (mesh.name === "ExpensesPL") {
-          // ALGORITHMIC POSITIONING SYSTEM
+          // FIXED TOP SURFACE ANCHORING SYSTEM
           // ========================================================================
-          // DOCUMENTED CORRECT POSITION (January 29, 2025):
-          // When Expenses = 80% height (1.6 units), ExpensesPL = 20% height (0.4 units)
-          // Correct ExpensesPL position = originalY + 0.48
-          // 
-          // REVERSE ENGINEERED ALGORITHM:
-          // ExpensesPL position = originalY + (ExpensesHeight * 0.3)
-          // Where 0.3 = positioning factor for proper stacking
-          // 
-          // VALIDATION: 1.6 * 0.3 = 0.48 ✓ (matches documented correct position)
+          // ANCHORING PRINCIPLE: ExpensesPL top surface stays at originalY + 2.0 (fixed group top)
+          // As height changes, position adjusts to maintain top surface anchoring
+          // Formula: position = originalY + totalGroupHeight - height
           // ========================================================================
           
           // CALIBRATED FOR INITIAL STATE: Revenue $10M, Expenses $8M, Profit $2M
-          // ExpensesPL = (2M profit / 10M revenue) * expenses total height = 20% of expenses group
           const totalGroupHeight = 2.0;
           const profitRatio = 2.0 / 10.0; // 2M profit / 10M revenue = 0.2
-          const expensesRatio = 8.0 / 10.0; // 8M expenses / 10M revenue = 0.8
           const expensesPLHeight = profitRatio * totalGroupHeight; // 20% of total group height
-          const expensesHeight = expensesRatio * totalGroupHeight; // 80% of total group height
           
           mesh.scaling.y = expensesPLHeight;
           
-          // ALGORITHMIC POSITIONING: ExpensesPL center = originalY + (ExpensesHeight * 0.3)
-          const positioningFactor = 0.3; // Derived from correct position: 0.48 / 1.6 = 0.3
-          mesh.position.y = originalY + (expensesHeight * positioningFactor);
+          // TOP-ANCHORED POSITIONING: position = originalY + totalGroupHeight - height
+          mesh.position.y = originalY + totalGroupHeight - expensesPLHeight;
           
-          console.log(`🔧 ALGORITHMIC: ExpensesPL at ${mesh.position.y} (${expensesHeight} * ${positioningFactor})`);
+          console.log(`🔧 ANCHORED: ExpensesPL at ${mesh.position.y} (top-anchored, height: ${expensesPLHeight})`);
         }
       });
       
