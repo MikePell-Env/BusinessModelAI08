@@ -179,6 +179,15 @@ export class BMCModelLoader {
       this.loadedModels.set('FinancialsMain', model);
       debugLog.info('model', `Financials model loaded with ${result.meshes.length} meshes`);
       
+      // Store original anchor positions for height manager
+      result.meshes.forEach(mesh => {
+        if (mesh instanceof Mesh && this.isFinancialMesh(mesh.name)) {
+          (mesh as any).originalAnchorPosition = mesh.position.clone();
+          (mesh as any).anchorType = this.getAnchorType(mesh.name);
+          debugLog.verbose('model', `Stored anchor data for ${mesh.name}: ${(mesh as any).anchorType}`);
+        }
+      });
+      
       return model;
     } catch (error) {
       debugLog.error('model', 'Failed to load Financials model', error);
@@ -370,3 +379,16 @@ export class BMCModelLoader {
     }
   }
 }
+  /**
+   * Check if mesh is a financial object
+   */
+  private isFinancialMesh(name: string): boolean {
+    return ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(name);
+  }
+
+  /**
+   * Get anchor type for financial mesh
+   */
+  private getAnchorType(name: string): 'top' | 'bottom' {
+    return ['RevenuePL', 'ExpensesPL'].includes(name) ? 'top' : 'bottom';
+  }
