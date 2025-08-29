@@ -174,13 +174,14 @@ export class FinancialsHeightManager {
       if (anchorType === 'top') {
         // For top-anchored objects (RevenuePL, ExpensesPL), position them adjacent to their base objects
         if (objectName === 'ExpensesPL') {
-          // Position ExpensesPL directly on top of Expenses object
+          // CORRECT POSITIONING: Use the calibrated 0.3 factor algorithm
           const expensesMesh = this.financialMeshes.get('Expenses');
           if (expensesMesh) {
             const expensesOriginalPos = this.originalPositions.get('Expenses');
             if (expensesOriginalPos) {
-              // Position at the top of the Expenses object
-              targetPosition = expensesOriginalPos.y + expensesMesh.scaling.y;
+              // ALGORITHMIC POSITIONING: ExpensesPL center = originalY + (ExpensesHeight * 0.3)
+              const positioningFactor = 0.3; // Calibrated positioning factor
+              targetPosition = expensesOriginalPos.y + (expensesMesh.scaling.y * positioningFactor);
             } else {
               targetPosition = originalPos.y - (targetHeight - startHeight);
             }
