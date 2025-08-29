@@ -169,35 +169,41 @@ export class FinancialsHeightManager {
         return;
       }
 
+      // ========================================================================
+      // FINANCIAL OBJECT ANCHORING SYSTEM (January 29, 2025)
+      // ========================================================================
+      // CORE PRINCIPLE: Each financial group (Revenue + RevenuePL, Expenses + ExpensesPL) 
+      //                 grows/shrinks in unison with FIXED top and bottom surfaces
+      //
+      // ANCHORING LOGIC:
+      // - Bottom objects (Revenue, Expenses): Bottom surface FIXED at ground level
+      // - Top objects (RevenuePL, ExpensesPL): Top surface FIXED at group top
+      // - Total group height: 2.0 units (constant)
+      //
+      // POSITIONING FORMULA:
+      // - Bottom-anchored: position = originalY (stays at ground)
+      // - Top-anchored: position = originalY + totalGroupHeight - targetHeight
+      // ========================================================================
+      
       // Calculate target position based on anchor and height change
       let targetPosition = startPosition;
       if (anchorType === 'top') {
-        // For top-anchored objects (RevenuePL, ExpensesPL), position them adjacent to their base objects
+        // TOP-ANCHORED OBJECTS: Fixed top surface, position adjusts with height changes
+        const totalGroupHeight = 2.0; // Fixed total group height
+        
         if (objectName === 'ExpensesPL') {
-          // TOP SURFACE FIXED: ExpensesPL top surface stays at fixed position
-          // As ExpensesPL height changes, position adjusts to keep top surface anchored
-          const totalGroupHeight = 2.0; // Fixed total group height
+          // ExpensesPL: Top surface stays at originalY + 2.0
           targetPosition = originalPos.y + totalGroupHeight - targetHeight;
         } else if (objectName === 'RevenuePL') {
-          // Position RevenuePL directly on top of Revenue object
-          const revenueMesh = this.financialMeshes.get('Revenue');
-          if (revenueMesh) {
-            const revenueOriginalPos = this.originalPositions.get('Revenue');
-            if (revenueOriginalPos) {
-              // Position at the top of the Revenue object
-              targetPosition = revenueOriginalPos.y + revenueMesh.scaling.y;
-            } else {
-              targetPosition = originalPos.y - (targetHeight - startHeight);
-            }
-          } else {
-            targetPosition = originalPos.y - (targetHeight - startHeight);
-          }
+          // RevenuePL: Top surface stays at originalY + 2.0 (same logic as ExpensesPL)
+          targetPosition = originalPos.y + totalGroupHeight - targetHeight;
         } else {
           // For other top-anchored objects, use original logic
           targetPosition = originalPos.y - (targetHeight - startHeight);
         }
       } else {
-        // For bottom-anchored objects, the bottom surface stays fixed at its original position.
+        // BOTTOM-ANCHORED OBJECTS: Fixed bottom surface at ground level
+        // Revenue and Expenses objects keep their bottom surface at originalY
         targetPosition = originalPos.y;
       }
 
