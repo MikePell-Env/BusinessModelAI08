@@ -237,8 +237,8 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
         </Button>
       </div>
 
-      {/* Canvas Views */}
-      <div className="w-full h-full relative">
+      {/* Canvas Views - positioned to allow overlay elements */}
+      <div className="w-full h-full relative" style={{ marginTop: '60px' }}>
         {is3D ? (
           <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} template={currentTemplate} />
         ) : (
