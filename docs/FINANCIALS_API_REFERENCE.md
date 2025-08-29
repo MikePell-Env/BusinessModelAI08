@@ -20,15 +20,24 @@ interface FinancialBusinessData {
 ```
 
 ### FinancialData
-Visualization-ready financial data interface.
+Visualization-ready financial data interface with balanced height calculation.
 
 ```typescript
 interface FinancialData {
-  revenue: number;   // Controls Revenue group height
-  expenses: number;  // Controls Expenses group height
-  profit: number;    // Controls ExpensesPL height
-  loss: number;      // Controls RevenuePL height
+  revenue: number;   // Total revenue amount
+  expenses: number;  // Total expenses amount
+  profit: number;    // Calculated: Math.max(0, revenue - expenses)
+  loss: number;      // Calculated: Math.max(0, expenses - revenue)
 }
+
+// Height Logic:
+// IF PROFIT (revenue > expenses):
+//   Revenue: 100% height, RevenuePL: 0%
+//   Expenses: (expenses/revenue * 100)%, ExpensesPL: (profit/revenue * 100)%
+//
+// IF LOSS (expenses > revenue):
+//   Expenses: 100% height, ExpensesPL: 0%  
+//   Revenue: (revenue/expenses * 100)%, RevenuePL: (loss/expenses * 100)%
 ```
 
 ### QuarterlyData

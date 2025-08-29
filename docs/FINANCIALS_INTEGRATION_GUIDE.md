@@ -103,13 +103,20 @@ const FinancialsControlPanel = ({ dataAdapter }) => {
   const [expenses, setExpenses] = useState(80);
   
   useEffect(() => {
+    // Automatic profit/loss calculation ensures balanced visualization
+    const profit = revenue - expenses;
+    const loss = expenses - revenue;
+    
     const businessData = {
       totalRevenue: revenue,
       totalExpenses: expenses,
-      netProfit: Math.max(0, revenue - expenses),
-      netLoss: Math.max(0, expenses - revenue)
+      netProfit: Math.max(0, profit),   // Profit only if positive
+      netLoss: Math.max(0, loss)        // Loss only if positive
     };
     
+    // The system automatically balances the visualization:
+    // - If profit > 0: Revenue=100%, Expenses=(expenses/revenue)%, Profit fills remaining
+    // - If loss > 0: Expenses=100%, Revenue=(revenue/expenses)%, Loss fills remaining
     dataAdapter.updateFromBusinessData(businessData, true);
   }, [revenue, expenses]);
   

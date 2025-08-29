@@ -1,4 +1,3 @@
-
 # Financials Architecture Documentation
 
 ## Overview
@@ -238,10 +237,29 @@ await dataAdapter.updateFromBusinessData(businessData, true);
 
 ### Height Animation Pipeline
 ```typescript
-1. Data Input → FinancialBusinessData
-2. Transform → FinancialData (via DataAdapter)
-3. Calculate → ProportionalHeights (via HeightManager)
-4. Animate → Individual Objects (staggered sequence)
+1. Data Input → FinancialBusinessData (totalRevenue, totalExpenses)
+2. Calculate → Profit/Loss = Revenue - Expenses
+3. Determine → Scenario (Profit vs Loss) and base scale
+4. Balance → Heights to maintain equal total height on both sides
+5. Animate → Individual Objects (staggered sequence)
+```
+
+### Balanced Height Calculation
+```typescript
+// Always maintain visual balance between left and right sides
+if (profit > 0) {
+  // Revenue side is 100%, Expenses side scales to match
+  revenueHeight = baseHeight;
+  revenuePLHeight = 0;
+  expensesHeight = (expenses/revenue) * baseHeight;
+  expensesPLHeight = (profit/revenue) * baseHeight;
+} else {
+  // Expenses side is 100%, Revenue side scales to match
+  expensesHeight = baseHeight;
+  expensesPLHeight = 0;
+  revenueHeight = (revenue/expenses) * baseHeight;
+  revenuePLHeight = (Math.abs(loss)/expenses) * baseHeight;
+}
 ```
 
 ### Animation Sequence
@@ -318,7 +336,7 @@ console.log('Animation completed for:', objectName);
 ### Extensibility Points
 - **Custom Data Adapters**: Support for different business data formats
 - **Animation Presets**: Configurable animation styles and timing
-- **Color Themes**: Dynamic color scheme switching
+- **Color Themes**: Dynamic color theme switching
 - **Layout Options**: Alternative object arrangements and layouts
 
 ## Technical Specifications

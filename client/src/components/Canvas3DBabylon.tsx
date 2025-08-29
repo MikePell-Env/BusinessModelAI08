@@ -776,14 +776,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       return;
     }
 
-    // Check WebGL support first
+    // Check WebGL support first with proper error handling
     const canvasElement = canvasRef.current;
-    const gl = canvasElement.getContext('webgl') || canvasElement.getContext('experimental-webgl');
-    if (!gl) {
-      console.error('WebGL is not supported in this browser');
+    try {
+      const gl = canvasElement.getContext('webgl2', { antialias: true, alpha: false }) || 
+                 canvasElement.getContext('webgl', { antialias: true, alpha: false }) || 
+                 canvasElement.getContext('experimental-webgl', { antialias: true, alpha: false });
+      if (!gl) {
+        console.error('WebGL is not supported in this browser');
+        return;
+      }
+      console.log('✅ WebGL context initialized successfully');
+      debugLog.info('webgl', 'WebGL context available');
+    } catch (error) {
+      console.error('❌ WebGL initialization failed:', error);
       return;
     }
-    debugLog.info('webgl', 'WebGL context available');
 
     // DIAGNOSTIC: Detect WebGL context loss (canvas disappearing)
     canvasElement.addEventListener('webglcontextlost', (e) => {
@@ -3235,6 +3243,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     });
 
+    // Force initial canvas resize after scene is ready
+    setTimeout(() => {
+      if (engine && !engine.isDisposed) {
+        try {
+          engine.resize();
+          console.log('🔄 Canvas resized and engine refreshed');
+        } catch (e) {
+          console.warn('Canvas resize failed:', e);
+        }
+      }
+    }, 100);
+
     // Clean up on unmount
     return () => {
       isDisposed = true;
@@ -3602,7 +3622,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         className="w-full h-full"
         style={{
           outline: 'none',
-          backgroundColor: '#e5e7eb' // Match scene clear color to prevent white flash
+          backgroundColor: '#e5e7eb', // Match scene clear color to prevent white flash
+          display: 'block',
+          minWidth: '100%',
+          minHeight: '100%',
+          position: 'relative'
         }}
       />
     </div>

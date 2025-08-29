@@ -53,45 +53,77 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Calculate proportional heights based on data while maintaining group totals
+   * Calculate balanced heights based on income statement logic
+   * Maintains visual balance: both sides always have equal total height
    */
   private calculateProportionalHeights(data: FinancialData): GroupHeights {
-    // Both groups start with combined height of 2.0 (original GLB models stacked)
-    const baseGroupHeight = 2.0;
-
-    // Normalize data for visualization (minimum 0.5 to ensure visibility)
-    const normalizedRevenue = Math.max(data.revenue, 0.5);
-    const normalizedExpenses = Math.max(data.expenses, 0.5);
-    const maxValue = Math.max(normalizedRevenue, normalizedExpenses);
-
-    // Scale groups proportionally while maintaining minimum base height
-    const scaleFactor = Math.min(maxValue / Math.max(normalizedRevenue, normalizedExpenses), this.maxVisualizationHeight / baseGroupHeight);
-
-    const revenueTotal = normalizedRevenue * scaleFactor;
-    const expensesTotal = normalizedExpenses * scaleFactor;
-
+    const baseHeight = 2.0; // Base visualization height
+    
+    // Ensure minimum values for visualization
+    const revenue = Math.max(data.revenue, 0.1);
+    const expenses = Math.max(data.expenses, 0.1);
+    
+    // Calculate profit/loss
+    const profit = revenue - expenses;
+    const loss = expenses - revenue;
+    
+    let revenueTotal: number, expensesTotal: number;
+    
+    if (profit >= 0) {
+      // PROFIT SCENARIO: Revenue side is 100%, Expenses side scales to match
+      revenueTotal = baseHeight;
+      expensesTotal = baseHeight; // Both sides equal height for balance
+    } else {
+      // LOSS SCENARIO: Expenses side is 100%, Revenue side scales to match  
+      expensesTotal = baseHeight;
+      revenueTotal = baseHeight; // Both sides equal height for balance
+    }
+    
     return {
       revenueTotal,
       expensesTotal,
-      maxHeight: Math.max(revenueTotal, expensesTotal)
+      maxHeight: baseHeight
     };
   }
 
   /**
-   * Update heights from financial data with smooth animations
-   * Maintains proper stacking order: Revenue + RevenuePL, Expenses + ExpensesPL
+   * Update heights from financial data with balanced income statement logic
+   * Implements: Revenue - Expenses = Profit/Loss with visual balance
    */
   public async updateHeightsFromData(
     data: FinancialData,
     duration: number = 1000
   ): Promise<void> {
     const heights = this.calculateProportionalHeights(data);
-
-    // Calculate 80/20 split for each group with proper stacking
-    const revenueHeight = heights.revenueTotal * 0.8;
-    const revenuePLHeight = heights.revenueTotal * 0.2;
-    const expensesHeight = heights.expensesTotal * 0.8;
-    const expensesPLHeight = heights.expensesTotal * 0.2;
+    
+    // Ensure minimum values for calculation
+    const revenue = Math.max(data.revenue, 0.1);
+    const expenses = Math.max(data.expenses, 0.1);
+    
+    // Calculate profit/loss
+    const profit = revenue - expenses;
+    const loss = expenses - revenue;
+    
+    let revenueHeight: number, revenuePLHeight: number;
+    let expensesHeight: number, expensesPLHeight: number;
+    
+    if (profit >= 0) {
+      // PROFIT SCENARIO: Revenue - Expenses = Profit
+      revenueHeight = heights.revenueTotal;        // Revenue: 100% height
+      revenuePLHeight = 0;                         // RevenuePL: 0% (no loss)
+      expensesHeight = (expenses / revenue) * heights.expensesTotal;     // Expenses: proportional
+      expensesPLHeight = (profit / revenue) * heights.expensesTotal;     // ExpensesPL: profit portion
+      
+      debugLog.info('financials', `PROFIT scenario - Revenue: 100%, Expenses: ${(expenses/revenue*100).toFixed(1)}%, Profit: ${(profit/revenue*100).toFixed(1)}%`);
+    } else {
+      // LOSS SCENARIO: Expenses - Revenue = Loss  
+      expensesHeight = heights.expensesTotal;      // Expenses: 100% height
+      expensesPLHeight = 0;                        // ExpensesPL: 0% (no profit)
+      revenueHeight = (revenue / expenses) * heights.revenueTotal;       // Revenue: proportional
+      revenuePLHeight = (Math.abs(loss) / expenses) * heights.revenueTotal; // RevenuePL: loss portion
+      
+      debugLog.info('financials', `LOSS scenario - Expenses: 100%, Revenue: ${(revenue/expenses*100).toFixed(1)}%, Loss: ${(Math.abs(loss)/expenses*100).toFixed(1)}%`);
+    }
 
     debugLog.info('financials', `Updating heights - Revenue: ${revenueHeight.toFixed(2)}, RevenuePL: ${revenuePLHeight.toFixed(2)}, Expenses: ${expensesHeight.toFixed(2)}, ExpensesPL: ${expensesPLHeight.toFixed(2)}`);
 
@@ -206,14 +238,35 @@ export class FinancialsHeightManager {
 
   /**
    * Set immediate heights without animation (for initialization)
+   * Uses balanced income statement logic
    */
   public setImmediateHeights(data: FinancialData): void {
     const heights = this.calculateProportionalHeights(data);
-
-    const revenueHeight = heights.revenueTotal * 0.8;
-    const revenuePLHeight = heights.revenueTotal * 0.2;
-    const expensesHeight = heights.expensesTotal * 0.8;
-    const expensesPLHeight = heights.expensesTotal * 0.2;
+    
+    // Ensure minimum values for calculation
+    const revenue = Math.max(data.revenue, 0.1);
+    const expenses = Math.max(data.expenses, 0.1);
+    
+    // Calculate profit/loss
+    const profit = revenue - expenses;
+    const loss = expenses - revenue;
+    
+    let revenueHeight: number, revenuePLHeight: number;
+    let expensesHeight: number, expensesPLHeight: number;
+    
+    if (profit >= 0) {
+      // PROFIT SCENARIO
+      revenueHeight = heights.revenueTotal;
+      revenuePLHeight = 0;
+      expensesHeight = (expenses / revenue) * heights.expensesTotal;
+      expensesPLHeight = (profit / revenue) * heights.expensesTotal;
+    } else {
+      // LOSS SCENARIO
+      expensesHeight = heights.expensesTotal;
+      expensesPLHeight = 0;
+      revenueHeight = (revenue / expenses) * heights.revenueTotal;
+      revenuePLHeight = (Math.abs(loss) / expenses) * heights.revenueTotal;
+    }
 
     this.setObjectHeight('Revenue', revenueHeight, 'bottom');
     this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
