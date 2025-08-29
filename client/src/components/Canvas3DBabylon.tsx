@@ -256,7 +256,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           cameraRef.current.beta,
           cameraRef.current.radius
         );
-        console.log(`💾 Saved camera position: α=${cameraRef.current.alpha.toFixed(2)}, β=${cameraRef.current.beta.toFixed(2)}, r=${cameraRef.current.radius.toFixed(2)}`);
       }
       
       // Check if this template has been initialized before
@@ -265,21 +264,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       
       if (!isFirstTimeForThisTemplate && currentState && (currentState.alpha !== 0 || currentState.beta !== 0 || currentState.radius !== 0)) {
         // Template switch: preserve current camera position
-        console.log("🔄 Template switch: Preserving current camera position");
         shouldAutoAnimateRef.current = false; // No auto-animation for template switches
         
         // Camera position preserved - check if current preset is still valid for the new template
         if (currentCameraPreset === 'FRONT' && template.name.toLowerCase() !== 'financials') {
           // Switching from Financials (FRONT) to Business Model - FRONT not valid, clear highlighting
-          console.log("🔄 Template switch: FRONT preset not valid for Business Model - clearing highlight");
           setIsInPresetPosition(false);
         } else if (currentCameraPreset === 'TOP' && template.name.toLowerCase() === 'financials') {
           // Switching from Business Model (TOP) to Financials - TOP not valid, clear highlighting
-          console.log("🔄 Template switch: TOP preset not valid for Financials - clearing highlight");
           setIsInPresetPosition(false);
         } else {
           // PERSPECTIVE_LEFT and PERSPECTIVE_RIGHT are valid for both templates - keep highlighting
-          console.log("🔄 Template switch: Current preset still valid - keeping button highlight");
           // Keep isInPresetPosition as is
         }
       } else {
@@ -288,7 +283,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         setCurrentCameraPreset(newPreset);
         setIsInPresetPosition(true); // Highlight the default preset button
         shouldAutoAnimateRef.current = true; // Enable auto-animation for first instantiation
-        console.log(`🎬 First instantiation: Setting default preset ${newPreset} for ${template.name}`);
       }
       setHasInitializedTemplate(template.name);
     }
@@ -399,7 +393,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     bmcState
   } = useCanvas();
   
-  debugLog.verbose('camera', `Canvas3DBabylon: perspective-only camera system`);
   
   
   // REMOVED: Old content panels system - now using clean billboard panel system
@@ -409,15 +402,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   
   // Inject BMC State Manager into CleanBMCSystem on first render
   useEffect(() => {
-    debugLog.verbose('init', 'Injecting BMC State Manager into CleanBMCSystem...');
-    debugLog.verbose('init', 'bmcState initialized');
-    debugLog.verbose('init', 'cleanBMCRef.current initialized');
-    
     cleanBMCRef.current.setBMCStateManager(bmcState);
-    
-    // REMOVED: MaterialManager integration - using direct property modification instead
-    
-    debugLog.verbose('init', 'Injection complete');
     
     // RESTORED: Sync with BMC State Manager for selection preservation
     const currentSelection = bmcState.getSelectedObject();
@@ -615,7 +600,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     switch (sectionName) {
       case 'Value Propositions':
         content = canvas.valuePropositions?.content || [];
-        console.log(`📋 Value Propositions content:`, content);
         break;
       // Add other sections later
       default:
@@ -629,7 +613,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Format content as bullet points
     const bulletText = content.map(item => `• ${item}`).join('\n');
-    console.log(`📝 Creating bullet text for ${sectionName}:`, bulletText);
     
     // Create dynamic texture for text
     const textureSize = 512;
@@ -687,9 +670,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     textPlane.position = mesh.position.clone();
     textPlane.position.y = mesh.position.y + (mesh.scaling.y / 2) + 0.1; // Higher elevation
     textPlane.rotation.x = Math.PI / 2; // Lay flat on top
-    console.log(`📍 Text plane positioned at:`, textPlane.position);
-    console.log(`📍 Mesh position:`, mesh.position);
-    console.log(`📍 Mesh scaling:`, mesh.scaling);
     
     // Create material - make it very visible
     const textMaterial = new StandardMaterial(`bulletTextMat_${sectionName}`, scene);
@@ -706,15 +686,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     textPlane.parent = mesh;
     textPlane.setEnabled(true); // Ensure it's enabled
     textPlane.isVisible = true; // Ensure it's visible
-    
-    console.log(`📊 Text plane details:`, {
-      name: textPlane.name,
-      position: textPlane.position,
-      isVisible: textPlane.isVisible,
-      isEnabled: textPlane.isEnabled(),
-      parent: textPlane.parent?.name,
-      materialAlpha: textMaterial.alpha
-    });
     return textPlane;
   };
 
@@ -849,9 +820,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       cameraAlpha = savedState.alpha;
       cameraBeta = savedState.beta;
       cameraRadius = savedState.radius as 60 | 55; // Type assertion for radius
-      console.log(`🔄 Restoring saved camera: α=${cameraAlpha.toFixed(2)}, β=${cameraBeta.toFixed(2)}, r=${cameraRadius.toFixed(2)}`);
     } else {
-      console.log(`🎬 Using preset camera for ${hasInitializedTemplate ? 'first' : 'initial'} instantiation: ${currentCameraPreset}`);
     }
     
     // Use scene center (0,0,0) for all presets - same central pivot point for all templates
@@ -1030,7 +999,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     
     // Update background click handler to have access to billboard panel
     handleBackgroundClick = () => {
-      console.log('Background clicked - clearing selection and closing billboard panel');
       cleanBMCRef.current.clearSelection();
       
       // Close billboard panel if it exists
@@ -1038,7 +1006,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         advancedTexture.removeControl(currentBillboardPanel);
         currentBillboardPanel = null;
         billboardPanelRef.current = null;
-        console.log("❌ Billboard panel closed by background click");
       }
     };
     
@@ -1047,7 +1014,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     
     // Function to create billboarded content panel
     const createBillboardPanel = (sectionName: string, worldPosition: Vector3) => {
-      console.log(`🚀🚀 CREATING BILLBOARD PANEL FOR: ${sectionName} 🚀🚀`);
       
       // Remove existing panel if any (panel refresh functionality)
       if (currentBillboardPanel) {
@@ -1073,20 +1039,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         const key = mapping[name];
         // Looking for section with key
         if (key && canvas[key]) {
-          console.log(`✅ Found section data for ${name}:`, canvas[key]);
           return canvas[key];
         }
-        console.log(`❌ No section data found for ${name}`);
         return null;
       };
       
       const sectionData = getSectionData(sectionName);
       if (!sectionData || typeof sectionData === 'string' || !('content' in sectionData) || !sectionData.content || sectionData.content.length === 0) {
-        console.log(`❌ No content available for ${sectionName} - sectionData:`, sectionData);
         return;
       }
       
-      console.log(`✅ Section data found for ${sectionName}, creating panel...`);
       
       // Calculate proper height based on content
       const bulletPoints = (sectionData as CanvasElement).content.map((item: string) => `• ${item}`).join('\n');
@@ -1105,7 +1067,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       const calculatedHeight = padding + (totalLines * lineHeight) + 60; // Add extra padding to prevent cropping
       const maxHeight = Math.min(800, Math.max(450, calculatedHeight)); // Minimum 450px height, up to 800px
       
-      console.log(`📏 Panel height calculation: ${totalLines} lines × ${lineHeight}px + ${padding}px padding = ${calculatedHeight}px (max: ${maxHeight}px)`);
       
       // Create main panel container - larger size for better visibility
       const panel = new Rectangle();
@@ -1213,10 +1174,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       currentBillboardPanel = panel;
       billboardPanelRef.current = panel;
       
-      console.log(`✅✅ BILLBOARD PANEL CREATED SUCCESSFULLY FOR ${sectionName} ✅✅`);
-      console.log(`📍 Panel position: (${worldPosition.x.toFixed(2)}, ${worldPosition.y.toFixed(2)}, ${worldPosition.z.toFixed(2)})`);
-      console.log(`📏 Panel size: ${panel.widthInPixels}x${panel.heightInPixels}px`);
-      console.log(`🎯 Panel should now be visible on screen with ${(sectionData as CanvasElement).content.length} bullet points!`);
     };
     
     // Add "Internal" label directly on the ground plane near Cost Structure
@@ -1256,7 +1213,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       internalLabelPlane.isPickable = false;
       internalLabelPlane.parent = masterTransform; // Parent to master transform
       
-      console.log(`✅ Internal label (grey) on ground plane at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
     };
 
     // Add "External" label on the right side of the ground plane
@@ -1297,7 +1253,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       externalLabelPlane.isPickable = false;
       externalLabelPlane.parent = masterTransform; // Parent to master transform
       
-      console.log(`✅ External label positioned on right side at (${externalLabelPlane.position.x}, ${externalLabelPlane.position.y}, ${externalLabelPlane.position.z})`);
     };
 
     // Add vertical divider label in the center of the ground plane, running top to bottom
@@ -1336,7 +1291,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       verticalDividerPlane.isPickable = false;
       verticalDividerPlane.parent = masterTransform; // Parent to master transform
       
-      console.log(`✅ Vertical divider label (grey) on ground plane at center (${verticalDividerPlane.position.x}, ${verticalDividerPlane.position.y}, ${verticalDividerPlane.position.z})`);
     };
     
     // Create the Internal, External, and Vertical Divider labels
@@ -1363,7 +1317,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       const normals = mesh.getVerticesData("normal");
       
       if (!positions || !indices || !uvs || !normals) {
-        console.log(`❌ Missing vertex data for texture mapping`);
         return;
       }
       
