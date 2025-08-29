@@ -172,10 +172,39 @@ export class FinancialsHeightManager {
       // Calculate target position based on anchor and height change
       let targetPosition = startPosition;
       if (anchorType === 'top') {
-        // For top-anchored objects, adjust position so the top surface stays in place
-        // The amount to move up is the difference in height if the new height is greater,
-        // or down if the new height is smaller.
-        targetPosition = originalPos.y - (targetHeight - startHeight);
+        // For top-anchored objects (RevenuePL, ExpensesPL), position them adjacent to their base objects
+        if (objectName === 'ExpensesPL') {
+          // Position ExpensesPL directly on top of Expenses object
+          const expensesMesh = this.financialMeshes.get('Expenses');
+          if (expensesMesh) {
+            const expensesOriginalPos = this.originalPositions.get('Expenses');
+            if (expensesOriginalPos) {
+              // Position at the top of the Expenses object
+              targetPosition = expensesOriginalPos.y + expensesMesh.scaling.y;
+            } else {
+              targetPosition = originalPos.y - (targetHeight - startHeight);
+            }
+          } else {
+            targetPosition = originalPos.y - (targetHeight - startHeight);
+          }
+        } else if (objectName === 'RevenuePL') {
+          // Position RevenuePL directly on top of Revenue object
+          const revenueMesh = this.financialMeshes.get('Revenue');
+          if (revenueMesh) {
+            const revenueOriginalPos = this.originalPositions.get('Revenue');
+            if (revenueOriginalPos) {
+              // Position at the top of the Revenue object
+              targetPosition = revenueOriginalPos.y + revenueMesh.scaling.y;
+            } else {
+              targetPosition = originalPos.y - (targetHeight - startHeight);
+            }
+          } else {
+            targetPosition = originalPos.y - (targetHeight - startHeight);
+          }
+        } else {
+          // For other top-anchored objects, use original logic
+          targetPosition = originalPos.y - (targetHeight - startHeight);
+        }
       } else {
         // For bottom-anchored objects, the bottom surface stays fixed at its original position.
         targetPosition = originalPos.y;
