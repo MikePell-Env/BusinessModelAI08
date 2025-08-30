@@ -2613,6 +2613,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
               labelPlane.material = labelMaterial;
               labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
+              
+              // Prevent Y-scaling (stretching) by overriding the scaling inheritance
+              labelPlane.scalingDeterminant = 1.0; // Force uniform scaling
+              
+              // Set initial inverse scaling to counter any existing mesh scaling
+              const meshYScale = mesh.scaling.y;
+              if (meshYScale > 0) {
+                labelPlane.scaling.y = 1.0 / meshYScale;
+                labelPlane.scaling.x = 1.0;
+                labelPlane.scaling.z = 1.0;
+              }
+              
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
               console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);

@@ -310,7 +310,7 @@ export class FinancialsHeightManager {
 
     mesh.scaling.y = height;
 
-    // Update any label to maintain aspect ratio (inverse scaling approach)
+    // Update any label position to follow the mesh (but maintain label's own scale)
     this.updateLabelPosition(mesh);
 
     if (anchorType === 'top') {
@@ -377,23 +377,15 @@ export class FinancialsHeightManager {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    // Apply specific aspect ratios based on label type
+    // Force label to maintain constant aspect ratio by inverting parent's Y scaling
     const parentYScale = mesh.scaling.y;
     if (parentYScale > 0) {
-      // Use specific aspect ratios for different label types
-      let aspectRatio = 1.0 / parentYScale; // Default calculation
-      
-      if (mesh.name === 'Revenue') {
-        aspectRatio = 0.35; // Revenue uses 0.35 for perfect proportions
-      } else if (mesh.name === 'ExpensesPL') {
-        aspectRatio = 0.3; // Profit uses 0.3 for tighter, less stretched look
-      }
-      
-      labelPlane.scaling.y = aspectRatio;
-      labelPlane.scaling.x = 1.0;
-      labelPlane.scaling.z = 1.0;
+      // Inverse the Y scaling to maintain original proportions
+      labelPlane.scaling.y = 1.0 / parentYScale;
+      labelPlane.scaling.x = 1.0; // Keep X scaling normal
+      labelPlane.scaling.z = 1.0; // Keep Z scaling normal
     }
     
-    debugLog.verbose('financials', `Applied aspect ratio scaling (${labelPlane.scaling.y.toFixed(3)}) to ${mesh.name} label`);
+    debugLog.verbose('financials', `Applied inverse Y scaling (${(1.0 / parentYScale).toFixed(3)}) to ${mesh.name} label`);
   }
 }
