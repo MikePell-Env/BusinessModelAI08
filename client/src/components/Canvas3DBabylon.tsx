@@ -1855,6 +1855,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Add baseColor property for compatibility with hover behavior
             sectionMaterial.baseColor = baseColor;
 
+            // Apply material to mesh - CRITICAL for Financial objects to have colors!
+            mesh.material = sectionMaterial;
+            mesh.receiveShadows = true;
+
+            // Store original color and material for hover/click effects
+            (mesh as any).originalColor = baseColor.clone();
+            (mesh as any).originalMaterial = sectionMaterial;
+
             // Skip label creation during mesh setup - will be done after all transformations are complete
 
             // Add floating label planes for specific sections
