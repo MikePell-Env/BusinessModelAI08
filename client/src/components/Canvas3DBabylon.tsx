@@ -2506,8 +2506,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         });
 
         // Create TransformNodes and Financial labels AFTER all mesh transformations are complete
-        if (template.name.toLowerCase() === 'financials') {
-          console.log(`🏷️ Creating TransformNodes and Financial labels after all transformations are complete`);
+        console.log(`🔍 Template name: "${template.name}", checking for Financial objects...`);
+        if (template.name.toLowerCase() === 'financials' || template.name.toLowerCase().includes('financial')) {
+          console.log(`✅ Financial template detected! Creating TransformNodes and Financial labels after all transformations are complete`);
 
           model.meshes.forEach((mesh) => {
             if (mesh.name !== "__root__") {
