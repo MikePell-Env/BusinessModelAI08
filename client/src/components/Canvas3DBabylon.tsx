@@ -336,9 +336,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     startBeta = perspectiveCamera.beta;
     startRadius = perspectiveCamera.radius;
 
-    // CRITICAL FIX: Camera target - use master transform if available, otherwise scene center
-    const cameraTarget = masterTransformRef.current ? masterTransformRef.current.position.clone() : new Vector3(0, 0, 0);
-    perspectiveCamera.setTarget(cameraTarget);
+    // Keep existing camera target to prevent jumps during preset transitions
+    // Only set target if it hasn't been set before
+    if (!perspectiveCamera.getTarget().equals(Vector3.Zero())) {
+      // Camera already has a target, preserve it to prevent jumps
+    } else {
+      const cameraTarget = masterTransformRef.current ? masterTransformRef.current.position.clone() : new Vector3(0, 0, 0);
+      perspectiveCamera.setTarget(cameraTarget);
+    }
 
     // Create smooth transition animations with cubic easing
     const alphaAnimation = Animation.CreateAndStartAnimation(
@@ -3193,18 +3198,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       setTimeout(() => {
         // Check if user moved camera before auto-switching
         if (!userHasMovedCamera) {
-          // Auto-switch logic: Business Model goes to PERSPECTIVE_RIGHT, Financials goes to FRONT
-          if (template.name.toLowerCase() === 'financials') {
-            console.log("🎬 Auto-switching camera to FRONT after 2 seconds for Financials");
-            // Force transition to false to ensure switchCameraPreset works
-            setIsTransitioningCamera(false);
-            setTimeout(() => switchCameraPreset('FRONT'), 100);
-          } else {
-            console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds");
-            // Force transition to false to ensure switchCameraPreset works
-            setIsTransitioningCamera(false);
-            setTimeout(() => switchCameraPreset('PERSPECTIVE_RIGHT'), 100);
-          }
+          // Auto-switch logic disabled - user should manually select presets
+          console.log("🎬 Auto-switch disabled - manual preset selection only");
         } else {
           console.log("🎬 Auto-switch cancelled - user moved camera manually");
         }
