@@ -3,6 +3,15 @@
 ## Overview
 The 4D Time Machine is a comprehensive platform for business visualization and analysis. It integrates the **Envisioner** foundational platform with the **4D Visual Language (4DVL)** dynamic visualization system. The application showcases various business use cases through self-contained, connected templates that process Microsoft Office document data and display it in specialized 3D visualizations. Its purpose is to provide a powerful tool for strategic analysis, financial forecasting, and "what-if" scenario planning, aiming to transform how businesses interact with their data.
 
+## Recent Changes
+**August 30, 2025 - Template Switching and Camera Orientation Fixes**
+- Fixed critical template-specific label issue where BMC labels appeared in Financials template
+- Resolved camera orientation bugs during template switching (inverted/upside-down views)
+- Fixed content mirroring issue when switching from Financials back to Business Model
+- Implemented proper EnvisionerPersistence system with template-specific rotation handling
+- Key insight: Rotation persistence conflicts - rotation should be template-specific, not globally persisted
+- Architecture decision: Position/scale preserved across templates, rotation applied per template
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
@@ -32,6 +41,9 @@ The application features a full-stack monorepo architecture, emphasizing modular
 ### Key Technical Details
 - **Canvas Visualization System**: Supports both traditional 2D grid and an advanced 3D system. The 3D system uses a single GLB model with interactive sections and additional GLB instances for specific components (e.g., Revenue Streams, Cost Structure).
 - **Coordinate System**: Handles specific GLB model positioning and scaling, including workarounds for X-axis inversion in certain models.
+- **EnvisionerPersistence System**: Manages spatial properties across template switches. Critical design: position and scale are preserved globally, but rotation is template-specific to prevent orientation conflicts.
+- **Template-Specific Rotation**: Business Model uses 180° Y rotation + X tilt for BMC orientation; Financials uses 0° rotation for normal content display.
+- **Camera System**: Perspective-only camera with template-aware presets. Business Model supports TOP/PERSPECTIVE_LEFT/PERSPECTIVE_RIGHT; Financials supports FRONT/PERSPECTIVE_LEFT/PERSPECTIVE_RIGHT.
 - **AI Chat Integration**: Utilizes GPT-4o for insights, recommendations, and conversational interaction, including intelligent voice-activated 3D view switching.
 - **Data Management**: Employs shared TypeScript types for consistent data structures, supporting canvas elements, metadata, and version control.
 - **Unified Transformation System**: Ensures consistent height, position, and scaling across all components.
