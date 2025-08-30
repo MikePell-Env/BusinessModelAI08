@@ -11,9 +11,11 @@
  * - Data source integration coordination
  */
 
-import { Scene } from '@babylonjs/core';
+import { Scene, Vector3 } from '@babylonjs/core';
 import { UseCase4DVLTemplate } from './4DVL/UseCase4DVLTemplate';
 import { DataSourceAdapter } from './data/DataSourceAdapter';
+import { EnvisionerObject, EnvisionerDataContext, createEnvisionerObject } from './objects/EnvisionerObject';
+import { TemplateDiscovery } from './discovery/TemplateDiscovery';
 
 export interface EnvisionerConfig {
   groundPlaneSize: { width: number; height: number };
@@ -48,11 +50,20 @@ export class Envisioner {
   private state: EnvisionerState;
   private activeTemplate: UseCase4DVLTemplate | null = null;
   private dataAdapter: DataSourceAdapter | null = null;
-  private dataSource: any = null; // The underlying data that remains constant
+  
+  // Core object definition - the persistent state of this Envisioner
+  private envisionerObject: EnvisionerObject;
 
-  constructor(scene: Scene, config: EnvisionerConfig) {
+  constructor(scene: Scene, config: EnvisionerConfig, dataContext: EnvisionerDataContext) {
     this.scene = scene;
     this.config = config;
+    
+    // Create the core Envisioner object
+    this.envisionerObject = createEnvisionerObject(
+      `envisioner_${Date.now()}`,
+      `Envisioner for ${dataContext.sourceMetadata.filename || 'data source'}`,
+      dataContext
+    );
     this.state = {
       currentTemplate: null,
       isLoading: false,
@@ -72,11 +83,21 @@ export class Envisioner {
   }
 
   /**
-   * Set the data source for this Envisioner instance (one-time)
+   * Initialize with discovered templates (called after construction)
    */
-  public async setDataSource(dataSource: any): Promise<void> {
-    this.dataSource = dataSource;
-    // Initialize data adapter if needed
+  public async initialize(): Promise<void> {
+    // Discover available templates based on data context
+    const capabilities = await TemplateDiscovery.discoverTemplates(this.envisionerObject.dataContext);
+    this.envisionerObject.dataContext.detectedTemplates = capabilities;
+    
+    // Set primary template
+    const primaryTemplate = await TemplateDiscovery.getPrimaryTemplate(this.envisionerObject.dataContext);
+    if (primaryTemplate) {
+      this.envisionerObject.dataContext.primaryTemplate = primaryTemplate;
+    }
+    
+    // Update state
+    this.envisionerObject.state.lastUpdated = new Date();
   }
 
   /**
@@ -94,20 +115,41 @@ export class Envisioner {
 
       // Load new template view with the same underlying data
       const template = await this.createTemplate(templateName);
-      await template.load(this.scene, this.dataSource); // Reuse same data source
+      await template.load(this.scene, this.envisionerObject.dataContext); // Use data context
       
       this.activeTemplate = template;
       this.state.currentTemplate = templateName;
+      this.envisionerObject.state.currentTemplateId = templateName;
+      this.envisionerObject.state.lastUpdated = new Date();
     } finally {
       this.state.isLoading = false;
     }
   }
 
   /**
-   * Get the underlying data source
+   * Get the core Envisioner object
    */
-  public getDataSource(): any {
-    return this.dataSource;
+  public getEnvisionerObject(): EnvisionerObject {
+    return this.envisionerObject;
+  }
+  
+  /**
+   * Get available templates for this Envisioner
+   */
+  public getAvailableTemplates(): string[] {
+    return this.envisionerObject.dataContext.detectedTemplates
+      .filter(t => t.isAvailable)
+      .map(t => t.templateId);
+  }
+  
+  /**
+   * Get template recommendations sorted by confidence
+   */
+  public getTemplateRecommendations(): { templateId: string; confidence: number; }[] {
+    return this.envisionerObject.dataContext.detectedTemplates
+      .filter(t => t.isAvailable)
+      .map(t => ({ templateId: t.templateId, confidence: t.confidenceScore }))
+      .sort((a, b) => b.confidence - a.confidence);
   }
 
   /**
