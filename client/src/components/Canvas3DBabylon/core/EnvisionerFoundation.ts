@@ -216,11 +216,20 @@ export class EnvisionerFoundation {
   }
 
   /**
-   * Foundation labels are now template-specific - this method is deprecated
+   * Create template-specific foundation labels
    */
-  private async createFoundationLabels(): Promise<void> {
-    // Labels moved to template level - Financials shouldn't show BMC-specific labels
-    debugLog.verbose('envisioner', '🏷️ Foundation labels are now template-specific');
+  public async createTemplateLabels(templateName: string): Promise<void> {
+    if (templateName.toLowerCase() === 'business-model') {
+      await this.createInternalLabel();
+      await this.createExternalLabel();
+      await this.createVerticalDividerLabel();
+      debugLog.verbose('envisioner', '🏷️ BMC foundation labels created');
+    } else if (templateName.toLowerCase() === 'financials') {
+      await this.createRevenueLabel();
+      await this.createExpensesLabel();
+      await this.createVerticalDividerLabel();
+      debugLog.verbose('envisioner', '🏷️ Financials foundation labels created');
+    }
   }
 
   /**
@@ -376,6 +385,106 @@ export class EnvisionerFoundation {
     verticalDividerPlane.parent = this.masterTransform;
 
     this.foundationComponents.set('verticalDividerLabel', verticalDividerPlane);
+  }
+
+  /**
+   * Create "Revenue" label on the ground plane for Financials template
+   */
+  private async createRevenueLabel(): Promise<void> {
+    const revenueLabelPlane = MeshBuilder.CreatePlane("envisionerRevenueLabel", {
+      width: 1.2,
+      height: 0.3
+    }, this.scene);
+
+    // Position on ground plane, moved more to the right
+    revenueLabelPlane.position.x = 1.5;
+    revenueLabelPlane.position.y = 0.001; // Directly on ground plane surface
+    revenueLabelPlane.position.z = -3.5;
+
+    // Rotate to lie flat on the ground
+    revenueLabelPlane.rotation.x = Math.PI / 2;
+
+    // Create material and texture for Revenue label
+    const revenueLabelMaterial = new StandardMaterial("envisionerRevenueLabelMaterial", this.scene);
+    const revenueLabelTexture = new DynamicTexture("envisionerRevenueLabelTexture", { width: 512, height: 128 }, this.scene, false);
+    const revenueLabelContext = revenueLabelTexture.getContext();
+
+    // Create grey text on transparent background
+    revenueLabelContext.fillStyle = "transparent";
+    revenueLabelContext.fillRect(0, 0, 512, 128);
+    revenueLabelContext.fillStyle = "#666666";
+    revenueLabelContext.font = "bold 48px Arial";
+    (revenueLabelContext as any).textAlign = "center";
+    (revenueLabelContext as any).textBaseline = "middle";
+    revenueLabelContext.fillText("Revenue", 256, 64);
+
+    revenueLabelTexture.update();
+    revenueLabelTexture.hasAlpha = true;
+    enhanceLabelTexture(revenueLabelTexture);
+
+    revenueLabelMaterial.diffuseTexture = revenueLabelTexture;
+    revenueLabelMaterial.emissiveTexture = revenueLabelTexture;
+    revenueLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+    revenueLabelMaterial.alpha = 0.3;
+    revenueLabelMaterial.useAlphaFromDiffuseTexture = true;
+    revenueLabelMaterial.disableLighting = true;
+    revenueLabelMaterial.backFaceCulling = false;
+
+    revenueLabelPlane.material = revenueLabelMaterial;
+    revenueLabelPlane.isPickable = false;
+    revenueLabelPlane.parent = this.masterTransform;
+
+    this.foundationComponents.set('revenueLabel', revenueLabelPlane);
+  }
+
+  /**
+   * Create "Expenses" label on the ground plane for Financials template
+   */
+  private async createExpensesLabel(): Promise<void> {
+    const expensesLabelPlane = MeshBuilder.CreatePlane("envisionerExpensesLabel", {
+      width: 1.2,
+      height: 0.3
+    }, this.scene);
+
+    // Position on ground plane on the right side
+    expensesLabelPlane.position.x = 8.0;
+    expensesLabelPlane.position.y = 0.001; // Directly on ground plane surface
+    expensesLabelPlane.position.z = -3.5;
+
+    // Rotate to lie flat on the ground
+    expensesLabelPlane.rotation.x = Math.PI / 2;
+
+    // Create material and texture for Expenses label
+    const expensesLabelMaterial = new StandardMaterial("envisionerExpensesLabelMaterial", this.scene);
+    const expensesLabelTexture = new DynamicTexture("envisionerExpensesLabelTexture", { width: 512, height: 128 }, this.scene, false);
+    const expensesLabelContext = expensesLabelTexture.getContext();
+
+    // Create grey text on transparent background
+    expensesLabelContext.fillStyle = "transparent";
+    expensesLabelContext.fillRect(0, 0, 512, 128);
+    expensesLabelContext.fillStyle = "#666666";
+    expensesLabelContext.font = "bold 48px Arial";
+    (expensesLabelContext as any).textAlign = "center";
+    (expensesLabelContext as any).textBaseline = "middle";
+    expensesLabelContext.fillText("Expenses", 256, 64);
+
+    expensesLabelTexture.update();
+    expensesLabelTexture.hasAlpha = true;
+    enhanceLabelTexture(expensesLabelTexture);
+
+    expensesLabelMaterial.diffuseTexture = expensesLabelTexture;
+    expensesLabelMaterial.emissiveTexture = expensesLabelTexture;
+    expensesLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+    expensesLabelMaterial.alpha = 0.3;
+    expensesLabelMaterial.useAlphaFromDiffuseTexture = true;
+    expensesLabelMaterial.disableLighting = true;
+    expensesLabelMaterial.backFaceCulling = false;
+
+    expensesLabelPlane.material = expensesLabelMaterial;
+    expensesLabelPlane.isPickable = false;
+    expensesLabelPlane.parent = this.masterTransform;
+
+    this.foundationComponents.set('expensesLabel', expensesLabelPlane);
   }
 
   /**
