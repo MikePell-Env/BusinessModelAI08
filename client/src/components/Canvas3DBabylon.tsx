@@ -1130,13 +1130,93 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       console.log(`🎯 Panel should now be visible on screen with ${(sectionData as CanvasElement).content.length} bullet points!`);
     };
 
-    // Labels are now handled by EnvisionerFoundation
+    // TEMPLATE-SPECIFIC LABELS: Only show BMC labels for Business Model template
+    if (template.name.toLowerCase() === 'business-model') {
+      // Create BMC-specific labels (Internal, External, divider)
+      const createBMCLabels = () => {
+        // Add "Internal" label for BMC
+        const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
+          width: 1.2,
+          height: 0.3
+        }, scene);
+        internalLabelPlane.position.x = 1.5;
+        internalLabelPlane.position.y = 0.001;
+        internalLabelPlane.position.z = -3.5;
+        internalLabelPlane.rotation.x = Math.PI / 2;
 
-    // External label creation removed - handled by EnvisionerFoundation
+        const internalMaterial = new StandardMaterial("internalLabelMat", scene);
+        const internalTexture = new Texture("/textures/Labels_internal_grey.png", scene);
+        internalTexture.hasAlpha = true;
+        enhanceLabelTexture(internalTexture);
+        internalMaterial.diffuseTexture = internalTexture;
+        internalMaterial.emissiveTexture = internalTexture;
+        internalMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+        internalMaterial.alpha = 0.3;
+        internalMaterial.useAlphaFromDiffuseTexture = true;
+        internalMaterial.disableLighting = true;
+        internalMaterial.backFaceCulling = false;
+        internalLabelPlane.material = internalMaterial;
+        internalLabelPlane.isPickable = false;
+        internalLabelPlane.parent = masterTransform;
 
-    // All foundation labels (Internal, External, vertical divider) are now handled by EnvisionerFoundation
+        // Add "External" label for BMC
+        const externalLabelPlane = MeshBuilder.CreatePlane("externalLabel", {
+          width: 1.2,
+          height: 0.3
+        }, scene);
+        externalLabelPlane.position.x = 8.0;
+        externalLabelPlane.position.y = 0.001;
+        externalLabelPlane.position.z = -3.5;
+        externalLabelPlane.rotation.x = Math.PI / 2;
 
-    // Foundation labels (Internal, External, vertical divider) are now created by EnvisionerFoundation
+        const externalMaterial = new StandardMaterial("externalLabelMat", scene);
+        const externalTexture = new Texture("/textures/Labels_external_grey.png", scene);
+        externalTexture.hasAlpha = true;
+        enhanceLabelTexture(externalTexture);
+        externalMaterial.diffuseTexture = externalTexture;
+        externalMaterial.emissiveTexture = externalTexture;
+        externalMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+        externalMaterial.alpha = 0.3;
+        externalMaterial.useAlphaFromDiffuseTexture = true;
+        externalMaterial.disableLighting = true;
+        externalMaterial.backFaceCulling = false;
+        externalLabelPlane.material = externalMaterial;
+        externalLabelPlane.isPickable = false;
+        externalLabelPlane.parent = masterTransform;
+
+        // Add vertical divider for BMC
+        const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
+          width: 0.3,
+          height: 12
+        }, scene);
+        verticalDividerPlane.position.x = 0;
+        verticalDividerPlane.position.y = 0.001;
+        verticalDividerPlane.position.z = 0;
+        verticalDividerPlane.rotation.x = Math.PI / 2;
+
+        const dividerMaterial = new StandardMaterial("verticalDividerMat", scene);
+        const dividerTexture = new Texture("/textures/Labels_vertical_divider.png", scene);
+        dividerTexture.hasAlpha = true;
+        enhanceLabelTexture(dividerTexture);
+        dividerMaterial.diffuseTexture = dividerTexture;
+        dividerMaterial.emissiveTexture = dividerTexture;
+        dividerMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+        dividerMaterial.alpha = 0.3;
+        dividerMaterial.useAlphaFromDiffuseTexture = true;
+        dividerMaterial.disableLighting = true;
+        dividerMaterial.backFaceCulling = false;
+        verticalDividerPlane.material = dividerMaterial;
+        verticalDividerPlane.isPickable = false;
+        verticalDividerPlane.parent = masterTransform;
+
+        debugLog.verbose('template', '🏷️ BMC-specific labels created for Business Model template');
+      };
+
+      createBMCLabels();
+    } else if (template.name.toLowerCase() === 'financials') {
+      // Financials template has no ground plane labels - clean financial view
+      debugLog.verbose('template', '🏷️ No ground plane labels for Financials template');
+    }
 
 
 
