@@ -163,16 +163,30 @@ export class BMCModelLoader {
           console.log(`🔧 ANCHORED: RevenuePL at ${mesh.position.y} (top-anchored, height: ${revenuePLHeight})`);
           
         } else if (mesh.name === "ExpensesPL") {
-          // DOCUMENTED POSITIONING: Height=0.85, Top-anchored at Y=-0.02 (reduced height, top vertices fixed)
-          const expensesPLHeight = 0.85; // Reduced from 1.0 to make it less tall
+          // VERTEX MANIPULATION: Directly adjust vertices to make shape less tall while keeping top vertices fixed
+          if (mesh instanceof Mesh && mesh.geometry) {
+            const positions = mesh.getVerticesData("position");
+            if (positions) {
+              const heightReduction = 0.15; // 15% height reduction
+              
+              for (let i = 1; i < positions.length; i += 3) { // Y coordinates are at indices 1, 4, 7, etc.
+                const currentY = positions[i];
+                
+                // Only move bottom vertices upward, keep top vertices (Y >= 0) unchanged
+                if (currentY < 0) {
+                  positions[i] = currentY * (1 - heightReduction);
+                }
+              }
+              
+              mesh.setVerticesData("position", positions);
+              mesh.refreshBoundingInfo();
+            }
+          }
           
-          mesh.scaling.y = expensesPLHeight;
+          // Keep original position since we're manipulating vertices directly
+          mesh.position.y = -0.02;
           
-          // TOP-ANCHORED POSITIONING: Keep top vertices at same location
-          // Since we reduced height by 15%, move position up by 15% to keep top fixed
-          mesh.position.y = -0.02 + (1.0 - expensesPLHeight) * 0.5;
-          
-          console.log(`🔧 ANCHORED: ExpensesPL at ${mesh.position.y} (top-anchored, height: ${expensesPLHeight})`);
+          console.log(`🔧 VERTEX MODIFIED: ExpensesPL vertices adjusted, top vertices preserved`);
         }
       });
       
