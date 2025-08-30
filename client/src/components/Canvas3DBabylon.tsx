@@ -300,6 +300,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
 
+  // DEBUG: Log current camera position immediately
+  useEffect(() => {
+    if (cameraRef.current) {
+      const cam = cameraRef.current;
+      console.log("🎥 CURRENT camera position RIGHT NOW:", {
+        x: cam.position.x,
+        y: cam.position.y, 
+        z: cam.position.z,
+        alpha: cam.alpha,
+        beta: cam.beta,
+        radius: cam.radius
+      });
+    }
+  });
+
   // High-quality camera preset switching with smooth transitions
   const switchCameraPreset = (preset: 'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT') => {
     if (isTransitioningCamera) return; // Prevent overlapping transitions
