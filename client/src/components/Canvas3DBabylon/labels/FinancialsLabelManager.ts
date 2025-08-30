@@ -79,11 +79,11 @@ export class FinancialsLabelManager {
     const center = boundingInfo.boundingBox.center;
     const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
     
-    // Position label in front of mesh center
+    // Position label in front of mesh center - FIXED positioning
     transformNode.position = new Vector3(
       center.x,
       center.y,
-      center.z - (size.z * 0.51) // Just in front of mesh
+      center.z + (size.z * 0.6) // Move further in front of mesh
     );
 
     // Create label plane with fixed aspect ratio
@@ -147,7 +147,7 @@ export class FinancialsLabelManager {
     // Update transform position (label size remains unchanged)
     transformNode.position.x = center.x;
     transformNode.position.y = center.y;
-    transformNode.position.z = center.z - (size.z * 0.51);
+    transformNode.position.z = center.z + (size.z * 0.6); // Move further in front
 
     debugLog.verbose('financials-labels', 
       `Updated ${objectName} label position: (${transformNode.position.x.toFixed(3)}, ${transformNode.position.y.toFixed(3)}, ${transformNode.position.z.toFixed(3)})`
