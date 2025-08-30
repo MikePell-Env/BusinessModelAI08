@@ -411,7 +411,7 @@ export class EnvisionerFoundation {
   private async createRevenueLabel(): Promise<void> {
     const revenueLabelPlane = MeshBuilder.CreatePlane("envisionerRevenueLabel", {
       width: 1.2,
-      height: 0.3
+      height: 0.094
     }, this.scene);
 
     // Position on ground plane, moved more to the right
@@ -461,7 +461,7 @@ export class EnvisionerFoundation {
   private async createExpensesLabel(): Promise<void> {
     const expensesLabelPlane = MeshBuilder.CreatePlane("envisionerExpensesLabel", {
       width: 1.2,
-      height: 0.3
+      height: 0.094
     }, this.scene);
 
     // Position on ground plane on the right side
