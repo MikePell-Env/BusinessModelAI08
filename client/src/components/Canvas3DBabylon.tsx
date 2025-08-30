@@ -1186,12 +1186,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       // Add "External" label (positioned closer to rail, smaller font, 50% opacity)
       context.fillText("External", 768, 980); // Much closer to bottom rail
       
-      // Add vertical divider with 80% opacity, 2x taller and thinner
+      // Add vertical divider with 80% opacity, longer and thinner
       context.strokeStyle = "rgba(102, 102, 102, 0.8)";
       context.lineWidth = 1;
       context.beginPath();
-      context.moveTo(512, 88); // Start 2x higher (300-212=88)
-      context.lineTo(512, 936); // End 2x lower (724+212=936)
+      context.moveTo(512, 50); // Start even higher
+      context.lineTo(512, 974); // End even lower (longer line)
       context.stroke();
       
       compositeTexture.update();
@@ -1242,12 +1242,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       // Add "Revenue" label (positioned on right from viewer's angle, closer to rail, smaller font, 50% opacity)  
       context.fillText("Revenue", 768, 980); // Right from viewer's perspective, much closer to rail
       
-      // Add vertical divider with 80% opacity, 2x taller and thinner
+      // Add vertical divider with 80% opacity, longer and thinner
       context.strokeStyle = "rgba(102, 102, 102, 0.8)";
       context.lineWidth = 1;
       context.beginPath();
-      context.moveTo(512, 88); // Start 2x higher (300-212=88)
-      context.lineTo(512, 936); // End 2x lower (724+212=936)
+      context.moveTo(512, 50); // Start even higher
+      context.lineTo(512, 974); // End even lower (longer line)
       context.stroke();
       
       compositeTexture.update();
