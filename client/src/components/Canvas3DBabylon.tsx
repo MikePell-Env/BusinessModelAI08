@@ -3412,12 +3412,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 min="100"
                 max="1000"
                 defaultValue="1000"
+                id="revenue-slider"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
                   const revenue = parseInt(e.target.value);
-                  // Get current expenses value from the other slider
-                  const expensesSlider = document.querySelector('input[type="range"]:nth-of-type(2)') as HTMLInputElement;
+                  // Get current expenses value from the other slider by ID
+                  const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
                   const currentExpenses = expensesSlider ? parseInt(expensesSlider.value) : 800;
+                  
+                  // Debug logging for cross-slider reading
+                  console.log('🐛 Revenue slider touched:', {
+                    revenue: revenue,
+                    currentExpenses: currentExpenses,
+                    expensesSliderExists: !!expensesSlider,
+                    expensesSliderValue: expensesSlider?.value
+                  });
 
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
@@ -3443,12 +3452,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 min="100"
                 max="1000"
                 defaultValue="800"
+                id="expenses-slider"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
                   const expenses = parseInt(e.target.value);
-                  // Get current revenue value from the other slider
-                  const revenueSlider = document.querySelector('input[type="range"]:nth-of-type(1)') as HTMLInputElement;
+                  // Get current revenue value from the other slider by ID
+                  const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
                   const currentRevenue = revenueSlider ? parseInt(revenueSlider.value) : 1000;
+                  
+                  // Debug logging for first touch issue
+                  console.log('🐛 Expenses slider touched:', {
+                    expenses: expenses,
+                    currentRevenue: currentRevenue,
+                    revenueSliderExists: !!revenueSlider,
+                    revenueSliderValue: revenueSlider?.value
+                  });
 
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
