@@ -54,6 +54,23 @@ export const CAMERA_PRESETS = {
   }
 } as const;
 
+// Frame Theme System
+export const FRAME_THEMES = {
+  FRAME_GOLD: {
+    color: "#8B4513", // Current goldish brown
+    specular: new Color3(0.2, 0.15, 0.1),
+    name: "Gold"
+  },
+  FRAME_GREY: {
+    color: "#606060", // Classic grey
+    specular: new Color3(0.1, 0.1, 0.1),
+    name: "Grey"
+  }
+} as const;
+
+// Default frame theme
+export const DEFAULT_FRAME_THEME = FRAME_THEMES.FRAME_GREY;
+
 // Material Colors
 export const MATERIAL_COLORS = {
   // BMC Section Colors
