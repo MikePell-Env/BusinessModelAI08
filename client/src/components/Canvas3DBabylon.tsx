@@ -3394,69 +3394,45 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-xs mb-1">Revenue Total</label>
-              <div className="revenue-display text-xs text-green-400 mb-1">$10M (Default)</div>
+              <div className="revenue-display text-xs text-green-400 mb-1">$10M (Fixed)</div>
               <input
                 type="range"
-                min="100"
-                max="2000"
+                min="1000"
+                max="1000"
                 defaultValue="1000"
-                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                onChange={(e) => {
-                  const revenue = parseInt(e.target.value);
-                  // Get current expenses value from the other slider
-                  const expensesSlider = document.querySelector('input[type="range"]:nth-of-type(2)') as HTMLInputElement;
-                  const currentExpenses = expensesSlider ? parseInt(expensesSlider.value) : 800;
-
-                  if ((window as any).financialsDataAdapter) {
-                    (window as any).financialsDataAdapter.updateFromBusinessData({
-                      totalRevenue: revenue,  // Revenue slider → Revenue group
-                      totalExpenses: currentExpenses,
-                      netProfit: Math.max(0, revenue - currentExpenses),
-                      netLoss: Math.max(0, currentExpenses - revenue)
-                    });
-                  }
-
-                  // Update the display values
-                  const revenueDisplay = document.querySelector('.revenue-display');
-                  const expensesDisplay = document.querySelector('.expenses-display');
-                  if (revenueDisplay) revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
-                  if (expensesDisplay) expensesDisplay.textContent = `$${(currentExpenses * 10 / 1000).toFixed(0)}M`;
-                }}
+                disabled
+                className="w-full h-2 bg-gray-500 rounded-lg appearance-none cursor-not-allowed opacity-50"
               />
-              <span className="text-xs text-gray-300">$100k - $20M</span>
+              <span className="text-xs text-gray-400">$10M (Locked)</span>
             </div>
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
-              <div className="expenses-display text-xs text-red-400 mb-1">$8M (Default)</div>
+              <div className="expenses-display text-xs text-red-400 mb-1">$8M</div>
               <input
                 type="range"
                 min="100"
-                max="1600"
+                max="1000"
                 defaultValue="800"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
                   const expenses = parseInt(e.target.value);
-                  // Get current revenue value from the other slider
-                  const revenueSlider = document.querySelector('input[type="range"]:nth-of-type(1)') as HTMLInputElement;
-                  const currentRevenue = revenueSlider ? parseInt(revenueSlider.value) : 1000;
+                  const fixedRevenue = 1000; // Always $10M
 
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
-                      totalRevenue: currentRevenue,
-                      totalExpenses: expenses,  // Expenses slider → Expenses group
-                      netProfit: Math.max(0, currentRevenue - expenses),
-                      netLoss: Math.max(0, expenses - currentRevenue)
+                      totalRevenue: fixedRevenue,  // Always $10M
+                      totalExpenses: expenses,  // Expenses slider: $1M-$10M
+                      netProfit: Math.max(0, fixedRevenue - expenses),
+                      netLoss: 0 // No loss possible since expenses ≤ revenue
                     });
                   }
 
                   // Update the display values
-                  const revenueDisplay = document.querySelector('.revenue-display');
                   const expensesDisplay = document.querySelector('.expenses-display');
-                  if (revenueDisplay) revenueDisplay.textContent = `$${(currentRevenue * 10 / 1000).toFixed(0)}M`;
                   if (expensesDisplay) expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
                 }}
               />
-              <span className="text-xs text-gray-300">$100k - $16M</span>
+              <span className="text-xs text-gray-300">$1M - $10M</span>
             </div>
           </div>
           <div className="flex gap-2 justify-center">
