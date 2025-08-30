@@ -393,6 +393,8 @@ export class FinancialsHeightManager {
     const profit = Math.max(0, revenue - expenses);
     const loss = Math.max(0, expenses - revenue);
     
+    const HEIGHT_SCALE = 500.0;
+    
     // Calculate heights with proper percentage distribution
     // Revenue Group: Revenue = 99% of total, RevenuePL = 1% minimum visibility 
     const totalRevenueHeight = revenue / HEIGHT_SCALE; // Total height for Revenue group
