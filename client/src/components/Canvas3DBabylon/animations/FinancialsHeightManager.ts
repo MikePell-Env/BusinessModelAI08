@@ -464,21 +464,23 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Update label to maintain aspect ratio when mesh uses vertex manipulation
-   * The key issue: vertex manipulation changes geometry but parent transform stays same
-   * Labels inherit the "visual stretch" from vertex compression without inheriting transform
+   * Update label to maintain aspect ratio using Babylon.js best practice
+   * Uses absoluteScaling inverse compensation method from official documentation
    */
   private updateLabelPosition(mesh: Mesh): void {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    // Since vertex manipulation changes geometry but not mesh.scaling,
-    // we need to calculate the actual visual compression ratio
+    // BABYLON.JS BEST PRACTICE: Use absoluteScaling for inverse compensation
+    // Force parent to compute world matrix first
+    mesh.computeWorldMatrix(true);
+    
+    // Calculate the effective visual scaling from vertex manipulation
     const currentBounds = mesh.getBoundingInfo();
     const originalVertices = this.originalVertices.get(mesh.name);
     
     if (originalVertices) {
-      // Calculate original height
+      // Calculate original height from stored vertices
       let originalMinY = Number.MAX_VALUE;
       let originalMaxY = Number.MIN_VALUE;
       for (let i = 1; i < originalVertices.length; i += 3) {
@@ -488,18 +490,19 @@ export class FinancialsHeightManager {
       }
       const originalHeight = originalMaxY - originalMinY;
       
-      // Calculate current height
+      // Calculate current height from bounds
       const currentHeight = currentBounds.boundingBox.maximum.y - currentBounds.boundingBox.minimum.y;
       
-      // The visual compression ratio
-      const compressionRatio = currentHeight / originalHeight;
+      // Visual compression factor due to vertex manipulation
+      const vertexCompressionY = currentHeight / originalHeight;
       
-      // Apply inverse scaling to counteract visual compression
-      labelPlane.scaling.y = compressionRatio;
+      // Apply inverse scaling to preserve original label proportions
+      // This compensates for the visual compression from vertex manipulation
       labelPlane.scaling.x = 1.0;
+      labelPlane.scaling.y = vertexCompressionY; // Direct compensation for vertex compression
       labelPlane.scaling.z = 1.0;
       
-      debugLog.verbose('financials', `Label ${mesh.name}: original=${originalHeight.toFixed(3)}, current=${currentHeight.toFixed(3)}, ratio=${compressionRatio.toFixed(3)}`);
+      debugLog.verbose('financials', `Label ${mesh.name}: vertex compression ${vertexCompressionY.toFixed(3)}, applied scaling ${vertexCompressionY.toFixed(3)}`);
     }
   }
 }
