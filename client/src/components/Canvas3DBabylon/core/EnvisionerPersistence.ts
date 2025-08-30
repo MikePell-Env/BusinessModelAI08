@@ -44,14 +44,9 @@ export class EnvisionerPersistence {
       // CRITICAL FIX: Template-specific rotation handling
       // Both templates need 180° rotation to face camera properly
       if (templateName.toLowerCase() === 'financials') {
-        // Financials template - check if FRONT preset needs X tilt like Business Model TOP
+        // Financials template - consistent rotation for all presets
         this.masterTransform.rotation.y = Math.PI; // 180 degrees to face camera
-        if (cameraPreset === 'FRONT') {
-          // FRONT preset gets the modeler front view with X tilt like Business Model TOP
-          this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
-        } else {
-          this.masterTransform.rotation.x = 0; // No X tilt for other presets
-        }
+        this.masterTransform.rotation.x = 0; // No X tilt for Financials - camera handles positioning
       } else {
         // Business Model template - original 180° rotation for BMC orientation
         this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
@@ -86,15 +81,9 @@ export class EnvisionerPersistence {
     // CRITICAL: Apply template-specific rotation AFTER restoring position/scale
     // This rotation is set ONCE at initialization and stays constant during camera transitions
     if (templateName.toLowerCase() === 'financials') {
-      // Financials template - check if current preset is FRONT at initialization
+      // Financials template - consistent rotation for all presets
       this.masterTransform.rotation.y = Math.PI; // 180 degrees to face camera
-      if (cameraPreset === 'FRONT') {
-        // FRONT preset rotates scene away from camera for optimal front viewing
-        this.masterTransform.rotation.x = -Math.PI / 4; // 45 degrees away from camera
-      } else {
-        // All other presets use no X tilt for Financials
-        this.masterTransform.rotation.x = 0; // No X tilt for other presets
-      }
+      this.masterTransform.rotation.x = 0; // No X tilt for Financials - camera handles positioning
     } else {
       // Business Model template - original 180° rotation for BMC orientation
       this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
