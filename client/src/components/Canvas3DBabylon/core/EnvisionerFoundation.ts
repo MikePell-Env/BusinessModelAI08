@@ -251,17 +251,17 @@ export class EnvisionerFoundation {
 
     // Create material and texture for Internal label
     const internalLabelMaterial = new StandardMaterial("envisionerInternalLabelMaterial", this.scene);
-    const internalLabelTexture = new DynamicTexture("envisionerInternalLabelTexture", { width: 512, height: 128 }, this.scene, false);
+    const internalLabelTexture = new DynamicTexture("envisionerInternalLabelTexture", { width: 512, height: 40 }, this.scene, false);
     const internalLabelContext = internalLabelTexture.getContext();
 
     // Create grey text on transparent background
     internalLabelContext.fillStyle = "transparent";
-    internalLabelContext.fillRect(0, 0, 512, 128);
+    internalLabelContext.fillRect(0, 0, 512, 40);
     internalLabelContext.fillStyle = this.config.labels.internal.color;
-    internalLabelContext.font = "bold 48px Arial";
+    internalLabelContext.font = "bold 30px Arial";
     (internalLabelContext as any).textAlign = "center";
     (internalLabelContext as any).textBaseline = "middle";
-    internalLabelContext.fillText(this.config.labels.internal.text, 256, 64);
+    internalLabelContext.fillText(this.config.labels.internal.text, 256, 20);
 
     internalLabelTexture.update();
     internalLabelTexture.hasAlpha = true;
@@ -301,17 +301,17 @@ export class EnvisionerFoundation {
 
     // Create material and texture for External label
     const externalLabelMaterial = new StandardMaterial("envisionerExternalLabelMaterial", this.scene);
-    const externalLabelTexture = new DynamicTexture("envisionerExternalLabelTexture", { width: 512, height: 128 }, this.scene, false);
+    const externalLabelTexture = new DynamicTexture("envisionerExternalLabelTexture", { width: 512, height: 40 }, this.scene, false);
     const externalLabelContext = externalLabelTexture.getContext();
 
     // Create grey text on transparent background
     externalLabelContext.fillStyle = "transparent";
-    externalLabelContext.fillRect(0, 0, 512, 128);
+    externalLabelContext.fillRect(0, 0, 512, 40);
     externalLabelContext.fillStyle = this.config.labels.external.color;
-    externalLabelContext.font = "bold 48px Arial";
+    externalLabelContext.font = "bold 30px Arial";
     (externalLabelContext as any).textAlign = "center";
     (externalLabelContext as any).textBaseline = "middle";
-    externalLabelContext.fillText(this.config.labels.external.text, 256, 64);
+    externalLabelContext.fillText(this.config.labels.external.text, 256, 20);
 
     externalLabelTexture.update();
     externalLabelTexture.hasAlpha = true;
@@ -337,8 +337,8 @@ export class EnvisionerFoundation {
    */
   private async createVerticalDividerLabel(): Promise<void> {
     const verticalDividerPlane = MeshBuilder.CreatePlane("envisionerVerticalDividerLabel", {
-      width: 0.3,
-      height: 12
+      width: 0.05,
+      height: 8
     }, this.scene);
 
     verticalDividerPlane.position.x = 0;
@@ -350,22 +350,23 @@ export class EnvisionerFoundation {
 
     // Create material and texture for vertical divider label
     const verticalDividerMaterial = new StandardMaterial("envisionerVerticalDividerMaterial", this.scene);
-    const verticalDividerTexture = new DynamicTexture("envisionerVerticalDividerTexture", { width: 128, height: 1024 }, this.scene, false);
+    const verticalDividerTexture = new DynamicTexture("envisionerVerticalDividerTexture", { width: 32, height: 512 }, this.scene, false);
     const verticalDividerContext = verticalDividerTexture.getContext();
 
     // Create grey text on transparent background
     verticalDividerContext.fillStyle = "transparent";
-    verticalDividerContext.fillRect(0, 0, 128, 1024);
+    verticalDividerContext.fillRect(0, 0, 32, 512);
     verticalDividerContext.fillStyle = this.config.labels.divider.color;
-    verticalDividerContext.font = "bold 32px Arial";
+    verticalDividerContext.font = "bold 24px Arial";
     (verticalDividerContext as any).textAlign = "center";
     (verticalDividerContext as any).textBaseline = "middle";
 
-    // Split the long text and draw it vertically
+    // Split the long text and draw it vertically (shorter divider)
     const parts = this.config.labels.divider.text.split(" | ");
-    const lineHeight = 1024 / (parts.length + 1);
+    const lineHeight = 400 / (parts.length + 1); // Use only middle 400px of 512px texture
+    const startY = 56; // Start 56px from top
     parts.forEach((part, index) => {
-      verticalDividerContext.fillText(part, 64, lineHeight * (index + 1));
+      verticalDividerContext.fillText(part, 16, startY + lineHeight * (index + 1));
     });
 
     verticalDividerTexture.update();
@@ -406,17 +407,17 @@ export class EnvisionerFoundation {
 
     // Create material and texture for Revenue label
     const revenueLabelMaterial = new StandardMaterial("envisionerRevenueLabelMaterial", this.scene);
-    const revenueLabelTexture = new DynamicTexture("envisionerRevenueLabelTexture", { width: 512, height: 128 }, this.scene, false);
+    const revenueLabelTexture = new DynamicTexture("envisionerRevenueLabelTexture", { width: 512, height: 40 }, this.scene, false);
     const revenueLabelContext = revenueLabelTexture.getContext();
 
     // Create grey text on transparent background
     revenueLabelContext.fillStyle = "transparent";
-    revenueLabelContext.fillRect(0, 0, 512, 128);
+    revenueLabelContext.fillRect(0, 0, 512, 40);
     revenueLabelContext.fillStyle = "#666666";
-    revenueLabelContext.font = "bold 48px Arial";
+    revenueLabelContext.font = "bold 30px Arial";
     (revenueLabelContext as any).textAlign = "center";
     (revenueLabelContext as any).textBaseline = "middle";
-    revenueLabelContext.fillText("Revenue", 256, 64);
+    revenueLabelContext.fillText("Revenue", 256, 20);
 
     revenueLabelTexture.update();
     revenueLabelTexture.hasAlpha = true;
@@ -456,17 +457,17 @@ export class EnvisionerFoundation {
 
     // Create material and texture for Expenses label
     const expensesLabelMaterial = new StandardMaterial("envisionerExpensesLabelMaterial", this.scene);
-    const expensesLabelTexture = new DynamicTexture("envisionerExpensesLabelTexture", { width: 512, height: 128 }, this.scene, false);
+    const expensesLabelTexture = new DynamicTexture("envisionerExpensesLabelTexture", { width: 512, height: 40 }, this.scene, false);
     const expensesLabelContext = expensesLabelTexture.getContext();
 
     // Create grey text on transparent background
     expensesLabelContext.fillStyle = "transparent";
-    expensesLabelContext.fillRect(0, 0, 512, 128);
+    expensesLabelContext.fillRect(0, 0, 512, 40);
     expensesLabelContext.fillStyle = "#666666";
-    expensesLabelContext.font = "bold 48px Arial";
+    expensesLabelContext.font = "bold 30px Arial";
     (expensesLabelContext as any).textAlign = "center";
     (expensesLabelContext as any).textBaseline = "middle";
-    expensesLabelContext.fillText("Expenses", 256, 64);
+    expensesLabelContext.fillText("Expenses", 256, 20);
 
     expensesLabelTexture.update();
     expensesLabelTexture.hasAlpha = true;
