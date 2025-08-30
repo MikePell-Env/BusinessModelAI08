@@ -1789,8 +1789,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (template.name.toLowerCase() === 'financials' && financialsLabelManager) {
               financialsLabelManager.registerFinancialObject(mesh);
               
-              // DEBUG: Make RevenuePL blue to identify front face direction
-              if (mesh.name === 'RevenuePL') {
+              // DEBUG: Make ExpensesPL blue to identify front face direction
+              if (mesh.name === 'ExpensesPL') {
                 sectionMaterial.diffuseColor = new Color3(0, 0, 1); // Blue for debugging
               }
             }
