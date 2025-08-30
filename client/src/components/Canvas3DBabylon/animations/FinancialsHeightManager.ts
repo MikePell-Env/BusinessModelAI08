@@ -244,7 +244,31 @@ export class FinancialsHeightManager {
         targetPosition = 0;
       }
 
-      // Create height animation
+      // STEP 3: Use vertex manipulation for Expenses, scaling for others
+      if (objectName === 'Expenses') {
+        // Use vertex manipulation instead of scaling for Expenses
+        debugLog.info('financials', `🔧 VERTEX: Animating ${objectName} height via vertex manipulation to ${targetHeight}`);
+        
+        // Convert target height to height factor (relative to base height)
+        const heightFactor = targetHeight / this.baseHeight;
+        
+        // Apply vertex manipulation directly (immediate, no animation for now)
+        this.setMeshHeightByVertices(mesh, heightFactor, anchorType);
+        
+        // Update label position after vertex changes
+        this.updateLabelPosition(mesh);
+        
+        // Position the mesh properly (bottom-anchored)
+        mesh.position.y = targetPosition;
+        
+        debugLog.info('financials', `🔧 VERTEX: ${objectName} height set to factor ${heightFactor} (target: ${targetHeight})`);
+        
+        // Resolve immediately since vertex manipulation is instant
+        resolve();
+        return;
+      }
+
+      // Use traditional scaling animation for non-Expenses objects
       const heightAnimation = new Animation(
         `${objectName}_height`,
         'scaling.y',
