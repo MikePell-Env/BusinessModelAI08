@@ -244,10 +244,8 @@ export class EnvisionerFoundation {
       await this.createVerticalDividerLabel();
       debugLog.verbose('envisioner', '🏷️ BMC foundation labels created');
     } else if (templateName.toLowerCase() === 'financials') {
-      await this.createRevenueLabel();
-      await this.createExpensesLabel();
-      await this.createVerticalDividerLabel();
-      debugLog.verbose('envisioner', '🏷️ Financials foundation labels created');
+      // No separate labels for Financials - the ground texture already has Revenue/Expenses built in
+      debugLog.verbose('envisioner', '🏷️ Financials uses ground texture labels (no separate planes)');
     }
   }
 
