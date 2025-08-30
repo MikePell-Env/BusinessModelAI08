@@ -79,11 +79,12 @@ export class FinancialsLabelManager {
     const center = boundingInfo.boundingBox.center;
     const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
     
-    // Position label on the front face center of the object
+    // Position label on the front face (camera-facing side)
+    // From camera perspective (alpha: π/2, beta: π/4), front face is toward negative Z
     transformNode.position = new Vector3(
       center.x,
-      center.y + (size.y * 0.0), // Keep at mesh center height
-      center.z - (size.z * 0.6) // Position in FRONT of the camera-facing side
+      center.y, // Keep at mesh center height
+      boundingInfo.boundingBox.minimum.z - 0.5 // Place in front of closest face to camera
     );
 
     // Create label plane with fixed aspect ratio
@@ -146,8 +147,8 @@ export class FinancialsLabelManager {
     
     // Update transform position (label size remains unchanged)
     transformNode.position.x = center.x;
-    transformNode.position.y = center.y + (size.y * 0.0); // Keep at mesh center height  
-    transformNode.position.z = center.z - (size.z * 0.6); // Position in FRONT of the camera-facing side
+    transformNode.position.y = center.y; // Keep at mesh center height  
+    transformNode.position.z = boundingInfo.boundingBox.minimum.z - 0.5; // Front of closest face
 
     debugLog.verbose('financials-labels', 
       `Updated ${objectName} label position: (${transformNode.position.x.toFixed(3)}, ${transformNode.position.y.toFixed(3)}, ${transformNode.position.z.toFixed(3)})`

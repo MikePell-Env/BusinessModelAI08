@@ -1789,10 +1789,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (template.name.toLowerCase() === 'financials' && financialsLabelManager) {
               financialsLabelManager.registerFinancialObject(mesh);
               
-              // DEBUG: Make ExpensesPL front face blue to identify front face direction
-              if (mesh.name === 'ExpensesPL') {
-                sectionMaterial.diffuseColor = new Color3(0, 0, 1); // Blue for debugging
-              }
             }
 
             // Skip label creation during mesh setup - will be done after all transformations are complete
