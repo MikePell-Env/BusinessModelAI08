@@ -167,7 +167,7 @@ export class BMCModelLoader {
           if (mesh instanceof Mesh && mesh.geometry) {
             const positions = mesh.getVerticesData("position");
             if (positions) {
-              const heightReduction = 0.15; // 15% height reduction
+              const heightReduction = 0.35; // 35% height reduction for more noticeable effect
               
               for (let i = 1; i < positions.length; i += 3) { // Y coordinates are at indices 1, 4, 7, etc.
                 const currentY = positions[i];
