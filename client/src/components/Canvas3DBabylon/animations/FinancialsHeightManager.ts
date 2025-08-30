@@ -465,24 +465,27 @@ export class FinancialsHeightManager {
 
   /**
    * Update label position to track mesh center after vertex manipulation
-   * Labels use TransformNode parent so no scaling compensation needed
+   * Labels are completely independent - no parenting to avoid scaling issues
    */
   private updateLabelPosition(mesh: Mesh): void {
-    const labelTransformNode = this.scene.transformNodes.find(t => t.name === `${mesh.name}LabelTransform`);
-    if (!labelTransformNode) return;
+    const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
+    if (!labelPlane) return;
 
-    // Update the transform node position to track the mesh center after vertex changes
+    // Calculate current mesh bounds after vertex manipulation
     const bounds = mesh.getBoundingInfo();
     const center = bounds.boundingBox.center;
+    const size = bounds.boundingBox.maximum.subtract(bounds.boundingBox.minimum);
     
-    // Position the transform node at the mesh center
-    labelTransformNode.position.x = center.x;
-    labelTransformNode.position.y = center.y;
-    labelTransformNode.position.z = center.z;
+    // Position label independently on the front face center
+    labelPlane.position.x = center.x;
+    labelPlane.position.y = center.y;
+    labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of the mesh
     
-    // The label plane (parented to transform node) will automatically follow
-    // but maintain its original proportions since transform node has no scaling
+    // Keep original scaling - no compensation needed since no parenting
+    labelPlane.scaling.x = 1.0;
+    labelPlane.scaling.y = 1.0;
+    labelPlane.scaling.z = 1.0;
     
-    debugLog.verbose('financials', `Label transform updated: ${mesh.name} at (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
+    debugLog.verbose('financials', `Label positioned independently: ${mesh.name} at (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
   }
 }
