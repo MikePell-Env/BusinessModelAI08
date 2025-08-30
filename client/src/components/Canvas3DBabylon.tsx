@@ -276,9 +276,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           console.log("🔄 Template switch: FRONT preset not valid for Business Model - clearing highlight");
           setIsInPresetPosition(false);
         } else if (currentCameraPreset === 'TOP' && template.name.toLowerCase() === 'financials') {
-          // Switching from Business Model (TOP) to Financials - TOP not valid, clear highlighting
-          console.log("🔄 Template switch: TOP preset not valid for Financials - clearing highlight");
-          setIsInPresetPosition(false);
+          // Switching from Business Model (TOP) to Financials - switch to FRONT preset
+          console.log("🔄 Template switch: Switching from TOP to FRONT preset for Financials");
+          setCurrentCameraPreset('FRONT');
+          setIsInPresetPosition(true);
         } else {
           // PERSPECTIVE_LEFT and PERSPECTIVE_RIGHT are valid for both templates - keep highlighting
           console.log("🔄 Template switch: Current preset still valid - keeping button highlight");
