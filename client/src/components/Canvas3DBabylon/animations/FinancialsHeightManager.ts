@@ -470,14 +470,9 @@ export class FinancialsHeightManager {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    // Get the stored visual stretch factor for this mesh
-    const visualStretchFactor = this.currentHeightFactors.get(mesh.name) || 1.0;
-    
-    // Apply inverse scaling to counteract the visual stretch from vertex compression
-    // If mesh is compressed to 50% height, label needs 50% Y scaling to look normal
-    const correctionScale = 1.0 / visualStretchFactor;
-    labelPlane.scaling.y = correctionScale;
-    labelPlane.scaling.x = 1.0; 
+    // SIMPLE APPROACH: Reset label to natural proportions first
+    labelPlane.scaling.x = 1.0;
+    labelPlane.scaling.y = 1.0;
     labelPlane.scaling.z = 1.0;
 
     // UPDATE POSITION: Track center of front face after vertex manipulation
@@ -490,6 +485,6 @@ export class FinancialsHeightManager {
     labelPlane.position.y = center.y; // This will track the actual center after height change
     labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of the mesh
     
-    debugLog.verbose('financials', `Label corrected: ${mesh.name} stretch=${visualStretchFactor.toFixed(3)} → scale=${correctionScale.toFixed(3)}`);
+    debugLog.verbose('financials', `Label updated: ${mesh.name} positioned at center (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
   }
 }

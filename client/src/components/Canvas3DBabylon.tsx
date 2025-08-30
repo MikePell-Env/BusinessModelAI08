@@ -2612,7 +2612,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelMaterial.backFaceCulling = false; // Visible from both sides
 
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
+              // DO NOT parent to mesh for vertex manipulation - position independently
               
               // Prevent Y-scaling (stretching) by overriding the scaling inheritance
               labelPlane.scalingDeterminant = 1.0; // Force uniform scaling
