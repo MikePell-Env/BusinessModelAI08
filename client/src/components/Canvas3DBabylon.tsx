@@ -312,10 +312,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       return;
     }
 
-    // Update master transform rotation for camera preset
-    const envisionerPersistence = EnvisionerPersistence.getInstance();
-    envisionerPersistence.updateRotationForCameraPreset(template.name, preset);
-
     const scene = sceneRef.current;
     const perspectiveCamera = cameraRef.current;
     // Only perspective camera used
@@ -383,6 +379,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Complete transition
     setTimeout(() => {
+      // Update master transform rotation AFTER camera animation completes to avoid jumping
+      const envisionerPersistence = EnvisionerPersistence.getInstance();
+      envisionerPersistence.updateRotationForCameraPreset(template.name, preset);
+      
       setIsTransitioningCamera(false);
     }, duration);
   };
