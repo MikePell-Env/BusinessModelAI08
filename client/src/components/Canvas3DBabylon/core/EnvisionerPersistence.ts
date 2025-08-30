@@ -88,8 +88,8 @@ export class EnvisionerPersistence {
       // Financials template - check if FRONT preset needs X tilt like Business Model TOP
       this.masterTransform.rotation.y = Math.PI; // 180 degrees to face camera
       if (cameraPreset === 'FRONT') {
-        // FRONT preset tilts back away from camera for dead-on front view (negative X rotation)
-        this.masterTransform.rotation.x = -(Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180));
+        // FRONT preset tilts forward significantly for dead-on front view
+        this.masterTransform.rotation.x = Math.PI / 3; // 60 degrees forward tilt
       } else {
         this.masterTransform.rotation.x = 0; // No X tilt for other presets
       }
@@ -167,8 +167,8 @@ export class EnvisionerPersistence {
       // Financials template - check if FRONT preset needs X tilt like Business Model TOP
       this.masterTransform.rotation.y = Math.PI; // 180 degrees to face camera
       if (cameraPreset === 'FRONT') {
-        // FRONT preset tilts back away from camera for dead-on front view (negative X rotation)
-        this.masterTransform.rotation.x = -(Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180));
+        // FRONT preset tilts forward significantly for dead-on front view
+        this.masterTransform.rotation.x = Math.PI / 3; // 60 degrees forward tilt
       } else {
         this.masterTransform.rotation.x = 0; // No X tilt for other presets
       }
