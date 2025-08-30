@@ -333,7 +333,7 @@ export class FinancialsHeightManager {
 
   /**
    * Set object height immediately while maintaining anchor
-   * NEW: Using vertex manipulation instead of scaling
+   * RESTORED: Using scaling approach with original geometry preserved
    */
   private setObjectHeight(
     objectName: string,
@@ -346,44 +346,39 @@ export class FinancialsHeightManager {
     const originalPos = this.originalPositions.get(objectName);
     if (!originalPos) return;
 
-    // NEW APPROACH: Use vertex manipulation instead of scaling
-    this.setMeshHeightByVertices(mesh, height, anchorType);
+    // RESTORED APPROACH: Use scaling (preserves original geometry shape)
+    mesh.scaling.y = height;
 
-    // Position handling for top-anchored objects (still needed for stacking)
+    // Update any label position to follow the mesh (but maintain label's own scale)
+    this.updateLabelPosition(mesh);
+
     if (anchorType === 'top') {
       // Use calibrated positioning for ExpensesPL
       if (objectName === 'ExpensesPL') {
         const expensesMesh = this.financialMeshes.get('Expenses');
         if (expensesMesh) {
-          // Calculate position based on expenses mesh bounds
-          const expensesBounds = expensesMesh.getBoundingInfo();
-          const expensesTop = expensesBounds.boundingBox.maximum.y;
-          mesh.position.y = expensesTop;
+          // Use the calibrated 0.3 positioning factor that was working
+          const positioningFactor = 0.3;
+          mesh.position.y = 0 + (expensesMesh.scaling.y * positioningFactor);
         } else {
-          mesh.position.y = 0;
+          mesh.position.y = 0 + (height / 2);
         }
       } else if (objectName === 'RevenuePL') {
         const revenueMesh = this.financialMeshes.get('Revenue');
         if (revenueMesh) {
-          // Calculate position based on revenue mesh bounds
-          const revenueBounds = revenueMesh.getBoundingInfo();
-          const revenueTop = revenueBounds.boundingBox.maximum.y;
-          mesh.position.y = revenueTop;
+          const revenueHeight = revenueMesh.scaling.y;
+          const revenuePosition = revenueMesh.position.y;
+          mesh.position.y = revenuePosition + (revenueHeight / 2) + (height / 2);
         } else {
-          mesh.position.y = 0;
+          mesh.position.y = 0 + (height / 2);
         }
       } else {
-        mesh.position.y = 0;
+        mesh.position.y = 0 + (height / 2);
       }
     } else {
-      // Bottom-anchored: keep at ground level (vertex manipulation handles the rest)
+      // Bottom-anchored: keep bottom surface on ground plane
       mesh.position.y = 0;
     }
-
-    // Update label position with proper scaling for both vertex manipulation AND top-anchored behavior
-    this.updateLabelPosition(mesh);
-    
-    debugLog.verbose('financials', `Set height for ${objectName}: ${height} (${anchorType}-anchored) using vertex manipulation`);
   }
 
   /**
@@ -476,32 +471,21 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Update label to maintain aspect ratio when mesh is vertex-manipulated
+   * Update label to maintain aspect ratio when mesh scales
    */
   private updateLabelPosition(mesh: Mesh): void {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    // Get the stored height factor for this mesh
-    const heightFactor = this.currentHeightFactors.get(mesh.name) || 1.0;
-    
-    // SPECIAL HANDLING for ExpensesPL (Profit) - it seems to need different scaling
-    if (mesh.name === 'ExpensesPL') {
-      // For top-anchored ExpensesPL, apply a more aggressive inverse scaling
-      const adjustedFactor = heightFactor * 1.5; // Compensate for top-anchoring behavior
-      labelPlane.scaling.y = 1.0 / adjustedFactor;
-      labelPlane.scaling.x = 1.0;
-      labelPlane.scaling.z = 1.0;
-      debugLog.verbose('financials', `Applied ADJUSTED inverse Y scaling (${(1.0 / adjustedFactor).toFixed(3)}) to ${mesh.name} label (top-anchored compensation)`);
-    } else {
-      // Force label to maintain constant aspect ratio by inverting the height factor
-      if (heightFactor > 0) {
-        // Inverse the Y scaling to maintain original proportions
-        labelPlane.scaling.y = 1.0 / heightFactor;
-        labelPlane.scaling.x = 1.0; // Keep X scaling normal
-        labelPlane.scaling.z = 1.0; // Keep Z scaling normal
-      }
-      debugLog.verbose('financials', `Applied inverse Y scaling (${(1.0 / heightFactor).toFixed(3)}) to ${mesh.name} label for vertex manipulation`);
+    // Force label to maintain constant aspect ratio by inverting parent's Y scaling
+    const parentYScale = mesh.scaling.y;
+    if (parentYScale > 0) {
+      // Inverse the Y scaling to maintain original proportions
+      labelPlane.scaling.y = 1.0 / parentYScale;
+      labelPlane.scaling.x = 1.0; // Keep X scaling normal
+      labelPlane.scaling.z = 1.0; // Keep Z scaling normal
     }
+    
+    debugLog.verbose('financials', `Applied inverse Y scaling (${(1.0 / parentYScale).toFixed(3)}) to ${mesh.name} label`);
   }
 }
