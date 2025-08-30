@@ -14,6 +14,7 @@ import {
   EasingFunction
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
+import { FinancialsLabelManager } from '../labels/FinancialsLabelManager';
 
 export interface FinancialData {
   revenue: number;
@@ -34,9 +35,18 @@ export class FinancialsHeightManager {
   private originalPositions: Map<string, Vector3> = new Map();
   private baseHeight: number = 1.0;
   private maxVisualizationHeight: number = 5.0;
+  private labelManager: FinancialsLabelManager | null = null;
 
   constructor(scene: Scene) {
     this.scene = scene;
+  }
+
+  /**
+   * Set the label manager reference for updating label positions
+   */
+  public setLabelManager(labelManager: FinancialsLabelManager): void {
+    this.labelManager = labelManager;
+    debugLog.info('financials', 'FinancialsLabelManager connected to FinancialsHeightManager');
   }
 
   /**
@@ -258,6 +268,12 @@ export class FinancialsHeightManager {
         60 / (duration / 1000),
         () => {
           debugLog.verbose('financials', `${objectName} height animation completed`);
+          
+          // Update label position at end of animation
+          if (this.labelManager) {
+            this.labelManager.updateLabelPosition(objectName);
+          }
+          
           resolve();
         }
       );
@@ -304,6 +320,11 @@ export class FinancialsHeightManager {
     if (!originalPos) return;
 
     mesh.scaling.y = height;
+
+    // Update label position after scaling (maintains label aspect ratio)
+    if (this.labelManager) {
+      this.labelManager.updateLabelPosition(objectName);
+    }
 
     if (anchorType === 'top') {
       // Use calibrated positioning for ExpensesPL

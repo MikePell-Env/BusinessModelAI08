@@ -1633,6 +1633,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // Initialize Financials height management if this is Financials template
         if (template.name.toLowerCase() === 'financials') {
           financialsHeightManager = new FinancialsHeightManager(scene);
+          
+          // Connect the label manager to the height manager for coordinated updates
+          const labelManager = bmcModelLoader.getFinancialsLabelManager();
+          financialsHeightManager.setLabelManager(labelManager);
           financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
           
           // Register financial meshes for height manipulation
