@@ -45,12 +45,12 @@ export const CAMERA_PRESETS = {
     beta: 0.01, // Near-flat top-down view (minimal tilt maintains perspective camera)
     radius: 55 // Moderate zoom for complete canvas visibility
   },
-  // Front view for Financials template - exact coordinates for correct view
+  // Front view for Financials template - corrected to look down Z-axis
   FRONT: {
-    alpha: 0.036182071468275234, // Exact alpha from working position
-    beta: 0.8696527613715385,    // Exact beta from working position  
-    radius: 55.068748126797715   // Exact radius from working position
-    // Front view using exact coordinates that produce the correct perspective
+    alpha: 0.036182071468275234 + Math.PI/2, // Add 90° to look down Z-axis instead of X-axis
+    beta: 0.8696527613715385,    // Keep exact beta from working position  
+    radius: 55.068748126797715   // Keep exact radius from working position
+    // Front view: original coordinates rotated 90° to face down Z-axis
   }
 } as const;
 
