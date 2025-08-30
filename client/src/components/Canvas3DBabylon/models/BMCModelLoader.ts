@@ -170,6 +170,26 @@ export class BMCModelLoader {
               (mesh as any).originalHeight = maxY - minY;
               
               console.log(`🔧 Expenses: stored original height=${maxY - minY}`);
+              
+              // Set initial height to 80% of total
+              const totalGroupHeight = 1.0;
+              const expensesInitialHeight = totalGroupHeight * 0.8; // 80% of total
+              
+              // Apply initial vertex manipulation for 80% height
+              const heightFactor = expensesInitialHeight;
+              for (let i = 1; i < positions.length; i += 3) {
+                const originalY = positions[i];
+                const relativeY = originalY - minY;
+                const originalHeight = maxY - minY;
+                const normalizedPosition = relativeY / originalHeight;
+                const scaledPosition = normalizedPosition * heightFactor;
+                positions[i] = minY + (scaledPosition * originalHeight);
+              }
+              
+              mesh.setVerticesData("position", positions);
+              mesh.refreshBoundingInfo();
+              
+              console.log(`🔧 Expenses: set initial height to 80% (${expensesInitialHeight})`);
             }
           }
           
@@ -188,13 +208,12 @@ export class BMCModelLoader {
           console.log(`🔧 ANCHORED: RevenuePL at ${mesh.position.y} (top-anchored, height: ${revenuePLHeight})`);
           
         } else if (mesh.name === "ExpensesPL") {
-          // VERTEX MANIPULATION: Directly adjust vertices to make shape less tall while keeping top vertices fixed
+          // VERTEX MANIPULATION: Set initial height to 20% of total while keeping top vertices fixed
           if (mesh instanceof Mesh && mesh.geometry) {
             const positions = mesh.getVerticesData("position");
             if (positions) {
               console.log(`🔧 ExpensesPL original vertices count: ${positions.length / 3}`);
               
-              const heightReduction = 0.35; // 35% height reduction for more noticeable effect
               let topVertexCount = 0;
               let bottomVertexCount = 0;
               let maxY = -Infinity;
@@ -209,23 +228,33 @@ export class BMCModelLoader {
               
               console.log(`🔧 ExpensesPL Y range: ${minY} to ${maxY}`);
               
-              // Second pass: modify vertices
+              // Set initial height to 20% of total (top-anchored)
+              const totalGroupHeight = 1.0;
+              const expensesPLInitialHeight = totalGroupHeight * 0.2; // 20% of total
+              const originalHeight = maxY - minY;
+              const heightFactor = expensesPLInitialHeight / originalHeight;
+              
+              // Second pass: modify vertices (top-anchored behavior)
               for (let i = 1; i < positions.length; i += 3) {
-                const currentY = positions[i];
+                const originalY = positions[i];
                 
-                // Move bottom half of vertices toward top (keep top half unchanged)
-                const midY = (maxY + minY) / 2;
-                if (currentY < midY) {
-                  const newY = currentY + (midY - currentY) * heightReduction;
-                  positions[i] = newY;
-                  bottomVertexCount++;
-                  console.log(`🔧 Moving vertex from Y=${currentY.toFixed(3)} to Y=${newY.toFixed(3)}`);
-                } else {
+                // Top-anchored: keep top vertices fixed, scale from top down
+                const relativeY = maxY - originalY;
+                const normalizedPosition = relativeY / originalHeight;
+                const scaledPosition = normalizedPosition * expensesPLInitialHeight;
+                const newY = maxY - scaledPosition;
+                
+                positions[i] = newY;
+                
+                if (originalY >= (maxY + minY) / 2) {
                   topVertexCount++;
+                } else {
+                  bottomVertexCount++;
                 }
               }
               
-              console.log(`🔧 Modified ${bottomVertexCount} bottom vertices, preserved ${topVertexCount} top vertices`);
+              console.log(`🔧 ExpensesPL: set initial height to 20% (${expensesPLInitialHeight})`);
+              console.log(`🔧 Modified all vertices: ${topVertexCount} top, ${bottomVertexCount} bottom`);
               
               mesh.setVerticesData("position", positions);
               mesh.refreshBoundingInfo();
@@ -236,7 +265,7 @@ export class BMCModelLoader {
           // Keep original position since we're manipulating vertices directly
           mesh.position.y = -0.02;
           
-          console.log(`🔧 VERTEX MODIFIED: ExpensesPL vertices adjusted, top vertices preserved`);
+          console.log(`🔧 VERTEX MODIFIED: ExpensesPL set to 20% height, top vertices anchored`);
         }
       });
       
