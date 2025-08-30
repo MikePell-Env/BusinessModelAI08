@@ -45,12 +45,12 @@ export const CAMERA_PRESETS = {
     beta: 0.01, // Near-flat top-down view (minimal tilt maintains perspective camera)
     radius: 55 // Moderate zoom for complete canvas visibility
   },
-  // Front view for Financials template - starts from TOP then rotates 90° around X axis
+  // Front view for Financials template - adjusted for proper content orientation
   FRONT: {
-    alpha: Math.PI/2, // Same horizontal rotation as TOP
-    beta: Math.PI/2, // 90° rotation around X axis from TOP (straight-on front view)
+    alpha: 0, // 0° horizontal rotation for proper front view
+    beta: Math.PI/3, // 60° tilt angle for optimal view of Financials content
     radius: 55 // Same distance as TOP for consistency
-    // Use same central pivot point (0,0,0) as Business Model for consistent rotation center
+    // Adjusted orientation to work with Financials template's 0° rotation
   }
 } as const;
 
