@@ -188,17 +188,17 @@ export class CanvasManager {
   private setupLighting(): void {
     // Ambient light
     const ambientLight = new HemisphericLight("ambientLight", new Vector3(0, 1, 0), this.scene);
-    ambientLight.intensity = 0.15;
+    ambientLight.intensity = 0.25;
     
     // Main directional light
     const directionalLight = new DirectionalLight("directionalLight", new Vector3(-1, -1, -0.5), this.scene);
-    directionalLight.intensity = 0.45;
+    directionalLight.intensity = 0.65;
     directionalLight.diffuse = new Color3(1, 1, 1);
     directionalLight.specular = new Color3(0.4, 0.4, 0.4);
     
     // Rim light
     const rimLight = new DirectionalLight("rimLight", new Vector3(1, 0.5, 1), this.scene);
-    rimLight.intensity = 0.12;
+    rimLight.intensity = 0.20;
     rimLight.diffuse = new Color3(0.8, 0.8, 0.9);
     rimLight.specular = new Color3(0.2, 0.2, 0.2);
   }
