@@ -395,25 +395,34 @@ export class FinancialsHeightManager {
     // Expenses Group: Expenses = actual value, ExpensesPL = profit
     const expensesHeight = expenses / 500.0;
     const expensesPLHeight = profit / 500.0;
+    
+    console.log('💰 IMMEDIATE HEIGHT CALCULATIONS:', {
+      revenue: revenue, expenses: expenses, profit: profit, loss: loss,
+      totalRevenueHeight: totalRevenueHeight.toFixed(3),
+      revenueHeight: revenueHeight.toFixed(3), revenuePLHeight: revenuePLHeight.toFixed(3),
+      expensesHeight: expensesHeight.toFixed(3), expensesPLHeight: expensesPLHeight.toFixed(3)
+    });
 
-    // SELECTIVE UPDATES: Only update objects whose values actually changed
-    if (this.previousData.revenue !== revenue) {
-      console.log('🟢 IMMEDIATE: Revenue changed:', this.previousData.revenue, '→', revenue);
+    // FORCE INITIAL SETUP: Always set heights on first call (initialization)
+    const isInitialization = this.previousData.revenue === 1000 && this.previousData.expenses === 800;
+    
+    if (this.previousData.revenue !== revenue || isInitialization) {
+      console.log('🟢 IMMEDIATE: Revenue changed:', this.previousData.revenue, '→', revenue, 'Height:', revenueHeight.toFixed(3));
       this.setObjectHeight('Revenue', revenueHeight, 'bottom');
     }
     
-    if (this.previousData.loss !== loss) {
-      console.log('🟡 IMMEDIATE: Loss changed:', this.previousData.loss, '→', loss);
+    if (this.previousData.loss !== loss || isInitialization) {
+      console.log('🟡 IMMEDIATE: Loss changed:', this.previousData.loss, '→', loss, 'Height:', revenuePLHeight.toFixed(3));
       this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
     }
     
-    if (this.previousData.expenses !== expenses) {
-      console.log('🔴 IMMEDIATE: Expenses changed:', this.previousData.expenses, '→', expenses);
+    if (this.previousData.expenses !== expenses || isInitialization) {
+      console.log('🔴 IMMEDIATE: Expenses changed:', this.previousData.expenses, '→', expenses, 'Height:', expensesHeight.toFixed(3));
       this.setObjectHeight('Expenses', expensesHeight, 'bottom');
     }
     
-    if (this.previousData.profit !== profit) {
-      console.log('⚫ IMMEDIATE: Profit changed:', this.previousData.profit, '→', profit);
+    if (this.previousData.profit !== profit || isInitialization) {
+      console.log('⚫ IMMEDIATE: Profit changed:', this.previousData.profit, '→', profit, 'Height:', expensesPLHeight.toFixed(3));
       this.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
     }
     
