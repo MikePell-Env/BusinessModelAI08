@@ -41,10 +41,17 @@ export class EnvisionerPersistence {
     if (this.masterTransform && !this.masterTransform.isDisposed()) {
       debugLog.info('envisioner', `♻️ Reusing existing master transform for template: ${templateName}`);
       
-      // CRITICAL FIX: Reset rotation for each template to ensure correct orientation
-      // Each template needs its canonical rotation to display content correctly
-      this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
-      this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
+      // CRITICAL FIX: Template-specific rotation handling
+      // Business Model and Financials may need different rotations for content to display correctly
+      if (templateName.toLowerCase() === 'financials') {
+        // Financials template - no rotation applied, content should be "normal" orientation
+        this.masterTransform.rotation.y = 0; // No rotation for Financials
+        this.masterTransform.rotation.x = 0; // No X tilt for Financials
+      } else {
+        // Business Model template - original 180° rotation for BMC orientation
+        this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
+        this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
+      }
       
       // Adjust Y position based on template
       if (templateName.toLowerCase() === 'financials') {
@@ -81,9 +88,16 @@ export class EnvisionerPersistence {
   private initializeDefaultSpatialProperties(templateName: string): void {
     if (!this.masterTransform) return;
 
-    // Set default rotation and scale - CRITICAL: Apply exact rotation from original system
-    this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
-    this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
+    // Set default rotation and scale - CRITICAL: Template-specific rotation
+    if (templateName.toLowerCase() === 'financials') {
+      // Financials template - no rotation applied, content should be "normal" orientation
+      this.masterTransform.rotation.y = 0; // No rotation for Financials
+      this.masterTransform.rotation.x = 0; // No X tilt for Financials
+    } else {
+      // Business Model template - original 180° rotation for BMC orientation
+      this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
+      this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
+    }
     
     // Set position based on template
     if (templateName.toLowerCase() === 'financials') {
