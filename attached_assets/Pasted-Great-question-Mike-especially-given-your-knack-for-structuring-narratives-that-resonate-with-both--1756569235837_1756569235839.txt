@@ -1,0 +1,19 @@
+Great question, Mike—especially given your knack for structuring narratives that resonate with both technical and investor audiences. Here's a streamlined, prototypical VC pitch deck structure, with each slide distilled into a single defining word or phrase:
+
+| **Slide #** | **Title / Theme**       | **Purpose**                                                                 |
+|-------------|--------------------------|------------------------------------------------------------------------------|
+| 1           | **Cover**                | Brand identity, tagline, and contact info                                   |
+| 2           | **Problem**              | Pain point or unmet need in the market                                      |
+| 3           | **Solution**             | Your product or service and how it solves the problem                       |
+| 4           | **Market**               | TAM/SAM/SOM, market size, and growth opportunity                            |
+| 5           | **Product**              | Demo, screenshots, or key features                                          |
+| 6           | **Business Model**       | How you make money—pricing, revenue streams                                 |
+| 7           | **Traction**             | KPIs, growth metrics, user adoption, revenue to date                        |
+| 8           | **Go-to-Market**         | Sales strategy, distribution channels, customer acquisition                 |
+| 9           | **Competition**          | Competitive landscape and your differentiation                              |
+| 10          | **Team**                 | Founders, key hires, and relevant experience                                |
+| 11          | **Financials**           | Forecasts, burn rate, unit economics                                        |
+| 12          | **Ask**                  | Funding amount, use of funds, and round details                             |
+| 13          | **Vision**               | Long-term roadmap, exit strategy, or impact potential                       |
+
+🧠 If you're tailoring this for LPs or international investors, you might swap in slides like “Fund Structure,” “Regulatory Strategy,” or “Global Expansion.” Want to sketch out a version for Envisioner or walk through how to narrate each slide with investor psychology in mind? I’d love to help you storyboard it.
