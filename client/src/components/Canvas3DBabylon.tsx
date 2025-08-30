@@ -3490,16 +3490,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   if ((window as any).financialsHeightManager) {
                     const heightManager = (window as any).financialsHeightManager;
                     
-                    // Direct height update for Expenses object only
+                    // Get current revenue value for profit calculation
+                    const currentRevenue = (window as any).financialSliderState.revenue;
+                    
+                    // Calculate profit for ExpensesPL object
+                    const profit = Math.max(0, currentRevenue - expenses);
+                    
+                    // Direct height updates
                     const HEIGHT_SCALE = 500.0;
                     const expensesHeight = expenses / HEIGHT_SCALE;
+                    const expensesPLHeight = profit / HEIGHT_SCALE;
                     
-                    console.log('🔴 Setting Expenses height directly:', expensesHeight.toFixed(3));
+                    console.log('🔴 Expenses Group Update:', {
+                      expenses: expenses,
+                      profit: profit,
+                      expensesHeight: expensesHeight.toFixed(3),
+                      expensesPLHeight: expensesPLHeight.toFixed(3)
+                    });
+                    
                     heightManager.setObjectHeight('Expenses', expensesHeight, 'bottom');
-                    
-                    // ExpensesPL (Profit) stays at zero for now - independent operation
-                    console.log('⚫ Setting ExpensesPL (Profit) to zero (independent mode)');
-                    heightManager.setObjectHeight('ExpensesPL', 0.0, 'top');
+                    heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
                   }
 
                   // Update the display values
