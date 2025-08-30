@@ -3391,7 +3391,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       {template.name.toLowerCase() === 'financials' && (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 bg-black/90 text-white p-6 rounded-lg shadow-lg">
           <div className="text-sm font-semibold mb-4 text-center">💰 Real-Time Financial Controls</div>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-4 mb-4" ref={(el) => {
+            // Initialize default values when component mounts for Financials template
+            if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
+              setTimeout(() => {
+                (window as any).financialsDataAdapter.updateFromBusinessData({
+                  totalRevenue: 1000,  // $10M default
+                  totalExpenses: 800,  // $8M default  
+                  netProfit: 200,      // $2M profit
+                  netLoss: 0           // No loss
+                });
+              }, 100);
+            }
+          }}>
             <div>
               <label className="block text-xs mb-1">Revenue Total</label>
               <div className="revenue-display text-xs text-green-400 mb-1">$10M</div>
