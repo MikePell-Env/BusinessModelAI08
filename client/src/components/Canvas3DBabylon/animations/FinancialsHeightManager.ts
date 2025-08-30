@@ -160,10 +160,18 @@ export class FinancialsHeightManager {
     const HEIGHT_SCALE = 500.0;
     
     // Calculate heights with proper percentage distribution
-    // Revenue Group: Revenue = 99% of total, RevenuePL = 1% minimum visibility 
-    const totalRevenueHeight = revenue / HEIGHT_SCALE; // Total height for Revenue group
-    const revenueHeight = totalRevenueHeight * 0.99;   // Revenue object: 99% of total
-    const revenuePLHeight = totalRevenueHeight * 0.01; // RevenuePL object: 1% of total (always visible)
+    // FIXED TOTAL HEIGHT SYSTEM: Like Expenses Group, Revenue Group has fixed total height
+    const FIXED_TOTAL_REVENUE_HEIGHT = 1000 / HEIGHT_SCALE; // Always 2.0 units (like $10M max)
+    
+    // PERCENTAGE-BASED DISTRIBUTION: Revenue vs Loss within fixed total
+    // When Revenue = $10M → 100% Revenue, 0% Loss
+    // When Revenue = $9M → 90% Revenue, 10% Loss  
+    // When Revenue = $5M → 50% Revenue, 50% Loss
+    const revenuePercentage = revenue / 1000; // 0.0 to 1.0 scale
+    const lossPercentage = 1.0 - revenuePercentage; // Always sums to 100%
+    
+    const revenueHeight = FIXED_TOTAL_REVENUE_HEIGHT * revenuePercentage;   // Revenue portion
+    const revenuePLHeight = FIXED_TOTAL_REVENUE_HEIGHT * lossPercentage;    // Loss portion
     
     // Expenses Group: Expenses = actual value, ExpensesPL = profit
     const expensesHeight = expenses / HEIGHT_SCALE;
@@ -396,10 +404,18 @@ export class FinancialsHeightManager {
     const HEIGHT_SCALE = 500.0;
     
     // Calculate heights with proper percentage distribution
-    // Revenue Group: Revenue = 99% of total, RevenuePL = 1% minimum visibility 
-    const totalRevenueHeight = revenue / HEIGHT_SCALE; // Total height for Revenue group
-    const revenueHeight = totalRevenueHeight * 0.99;   // Revenue object: 99% of total
-    const revenuePLHeight = totalRevenueHeight * 0.01; // RevenuePL object: 1% of total (always visible)
+    // FIXED TOTAL HEIGHT SYSTEM: Like Expenses Group, Revenue Group has fixed total height
+    const FIXED_TOTAL_REVENUE_HEIGHT = 1000 / HEIGHT_SCALE; // Always 2.0 units (like $10M max)
+    
+    // PERCENTAGE-BASED DISTRIBUTION: Revenue vs Loss within fixed total
+    // When Revenue = $10M → 100% Revenue, 0% Loss
+    // When Revenue = $9M → 90% Revenue, 10% Loss  
+    // When Revenue = $5M → 50% Revenue, 50% Loss
+    const revenuePercentage = revenue / 1000; // 0.0 to 1.0 scale
+    const lossPercentage = 1.0 - revenuePercentage; // Always sums to 100%
+    
+    const revenueHeight = FIXED_TOTAL_REVENUE_HEIGHT * revenuePercentage;   // Revenue portion
+    const revenuePLHeight = FIXED_TOTAL_REVENUE_HEIGHT * lossPercentage;    // Loss portion
     
     // Expenses Group: Expenses = actual value, ExpensesPL = profit
     const expensesHeight = expenses / HEIGHT_SCALE;
@@ -407,7 +423,8 @@ export class FinancialsHeightManager {
     
     console.log('💰 IMMEDIATE HEIGHT CALCULATIONS:', {
       revenue: revenue, expenses: expenses, profit: profit, loss: loss,
-      totalRevenueHeight: totalRevenueHeight.toFixed(3),
+      revenuePercentage: (revenuePercentage * 100).toFixed(1) + '%',
+      lossPercentage: (lossPercentage * 100).toFixed(1) + '%',
       revenueHeight: revenueHeight.toFixed(3), revenuePLHeight: revenuePLHeight.toFixed(3),
       expensesHeight: expensesHeight.toFixed(3), expensesPLHeight: expensesPLHeight.toFixed(3)
     });
@@ -420,8 +437,8 @@ export class FinancialsHeightManager {
       this.setObjectHeight('Revenue', revenueHeight, 'bottom');
     }
     
-    if (this.previousData.loss !== loss || isInitialization) {
-      console.log('🟡 IMMEDIATE: Loss changed:', this.previousData.loss, '→', loss, 'Height:', revenuePLHeight.toFixed(3));
+    if (this.previousData.revenue !== revenue || isInitialization) {
+      console.log('🟡 IMMEDIATE: Revenue percentage changed → Loss:', (lossPercentage * 100).toFixed(1) + '%, Height:', revenuePLHeight.toFixed(3));
       this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
     }
     
