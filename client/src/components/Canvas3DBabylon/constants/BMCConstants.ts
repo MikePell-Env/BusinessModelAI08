@@ -45,12 +45,12 @@ export const CAMERA_PRESETS = {
     beta: 0.01, // Near-flat top-down view (minimal tilt maintains perspective camera)
     radius: 55 // Moderate zoom for complete canvas visibility
   },
-  // Front view for Financials template - based on working LEFT preset
+  // Front view for Financials template - based on working RIGHT preset
   FRONT: {
-    alpha: 0, // 0° for straight front view (no horizontal rotation)
-    beta: Math.PI/6 + (Math.PI/9), // 50° tilt (copied from PERSPECTIVE_LEFT)
-    radius: 55  // Same distance as LEFT preset
-    // Front view copied from PERSPECTIVE_LEFT and adjusted for straight-on view
+    alpha: Math.PI, // 180° to face front (opposite of RIGHT view)
+    beta: Math.PI/4.5, // 40° tilt (copied from PERSPECTIVE_RIGHT)
+    radius: 60  // Same distance as RIGHT preset
+    // Front view: RIGHT preset rotated 180° around Y-axis
   }
 } as const;
 
