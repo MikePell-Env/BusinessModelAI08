@@ -47,7 +47,7 @@ export const CAMERA_PRESETS = {
   },
   // Front view for Financials template - proper orientation for viewer perspective
   FRONT: {
-    alpha: -Math.PI/2, // -90° horizontal rotation for correct front view
+    alpha: Math.PI/2, // +90° horizontal rotation for correct front view
     beta: Math.PI/4, // 45° tilt angle for optimal view of Financials content
     radius: 55 // Same distance as TOP for consistency
     // Adjusted to show Revenue on right, Expenses on left from viewer perspective
