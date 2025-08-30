@@ -1141,7 +1141,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       console.log(`🎯 Panel should now be visible on screen with ${(sectionData as CanvasElement).content.length} bullet points!`);
     };
 
-    // TEMPLATE-SPECIFIC LABELS: Only show BMC labels for Business Model template
+    // TEMPLATE-SPECIFIC LABELS: Show appropriate labels for each template
     if (template.name.toLowerCase() === 'business-model') {
       // Create BMC-specific labels (Internal, External, divider)
       const createBMCLabels = () => {
@@ -1225,8 +1225,87 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
       createBMCLabels();
     } else if (template.name.toLowerCase() === 'financials') {
-      // Financials template has no ground plane labels - clean financial view
-      debugLog.verbose('template', '🏷️ No ground plane labels for Financials template');
+      // Create Financials-specific labels (Revenue, Expenses, divider)
+      const createFinancialsLabels = () => {
+        // Add "Revenue" label for Financials
+        const revenueLabelPlane = MeshBuilder.CreatePlane("revenueLabel", {
+          width: 1.2,
+          height: 0.3
+        }, scene);
+        revenueLabelPlane.position.x = 1.5;
+        revenueLabelPlane.position.y = 0.001;
+        revenueLabelPlane.position.z = -3.5;
+        revenueLabelPlane.rotation.x = Math.PI / 2;
+
+        const revenueMaterial = new StandardMaterial("revenueLabelMat", scene);
+        const revenueTexture = new Texture("/textures/Labels_Revenue_grey.png", scene);
+        revenueTexture.hasAlpha = true;
+        enhanceLabelTexture(revenueTexture);
+        revenueMaterial.diffuseTexture = revenueTexture;
+        revenueMaterial.emissiveTexture = revenueTexture;
+        revenueMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+        revenueMaterial.alpha = 0.3;
+        revenueMaterial.useAlphaFromDiffuseTexture = true;
+        revenueMaterial.disableLighting = true;
+        revenueMaterial.backFaceCulling = false;
+        revenueLabelPlane.material = revenueMaterial;
+        revenueLabelPlane.isPickable = false;
+        revenueLabelPlane.parent = masterTransform;
+
+        // Add "Expenses" label for Financials
+        const expensesLabelPlane = MeshBuilder.CreatePlane("expensesLabel", {
+          width: 1.2,
+          height: 0.3
+        }, scene);
+        expensesLabelPlane.position.x = 8.0;
+        expensesLabelPlane.position.y = 0.001;
+        expensesLabelPlane.position.z = -3.5;
+        expensesLabelPlane.rotation.x = Math.PI / 2;
+
+        const expensesMaterial = new StandardMaterial("expensesLabelMat", scene);
+        const expensesTexture = new Texture("/textures/Labels_Expenses_grey.png", scene);
+        expensesTexture.hasAlpha = true;
+        enhanceLabelTexture(expensesTexture);
+        expensesMaterial.diffuseTexture = expensesTexture;
+        expensesMaterial.emissiveTexture = expensesTexture;
+        expensesMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+        expensesMaterial.alpha = 0.3;
+        expensesMaterial.useAlphaFromDiffuseTexture = true;
+        expensesMaterial.disableLighting = true;
+        expensesMaterial.backFaceCulling = false;
+        expensesLabelPlane.material = expensesMaterial;
+        expensesLabelPlane.isPickable = false;
+        expensesLabelPlane.parent = masterTransform;
+
+        // Add vertical divider for Financials
+        const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
+          width: 0.3,
+          height: 12
+        }, scene);
+        verticalDividerPlane.position.x = 0;
+        verticalDividerPlane.position.y = 0.001;
+        verticalDividerPlane.position.z = 0;
+        verticalDividerPlane.rotation.x = Math.PI / 2;
+
+        const dividerMaterial = new StandardMaterial("verticalDividerMat", scene);
+        const dividerTexture = new Texture("/textures/Labels_vertical_divider.png", scene);
+        dividerTexture.hasAlpha = true;
+        enhanceLabelTexture(dividerTexture);
+        dividerMaterial.diffuseTexture = dividerTexture;
+        dividerMaterial.emissiveTexture = dividerTexture;
+        dividerMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+        dividerMaterial.alpha = 0.3;
+        dividerMaterial.useAlphaFromDiffuseTexture = true;
+        dividerMaterial.disableLighting = true;
+        dividerMaterial.backFaceCulling = false;
+        verticalDividerPlane.material = dividerMaterial;
+        verticalDividerPlane.isPickable = false;
+        verticalDividerPlane.parent = masterTransform;
+
+        debugLog.verbose('template', '🏷️ Financials-specific labels created for Financials template');
+      };
+
+      createFinancialsLabels();
     }
 
 
