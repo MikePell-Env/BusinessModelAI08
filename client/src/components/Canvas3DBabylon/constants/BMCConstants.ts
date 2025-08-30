@@ -45,12 +45,12 @@ export const CAMERA_PRESETS = {
     beta: 0.01, // Near-flat top-down view (minimal tilt maintains perspective camera)
     radius: 55 // Moderate zoom for complete canvas visibility
   },
-  // Front view for Financials template - looking straight down Z-axis toward geometry
+  // Front view for Financials template - proper orientation for viewer perspective
   FRONT: {
-    alpha: 0, // 0° horizontal rotation - straight down Z-axis
-    beta: Math.PI/4, // 45° tilt angle for optimal front view perspective
+    alpha: Math.PI/2, // +90° horizontal rotation for correct front view
+    beta: Math.PI/4, // 45° tilt angle for optimal view of Financials content
     radius: 55 // Same distance as TOP for consistency
-    // True front view like in a 3D modeler - looking directly at geometry face-on
+    // Adjusted to show Revenue on right, Expenses on left from viewer perspective
   }
 } as const;
 
