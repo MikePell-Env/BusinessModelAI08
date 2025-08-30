@@ -101,7 +101,7 @@ export class EnvisionerFoundation {
     
     await this.createGroundPlane();
     await this.createRails();
-    await this.createFoundationLabels();
+    // Labels removed - they should be template-specific, not foundation-level
     await this.setupLighting();
     
     debugLog.info('envisioner', '✅ Envisioner Foundation Platform initialized');
@@ -216,14 +216,11 @@ export class EnvisionerFoundation {
   }
 
   /**
-   * Create the Internal, External, and divider labels on the ground plane
+   * Foundation labels are now template-specific - this method is deprecated
    */
   private async createFoundationLabels(): Promise<void> {
-    await this.createInternalLabel();
-    await this.createExternalLabel();
-    await this.createVerticalDividerLabel();
-    
-    debugLog.verbose('envisioner', '🏷️ Foundation labels created');
+    // Labels moved to template level - Financials shouldn't show BMC-specific labels
+    debugLog.verbose('envisioner', '🏷️ Foundation labels are now template-specific');
   }
 
   /**
