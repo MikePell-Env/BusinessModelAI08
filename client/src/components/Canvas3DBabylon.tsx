@@ -3426,21 +3426,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   const revenue = parseInt(e.target.value);
                   // Update isolated state
                   (window as any).financialSliderState.revenue = revenue;
-                  const currentExpenses = (window as any).financialSliderState.expenses;
 
                   console.log('💚 Revenue slider moved:', {
                     revenue: revenue,
-                    expenses: currentExpenses,
-                    state: (window as any).financialSliderState
+                    newValue: `$${(revenue * 10 / 1000).toFixed(0)}M`
                   });
 
-                  if ((window as any).financialsDataAdapter) {
-                    (window as any).financialsDataAdapter.updateFromBusinessData({
-                      totalRevenue: revenue,
-                      totalExpenses: currentExpenses,
-                      netProfit: Math.max(0, revenue - currentExpenses),
-                      netLoss: Math.max(0, currentExpenses - revenue)
-                    });
+                  // ISOLATED REVENUE UPDATE: Only update Revenue object, no cross-contamination
+                  if ((window as any).financialsHeightManager) {
+                    const heightManager = (window as any).financialsHeightManager;
+                    
+                    // Direct height update for Revenue object only
+                    const HEIGHT_SCALE = 500.0;
+                    const revenueHeight = revenue / HEIGHT_SCALE;
+                    
+                    console.log('💚 Setting Revenue height directly:', revenueHeight.toFixed(3));
+                    heightManager.setObjectHeight('Revenue', revenueHeight, 'bottom');
+                    
+                    // RevenuePL (Loss) stays at zero for now - only changes in true loss scenarios
+                    console.log('🟡 Setting RevenuePL (Loss) to zero (no loss scenario)');
+                    heightManager.setObjectHeight('RevenuePL', 0.0, 'top');
                   }
 
                   // Update the display values

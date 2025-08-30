@@ -159,19 +159,11 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // Calculate heights with proper percentage distribution
-    // FIXED TOTAL HEIGHT SYSTEM: Like Expenses Group, Revenue Group has fixed total height
-    const FIXED_TOTAL_REVENUE_HEIGHT = 1000 / HEIGHT_SCALE; // Always 2.0 units (like $10M max)
-    
-    // PERCENTAGE-BASED DISTRIBUTION: Revenue vs Loss within fixed total
-    // When Revenue = $10M → 100% Revenue, 0% Loss
-    // When Revenue = $9M → 90% Revenue, 10% Loss  
-    // When Revenue = $5M → 50% Revenue, 50% Loss
-    const revenuePercentage = revenue / 1000; // 0.0 to 1.0 scale
-    const lossPercentage = 1.0 - revenuePercentage; // Always sums to 100%
-    
-    const revenueHeight = FIXED_TOTAL_REVENUE_HEIGHT * revenuePercentage;   // Revenue portion
-    const revenuePLHeight = FIXED_TOTAL_REVENUE_HEIGHT * lossPercentage;    // Loss portion
+    // Calculate heights EXACTLY like Expenses Group logic
+    // Revenue Group: Revenue object = slider value, RevenuePL object = loss amount
+    // SAME PATTERN as Expenses Group: Expenses object = slider value, ExpensesPL object = profit amount
+    const revenueHeight = revenue / HEIGHT_SCALE;  // Revenue object: direct slider value
+    const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
     
     // Expenses Group: Expenses = actual value, ExpensesPL = profit
     const expensesHeight = expenses / HEIGHT_SCALE;
@@ -180,34 +172,42 @@ export class FinancialsHeightManager {
     // SELECTIVE UPDATES: Only animate objects whose values actually changed
     const animations: Promise<void>[] = [];
     
-    // STRICT ISOLATION: Only update the group whose base value actually changed
-    const revenueGroupChanged = this.previousData.revenue !== revenue;
-    const expensesGroupChanged = this.previousData.expenses !== expenses;
+    // TRACK INDIVIDUAL CHANGES: Each object updates based on its specific value changes
+    const revenueChanged = this.previousData.revenue !== revenue;
+    const expensesChanged = this.previousData.expenses !== expenses;
+    const profitChanged = this.previousData.profit !== profit;
+    const lossChanged = this.previousData.loss !== loss;
     
-    // Revenue Group updates (only when Revenue slider moves)
-    if (revenueGroupChanged) {
-      console.log('🟢 REVENUE GROUP UPDATE: Revenue changed:', this.previousData.revenue, '→', revenue);
+    // Revenue object updates (when Revenue slider moves)
+    if (revenueChanged) {
+      console.log('🟢 REVENUE UPDATE: Revenue changed:', this.previousData.revenue, '→', revenue);
       animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
-      animations.push(this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration));
-    } else {
-      console.log('🔒 Revenue Group unchanged, skipping all Revenue animations');
     }
     
-    // Expenses Group updates (only when Expenses slider moves)  
-    if (expensesGroupChanged) {
-      console.log('🔴 EXPENSES GROUP UPDATE: Expenses changed:', this.previousData.expenses, '→', expenses);
+    // RevenuePL (Loss) object updates (when loss amount changes due to revenue OR expenses)
+    if (lossChanged) {
+      console.log('🟡 LOSS UPDATE: Loss changed:', this.previousData.loss, '→', loss);
+      animations.push(this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration));
+    }
+    
+    // Expenses object updates (when Expenses slider moves)
+    if (expensesChanged) {
+      console.log('🔴 EXPENSES UPDATE: Expenses changed:', this.previousData.expenses, '→', expenses);
       animations.push(this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration));
+    }
+    
+    // ExpensesPL (Profit) object updates (when profit amount changes due to revenue OR expenses)
+    if (profitChanged) {
+      console.log('⚫ PROFIT UPDATE: Profit changed:', this.previousData.profit, '→', profit);
       animations.push(this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration));
-    } else {
-      console.log('🔒 Expenses Group unchanged, skipping all Expenses animations');
     }
     
     // Update previous data for next comparison
     this.previousData = { revenue, expenses, profit, loss };
     
-    debugLog.info('financials', `💰 SELECTIVE UPDATE - Revenue: $${(revenue/100).toFixed(1)}M (99% + 1%), Expenses: $${(expenses/100).toFixed(1)}M`);
+    debugLog.info('financials', `💰 INDIVIDUAL UPDATES - Revenue: $${(revenue/100).toFixed(1)}M, Expenses: $${(expenses/100).toFixed(1)}M`);
     debugLog.info('financials', `📊 P&L Results - Profit: $${(profit/100).toFixed(1)}M, Loss: $${(loss/100).toFixed(1)}M`);
-    debugLog.info('financials', `📏 Heights - Revenue: ${revenueHeight.toFixed(3)} (99%), RevenuePL: ${revenuePLHeight.toFixed(3)} (1%), Expenses: ${expensesHeight.toFixed(3)}, ExpensesPL: ${expensesPLHeight.toFixed(3)}`);
+    debugLog.info('financials', `📏 Heights - Revenue: ${revenueHeight.toFixed(3)}, RevenuePL: ${revenuePLHeight.toFixed(3)}, Expenses: ${expensesHeight.toFixed(3)}, ExpensesPL: ${expensesPLHeight.toFixed(3)}`);
     debugLog.info('financials', `🎯 Animations queued: ${animations.length}`);
 
     // Only animate objects that actually changed
@@ -403,19 +403,11 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // Calculate heights with proper percentage distribution
-    // FIXED TOTAL HEIGHT SYSTEM: Like Expenses Group, Revenue Group has fixed total height
-    const FIXED_TOTAL_REVENUE_HEIGHT = 1000 / HEIGHT_SCALE; // Always 2.0 units (like $10M max)
-    
-    // PERCENTAGE-BASED DISTRIBUTION: Revenue vs Loss within fixed total
-    // When Revenue = $10M → 100% Revenue, 0% Loss
-    // When Revenue = $9M → 90% Revenue, 10% Loss  
-    // When Revenue = $5M → 50% Revenue, 50% Loss
-    const revenuePercentage = revenue / 1000; // 0.0 to 1.0 scale
-    const lossPercentage = 1.0 - revenuePercentage; // Always sums to 100%
-    
-    const revenueHeight = FIXED_TOTAL_REVENUE_HEIGHT * revenuePercentage;   // Revenue portion
-    const revenuePLHeight = FIXED_TOTAL_REVENUE_HEIGHT * lossPercentage;    // Loss portion
+    // Calculate heights EXACTLY like Expenses Group logic
+    // Revenue Group: Revenue object = slider value, RevenuePL object = loss amount
+    // SAME PATTERN as Expenses Group: Expenses object = slider value, ExpensesPL object = profit amount
+    const revenueHeight = revenue / HEIGHT_SCALE;  // Revenue object: direct slider value
+    const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
     
     // Expenses Group: Expenses = actual value, ExpensesPL = profit
     const expensesHeight = expenses / HEIGHT_SCALE;
@@ -423,8 +415,6 @@ export class FinancialsHeightManager {
     
     console.log('💰 IMMEDIATE HEIGHT CALCULATIONS:', {
       revenue: revenue, expenses: expenses, profit: profit, loss: loss,
-      revenuePercentage: (revenuePercentage * 100).toFixed(1) + '%',
-      lossPercentage: (lossPercentage * 100).toFixed(1) + '%',
       revenueHeight: revenueHeight.toFixed(3), revenuePLHeight: revenuePLHeight.toFixed(3),
       expensesHeight: expensesHeight.toFixed(3), expensesPLHeight: expensesPLHeight.toFixed(3)
     });
@@ -437,8 +427,8 @@ export class FinancialsHeightManager {
       this.setObjectHeight('Revenue', revenueHeight, 'bottom');
     }
     
-    if (this.previousData.revenue !== revenue || isInitialization) {
-      console.log('🟡 IMMEDIATE: Revenue percentage changed → Loss:', (lossPercentage * 100).toFixed(1) + '%, Height:', revenuePLHeight.toFixed(3));
+    if (this.previousData.loss !== loss || isInitialization) {
+      console.log('🟡 IMMEDIATE: Loss changed:', this.previousData.loss, '→', loss, 'Height:', revenuePLHeight.toFixed(3));
       this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
     }
     
@@ -460,7 +450,7 @@ export class FinancialsHeightManager {
    * Set object height immediately while maintaining anchor
    * Using vertex manipulation constrained to original geometry bounds
    */
-  private setObjectHeight(
+  public setObjectHeight(
     objectName: string,
     height: number,
     anchorType: 'top' | 'bottom'
