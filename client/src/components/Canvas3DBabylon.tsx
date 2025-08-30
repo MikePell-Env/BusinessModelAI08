@@ -2608,19 +2608,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelMaterial.backFaceCulling = false; // Visible from both sides
 
               labelPlane.material = labelMaterial;
+              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
               
-              // Create a transform node that only follows position, not scaling
-              const labelTransform = new TransformNode(`${mesh.name}LabelTransform`, scene);
-              labelTransform.position.x = center.x;
-              labelTransform.position.y = center.y;
-              labelTransform.position.z = center.z - (size.z * 0.51);
+              // Prevent Y-scaling (stretching) by overriding the scaling inheritance
+              labelPlane.scalingDeterminant = 1.0; // Force uniform scaling
               
-              labelPlane.parent = labelTransform; // Parent to transform node, not mesh
-              labelPlane.position = Vector3.Zero(); // Reset local position relative to transform
-              
-              // Store reference to update position when mesh moves/scales
-              (labelPlane as any).sourceTransform = transformNode;
-              (labelPlane as any).labelTransform = labelTransform;
+              // Store original scaling to maintain aspect ratio
+              const originalScaling = labelPlane.scaling.clone();
+              (labelPlane as any).originalScaling = originalScaling;
               
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
