@@ -41,7 +41,12 @@ export class EnvisionerPersistence {
     if (this.masterTransform && !this.masterTransform.isDisposed()) {
       debugLog.info('envisioner', `♻️ Reusing existing master transform for template: ${templateName}`);
       
-      // Only adjust Y position based on template, preserve X/Z and rotation/scale
+      // CRITICAL FIX: Reset rotation for each template to ensure correct orientation
+      // Each template needs its canonical rotation to display content correctly
+      this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
+      this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
+      
+      // Adjust Y position based on template
       if (templateName.toLowerCase() === 'financials') {
         this.masterTransform.position.y = 0.5; // Lower position for Financials
       } else {
