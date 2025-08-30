@@ -129,29 +129,39 @@ export class FinancialsHeightManager {
     data: FinancialData,
     duration: number = 1000
   ): Promise<void> {
-    // Direct mapping: slider values directly control their respective groups
+    // Fixed Revenue value (like $10M example)
     const revenue = Math.max(data.revenue, 0.1);
-    const expenses = Math.max(data.expenses, 0.1);
     
-    // Calculate profit/loss for display in PL objects
-    const profit = Math.max(0, revenue - expenses);
-    const loss = Math.max(0, expenses - revenue);
+    // Expenses slider controls the percentage split within the Expenses group
+    const expensesSliderValue = Math.max(data.expenses, 0.1);
     
-    // CORRECTED: Direct height mapping based on slider values
-    // Revenue slider (data.revenue) → Revenue object height
-    // Expenses slider (data.expenses) → Expenses object height
-    const revenueHeight = revenue / 500.0; // Scale down from slider range (100-2000) to visual range
-    const expensesHeight = expenses / 500.0; // Scale down from slider range (100-1600) to visual range
+    // Calculate core financial relationship: Profit = Revenue - Expenses
+    // Use a fixed base expenses amount for the calculation, then use slider for split
+    const baseExpensesAmount = revenue * 0.8; // Start with $8M if revenue is $10M (80%)
+    const profit = Math.max(0, revenue - baseExpensesAmount);
+    const loss = Math.max(0, baseExpensesAmount - revenue);
     
-    // PL objects show profit/loss proportionally
-    const revenuePLHeight = loss / 500.0; // Loss shown on Revenue side (gold)
-    const expensesPLHeight = profit / 500.0; // Profit shown on Expenses side (black)
+    // Total height for the Expenses group (fixed based on financial logic)
+    const totalExpensesGroupHeight = baseExpensesAmount / 500.0;
     
-    debugLog.info('financials', `CORRECTED mapping - Revenue slider: ${revenue} → Revenue height: ${revenueHeight.toFixed(2)}`);
-    debugLog.info('financials', `CORRECTED mapping - Expenses slider: ${expenses} → Expenses height: ${expensesHeight.toFixed(2)}`);
-    debugLog.info('financials', `P&L display - Profit: ${profit} → ExpensesPL: ${expensesPLHeight.toFixed(2)}, Loss: ${loss} → RevenuePL: ${revenuePLHeight.toFixed(2)}`);
+    // Expenses slider (100-1600) controls percentage split within Expenses group
+    // Convert slider value to percentage (0% to 100%)
+    const expensesPercentage = ((expensesSliderValue - 100) / (1600 - 100)) * 100;
+    const expensesPLPercentage = 100 - expensesPercentage;
+    
+    // Apply percentage split to total group height
+    const expensesHeight = totalExpensesGroupHeight * (expensesPercentage / 100);
+    const expensesPLHeight = totalExpensesGroupHeight * (expensesPLPercentage / 100);
+    
+    // Revenue side calculations remain the same
+    const revenueHeight = revenue / 500.0;
+    const revenuePLHeight = loss / 500.0;
+    
+    debugLog.info('financials', `📊 PERCENTAGE SPLIT - Revenue: $${revenue}, Base Expenses: $${baseExpensesAmount}, Profit: $${profit}`);
+    debugLog.info('financials', `📊 Expenses slider: ${expensesSliderValue} → ${expensesPercentage.toFixed(1)}% Expenses, ${expensesPLPercentage.toFixed(1)}% ExpensesPL`);
+    debugLog.info('financials', `📊 Heights - Expenses: ${expensesHeight.toFixed(3)}, ExpensesPL: ${expensesPLHeight.toFixed(3)}, Total: ${(expensesHeight + expensesPLHeight).toFixed(3)}`);
 
-    // Animate all objects simultaneously with corrected heights
+    // Animate all objects simultaneously with percentage-based heights
     await Promise.all([
       this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration),
       this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration),
@@ -159,7 +169,7 @@ export class FinancialsHeightManager {
       this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration)
     ]);
 
-    debugLog.info('financials', 'Corrected height animations completed');
+    debugLog.info('financials', 'Percentage-based height animations completed');
   }
 
   /**
