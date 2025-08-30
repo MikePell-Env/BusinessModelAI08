@@ -37,7 +37,10 @@ export interface EnvisionerState {
 
 /**
  * Core Envisioner Platform
- * Manages the foundational layer for all 4DVL visualizations
+ * 
+ * IMPORTANT: One Envisioner instance per data source/Office file.
+ * The same Envisioner is reused across different template views (Business Model, Financials, etc.)
+ * Each template provides a different 4DVL representation of the same underlying data.
  */
 export class Envisioner {
   private scene: Scene;
@@ -45,6 +48,7 @@ export class Envisioner {
   private state: EnvisionerState;
   private activeTemplate: UseCase4DVLTemplate | null = null;
   private dataAdapter: DataSourceAdapter | null = null;
+  private dataSource: any = null; // The underlying data that remains constant
 
   constructor(scene: Scene, config: EnvisionerConfig) {
     this.scene = scene;
@@ -68,26 +72,42 @@ export class Envisioner {
   }
 
   /**
-   * Load and activate a use case template
+   * Set the data source for this Envisioner instance (one-time)
    */
-  public async loadTemplate(templateName: string, dataSource?: any): Promise<void> {
+  public async setDataSource(dataSource: any): Promise<void> {
+    this.dataSource = dataSource;
+    // Initialize data adapter if needed
+  }
+
+  /**
+   * Switch to a different template view of the same data
+   * The Envisioner reuses the same data source across different template perspectives
+   */
+  public async switchTemplate(templateName: string): Promise<void> {
     this.state.isLoading = true;
     
     try {
-      // Unload current template if exists
+      // Unload current template view
       if (this.activeTemplate) {
         await this.activeTemplate.unload();
       }
 
-      // Load new template
+      // Load new template view with the same underlying data
       const template = await this.createTemplate(templateName);
-      await template.load(this.scene, dataSource);
+      await template.load(this.scene, this.dataSource); // Reuse same data source
       
       this.activeTemplate = template;
       this.state.currentTemplate = templateName;
     } finally {
       this.state.isLoading = false;
     }
+  }
+
+  /**
+   * Get the underlying data source
+   */
+  public getDataSource(): any {
+    return this.dataSource;
   }
 
   /**
