@@ -464,45 +464,25 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Update label to maintain aspect ratio using Babylon.js best practice
-   * Uses absoluteScaling inverse compensation method from official documentation
+   * Update label position to track mesh center after vertex manipulation
+   * Labels use TransformNode parent so no scaling compensation needed
    */
   private updateLabelPosition(mesh: Mesh): void {
-    const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
-    if (!labelPlane) return;
+    const labelTransformNode = this.scene.transformNodes.find(t => t.name === `${mesh.name}LabelTransform`);
+    if (!labelTransformNode) return;
 
-    // BABYLON.JS BEST PRACTICE: Use absoluteScaling for inverse compensation
-    // Force parent to compute world matrix first
-    mesh.computeWorldMatrix(true);
+    // Update the transform node position to track the mesh center after vertex changes
+    const bounds = mesh.getBoundingInfo();
+    const center = bounds.boundingBox.center;
     
-    // Calculate the effective visual scaling from vertex manipulation
-    const currentBounds = mesh.getBoundingInfo();
-    const originalVertices = this.originalVertices.get(mesh.name);
+    // Position the transform node at the mesh center
+    labelTransformNode.position.x = center.x;
+    labelTransformNode.position.y = center.y;
+    labelTransformNode.position.z = center.z;
     
-    if (originalVertices) {
-      // Calculate original height from stored vertices
-      let originalMinY = Number.MAX_VALUE;
-      let originalMaxY = Number.MIN_VALUE;
-      for (let i = 1; i < originalVertices.length; i += 3) {
-        const y = originalVertices[i];
-        originalMinY = Math.min(originalMinY, y);
-        originalMaxY = Math.max(originalMaxY, y);
-      }
-      const originalHeight = originalMaxY - originalMinY;
-      
-      // Calculate current height from bounds
-      const currentHeight = currentBounds.boundingBox.maximum.y - currentBounds.boundingBox.minimum.y;
-      
-      // Visual compression factor due to vertex manipulation
-      const vertexCompressionY = currentHeight / originalHeight;
-      
-      // Apply inverse scaling to preserve original label proportions
-      // This compensates for the visual compression from vertex manipulation
-      labelPlane.scaling.x = 1.0;
-      labelPlane.scaling.y = vertexCompressionY; // Direct compensation for vertex compression
-      labelPlane.scaling.z = 1.0;
-      
-      debugLog.verbose('financials', `Label ${mesh.name}: vertex compression ${vertexCompressionY.toFixed(3)}, applied scaling ${vertexCompressionY.toFixed(3)}`);
-    }
+    // The label plane (parented to transform node) will automatically follow
+    // but maintain its original proportions since transform node has no scaling
+    
+    debugLog.verbose('financials', `Label transform updated: ${mesh.name} at (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
   }
 }
