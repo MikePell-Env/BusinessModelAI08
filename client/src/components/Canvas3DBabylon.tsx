@@ -52,6 +52,7 @@ import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabe
 
 // UNIFIED SYSTEM: Replace competing managers with unified architecture
 import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter';
+import { EnvisionerPersistence } from './Canvas3DBabylon/core/EnvisionerPersistence';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
 
@@ -891,25 +892,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Lighting is now handled by SceneSetupAdapter
 
-    // MASTER TRANSFORM: Create root transform node to rotate entire scene 180 degrees + tilt toward viewer - 20 degree X rotation
-    const masterTransform = new TransformNode("MasterTransform", scene);
-    masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
-    masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180); // 15 degrees + 5 degrees - 10 degrees - 10 degrees tilt around X axis
-    // Adjust master transform based on template for optimal positioning
-    if (template.name.toLowerCase() === 'financials') {
-      masterTransform.position.y = 0.5; // Lower position for Financials to center vertically
-    } else {
-      masterTransform.position.y = 2; // Original position for Business Model
-    }
+    // ENVISIONER PERSISTENCE: Get or create persistent master transform that maintains spatial properties across template switches
+    const envisionerPersistence = EnvisionerPersistence.getInstance();
+    const masterTransform = envisionerPersistence.getOrCreateMasterTransform(scene, template.name);
 
-    // DYNAMIC SCALING: Scale BMC to fill window like reference image
+    // DYNAMIC SCALING: Only update scaling if this is the first initialization
     const canvasForScaling = canvasRef.current;
-    if (canvasForScaling) {
+    const spatialState = envisionerPersistence.getSpatialState();
+    if (canvasForScaling && (!spatialState || !spatialState.isInitialized)) {
       const canvasWidth = canvasForScaling.clientWidth;
       const canvasHeight = canvasForScaling.clientHeight;
       // Scale based on smaller dimension to ensure fit, with padding
       const scaleFactor = (Math.min(canvasWidth, canvasHeight) / 600) * 1.2; // Base reference of 600px, scale up 20%
       masterTransform.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+      envisionerPersistence.saveSpatialState(); // Save the scaling changes
     }
 
 

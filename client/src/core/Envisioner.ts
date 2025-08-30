@@ -1,17 +1,16 @@
 /**
- * Envisioner - Base Platform Architecture
+ * Core Envisioner Platform
  * 
- * The Envisioner is the foundational platform that acts as the "chess board" for the 4D Time Machine for Business.
+ * The foundational 3D platform that manages templates and maintains persistent spatial state.
  * It manages the ground plane, labels, and all core logic and interactions for content displayed on top.
  * 
- * The Envisioner provides:
- * - Surface control and management
- * - Interaction coordination
+ * Key architecture principles:
+ * - Camera system management and preset coordination
  * - Template lifecycle management
  * - Data source integration coordination
  */
 
-import { Scene, Vector3 } from '@babylonjs/core';
+import { Scene, Vector3, TransformNode } from '@babylonjs/core';
 import { UseCase4DVLTemplate } from './4DVL/UseCase4DVLTemplate';
 import { DataSourceAdapter } from './data/DataSourceAdapter';
 import { EnvisionerObject, EnvisionerDataContext, createEnvisionerObject } from './objects/EnvisionerObject';
@@ -21,9 +20,14 @@ export interface EnvisionerConfig {
   groundPlaneSize: { width: number; height: number };
   labelSystem: {
     enabled: boolean;
-    style: 'flat' | 'billboard' | 'embedded';
+    fontFamily: string;
+    fontSize: number;
   };
-  interactionMode: 'click' | 'hover' | 'touch';
+  interactionSystem: {
+    enabled: boolean;
+    hoverEnabled: boolean;
+    clickEnabled: boolean;
+  };
   cameraSystem: {
     presets: string[];
     defaultPreset: string;
@@ -53,6 +57,9 @@ export class Envisioner {
   
   // Core object definition - the persistent state of this Envisioner
   private envisionerObject: EnvisionerObject;
+  
+  // CRITICAL: The persistent master transform that maintains spatial properties across template switches
+  private masterTransform: TransformNode | null = null;
 
   constructor(scene: Scene, config: EnvisionerConfig, dataContext: EnvisionerDataContext) {
     this.scene = scene;
@@ -73,19 +80,17 @@ export class Envisioner {
   }
 
   /**
-   * Initialize the Envisioner platform
+   * Initialize the Envisioner platform and create the persistent master transform
    */
   public async initialize(): Promise<void> {
+    // Create the master transform that will persist across all template switches
+    this.createPersistentMasterTransform();
+    
     await this.setupGroundPlane();
     await this.setupLabelSystem();
     await this.setupInteractionSystem();
     await this.setupCameraSystem();
-  }
-
-  /**
-   * Initialize with discovered templates (called after construction)
-   */
-  public async initialize(): Promise<void> {
+    
     // Discover available templates based on data context
     const capabilities = await TemplateDiscovery.discoverTemplates(this.envisionerObject.dataContext);
     this.envisionerObject.dataContext.detectedTemplates = capabilities;
@@ -101,26 +106,87 @@ export class Envisioner {
   }
 
   /**
+   * Create the persistent master transform that maintains Envisioner spatial properties
+   * This transform will NOT be recreated when switching templates
+   */
+  private createPersistentMasterTransform(): void {
+    if (this.masterTransform) {
+      // Already exists - preserve it
+      return;
+    }
+
+    // Create the master transform node with spatial properties from EnvisionerObject
+    this.masterTransform = new TransformNode("envisionerMasterTransform", this.scene);
+    
+    // Apply persistent spatial properties
+    const spatial = this.envisionerObject.spatial;
+    this.masterTransform.position = spatial.position.clone();
+    this.masterTransform.rotationQuaternion = spatial.rotation.clone();
+    this.masterTransform.scaling = spatial.scale.clone();
+    
+    console.log(`🏗️ Envisioner master transform created at position: (${spatial.position.x}, ${spatial.position.y}, ${spatial.position.z})`);
+  }
+
+  /**
+   * Get the persistent master transform for templates to use
+   * This ensures all template content is parented to the same spatial foundation
+   */
+  public getMasterTransform(): TransformNode {
+    if (!this.masterTransform) {
+      throw new Error('Master transform not initialized. Call initialize() first.');
+    }
+    return this.masterTransform;
+  }
+
+  /**
+   * Update Envisioner spatial properties and apply them to the master transform
+   */
+  public updateSpatialProperties(position?: Vector3, rotation?: any, scale?: Vector3): void {
+    if (!this.masterTransform) return;
+
+    if (position) {
+      this.envisionerObject.spatial.position = position.clone();
+      this.masterTransform.position = position.clone();
+    }
+    
+    if (rotation) {
+      this.envisionerObject.spatial.rotation = rotation.clone();
+      this.masterTransform.rotationQuaternion = rotation.clone();
+    }
+    
+    if (scale) {
+      this.envisionerObject.spatial.scale = scale.clone();
+      this.masterTransform.scaling = scale.clone();
+    }
+    
+    this.envisionerObject.state.lastUpdated = new Date();
+  }
+
+  /**
    * Switch to a different template view of the same data
-   * The Envisioner reuses the same data source across different template perspectives
+   * The Envisioner master transform maintains exact spatial properties across switches
    */
   public async switchTemplate(templateName: string): Promise<void> {
     this.state.isLoading = true;
     
     try {
-      // Unload current template view
+      // Unload current template view (but preserve master transform)
       if (this.activeTemplate) {
         await this.activeTemplate.unload();
       }
 
       // Load new template view with the same underlying data
       const template = await this.createTemplate(templateName);
-      await template.load(this.scene, this.envisionerObject.dataContext); // Use data context
+      await template.load(this.scene, this.envisionerObject.dataContext);
       
       this.activeTemplate = template;
       this.state.currentTemplate = templateName;
       this.envisionerObject.state.currentTemplateId = templateName;
       this.envisionerObject.state.lastUpdated = new Date();
+      
+      // CRITICAL: Ensure the master transform spatial properties are preserved
+      console.log(`🔄 Template switched to ${templateName}. Master transform preserved at: (${this.masterTransform?.position.x}, ${this.masterTransform?.position.y}, ${this.masterTransform?.position.z})`);
+      
     } finally {
       this.state.isLoading = false;
     }
@@ -160,31 +226,43 @@ export class Envisioner {
   }
 
   /**
-   * Update Envisioner configuration
+   * Get current active template
    */
-  public updateConfig(newConfig: Partial<EnvisionerConfig>): void {
-    this.config = { ...this.config, ...newConfig };
+  public getActiveTemplate(): UseCase4DVLTemplate | null {
+    return this.activeTemplate;
   }
 
-  // Private implementation methods
   private async setupGroundPlane(): Promise<void> {
-    // Ground plane setup implementation
+    // Ground plane setup logic
   }
 
   private async setupLabelSystem(): Promise<void> {
-    // Label system setup implementation
+    // Label system setup logic
   }
 
   private async setupInteractionSystem(): Promise<void> {
-    // Interaction system setup implementation
+    // Interaction system setup logic
   }
 
   private async setupCameraSystem(): Promise<void> {
-    // Camera system setup implementation
+    // Camera system setup logic
   }
 
   private async createTemplate(templateName: string): Promise<UseCase4DVLTemplate> {
-    // Template factory implementation
-    throw new Error(`Template ${templateName} not implemented yet`);
+    // Template creation logic
+    throw new Error('Template creation not implemented');
+  }
+
+  /**
+   * Dispose of the Envisioner and cleanup resources
+   */
+  public dispose(): void {
+    if (this.activeTemplate) {
+      this.activeTemplate.unload();
+    }
+    
+    if (this.masterTransform) {
+      this.masterTransform.dispose();
+    }
   }
 }
