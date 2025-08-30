@@ -371,22 +371,18 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Update label position to follow mesh but maintain label's own scale
+   * Update label to maintain aspect ratio when mesh scales
    */
   private updateLabelPosition(mesh: Mesh): void {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    const labelTransform = (labelPlane as any).labelTransform;
-    if (!labelTransform) return;
-
-    // Update label transform position to follow mesh center, not inheriting scale
-    const boundingInfo = mesh.getBoundingInfo();
-    const center = boundingInfo.boundingBox.center;
-    const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
-
-    labelTransform.position.x = center.x;
-    labelTransform.position.y = center.y;
-    labelTransform.position.z = center.z - (size.z * 0.51); // Just in front
+    // Restore original scaling to prevent Y-stretching
+    const originalScaling = (labelPlane as any).originalScaling;
+    if (originalScaling) {
+      labelPlane.scaling = originalScaling.clone();
+    }
+    
+    debugLog.verbose('financials', `Restored ${mesh.name} label scaling to maintain aspect ratio`);
   }
 }
