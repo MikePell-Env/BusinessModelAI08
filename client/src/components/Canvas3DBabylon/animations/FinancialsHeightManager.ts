@@ -130,10 +130,10 @@ export class FinancialsHeightManager {
     duration: number = 1000
   ): Promise<void> {
     // FIXED PARAMETERS: Revenue = $10M always (locked)
-    const revenue = 5000; // Fixed at $10M (slider value 5000 = $10M)
+    const revenue = 1000; // Fixed at $10M (slider value 1000 = $10M)
     
-    // Expenses slider: $1M to $10M range (slider 500 to 5000)
-    const expenses = Math.max(Math.min(data.expenses, 5000), 500); // Clamp to $1M-$10M range
+    // Expenses slider: $1M to $10M range (slider 100 to 1000)
+    const expenses = Math.max(Math.min(data.expenses, 1000), 100); // Clamp to $1M-$10M range
     
     // Calculate profit: $10M - Expenses ($1M to $10M) = $9M to $0M
     const profit = Math.max(0, revenue - expenses);
