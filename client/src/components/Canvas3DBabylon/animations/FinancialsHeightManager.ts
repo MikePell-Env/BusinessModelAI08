@@ -54,9 +54,25 @@ export class FinancialsHeightManager {
         // Store original vertex positions for direct manipulation
         this.captureOriginalVertices(mesh);
         
+        // Initialize height factor to 1.0 for proper label scaling
+        this.currentHeightFactors.set(mesh.name, 1.0);
+        
         debugLog.info('financials', `Registered ${mesh.name} at position ${mesh.position}`);
       }
     });
+    
+    // After registration, ensure all labels are properly scaled
+    setTimeout(() => this.refreshAllLabels(), 100);
+  }
+
+  /**
+   * Refresh all financial object labels with correct aspect ratios
+   */
+  public refreshAllLabels(): void {
+    this.financialMeshes.forEach((mesh, name) => {
+      this.updateLabelPosition(mesh);
+    });
+    debugLog.info('financials', 'Refreshed all financial object labels');
   }
 
   /**
