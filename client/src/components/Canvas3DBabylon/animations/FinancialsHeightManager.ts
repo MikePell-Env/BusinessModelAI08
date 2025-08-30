@@ -427,6 +427,13 @@ export class FinancialsHeightManager {
     // heightFactor 1.0 = full original height, 0.5 = half height, etc.
     // This keeps all scaling WITHIN the original geometry bounds
     
+    // Calculate the VISUAL scaling factor for labels (inverse of compression)
+    // If heightFactor = 0.5 (half height), visual stretch = 2.0 (double stretch)
+    const visualStretchFactor = 1.0 / heightFactor;
+    
+    // Store the VISUAL stretch factor for label correction (not the heightFactor)
+    this.currentHeightFactors.set(mesh.name, visualStretchFactor);
+    
     // Modify vertices based on anchor type - CONSTRAINED to original bounds
     for (let i = 1; i < newVertices.length; i += 3) {
       const originalY = originalVertices[i];
@@ -463,27 +470,15 @@ export class FinancialsHeightManager {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    // Get the stored height factor for this mesh (for vertex manipulation)
-    const heightFactor = this.currentHeightFactors.get(mesh.name) || 1.0;
+    // Get the stored visual stretch factor for this mesh
+    const visualStretchFactor = this.currentHeightFactors.get(mesh.name) || 1.0;
     
-    // DEBUG: Let's see what's happening with height factors
-    console.log(`🔍 Label Debug - ${mesh.name}: heightFactor=${heightFactor.toFixed(3)}`);
-    
-    // Force label to maintain constant aspect ratio by inverting the height factor
-    if (heightFactor > 0 && heightFactor !== 1.0) {
-      // Apply more aggressive inverse scaling to counteract vertex manipulation stretching
-      const inverseScale = 1.0 / heightFactor;
-      labelPlane.scaling.y = inverseScale;
-      labelPlane.scaling.x = 1.0; 
-      labelPlane.scaling.z = 1.0;
-      console.log(`🔧 Applied inverse scaling to ${mesh.name}: ${inverseScale.toFixed(3)}`);
-    } else {
-      // Default scaling when no height change
-      labelPlane.scaling.x = 1.0;
-      labelPlane.scaling.y = 1.0;
-      labelPlane.scaling.z = 1.0;
-      console.log(`🔧 Default scaling for ${mesh.name}`);
-    }
+    // Apply inverse scaling to counteract the visual stretch from vertex compression
+    // If mesh is compressed to 50% height, label needs 50% Y scaling to look normal
+    const correctionScale = 1.0 / visualStretchFactor;
+    labelPlane.scaling.y = correctionScale;
+    labelPlane.scaling.x = 1.0; 
+    labelPlane.scaling.z = 1.0;
 
     // UPDATE POSITION: Track center of front face after vertex manipulation
     const bounds = mesh.getBoundingInfo();
@@ -495,6 +490,6 @@ export class FinancialsHeightManager {
     labelPlane.position.y = center.y; // This will track the actual center after height change
     labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of the mesh
     
-    console.log(`📍 Updated ${mesh.name} label position: (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
+    debugLog.verbose('financials', `Label corrected: ${mesh.name} stretch=${visualStretchFactor.toFixed(3)} → scale=${correctionScale.toFixed(3)}`);
   }
 }
