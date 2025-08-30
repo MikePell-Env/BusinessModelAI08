@@ -1,4 +1,4 @@
-import { Scene, Vector3, Mesh, StandardMaterial, Texture, TransformNode, MeshBuilder, AbstractMesh } from '@babylonjs/core';
+import { Scene, Vector3, Mesh, StandardMaterial, Texture, TransformNode, MeshBuilder, AbstractMesh, Color3 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
 /**
@@ -83,7 +83,7 @@ export class FinancialsLabelManager {
     // Place on top face like other working labels in the system
     transformNode.position = new Vector3(
       center.x, // Center horizontally
-      center.y + (size.y * 0.6), // Position on top face (like working examples)
+      center.y + (size.y * 0.7) + 0.2, // Higher positioning for better visibility
       center.z // Center vertically (Z-axis)
     );
 
@@ -151,7 +151,7 @@ export class FinancialsLabelManager {
     
     // Update transform position using WORKING approach
     transformNode.position.x = center.x; // Center horizontally
-    transformNode.position.y = center.y + (size.y * 0.6); // Position on top face
+    transformNode.position.y = center.y + (size.y * 0.7) + 0.2; // Higher positioning for better visibility
     transformNode.position.z = center.z; // Center vertically (Z-axis)
 
     debugLog.verbose('financials-labels', 
