@@ -14,6 +14,7 @@ The 4D Time Machine is a comprehensive platform for business visualization and a
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
+No automatic screenshots: Do not take screenshots after app restarts - they are not used and clutter the workspace.
 
 ## System Architecture
 The application features a full-stack monorepo architecture, emphasizing modularity and extensibility.
