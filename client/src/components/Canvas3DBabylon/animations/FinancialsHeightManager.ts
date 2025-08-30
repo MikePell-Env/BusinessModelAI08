@@ -36,9 +36,17 @@ export class FinancialsHeightManager {
   private currentHeightFactors: Map<string, number> = new Map();
   private baseHeight: number = 1.0;
   private maxVisualizationHeight: number = 5.0;
+  private labelManager: any = null; // Will be set externally
 
   constructor(scene: Scene) {
     this.scene = scene;
+  }
+
+  /**
+   * Set the label manager to update labels when heights change
+   */
+  public setLabelManager(labelManager: any): void {
+    this.labelManager = labelManager;
   }
 
 
@@ -464,19 +472,9 @@ export class FinancialsHeightManager {
    * Update label position to track mesh center after vertex manipulation
    */
   private updateLabelPosition(mesh: Mesh): void {
-    const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
-    if (!labelPlane) return;
-
-    const bounds = mesh.getBoundingInfo();
-    const center = bounds.boundingBox.center;
-    const size = bounds.boundingBox.maximum.subtract(bounds.boundingBox.minimum);
-    
-    labelPlane.position.x = center.x;
-    labelPlane.position.y = center.y;
-    labelPlane.position.z = center.z - (size.z * 0.51);
-    
-    labelPlane.scaling.x = 1.0;
-    labelPlane.scaling.y = 1.0;
-    labelPlane.scaling.z = 1.0;
+    // Use the label manager if available
+    if (this.labelManager) {
+      this.labelManager.updateLabelPosition(mesh.name);
+    }
   }
 }
