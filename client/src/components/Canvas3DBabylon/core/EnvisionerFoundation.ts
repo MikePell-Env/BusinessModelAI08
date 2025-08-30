@@ -216,9 +216,28 @@ export class EnvisionerFoundation {
   }
 
   /**
+   * Clear all template-specific labels
+   */
+  public clearTemplateLabels(): void {
+    const labelNames = ['internalLabel', 'externalLabel', 'revenueLabel', 'expensesLabel', 'verticalDividerLabel'];
+    
+    labelNames.forEach(labelName => {
+      const component = this.foundationComponents.get(labelName);
+      if (component && typeof component.dispose === 'function') {
+        component.dispose();
+        this.foundationComponents.delete(labelName);
+        debugLog.verbose('envisioner', `🗑️ Cleared label: ${labelName}`);
+      }
+    });
+  }
+
+  /**
    * Create template-specific foundation labels
    */
   public async createTemplateLabels(templateName: string): Promise<void> {
+    // Clear any existing template labels first
+    this.clearTemplateLabels();
+    
     if (templateName.toLowerCase() === 'business-model') {
       await this.createInternalLabel();
       await this.createExternalLabel();

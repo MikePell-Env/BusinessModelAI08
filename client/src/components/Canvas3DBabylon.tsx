@@ -925,6 +925,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     const envisionerFoundation = new EnvisionerFoundation(scene, masterTransform);
     envisionerFoundation.initialize(); // Initialize foundation components
     
+    // CREATE TEMPLATE-SPECIFIC LABELS: Add template-specific labels to the foundation
+    (async () => {
+      await envisionerFoundation.createTemplateLabels(template.name);
+    })();
+    
     // Store foundation reference for potential template access
     const foundationGround = envisionerFoundation.getComponent('ground');
 
