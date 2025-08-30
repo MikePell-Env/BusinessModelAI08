@@ -36,7 +36,7 @@ export class EnvisionerPersistence {
    * Get or create the persistent master transform
    * This will reuse the existing transform if available, preserving spatial properties
    */
-  public getOrCreateMasterTransform(scene: Scene, templateName: string): TransformNode {
+  public getOrCreateMasterTransform(scene: Scene, templateName: string, cameraPreset?: string): TransformNode {
     // If we already have a master transform, reuse it
     if (this.masterTransform && !this.masterTransform.isDisposed()) {
       debugLog.info('envisioner', `♻️ Reusing existing master transform for template: ${templateName}`);
@@ -44,9 +44,14 @@ export class EnvisionerPersistence {
       // CRITICAL FIX: Template-specific rotation handling
       // Both templates need 180° rotation to face camera properly
       if (templateName.toLowerCase() === 'financials') {
-        // Financials template - 180° rotation to face camera
+        // Financials template - check if FRONT preset needs X tilt like Business Model TOP
         this.masterTransform.rotation.y = Math.PI; // 180 degrees to face camera
-        this.masterTransform.rotation.x = 0; // No X tilt for Financials
+        if (cameraPreset === 'FRONT') {
+          // FRONT preset gets the modeler front view with X tilt like Business Model TOP
+          this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
+        } else {
+          this.masterTransform.rotation.x = 0; // No X tilt for other presets
+        }
       } else {
         // Business Model template - original 180° rotation for BMC orientation
         this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
@@ -80,9 +85,14 @@ export class EnvisionerPersistence {
     
     // CRITICAL: Apply template-specific rotation AFTER restoring position/scale
     if (templateName.toLowerCase() === 'financials') {
-      // Financials template - 180° rotation to face camera
+      // Financials template - check if FRONT preset needs X tilt like Business Model TOP
       this.masterTransform.rotation.y = Math.PI; // 180 degrees to face camera
-      this.masterTransform.rotation.x = 0; // No X tilt for Financials
+      if (cameraPreset === 'FRONT') {
+        // FRONT preset gets the modeler front view with X tilt like Business Model TOP
+        this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
+      } else {
+        this.masterTransform.rotation.x = 0; // No X tilt for other presets
+      }
     } else {
       // Business Model template - original 180° rotation for BMC orientation
       this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
@@ -145,6 +155,28 @@ export class EnvisionerPersistence {
     };
 
     debugLog.verbose('envisioner', `💾 Saved Envisioner spatial state: pos(${this.spatialState.position.x.toFixed(2)}, ${this.spatialState.position.y.toFixed(2)}, ${this.spatialState.position.z.toFixed(2)})`);
+  }
+
+  /**
+   * Update master transform rotation based on template and camera preset
+   */
+  public updateRotationForCameraPreset(templateName: string, cameraPreset: string): void {
+    if (!this.masterTransform) return;
+
+    if (templateName.toLowerCase() === 'financials') {
+      // Financials template - check if FRONT preset needs X tilt like Business Model TOP
+      this.masterTransform.rotation.y = Math.PI; // 180 degrees to face camera
+      if (cameraPreset === 'FRONT') {
+        // FRONT preset gets the modeler front view with X tilt like Business Model TOP
+        this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
+      } else {
+        this.masterTransform.rotation.x = 0; // No X tilt for other presets
+      }
+    } else {
+      // Business Model template - original 180° rotation for BMC orientation
+      this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
+      this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
+    }
   }
 
   /**

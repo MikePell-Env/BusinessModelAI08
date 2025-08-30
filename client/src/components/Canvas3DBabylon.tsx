@@ -312,6 +312,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       return;
     }
 
+    // Update master transform rotation for camera preset
+    const envisionerPersistence = EnvisionerPersistence.getInstance();
+    envisionerPersistence.updateRotationForCameraPreset(template.name, preset);
 
     const scene = sceneRef.current;
     const perspectiveCamera = cameraRef.current;
@@ -898,7 +901,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // ENVISIONER PERSISTENCE: Get or create persistent master transform that maintains spatial properties across template switches
     const envisionerPersistence = EnvisionerPersistence.getInstance();
-    const masterTransform = envisionerPersistence.getOrCreateMasterTransform(scene, template.name);
+    const masterTransform = envisionerPersistence.getOrCreateMasterTransform(scene, template.name, currentCameraPreset);
     
     // Store master transform reference for camera targeting
     masterTransformRef.current = masterTransform;
