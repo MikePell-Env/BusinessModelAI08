@@ -170,6 +170,15 @@ export class EnvisionerFoundation {
 
     const railMaterial = new StandardMaterial("envisionerRailMaterial", this.scene);
     railMaterial.diffuseColor = Color3.FromHexString(this.config.rails.color);
+    
+    // Make rails reflective like shiny metal
+    railMaterial.specularColor = new Color3(1.0, 1.0, 1.0); // Bright white specular highlights
+    railMaterial.specularPower = 256; // Very high specular power for mirror-like reflections
+    railMaterial.reflectionFresnelParameters = new FresnelParameters();
+    railMaterial.reflectionFresnelParameters.bias = 0.1;
+    railMaterial.reflectionFresnelParameters.power = 0.5;
+    railMaterial.reflectionFresnelParameters.leftColor = Color3.White();
+    railMaterial.reflectionFresnelParameters.rightColor = Color3.Black();
 
     // North rail (top)
     const northRail = MeshBuilder.CreateBox("envisionerNorthRail", {
