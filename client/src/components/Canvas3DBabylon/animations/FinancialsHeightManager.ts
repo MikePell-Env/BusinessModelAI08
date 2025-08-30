@@ -32,6 +32,7 @@ export class FinancialsHeightManager {
   private scene: Scene;
   private financialMeshes: Map<string, Mesh> = new Map();
   private originalPositions: Map<string, Vector3> = new Map();
+  private originalVertices: Map<string, Float32Array> = new Map();
   private baseHeight: number = 1.0;
   private maxVisualizationHeight: number = 5.0;
 
@@ -48,9 +49,28 @@ export class FinancialsHeightManager {
       if (mesh instanceof Mesh && this.isFinancialMesh(mesh.name)) {
         this.financialMeshes.set(mesh.name, mesh);
         this.originalPositions.set(mesh.name, mesh.position.clone());
+        
+        // Store original vertex positions for direct manipulation
+        this.captureOriginalVertices(mesh);
+        
         debugLog.info('financials', `Registered ${mesh.name} at position ${mesh.position}`);
       }
     });
+  }
+
+  /**
+   * Capture original vertex positions for later manipulation
+   */
+  private captureOriginalVertices(mesh: Mesh): void {
+    const geometry = mesh.geometry;
+    if (!geometry) return;
+
+    const vertexData = geometry.getVerticesData('position');
+    if (vertexData) {
+      // Store a copy of the original vertex positions
+      this.originalVertices.set(mesh.name, new Float32Array(vertexData));
+      debugLog.verbose('financials', `Captured ${vertexData.length / 3} vertices for ${mesh.name}`);
+    }
   }
 
   /**
@@ -296,6 +316,7 @@ export class FinancialsHeightManager {
 
   /**
    * Set object height immediately while maintaining anchor
+   * NEW: Using vertex manipulation instead of scaling
    */
   private setObjectHeight(
     objectName: string,
@@ -308,38 +329,42 @@ export class FinancialsHeightManager {
     const originalPos = this.originalPositions.get(objectName);
     if (!originalPos) return;
 
-    mesh.scaling.y = height;
+    // NEW APPROACH: Use vertex manipulation instead of scaling
+    this.setMeshHeightByVertices(mesh, height, anchorType);
 
-    // Update any label position to follow the mesh (but maintain label's own scale)
-    this.updateLabelPosition(mesh);
-
+    // Position handling for top-anchored objects (still needed for stacking)
     if (anchorType === 'top') {
       // Use calibrated positioning for ExpensesPL
       if (objectName === 'ExpensesPL') {
         const expensesMesh = this.financialMeshes.get('Expenses');
         if (expensesMesh) {
-          // Use the calibrated 0.3 positioning factor that was working
-          const positioningFactor = 0.3;
-          mesh.position.y = 0 + (expensesMesh.scaling.y * positioningFactor);
+          // Calculate position based on expenses mesh bounds
+          const expensesBounds = expensesMesh.getBoundingInfo();
+          const expensesTop = expensesBounds.boundingBox.maximum.y;
+          mesh.position.y = expensesTop;
         } else {
-          mesh.position.y = 0 + (height / 2);
+          mesh.position.y = 0;
         }
       } else if (objectName === 'RevenuePL') {
         const revenueMesh = this.financialMeshes.get('Revenue');
         if (revenueMesh) {
-          const revenueHeight = revenueMesh.scaling.y;
-          const revenuePosition = revenueMesh.position.y;
-          mesh.position.y = revenuePosition + (revenueHeight / 2) + (height / 2);
+          // Calculate position based on revenue mesh bounds
+          const revenueBounds = revenueMesh.getBoundingInfo();
+          const revenueTop = revenueBounds.boundingBox.maximum.y;
+          mesh.position.y = revenueTop;
         } else {
-          mesh.position.y = 0 + (height / 2);
+          mesh.position.y = 0;
         }
       } else {
-        mesh.position.y = 0 + (height / 2);
+        mesh.position.y = 0;
       }
     } else {
-      // Bottom-anchored: keep bottom surface on ground plane
+      // Bottom-anchored: keep at ground level (vertex manipulation handles the rest)
       mesh.position.y = 0;
     }
+
+    // Labels no longer need inverse scaling since we're not using scaling
+    debugLog.verbose('financials', `Set height for ${objectName}: ${height} (${anchorType}-anchored) using vertex manipulation`);
   }
 
   /**
@@ -371,21 +396,80 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Update label to maintain aspect ratio when mesh scales
+   * Manipulate mesh height using direct vertex modification instead of scaling
+   */
+  private setMeshHeightByVertices(
+    mesh: Mesh,
+    heightFactor: number,
+    anchorType: 'top' | 'bottom'
+  ): void {
+    const originalVertices = this.originalVertices.get(mesh.name);
+    if (!originalVertices) {
+      debugLog.warn('financials', `No original vertices found for ${mesh.name}, falling back to scaling`);
+      return;
+    }
+
+    const geometry = mesh.geometry;
+    if (!geometry) return;
+
+    // Create a copy of original vertices to modify
+    const newVertices = new Float32Array(originalVertices);
+
+    // Find the Y bounds of the original mesh
+    let minY = Number.MAX_VALUE;
+    let maxY = Number.MIN_VALUE;
+    
+    for (let i = 1; i < originalVertices.length; i += 3) {
+      const y = originalVertices[i];
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+
+    const originalHeight = maxY - minY;
+    const targetHeight = originalHeight * heightFactor;
+
+    // Modify vertices based on anchor type
+    for (let i = 1; i < newVertices.length; i += 3) {
+      const originalY = originalVertices[i];
+      
+      if (anchorType === 'bottom') {
+        // Bottom-anchored: scale Y from the bottom (minY stays fixed)
+        const relativeY = originalY - minY;
+        const scaledY = (relativeY / originalHeight) * targetHeight;
+        newVertices[i] = minY + scaledY;
+      } else {
+        // Top-anchored: scale Y from the top (maxY stays fixed)
+        const relativeY = maxY - originalY;
+        const scaledY = (relativeY / originalHeight) * targetHeight;
+        newVertices[i] = maxY - scaledY;
+      }
+    }
+
+    // Update the mesh geometry
+    geometry.setVerticesData('position', newVertices);
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo();
+
+    debugLog.verbose('financials', `Vertex manipulation: ${mesh.name} height ${heightFactor}x (${anchorType}-anchored)`);
+  }
+
+  /**
+   * Update label position (simplified for vertex manipulation approach)
    */
   private updateLabelPosition(mesh: Mesh): void {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    // Force label to maintain constant aspect ratio by inverting parent's Y scaling
-    const parentYScale = mesh.scaling.y;
-    if (parentYScale > 0) {
-      // Inverse the Y scaling to maintain original proportions
-      labelPlane.scaling.y = 1.0 / parentYScale;
-      labelPlane.scaling.x = 1.0; // Keep X scaling normal
-      labelPlane.scaling.z = 1.0; // Keep Z scaling normal
-    }
+    // With vertex manipulation, labels maintain their natural proportions
+    // Just need to update position to stay centered on the mesh
+    const bounds = mesh.getBoundingInfo();
+    const center = bounds.boundingBox.center;
+    const size = bounds.boundingBox.maximum.subtract(bounds.boundingBox.minimum);
     
-    debugLog.verbose('financials', `Applied inverse Y scaling (${(1.0 / parentYScale).toFixed(3)}) to ${mesh.name} label`);
+    labelPlane.position.x = center.x;
+    labelPlane.position.y = center.y;
+    labelPlane.position.z = center.z - (size.z * 0.51);
+    
+    debugLog.verbose('financials', `Updated ${mesh.name} label position for vertex-manipulated mesh`);
   }
 }
