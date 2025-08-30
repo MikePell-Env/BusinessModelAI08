@@ -3412,7 +3412,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 type="range"
                 min="100"
                 max="1000"
-                value="800"
                 defaultValue="800"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
