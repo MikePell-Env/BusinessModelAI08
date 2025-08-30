@@ -163,13 +163,14 @@ export class BMCModelLoader {
           console.log(`🔧 ANCHORED: RevenuePL at ${mesh.position.y} (top-anchored, height: ${revenuePLHeight})`);
           
         } else if (mesh.name === "ExpensesPL") {
-          // DOCUMENTED POSITIONING: Height=1.0, Top-anchored at Y=-0.02
-          const expensesPLHeight = 1.0; // Documented value
+          // DOCUMENTED POSITIONING: Height=0.85, Top-anchored at Y=-0.02 (reduced height, top vertices fixed)
+          const expensesPLHeight = 0.85; // Reduced from 1.0 to make it less tall
           
           mesh.scaling.y = expensesPLHeight;
           
-          // TOP-ANCHORED POSITIONING: Use documented position
-          mesh.position.y = -0.02;
+          // TOP-ANCHORED POSITIONING: Keep top vertices at same location
+          // Since we reduced height by 15%, move position up by 15% to keep top fixed
+          mesh.position.y = -0.02 + (1.0 - expensesPLHeight) * 0.5;
           
           console.log(`🔧 ANCHORED: ExpensesPL at ${mesh.position.y} (top-anchored, height: ${expensesPLHeight})`);
         }
