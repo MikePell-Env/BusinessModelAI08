@@ -21,11 +21,30 @@ export interface TemplateCentralObject {
 
 /**
  * Business Model Template Central Object
- * Represents the 9-section business model canvas
+ * Represents comprehensive business model data from startup pitch decks
  */
 export interface BusinessModelObject extends TemplateCentralObject {
   templateType: 'business-model';
-  sections: {
+  
+  // Pitch deck slides data structure
+  slides: {
+    cover: PitchSlide;
+    problem: PitchSlide;
+    solution: PitchSlide;
+    market: PitchSlide;
+    product: PitchSlide;
+    businessModel: PitchSlide;
+    traction: PitchSlide;
+    goToMarket: PitchSlide;
+    competition: PitchSlide;
+    team: PitchSlide;
+    financials: PitchSlide;
+    ask: PitchSlide;
+    vision: PitchSlide;
+  };
+  
+  // Traditional BMC sections (derived from slides)
+  bmcSections: {
     keyPartners: BusinessModelSection;
     keyActivities: BusinessModelSection;
     keyResources: BusinessModelSection;
@@ -36,11 +55,35 @@ export interface BusinessModelObject extends TemplateCentralObject {
     costStructure: BusinessModelSection;
     revenueStreams: BusinessModelSection;
   };
-  canvas: {
+  
+  // Visualization settings
+  presentation: {
+    mode: 'pitch_deck' | 'canvas' | 'hybrid';
     layout: 'traditional' | 'modern' | 'compact';
     colorScheme: 'categorical' | 'gradient' | 'monochrome';
     sectionSpacing: number;
   };
+}
+
+/**
+ * Pitch deck slide structure
+ */
+export interface PitchSlide {
+  slideNumber: number;
+  title: string;
+  theme: string;
+  purpose: string;
+  content: {
+    text: string[];
+    bulletPoints: string[];
+    keyMetrics: Record<string, any>;
+    images?: string[];
+    charts?: any[];
+  };
+  position: Vector3;
+  color: Color3;
+  isPopulated: boolean;
+  dataSourceSlide?: number; // Reference to source PowerPoint slide
 }
 
 export interface BusinessModelSection {
@@ -50,6 +93,7 @@ export interface BusinessModelSection {
   content: string[];
   category: 'infrastructure' | 'value' | 'customers' | 'finances';
   isPopulated: boolean;
+  derivedFromSlides: string[]; // Which pitch slides contribute to this section
 }
 
 /**
@@ -170,13 +214,29 @@ export interface WhatIfVariable {
  * Factory functions for creating template objects
  */
 export function createBusinessModelObject(id: string, name: string): BusinessModelObject {
-  const defaultSection = (sectionName: string, pos: Vector3, color: Color3, category: BusinessModelSection['category']): BusinessModelSection => ({
+  const defaultSlide = (slideNum: number, title: string, theme: string, purpose: string, pos: Vector3, color: Color3): PitchSlide => ({
+    slideNumber: slideNum,
+    title,
+    theme,
+    purpose,
+    content: {
+      text: [],
+      bulletPoints: [],
+      keyMetrics: {}
+    },
+    position: pos,
+    color,
+    isPopulated: false
+  });
+
+  const defaultSection = (sectionName: string, pos: Vector3, color: Color3, category: BusinessModelSection['category'], derivedFrom: string[]): BusinessModelSection => ({
     name: sectionName,
     position: pos,
     color,
     content: [],
     category,
-    isPopulated: false
+    isPopulated: false,
+    derivedFromSlides: derivedFrom
   });
 
   return {
@@ -185,19 +245,38 @@ export function createBusinessModelObject(id: string, name: string): BusinessMod
     name,
     dataBinding: {},
     visualProperties: {},
-    interactionCapabilities: ['click', 'hover', 'edit', 'export'],
-    sections: {
-      keyPartners: defaultSection('Key Partners', new Vector3(-15, 0, 7.5), new Color3(0.2, 0.6, 0.9), 'infrastructure'),
-      keyActivities: defaultSection('Key Activities', new Vector3(-7.5, 0, 7.5), new Color3(0.3, 0.7, 0.8), 'infrastructure'),
-      keyResources: defaultSection('Key Resources', new Vector3(-7.5, 0, 2.5), new Color3(0.4, 0.8, 0.7), 'infrastructure'),
-      valuePropositions: defaultSection('Value Propositions', new Vector3(0, 0, 5), new Color3(0.9, 0.6, 0.2), 'value'),
-      customerRelationships: defaultSection('Customer Relationships', new Vector3(7.5, 0, 7.5), new Color3(0.8, 0.7, 0.3), 'customers'),
-      channels: defaultSection('Channels', new Vector3(7.5, 0, 2.5), new Color3(0.7, 0.8, 0.4), 'customers'),
-      customerSegments: defaultSection('Customer Segments', new Vector3(15, 0, 5), new Color3(0.6, 0.9, 0.2), 'customers'),
-      costStructure: defaultSection('Cost Structure', new Vector3(-7.5, 0, -5), new Color3(0.9, 0.3, 0.3), 'finances'),
-      revenueStreams: defaultSection('Revenue Streams', new Vector3(7.5, 0, -5), new Color3(0.3, 0.9, 0.3), 'finances')
+    interactionCapabilities: ['click', 'hover', 'edit', 'export', 'slide_navigation'],
+    
+    slides: {
+      cover: defaultSlide(1, 'Cover', 'Brand identity, tagline, and contact info', 'Introduction and branding', new Vector3(-20, 0, 15), new Color3(0.2, 0.2, 0.8)),
+      problem: defaultSlide(2, 'Problem', 'Pain point or unmet need in the market', 'Market problem identification', new Vector3(-15, 0, 15), new Color3(0.8, 0.2, 0.2)),
+      solution: defaultSlide(3, 'Solution', 'Your product or service and how it solves the problem', 'Solution presentation', new Vector3(-10, 0, 15), new Color3(0.2, 0.8, 0.2)),
+      market: defaultSlide(4, 'Market', 'TAM/SAM/SOM, market size, and growth opportunity', 'Market analysis', new Vector3(-5, 0, 15), new Color3(0.8, 0.6, 0.2)),
+      product: defaultSlide(5, 'Product', 'Demo, screenshots, or key features', 'Product demonstration', new Vector3(0, 0, 15), new Color3(0.6, 0.2, 0.8)),
+      businessModel: defaultSlide(6, 'Business Model', 'How you make money—pricing, revenue streams', 'Revenue model', new Vector3(5, 0, 15), new Color3(0.2, 0.8, 0.6)),
+      traction: defaultSlide(7, 'Traction', 'KPIs, growth metrics, user adoption, revenue to date', 'Growth evidence', new Vector3(10, 0, 15), new Color3(0.8, 0.4, 0.2)),
+      goToMarket: defaultSlide(8, 'Go-to-Market', 'Sales strategy, distribution channels, customer acquisition', 'Market strategy', new Vector3(15, 0, 15), new Color3(0.4, 0.8, 0.2)),
+      competition: defaultSlide(9, 'Competition', 'Competitive landscape and your differentiation', 'Competitive analysis', new Vector3(20, 0, 15), new Color3(0.8, 0.2, 0.6)),
+      team: defaultSlide(10, 'Team', 'Founders, key hires, and relevant experience', 'Team presentation', new Vector3(-15, 0, 10), new Color3(0.2, 0.6, 0.8)),
+      financials: defaultSlide(11, 'Financials', 'Forecasts, burn rate, unit economics', 'Financial projections', new Vector3(-5, 0, 10), new Color3(0.6, 0.8, 0.2)),
+      ask: defaultSlide(12, 'Ask', 'Funding amount, use of funds, and round details', 'Investment request', new Vector3(5, 0, 10), new Color3(0.8, 0.2, 0.4)),
+      vision: defaultSlide(13, 'Vision', 'Long-term roadmap, exit strategy, or impact potential', 'Future vision', new Vector3(15, 0, 10), new Color3(0.4, 0.2, 0.8))
     },
-    canvas: {
+    
+    bmcSections: {
+      keyPartners: defaultSection('Key Partners', new Vector3(-15, 0, 0), new Color3(0.2, 0.6, 0.9), 'infrastructure', ['team', 'goToMarket']),
+      keyActivities: defaultSection('Key Activities', new Vector3(-7.5, 0, 5), new Color3(0.3, 0.7, 0.8), 'infrastructure', ['solution', 'product']),
+      keyResources: defaultSection('Key Resources', new Vector3(-7.5, 0, 0), new Color3(0.4, 0.8, 0.7), 'infrastructure', ['team', 'product']),
+      valuePropositions: defaultSection('Value Propositions', new Vector3(0, 0, 2.5), new Color3(0.9, 0.6, 0.2), 'value', ['solution', 'problem']),
+      customerRelationships: defaultSection('Customer Relationships', new Vector3(7.5, 0, 5), new Color3(0.8, 0.7, 0.3), 'customers', ['goToMarket', 'traction']),
+      channels: defaultSection('Channels', new Vector3(7.5, 0, 0), new Color3(0.7, 0.8, 0.4), 'customers', ['goToMarket']),
+      customerSegments: defaultSection('Customer Segments', new Vector3(15, 0, 2.5), new Color3(0.6, 0.9, 0.2), 'customers', ['market', 'traction']),
+      costStructure: defaultSection('Cost Structure', new Vector3(-7.5, 0, -5), new Color3(0.9, 0.3, 0.3), 'finances', ['financials', 'businessModel']),
+      revenueStreams: defaultSection('Revenue Streams', new Vector3(7.5, 0, -5), new Color3(0.3, 0.9, 0.3), 'finances', ['businessModel', 'financials'])
+    },
+    
+    presentation: {
+      mode: 'pitch_deck',
       layout: 'traditional',
       colorScheme: 'categorical',
       sectionSpacing: 5
