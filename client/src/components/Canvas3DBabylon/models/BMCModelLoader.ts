@@ -145,10 +145,35 @@ export class BMCModelLoader {
           mesh.position.y = 0; // Bottom-anchored: force to ground plane
           
         } else if (mesh.name === "Expenses") {
-          // DOCUMENTED POSITIONING: Height=1.0, Bottom-anchored at Y=0.0
-          const expensesHeight = 1.0; // Documented value
+          // STEP 1: VERTEX MANIPULATION for bottom-anchored Expenses group
+          // Bottom-anchored: Keep bottom vertices fixed at Y=0, allow top vertices to move up/down
+          if (mesh instanceof Mesh && mesh.geometry) {
+            const positions = mesh.getVerticesData("position");
+            if (positions) {
+              console.log(`🔧 Expenses original vertices count: ${positions.length / 3}`);
+              
+              let minY = Infinity;
+              let maxY = -Infinity;
+              
+              // First pass: find actual Y range
+              for (let i = 1; i < positions.length; i += 3) {
+                const currentY = positions[i];
+                minY = Math.min(minY, currentY);
+                maxY = Math.max(maxY, currentY);
+              }
+              
+              console.log(`🔧 Expenses Y range: ${minY} to ${maxY}`);
+              
+              // Store original mesh properties for future height adjustments
+              (mesh as any).originalMinY = minY;
+              (mesh as any).originalMaxY = maxY;
+              (mesh as any).originalHeight = maxY - minY;
+              
+              console.log(`🔧 Expenses: stored original height=${maxY - minY}`);
+            }
+          }
           
-          mesh.scaling.y = expensesHeight;
+          // Keep original position for bottom-anchored behavior
           mesh.position.y = 0; // Bottom-anchored: force to ground plane
           
         } else if (mesh.name === "RevenuePL") {
