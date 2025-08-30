@@ -380,7 +380,9 @@ export class FinancialsHeightManager {
       mesh.position.y = 0;
     }
 
-    // Labels no longer need inverse scaling since we're not using scaling
+    // Update label position with proper scaling for both vertex manipulation AND top-anchored behavior
+    this.updateLabelPosition(mesh);
+    
     debugLog.verbose('financials', `Set height for ${objectName}: ${height} (${anchorType}-anchored) using vertex manipulation`);
   }
 
@@ -483,14 +485,23 @@ export class FinancialsHeightManager {
     // Get the stored height factor for this mesh
     const heightFactor = this.currentHeightFactors.get(mesh.name) || 1.0;
     
-    // Force label to maintain constant aspect ratio by inverting the height factor
-    if (heightFactor > 0) {
-      // Inverse the Y scaling to maintain original proportions
-      labelPlane.scaling.y = 1.0 / heightFactor;
-      labelPlane.scaling.x = 1.0; // Keep X scaling normal
-      labelPlane.scaling.z = 1.0; // Keep Z scaling normal
+    // SPECIAL HANDLING for ExpensesPL (Profit) - it seems to need different scaling
+    if (mesh.name === 'ExpensesPL') {
+      // For top-anchored ExpensesPL, apply a more aggressive inverse scaling
+      const adjustedFactor = heightFactor * 1.5; // Compensate for top-anchoring behavior
+      labelPlane.scaling.y = 1.0 / adjustedFactor;
+      labelPlane.scaling.x = 1.0;
+      labelPlane.scaling.z = 1.0;
+      debugLog.verbose('financials', `Applied ADJUSTED inverse Y scaling (${(1.0 / adjustedFactor).toFixed(3)}) to ${mesh.name} label (top-anchored compensation)`);
+    } else {
+      // Force label to maintain constant aspect ratio by inverting the height factor
+      if (heightFactor > 0) {
+        // Inverse the Y scaling to maintain original proportions
+        labelPlane.scaling.y = 1.0 / heightFactor;
+        labelPlane.scaling.x = 1.0; // Keep X scaling normal
+        labelPlane.scaling.z = 1.0; // Keep Z scaling normal
+      }
+      debugLog.verbose('financials', `Applied inverse Y scaling (${(1.0 / heightFactor).toFixed(3)}) to ${mesh.name} label for vertex manipulation`);
     }
-    
-    debugLog.verbose('financials', `Applied inverse Y scaling (${(1.0 / heightFactor).toFixed(3)}) to ${mesh.name} label for vertex manipulation`);
   }
 }
