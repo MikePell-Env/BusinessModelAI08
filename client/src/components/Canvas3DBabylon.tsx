@@ -53,6 +53,7 @@ import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabe
 // UNIFIED SYSTEM: Replace competing managers with unified architecture
 import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter';
 import { EnvisionerPersistence } from './Canvas3DBabylon/core/EnvisionerPersistence';
+import { EnvisionerFoundation } from './Canvas3DBabylon/core/EnvisionerFoundation';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
 
@@ -909,101 +910,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
 
 
-    // Create ground with powder blue background and white gridlines
-    const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 14 }, scene);
-    ground.parent = masterTransform; // Parent ground to master transform
+    // ENVISIONER FOUNDATION: Create the persistent base platform (ground, rails, labels, lighting)
+    const envisionerFoundation = new EnvisionerFoundation(scene, masterTransform);
+    envisionerFoundation.initialize(); // Initialize foundation components
+    
+    // Store foundation reference for potential template access
+    const foundationGround = envisionerFoundation.getComponent('ground');
 
-    // Create dynamic texture for powder blue grid pattern with white lines
-    const gridTexture = new DynamicTexture("gridTexture", { width: 1024, height: 1024 }, scene, false);
-    const gridContext = gridTexture.getContext();
-
-    // Fill with custom powder blue background
-    gridContext.fillStyle = "#a7dbfc"; // Custom powder blue background
-    gridContext.fillRect(0, 0, 1024, 1024);
-
-    // Draw white grid lines
-    gridContext.strokeStyle = "#FFFFFF"; // White grid lines
-    gridContext.lineWidth = 1; // Thin 1px grid lines
-
-    // Draw vertical lines (spacing every 32 pixels)
-    for (let i = 0; i <= 1024; i += 32) {
-      gridContext.beginPath();
-      gridContext.moveTo(i, 0);
-      gridContext.lineTo(i, 1024);
-      gridContext.stroke();
-    }
-
-    // Draw horizontal lines (spacing every 32 pixels)
-    for (let i = 0; i <= 1024; i += 32) {
-      gridContext.beginPath();
-      gridContext.moveTo(0, i);
-      gridContext.lineTo(1024, i);
-      gridContext.stroke();
-    }
-
-    gridTexture.update();
-
-    // Apply powder blue material with white grid texture to ground
-    const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseTexture = gridTexture;
-    groundMaterial.specularColor = MATERIAL_COLORS.GROUND_SPECULAR; // Subtle blue-tinted specular reflection
-    groundMaterial.specularPower = 64; // Higher value for sharper reflections
-    groundMaterial.alpha = 0.5; // 50% opacity
-    groundMaterial.backFaceCulling = false; // Render from both sides (visible from underneath)
-    ground.material = groundMaterial;
-
-    // Background click handling is done by SimpleClickHandler callbacks
-    ground.isPickable = false; // Prevent individual ground mesh clicks
-
-    // Create extruded border rails on all sides
-    const railHeight = 0.15; // Reduced from 0.3 to 0.15
-    const railWidth = 0.2;
-    const railColor = MATERIAL_COLORS.RAIL_COLOR; // Darker grey rail color
-
-    // Create rail material
-    const railMaterial = new StandardMaterial("railMaterial", scene);
-    railMaterial.diffuseColor = railColor;
-    railMaterial.specularColor = MATERIAL_COLORS.RAIL_SPECULAR;
-
-    // North rail (back) - extends full width including rail thickness for flush corners
-    const northRail = MeshBuilder.CreateBox("northRail", {
-      width: 20 + railWidth * 2, // Ground width + rail thickness on both sides for flush corners
-      height: railHeight,
-      depth: railWidth
-    }, scene);
-    northRail.position = new Vector3(0, railHeight / 2, -7 - railWidth / 2); // 14/2 = 7
-    northRail.material = railMaterial;
-    northRail.parent = masterTransform; // Parent to master transform
-
-    // South rail (front) - extends full width including rail thickness for flush corners
-    const southRail = MeshBuilder.CreateBox("southRail", {
-      width: 20 + railWidth * 2, // Ground width + rail thickness on both sides for flush corners
-      height: railHeight,
-      depth: railWidth
-    }, scene);
-    southRail.position = new Vector3(0, railHeight / 2, 7 + railWidth / 2); // 14/2 = 7
-    southRail.material = railMaterial;
-    southRail.parent = masterTransform; // Parent to master transform
-
-    // East rail (right) - only spans ground depth (not including rail thickness to avoid overlap)
-    const eastRail = MeshBuilder.CreateBox("eastRail", {
-      width: railWidth,
-      height: railHeight,
-      depth: 14 // Only ground depth, no extension needed
-    }, scene);
-    eastRail.position = new Vector3(10 + railWidth / 2, railHeight / 2, 0); // 20/2 = 10
-    eastRail.material = railMaterial;
-    eastRail.parent = masterTransform; // Parent to master transform
-
-    // West rail (left) - only spans ground depth (not including rail thickness to avoid overlap)
-    const westRail = MeshBuilder.CreateBox("westRail", {
-      width: railWidth,
-      height: railHeight,
-      depth: 14 // Only ground depth, no extension needed
-    }, scene);
-    westRail.position = new Vector3(-10 - railWidth / 2, railHeight / 2, 0); // 20/2 = 10
-    westRail.material = railMaterial;
-    westRail.parent = masterTransform; // Parent to master transform
+    // Rails are now created by the EnvisionerFoundation
 
 
     // Force light grey background to match documentation: RGB(233, 236, 239)
@@ -1216,130 +1130,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       console.log(`🎯 Panel should now be visible on screen with ${(sectionData as CanvasElement).content.length} bullet points!`);
     };
 
-    // Add "Internal" label directly on the ground plane near Cost Structure
-    const createInternalLabel = () => {
-      // Cost Structure is at (-10.1, 0.1, -10.5), Ground plane is at Y=0
-      // Place Internal label on the ground plane, moved more to the right
+    // Labels are now handled by EnvisionerFoundation
 
-      const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
-        width: 4.0,   // Reduced by 20% (was 5.0)
-        height: 1.28  // Reduced by 20% (was 1.6)
-      }, scene);
+    // External label creation removed - handled by EnvisionerFoundation
 
-      // Position on ground plane, moved more to the right
-      internalLabelPlane.position.x = -5.0;  // Moved more to the right (was -8.0)
-      internalLabelPlane.position.y = 0.001; // Directly on ground plane surface
-      internalLabelPlane.position.z = -6.2;  // Move in negative Z direction (down on screen) to align with red line
+    // All foundation labels (Internal, External, vertical divider) are now handled by EnvisionerFoundation
 
-      // Rotate to lie flat on the ground
-      internalLabelPlane.rotation.x = Math.PI / 2;
-
-      // Create material with the appropriate label based on template
-      const internalLabelMaterial = new StandardMaterial("internalLabelMat", scene);
-      const texturePath = template.name.toLowerCase() === 'financials' ? "/textures/Labels_Revenue_grey.png" : "/textures/Labels_internal_grey.png";
-      const internalLabelTexture = new Texture(texturePath, scene);
-      internalLabelTexture.hasAlpha = true;
-      enhanceLabelTexture(internalLabelTexture);
-
-      internalLabelMaterial.diffuseTexture = internalLabelTexture;
-      internalLabelMaterial.emissiveTexture = internalLabelTexture;
-      internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
-      internalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
-      internalLabelMaterial.useAlphaFromDiffuseTexture = true;
-      internalLabelMaterial.disableLighting = true;
-      internalLabelMaterial.backFaceCulling = false; // Visible from underneath
-
-      internalLabelPlane.material = internalLabelMaterial;
-      internalLabelPlane.isPickable = false;
-      internalLabelPlane.parent = masterTransform; // Parent to master transform
-
-      console.log(`✅ Internal label (grey) on ground plane at (${internalLabelPlane.position.x}, ${internalLabelPlane.position.y}, ${internalLabelPlane.position.z})`);
-    };
-
-    // Add "External" label on the right side of the ground plane
-    const createExternalLabel = () => {
-      // Position on the right side, mirroring Internal label placement
-      // Based on diagram: External should be positioned below Revenue Streams area
-
-      const externalLabelPlane = MeshBuilder.CreatePlane("externalLabel", {
-        width: 4.0,   // Reduced by 20% (was 5.0)
-        height: 1.28  // Reduced by 20% (was 1.6)
-      }, scene);
-
-      // Position on ground plane on the right side
-      // Revenue Streams is at (-0.221, 0.1, -10.5), so External should be to the right
-      externalLabelPlane.position.x = 5.0;   // Right side (positive X, mirroring Internal at -5.0)
-      externalLabelPlane.position.y = 0.001; // Directly on ground plane surface
-      externalLabelPlane.position.z = -6.2;  // Same Z as Internal for alignment
-
-      // Rotate to lie flat on the ground
-      externalLabelPlane.rotation.x = Math.PI / 2;
-
-      // Create material with the appropriate label based on template
-      const externalLabelMaterial = new StandardMaterial("externalLabelMat", scene);
-      const texturePath = template.name.toLowerCase() === 'financials' ? "/textures/Labels_Expenses_grey.png" : "/textures/Labels_external_grey.png";
-      const externalLabelTexture = new Texture(texturePath, scene);
-      externalLabelTexture.hasAlpha = true;
-      enhanceLabelTexture(externalLabelTexture);
-
-      externalLabelMaterial.diffuseTexture = externalLabelTexture;
-      externalLabelMaterial.emissiveTexture = externalLabelTexture;
-      externalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
-      externalLabelMaterial.alpha = 0.3; // 30% opacity (increased by 20%)
-      externalLabelMaterial.useAlphaFromDiffuseTexture = true;
-      externalLabelMaterial.disableLighting = true;
-      externalLabelMaterial.backFaceCulling = false; // Visible from underneath
-
-      externalLabelPlane.material = externalLabelMaterial;
-      externalLabelPlane.isPickable = false;
-      externalLabelPlane.parent = masterTransform; // Parent to master transform
-
-      console.log(`✅ External label positioned on right side at (${externalLabelPlane.position.x}, ${externalLabelPlane.position.y}, ${externalLabelPlane.position.z})`);
-    };
-
-    // Add vertical divider label in the center of the ground plane, running top to bottom
-    const createVerticalDividerLabel = () => {
-      // Position in the center of the ground plane (X=0), running from top to bottom
-      // Based on BMC layout: center line should run between left side (Internal) and right side (External)
-
-      const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
-        width: 0.02,  // Ultra-thin width (2px equivalent)
-        height: 13.0  // Increased height to extend more toward top
-      }, scene);
-
-      // Position to keep bottom fixed while extending toward positive Z (top in view)
-      verticalDividerPlane.position.x = 0.0;   // Center line (X=0)
-      verticalDividerPlane.position.y = 0.001; // Directly on ground plane surface
-      verticalDividerPlane.position.z = 0.0;   // Adjusted to extend toward positive Z (top)
-
-      // Rotate to lie flat on the ground
-      verticalDividerPlane.rotation.x = Math.PI / 2;
-
-      // Create material with the vertical divider grey label at 50% transparency
-      const verticalDividerMaterial = new StandardMaterial("verticalDividerMat", scene);
-      const verticalDividerTexture = new Texture("/textures/Labels_vertical_divider.png", scene);
-      verticalDividerTexture.hasAlpha = true;
-      enhanceLabelTexture(verticalDividerTexture);
-
-      verticalDividerMaterial.diffuseTexture = verticalDividerTexture;
-      verticalDividerMaterial.emissiveTexture = verticalDividerTexture;
-      verticalDividerMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0); // Full brightness for grey label
-      verticalDividerMaterial.alpha = 0.3; // 30% opacity (same as Internal/External)
-      verticalDividerMaterial.useAlphaFromDiffuseTexture = true;
-      verticalDividerMaterial.disableLighting = true;
-      verticalDividerMaterial.backFaceCulling = false; // Visible from underneath
-
-      verticalDividerPlane.material = verticalDividerMaterial;
-      verticalDividerPlane.isPickable = false;
-      verticalDividerPlane.parent = masterTransform; // Parent to master transform
-
-      console.log(`✅ Vertical divider label (grey) on ground plane at center (${verticalDividerPlane.position.x}, ${verticalDividerPlane.position.y}, ${verticalDividerPlane.position.z})`);
-    };
-
-    // Create the Internal, External, and Vertical Divider labels
-    createInternalLabel();
-    createExternalLabel();
-    createVerticalDividerLabel();
+    // Foundation labels (Internal, External, vertical divider) are now created by EnvisionerFoundation
 
 
 
