@@ -15,7 +15,6 @@ import {
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import { debugLog } from '@/lib/debug/DebugLogger';
-import { FinancialsLabelManager } from '../labels/FinancialsLabelManager';
 
 export interface LoadedModel {
   rootMesh: AbstractMesh;
@@ -28,18 +27,9 @@ export interface LoadedModel {
 export class BMCModelLoader {
   private scene: Scene;
   private loadedModels: Map<string, LoadedModel> = new Map();
-  private financialsLabelManager: FinancialsLabelManager;
 
   constructor(scene: Scene) {
     this.scene = scene;
-    this.financialsLabelManager = new FinancialsLabelManager(scene);
-  }
-
-  /**
-   * Get the FinancialsLabelManager instance for external updates
-   */
-  public getFinancialsLabelManager(): FinancialsLabelManager {
-    return this.financialsLabelManager;
   }
 
   /**
@@ -205,15 +195,6 @@ export class BMCModelLoader {
         }
       });
       
-      // Hide any existing labels in the GLB model to prevent conflicts
-      this.financialsLabelManager.hideOriginalLabels(result.meshes);
-      
-      // Register Financial objects for billboard labeling
-      result.meshes.forEach(mesh => {
-        if (mesh instanceof Mesh && this.isFinancialMesh(mesh.name)) {
-          this.financialsLabelManager.registerFinancialObject(mesh);
-        }
-      });
       
       return model;
     } catch (error) {

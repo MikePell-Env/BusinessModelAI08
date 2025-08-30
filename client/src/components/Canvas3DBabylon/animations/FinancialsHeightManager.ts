@@ -14,7 +14,6 @@ import {
   EasingFunction
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
-import { FinancialsLabelManager } from '../labels/FinancialsLabelManager';
 
 export interface FinancialData {
   revenue: number;
@@ -35,19 +34,11 @@ export class FinancialsHeightManager {
   private originalPositions: Map<string, Vector3> = new Map();
   private baseHeight: number = 1.0;
   private maxVisualizationHeight: number = 5.0;
-  private labelManager: FinancialsLabelManager | null = null;
 
   constructor(scene: Scene) {
     this.scene = scene;
   }
 
-  /**
-   * Set the label manager reference for updating label positions
-   */
-  public setLabelManager(labelManager: FinancialsLabelManager): void {
-    this.labelManager = labelManager;
-    debugLog.info('financials', 'FinancialsLabelManager connected to FinancialsHeightManager');
-  }
 
   /**
    * Register financial meshes for height manipulation
@@ -270,9 +261,7 @@ export class FinancialsHeightManager {
           debugLog.verbose('financials', `${objectName} height animation completed`);
           
           // Update label position at end of animation
-          if (this.labelManager) {
-            this.labelManager.updateLabelPosition(objectName);
-          }
+          this.updateLabelPosition(mesh);
           
           resolve();
         }
@@ -321,10 +310,8 @@ export class FinancialsHeightManager {
 
     mesh.scaling.y = height;
 
-    // Update label position after scaling (maintains label aspect ratio)
-    if (this.labelManager) {
-      this.labelManager.updateLabelPosition(objectName);
-    }
+    // Update any label position to follow the mesh (but maintain label's own scale)
+    this.updateLabelPosition(mesh);
 
     if (anchorType === 'top') {
       // Use calibrated positioning for ExpensesPL
@@ -381,5 +368,25 @@ export class FinancialsHeightManager {
 
   private isFinancialMesh(name: string): boolean {
     return ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(name);
+  }
+
+  /**
+   * Update label position to follow mesh but maintain label's own scale
+   */
+  private updateLabelPosition(mesh: Mesh): void {
+    const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
+    if (!labelPlane) return;
+
+    const labelTransform = (labelPlane as any).labelTransform;
+    if (!labelTransform) return;
+
+    // Update label transform position to follow mesh center, not inheriting scale
+    const boundingInfo = mesh.getBoundingInfo();
+    const center = boundingInfo.boundingBox.center;
+    const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+
+    labelTransform.position.x = center.x;
+    labelTransform.position.y = center.y;
+    labelTransform.position.z = center.z - (size.z * 0.51); // Just in front
   }
 }

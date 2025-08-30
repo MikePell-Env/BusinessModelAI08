@@ -1634,9 +1634,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (template.name.toLowerCase() === 'financials') {
           financialsHeightManager = new FinancialsHeightManager(scene);
           
-          // Connect the label manager to the height manager for coordinated updates
-          const labelManager = modelLoader.getFinancialsLabelManager();
-          financialsHeightManager.setLabelManager(labelManager);
           financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
           
           // Register financial meshes for height manipulation
@@ -2611,7 +2608,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelMaterial.backFaceCulling = false; // Visible from both sides
 
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
+              
+              // Create a transform node that only follows position, not scaling
+              const labelTransform = new TransformNode(`${mesh.name}LabelTransform`, scene);
+              labelTransform.position = labelPlane.position.clone();
+              labelPlane.parent = labelTransform; // Parent to transform node, not mesh
+              labelPlane.position = Vector3.Zero(); // Reset local position
+              
+              // Store reference to update position when mesh moves/scales
+              (labelPlane as any).sourceTransform = transformNode;
+              (labelPlane as any).labelTransform = labelTransform;
+              
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
               console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
