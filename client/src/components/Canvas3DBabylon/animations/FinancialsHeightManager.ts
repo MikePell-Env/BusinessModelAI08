@@ -129,40 +129,39 @@ export class FinancialsHeightManager {
     data: FinancialData,
     duration: number = 1000
   ): Promise<void> {
-    // FIXED PARAMETERS: Revenue = $10M always (locked)
-    const revenue = 1000; // Fixed at $10M (slider value 1000 = $10M)
+    // INTERACTIVE SLIDERS: Both Revenue and Expenses controllable
+    const revenue = Math.max(Math.min(data.revenue, 1000), 100); // Revenue slider: $1M-$10M range
+    const expenses = Math.max(Math.min(data.expenses, 1000), 100); // Expenses slider: $1M-$10M range
     
-    // Expenses slider: $1M to $10M range (slider 100 to 1000)
-    const expenses = Math.max(Math.min(data.expenses, 1000), 100); // Clamp to $1M-$10M range
+    // Calculate profit/loss for both sides
+    const profit = Math.max(0, revenue - expenses); // When Revenue > Expenses
+    const loss = Math.max(0, expenses - revenue); // When Expenses > Revenue
     
-    // Calculate profit: $10M - Expenses ($1M to $10M) = $9M to $0M
-    const profit = Math.max(0, revenue - expenses);
-    const loss = Math.max(0, expenses - revenue); // Should always be 0 since expenses ≤ revenue
+    // Revenue Group heights - VERTEX MANIPULATION 
+    const revenueHeight = revenue / 500.0; // $1M-$10M range with bottom-anchored vertex manipulation
+    const revenuePLHeight = loss / 500.0; // Loss amount with top-anchored vertex manipulation
     
-    // Revenue Group heights - FIXED (never change, no vertex manipulation)
-    const revenueHeight = revenue / 500.0; // Fixed at $10M height
-    const revenuePLHeight = loss / 500.0; // Always 0 since no loss possible
+    // Expenses Group heights - VERTEX MANIPULATION 
+    const expensesHeight = expenses / 500.0; // $1M-$10M range with bottom-anchored vertex manipulation
+    const expensesPLHeight = profit / 500.0; // Profit amount with top-anchored vertex manipulation
     
-    // Expenses Group heights - VERTEX MANIPULATION ONLY
-    const expensesHeight = expenses / 500.0; // $1M-$10M range
-    const expensesPLHeight = profit / 500.0; // $9M-$0M range (inverse of expenses)
-    
-    debugLog.info('financials', `💰 FIXED SYSTEM - Revenue: $10M (locked), Expenses: $${expenses/500}M, Profit: $${profit/500}M`);
-    debugLog.info('financials', `📊 Heights - Revenue: ${revenueHeight.toFixed(2)} (fixed), Expenses: ${expensesHeight.toFixed(2)}, ExpensesPL: ${expensesPLHeight.toFixed(2)}`);
-    debugLog.info('financials', `🔒 Revenue Group: NO changes, Expenses Group: VERTEX manipulation only`);
+    debugLog.info('financials', `💰 DUAL INTERACTIVE SYSTEM - Revenue: $${revenue/100}M, Expenses: $${expenses/100}M`);
+    debugLog.info('financials', `📊 P&L - Profit: $${profit/100}M, Loss: $${loss/100}M`);
+    debugLog.info('financials', `📊 Heights - Revenue: ${revenueHeight.toFixed(2)}, Expenses: ${expensesHeight.toFixed(2)}, ExpensesPL: ${expensesPLHeight.toFixed(2)}, RevenuePL: ${revenuePLHeight.toFixed(2)}`);
+    debugLog.info('financials', `🔧 BOTH Groups: VERTEX manipulation with proper anchoring`);
 
-    // Animate objects with appropriate methods
+    // Animate ALL objects with vertex manipulation
     await Promise.all([
-      // Revenue Group: NO animation - keep completely locked
-      // this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration), // DISABLED
-      // this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration), // DISABLED
+      // Revenue Group: VERTEX manipulation enabled
+      this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration),
+      this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration),
       
-      // Expenses Group: VERTEX manipulation only
+      // Expenses Group: VERTEX manipulation continued
       this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration),
       this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration)
     ]);
 
-    debugLog.info('financials', 'Vertex-only height animations completed');
+    debugLog.info('financials', 'Dual-group vertex manipulation animations completed');
   }
 
   /**
