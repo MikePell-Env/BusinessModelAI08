@@ -2608,13 +2608,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // Position on front face (negative Z direction from center)
-              labelPlane.position.x = center.x;
-              labelPlane.position.y = center.y;
-              labelPlane.position.z = center.z - (size.z * 0.51); // Just in front based on actual mesh depth
+              // Position on top face like working Revenue Streams/Cost Structure labels
+              labelPlane.position.x = center.x; // Center horizontally
+              labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
+              labelPlane.position.z = center.z; // Center vertically (Z-axis)
 
-              // No rotation needed - label faces forward by default
-              labelPlane.rotation = Vector3.Zero();
+              // Rotate to be flat on top (like working examples)
+              labelPlane.rotation.x = Math.PI / 2;
 
               // Create material with texture
               const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
