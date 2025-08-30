@@ -254,9 +254,9 @@ export class FinancialsHeightManager {
         targetPosition = 0;
       }
 
-      // STEP 3: Use vertex manipulation for Expenses, scaling for others
-      if (objectName === 'Expenses') {
-        // Use vertex manipulation instead of scaling for Expenses
+      // STEP 3: Use vertex manipulation for Expenses and ExpensesPL, scaling for others
+      if (objectName === 'Expenses' || objectName === 'ExpensesPL') {
+        // Use vertex manipulation instead of scaling for Expenses group
         debugLog.info('financials', `🔧 VERTEX: Animating ${objectName} height via vertex manipulation to ${targetHeight}`);
         
         // Convert target height to height factor (relative to base height)
@@ -268,10 +268,10 @@ export class FinancialsHeightManager {
         // Update label position after vertex changes
         this.updateLabelPosition(mesh);
         
-        // Position the mesh properly (bottom-anchored)
-        mesh.position.y = targetPosition;
+        // DO NOT MOVE THE MESH - vertex manipulation keeps mesh in fixed position
+        // mesh.position.y stays exactly where it was set during model loading
         
-        debugLog.info('financials', `🔧 VERTEX: ${objectName} height set to factor ${heightFactor} (target: ${targetHeight})`);
+        debugLog.info('financials', `🔧 VERTEX: ${objectName} height set to factor ${heightFactor} (target: ${targetHeight}) - mesh position FIXED`);
         
         // Resolve immediately since vertex manipulation is instant
         resolve();
