@@ -3394,16 +3394,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-xs mb-1">Revenue Total</label>
-              <div className="revenue-display text-xs text-green-400 mb-1">$10M (Fixed)</div>
+              <div className="revenue-display text-xs text-green-400 mb-1">$10M</div>
               <input
                 type="range"
-                min="1000"
+                min="100"
                 max="1000"
-                defaultValue="1000"
-                disabled
-                className="w-full h-2 bg-gray-500 rounded-lg appearance-none cursor-not-allowed opacity-50"
+                defaultValue="800"
+                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                onChange={(e) => {
+                  const revenue = parseInt(e.target.value);
+                  // Get current expenses value from the other slider
+                  const expensesSlider = document.querySelector('input[type="range"]:nth-of-type(2)') as HTMLInputElement;
+                  const currentExpenses = expensesSlider ? parseInt(expensesSlider.value) : 800;
+
+                  if ((window as any).financialsDataAdapter) {
+                    (window as any).financialsDataAdapter.updateFromBusinessData({
+                      totalRevenue: revenue,  // Revenue slider controls Revenue group
+                      totalExpenses: currentExpenses,
+                      netProfit: Math.max(0, revenue - currentExpenses),
+                      netLoss: Math.max(0, currentExpenses - revenue)
+                    });
+                  }
+
+                  // Update the display values
+                  const revenueDisplay = document.querySelector('.revenue-display');
+                  if (revenueDisplay) revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
+                }}
               />
-              <span className="text-xs text-gray-400">$10M (Locked)</span>
+              <span className="text-xs text-gray-300">$1M - $10M</span>
             </div>
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
