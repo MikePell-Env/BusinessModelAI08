@@ -19,31 +19,31 @@ export class FinancialsLabelManager {
   private labelMaterials: Map<string, StandardMaterial> = new Map();
   private objectMeshes: Map<string, AbstractMesh> = new Map();
 
-  // Label configurations for each Financial object - INCREASED SIZE
+  // Label configurations for each Financial object - USING WORKING APPROACH
   private labelConfigs: Map<string, FinancialLabelConfig> = new Map([
     ['Revenue', { 
       objectName: 'Revenue', 
       texturePath: '/textures/Label_Revenue.png', 
-      aspectRatio: 2.86, // Width/Height ratio from current working system
-      baseWidth: 1.5 // Much larger
+      aspectRatio: 2.86,
+      baseWidth: 2.0 // Based on working Revenue Streams example
     }],
     ['RevenuePL', { 
       objectName: 'RevenuePL', 
       texturePath: '/textures/Label_Loss.png', 
-      aspectRatio: 4.0, // Standard ratio for PL labels
-      baseWidth: 1.2 // Much larger
+      aspectRatio: 4.0,
+      baseWidth: 1.5
     }],
     ['Expenses', { 
       objectName: 'Expenses', 
       texturePath: '/textures/Label_Expenses.png', 
-      aspectRatio: 4.0, // Standard ratio
-      baseWidth: 1.5 // Much larger
+      aspectRatio: 4.0,
+      baseWidth: 2.0 // Based on working Cost Structure example
     }],
     ['ExpensesPL', { 
       objectName: 'ExpensesPL', 
       texturePath: '/textures/Label_Profit.png', 
-      aspectRatio: 4.0, // Standard ratio
-      baseWidth: 1.2 // Much larger
+      aspectRatio: 4.0,
+      baseWidth: 1.5
     }]
   ]);
 
@@ -79,41 +79,44 @@ export class FinancialsLabelManager {
     const center = boundingInfo.boundingBox.center;
     const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
     
-    // Position label in front of object based on camera view direction
-    // Camera typically views from positive X, positive Y, negative Z direction
-    // So front face for labels should be toward the camera (negative Z from object center)
+    // Position label using WORKING approach from successful Revenue Streams/Cost Structure labels
+    // Place on top face like other working labels in the system
     transformNode.position = new Vector3(
-      center.x - (size.x * 0.6), // Move toward camera on X axis
-      center.y, // Keep at mesh center height
-      center.z // Keep at center Z - no Z offset needed
+      center.x, // Center horizontally
+      center.y + (size.y * 0.6), // Position on top face (like working examples)
+      center.z // Center vertically (Z-axis)
     );
 
-    // Create label plane with fixed aspect ratio
+    // Create label plane using WORKING sizing approach
     const labelWidth = config.baseWidth;
     const labelHeight = labelWidth / config.aspectRatio;
     
-    const labelPlane = MeshBuilder.CreatePlane(`${config.objectName}_BillboardLabel`, {
+    const labelPlane = MeshBuilder.CreatePlane(`${config.objectName}_Label`, {
       width: labelWidth,
       height: labelHeight
     }, this.scene);
 
-    // Create material with texture
-    const labelMaterial = new StandardMaterial(`${config.objectName}_LabelMaterial`, this.scene);
+    // Rotate to be flat on top (like working examples)
+    labelPlane.rotation.x = Math.PI / 2;
+
+    // Create material with texture using WORKING approach
+    const labelMaterial = new StandardMaterial(`${config.objectName}_LabelMat`, this.scene);
     const labelTexture = new Texture(config.texturePath, this.scene);
+    labelTexture.hasAlpha = true;
     
-    // Configure material for proper label display
+    // Use same material setup as working labels
     labelMaterial.diffuseTexture = labelTexture;
     labelMaterial.emissiveTexture = labelTexture;
-    labelMaterial.emissiveColor.set(0.9, 0.9, 0.9);
+    labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4);
     labelMaterial.useAlphaFromDiffuseTexture = true;
+    labelMaterial.disableLighting = true;
     labelMaterial.backFaceCulling = false;
-    labelMaterial.alpha = 1.0;
 
     // Apply material to plane
     labelPlane.material = labelMaterial;
 
-    // Make label always face camera (billboard behavior)
-    labelPlane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+    // Apply scaling like working examples (Revenue Streams uses scaling)
+    labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
 
     // Parent label to transform node
     labelPlane.parent = transformNode;
@@ -146,10 +149,10 @@ export class FinancialsLabelManager {
     const center = boundingInfo.boundingBox.center;
     const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
     
-    // Update transform position (label size remains unchanged)
-    transformNode.position.x = center.x - (size.x * 0.6); // Move toward camera on X axis
-    transformNode.position.y = center.y; // Keep at mesh center height  
-    transformNode.position.z = center.z; // Keep at center Z
+    // Update transform position using WORKING approach
+    transformNode.position.x = center.x; // Center horizontally
+    transformNode.position.y = center.y + (size.y * 0.6); // Position on top face
+    transformNode.position.z = center.z; // Center vertically (Z-axis)
 
     debugLog.verbose('financials-labels', 
       `Updated ${objectName} label position: (${transformNode.position.x.toFixed(3)}, ${transformNode.position.y.toFixed(3)}, ${transformNode.position.z.toFixed(3)})`
