@@ -48,9 +48,9 @@ export const CAMERA_PRESETS = {
   // Front view for Financials template - proper orientation for viewer perspective
   FRONT: {
     alpha: Math.PI/2, // +90° horizontal rotation for correct front view
-    beta: Math.PI/2.2, // ~82° tilt angle for objects to square up to camera
+    beta: Math.PI/2.2 - Math.PI/4, // ~37° tilt angle (82° - 45°) for proper square-up
     radius: 55 // Same distance as TOP for consistency
-    // Front view with objects perpendicular to camera
+    // Front view with objects squared up to camera (rotated opposite direction)
   }
 } as const;
 
