@@ -356,8 +356,8 @@ export class EnvisionerFoundation {
    */
   private async createVerticalDividerLabel(): Promise<void> {
     const verticalDividerPlane = MeshBuilder.CreatePlane("envisionerVerticalDividerLabel", {
-      width: 0.05,
-      height: 8
+      width: 0.02,
+      height: 4
     }, this.scene);
 
     verticalDividerPlane.position.x = 0;
@@ -369,23 +369,23 @@ export class EnvisionerFoundation {
 
     // Create material and texture for vertical divider label
     const verticalDividerMaterial = new StandardMaterial("envisionerVerticalDividerMaterial", this.scene);
-    const verticalDividerTexture = new DynamicTexture("envisionerVerticalDividerTexture", { width: 32, height: 512 }, this.scene, false);
+    const verticalDividerTexture = new DynamicTexture("envisionerVerticalDividerTexture", { width: 16, height: 256 }, this.scene, false);
     const verticalDividerContext = verticalDividerTexture.getContext();
 
     // Create grey text on transparent background
     verticalDividerContext.fillStyle = "transparent";
-    verticalDividerContext.fillRect(0, 0, 32, 512);
+    verticalDividerContext.fillRect(0, 0, 16, 256);
     verticalDividerContext.fillStyle = this.config.labels.divider.color;
-    verticalDividerContext.font = "bold 24px Arial";
+    verticalDividerContext.font = "bold 16px Arial";
     (verticalDividerContext as any).textAlign = "center";
     (verticalDividerContext as any).textBaseline = "middle";
 
-    // Split the long text and draw it vertically (shorter divider)
+    // Split the long text and draw it vertically (much shorter divider)
     const parts = this.config.labels.divider.text.split(" | ");
-    const lineHeight = 400 / (parts.length + 1); // Use only middle 400px of 512px texture
-    const startY = 56; // Start 56px from top
+    const lineHeight = 160 / (parts.length + 1); // Use only middle 160px of 256px texture
+    const startY = 48; // Start 48px from top
     parts.forEach((part, index) => {
-      verticalDividerContext.fillText(part, 16, startY + lineHeight * (index + 1));
+      verticalDividerContext.fillText(part, 8, startY + lineHeight * (index + 1));
     });
 
     verticalDividerTexture.update();
