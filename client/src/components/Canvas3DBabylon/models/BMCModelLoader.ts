@@ -167,19 +167,44 @@ export class BMCModelLoader {
           if (mesh instanceof Mesh && mesh.geometry) {
             const positions = mesh.getVerticesData("position");
             if (positions) {
-              const heightReduction = 0.35; // 35% height reduction for more noticeable effect
+              console.log(`🔧 ExpensesPL original vertices count: ${positions.length / 3}`);
               
-              for (let i = 1; i < positions.length; i += 3) { // Y coordinates are at indices 1, 4, 7, etc.
+              const heightReduction = 0.35; // 35% height reduction for more noticeable effect
+              let topVertexCount = 0;
+              let bottomVertexCount = 0;
+              let maxY = -Infinity;
+              let minY = Infinity;
+              
+              // First pass: find min/max Y values
+              for (let i = 1; i < positions.length; i += 3) {
+                const currentY = positions[i];
+                maxY = Math.max(maxY, currentY);
+                minY = Math.min(minY, currentY);
+              }
+              
+              console.log(`🔧 ExpensesPL Y range: ${minY} to ${maxY}`);
+              
+              // Second pass: modify vertices
+              for (let i = 1; i < positions.length; i += 3) {
                 const currentY = positions[i];
                 
-                // Only move bottom vertices upward, keep top vertices (Y >= 0) unchanged
-                if (currentY < 0) {
-                  positions[i] = currentY * (1 - heightReduction);
+                // Move bottom half of vertices toward top (keep top half unchanged)
+                const midY = (maxY + minY) / 2;
+                if (currentY < midY) {
+                  const newY = currentY + (midY - currentY) * heightReduction;
+                  positions[i] = newY;
+                  bottomVertexCount++;
+                  console.log(`🔧 Moving vertex from Y=${currentY.toFixed(3)} to Y=${newY.toFixed(3)}`);
+                } else {
+                  topVertexCount++;
                 }
               }
               
+              console.log(`🔧 Modified ${bottomVertexCount} bottom vertices, preserved ${topVertexCount} top vertices`);
+              
               mesh.setVerticesData("position", positions);
               mesh.refreshBoundingInfo();
+              mesh.markVerticesDataAsUpdatable("position", true);
             }
           }
           
