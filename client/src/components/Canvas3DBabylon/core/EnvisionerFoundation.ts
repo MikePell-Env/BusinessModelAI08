@@ -20,7 +20,8 @@ import {
   Color3,
   Vector3,
   HemisphericLight,
-  DirectionalLight
+  DirectionalLight,
+  FresnelParameters
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { MATERIAL_COLORS } from '../constants/BMCConstants';
