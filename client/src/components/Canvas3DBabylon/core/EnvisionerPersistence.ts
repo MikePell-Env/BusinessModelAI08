@@ -67,16 +67,26 @@ export class EnvisionerPersistence {
     this.masterTransform = new TransformNode("EnvisionerMasterTransform", scene);
     
     if (this.spatialState && this.spatialState.isInitialized) {
-      // Restore previous spatial state
+      // Restore position and scale only - rotation is template-specific
       this.masterTransform.position = this.spatialState.position.clone();
-      this.masterTransform.rotationQuaternion = this.spatialState.rotation.clone();
       this.masterTransform.scaling = this.spatialState.scale.clone();
       
-      debugLog.info('envisioner', `🔄 Restored Envisioner spatial state for template: ${templateName}`);
+      debugLog.info('envisioner', `🔄 Restored Envisioner position and scale for template: ${templateName}`);
     } else {
       // Initialize with default spatial properties
       this.initializeDefaultSpatialProperties(templateName);
       debugLog.info('envisioner', `🏗️ Created new Envisioner master transform for template: ${templateName}`);
+    }
+    
+    // CRITICAL: Apply template-specific rotation AFTER restoring position/scale
+    if (templateName.toLowerCase() === 'financials') {
+      // Financials template - no rotation applied, content should be "normal" orientation
+      this.masterTransform.rotation.y = 0; // No rotation for Financials
+      this.masterTransform.rotation.x = 0; // No X tilt for Financials
+    } else {
+      // Business Model template - original 180° rotation for BMC orientation
+      this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
+      this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
     }
 
     return this.masterTransform;
@@ -129,7 +139,7 @@ export class EnvisionerPersistence {
 
     this.spatialState = {
       position: this.masterTransform.position.clone(),
-      rotation: this.masterTransform.rotationQuaternion?.clone() || Quaternion.Identity(),
+      rotation: Quaternion.Identity(), // Don't persist rotation - it's template-specific
       scale: this.masterTransform.scaling.clone(),
       isInitialized: true
     };
