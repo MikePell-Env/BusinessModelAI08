@@ -36,6 +36,7 @@ export class FinancialsHeightManager {
   private currentHeightFactors: Map<string, number> = new Map();
   private baseHeight: number = 1.0;
   private maxVisualizationHeight: number = 5.0;
+  private previousData: FinancialData | null = null;
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -129,43 +130,73 @@ export class FinancialsHeightManager {
     data: FinancialData,
     duration: number = 1000
   ): Promise<void> {
-    // CROSS-GROUP AWARE SYSTEM: Both sliders affect each other's calculations
-    const revenue = Math.max(Math.min(data.revenue, 1000), 100); // Revenue slider: $1M-$10M range
-    const expenses = Math.max(Math.min(data.expenses, 1000), 100); // Expenses slider: $1M-$10M range
+    // ISOLATED SYSTEM: Track previous values to prevent unwanted changes
+    if (!this.previousData) {
+      this.previousData = { revenue: 1000, expenses: 800, profit: 200, loss: 0 };
+    }
+    
+    const revenue = Math.max(Math.min(data.revenue, 1000), 100);
+    const expenses = Math.max(Math.min(data.expenses, 1000), 100);
     
     // Calculate profit/loss based on actual slider values
-    const profit = Math.max(0, revenue - expenses); // When Revenue > Expenses
-    const loss = Math.max(0, expenses - revenue); // When Expenses > Revenue
+    const profit = Math.max(0, revenue - expenses);
+    const loss = Math.max(0, expenses - revenue);
     
-    // IDENTICAL LOGIC FOR BOTH GROUPS - Like original Expenses system
-    // Both groups use the same scaling factor and bounds
     const HEIGHT_SCALE = 500.0;
     
-    // Revenue Group calculations (same as original Expenses group logic)
+    // Calculate heights
     const revenueHeight = revenue / HEIGHT_SCALE;
     const revenuePLHeight = loss / HEIGHT_SCALE;
-    
-    // Expenses Group calculations (keep original logic)  
     const expensesHeight = expenses / HEIGHT_SCALE;
     const expensesPLHeight = profit / HEIGHT_SCALE;
     
-    debugLog.info('financials', `💰 DIRECT CONTROL SYSTEM - Revenue: $${(revenue/100).toFixed(1)}M, Expenses: $${(expenses/100).toFixed(1)}M`);
+    // SELECTIVE UPDATES: Only animate objects whose values actually changed
+    const animations: Promise<void>[] = [];
+    
+    // Check Revenue Group changes
+    if (this.previousData.revenue !== revenue) {
+      console.log('🟢 Revenue changed:', this.previousData.revenue, '→', revenue);
+      animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
+    } else {
+      console.log('🔒 Revenue unchanged, skipping animation');
+    }
+    
+    if (this.previousData.loss !== loss) {
+      console.log('🟡 Loss changed:', this.previousData.loss, '→', loss);
+      animations.push(this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration));
+    } else {
+      console.log('🔒 Loss unchanged, skipping RevenuePL animation');
+    }
+    
+    // Check Expenses Group changes  
+    if (this.previousData.expenses !== expenses) {
+      console.log('🔴 Expenses changed:', this.previousData.expenses, '→', expenses);
+      animations.push(this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration));
+    } else {
+      console.log('🔒 Expenses unchanged, skipping animation');
+    }
+    
+    if (this.previousData.profit !== profit) {
+      console.log('⚫ Profit changed:', this.previousData.profit, '→', profit);
+      animations.push(this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration));
+    } else {
+      console.log('🔒 Profit unchanged, skipping ExpensesPL animation');
+    }
+    
+    // Update previous data for next comparison
+    this.previousData = { revenue, expenses, profit, loss };
+    
+    debugLog.info('financials', `💰 SELECTIVE UPDATE - Revenue: $${(revenue/100).toFixed(1)}M, Expenses: $${(expenses/100).toFixed(1)}M`);
     debugLog.info('financials', `📊 P&L Results - Profit: $${(profit/100).toFixed(1)}M, Loss: $${(loss/100).toFixed(1)}M`);
-    debugLog.info('financials', `📏 Heights - Revenue: ${revenueHeight.toFixed(3)}, RevenuePL: ${revenuePLHeight.toFixed(3)}, Expenses: ${expensesHeight.toFixed(3)}, ExpensesPL: ${expensesPLHeight.toFixed(3)}`);
-    debugLog.info('financials', `⚖️ Using identical scaling factor: ${HEIGHT_SCALE} for both groups`);
+    debugLog.info('financials', `🎯 Animations queued: ${animations.length}`);
 
-    // Animate ALL objects with percentage-based vertex manipulation
-    await Promise.all([
-      // Revenue Group: Bottom-anchored (Revenue) + Top-anchored (RevenuePL)
-      this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration),
-      this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration),
-      
-      // Expenses Group: Bottom-anchored (Expenses) + Top-anchored (ExpensesPL)
-      this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration),
-      this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration)
-    ]);
-
-    debugLog.info('financials', 'Identical scaling vertex manipulation completed');
+    // Only animate objects that actually changed
+    if (animations.length > 0) {
+      await Promise.all(animations);
+      debugLog.info('financials', 'Selective animation updates completed');
+    } else {
+      debugLog.info('financials', 'No changes detected, no animations needed');
+    }
   }
 
   /**
@@ -338,7 +369,11 @@ export class FinancialsHeightManager {
    * Uses corrected direct mapping logic
    */
   public setImmediateHeights(data: FinancialData): void {
-    // Direct mapping: slider values directly control their respective groups
+    // ISOLATED SYSTEM: Track previous values to prevent unwanted changes
+    if (!this.previousData) {
+      this.previousData = { revenue: 1000, expenses: 800, profit: 200, loss: 0 };
+    }
+    
     const revenue = Math.max(data.revenue, 0.1);
     const expenses = Math.max(data.expenses, 0.1);
     
@@ -352,10 +387,29 @@ export class FinancialsHeightManager {
     const revenuePLHeight = loss / 500.0;
     const expensesPLHeight = profit / 500.0;
 
-    this.setObjectHeight('Revenue', revenueHeight, 'bottom');
-    this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
-    this.setObjectHeight('Expenses', expensesHeight, 'bottom');
-    this.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
+    // SELECTIVE UPDATES: Only update objects whose values actually changed
+    if (this.previousData.revenue !== revenue) {
+      console.log('🟢 IMMEDIATE: Revenue changed:', this.previousData.revenue, '→', revenue);
+      this.setObjectHeight('Revenue', revenueHeight, 'bottom');
+    }
+    
+    if (this.previousData.loss !== loss) {
+      console.log('🟡 IMMEDIATE: Loss changed:', this.previousData.loss, '→', loss);
+      this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
+    }
+    
+    if (this.previousData.expenses !== expenses) {
+      console.log('🔴 IMMEDIATE: Expenses changed:', this.previousData.expenses, '→', expenses);
+      this.setObjectHeight('Expenses', expensesHeight, 'bottom');
+    }
+    
+    if (this.previousData.profit !== profit) {
+      console.log('⚫ IMMEDIATE: Profit changed:', this.previousData.profit, '→', profit);
+      this.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
+    }
+    
+    // Update previous data for next comparison
+    this.previousData = { revenue, expenses, profit, loss };
   }
 
   /**
