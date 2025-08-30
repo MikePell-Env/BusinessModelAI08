@@ -3432,20 +3432,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     newValue: `$${(revenue * 10 / 1000).toFixed(0)}M`
                   });
 
-                  // ISOLATED REVENUE UPDATE: Only update Revenue object, no cross-contamination
+                  // ISOLATED REVENUE UPDATE: Percentage-based height distribution
                   if ((window as any).financialsHeightManager) {
                     const heightManager = (window as any).financialsHeightManager;
                     
-                    // Direct height update for Revenue object only
+                    // PERCENTAGE SYSTEM: Revenue Group has fixed total height, split by percentage
                     const HEIGHT_SCALE = 500.0;
-                    const revenueHeight = revenue / HEIGHT_SCALE;
+                    const FIXED_TOTAL_HEIGHT = 1000 / HEIGHT_SCALE; // Always 2.0 units total
                     
-                    console.log('💚 Setting Revenue height directly:', revenueHeight.toFixed(3));
+                    // Calculate percentages: Revenue slider value determines the split
+                    const revenuePercentage = revenue / 1000; // 0.0 to 1.0
+                    const lossPercentage = 1.0 - revenuePercentage; // Remaining percentage
+                    
+                    // Apply percentage distribution
+                    const revenueHeight = FIXED_TOTAL_HEIGHT * revenuePercentage;
+                    const revenuePLHeight = FIXED_TOTAL_HEIGHT * lossPercentage;
+                    
+                    console.log('💚 Revenue Group Update:', {
+                      revenuePercent: (revenuePercentage * 100).toFixed(1) + '%',
+                      lossPercent: (lossPercentage * 100).toFixed(1) + '%',
+                      revenueHeight: revenueHeight.toFixed(3),
+                      revenuePLHeight: revenuePLHeight.toFixed(3)
+                    });
+                    
                     heightManager.setObjectHeight('Revenue', revenueHeight, 'bottom');
-                    
-                    // RevenuePL (Loss) stays at zero for now - only changes in true loss scenarios
-                    console.log('🟡 Setting RevenuePL (Loss) to zero (no loss scenario)');
-                    heightManager.setObjectHeight('RevenuePL', 0.0, 'top');
+                    heightManager.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
                   }
 
                   // Update the display values
