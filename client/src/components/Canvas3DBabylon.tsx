@@ -1141,9 +1141,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       console.log(`🎯 Panel should now be visible on screen with ${(sectionData as CanvasElement).content.length} bullet points!`);
     };
 
-    // TEMPLATE-SPECIFIC LABELS: Use the original working foundation implementation
-    envisionerFoundation.createTemplateLabels(template.name);
-    debugLog.verbose('template', `🏷️ Template-specific labels created for ${template.name}`)
+    // TEMPLATE-SPECIFIC LABELS: Use the original working foundation implementation  
+    console.log(`🏷️ About to create template labels for: ${template.name}`);
+    envisionerFoundation.createTemplateLabels(template.name).then(() => {
+      console.log(`✅ Template-specific labels created for ${template.name}`);
+      debugLog.verbose('template', `🏷️ Template-specific labels created for ${template.name}`);
+    }).catch((error) => {
+      console.error('❌ Error creating template labels:', error);
+      debugLog.error('template', 'Failed to create template labels:', error);
+    });
 
 
 
