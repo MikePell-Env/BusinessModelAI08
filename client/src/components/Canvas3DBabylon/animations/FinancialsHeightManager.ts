@@ -422,22 +422,29 @@ export class FinancialsHeightManager {
     }
 
     const originalHeight = maxY - minY;
-    const targetHeight = originalHeight * heightFactor;
-
-    // Modify vertices based on anchor type
+    
+    // CONSTRAIN SCALING: heightFactor represents percentage of original height to show
+    // heightFactor 1.0 = full original height, 0.5 = half height, etc.
+    // This keeps all scaling WITHIN the original geometry bounds
+    
+    // Modify vertices based on anchor type - CONSTRAINED to original bounds
     for (let i = 1; i < newVertices.length; i += 3) {
       const originalY = originalVertices[i];
       
       if (anchorType === 'bottom') {
         // Bottom-anchored: scale Y from the bottom (minY stays fixed)
+        // Only show heightFactor percentage of the original height
         const relativeY = originalY - minY;
-        const scaledY = (relativeY / originalHeight) * targetHeight;
-        newVertices[i] = minY + scaledY;
+        const normalizedPosition = relativeY / originalHeight; // 0.0 to 1.0
+        const scaledPosition = normalizedPosition * heightFactor; // Scale by factor
+        newVertices[i] = minY + (scaledPosition * originalHeight);
       } else {
-        // Top-anchored: scale Y from the top (maxY stays fixed)
+        // Top-anchored: scale Y from the top (maxY stays fixed) 
+        // Only show heightFactor percentage of the original height
         const relativeY = maxY - originalY;
-        const scaledY = (relativeY / originalHeight) * targetHeight;
-        newVertices[i] = maxY - scaledY;
+        const normalizedPosition = relativeY / originalHeight; // 0.0 to 1.0
+        const scaledPosition = normalizedPosition * heightFactor; // Scale by factor
+        newVertices[i] = maxY - (scaledPosition * originalHeight);
       }
     }
 
@@ -450,21 +457,33 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Update label to maintain aspect ratio when mesh scales
+   * Update label to maintain aspect ratio and track center of front face
    */
   private updateLabelPosition(mesh: Mesh): void {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    // Force label to maintain constant aspect ratio by inverting parent's Y scaling
-    const parentYScale = mesh.scaling.y;
-    if (parentYScale > 0) {
-      // Inverse the Y scaling to maintain original proportions
-      labelPlane.scaling.y = 1.0 / parentYScale;
-      labelPlane.scaling.x = 1.0; // Keep X scaling normal
-      labelPlane.scaling.z = 1.0; // Keep Z scaling normal
-    }
+    // Get the stored height factor for this mesh (for vertex manipulation)
+    const heightFactor = this.currentHeightFactors.get(mesh.name) || 1.0;
     
-    debugLog.verbose('financials', `Applied inverse Y scaling (${(1.0 / parentYScale).toFixed(3)}) to ${mesh.name} label`);
+    // Force label to maintain constant aspect ratio by inverting the height factor
+    if (heightFactor > 0) {
+      // Inverse the scaling to maintain original proportions
+      labelPlane.scaling.y = 1.0 / heightFactor;
+      labelPlane.scaling.x = 1.0; 
+      labelPlane.scaling.z = 1.0; 
+    }
+
+    // UPDATE POSITION: Track center of front face after vertex manipulation
+    const bounds = mesh.getBoundingInfo();
+    const center = bounds.boundingBox.center;
+    const size = bounds.boundingBox.maximum.subtract(bounds.boundingBox.minimum);
+    
+    // Position label on the front face center (updated bounds after vertex manipulation)
+    labelPlane.position.x = center.x;
+    labelPlane.position.y = center.y; // This will track the actual center after height change
+    labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of the mesh
+    
+    debugLog.verbose('financials', `Updated ${mesh.name} label: aspect=${(1.0 / heightFactor).toFixed(3)}, pos=(${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
   }
 }
