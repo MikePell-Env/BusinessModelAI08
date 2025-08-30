@@ -52,7 +52,7 @@ export class SceneSetup {
       new Vector3(0, 1, 0), 
       this.scene
     );
-    hemisphericLight.intensity = 0.03; // Much lower ambient to reduce reflections
+    hemisphericLight.intensity = 0.02; // Extremely low ambient to prevent blown-out ground
     hemisphericLight.diffuse = new Color3(0.15, 0.15, 0.17); // Extremely dark ambient
     hemisphericLight.specular = new Color3(0.0, 0.0, 0.0); // No ambient specular
     hemisphericLight.groundColor = new Color3(0.02, 0.02, 0.03); // Almost black ground
@@ -63,7 +63,7 @@ export class SceneSetup {
       new Vector3(-2.0, -0.2, -1.2), // Extreme side angle for shadow definition
       this.scene
     );
-    directionalLight.intensity = 0.20; // Minimal intensity to reduce reflections
+    directionalLight.intensity = 0.15; // Very minimal intensity for ground visibility
     directionalLight.diffuse = new Color3(0.5, 0.48, 0.45); // Much dimmer light
     directionalLight.specular = new Color3(0.05, 0.04, 0.03); // Barely any specular
 
