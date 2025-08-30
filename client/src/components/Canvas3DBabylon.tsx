@@ -221,6 +221,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
   const cameraRef = useRef<ArcRotateCamera | null>(null);
+  
+  // Store master transform reference for camera targeting
+  const masterTransformRef = useRef<TransformNode | null>(null);
   // Removed orthographic camera - only perspective camera needed
   const rootMeshRef = useRef<AbstractMesh | null>(null);
   const animationManagerRef = useRef<BabylonAnimationManager | null>(null);
@@ -334,9 +337,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     startBeta = perspectiveCamera.beta;
     startRadius = perspectiveCamera.radius;
 
-    // CRITICAL FIX: Camera target must account for master transform position
-    // Use master transform position as camera target since all content is parented to it
-    const cameraTarget = masterTransform ? masterTransform.position.clone() : new Vector3(0, 0, 0);
+    // CRITICAL FIX: Camera target - use master transform if available, otherwise scene center
+    const cameraTarget = masterTransformRef.current ? masterTransformRef.current.position.clone() : new Vector3(0, 0, 0);
     perspectiveCamera.setTarget(cameraTarget);
 
     // Create smooth transition animations with cubic easing
@@ -862,16 +864,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       console.log(`🎬 Using preset camera for ${hasInitializedTemplate ? 'first' : 'initial'} instantiation: ${currentCameraPreset}`);
     }
 
-    // Use scene center (0,0,0) for all presets - same central pivot point for all templates
-    // CRITICAL FIX: Camera target must match master transform position
-    const cameraTarget = masterTransform ? masterTransform.position.clone() : new Vector3(0, 0, 0);
+    // Use scene center (0,0,0) for initial camera creation - will be updated after master transform
+    const cameraTarget = new Vector3(0, 0, 0);
 
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
       cameraAlpha,     // Alpha from preset or saved state
       cameraBeta,      // Beta from preset or saved state
       cameraRadius,    // Radius from preset or saved state
-      cameraTarget,    // Must target master transform center, not world origin
+      cameraTarget,    // Initial target - will be updated after master transform creation
       scene
     );
     // Camera positioned to show: Cost Structure (red) front-left, Revenue Streams (green) front-right
@@ -898,6 +899,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // ENVISIONER PERSISTENCE: Get or create persistent master transform that maintains spatial properties across template switches
     const envisionerPersistence = EnvisionerPersistence.getInstance();
     const masterTransform = envisionerPersistence.getOrCreateMasterTransform(scene, template.name);
+    
+    // Store master transform reference for camera targeting
+    masterTransformRef.current = masterTransform;
+    
+    // CRITICAL FIX: Update camera target to master transform position after creation
+    if (cameraRef.current && masterTransform) {
+      cameraRef.current.setTarget(masterTransform.position.clone());
+    }
 
     // DYNAMIC SCALING: Only update scaling if this is the first initialization
     const canvasForScaling = canvasRef.current;
