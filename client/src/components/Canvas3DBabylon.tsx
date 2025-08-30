@@ -2611,9 +2611,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               
               // Create a transform node that only follows position, not scaling
               const labelTransform = new TransformNode(`${mesh.name}LabelTransform`, scene);
-              labelTransform.position = labelPlane.position.clone();
+              labelTransform.position.x = center.x;
+              labelTransform.position.y = center.y;
+              labelTransform.position.z = center.z - (size.z * 0.51);
+              
               labelPlane.parent = labelTransform; // Parent to transform node, not mesh
-              labelPlane.position = Vector3.Zero(); // Reset local position
+              labelPlane.position = Vector3.Zero(); // Reset local position relative to transform
               
               // Store reference to update position when mesh moves/scales
               (labelPlane as any).sourceTransform = transformNode;
