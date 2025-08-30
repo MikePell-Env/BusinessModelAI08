@@ -45,12 +45,12 @@ export const CAMERA_PRESETS = {
     beta: 0.01, // Near-flat top-down view (minimal tilt maintains perspective camera)
     radius: 55 // Moderate zoom for complete canvas visibility
   },
-  // Front view for Financials template - matches coordinate system pattern
+  // Front view for Financials template - looking down negative Z-axis
   FRONT: {
-    alpha: Math.PI, // 180° positions camera on negative X-axis (front view)
+    alpha: 3*Math.PI/2, // 270° positions camera on negative Z-axis (true front view)
     beta: Math.PI/2.5, // ~72° for front perspective similar to other presets
     radius: 55 // Same distance as other presets for consistency
-    // Front view following established coordinate system patterns
+    // Front view looking down negative Z-axis at Revenue/Expenses front faces
   }
 } as const;
 
