@@ -2,8 +2,9 @@
  * Use Case 4DVL Template Base Class
  * 
  * Abstract base class for all use case templates (Business Model, Financials, SWOT, What If)
- * Each template is self-contained but connected, reading data sources and displaying
- * visualizations using 4DVL conventions.
+ * Each template provides a different 4DVL visualization perspective of the same underlying data.
+ * Templates are views into the same Envisioner data source - they don't own the data,
+ * they just render it differently based on their area of focus.
  */
 
 import { Scene } from '@babylonjs/core';
