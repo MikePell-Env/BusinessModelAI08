@@ -334,9 +334,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     startBeta = perspectiveCamera.beta;
     startRadius = perspectiveCamera.radius;
 
-    // All presets use same central pivot point (0,0,0) for consistent rotation center
-    // Ensure target remains at scene center during all transitions
-    perspectiveCamera.setTarget(new Vector3(0, 0, 0));
+    // CRITICAL FIX: Camera target must account for master transform position
+    // Use master transform position as camera target since all content is parented to it
+    const cameraTarget = masterTransform ? masterTransform.position.clone() : new Vector3(0, 0, 0);
+    perspectiveCamera.setTarget(cameraTarget);
 
     // Create smooth transition animations with cubic easing
     const alphaAnimation = Animation.CreateAndStartAnimation(
@@ -862,14 +863,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
 
     // Use scene center (0,0,0) for all presets - same central pivot point for all templates
-    const cameraTarget = new Vector3(0, 0, 0);
+    // CRITICAL FIX: Camera target must match master transform position
+    const cameraTarget = masterTransform ? masterTransform.position.clone() : new Vector3(0, 0, 0);
 
     const perspectiveCamera = new ArcRotateCamera(
       "PerspectiveCamera",
       cameraAlpha,     // Alpha from preset or saved state
       cameraBeta,      // Beta from preset or saved state
       cameraRadius,    // Radius from preset or saved state
-      cameraTarget,    // Custom target for FRONT, scene center for others
+      cameraTarget,    // Must target master transform center, not world origin
       scene
     );
     // Camera positioned to show: Cost Structure (red) front-left, Revenue Streams (green) front-right

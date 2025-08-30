@@ -76,7 +76,7 @@ export class EnvisionerPersistence {
   private initializeDefaultSpatialProperties(templateName: string): void {
     if (!this.masterTransform) return;
 
-    // Set default rotation and scale
+    // Set default rotation and scale - CRITICAL: Apply exact rotation from original system
     this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
     this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
     
