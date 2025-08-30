@@ -145,8 +145,7 @@ export class BMCModelLoader {
           mesh.position.y = 0; // Bottom-anchored: force to ground plane
           
         } else if (mesh.name === "Expenses") {
-          // STEP 1: VERTEX MANIPULATION for bottom-anchored Expenses group
-          // Bottom-anchored: Keep bottom vertices fixed at Y=0, allow top vertices to move up/down
+          // MEASURE AND RECORD: Find actual total height of Expenses mesh
           if (mesh instanceof Mesh && mesh.geometry) {
             const positions = mesh.getVerticesData("position");
             if (positions) {
@@ -155,41 +154,21 @@ export class BMCModelLoader {
               let minY = Infinity;
               let maxY = -Infinity;
               
-              // First pass: find actual Y range
+              // First pass: find actual Y range for this individual mesh
               for (let i = 1; i < positions.length; i += 3) {
                 const currentY = positions[i];
                 minY = Math.min(minY, currentY);
                 maxY = Math.max(maxY, currentY);
               }
               
-              console.log(`🔧 Expenses Y range: ${minY} to ${maxY}`);
+              const expensesOriginalHeight = maxY - minY;
+              console.log(`🔧 Expenses MEASURED height: ${expensesOriginalHeight} (from ${minY} to ${maxY})`);
               
-              // Store original mesh properties for future height adjustments
+              // Store original mesh properties
               (mesh as any).originalMinY = minY;
               (mesh as any).originalMaxY = maxY;
-              (mesh as any).originalHeight = maxY - minY;
-              
-              console.log(`🔧 Expenses: stored original height=${maxY - minY}`);
-              
-              // Set initial height to 80% of total
-              const totalGroupHeight = 1.0;
-              const expensesInitialHeight = totalGroupHeight * 0.8; // 80% of total
-              
-              // Apply initial vertex manipulation for 80% height
-              const heightFactor = expensesInitialHeight;
-              for (let i = 1; i < positions.length; i += 3) {
-                const originalY = positions[i];
-                const relativeY = originalY - minY;
-                const originalHeight = maxY - minY;
-                const normalizedPosition = relativeY / originalHeight;
-                const scaledPosition = normalizedPosition * heightFactor;
-                positions[i] = minY + (scaledPosition * originalHeight);
-              }
-              
-              mesh.setVerticesData("position", positions);
-              mesh.refreshBoundingInfo();
-              
-              console.log(`🔧 Expenses: set initial height to 80% (${expensesInitialHeight})`);
+              (mesh as any).originalHeight = expensesOriginalHeight;
+              (mesh as any).groupTotalHeight = expensesOriginalHeight; // Will be updated when we know ExpensesPL height
             }
           }
           
@@ -208,64 +187,100 @@ export class BMCModelLoader {
           console.log(`🔧 ANCHORED: RevenuePL at ${mesh.position.y} (top-anchored, height: ${revenuePLHeight})`);
           
         } else if (mesh.name === "ExpensesPL") {
-          // VERTEX MANIPULATION: Set initial height to 20% of total while keeping top vertices fixed
+          // MEASURE AND RECORD: Find actual total height of ExpensesPL mesh
           if (mesh instanceof Mesh && mesh.geometry) {
             const positions = mesh.getVerticesData("position");
             if (positions) {
               console.log(`🔧 ExpensesPL original vertices count: ${positions.length / 3}`);
               
-              let topVertexCount = 0;
-              let bottomVertexCount = 0;
               let maxY = -Infinity;
               let minY = Infinity;
               
-              // First pass: find min/max Y values
+              // First pass: find min/max Y values for this individual mesh
               for (let i = 1; i < positions.length; i += 3) {
                 const currentY = positions[i];
                 maxY = Math.max(maxY, currentY);
                 minY = Math.min(minY, currentY);
               }
               
-              console.log(`🔧 ExpensesPL Y range: ${minY} to ${maxY}`);
+              const expensesPLOriginalHeight = maxY - minY;
+              console.log(`🔧 ExpensesPL MEASURED height: ${expensesPLOriginalHeight} (from ${minY} to ${maxY})`);
               
-              // Set initial height to 20% of total (top-anchored)
-              const totalGroupHeight = 1.0;
-              const expensesPLInitialHeight = totalGroupHeight * 0.2; // 20% of total
-              const originalHeight = maxY - minY;
-              const heightFactor = expensesPLInitialHeight / originalHeight;
+              // Store original mesh properties
+              (mesh as any).originalMinY = minY;
+              (mesh as any).originalMaxY = maxY;
+              (mesh as any).originalHeight = expensesPLOriginalHeight;
               
-              // Second pass: modify vertices (top-anchored behavior)
-              for (let i = 1; i < positions.length; i += 3) {
-                const originalY = positions[i];
+              // Now calculate the TOTAL GROUP HEIGHT (Expenses + ExpensesPL combined)
+              const expensesMesh = result.meshes.find(m => m.name === "Expenses");
+              if (expensesMesh) {
+                const expensesHeight = (expensesMesh as any).originalHeight || 1.0;
+                const totalGroupHeight = expensesHeight + expensesPLOriginalHeight;
                 
-                // Top-anchored: keep top vertices fixed, scale from top down
-                const relativeY = maxY - originalY;
-                const normalizedPosition = relativeY / originalHeight;
-                const scaledPosition = normalizedPosition * expensesPLInitialHeight;
-                const newY = maxY - scaledPosition;
+                console.log(`🔧 EXPENSES GROUP TOTAL HEIGHT: ${totalGroupHeight} (Expenses: ${expensesHeight} + ExpensesPL: ${expensesPLOriginalHeight})`);
                 
-                positions[i] = newY;
+                // Apply 50/50 split
+                const expensesTargetHeight = totalGroupHeight * 0.5; // 50%
+                const expensesPLTargetHeight = totalGroupHeight * 0.5; // 50%
                 
-                if (originalY >= (maxY + minY) / 2) {
-                  topVertexCount++;
-                } else {
-                  bottomVertexCount++;
+                console.log(`🔧 TARGET HEIGHTS: Expenses=${expensesTargetHeight}, ExpensesPL=${expensesPLTargetHeight}`);
+                
+                // Apply vertex manipulation for ExpensesPL (top-anchored, 50% of total group)
+                const heightFactor = expensesPLTargetHeight / expensesPLOriginalHeight;
+                
+                for (let i = 1; i < positions.length; i += 3) {
+                  const originalY = positions[i];
+                  
+                  // Top-anchored: keep top vertices fixed, scale from top down
+                  const relativeY = maxY - originalY;
+                  const normalizedPosition = relativeY / expensesPLOriginalHeight;
+                  const scaledPosition = normalizedPosition * expensesPLTargetHeight;
+                  const newY = maxY - scaledPosition;
+                  
+                  positions[i] = newY;
+                }
+                
+                mesh.setVerticesData("position", positions);
+                mesh.refreshBoundingInfo();
+                mesh.markVerticesDataAsUpdatable("position", true);
+                
+                console.log(`🔧 ExpensesPL: resized to 50% of total group (factor: ${heightFactor})`);
+                
+                // Also apply vertex manipulation to Expenses mesh (bottom-anchored, 50% of total group)
+                if (expensesMesh instanceof Mesh && expensesMesh.geometry) {
+                  const expensesPositions = expensesMesh.getVerticesData("position");
+                  if (expensesPositions) {
+                    const expensesMinY = (expensesMesh as any).originalMinY;
+                    const expensesMaxY = (expensesMesh as any).originalMaxY;
+                    const expensesOriginalHeight = (expensesMesh as any).originalHeight;
+                    const expensesHeightFactor = expensesTargetHeight / expensesOriginalHeight;
+                    
+                    for (let i = 1; i < expensesPositions.length; i += 3) {
+                      const originalY = expensesPositions[i];
+                      
+                      // Bottom-anchored: keep bottom vertices fixed, scale from bottom up
+                      const relativeY = originalY - expensesMinY;
+                      const normalizedPosition = relativeY / expensesOriginalHeight;
+                      const scaledPosition = normalizedPosition * expensesTargetHeight;
+                      const newY = expensesMinY + scaledPosition;
+                      
+                      expensesPositions[i] = newY;
+                    }
+                    
+                    expensesMesh.setVerticesData("position", expensesPositions);
+                    expensesMesh.refreshBoundingInfo();
+                    
+                    console.log(`🔧 Expenses: resized to 50% of total group (factor: ${expensesHeightFactor})`);
+                  }
                 }
               }
-              
-              console.log(`🔧 ExpensesPL: set initial height to 20% (${expensesPLInitialHeight})`);
-              console.log(`🔧 Modified all vertices: ${topVertexCount} top, ${bottomVertexCount} bottom`);
-              
-              mesh.setVerticesData("position", positions);
-              mesh.refreshBoundingInfo();
-              mesh.markVerticesDataAsUpdatable("position", true);
             }
           }
           
           // Keep original position since we're manipulating vertices directly
           mesh.position.y = -0.02;
           
-          console.log(`🔧 VERTEX MODIFIED: ExpensesPL set to 20% height, top vertices anchored`);
+          console.log(`🔧 VERTEX MODIFIED: 50/50 split applied to Expenses Group`);
         }
       });
       
