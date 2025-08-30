@@ -84,13 +84,15 @@ export class EnvisionerPersistence {
     }
     
     // CRITICAL: Apply template-specific rotation AFTER restoring position/scale
+    // This rotation is set ONCE at initialization and stays constant during camera transitions
     if (templateName.toLowerCase() === 'financials') {
-      // Financials template - check if FRONT preset needs X tilt like Business Model TOP
+      // Financials template - check if current preset is FRONT at initialization
       this.masterTransform.rotation.y = Math.PI; // 180 degrees to face camera
       if (cameraPreset === 'FRONT') {
-        // FRONT preset tilts forward moderately for dead-on front view
+        // FRONT preset gets 45-degree forward tilt for optimal viewing
         this.masterTransform.rotation.x = Math.PI / 4; // 45 degrees forward tilt
       } else {
+        // All other presets use no X tilt for Financials
         this.masterTransform.rotation.x = 0; // No X tilt for other presets
       }
     } else {
