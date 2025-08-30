@@ -9,6 +9,8 @@ export interface EnvisionerSection {
 export interface EnvisionerTemplate {
   name: string;
   sections: EnvisionerSection[];
+  // Legacy interface - maintained for backward compatibility
+  // New templates should use the 4DVL Template system
   
   // Configuration for specific sections that need special handling
   revenueStreamsEnabled: boolean;
