@@ -1622,40 +1622,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
-    // Helper function to create Financial labels - SIMPLIFIED AND ROBUST
-    const createFinancialLabel = (mesh: AbstractMesh, scene: Scene) => {
-      console.log(`🏷️ Creating label for ${mesh.name}...`);
-      
-      try {
-        // SIMPLE APPROACH: Create a basic visible label first
-        const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
-          width: 2.0,  // Fixed size for testing
-          height: 0.6  // Fixed size for testing
-        }, scene);
-
-        // Position in front of mesh - SIMPLE positioning
-        labelPlane.position.x = 0;
-        labelPlane.position.y = mesh.position.y;
-        labelPlane.position.z = mesh.position.z - 2.0; // 2 units in front
-
-        console.log(`📍 ${mesh.name} label positioned at (${labelPlane.position.x}, ${labelPlane.position.y}, ${labelPlane.position.z})`);
-
-        // Create BASIC visible material first - no textures
-        const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
-        labelMaterial.diffuseColor = new Color3(1, 1, 1); // White
-        labelMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // Bright
-        labelMaterial.disableLighting = true;
-
-        labelPlane.material = labelMaterial;
-        labelPlane.isPickable = false;
-
-        console.log(`✅ BASIC label created for ${mesh.name} - should be visible as white rectangle`);
-        return labelPlane;
-      } catch (error) {
-        console.error(`❌ Failed to create label for ${mesh.name}:`, error);
-        return null;
-      }
-    };
 
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then(async (model) => {
@@ -1768,15 +1734,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (template.name.toLowerCase() === 'financials') {
               section = template.sections.find(s => s.name === mesh.name) || template.sections[0];
               console.log(`💰 Financials: Mapping mesh "${mesh.name}" to section "${section.name}" with color (${section.color.r}, ${section.color.g}, ${section.color.b})`);
-              
-              // CREATE FINANCIAL LABELS HERE - where Financial detection is already working
-              console.log(`🏷️ BEFORE Creating label for Financial object: ${mesh.name}`);
-              try {
-                createFinancialLabel(mesh, scene);
-                console.log(`✅ AFTER Creating label for Financial object: ${mesh.name}`);
-              } catch (error) {
-                console.error(`❌ ERROR creating label for ${mesh.name}:`, error);
-              }
             } else {
               section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
             }
