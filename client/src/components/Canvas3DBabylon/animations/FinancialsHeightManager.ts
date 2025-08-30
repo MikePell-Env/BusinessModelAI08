@@ -129,39 +129,49 @@ export class FinancialsHeightManager {
     data: FinancialData,
     duration: number = 1000
   ): Promise<void> {
-    // INTERACTIVE SLIDERS: Both Revenue and Expenses controllable
+    // CROSS-GROUP AWARE SYSTEM: Both sliders affect each other's calculations
     const revenue = Math.max(Math.min(data.revenue, 1000), 100); // Revenue slider: $1M-$10M range
     const expenses = Math.max(Math.min(data.expenses, 1000), 100); // Expenses slider: $1M-$10M range
     
-    // Calculate profit/loss for both sides
+    // Calculate profit/loss based on actual slider values
     const profit = Math.max(0, revenue - expenses); // When Revenue > Expenses
     const loss = Math.max(0, expenses - revenue); // When Expenses > Revenue
     
-    // Revenue Group heights - VERTEX MANIPULATION 
-    const revenueHeight = revenue / 500.0; // $1M-$10M range with bottom-anchored vertex manipulation
-    const revenuePLHeight = loss / 500.0; // Loss amount with top-anchored vertex manipulation
+    // FIXED TOTAL GROUP HEIGHTS (never exceed initial calculations)
+    const REVENUE_GROUP_MAX_HEIGHT = 1000 / 500.0; // $10M equivalent height (2.0 units)
+    const EXPENSES_GROUP_MAX_HEIGHT = 1000 / 500.0; // $10M equivalent height (2.0 units)
     
-    // Expenses Group heights - VERTEX MANIPULATION 
-    const expensesHeight = expenses / 500.0; // $1M-$10M range with bottom-anchored vertex manipulation
-    const expensesPLHeight = profit / 500.0; // Profit amount with top-anchored vertex manipulation
+    // REVENUE GROUP: Percentage-based distribution within fixed total
+    const revenuePercentage = (revenue / 1000) * 100; // 10%-100% of max height
+    const revenueLossPercentage = (loss / 1000) * 100; // 0%-90% of max height for loss display
     
-    debugLog.info('financials', `💰 DUAL INTERACTIVE SYSTEM - Revenue: $${revenue/100}M, Expenses: $${expenses/100}M`);
-    debugLog.info('financials', `📊 P&L - Profit: $${profit/100}M, Loss: $${loss/100}M`);
-    debugLog.info('financials', `📊 Heights - Revenue: ${revenueHeight.toFixed(2)}, Expenses: ${expensesHeight.toFixed(2)}, ExpensesPL: ${expensesPLHeight.toFixed(2)}, RevenuePL: ${revenuePLHeight.toFixed(2)}`);
-    debugLog.info('financials', `🔧 BOTH Groups: VERTEX manipulation with proper anchoring`);
+    const revenueHeight = (revenuePercentage / 100) * REVENUE_GROUP_MAX_HEIGHT;
+    const revenuePLHeight = (revenueLossPercentage / 100) * REVENUE_GROUP_MAX_HEIGHT;
+    
+    // EXPENSES GROUP: Percentage-based distribution within fixed total  
+    const expensesPercentage = (expenses / 1000) * 100; // 10%-100% of max height
+    const expensesProfitPercentage = (profit / 1000) * 100; // 0%-90% of max height for profit display
+    
+    const expensesHeight = (expensesPercentage / 100) * EXPENSES_GROUP_MAX_HEIGHT;
+    const expensesPLHeight = (expensesProfitPercentage / 100) * EXPENSES_GROUP_MAX_HEIGHT;
+    
+    debugLog.info('financials', `💰 CROSS-GROUP SYSTEM - Revenue: $${(revenue/100).toFixed(1)}M (${revenuePercentage.toFixed(1)}%), Expenses: $${(expenses/100).toFixed(1)}M (${expensesPercentage.toFixed(1)}%)`);
+    debugLog.info('financials', `📊 P&L Results - Profit: $${(profit/100).toFixed(1)}M, Loss: $${(loss/100).toFixed(1)}M`);
+    debugLog.info('financials', `📏 Heights - Revenue: ${revenueHeight.toFixed(3)}, RevenuePL: ${revenuePLHeight.toFixed(3)}, Expenses: ${expensesHeight.toFixed(3)}, ExpensesPL: ${expensesPLHeight.toFixed(3)}`);
+    debugLog.info('financials', `🔒 Max Heights Enforced - Revenue Group: ${REVENUE_GROUP_MAX_HEIGHT}, Expenses Group: ${EXPENSES_GROUP_MAX_HEIGHT}`);
 
-    // Animate ALL objects with vertex manipulation
+    // Animate ALL objects with percentage-based vertex manipulation
     await Promise.all([
-      // Revenue Group: VERTEX manipulation enabled
+      // Revenue Group: Bottom-anchored (Revenue) + Top-anchored (RevenuePL)
       this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration),
       this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration),
       
-      // Expenses Group: VERTEX manipulation continued
+      // Expenses Group: Bottom-anchored (Expenses) + Top-anchored (ExpensesPL)
       this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration),
       this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration)
     ]);
 
-    debugLog.info('financials', 'Dual-group vertex manipulation animations completed');
+    debugLog.info('financials', 'Cross-group percentage-based vertex manipulation completed');
   }
 
   /**

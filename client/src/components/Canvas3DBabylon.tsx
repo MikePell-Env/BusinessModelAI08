@@ -3399,7 +3399,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 type="range"
                 min="100"
                 max="1000"
-                defaultValue="800"
+                defaultValue="1000"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
                   const revenue = parseInt(e.target.value);
