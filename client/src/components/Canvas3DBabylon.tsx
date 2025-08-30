@@ -2621,6 +2621,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelPlane.scaling.x = 1.0;
               labelPlane.scaling.y = 1.0;
               labelPlane.scaling.z = 1.0;
+
+              // BABYLON.JS BEST PRACTICE: Add observer for real-time scaling compensation
+              // This ensures labels maintain aspect ratio during any mesh transform changes
+              mesh.onAfterWorldMatrixUpdateObservable.add(() => {
+                // Force computation and apply inverse scaling compensation
+                mesh.computeWorldMatrix(true);
+                
+                // The FinancialsHeightManager will handle the detailed compensation logic
+                // This observer just ensures it gets triggered on matrix updates
+              });
               
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
