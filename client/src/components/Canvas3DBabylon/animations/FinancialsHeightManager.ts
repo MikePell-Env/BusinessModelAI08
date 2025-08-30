@@ -466,12 +466,23 @@ export class FinancialsHeightManager {
     // Get the stored height factor for this mesh (for vertex manipulation)
     const heightFactor = this.currentHeightFactors.get(mesh.name) || 1.0;
     
+    // DEBUG: Let's see what's happening with height factors
+    console.log(`🔍 Label Debug - ${mesh.name}: heightFactor=${heightFactor.toFixed(3)}`);
+    
     // Force label to maintain constant aspect ratio by inverting the height factor
-    if (heightFactor > 0) {
-      // Inverse the scaling to maintain original proportions
-      labelPlane.scaling.y = 1.0 / heightFactor;
+    if (heightFactor > 0 && heightFactor !== 1.0) {
+      // Apply more aggressive inverse scaling to counteract vertex manipulation stretching
+      const inverseScale = 1.0 / heightFactor;
+      labelPlane.scaling.y = inverseScale;
       labelPlane.scaling.x = 1.0; 
-      labelPlane.scaling.z = 1.0; 
+      labelPlane.scaling.z = 1.0;
+      console.log(`🔧 Applied inverse scaling to ${mesh.name}: ${inverseScale.toFixed(3)}`);
+    } else {
+      // Default scaling when no height change
+      labelPlane.scaling.x = 1.0;
+      labelPlane.scaling.y = 1.0;
+      labelPlane.scaling.z = 1.0;
+      console.log(`🔧 Default scaling for ${mesh.name}`);
     }
 
     // UPDATE POSITION: Track center of front face after vertex manipulation
@@ -484,6 +495,6 @@ export class FinancialsHeightManager {
     labelPlane.position.y = center.y; // This will track the actual center after height change
     labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of the mesh
     
-    debugLog.verbose('financials', `Updated ${mesh.name} label: aspect=${(1.0 / heightFactor).toFixed(3)}, pos=(${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
+    console.log(`📍 Updated ${mesh.name} label position: (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
   }
 }
