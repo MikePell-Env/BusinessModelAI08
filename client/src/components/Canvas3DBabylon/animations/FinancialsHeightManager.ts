@@ -464,27 +464,42 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Update label to maintain aspect ratio and track center of front face
+   * Update label to maintain aspect ratio when mesh uses vertex manipulation
+   * The key issue: vertex manipulation changes geometry but parent transform stays same
+   * Labels inherit the "visual stretch" from vertex compression without inheriting transform
    */
   private updateLabelPosition(mesh: Mesh): void {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    // SIMPLE APPROACH: Reset label to natural proportions first
-    labelPlane.scaling.x = 1.0;
-    labelPlane.scaling.y = 1.0;
-    labelPlane.scaling.z = 1.0;
-
-    // UPDATE POSITION: Track center of front face after vertex manipulation
-    const bounds = mesh.getBoundingInfo();
-    const center = bounds.boundingBox.center;
-    const size = bounds.boundingBox.maximum.subtract(bounds.boundingBox.minimum);
+    // Since vertex manipulation changes geometry but not mesh.scaling,
+    // we need to calculate the actual visual compression ratio
+    const currentBounds = mesh.getBoundingInfo();
+    const originalVertices = this.originalVertices.get(mesh.name);
     
-    // Position label on the front face center (updated bounds after vertex manipulation)
-    labelPlane.position.x = center.x;
-    labelPlane.position.y = center.y; // This will track the actual center after height change
-    labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of the mesh
-    
-    debugLog.verbose('financials', `Label updated: ${mesh.name} positioned at center (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
+    if (originalVertices) {
+      // Calculate original height
+      let originalMinY = Number.MAX_VALUE;
+      let originalMaxY = Number.MIN_VALUE;
+      for (let i = 1; i < originalVertices.length; i += 3) {
+        const y = originalVertices[i];
+        originalMinY = Math.min(originalMinY, y);
+        originalMaxY = Math.max(originalMaxY, y);
+      }
+      const originalHeight = originalMaxY - originalMinY;
+      
+      // Calculate current height
+      const currentHeight = currentBounds.boundingBox.maximum.y - currentBounds.boundingBox.minimum.y;
+      
+      // The visual compression ratio
+      const compressionRatio = currentHeight / originalHeight;
+      
+      // Apply inverse scaling to counteract visual compression
+      labelPlane.scaling.y = compressionRatio;
+      labelPlane.scaling.x = 1.0;
+      labelPlane.scaling.z = 1.0;
+      
+      debugLog.verbose('financials', `Label ${mesh.name}: original=${originalHeight.toFixed(3)}, current=${currentHeight.toFixed(3)}, ratio=${compressionRatio.toFixed(3)}`);
+    }
   }
 }
