@@ -62,7 +62,7 @@ export const DEFAULT_FOUNDATION_CONFIG: EnvisionerFoundationConfig = {
   },
   rails: {
     enabled: true,
-    color: "#8B4513", // FRAME_GOLD
+    color: "#606060", // FRAME_GREY
     thickness: 0.15
   },
   labels: {
@@ -172,14 +172,20 @@ export class EnvisionerFoundation {
     const railMaterial = new StandardMaterial("envisionerRailMaterial", this.scene);
     railMaterial.diffuseColor = Color3.FromHexString(this.config.rails.color);
     
-    // Make rails reflective like shiny metal
-    railMaterial.specularColor = new Color3(1.0, 1.0, 1.0); // Bright white specular highlights
-    railMaterial.specularPower = 256; // Very high specular power for mirror-like reflections
+    // Make rails reflective like shiny metal with environmental lighting
+    railMaterial.specularColor = new Color3(0.9, 0.9, 0.9); // Bright specular highlights
+    railMaterial.specularPower = 128; // High specular power for reflections
     railMaterial.reflectionFresnelParameters = new FresnelParameters();
-    railMaterial.reflectionFresnelParameters.bias = 0.1;
-    railMaterial.reflectionFresnelParameters.power = 0.5;
+    railMaterial.reflectionFresnelParameters.bias = 0.2;
+    railMaterial.reflectionFresnelParameters.power = 0.8;
     railMaterial.reflectionFresnelParameters.leftColor = Color3.White();
-    railMaterial.reflectionFresnelParameters.rightColor = Color3.Black();
+    railMaterial.reflectionFresnelParameters.rightColor = new Color3(0.3, 0.3, 0.3);
+    
+    // Add subtle environmental reflection without performance hit
+    railMaterial.reflectionTexture = this.scene.environmentTexture;
+    if (railMaterial.reflectionTexture) {
+      railMaterial.reflectionTexture.level = 0.3; // Subtle reflection level
+    }
 
     // North rail (top)
     const northRail = MeshBuilder.CreateBox("envisionerNorthRail", {
