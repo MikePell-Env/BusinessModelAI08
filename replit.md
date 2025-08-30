@@ -1,7 +1,14 @@
-# Business Model Canvas Visualization Application
+# 4D Time Machine for Business Application
 
 ## Overview
-This project is a web application for creating and visualizing business model canvases, enhanced with AI-powered assistance for business analysis. It offers both 2D and interactive 3D visualization modes to provide a comprehensive tool for business strategizing. Key capabilities include a unified transformation system for all BMC objects with consistent hover and selection behaviors across main BMC sections, Revenue Streams, and Cost Structure components. The application aims to combine modern web technologies with advanced visualization and AI capabilities.
+This application is a comprehensive platform for business visualization and analysis, combining the **Envisioner** foundational platform with the **4D Visual Language (4DVL)** dynamic visualization system. The app showcases different use cases through self-contained but connected templates that read Microsoft Office document data sources and display them in specialized visualizations.
+
+**Core Architecture:**
+- **Envisioner**: The foundational platform (like a chess board) that provides the ground plane, labels system, and manages all core logic and interactions
+- **4D Visual Language (4DVL)**: The dynamic visual language (like chess pieces) that defines GLB object geometry, labels, behaviors, and manipulation logic
+- **Use Case Templates**: Self-contained examples (Business Model, Financials, SWOT, What If) that demonstrate different visualization approaches for different business purposes
+
+**Data Flow**: Microsoft Office Documents → Use Case Templates → 4DVL Visualization → Envisioner Platform
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -25,7 +32,13 @@ Preferred communication style: Simple, everyday language.
 - **January 23, 2025**: Documented coordinate system oddities - X-axis inversion for separate GLB models (Revenue Streams, Cost Structure)
 
 ## System Architecture
-The application employs a full-stack monorepo architecture, separating client and server concerns.
+The application employs a full-stack monorepo architecture with a sophisticated 4D visualization system built on modular, extensible components.
+
+### Core Platform Architecture
+- **Envisioner Core** (`/client/src/core/Envisioner.ts`): Base platform managing ground plane, interactions, and template lifecycle
+- **4DVL System** (`/client/src/core/4DVL/`): Dynamic visual language for geometry, labels, behaviors, and data bindings
+- **Template System** (`/client/src/core/templates/`): Extensible use case implementations with registry management
+- **Data Integration** (`/client/src/core/data/`): Microsoft Office document adapters and data source management
 
 ### Frontend Architecture
 - **Framework**: React with TypeScript, using Vite.
@@ -39,6 +52,31 @@ The application employs a full-stack monorepo architecture, separating client an
 - **Database**: PostgreSQL, accessed via Drizzle ORM.
 - **AI Integration**: OpenAI API (GPT-4o) for business model analysis and chat functionality.
 - **Session Management**: In-memory session storage.
+
+### 4D Time Machine Architecture Details
+
+#### Envisioner Platform
+- **Ground Plane Management**: Provides the foundational surface for all visualizations
+- **Interaction Coordination**: Manages click, hover, and selection behaviors across all templates
+- **Template Lifecycle**: Handles loading, switching, and cleanup of use case templates
+- **Camera System**: Unified camera preset management with template-specific configurations
+
+#### 4D Visual Language (4DVL) Components
+- **Geometry System**: GLB model loading, positioning, scaling, and material management
+- **Label System**: Billboard, flat, and embedded text with data binding capabilities
+- **Behavior System**: Event-driven interactions (click, hover, data-change, temporal)
+- **Data Binding**: Dynamic property updates based on data source changes
+
+#### Use Case Templates
+- **Business Model**: 9-section interactive canvas with strategic analysis capabilities
+- **Financials**: Height-manipulated financial objects with vertex-level data visualization
+- **SWOT**: 4-quadrant strategic analysis with color-coded categories
+- **What If**: Temporal scenario modeling with probability-based visualizations
+
+#### Data Source Integration
+- **Microsoft Office Support**: PowerPoint, Excel, Word document parsing and data extraction
+- **Real-time Updates**: Live data binding with automatic visualization updates
+- **Transformation Pipeline**: Data mapping, filtering, and calculation capabilities
 
 ### Key Components & Technical Details
 - **Canvas Visualization System**: Features traditional 2D grid and an advanced perspective-only 3D system. The 3D system uses a single GLB model with 7 interactive sections, supports dynamic object height manipulation, and an interactive selection system. Camera preset switching provides three optimized viewing angles with smooth transitions. Auto-switch behavior enhances initial user experience. Additional GLB instances are used for Revenue Streams and Cost Structure sections.
