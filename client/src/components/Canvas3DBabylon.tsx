@@ -3395,8 +3395,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Store current slider values in window object for isolation
             if (!((window as any).financialSliderState)) {
               (window as any).financialSliderState = {
-                revenue: 1000,  // $10M default
-                expenses: 800   // $8M default
+                revenue: 1000,  // $10M default (100% on slider)
+                expenses: 800   // $8M default (80% on slider)
               };
             }
             
@@ -3404,10 +3404,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
               setTimeout(() => {
                 (window as any).financialsDataAdapter.updateFromBusinessData({
-                  totalRevenue: 1000,  // $10M default
+                  totalRevenue: 1000,  // $10M default (99% Revenue, 1% RevenuePL)
                   totalExpenses: 800,  // $8M default  
-                  netProfit: 200,      // $2M profit
-                  netLoss: 0           // No loss
+                  netProfit: 200,      // $2M profit (20% ExpensesPL)
+                  netLoss: 0           // No loss (0% RevenuePL)
                 });
               }, 100);
             }

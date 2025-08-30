@@ -144,9 +144,13 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // Calculate heights
-    const revenueHeight = revenue / HEIGHT_SCALE;
-    const revenuePLHeight = loss / HEIGHT_SCALE;
+    // Calculate heights with proper percentage distribution
+    // Revenue Group: Revenue = 99% of total, RevenuePL = 1% minimum visibility 
+    const totalRevenueHeight = revenue / HEIGHT_SCALE; // Total height for Revenue group
+    const revenueHeight = totalRevenueHeight * 0.99;   // Revenue object: 99% of total
+    const revenuePLHeight = totalRevenueHeight * 0.01; // RevenuePL object: 1% of total (always visible)
+    
+    // Expenses Group: Expenses = actual value, ExpensesPL = profit
     const expensesHeight = expenses / HEIGHT_SCALE;
     const expensesPLHeight = profit / HEIGHT_SCALE;
     
@@ -186,8 +190,9 @@ export class FinancialsHeightManager {
     // Update previous data for next comparison
     this.previousData = { revenue, expenses, profit, loss };
     
-    debugLog.info('financials', `💰 SELECTIVE UPDATE - Revenue: $${(revenue/100).toFixed(1)}M, Expenses: $${(expenses/100).toFixed(1)}M`);
+    debugLog.info('financials', `💰 SELECTIVE UPDATE - Revenue: $${(revenue/100).toFixed(1)}M (99% + 1%), Expenses: $${(expenses/100).toFixed(1)}M`);
     debugLog.info('financials', `📊 P&L Results - Profit: $${(profit/100).toFixed(1)}M, Loss: $${(loss/100).toFixed(1)}M`);
+    debugLog.info('financials', `📏 Heights - Revenue: ${revenueHeight.toFixed(3)} (99%), RevenuePL: ${revenuePLHeight.toFixed(3)} (1%), Expenses: ${expensesHeight.toFixed(3)}, ExpensesPL: ${expensesPLHeight.toFixed(3)}`);
     debugLog.info('financials', `🎯 Animations queued: ${animations.length}`);
 
     // Only animate objects that actually changed
@@ -381,10 +386,14 @@ export class FinancialsHeightManager {
     const profit = Math.max(0, revenue - expenses);
     const loss = Math.max(0, expenses - revenue);
     
-    // Direct height mapping
-    const revenueHeight = revenue / 500.0;
+    // Direct height mapping with proper percentage distribution
+    // Revenue Group: Revenue = 99% of total, RevenuePL = 1% minimum visibility
+    const totalRevenueHeight = revenue / 500.0; // Total height for Revenue group
+    const revenueHeight = totalRevenueHeight * 0.99;   // Revenue object: 99% of total
+    const revenuePLHeight = totalRevenueHeight * 0.01; // RevenuePL object: 1% of total (always visible)
+    
+    // Expenses Group: Expenses = actual value, ExpensesPL = profit
     const expensesHeight = expenses / 500.0;
-    const revenuePLHeight = loss / 500.0;
     const expensesPLHeight = profit / 500.0;
 
     // SELECTIVE UPDATES: Only update objects whose values actually changed
