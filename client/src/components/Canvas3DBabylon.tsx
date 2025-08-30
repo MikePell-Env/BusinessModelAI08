@@ -346,6 +346,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       perspectiveCamera.setTarget(cameraTarget);
     }
 
+    // DEBUG: Log current camera position
+    console.log("🎥 Current camera position:", {
+      x: perspectiveCamera.position.x,
+      y: perspectiveCamera.position.y, 
+      z: perspectiveCamera.position.z,
+      alpha: perspectiveCamera.alpha,
+      beta: perspectiveCamera.beta,
+      radius: perspectiveCamera.radius
+    });
+
     // Create smooth transition animations with cubic easing
     const alphaAnimation = Animation.CreateAndStartAnimation(
       "alphaTransition",
