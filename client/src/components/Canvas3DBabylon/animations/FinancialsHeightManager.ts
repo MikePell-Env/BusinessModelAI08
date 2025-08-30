@@ -144,19 +144,15 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // CONSTRAINED HEIGHT CALCULATIONS: Keep all values ≤ 1.0 for vertex manipulation
-    // Revenue Group: Calculate proportional heights within bounds
-    const maxAllowedHeight = 1.0; // Maximum height factor for vertex manipulation
-    const revenueSliderPercent = revenue / 1000.0; // 0.1 to 1.0 range
+    // Calculate heights with proper percentage distribution
+    // Revenue Group: Revenue = 99% of total, RevenuePL = 1% minimum visibility 
+    const totalRevenueHeight = revenue / HEIGHT_SCALE; // Total height for Revenue group
+    const revenueHeight = totalRevenueHeight * 0.99;   // Revenue object: 99% of total
+    const revenuePLHeight = totalRevenueHeight * 0.01; // RevenuePL object: 1% of total (always visible)
     
-    // Revenue Group: 99% Revenue + 1% RevenuePL split
-    const revenueHeight = Math.min(revenueSliderPercent * 0.99, maxAllowedHeight);   // 99% of slider value
-    const revenuePLHeight = Math.min(revenueSliderPercent * 0.01, maxAllowedHeight); // 1% of slider value
-    
-    // Expenses Group: Similar calculation but independent 
-    const expensesSliderPercent = expenses / 1000.0; // 0.1 to 1.0 range
-    const expensesHeight = Math.min(expensesSliderPercent, maxAllowedHeight);
-    const expensesPLHeight = Math.min((profit / 1000.0), maxAllowedHeight);
+    // Expenses Group: Expenses = actual value, ExpensesPL = profit
+    const expensesHeight = expenses / HEIGHT_SCALE;
+    const expensesPLHeight = profit / HEIGHT_SCALE;
     
     // SELECTIVE UPDATES: Only animate objects whose values actually changed
     const animations: Promise<void>[] = [];
@@ -382,23 +378,19 @@ export class FinancialsHeightManager {
     const profit = Math.max(0, revenue - expenses);
     const loss = Math.max(0, expenses - revenue);
     
-    // CONSTRAINED HEIGHT CALCULATIONS: Keep all values ≤ 1.0 for vertex manipulation
-    // Revenue Group: Calculate proportional heights within bounds
-    const maxAllowedHeight = 1.0; // Maximum height factor for vertex manipulation
-    const revenueSliderPercent = revenue / 1000.0; // 0.1 to 1.0 range
+    // Calculate heights with proper percentage distribution
+    // Revenue Group: Revenue = 99% of total, RevenuePL = 1% minimum visibility 
+    const totalRevenueHeight = revenue / HEIGHT_SCALE; // Total height for Revenue group
+    const revenueHeight = totalRevenueHeight * 0.99;   // Revenue object: 99% of total
+    const revenuePLHeight = totalRevenueHeight * 0.01; // RevenuePL object: 1% of total (always visible)
     
-    // Revenue Group: 99% Revenue + 1% RevenuePL split
-    const revenueHeight = Math.min(revenueSliderPercent * 0.99, maxAllowedHeight);   // 99% of slider value
-    const revenuePLHeight = Math.min(revenueSliderPercent * 0.01, maxAllowedHeight); // 1% of slider value
-    
-    // Expenses Group: Similar calculation but independent 
-    const expensesSliderPercent = expenses / 1000.0; // 0.1 to 1.0 range
-    const expensesHeight = Math.min(expensesSliderPercent, maxAllowedHeight);
-    const expensesPLHeight = Math.min((profit / 1000.0), maxAllowedHeight);
+    // Expenses Group: Expenses = actual value, ExpensesPL = profit
+    const expensesHeight = expenses / HEIGHT_SCALE;
+    const expensesPLHeight = profit / HEIGHT_SCALE;
     
     console.log('💰 IMMEDIATE HEIGHT CALCULATIONS:', {
       revenue: revenue, expenses: expenses, profit: profit, loss: loss,
-      revenueSliderPercent: revenueSliderPercent.toFixed(3), expensesSliderPercent: expensesSliderPercent.toFixed(3),
+      totalRevenueHeight: totalRevenueHeight.toFixed(3),
       revenueHeight: revenueHeight.toFixed(3), revenuePLHeight: revenuePLHeight.toFixed(3),
       expensesHeight: expensesHeight.toFixed(3), expensesPLHeight: expensesPLHeight.toFixed(3)
     });
