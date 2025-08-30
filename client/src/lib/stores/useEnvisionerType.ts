@@ -49,8 +49,8 @@ export const useEnvisionerType = create<EnvisionerTypeState>((set, get) => {
     });
   };
 
-  // Enhanced smooth transition function with polished animations
-  const smoothTransition = async (targetType: EnvisionerType, duration: number = 800) => {
+  // Simplified smooth transition - immediate content switch with brief state indication
+  const smoothTransition = async (targetType: EnvisionerType) => {
     const currentState = get();
     
     // Prevent duplicate transitions or same-state switches
@@ -58,41 +58,21 @@ export const useEnvisionerType = create<EnvisionerTypeState>((set, get) => {
       return;
     }
 
-    console.log(`🎬 Starting smooth transition to ${targetType}...`);
+    console.log(`🎬 Switching to ${targetType}...`);
     
-    // Initialize transition state
-    set({ isTransitioning: true, transitionProgress: 0 });
-
-    // Smooth animation with professional easing
-    const startTime = Date.now();
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const rawProgress = Math.min(elapsed / duration, 1);
-      
-      // Professional ease-in-out-cubic easing for smooth feel
-      const easedProgress = rawProgress < 0.5 
-        ? 4 * rawProgress * rawProgress * rawProgress 
-        : 1 - Math.pow(-2 * rawProgress + 2, 3) / 2;
-      
-      set({ transitionProgress: easedProgress });
-      
-      // Continue animation or complete transition
-      if (rawProgress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        // Complete the transition
-        set({
-          currentType: targetType,
-          currentTemplate: TEMPLATES[targetType],
-          isTransitioning: false,
-          transitionProgress: 1
-        });
-        console.log(`✅ Transition to ${targetType} completed`);
-      }
-    };
+    // Brief transition state
+    set({ isTransitioning: true });
     
-    // Start the animation
-    requestAnimationFrame(animate);
+    // Switch content immediately
+    setTimeout(() => {
+      set({
+        currentType: targetType,
+        currentTemplate: TEMPLATES[targetType],
+        isTransitioning: false,
+        transitionProgress: 1
+      });
+      console.log(`✅ Switched to ${targetType}`);
+    }, 50); // Very brief delay for state indication
   };
 
   return {

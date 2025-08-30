@@ -184,46 +184,29 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
         <Button
           onClick={switchToBusinessModel}
           disabled={isTransitioning || isTemplateTransitioning}
-          className={`border border-gray-300 shadow-md transition-all duration-300 ${
-            isTemplateTransitioning 
-              ? 'bg-blue-500 text-white animate-pulse cursor-not-allowed' 
-              : currentType === 'business-model' 
-                ? 'bg-gray-900 text-white hover:bg-gray-800' 
-                : 'bg-white text-gray-800 hover:bg-gray-50'
+          className={`border border-gray-300 shadow-md ${
+            currentType === 'business-model' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
           <Box className="w-4 h-4 mr-2" />
-          {isTemplateTransitioning ? 'Switching...' : 'Business Model'}
+          Business Model
         </Button>
 
         <Button
           onClick={switchToFinancials}
           disabled={isTransitioning || isTemplateTransitioning}
-          className={`border border-gray-300 shadow-md transition-all duration-300 ${
-            isTemplateTransitioning 
-              ? 'bg-blue-500 text-white animate-pulse cursor-not-allowed' 
-              : currentType === 'financials' 
-                ? 'bg-gray-900 text-white hover:bg-gray-800' 
-                : 'bg-white text-gray-800 hover:bg-gray-50'
+          className={`border border-gray-300 shadow-md ${
+            currentType === 'financials' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
           <Settings className="w-4 h-4 mr-2" />
-          {isTemplateTransitioning ? 'Switching...' : 'Financials'}
+          Financials
         </Button>
 
       </div>
       
-      {/* Template Transition Progress Indicator */}
-      {isTemplateTransitioning && (
-        <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
-          <div 
-            className="h-full bg-blue-500 transition-all duration-100 ease-out"
-            style={{ width: `${transitionProgress * 100}%` }}
-          />
-        </div>
-      )}
       
       {/* Main content with minimal padding */}
       <div className="pt-12 h-full relative">
