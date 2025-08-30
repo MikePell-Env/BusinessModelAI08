@@ -48,9 +48,9 @@ export const CAMERA_PRESETS = {
   // Front view for Financials template - corrected to look down Z-axis with X tilt
   FRONT: {
     alpha: 0.036182071468275234 + Math.PI/2, // Add 90° to look down Z-axis instead of X-axis
-    beta: 0.8696527613715385 - (20 * Math.PI / 180),    // Tilt back 20° around X-axis
+    beta: 0.8696527613715385 + (20 * Math.PI / 180),    // Tilt forward 20° around X-axis
     radius: 55.068748126797715   // Keep exact radius from working position
-    // Front view: rotated 90° to face down Z-axis, tilted back 20° around X-axis
+    // Front view: rotated 90° to face down Z-axis, tilted forward 20° around X-axis
   }
 } as const;
 
