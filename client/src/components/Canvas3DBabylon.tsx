@@ -1192,8 +1192,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       compositeTexture.update();
       
       groundMaterial.diffuseTexture = compositeTexture;
-      groundMaterial.specularColor = new Color3(0.8, 0.8, 1.0);
-      groundMaterial.specularPower = 64;
+      groundMaterial.specularColor = new Color3(0.0, 0.0, 0.0); // No specular reflection
+      groundMaterial.specularPower = 1; // Minimal specular power
       groundMaterial.alpha = 1.0;
       groundMaterial.backFaceCulling = false;
       
@@ -1248,8 +1248,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       compositeTexture.update();
       
       groundMaterial.diffuseTexture = compositeTexture;
-      groundMaterial.specularColor = new Color3(0.8, 0.8, 1.0);
-      groundMaterial.specularPower = 64;
+      groundMaterial.specularColor = new Color3(0.0, 0.0, 0.0); // No specular reflection
+      groundMaterial.specularPower = 1; // Minimal specular power
       groundMaterial.alpha = 1.0;
       groundMaterial.backFaceCulling = false;
       
