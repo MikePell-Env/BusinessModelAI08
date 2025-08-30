@@ -1141,273 +1141,146 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       console.log(`🎯 Panel should now be visible on screen with ${(sectionData as CanvasElement).content.length} bullet points!`);
     };
 
-    // TEMPLATE-SPECIFIC LABELS: Show appropriate labels for each template using original DynamicTexture approach
-    if (template.name.toLowerCase() === 'business-model') {
-      // Create BMC-specific labels (Internal, External, divider) - original DynamicTexture implementation
-      const createBMCLabels = () => {
-        // Create "Internal" label for BMC
-        const internalLabelPlane = MeshBuilder.CreatePlane("internalLabel", {
-          width: 1.2,
-          height: 0.3
-        }, scene);
-        internalLabelPlane.position.x = 1.5;
-        internalLabelPlane.position.y = 0.001; // Directly on ground plane surface
-        internalLabelPlane.position.z = -3.5;
-        internalLabelPlane.rotation.x = Math.PI / 2; // Rotate to lie flat on the ground
+    // TEMPLATE-SPECIFIC LABELS: Apply template-specific textures to ground plane using PNG files
+    const foundation = envisionerFoundation.getComponent('ground');
+    if (foundation && template.name.toLowerCase() === 'business-model') {
+      // Apply Business Model Canvas ground plane texture with Internal/External labels
+      const bmcGroundMaterial = new StandardMaterial("bmcGroundMaterial", scene);
+      
+      // Load the Business Model texture that includes Internal/External labels
+      const bmcTexture = new Texture("/textures/Labels_internal_grey.png", scene);
+      bmcTexture.hasAlpha = true;
+      enhanceLabelTexture(bmcTexture);
+      
+      bmcGroundMaterial.diffuseTexture = bmcTexture;
+      bmcGroundMaterial.specularColor = new Color3(0.8, 0.8, 1.0);
+      bmcGroundMaterial.specularPower = 64;
+      bmcGroundMaterial.alpha = 0.8;
+      bmcGroundMaterial.backFaceCulling = false;
+      bmcGroundMaterial.useAlphaFromDiffuseTexture = true;
+      
+      foundation.material = bmcGroundMaterial;
+      
+      // Add separate External label
+      const externalLabelPlane = MeshBuilder.CreatePlane("externalLabel", {
+        width: 1.2,
+        height: 0.3
+      }, scene);
+      externalLabelPlane.position.x = 8.0;
+      externalLabelPlane.position.y = 0.001;
+      externalLabelPlane.position.z = -3.5;
+      externalLabelPlane.rotation.x = Math.PI / 2;
 
-        // Create material and texture for Internal label using DynamicTexture
-        const internalLabelMaterial = new StandardMaterial("internalLabelMaterial", scene);
-        const internalLabelTexture = new DynamicTexture("internalLabelTexture", { width: 512, height: 128 }, scene, false);
-        const internalLabelContext = internalLabelTexture.getContext();
+      const externalMaterial = new StandardMaterial("externalLabelMat", scene);
+      const externalTexture = new Texture("/textures/Labels_external_grey.png", scene);
+      externalTexture.hasAlpha = true;
+      enhanceLabelTexture(externalTexture);
+      externalMaterial.diffuseTexture = externalTexture;
+      externalMaterial.emissiveTexture = externalTexture;
+      externalMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+      externalMaterial.alpha = 0.8;
+      externalMaterial.useAlphaFromDiffuseTexture = true;
+      externalMaterial.disableLighting = true;
+      externalMaterial.backFaceCulling = false;
+      externalLabelPlane.material = externalMaterial;
+      externalLabelPlane.isPickable = false;
+      externalLabelPlane.parent = masterTransform;
 
-        // Create grey text on transparent background
-        internalLabelContext.fillStyle = "transparent";
-        internalLabelContext.fillRect(0, 0, 512, 128);
-        internalLabelContext.fillStyle = "#666666"; // Grey color
-        internalLabelContext.font = "bold 48px Arial";
-        (internalLabelContext as any).textAlign = "center";
-        (internalLabelContext as any).textBaseline = "middle";
-        internalLabelContext.fillText("Internal", 256, 64);
+      // Add vertical divider
+      const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
+        width: 0.3,
+        height: 12
+      }, scene);
+      verticalDividerPlane.position.x = 0;
+      verticalDividerPlane.position.y = 0.001;
+      verticalDividerPlane.position.z = 0;
+      verticalDividerPlane.rotation.x = Math.PI / 2;
 
-        internalLabelTexture.update();
-        internalLabelTexture.hasAlpha = true;
-        enhanceLabelTexture(internalLabelTexture);
+      const dividerMaterial = new StandardMaterial("verticalDividerMat", scene);
+      const dividerTexture = new Texture("/textures/Labels_vertical_divider.png", scene);
+      dividerTexture.hasAlpha = true;
+      enhanceLabelTexture(dividerTexture);
+      dividerMaterial.diffuseTexture = dividerTexture;
+      dividerMaterial.emissiveTexture = dividerTexture;
+      dividerMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+      dividerMaterial.alpha = 0.8;
+      dividerMaterial.useAlphaFromDiffuseTexture = true;
+      dividerMaterial.disableLighting = true;
+      dividerMaterial.backFaceCulling = false;
+      verticalDividerPlane.material = dividerMaterial;
+      verticalDividerPlane.isPickable = false;
+      verticalDividerPlane.parent = masterTransform;
 
-        internalLabelMaterial.diffuseTexture = internalLabelTexture;
-        internalLabelMaterial.emissiveTexture = internalLabelTexture;
-        internalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
-        internalLabelMaterial.alpha = 0.3;
-        internalLabelMaterial.useAlphaFromDiffuseTexture = true;
-        internalLabelMaterial.disableLighting = true;
-        internalLabelMaterial.backFaceCulling = false;
+      debugLog.verbose('template', '🏷️ BMC labels applied using PNG textures');
+    } else if (foundation && template.name.toLowerCase() === 'financials') {
+      // Apply Financials ground plane with Revenue/Expenses labels
+      const financialsGroundMaterial = new StandardMaterial("financialsGroundMaterial", scene);
+      
+      // Use the original foundation ground material but add Revenue label overlay
+      const revenueTexture = new Texture("/textures/Labels_Revenue_grey.png", scene);
+      revenueTexture.hasAlpha = true;
+      enhanceLabelTexture(revenueTexture);
+      
+      financialsGroundMaterial.diffuseTexture = revenueTexture;
+      financialsGroundMaterial.specularColor = new Color3(0.8, 0.8, 1.0);
+      financialsGroundMaterial.specularPower = 64;
+      financialsGroundMaterial.alpha = 0.8;
+      financialsGroundMaterial.backFaceCulling = false;
+      financialsGroundMaterial.useAlphaFromDiffuseTexture = true;
+      
+      foundation.material = financialsGroundMaterial;
 
-        internalLabelPlane.material = internalLabelMaterial;
-        internalLabelPlane.isPickable = false;
-        internalLabelPlane.parent = masterTransform;
+      // Add separate Expenses label
+      const expensesLabelPlane = MeshBuilder.CreatePlane("expensesLabel", {
+        width: 1.2,
+        height: 0.3
+      }, scene);
+      expensesLabelPlane.position.x = 8.0;
+      expensesLabelPlane.position.y = 0.001;
+      expensesLabelPlane.position.z = -3.5;
+      expensesLabelPlane.rotation.x = Math.PI / 2;
 
-        // Create "External" label for BMC
-        const externalLabelPlane = MeshBuilder.CreatePlane("externalLabel", {
-          width: 1.2,
-          height: 0.3
-        }, scene);
-        externalLabelPlane.position.x = 8.0;
-        externalLabelPlane.position.y = 0.001; // Directly on ground plane surface
-        externalLabelPlane.position.z = -3.5;
-        externalLabelPlane.rotation.x = Math.PI / 2; // Rotate to lie flat on the ground
+      const expensesMaterial = new StandardMaterial("expensesLabelMat", scene);
+      const expensesTexture = new Texture("/textures/Labels_Expenses_grey.png", scene);
+      expensesTexture.hasAlpha = true;
+      enhanceLabelTexture(expensesTexture);
+      expensesMaterial.diffuseTexture = expensesTexture;
+      expensesMaterial.emissiveTexture = expensesTexture;
+      expensesMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+      expensesMaterial.alpha = 0.8;
+      expensesMaterial.useAlphaFromDiffuseTexture = true;
+      expensesMaterial.disableLighting = true;
+      expensesMaterial.backFaceCulling = false;
+      expensesLabelPlane.material = expensesMaterial;
+      expensesLabelPlane.isPickable = false;
+      expensesLabelPlane.parent = masterTransform;
 
-        // Create material and texture for External label using DynamicTexture
-        const externalLabelMaterial = new StandardMaterial("externalLabelMaterial", scene);
-        const externalLabelTexture = new DynamicTexture("externalLabelTexture", { width: 512, height: 128 }, scene, false);
-        const externalLabelContext = externalLabelTexture.getContext();
+      // Add vertical divider
+      const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
+        width: 0.3,
+        height: 12
+      }, scene);
+      verticalDividerPlane.position.x = 0;
+      verticalDividerPlane.position.y = 0.001;
+      verticalDividerPlane.position.z = 0;
+      verticalDividerPlane.rotation.x = Math.PI / 2;
 
-        // Create grey text on transparent background
-        externalLabelContext.fillStyle = "transparent";
-        externalLabelContext.fillRect(0, 0, 512, 128);
-        externalLabelContext.fillStyle = "#666666"; // Grey color
-        externalLabelContext.font = "bold 48px Arial";
-        (externalLabelContext as any).textAlign = "center";
-        (externalLabelContext as any).textBaseline = "middle";
-        externalLabelContext.fillText("External", 256, 64);
+      const dividerMaterial = new StandardMaterial("verticalDividerMat", scene);
+      const dividerTexture = new Texture("/textures/Labels_vertical_divider.png", scene);
+      dividerTexture.hasAlpha = true;
+      enhanceLabelTexture(dividerTexture);
+      dividerMaterial.diffuseTexture = dividerTexture;
+      dividerMaterial.emissiveTexture = dividerTexture;
+      dividerMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
+      dividerMaterial.alpha = 0.8;
+      dividerMaterial.useAlphaFromDiffuseTexture = true;
+      dividerMaterial.disableLighting = true;
+      dividerMaterial.backFaceCulling = false;
+      verticalDividerPlane.material = dividerMaterial;
+      verticalDividerPlane.isPickable = false;
+      verticalDividerPlane.parent = masterTransform;
 
-        externalLabelTexture.update();
-        externalLabelTexture.hasAlpha = true;
-        enhanceLabelTexture(externalLabelTexture);
-
-        externalLabelMaterial.diffuseTexture = externalLabelTexture;
-        externalLabelMaterial.emissiveTexture = externalLabelTexture;
-        externalLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
-        externalLabelMaterial.alpha = 0.3;
-        externalLabelMaterial.useAlphaFromDiffuseTexture = true;
-        externalLabelMaterial.disableLighting = true;
-        externalLabelMaterial.backFaceCulling = false;
-
-        externalLabelPlane.material = externalLabelMaterial;
-        externalLabelPlane.isPickable = false;
-        externalLabelPlane.parent = masterTransform;
-
-        // Create vertical divider label for BMC
-        const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
-          width: 0.3,
-          height: 12
-        }, scene);
-        verticalDividerPlane.position.x = 0;
-        verticalDividerPlane.position.y = 0.001; // Directly on ground plane surface
-        verticalDividerPlane.position.z = 0;
-        verticalDividerPlane.rotation.x = Math.PI / 2; // Rotate to lie flat on the ground
-
-        // Create material and texture for vertical divider label using DynamicTexture
-        const verticalDividerMaterial = new StandardMaterial("verticalDividerMaterial", scene);
-        const verticalDividerTexture = new DynamicTexture("verticalDividerTexture", { width: 128, height: 1024 }, scene, false);
-        const verticalDividerContext = verticalDividerTexture.getContext();
-
-        // Create grey text on transparent background
-        verticalDividerContext.fillStyle = "transparent";
-        verticalDividerContext.fillRect(0, 0, 128, 1024);
-        verticalDividerContext.fillStyle = "#666666"; // Grey color
-        verticalDividerContext.font = "bold 32px Arial";
-        (verticalDividerContext as any).textAlign = "center";
-        (verticalDividerContext as any).textBaseline = "middle";
-
-        // Split the long text and draw it vertically
-        const parts = "—————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————".split("");
-        const lineHeight = 1024 / (parts.length + 1);
-        parts.forEach((part, index) => {
-          verticalDividerContext.fillText(part, 64, lineHeight * (index + 1));
-        });
-
-        verticalDividerTexture.update();
-        verticalDividerTexture.hasAlpha = true;
-        enhanceLabelTexture(verticalDividerTexture);
-
-        verticalDividerMaterial.diffuseTexture = verticalDividerTexture;
-        verticalDividerMaterial.emissiveTexture = verticalDividerTexture;
-        verticalDividerMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
-        verticalDividerMaterial.alpha = 0.3;
-        verticalDividerMaterial.useAlphaFromDiffuseTexture = true;
-        verticalDividerMaterial.disableLighting = true;
-        verticalDividerMaterial.backFaceCulling = false;
-
-        verticalDividerPlane.material = verticalDividerMaterial;
-        verticalDividerPlane.isPickable = false;
-        verticalDividerPlane.parent = masterTransform;
-
-        debugLog.verbose('template', '🏷️ BMC-specific labels created using DynamicTexture');
-      };
-
-      createBMCLabels();
-    } else if (template.name.toLowerCase() === 'financials') {
-      // Create Financials-specific labels (Revenue, Expenses, divider) - original DynamicTexture implementation
-      const createFinancialsLabels = () => {
-        // Create "Revenue" label for Financials
-        const revenueLabelPlane = MeshBuilder.CreatePlane("revenueLabel", {
-          width: 1.2,
-          height: 0.3
-        }, scene);
-        revenueLabelPlane.position.x = 1.5;
-        revenueLabelPlane.position.y = 0.001; // Directly on ground plane surface
-        revenueLabelPlane.position.z = -3.5;
-        revenueLabelPlane.rotation.x = Math.PI / 2; // Rotate to lie flat on the ground
-
-        // Create material and texture for Revenue label using DynamicTexture
-        const revenueLabelMaterial = new StandardMaterial("revenueLabelMaterial", scene);
-        const revenueLabelTexture = new DynamicTexture("revenueLabelTexture", { width: 512, height: 128 }, scene, false);
-        const revenueLabelContext = revenueLabelTexture.getContext();
-
-        // Create grey text on transparent background
-        revenueLabelContext.fillStyle = "transparent";
-        revenueLabelContext.fillRect(0, 0, 512, 128);
-        revenueLabelContext.fillStyle = "#666666"; // Grey color
-        revenueLabelContext.font = "bold 48px Arial";
-        (revenueLabelContext as any).textAlign = "center";
-        (revenueLabelContext as any).textBaseline = "middle";
-        revenueLabelContext.fillText("Revenue", 256, 64);
-
-        revenueLabelTexture.update();
-        revenueLabelTexture.hasAlpha = true;
-        enhanceLabelTexture(revenueLabelTexture);
-
-        revenueLabelMaterial.diffuseTexture = revenueLabelTexture;
-        revenueLabelMaterial.emissiveTexture = revenueLabelTexture;
-        revenueLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
-        revenueLabelMaterial.alpha = 0.3;
-        revenueLabelMaterial.useAlphaFromDiffuseTexture = true;
-        revenueLabelMaterial.disableLighting = true;
-        revenueLabelMaterial.backFaceCulling = false;
-
-        revenueLabelPlane.material = revenueLabelMaterial;
-        revenueLabelPlane.isPickable = false;
-        revenueLabelPlane.parent = masterTransform;
-
-        // Create "Expenses" label for Financials
-        const expensesLabelPlane = MeshBuilder.CreatePlane("expensesLabel", {
-          width: 1.2,
-          height: 0.3
-        }, scene);
-        expensesLabelPlane.position.x = 8.0;
-        expensesLabelPlane.position.y = 0.001; // Directly on ground plane surface
-        expensesLabelPlane.position.z = -3.5;
-        expensesLabelPlane.rotation.x = Math.PI / 2; // Rotate to lie flat on the ground
-
-        // Create material and texture for Expenses label using DynamicTexture
-        const expensesLabelMaterial = new StandardMaterial("expensesLabelMaterial", scene);
-        const expensesLabelTexture = new DynamicTexture("expensesLabelTexture", { width: 512, height: 128 }, scene, false);
-        const expensesLabelContext = expensesLabelTexture.getContext();
-
-        // Create grey text on transparent background
-        expensesLabelContext.fillStyle = "transparent";
-        expensesLabelContext.fillRect(0, 0, 512, 128);
-        expensesLabelContext.fillStyle = "#666666"; // Grey color
-        expensesLabelContext.font = "bold 48px Arial";
-        (expensesLabelContext as any).textAlign = "center";
-        (expensesLabelContext as any).textBaseline = "middle";
-        expensesLabelContext.fillText("Expenses", 256, 64);
-
-        expensesLabelTexture.update();
-        expensesLabelTexture.hasAlpha = true;
-        enhanceLabelTexture(expensesLabelTexture);
-
-        expensesLabelMaterial.diffuseTexture = expensesLabelTexture;
-        expensesLabelMaterial.emissiveTexture = expensesLabelTexture;
-        expensesLabelMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
-        expensesLabelMaterial.alpha = 0.3;
-        expensesLabelMaterial.useAlphaFromDiffuseTexture = true;
-        expensesLabelMaterial.disableLighting = true;
-        expensesLabelMaterial.backFaceCulling = false;
-
-        expensesLabelPlane.material = expensesLabelMaterial;
-        expensesLabelPlane.isPickable = false;
-        expensesLabelPlane.parent = masterTransform;
-
-        // Create vertical divider label for Financials
-        const verticalDividerPlane = MeshBuilder.CreatePlane("verticalDividerLabel", {
-          width: 0.3,
-          height: 12
-        }, scene);
-        verticalDividerPlane.position.x = 0;
-        verticalDividerPlane.position.y = 0.001; // Directly on ground plane surface
-        verticalDividerPlane.position.z = 0;
-        verticalDividerPlane.rotation.x = Math.PI / 2; // Rotate to lie flat on the ground
-
-        // Create material and texture for vertical divider label using DynamicTexture
-        const verticalDividerMaterial = new StandardMaterial("verticalDividerMaterial", scene);
-        const verticalDividerTexture = new DynamicTexture("verticalDividerTexture", { width: 128, height: 1024 }, scene, false);
-        const verticalDividerContext = verticalDividerTexture.getContext();
-
-        // Create grey text on transparent background
-        verticalDividerContext.fillStyle = "transparent";
-        verticalDividerContext.fillRect(0, 0, 128, 1024);
-        verticalDividerContext.fillStyle = "#666666"; // Grey color
-        verticalDividerContext.font = "bold 32px Arial";
-        (verticalDividerContext as any).textAlign = "center";
-        (verticalDividerContext as any).textBaseline = "middle";
-
-        // Split the long text and draw it vertically
-        const parts = "—————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————".split("");
-        const lineHeight = 1024 / (parts.length + 1);
-        parts.forEach((part, index) => {
-          verticalDividerContext.fillText(part, 64, lineHeight * (index + 1));
-        });
-
-        verticalDividerTexture.update();
-        verticalDividerTexture.hasAlpha = true;
-        enhanceLabelTexture(verticalDividerTexture);
-
-        verticalDividerMaterial.diffuseTexture = verticalDividerTexture;
-        verticalDividerMaterial.emissiveTexture = verticalDividerTexture;
-        verticalDividerMaterial.emissiveColor = new Color3(1.0, 1.0, 1.0);
-        verticalDividerMaterial.alpha = 0.3;
-        verticalDividerMaterial.useAlphaFromDiffuseTexture = true;
-        verticalDividerMaterial.disableLighting = true;
-        verticalDividerMaterial.backFaceCulling = false;
-
-        verticalDividerPlane.material = verticalDividerMaterial;
-        verticalDividerPlane.isPickable = false;
-        verticalDividerPlane.parent = masterTransform;
-
-        debugLog.verbose('template', '🏷️ Financials-specific labels created using DynamicTexture');
-      };
-
-      createFinancialsLabels();
+      debugLog.verbose('template', '🏷️ Financials labels applied using PNG textures');
     }
 
 
