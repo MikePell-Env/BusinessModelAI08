@@ -137,41 +137,42 @@ export class FinancialsHeightManager {
     const profit = Math.max(0, revenue - expenses); // When Revenue > Expenses
     const loss = Math.max(0, expenses - revenue); // When Expenses > Revenue
     
-    // FIXED TOTAL GROUP HEIGHTS (never exceed initial calculations)
-    const REVENUE_GROUP_MAX_HEIGHT = 1000 / 500.0; // $10M equivalent height (2.0 units)
-    const EXPENSES_GROUP_MAX_HEIGHT = 1000 / 500.0; // $10M equivalent height (2.0 units)
+    // LOCKED TOTAL GROUP HEIGHTS - Both groups locked to $8M equivalent height
+    const LOCKED_GROUP_HEIGHT = 800 / 500.0; // $8M equivalent height (1.6 units)
     
-    // REVENUE GROUP: Percentage-based distribution within fixed total
-    const revenuePercentage = (revenue / 1000) * 100; // 10%-100% of max height
-    const revenueLossPercentage = (loss / 1000) * 100; // 0%-90% of max height for loss display
+    // REVENUE GROUP: Direct slider control like Expenses
+    // Revenue slider controls the Revenue object height directly
+    const revenueHeight = revenue / 500.0; // Direct height from slider value
+    const revenuePLHeight = loss / 500.0; // Loss amount (when expenses > revenue)
     
-    const revenueHeight = (revenuePercentage / 100) * REVENUE_GROUP_MAX_HEIGHT;
-    const revenuePLHeight = (revenueLossPercentage / 100) * REVENUE_GROUP_MAX_HEIGHT;
+    // EXPENSES GROUP: Direct slider control (existing logic)
+    // Expenses slider controls the Expenses object height directly  
+    const expensesHeight = expenses / 500.0; // Direct height from slider value
+    const expensesPLHeight = profit / 500.0; // Profit amount (when revenue > expenses)
     
-    // EXPENSES GROUP: Percentage-based distribution within fixed total  
-    const expensesPercentage = (expenses / 1000) * 100; // 10%-100% of max height
-    const expensesProfitPercentage = (profit / 1000) * 100; // 0%-90% of max height for profit display
+    // BOUNDS ENFORCEMENT: Never exceed locked group height
+    const finalRevenueHeight = Math.min(revenueHeight, LOCKED_GROUP_HEIGHT);
+    const finalRevenuePLHeight = Math.min(revenuePLHeight, LOCKED_GROUP_HEIGHT);
+    const finalExpensesHeight = Math.min(expensesHeight, LOCKED_GROUP_HEIGHT);
+    const finalExpensesPLHeight = Math.min(expensesPLHeight, LOCKED_GROUP_HEIGHT);
     
-    const expensesHeight = (expensesPercentage / 100) * EXPENSES_GROUP_MAX_HEIGHT;
-    const expensesPLHeight = (expensesProfitPercentage / 100) * EXPENSES_GROUP_MAX_HEIGHT;
-    
-    debugLog.info('financials', `💰 CROSS-GROUP SYSTEM - Revenue: $${(revenue/100).toFixed(1)}M (${revenuePercentage.toFixed(1)}%), Expenses: $${(expenses/100).toFixed(1)}M (${expensesPercentage.toFixed(1)}%)`);
+    debugLog.info('financials', `💰 DIRECT CONTROL SYSTEM - Revenue: $${(revenue/100).toFixed(1)}M, Expenses: $${(expenses/100).toFixed(1)}M`);
     debugLog.info('financials', `📊 P&L Results - Profit: $${(profit/100).toFixed(1)}M, Loss: $${(loss/100).toFixed(1)}M`);
-    debugLog.info('financials', `📏 Heights - Revenue: ${revenueHeight.toFixed(3)}, RevenuePL: ${revenuePLHeight.toFixed(3)}, Expenses: ${expensesHeight.toFixed(3)}, ExpensesPL: ${expensesPLHeight.toFixed(3)}`);
-    debugLog.info('financials', `🔒 Max Heights Enforced - Revenue Group: ${REVENUE_GROUP_MAX_HEIGHT}, Expenses Group: ${EXPENSES_GROUP_MAX_HEIGHT}`);
+    debugLog.info('financials', `📏 Final Heights (Bounded) - Revenue: ${finalRevenueHeight.toFixed(3)}, RevenuePL: ${finalRevenuePLHeight.toFixed(3)}, Expenses: ${finalExpensesHeight.toFixed(3)}, ExpensesPL: ${finalExpensesPLHeight.toFixed(3)}`);
+    debugLog.info('financials', `🔒 Group Height Lock: ${LOCKED_GROUP_HEIGHT.toFixed(3)} units (equivalent to $8M)`);
 
     // Animate ALL objects with percentage-based vertex manipulation
     await Promise.all([
       // Revenue Group: Bottom-anchored (Revenue) + Top-anchored (RevenuePL)
-      this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration),
-      this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration),
+      this.animateObjectHeight('Revenue', finalRevenueHeight, 'bottom', duration),
+      this.animateObjectHeight('RevenuePL', finalRevenuePLHeight, 'top', duration),
       
       // Expenses Group: Bottom-anchored (Expenses) + Top-anchored (ExpensesPL)
-      this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration),
-      this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration)
+      this.animateObjectHeight('Expenses', finalExpensesHeight, 'bottom', duration),
+      this.animateObjectHeight('ExpensesPL', finalExpensesPLHeight, 'top', duration)
     ]);
 
-    debugLog.info('financials', 'Cross-group percentage-based vertex manipulation completed');
+    debugLog.info('financials', 'Direct control vertex manipulation with height bounds completed');
   }
 
   /**
