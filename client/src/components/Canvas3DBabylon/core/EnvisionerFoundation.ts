@@ -61,7 +61,7 @@ export const DEFAULT_FOUNDATION_CONFIG: EnvisionerFoundationConfig = {
   },
   rails: {
     enabled: true,
-    color: "#8B4513",
+    color: "#606060", // FRAME_GREY as default
     thickness: 0.3
   },
   labels: {
