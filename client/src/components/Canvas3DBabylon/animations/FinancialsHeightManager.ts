@@ -57,34 +57,20 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        debugLog.info('financials', `Registered ${mesh.name} at position ${mesh.position}`);
       }
     });
     
     // After registration, ensure all labels are properly scaled
-    // Multiple attempts to catch labels after they're created
     setTimeout(() => this.refreshAllLabels(), 100);
-    setTimeout(() => this.refreshAllLabels(), 500);
-    setTimeout(() => this.refreshAllLabels(), 1000);
   }
 
   /**
    * Refresh all financial object labels with correct aspect ratios
    */
   public refreshAllLabels(): void {
-    console.log('🔄 Refreshing all financial labels...');
-    let labelsFound = 0;
     this.financialMeshes.forEach((mesh, name) => {
-      const labelPlane = this.scene.meshes.find(m => m.name === `${name}Label`);
-      if (labelPlane) {
-        labelsFound++;
-        this.updateLabelPosition(mesh);
-      } else {
-        console.warn(`❌ Label ${name}Label not found in scene during refresh`);
-      }
+      this.updateLabelPosition(mesh);
     });
-    console.log(`✅ Refreshed ${labelsFound}/${this.financialMeshes.size} financial labels`);
-    debugLog.info('financials', 'Refreshed all financial object labels');
   }
 
   /**
@@ -98,7 +84,6 @@ export class FinancialsHeightManager {
     if (vertexData) {
       // Store a copy of the original vertex positions
       this.originalVertices.set(mesh.name, new Float32Array(vertexData));
-      debugLog.verbose('financials', `Captured ${vertexData.length / 3} vertices for ${mesh.name}`);
     }
   }
 
@@ -477,35 +462,21 @@ export class FinancialsHeightManager {
 
   /**
    * Update label position to track mesh center after vertex manipulation
-   * Labels are completely independent - no parenting to avoid scaling issues
    */
   private updateLabelPosition(mesh: Mesh): void {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
-    if (!labelPlane) {
-      console.warn(`⚠️ Label not found for ${mesh.name}Label - cannot position`);
-      return;
-    }
+    if (!labelPlane) return;
 
-    // Calculate current mesh bounds after vertex manipulation
     const bounds = mesh.getBoundingInfo();
     const center = bounds.boundingBox.center;
     const size = bounds.boundingBox.maximum.subtract(bounds.boundingBox.minimum);
     
-    // Position label independently on the front face center
     labelPlane.position.x = center.x;
     labelPlane.position.y = center.y;
-    labelPlane.position.z = center.z - (size.z * 0.51); // Just in front of the mesh
+    labelPlane.position.z = center.z - (size.z * 0.51);
     
-    // Keep original scaling - no compensation needed since no parenting
     labelPlane.scaling.x = 1.0;
     labelPlane.scaling.y = 1.0;
     labelPlane.scaling.z = 1.0;
-    
-    // Ensure label is visible
-    labelPlane.setEnabled(true);
-    labelPlane.visibility = 1.0;
-    
-    console.log(`📍 Label positioned for ${mesh.name}: (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
-    debugLog.verbose('financials', `Label positioned independently: ${mesh.name} at (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`);
   }
 }
