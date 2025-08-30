@@ -54,7 +54,6 @@ import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabe
 import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
-import { FinancialsLabelManager } from './Canvas3DBabylon/labels/FinancialsLabelManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -739,10 +738,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     } else {
       // Remove all bullet text planes
-      bulletTextPlanesRef.forEach((plane, name) => {
+      bulletTextPlanesRef.current.forEach((plane, name) => {
         plane.dispose();
       });
-      bulletTextPlanesRef.clear();
+      bulletTextPlanesRef.current.clear();
     }
   };
 
@@ -1617,7 +1616,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Initialize Financials systems
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
-    let financialsLabelManager: FinancialsLabelManager | null = null; // Declare FinancialsLabelManager
 
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then(async (model) => {
@@ -1631,23 +1629,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (template.name.toLowerCase() === 'financials') {
           const financialsHeightManager = new FinancialsHeightManager(scene);
           const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
-          const financialsLabelManager = new FinancialsLabelManager(scene);
 
           // Store managers on scene for global access
           (scene as any).financialsHeightManager = financialsHeightManager;
           (scene as any).financialsDataAdapter = financialsDataAdapter;
-          (scene as any).financialsLabelManager = financialsLabelManager;
 
           console.log('💰 Financials systems initialized');
 
-          // Register all Financial objects with the label manager
-          model.meshes.forEach((mesh) => {
-            if (mesh.name !== "__root__" && 
-                ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(mesh.name)) {
-              financialsLabelManager.registerFinancialObject(mesh);
-              console.log(`🏷️ Registered ${mesh.name} with FinancialsLabelManager`);
-            }
-          });
 
           // Register financial meshes for height manipulation
           if (financialsHeightManager) {
@@ -1667,13 +1655,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             console.log('✅ Financials height system initialized with default values');
           }
 
-          // Update all label positions after height initialization
-          if (financialsLabelManager) {
-            setTimeout(() => {
-              financialsLabelManager.updateAllLabelPositions();
-              console.log('✅ Financials labels positioned after height initialization');
-            }, 100);
-          }
 
           // Create comprehensive demo system
           const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');

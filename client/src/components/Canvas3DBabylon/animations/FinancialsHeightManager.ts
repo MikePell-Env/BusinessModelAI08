@@ -465,14 +465,14 @@ export class FinancialsHeightManager {
    * Update label position to track mesh center after vertex manipulation
    */
   private updateLabelPosition(mesh: Mesh): void {
-    // Get the scene to access the FinancialsLabelManager
+    // Update label positioning after vertex changes
     const scene = this.scene;
     const financialsLabelManager = (scene as any).financialsLabelManager;
     
     if (financialsLabelManager) {
       // Update the label position using the dedicated label manager
       financialsLabelManager.updateLabelPosition(mesh.name);
-      debugLog.verbose('financials', `Updated label position for ${mesh.name} via FinancialsLabelManager`);
+      debugLog.verbose('financials', `Label position updated for ${mesh.name}`);
     }
   }
 }
