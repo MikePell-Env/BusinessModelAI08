@@ -1641,18 +1641,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           if (financialsHeightManager) {
             financialsHeightManager.registerFinancialMeshes(model.meshes); // Pass all meshes
 
-            // Set initial heights for Financials objects
-            const initialData: FinancialBusinessData = {
-              totalRevenue: 1000,  // Revenue slider value → Revenue height
-              totalExpenses: 800,  // Expenses slider value → Expenses height
-              netProfit: 200,      // Profit → ExpensesPL height
-              netLoss: 0           // Loss → RevenuePL height
-            };
-
-            // Use immediate height setting for initialization
-            financialsHeightManager.setImmediateHeights(initialData);
-
-            console.log('✅ Financials height system initialized with default values');
+            console.log('✅ Financials height system initialized (deferred vertex processing)');
           }
 
 

@@ -61,8 +61,7 @@ export class FinancialsHeightManager {
       }
     });
     
-    // After registration, ensure all labels are properly scaled
-    setTimeout(() => this.refreshAllLabels(), 100);
+    // Labels will be updated synchronously - no delay needed
   }
 
   /**
