@@ -129,37 +129,34 @@ export class FinancialsHeightManager {
     data: FinancialData,
     duration: number = 1000
   ): Promise<void> {
-    // Fixed Revenue value (like $10M example)
+    // Leave Revenue calculations exactly as they were - don't change Revenue height
     const revenue = Math.max(data.revenue, 0.1);
+    const expenses = Math.max(data.expenses, 0.1);
     
-    // Expenses slider controls the percentage split within the Expenses group
-    const expensesSliderValue = Math.max(data.expenses, 0.1);
+    // Calculate profit/loss using the actual slider values (original logic)
+    const profit = Math.max(0, revenue - expenses);
+    const loss = Math.max(0, expenses - revenue);
     
-    // Calculate core financial relationship: Profit = Revenue - Expenses
-    // Use a fixed base expenses amount for the calculation, then use slider for split
-    const baseExpensesAmount = revenue * 0.8; // Start with $8M if revenue is $10M (80%)
-    const profit = Math.max(0, revenue - baseExpensesAmount);
-    const loss = Math.max(0, baseExpensesAmount - revenue);
+    // Revenue side calculations - UNCHANGED from original
+    const revenueHeight = revenue / 500.0; // Keep original Revenue height calculation
+    const revenuePLHeight = loss / 500.0; // Keep original RevenuePL height calculation
     
-    // Total height for the Expenses group (fixed based on financial logic)
-    const totalExpensesGroupHeight = baseExpensesAmount / 500.0;
+    // For Expenses group: Use a fixed base of $8M (1600 on slider) for total group height
+    const baseExpensesTotal = 1600; // $8M equivalent on the slider
+    const totalExpensesGroupHeight = baseExpensesTotal / 500.0; // This gives us the $8M height
     
-    // Expenses slider (100-1600) controls percentage split within Expenses group
+    // Expenses slider (100-1600) controls percentage split within the $8M total
     // Convert slider value to percentage (0% to 100%)
-    const expensesPercentage = ((expensesSliderValue - 100) / (1600 - 100)) * 100;
+    const expensesPercentage = ((expenses - 100) / (1600 - 100)) * 100;
     const expensesPLPercentage = 100 - expensesPercentage;
     
-    // Apply percentage split to total group height
+    // Apply percentage split to the fixed $8M total group height
     const expensesHeight = totalExpensesGroupHeight * (expensesPercentage / 100);
     const expensesPLHeight = totalExpensesGroupHeight * (expensesPLPercentage / 100);
     
-    // Revenue side calculations remain the same
-    const revenueHeight = revenue / 500.0;
-    const revenuePLHeight = loss / 500.0;
-    
-    debugLog.info('financials', `📊 PERCENTAGE SPLIT - Revenue: $${revenue}, Base Expenses: $${baseExpensesAmount}, Profit: $${profit}`);
-    debugLog.info('financials', `📊 Expenses slider: ${expensesSliderValue} → ${expensesPercentage.toFixed(1)}% Expenses, ${expensesPLPercentage.toFixed(1)}% ExpensesPL`);
-    debugLog.info('financials', `📊 Heights - Expenses: ${expensesHeight.toFixed(3)}, ExpensesPL: ${expensesPLHeight.toFixed(3)}, Total: ${(expensesHeight + expensesPLHeight).toFixed(3)}`);
+    debugLog.info('financials', `📊 FIXED EXPENSES TOTAL: $8M (${totalExpensesGroupHeight.toFixed(3)} height)`);
+    debugLog.info('financials', `📊 Expenses slider: ${expenses} → ${expensesPercentage.toFixed(1)}% Expenses (${expensesHeight.toFixed(3)}), ${expensesPLPercentage.toFixed(1)}% ExpensesPL (${expensesPLHeight.toFixed(3)})`);
+    debugLog.info('financials', `📊 Revenue unchanged: ${revenueHeight.toFixed(3)}, RevenuePL unchanged: ${revenuePLHeight.toFixed(3)}`);
 
     // Animate all objects simultaneously with percentage-based heights
     await Promise.all([
