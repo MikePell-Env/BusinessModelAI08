@@ -3392,6 +3392,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 bg-black/90 text-white p-6 rounded-lg shadow-lg">
           <div className="text-sm font-semibold mb-4 text-center">💰 Real-Time Financial Controls</div>
           <div className="grid grid-cols-2 gap-4 mb-4" ref={(el) => {
+            // Store current slider values in window object for isolation
+            if (!((window as any).financialSliderState)) {
+              (window as any).financialSliderState = {
+                revenue: 1000,  // $10M default
+                expenses: 800   // $8M default
+              };
+            }
+            
             // Initialize default values when component mounts for Financials template
             if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
               setTimeout(() => {
@@ -3416,22 +3424,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
                   const revenue = parseInt(e.target.value);
-                  // Get current expenses value from the other slider by ID
-                  const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
-                  const currentExpenses = expensesSlider ? parseInt(expensesSlider.value) : 800;
-                  
-                  // Debug logging for cross-slider reading
-                  console.log('🐛 Revenue slider touched:', {
+                  // Update isolated state
+                  (window as any).financialSliderState.revenue = revenue;
+                  const currentExpenses = (window as any).financialSliderState.expenses;
+
+                  console.log('💚 Revenue slider moved:', {
                     revenue: revenue,
-                    currentExpenses: currentExpenses,
-                    expensesSliderExists: !!expensesSlider,
-                    expensesSliderValue: expensesSlider?.value
+                    expenses: currentExpenses,
+                    state: (window as any).financialSliderState
                   });
 
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
-                      totalRevenue: revenue,  // Only update Revenue when Revenue slider moves
-                      totalExpenses: currentExpenses, // Keep current Expenses value
+                      totalRevenue: revenue,
+                      totalExpenses: currentExpenses,
                       netProfit: Math.max(0, revenue - currentExpenses),
                       netLoss: Math.max(0, currentExpenses - revenue)
                     });
@@ -3456,22 +3462,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
                   const expenses = parseInt(e.target.value);
-                  // Get current revenue value from the other slider by ID
-                  const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
-                  const currentRevenue = revenueSlider ? parseInt(revenueSlider.value) : 1000;
-                  
-                  // Debug logging for first touch issue
-                  console.log('🐛 Expenses slider touched:', {
+                  // Update isolated state
+                  (window as any).financialSliderState.expenses = expenses;
+                  const currentRevenue = (window as any).financialSliderState.revenue;
+
+                  console.log('🔴 Expenses slider moved:', {
                     expenses: expenses,
-                    currentRevenue: currentRevenue,
-                    revenueSliderExists: !!revenueSlider,
-                    revenueSliderValue: revenueSlider?.value
+                    revenue: currentRevenue,
+                    state: (window as any).financialSliderState
                   });
 
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
-                      totalRevenue: currentRevenue,  // Keep current Revenue value
-                      totalExpenses: expenses,  // Only update Expenses when Expenses slider moves
+                      totalRevenue: currentRevenue,
+                      totalExpenses: expenses,
                       netProfit: Math.max(0, currentRevenue - expenses),
                       netLoss: Math.max(0, expenses - currentRevenue)
                     });
