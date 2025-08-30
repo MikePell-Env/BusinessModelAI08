@@ -1622,6 +1622,93 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
+    // Helper function to create Financial labels
+    const createFinancialLabel = (mesh: AbstractMesh, scene: Scene) => {
+      // Get mesh bounds AFTER all scaling is complete
+      const boundingInfo = mesh.getBoundingInfo();
+      const center = boundingInfo.boundingBox.center;
+      const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+
+      // Determine label texture based on mesh name
+      let labelTexturePath = "";
+      switch (mesh.name) {
+        case "Revenue":
+          labelTexturePath = "/textures/Label_Revenue.png";
+          break;
+        case "RevenuePL":
+          labelTexturePath = "/textures/Label_Loss.png"; // RevenuePL displays "Loss" label
+          break;
+        case "Expenses":
+          labelTexturePath = "/textures/Label_Expenses.png";
+          break;
+        case "ExpensesPL":
+          labelTexturePath = "/textures/Label_Profit.png"; // ExpensesPL displays "Profit" label
+          break;
+        default:
+          console.log(`⚠️ No label texture found for Financial object: ${mesh.name}`);
+          return; // Skip if no texture mapping
+      }
+
+      // Calculate label size based on actual mesh width - 20% bigger than current = 0.51
+      const labelWidth = size.x * 0.51; // 20% bigger than 0.425
+
+      // Fix label stretching by using proper aspect ratio for each label type
+      let labelHeight;
+      if (mesh.name === "Revenue") {
+        // Revenue label needs specific aspect ratio to prevent stretching
+        labelHeight = labelWidth * 0.35; // Proper aspect ratio for Revenue texture
+        console.log(`${mesh.name} Label (FIXED): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth / labelHeight).toFixed(2)}`);
+      } else if (mesh.name === "ExpensesPL") {
+        // ExpensesPL (Profit) label needs tighter aspect ratio
+        labelHeight = labelWidth * 0.3; // Tighter aspect ratio for Profit texture
+        console.log(`${mesh.name} Label (PROFIT FIXED): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth / labelHeight).toFixed(2)}`);
+      } else {
+        // Other Financial labels use standard calculation
+        labelHeight = (labelWidth * 0.25) * 1.5;
+        console.log(`${mesh.name} Label: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth / labelHeight).toFixed(2)}`);
+      }
+
+      const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
+        width: labelWidth,
+        height: labelHeight
+      }, scene);
+
+      // Position on front face (negative Z direction from center)
+      labelPlane.position.x = center.x;
+      labelPlane.position.y = center.y;
+      labelPlane.position.z = center.z - (size.z * 0.51); // Just in front based on actual mesh depth
+
+      // No rotation needed - label faces forward by default
+      labelPlane.rotation = Vector3.Zero();
+
+      // Create material with texture
+      const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
+      const labelTexture = new Texture(labelTexturePath, scene);
+      labelTexture.hasAlpha = true;
+      enhanceLabelTexture(labelTexture);
+
+      labelMaterial.diffuseTexture = labelTexture;
+      labelMaterial.emissiveTexture = labelTexture;
+      labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // Reduced emissive to prevent blown out look
+      labelMaterial.useAlphaFromDiffuseTexture = true;
+      labelMaterial.disableLighting = true; // Ensure consistent brightness
+      labelMaterial.backFaceCulling = false; // Visible from both sides
+
+      labelPlane.material = labelMaterial;
+      
+      // NO PARENTING - Keep labels completely independent to avoid any scaling inheritance
+      // Labels will be positioned manually to track mesh centers
+      
+      // Set initial scaling
+      labelPlane.scaling.x = 1.0;
+      labelPlane.scaling.y = 1.0;
+      labelPlane.scaling.z = 1.0;
+      
+      labelPlane.isPickable = false; // Don't interfere with mesh interaction
+
+      console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+    };
+
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then(async (model) => {
       if (model.meshes.length > 0) {
@@ -1733,6 +1820,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (template.name.toLowerCase() === 'financials') {
               section = template.sections.find(s => s.name === mesh.name) || template.sections[0];
               console.log(`💰 Financials: Mapping mesh "${mesh.name}" to section "${section.name}" with color (${section.color.r}, ${section.color.g}, ${section.color.b})`);
+              
+              // CREATE FINANCIAL LABELS HERE - where Financial detection is already working
+              console.log(`🏷️ Creating label for Financial object: ${mesh.name}`);
+              createFinancialLabel(mesh, scene);
             } else {
               section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
             }
@@ -2506,9 +2597,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         });
 
         // Create TransformNodes and Financial labels AFTER all mesh transformations are complete
-        console.log(`🔍 Template name: "${template.name}", checking for Financial objects...`);
+        console.log(`🔍 DEBUG: Template name is "${template.name}" (type: ${typeof template.name})`);
+        console.log(`🔍 DEBUG: Lowercase template name is "${template.name.toLowerCase()}"`);
+        console.log(`🔍 DEBUG: Checking conditions:`);
+        console.log(`   - template.name.toLowerCase() === 'financials': ${template.name.toLowerCase() === 'financials'}`);
+        console.log(`   - template.name.toLowerCase().includes('financial'): ${template.name.toLowerCase().includes('financial')}`);
+        
         if (template.name.toLowerCase() === 'financials' || template.name.toLowerCase().includes('financial')) {
-          console.log(`✅ Financial template detected! Creating TransformNodes and Financial labels after all transformations are complete`);
+          console.log(`✅ MATCH! Financial template detected! Creating TransformNodes and Financial labels...`);
 
           model.meshes.forEach((mesh) => {
             if (mesh.name !== "__root__") {
