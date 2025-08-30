@@ -1143,11 +1143,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // TEMPLATE-SPECIFIC LABELS: Apply labels directly to ground plane for each template
     const groundPlane = envisionerFoundation.getComponent('ground');
-    console.log(`🔍 Ground plane found: ${!!groundPlane}, Template: "${template.name}"`);
-    
     if (groundPlane && template.name === 'Business Model') {
       // Business Model Canvas: Apply Internal/External labels to ground plane
-      console.log('🏷️ Applying BMC labels to ground plane');
       
       // Create composite ground material with Internal label
       const groundMaterial = new StandardMaterial("bmcGroundMaterial", scene);
@@ -1174,15 +1171,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         context.stroke();
       }
       
-      // Add "Internal" label (positioned on left side)
+      // Add "Internal" label (positioned closer to rail, smaller font)
       context.fillStyle = "#666666";
-      context.font = "bold 48px Arial";
+      context.font = "bold 24px Arial";
       (context as any).textAlign = "center";
       (context as any).textBaseline = "middle";
-      context.fillText("Internal", 256, 850); // Bottom left area
+      context.fillText("Internal", 256, 950); // Closer to bottom rail
       
-      // Add "External" label (positioned on right side)
-      context.fillText("External", 768, 850); // Bottom right area
+      // Add "External" label (positioned closer to rail, smaller font)
+      context.fillText("External", 768, 950); // Closer to bottom rail
       
       // Add vertical divider
       context.strokeStyle = "#666666";
@@ -1201,11 +1198,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       groundMaterial.backFaceCulling = false;
       
       groundPlane.material = groundMaterial;
-      console.log('✅ BMC labels applied to ground plane');
       
     } else if (groundPlane && template.name === 'Financials') {
       // Financials: Apply Revenue/Expenses labels to ground plane
-      console.log('🏷️ Applying Financials labels to ground plane');
       
       // Create composite ground material with Revenue/Expenses labels
       const groundMaterial = new StandardMaterial("financialsGroundMaterial", scene);
@@ -1232,15 +1227,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         context.stroke();
       }
       
-      // Add "Revenue" label (positioned on left side)
+      // Add "Expenses" label (positioned on left from viewer's angle, closer to rail, smaller font)
       context.fillStyle = "#666666";
-      context.font = "bold 48px Arial";
+      context.font = "bold 24px Arial";
       (context as any).textAlign = "center";
       (context as any).textBaseline = "middle";
-      context.fillText("Revenue", 256, 850); // Bottom left area
+      context.fillText("Expenses", 256, 950); // Left from viewer's perspective, closer to rail
       
-      // Add "Expenses" label (positioned on right side)  
-      context.fillText("Expenses", 768, 850); // Bottom right area
+      // Add "Revenue" label (positioned on right from viewer's angle, closer to rail, smaller font)  
+      context.fillText("Revenue", 768, 950); // Right from viewer's perspective, closer to rail
       
       // Add vertical divider
       context.strokeStyle = "#666666";
@@ -1259,7 +1254,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       groundMaterial.backFaceCulling = false;
       
       groundPlane.material = groundMaterial;
-      console.log('✅ Financials labels applied to ground plane');
     }
 
 
