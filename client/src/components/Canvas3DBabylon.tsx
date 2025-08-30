@@ -379,10 +379,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Complete transition
     setTimeout(() => {
-      // Update master transform rotation AFTER camera animation completes to avoid jumping
-      const envisionerPersistence = EnvisionerPersistence.getInstance();
-      envisionerPersistence.updateRotationForCameraPreset(template.name, preset);
-      
       setIsTransitioningCamera(false);
     }, duration);
   };
