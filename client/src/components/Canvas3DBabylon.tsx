@@ -54,7 +54,6 @@ import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabe
 import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
-import { FinancialsLabelManager } from './Canvas3DBabylon/labels/FinancialsLabelManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -1622,7 +1621,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Initialize Financials systems
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
-    let financialsLabelManager: FinancialsLabelManager | null = null;
 
 
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
@@ -1637,10 +1635,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (template.name.toLowerCase() === 'financials') {
           financialsHeightManager = new FinancialsHeightManager(scene);
           
-          // Connect the label manager to the height manager
-          if (financialsLabelManager && financialsHeightManager) {
-            financialsHeightManager.setLabelManager(financialsLabelManager);
-          }
           
           financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
           
@@ -1742,10 +1736,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               section = template.sections.find(s => s.name === mesh.name) || template.sections[0];
               console.log(`💰 Financials: Mapping mesh "${mesh.name}" to section "${section.name}" with color (${section.color.r}, ${section.color.g}, ${section.color.b})`);
               
-              // Initialize FinancialsLabelManager if not already done
-              if (!financialsLabelManager) {
-                financialsLabelManager = new FinancialsLabelManager(scene);
-              }
             } else {
               section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
             }
@@ -1785,11 +1775,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             (mesh as any).originalColor = baseColor.clone();
             (mesh as any).originalMaterial = sectionMaterial;
 
-            // For Financial objects, register them with the label manager
-            if (template.name.toLowerCase() === 'financials' && financialsLabelManager) {
-              financialsLabelManager.registerFinancialObject(mesh);
-              
-            }
 
             // Skip label creation during mesh setup - will be done after all transformations are complete
 
