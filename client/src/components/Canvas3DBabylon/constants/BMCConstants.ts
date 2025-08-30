@@ -45,12 +45,12 @@ export const CAMERA_PRESETS = {
     beta: 0.01, // Near-flat top-down view (minimal tilt maintains perspective camera)
     radius: 55 // Moderate zoom for complete canvas visibility
   },
-  // Front view for Financials template - accounts for 180° Y rotation with 90° X rotation
+  // Front view for Financials template - 180° Y rotation + 90° X rotation
   FRONT: {
-    alpha: Math.PI/2, // 90° (since Envisioner has 180° Y rotation, this becomes front view)
+    alpha: Math.PI/2 + Math.PI, // 90° + 180° = 270° for Y-axis rotation
     beta: Math.PI/2.5 - Math.PI/2, // ~72° - 90° = ~-18° for 90° X rotation
     radius: 55 // Same distance as other presets for consistency
-    // Front view with 90° X-axis rotation for proper object orientation
+    // Front view with 180° Y-axis rotation and 90° X-axis rotation
   }
 } as const;
 
