@@ -2617,7 +2617,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Prevent Y-scaling (stretching) by overriding the scaling inheritance
               labelPlane.scalingDeterminant = 1.0; // Force uniform scaling
               
-              // With vertex manipulation, labels maintain natural aspect ratios
+              // Set initial scaling - will be updated by FinancialsHeightManager
               labelPlane.scaling.x = 1.0;
               labelPlane.scaling.y = 1.0;
               labelPlane.scaling.z = 1.0;
