@@ -1141,15 +1141,124 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       console.log(`🎯 Panel should now be visible on screen with ${(sectionData as CanvasElement).content.length} bullet points!`);
     };
 
-    // TEMPLATE-SPECIFIC LABELS: Use the original working foundation implementation  
-    console.log(`🏷️ About to create template labels for: ${template.name}`);
-    envisionerFoundation.createTemplateLabels(template.name).then(() => {
-      console.log(`✅ Template-specific labels created for ${template.name}`);
-      debugLog.verbose('template', `🏷️ Template-specific labels created for ${template.name}`);
-    }).catch((error) => {
-      console.error('❌ Error creating template labels:', error);
-      debugLog.error('template', 'Failed to create template labels:', error);
-    });
+    // TEMPLATE-SPECIFIC LABELS: Apply labels directly to ground plane for each template
+    const groundPlane = envisionerFoundation.getComponent('ground');
+    if (groundPlane && template.name.toLowerCase() === 'business-model') {
+      // Business Model Canvas: Apply Internal/External labels to ground plane
+      console.log('🏷️ Applying BMC labels to ground plane');
+      
+      // Create composite ground material with Internal label
+      const groundMaterial = new StandardMaterial("bmcGroundMaterial", scene);
+      
+      // Create a composite texture with grid + Internal label
+      const compositeTexture = new DynamicTexture("bmcCompositeTexture", { width: 1024, height: 1024 }, scene, false);
+      const context = compositeTexture.getContext();
+      
+      // Fill with powder blue background
+      context.fillStyle = "#B8D4E3"; // Powder blue
+      context.fillRect(0, 0, 1024, 1024);
+      
+      // Draw grid lines
+      context.strokeStyle = "#ffffff";
+      context.lineWidth = 1;
+      for (let i = 0; i <= 1024; i += 32) {
+        context.beginPath();
+        context.moveTo(i, 0);
+        context.lineTo(i, 1024);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(0, i);
+        context.lineTo(1024, i);
+        context.stroke();
+      }
+      
+      // Add "Internal" label (positioned on left side)
+      context.fillStyle = "#666666";
+      context.font = "bold 48px Arial";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText("Internal", 256, 850); // Bottom left area
+      
+      // Add "External" label (positioned on right side)
+      context.fillText("External", 768, 850); // Bottom right area
+      
+      // Add vertical divider
+      context.strokeStyle = "#666666";
+      context.lineWidth = 4;
+      context.beginPath();
+      context.moveTo(512, 100);
+      context.lineTo(512, 924);
+      context.stroke();
+      
+      compositeTexture.update();
+      
+      groundMaterial.diffuseTexture = compositeTexture;
+      groundMaterial.specularColor = new Color3(0.8, 0.8, 1.0);
+      groundMaterial.specularPower = 64;
+      groundMaterial.alpha = 1.0;
+      groundMaterial.backFaceCulling = false;
+      
+      groundPlane.material = groundMaterial;
+      console.log('✅ BMC labels applied to ground plane');
+      
+    } else if (groundPlane && template.name.toLowerCase() === 'financials') {
+      // Financials: Apply Revenue/Expenses labels to ground plane
+      console.log('🏷️ Applying Financials labels to ground plane');
+      
+      // Create composite ground material with Revenue/Expenses labels
+      const groundMaterial = new StandardMaterial("financialsGroundMaterial", scene);
+      
+      // Create a composite texture with grid + Revenue/Expenses labels
+      const compositeTexture = new DynamicTexture("financialsCompositeTexture", { width: 1024, height: 1024 }, scene, false);
+      const context = compositeTexture.getContext();
+      
+      // Fill with powder blue background
+      context.fillStyle = "#B8D4E3"; // Powder blue
+      context.fillRect(0, 0, 1024, 1024);
+      
+      // Draw grid lines
+      context.strokeStyle = "#ffffff";
+      context.lineWidth = 1;
+      for (let i = 0; i <= 1024; i += 32) {
+        context.beginPath();
+        context.moveTo(i, 0);
+        context.lineTo(i, 1024);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(0, i);
+        context.lineTo(1024, i);
+        context.stroke();
+      }
+      
+      // Add "Revenue" label (positioned on left side)
+      context.fillStyle = "#666666";
+      context.font = "bold 48px Arial";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText("Revenue", 256, 850); // Bottom left area
+      
+      // Add "Expenses" label (positioned on right side)  
+      context.fillText("Expenses", 768, 850); // Bottom right area
+      
+      // Add vertical divider
+      context.strokeStyle = "#666666";
+      context.lineWidth = 4;
+      context.beginPath();
+      context.moveTo(512, 100);
+      context.lineTo(512, 924);
+      context.stroke();
+      
+      compositeTexture.update();
+      
+      groundMaterial.diffuseTexture = compositeTexture;
+      groundMaterial.specularColor = new Color3(0.8, 0.8, 1.0);
+      groundMaterial.specularPower = 64;
+      groundMaterial.alpha = 1.0;
+      groundMaterial.backFaceCulling = false;
+      
+      groundPlane.material = groundMaterial;
+      console.log('✅ Financials labels applied to ground plane');
+    }
 
 
 
