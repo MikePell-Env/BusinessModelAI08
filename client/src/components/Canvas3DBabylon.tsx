@@ -54,6 +54,7 @@ import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabe
 import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
+import { FinancialsLabelManager } from './Canvas3DBabylon/labels/FinancialsLabelManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -63,32 +64,27 @@ interface Canvas3DBabylonProps {
 
 
 
-// UNIFIED BMC TRANSFORMATION SYSTEM
-// Handles coordinate system complexities and provides consistent interface for all BMC objects
-
-/**
- * BMC Coordinate System Documentation:
- *
- * WORLD COORDINATE SYSTEM (Babylon.js Standard):
- * - X-axis: RIGHT = positive, LEFT = negative
- * - Y-axis: UP = positive, DOWN = negative
- * - Z-axis: FORWARD = positive, BACKWARD = negative
- *
- * BMC SCREEN LAYOUT MAPPING:
- * - X-axis: negative = LEFT side of screen, positive = RIGHT side of screen
- * - Z-axis: negative = UPPER part of screen, positive = LOWER part of screen
- * - Y-axis: height above ground plane (Y=0.1 is standard base height)
- *
- * OBJECT TYPES IN SYSTEM:
- * 1. Main BMC Model: Single GLB with 7 sections, uses transformNode scaling
- * 2. Revenue Streams: Separate GLB positioned at (-0.221, 0.1, -10.5)
- * 3. Cost Structure: Separate GLB positioned at (-10.1, 0.1, -10.5)
- *
- * COORDINATE REFERENCE POINTS:
- * - Customer Channels left edge: X ≈ 0.467
- * - Revenue Streams aligns with Customer Channels left edge
- * - Cost Structure spans from Key Partners to Key Resources alignment
- */
+// BMC Coordinate System Documentation:
+//
+// WORLD COORDINATE SYSTEM (Babylon.js Standard):
+// - X-axis: RIGHT = positive, LEFT = negative
+// - Y-axis: UP = positive, DOWN = negative
+// - Z-axis: FORWARD = positive, BACKWARD = negative
+//
+// BMC SCREEN LAYOUT MAPPING:
+// - X-axis: negative = LEFT side of screen, positive = RIGHT side of screen
+// - Z-axis: negative = UPPER part of screen, positive = LOWER part of screen
+// - Y-axis: height above ground plane (Y=0.1 is standard base height)
+//
+// OBJECT TYPES IN SYSTEM:
+// 1. Main BMC Model: Single GLB with 7 sections, uses transformNode scaling
+// 2. Revenue Streams: Separate GLB positioned at (-0.221, 0.1, -10.5)
+// 3. Cost Structure: Separate GLB positioned at (-10.1, 0.1, -10.5)
+//
+// COORDINATE REFERENCE POINTS:
+// - Customer Channels left edge: X ≈ 0.467
+// - Revenue Streams aligns with Customer Channels left edge
+// - Cost Structure spans from Key Partners to Key Resources alignment
 
 interface BMCObjectDescriptor {
   mesh: AbstractMesh;
@@ -743,10 +739,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     } else {
       // Remove all bullet text planes
-      bulletTextPlanesRef.current.forEach((plane, name) => {
+      bulletTextPlanesRef.forEach((plane, name) => {
         plane.dispose();
       });
-      bulletTextPlanesRef.current.clear();
+      bulletTextPlanesRef.clear();
     }
   };
 
@@ -779,8 +775,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Check WebGL support first with proper error handling
     const canvasElement = canvasRef.current;
     try {
-      const gl = canvasElement.getContext('webgl2', { antialias: true, alpha: false }) || 
-                 canvasElement.getContext('webgl', { antialias: true, alpha: false }) || 
+      const gl = canvasElement.getContext('webgl2', { antialias: true, alpha: false }) ||
+                 canvasElement.getContext('webgl', { antialias: true, alpha: false }) ||
                  canvasElement.getContext('experimental-webgl', { antialias: true, alpha: false });
       if (!gl) {
         console.error('WebGL is not supported in this browser');
@@ -1621,7 +1617,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Initialize Financials systems
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
-
+    let financialsLabelManager: FinancialsLabelManager | null = null; // Declare FinancialsLabelManager
 
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then(async (model) => {
@@ -1631,33 +1627,66 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         const rootMesh = model.rootMesh;
         rootMeshRef.current = rootMesh;
 
-        // Initialize Financials height management if this is Financials template
+        // Initialize Financials-specific systems
         if (template.name.toLowerCase() === 'financials') {
-          financialsHeightManager = new FinancialsHeightManager(scene);
-          
-          
-          financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
-          
+          const financialsHeightManager = new FinancialsHeightManager(scene);
+          const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
+          const financialsLabelManager = new FinancialsLabelManager(scene);
+
+          // Store managers on scene for global access
+          (scene as any).financialsHeightManager = financialsHeightManager;
+          (scene as any).financialsDataAdapter = financialsDataAdapter;
+          (scene as any).financialsLabelManager = financialsLabelManager;
+
+          console.log('💰 Financials systems initialized');
+
+          // Register all Financial objects with the label manager
+          model.meshes.forEach((mesh) => {
+            if (mesh.name !== "__root__" && 
+                ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(mesh.name)) {
+              financialsLabelManager.registerFinancialObject(mesh);
+              console.log(`🏷️ Registered ${mesh.name} with FinancialsLabelManager`);
+            }
+          });
+
           // Register financial meshes for height manipulation
-          const financialMeshes = model.meshes.filter(mesh => 
-            ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(mesh.name)
-          );
-          financialsHeightManager.registerFinancialMeshes(financialMeshes);
-          
-          console.log('💰 Financials height management system initialized');
-          
+          if (financialsHeightManager) {
+            financialsHeightManager.registerFinancialMeshes(model.meshes); // Pass all meshes
+
+            // Set initial heights for Financials objects
+            const initialData: FinancialBusinessData = {
+              totalRevenue: 1000,  // Revenue slider value → Revenue height
+              totalExpenses: 800,  // Expenses slider value → Expenses height
+              netProfit: 200,      // Profit → ExpensesPL height
+              netLoss: 0           // Loss → RevenuePL height
+            };
+
+            // Use immediate height setting for initialization
+            financialsHeightManager.setImmediateHeights(initialData);
+
+            console.log('✅ Financials height system initialized with default values');
+          }
+
+          // Update all label positions after height initialization
+          if (financialsLabelManager) {
+            setTimeout(() => {
+              financialsLabelManager.updateAllLabelPositions();
+              console.log('✅ Financials labels positioned after height initialization');
+            }, 100);
+          }
+
           // Create comprehensive demo system
           const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
           const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
-          
+
           // Expose controls for testing and real-time manipulation
           (window as any).financialsHeightManager = financialsHeightManager;
           (window as any).financialsDataAdapter = financialsDataAdapter;
           (window as any).financialsDemo = financialsDemo;
-          
+
           // Initialize with corrected financial data
           // Revenue slider default: 1000 → Revenue object height
-          // Expenses slider default: 800 → Expenses object height  
+          // Expenses slider default: 800 → Expenses object height
           // Profit: 200 → ExpensesPL object height
           // Loss: 0 → RevenuePL object height
           const initialData: FinancialBusinessData = {
@@ -1666,14 +1695,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             netProfit: 200,      // Profit → ExpensesPL height
             netLoss: 0           // Loss → RevenuePL height
           };
-          
+
           // Apply initial data with a small delay to ensure meshes are fully registered
           setTimeout(async () => {
             try {
               if (financialsDataAdapter && financialsHeightManager) {
                 await financialsDataAdapter.updateFromBusinessData(initialData, false);
                 console.log('💰 Initial Financials data applied successfully');
-                
+
                 // Verify heights were applied
                 const heights = financialsHeightManager.getCurrentHeights();
                 console.log('💰 Current heights after initialization:', heights);
@@ -1684,7 +1713,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               console.error('❌ Failed to apply initial Financials data:', error);
             }
           }, 1000); // 1 second delay to ensure proper initialization
-          
+
           console.log('💰 Financials demo system ready - try: financialsDemo.demonstrateProportionalHeights()');
         }
 
@@ -1735,7 +1764,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (template.name.toLowerCase() === 'financials') {
               section = template.sections.find(s => s.name === mesh.name) || template.sections[0];
               console.log(`💰 Financials: Mapping mesh "${mesh.name}" to section "${section.name}" with color (${section.color.r}, ${section.color.g}, ${section.color.b})`);
-              
+
             } else {
               section = correctLabelMapping[sectionIndex] || correctLabelMapping[0];
             }
@@ -1797,7 +1826,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
               const labelPlane = MeshBuilder.CreatePlane("customerSegmentsLabel", {
                 width: labelWidth,   // Larger width to match other labels
-                height: labelHeight  // 50% taller to reduce squishing
+                height: labelHeight  // 50% taller to prevent squishing
               }, scene);
 
               // Position slightly above mesh center, moved left from top view
@@ -2523,7 +2552,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.log(`🔍 DEBUG: Checking conditions:`);
         console.log(`   - template.name.toLowerCase() === 'financials': ${template.name.toLowerCase() === 'financials'}`);
         console.log(`   - template.name.toLowerCase().includes('financial'): ${template.name.toLowerCase().includes('financial')}`);
-        
+
         if (template.name.toLowerCase() === 'financials' || template.name.toLowerCase().includes('financial')) {
           console.log(`✅ MATCH! Financial template detected! Creating TransformNodes and Financial labels...`);
 
@@ -2603,6 +2632,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 console.log(`${mesh.name} Label: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth / labelHeight).toFixed(2)}`);
               }
 
+              // Create label plane
               const labelPlane = MeshBuilder.CreatePlane(`${mesh.name}Label`, {
                 width: labelWidth,
                 height: labelHeight
@@ -2613,8 +2643,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
               labelPlane.position.z = center.z; // Center vertically (Z-axis)
 
-              // Rotate to be flat on top (like working examples)
-              labelPlane.rotation.x = Math.PI / 2;
+              // Rotate to be flat on top (like other working labels in the system)
+              labelPlane.rotation.x = Math.PI / 2; // Flat on top face
 
               // Create material with texture
               const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
@@ -2627,16 +2657,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // Reduced emissive to prevent blown out look
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = true; // Ensure consistent brightness
-              labelMaterial.backFaceCulling = false; // Visible from both sides
+              labelMaterial.backFaceCulling = false;
 
+              // Apply material to label
               labelPlane.material = labelMaterial;
-              
+
               // NO PARENTING - Keep labels completely independent to avoid any scaling inheritance
               // Labels will be positioned manually to track mesh centers
-              
+
               // Prevent Y-scaling (stretching) by overriding the scaling inheritance
               labelPlane.scalingDeterminant = 1.0; // Force uniform scaling
-              
+
               // Set initial scaling - will be updated by FinancialsHeightManager
               labelPlane.scaling.x = 1.0;
               labelPlane.scaling.y = 1.0;
@@ -2644,7 +2675,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
               // Labels will be updated by FinancialsHeightManager when vertices change
               // No observer needed - direct updates prevent recursion
-              
+
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
               console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
@@ -2952,7 +2983,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
               labelPlane.position.z = center.z; // Center vertically (Z-axis)
 
-              // Rotate to be flat on top and then 90 degrees counterclockwise (same as Revenue Streams)
+              // Rotate to be flat on top (same as Revenue Streams)
               labelPlane.rotation.x = Math.PI / 2;
               labelPlane.rotation.y = -Math.PI / 2; // 90 degrees counterclockwise for proper text orientation
 
@@ -3476,10 +3507,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             <div>
               <label className="block text-xs mb-1">Revenue Total</label>
               <div className="revenue-display text-xs text-green-400 mb-1">$10M (Default)</div>
-              <input 
-                type="range" 
-                min="100" 
-                max="2000" 
+              <input
+                type="range"
+                min="100"
+                max="2000"
                 defaultValue="1000"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
@@ -3487,7 +3518,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   // Get current expenses value from the other slider
                   const expensesSlider = document.querySelector('input[type="range"]:nth-of-type(2)') as HTMLInputElement;
                   const currentExpenses = expensesSlider ? parseInt(expensesSlider.value) : 800;
-                  
+
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
                       totalRevenue: revenue,  // Revenue slider → Revenue group
@@ -3496,7 +3527,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                       netLoss: Math.max(0, currentExpenses - revenue)
                     });
                   }
-                  
+
                   // Update the display values
                   const revenueDisplay = document.querySelector('.revenue-display');
                   const expensesDisplay = document.querySelector('.expenses-display');
@@ -3509,10 +3540,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
               <div className="expenses-display text-xs text-red-400 mb-1">$8M (Default)</div>
-              <input 
-                type="range" 
-                min="100" 
-                max="1600" 
+              <input
+                type="range"
+                min="100"
+                max="1600"
                 defaultValue="800"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
@@ -3520,7 +3551,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   // Get current revenue value from the other slider
                   const revenueSlider = document.querySelector('input[type="range"]:nth-of-type(1)') as HTMLInputElement;
                   const currentRevenue = revenueSlider ? parseInt(revenueSlider.value) : 1000;
-                  
+
                   if ((window as any).financialsDataAdapter) {
                     (window as any).financialsDataAdapter.updateFromBusinessData({
                       totalRevenue: currentRevenue,
@@ -3529,7 +3560,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                       netLoss: Math.max(0, expenses - currentRevenue)
                     });
                   }
-                  
+
                   // Update the display values
                   const revenueDisplay = document.querySelector('.revenue-display');
                   const expensesDisplay = document.querySelector('.expenses-display');
