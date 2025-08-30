@@ -1143,7 +1143,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // TEMPLATE-SPECIFIC LABELS: Apply labels directly to ground plane for each template
     const groundPlane = envisionerFoundation.getComponent('ground');
-    if (groundPlane && template.name.toLowerCase() === 'business-model') {
+    console.log(`🔍 Ground plane found: ${!!groundPlane}, Template: "${template.name}"`);
+    
+    if (groundPlane && template.name === 'Business Model') {
       // Business Model Canvas: Apply Internal/External labels to ground plane
       console.log('🏷️ Applying BMC labels to ground plane');
       
@@ -1175,8 +1177,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       // Add "Internal" label (positioned on left side)
       context.fillStyle = "#666666";
       context.font = "bold 48px Arial";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
+      (context as any).textAlign = "center";
+      (context as any).textBaseline = "middle";
       context.fillText("Internal", 256, 850); // Bottom left area
       
       // Add "External" label (positioned on right side)
@@ -1201,7 +1203,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       groundPlane.material = groundMaterial;
       console.log('✅ BMC labels applied to ground plane');
       
-    } else if (groundPlane && template.name.toLowerCase() === 'financials') {
+    } else if (groundPlane && template.name === 'Financials') {
       // Financials: Apply Revenue/Expenses labels to ground plane
       console.log('🏷️ Applying Financials labels to ground plane');
       
@@ -1233,8 +1235,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       // Add "Revenue" label (positioned on left side)
       context.fillStyle = "#666666";
       context.font = "bold 48px Arial";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
+      (context as any).textAlign = "center";
+      (context as any).textBaseline = "middle";
       context.fillText("Revenue", 256, 850); // Bottom left area
       
       // Add "Expenses" label (positioned on right side)  
