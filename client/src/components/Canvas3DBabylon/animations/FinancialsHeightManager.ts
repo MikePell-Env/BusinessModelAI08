@@ -333,7 +333,7 @@ export class FinancialsHeightManager {
 
   /**
    * Set object height immediately while maintaining anchor
-   * RESTORED: Using scaling approach with original geometry preserved
+   * Using vertex manipulation constrained to original geometry bounds
    */
   private setObjectHeight(
     objectName: string,
@@ -346,39 +346,18 @@ export class FinancialsHeightManager {
     const originalPos = this.originalPositions.get(objectName);
     if (!originalPos) return;
 
-    // RESTORED APPROACH: Use scaling (preserves original geometry shape)
-    mesh.scaling.y = height;
+    // Use vertex manipulation but keep mesh position FIXED at original position
+    this.setMeshHeightByVertices(mesh, height, anchorType);
 
-    // Update any label position to follow the mesh (but maintain label's own scale)
+    // CRITICAL: Keep mesh position at original loaded position - no movement
+    mesh.position.x = originalPos.x;
+    mesh.position.y = originalPos.y; 
+    mesh.position.z = originalPos.z;
+
+    // Update label position
     this.updateLabelPosition(mesh);
-
-    if (anchorType === 'top') {
-      // Use calibrated positioning for ExpensesPL
-      if (objectName === 'ExpensesPL') {
-        const expensesMesh = this.financialMeshes.get('Expenses');
-        if (expensesMesh) {
-          // Use the calibrated 0.3 positioning factor that was working
-          const positioningFactor = 0.3;
-          mesh.position.y = 0 + (expensesMesh.scaling.y * positioningFactor);
-        } else {
-          mesh.position.y = 0 + (height / 2);
-        }
-      } else if (objectName === 'RevenuePL') {
-        const revenueMesh = this.financialMeshes.get('Revenue');
-        if (revenueMesh) {
-          const revenueHeight = revenueMesh.scaling.y;
-          const revenuePosition = revenueMesh.position.y;
-          mesh.position.y = revenuePosition + (revenueHeight / 2) + (height / 2);
-        } else {
-          mesh.position.y = 0 + (height / 2);
-        }
-      } else {
-        mesh.position.y = 0 + (height / 2);
-      }
-    } else {
-      // Bottom-anchored: keep bottom surface on ground plane
-      mesh.position.y = 0;
-    }
+    
+    debugLog.verbose('financials', `Set height for ${objectName}: ${height} (${anchorType}-anchored) using constrained vertex manipulation`);
   }
 
   /**
