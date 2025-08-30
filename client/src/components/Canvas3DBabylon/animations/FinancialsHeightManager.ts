@@ -377,12 +377,15 @@ export class FinancialsHeightManager {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    // Restore original scaling to prevent Y-stretching
-    const originalScaling = (labelPlane as any).originalScaling;
-    if (originalScaling) {
-      labelPlane.scaling = originalScaling.clone();
+    // Force label to maintain constant aspect ratio by inverting parent's Y scaling
+    const parentYScale = mesh.scaling.y;
+    if (parentYScale > 0) {
+      // Inverse the Y scaling to maintain original proportions
+      labelPlane.scaling.y = 1.0 / parentYScale;
+      labelPlane.scaling.x = 1.0; // Keep X scaling normal
+      labelPlane.scaling.z = 1.0; // Keep Z scaling normal
     }
     
-    debugLog.verbose('financials', `Restored ${mesh.name} label scaling to maintain aspect ratio`);
+    debugLog.verbose('financials', `Applied inverse Y scaling (${(1.0 / parentYScale).toFixed(3)}) to ${mesh.name} label`);
   }
 }
