@@ -152,5 +152,53 @@ All interactions include detailed console logging for debugging:
 - Unified coordinate system would improve performance
 - Consider batching transformation operations
 
+## Financials Template Camera System
+
+### Critical Camera Preset: FRONT View
+The Financials template FRONT preset required extensive debugging to achieve the correct viewing angle for Revenue and Expenses objects.
+
+**Final Working Coordinates:**
+```typescript
+FRONT: {
+  alpha: 0.036182071468275234 + Math.PI/2, // ~92.1° - looks down Z-axis
+  beta: 0.8696527613715385 + (20 * Math.PI / 180), // ~70° - forward tilt
+  radius: 55.068748126797715   // Distance from target
+}
+```
+
+### Coordinate System Conflicts Resolved
+**CRITICAL ISSUE**: Master transform rotations were interfering with camera coordinates.
+
+**Problem Location**: `EnvisionerPersistence.ts` lines 48-54
+- Master transform was applying extra X-axis rotations for FRONT preset
+- These competing transformations caused incorrect camera positioning
+
+**Solution Applied**: 
+- Removed special FRONT preset handling in master transform
+- Financials template now uses consistent `rotation.x = 0` for all presets
+- Only camera coordinates control view positioning
+
+### Camera Coordinate System Notes
+**Spherical to Cartesian Conversion:**
+- X = radius * sin(beta) * cos(alpha)
+- Y = radius * cos(beta) 
+- Z = radius * sin(beta) * sin(alpha)
+
+**FRONT View Requirements:**
+1. **Alpha adjustment**: Add 90° to look down Z-axis instead of X-axis
+2. **Beta adjustment**: Add 20° for proper forward tilt angle
+3. **No master transform interference**: Template-specific rotations must not compete
+
+### Debugging Process Documentation
+1. **Add debug logging** to capture real camera coordinates during transitions
+2. **Check for master transform conflicts** in EnvisionerPersistence system
+3. **Verify coordinate system alignment** between camera and scene objects
+4. **Test axis orientation** - ensure looking down correct axis (Z vs X)
+
+### Template-Specific Camera Behavior
+- **Business Model**: Auto-animation enabled (TOP → PERSPECTIVE_RIGHT)
+- **Financials**: Manual camera control, no auto-animation interference
+- **Rotation Persistence**: Position/scale preserved, rotation template-specific
+
 ## Last Updated
-January 2025 - Comprehensive documentation of unified transformation system with Revenue Streams and Cost Structure integration
+August 30, 2025 - Added comprehensive Financials camera system documentation and coordinate system conflict resolution
