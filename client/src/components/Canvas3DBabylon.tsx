@@ -1635,7 +1635,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           financialsHeightManager = new FinancialsHeightManager(scene);
           
           // Connect the label manager to the height manager for coordinated updates
-          const labelManager = bmcModelLoader.getFinancialsLabelManager();
+          const labelManager = modelLoader.getFinancialsLabelManager();
           financialsHeightManager.setLabelManager(labelManager);
           financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
           
