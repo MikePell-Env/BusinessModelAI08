@@ -129,37 +129,40 @@ export class FinancialsHeightManager {
     data: FinancialData,
     duration: number = 1000
   ): Promise<void> {
-    // Direct mapping: slider values directly control their respective groups
-    const revenue = Math.max(data.revenue, 0.1);
-    const expenses = Math.max(data.expenses, 0.1);
+    // FIXED PARAMETERS: Revenue = $10M always (locked)
+    const revenue = 5000; // Fixed at $10M (slider value 5000 = $10M)
     
-    // Calculate profit/loss for display in PL objects
+    // Expenses slider: $1M to $10M range (slider 500 to 5000)
+    const expenses = Math.max(Math.min(data.expenses, 5000), 500); // Clamp to $1M-$10M range
+    
+    // Calculate profit: $10M - Expenses ($1M to $10M) = $9M to $0M
     const profit = Math.max(0, revenue - expenses);
-    const loss = Math.max(0, expenses - revenue);
+    const loss = Math.max(0, expenses - revenue); // Should always be 0 since expenses ≤ revenue
     
-    // CORRECTED: Direct height mapping based on slider values
-    // Revenue slider (data.revenue) → Revenue object height
-    // Expenses slider (data.expenses) → Expenses object height
-    const revenueHeight = revenue / 500.0; // Scale down from slider range (100-2000) to visual range
-    const expensesHeight = expenses / 500.0; // Scale down from slider range (100-1600) to visual range
+    // Revenue Group heights - FIXED (never change, no vertex manipulation)
+    const revenueHeight = revenue / 500.0; // Fixed at $10M height
+    const revenuePLHeight = loss / 500.0; // Always 0 since no loss possible
     
-    // PL objects show profit/loss proportionally
-    const revenuePLHeight = loss / 500.0; // Loss shown on Revenue side (gold)
-    const expensesPLHeight = profit / 500.0; // Profit shown on Expenses side (black)
+    // Expenses Group heights - VERTEX MANIPULATION ONLY
+    const expensesHeight = expenses / 500.0; // $1M-$10M range
+    const expensesPLHeight = profit / 500.0; // $9M-$0M range (inverse of expenses)
     
-    debugLog.info('financials', `CORRECTED mapping - Revenue slider: ${revenue} → Revenue height: ${revenueHeight.toFixed(2)}`);
-    debugLog.info('financials', `CORRECTED mapping - Expenses slider: ${expenses} → Expenses height: ${expensesHeight.toFixed(2)}`);
-    debugLog.info('financials', `P&L display - Profit: ${profit} → ExpensesPL: ${expensesPLHeight.toFixed(2)}, Loss: ${loss} → RevenuePL: ${revenuePLHeight.toFixed(2)}`);
+    debugLog.info('financials', `💰 FIXED SYSTEM - Revenue: $10M (locked), Expenses: $${expenses/500}M, Profit: $${profit/500}M`);
+    debugLog.info('financials', `📊 Heights - Revenue: ${revenueHeight.toFixed(2)} (fixed), Expenses: ${expensesHeight.toFixed(2)}, ExpensesPL: ${expensesPLHeight.toFixed(2)}`);
+    debugLog.info('financials', `🔒 Revenue Group: NO changes, Expenses Group: VERTEX manipulation only`);
 
-    // Animate all objects simultaneously with corrected heights
+    // Animate objects with appropriate methods
     await Promise.all([
-      this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration),
+      // Revenue Group: NO animation - keep completely locked
+      // this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration), // DISABLED
+      // this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration), // DISABLED
+      
+      // Expenses Group: VERTEX manipulation only
       this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration),
-      this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration),
       this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration)
     ]);
 
-    debugLog.info('financials', 'Corrected height animations completed');
+    debugLog.info('financials', 'Vertex-only height animations completed');
   }
 
   /**
