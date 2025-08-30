@@ -160,6 +160,13 @@ export class EnvisionerPersistence {
   }
 
   /**
+   * Get the master transform for external updates
+   */
+  public getMasterTransform(): TransformNode | null {
+    return this.masterTransform;
+  }
+
+  /**
    * Update master transform rotation based on template and camera preset
    */
   public updateRotationForCameraPreset(templateName: string, cameraPreset: string): void {

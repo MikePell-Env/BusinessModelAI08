@@ -379,6 +379,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Complete transition
     setTimeout(() => {
+      // For Financials template, update rotation specifically for FRONT preset
+      if (template.name.toLowerCase() === 'financials') {
+        const envisionerPersistence = EnvisionerPersistence.getInstance();
+        const masterTransform = envisionerPersistence.getMasterTransform();
+        if (masterTransform) {
+          if (preset === 'FRONT') {
+            // Apply FRONT view X-axis tilt away from camera
+            masterTransform.rotation.x = -Math.PI / 4; // 45 degrees away from camera
+          } else {
+            // Remove X-axis tilt for other presets
+            masterTransform.rotation.x = 0;
+          }
+        }
+      }
+      
       setIsTransitioningCamera(false);
     }, duration);
   };
