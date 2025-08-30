@@ -45,12 +45,22 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   } = useCanvas();
   
   // Envisioner type state  
-  const { currentTemplate, currentType, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
+  const { currentTemplate, currentType, isTransitioning: isTemplateTransitioning, transitionProgress, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
   
   console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isTransitioning=${isTransitioning}`);
   console.log(`🟡 Current Envisioner Type: ${currentType}, Template: ${currentTemplate.name}`);
   console.log(`🟡 Template sections count: ${currentTemplate.sections.length}`);
   console.log(`🟡 Will render: ${is3D ? 'Canvas3DBabylon' : 'Canvas2D'}`);
+  
+  // REVERTIBLE: Add global revert function for easy rollback
+  React.useEffect(() => {
+    const { _revertToOriginal } = useEnvisionerType.getState();
+    (window as any).revertTemplateTransitions = () => {
+      _revertToOriginal();
+      console.log('🔄 Template transitions reverted to original behavior. Refresh the page to see the changes.');
+    };
+    console.log('💡 To revert enhanced transitions, run: revertTemplateTransitions()');
+  }, []);
   
 
 
@@ -173,29 +183,47 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
         {/* Envisioner Type Buttons */}
         <Button
           onClick={switchToBusinessModel}
-          disabled={isTransitioning}
-          className={`border border-gray-300 shadow-md ${
-            currentType === 'business-model' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+          disabled={isTransitioning || isTemplateTransitioning}
+          className={`border border-gray-300 shadow-md transition-all duration-300 ${
+            isTemplateTransitioning 
+              ? 'bg-blue-500 text-white animate-pulse cursor-not-allowed' 
+              : currentType === 'business-model' 
+                ? 'bg-gray-900 text-white hover:bg-gray-800' 
+                : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
           <Box className="w-4 h-4 mr-2" />
-          Business Model
+          {isTemplateTransitioning ? 'Switching...' : 'Business Model'}
         </Button>
 
         <Button
           onClick={switchToFinancials}
-          disabled={isTransitioning}
-          className={`border border-gray-300 shadow-md ${
-            currentType === 'financials' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+          disabled={isTransitioning || isTemplateTransitioning}
+          className={`border border-gray-300 shadow-md transition-all duration-300 ${
+            isTemplateTransitioning 
+              ? 'bg-blue-500 text-white animate-pulse cursor-not-allowed' 
+              : currentType === 'financials' 
+                ? 'bg-gray-900 text-white hover:bg-gray-800' 
+                : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
           size="sm"
         >
           <Settings className="w-4 h-4 mr-2" />
-          Financials
+          {isTemplateTransitioning ? 'Switching...' : 'Financials'}
         </Button>
 
       </div>
+      
+      {/* Template Transition Progress Indicator */}
+      {isTemplateTransitioning && (
+        <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
+          <div 
+            className="h-full bg-blue-500 transition-all duration-100 ease-out"
+            style={{ width: `${transitionProgress * 100}%` }}
+          />
+        </div>
+      )}
       
       {/* Main content with minimal padding */}
       <div className="pt-12 h-full relative">
