@@ -33,6 +33,7 @@ export class FinancialsHeightManager {
   private financialMeshes: Map<string, Mesh> = new Map();
   private originalPositions: Map<string, Vector3> = new Map();
   private originalVertices: Map<string, Float32Array> = new Map();
+  private currentHeightFactors: Map<string, number> = new Map();
   private baseHeight: number = 1.0;
   private maxVisualizationHeight: number = 5.0;
 
@@ -412,6 +413,9 @@ export class FinancialsHeightManager {
     const geometry = mesh.geometry;
     if (!geometry) return;
 
+    // Store the height factor for label scaling
+    this.currentHeightFactors.set(mesh.name, heightFactor);
+
     // Create a copy of original vertices to modify
     const newVertices = new Float32Array(originalVertices);
 
@@ -454,22 +458,23 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Update label position (simplified for vertex manipulation approach)
+   * Update label to maintain aspect ratio when mesh is vertex-manipulated
    */
   private updateLabelPosition(mesh: Mesh): void {
     const labelPlane = this.scene.meshes.find(m => m.name === `${mesh.name}Label`);
     if (!labelPlane) return;
 
-    // With vertex manipulation, labels maintain their natural proportions
-    // Just need to update position to stay centered on the mesh
-    const bounds = mesh.getBoundingInfo();
-    const center = bounds.boundingBox.center;
-    const size = bounds.boundingBox.maximum.subtract(bounds.boundingBox.minimum);
+    // Get the stored height factor for this mesh
+    const heightFactor = this.currentHeightFactors.get(mesh.name) || 1.0;
     
-    labelPlane.position.x = center.x;
-    labelPlane.position.y = center.y;
-    labelPlane.position.z = center.z - (size.z * 0.51);
+    // Force label to maintain constant aspect ratio by inverting the height factor
+    if (heightFactor > 0) {
+      // Inverse the Y scaling to maintain original proportions
+      labelPlane.scaling.y = 1.0 / heightFactor;
+      labelPlane.scaling.x = 1.0; // Keep X scaling normal
+      labelPlane.scaling.z = 1.0; // Keep Z scaling normal
+    }
     
-    debugLog.verbose('financials', `Updated ${mesh.name} label position for vertex-manipulated mesh`);
+    debugLog.verbose('financials', `Applied inverse Y scaling (${(1.0 / heightFactor).toFixed(3)}) to ${mesh.name} label for vertex manipulation`);
   }
 }
