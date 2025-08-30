@@ -2612,7 +2612,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelMaterial.backFaceCulling = false; // Visible from both sides
 
               labelPlane.material = labelMaterial;
-              labelPlane.parent = mesh; // Parent to the mesh so it follows transforms
+              
+              // SOLUTION: Use TransformNode as intermediate parent to avoid scaling inheritance
+              // This follows Babylon.js best practice for preserving child proportions
+              const labelTransformNode = new TransformNode(`${mesh.name}LabelTransform`, scene);
+              labelTransformNode.position = mesh.position.clone();
+              labelTransformNode.rotation = mesh.rotation.clone();
+              // Do NOT inherit scaling - only position and rotation
+              
+              labelPlane.parent = labelTransformNode; // Parent to transform node, not mesh
               
               // Prevent Y-scaling (stretching) by overriding the scaling inheritance
               labelPlane.scalingDeterminant = 1.0; // Force uniform scaling
