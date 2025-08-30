@@ -19,31 +19,31 @@ export class FinancialsLabelManager {
   private labelMaterials: Map<string, StandardMaterial> = new Map();
   private objectMeshes: Map<string, AbstractMesh> = new Map();
 
-  // Label configurations for each Financial object
+  // Label configurations for each Financial object - INCREASED SIZE
   private labelConfigs: Map<string, FinancialLabelConfig> = new Map([
     ['Revenue', { 
       objectName: 'Revenue', 
       texturePath: '/textures/Label_Revenue.png', 
       aspectRatio: 2.86, // Width/Height ratio from current working system
-      baseWidth: 0.3 
+      baseWidth: 1.5 // Much larger
     }],
     ['RevenuePL', { 
       objectName: 'RevenuePL', 
       texturePath: '/textures/Label_Loss.png', 
       aspectRatio: 4.0, // Standard ratio for PL labels
-      baseWidth: 0.25 
+      baseWidth: 1.2 // Much larger
     }],
     ['Expenses', { 
       objectName: 'Expenses', 
       texturePath: '/textures/Label_Expenses.png', 
       aspectRatio: 4.0, // Standard ratio
-      baseWidth: 0.3 
+      baseWidth: 1.5 // Much larger
     }],
     ['ExpensesPL', { 
       objectName: 'ExpensesPL', 
       texturePath: '/textures/Label_Profit.png', 
       aspectRatio: 4.0, // Standard ratio
-      baseWidth: 0.25 
+      baseWidth: 1.2 // Much larger
     }]
   ]);
 
@@ -79,10 +79,10 @@ export class FinancialsLabelManager {
     const center = boundingInfo.boundingBox.center;
     const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
     
-    // Position label in front of mesh center - FIXED positioning
+    // Position label in front of mesh center - FIXED positioning at center height
     transformNode.position = new Vector3(
       center.x,
-      center.y,
+      center.y + (size.y * 0.3), // Move up to center of object
       center.z + (size.z * 0.6) // Move further in front of mesh
     );
 
@@ -146,7 +146,7 @@ export class FinancialsLabelManager {
     
     // Update transform position (label size remains unchanged)
     transformNode.position.x = center.x;
-    transformNode.position.y = center.y;
+    transformNode.position.y = center.y + (size.y * 0.3); // Move up to center of object
     transformNode.position.z = center.z + (size.z * 0.6); // Move further in front
 
     debugLog.verbose('financials-labels', 
