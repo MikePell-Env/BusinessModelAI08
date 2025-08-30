@@ -144,47 +144,43 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // Calculate heights with proper percentage distribution
-    // Revenue Group: Revenue = 99% of total, RevenuePL = 1% minimum visibility 
-    const totalRevenueHeight = revenue / HEIGHT_SCALE; // Total height for Revenue group
-    const revenueHeight = totalRevenueHeight * 0.99;   // Revenue object: 99% of total
-    const revenuePLHeight = totalRevenueHeight * 0.01; // RevenuePL object: 1% of total (always visible)
+    // CONSTRAINED HEIGHT CALCULATIONS: Keep all values ≤ 1.0 for vertex manipulation
+    // Revenue Group: Calculate proportional heights within bounds
+    const maxAllowedHeight = 1.0; // Maximum height factor for vertex manipulation
+    const revenueSliderPercent = revenue / 1000.0; // 0.1 to 1.0 range
     
-    // Expenses Group: Expenses = actual value, ExpensesPL = profit
-    const expensesHeight = expenses / HEIGHT_SCALE;
-    const expensesPLHeight = profit / HEIGHT_SCALE;
+    // Revenue Group: 99% Revenue + 1% RevenuePL split
+    const revenueHeight = Math.min(revenueSliderPercent * 0.99, maxAllowedHeight);   // 99% of slider value
+    const revenuePLHeight = Math.min(revenueSliderPercent * 0.01, maxAllowedHeight); // 1% of slider value
+    
+    // Expenses Group: Similar calculation but independent 
+    const expensesSliderPercent = expenses / 1000.0; // 0.1 to 1.0 range
+    const expensesHeight = Math.min(expensesSliderPercent, maxAllowedHeight);
+    const expensesPLHeight = Math.min((profit / 1000.0), maxAllowedHeight);
     
     // SELECTIVE UPDATES: Only animate objects whose values actually changed
     const animations: Promise<void>[] = [];
     
-    // Check Revenue Group changes
-    if (this.previousData.revenue !== revenue) {
-      console.log('🟢 Revenue changed:', this.previousData.revenue, '→', revenue);
-      animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
-    } else {
-      console.log('🔒 Revenue unchanged, skipping animation');
-    }
+    // STRICT ISOLATION: Only update the group whose base value actually changed
+    const revenueGroupChanged = this.previousData.revenue !== revenue;
+    const expensesGroupChanged = this.previousData.expenses !== expenses;
     
-    if (this.previousData.loss !== loss) {
-      console.log('🟡 Loss changed:', this.previousData.loss, '→', loss);
+    // Revenue Group updates (only when Revenue slider moves)
+    if (revenueGroupChanged) {
+      console.log('🟢 REVENUE GROUP UPDATE: Revenue changed:', this.previousData.revenue, '→', revenue);
+      animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
       animations.push(this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration));
     } else {
-      console.log('🔒 Loss unchanged, skipping RevenuePL animation');
+      console.log('🔒 Revenue Group unchanged, skipping all Revenue animations');
     }
     
-    // Check Expenses Group changes  
-    if (this.previousData.expenses !== expenses) {
-      console.log('🔴 Expenses changed:', this.previousData.expenses, '→', expenses);
+    // Expenses Group updates (only when Expenses slider moves)  
+    if (expensesGroupChanged) {
+      console.log('🔴 EXPENSES GROUP UPDATE: Expenses changed:', this.previousData.expenses, '→', expenses);
       animations.push(this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration));
-    } else {
-      console.log('🔒 Expenses unchanged, skipping animation');
-    }
-    
-    if (this.previousData.profit !== profit) {
-      console.log('⚫ Profit changed:', this.previousData.profit, '→', profit);
       animations.push(this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration));
     } else {
-      console.log('🔒 Profit unchanged, skipping ExpensesPL animation');
+      console.log('🔒 Expenses Group unchanged, skipping all Expenses animations');
     }
     
     // Update previous data for next comparison
@@ -386,19 +382,23 @@ export class FinancialsHeightManager {
     const profit = Math.max(0, revenue - expenses);
     const loss = Math.max(0, expenses - revenue);
     
-    // Direct height mapping with proper percentage distribution
-    // Revenue Group: Revenue = 99% of total, RevenuePL = 1% minimum visibility
-    const totalRevenueHeight = revenue / 500.0; // Total height for Revenue group
-    const revenueHeight = totalRevenueHeight * 0.99;   // Revenue object: 99% of total
-    const revenuePLHeight = totalRevenueHeight * 0.01; // RevenuePL object: 1% of total (always visible)
+    // CONSTRAINED HEIGHT CALCULATIONS: Keep all values ≤ 1.0 for vertex manipulation
+    // Revenue Group: Calculate proportional heights within bounds
+    const maxAllowedHeight = 1.0; // Maximum height factor for vertex manipulation
+    const revenueSliderPercent = revenue / 1000.0; // 0.1 to 1.0 range
     
-    // Expenses Group: Expenses = actual value, ExpensesPL = profit
-    const expensesHeight = expenses / 500.0;
-    const expensesPLHeight = profit / 500.0;
+    // Revenue Group: 99% Revenue + 1% RevenuePL split
+    const revenueHeight = Math.min(revenueSliderPercent * 0.99, maxAllowedHeight);   // 99% of slider value
+    const revenuePLHeight = Math.min(revenueSliderPercent * 0.01, maxAllowedHeight); // 1% of slider value
+    
+    // Expenses Group: Similar calculation but independent 
+    const expensesSliderPercent = expenses / 1000.0; // 0.1 to 1.0 range
+    const expensesHeight = Math.min(expensesSliderPercent, maxAllowedHeight);
+    const expensesPLHeight = Math.min((profit / 1000.0), maxAllowedHeight);
     
     console.log('💰 IMMEDIATE HEIGHT CALCULATIONS:', {
       revenue: revenue, expenses: expenses, profit: profit, loss: loss,
-      totalRevenueHeight: totalRevenueHeight.toFixed(3),
+      revenueSliderPercent: revenueSliderPercent.toFixed(3), expensesSliderPercent: expensesSliderPercent.toFixed(3),
       revenueHeight: revenueHeight.toFixed(3), revenuePLHeight: revenuePLHeight.toFixed(3),
       expensesHeight: expensesHeight.toFixed(3), expensesPLHeight: expensesPLHeight.toFixed(3)
     });
