@@ -59,10 +59,25 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
+        console.log(`🔧 Registered financial mesh: ${mesh.name}`);
       }
     });
     
-    // Labels will be updated synchronously - no delay needed
+    console.log(`🔧 Total financial meshes registered: ${this.financialMeshes.size}`);
+    
+    // IMMEDIATE: Apply correct default heights as soon as meshes are registered
+    if (this.financialMeshes.size === 4) {
+      console.log('🔧 All 4 meshes registered, applying default heights immediately...');
+      setTimeout(() => {
+        this.setImmediateHeights({
+          revenue: 1000,   // $10M
+          expenses: 800,   // $8M
+          profit: 200,     // $2M profit
+          loss: 0          // No loss
+        });
+        console.log('🔧 Default heights applied immediately after mesh registration');
+      }, 10); // Very short delay to ensure mesh setup is complete
+    }
   }
 
   /**
