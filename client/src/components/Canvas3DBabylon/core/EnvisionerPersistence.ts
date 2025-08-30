@@ -89,8 +89,8 @@ export class EnvisionerPersistence {
       // Financials template - check if current preset is FRONT at initialization
       this.masterTransform.rotation.y = Math.PI; // 180 degrees to face camera
       if (cameraPreset === 'FRONT') {
-        // FRONT preset gets 45-degree forward tilt for optimal viewing
-        this.masterTransform.rotation.x = Math.PI / 4; // 45 degrees forward tilt
+        // FRONT preset rotates scene away from camera for optimal front viewing
+        this.masterTransform.rotation.x = -Math.PI / 4; // 45 degrees away from camera
       } else {
         // All other presets use no X tilt for Financials
         this.masterTransform.rotation.x = 0; // No X tilt for other presets
