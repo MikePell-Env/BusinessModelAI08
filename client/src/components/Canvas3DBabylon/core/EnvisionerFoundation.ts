@@ -174,7 +174,7 @@ export class EnvisionerFoundation {
     // North rail (top)
     const northRail = MeshBuilder.CreateBox("envisionerNorthRail", {
       width: this.config.groundPlane.width + (this.config.rails.thickness * 2),
-      height: 0.5,
+      height: 0.25,
       depth: this.config.rails.thickness
     }, this.scene);
     northRail.position.z = this.config.groundPlane.height / 2 + this.config.rails.thickness / 2;
@@ -184,7 +184,7 @@ export class EnvisionerFoundation {
     // South rail (bottom)
     const southRail = MeshBuilder.CreateBox("envisionerSouthRail", {
       width: this.config.groundPlane.width + (this.config.rails.thickness * 2),
-      height: 0.5,
+      height: 0.25,
       depth: this.config.rails.thickness
     }, this.scene);
     southRail.position.z = -(this.config.groundPlane.height / 2 + this.config.rails.thickness / 2);
@@ -194,7 +194,7 @@ export class EnvisionerFoundation {
     // East rail (right)
     const eastRail = MeshBuilder.CreateBox("envisionerEastRail", {
       width: this.config.rails.thickness,
-      height: 0.5,
+      height: 0.25,
       depth: this.config.groundPlane.height
     }, this.scene);
     eastRail.position.x = this.config.groundPlane.width / 2 + this.config.rails.thickness / 2;
@@ -204,7 +204,7 @@ export class EnvisionerFoundation {
     // West rail (left)
     const westRail = MeshBuilder.CreateBox("envisionerWestRail", {
       width: this.config.rails.thickness,
-      height: 0.5,
+      height: 0.25,
       depth: this.config.groundPlane.height
     }, this.scene);
     westRail.position.x = -(this.config.groundPlane.width / 2 + this.config.rails.thickness / 2);
