@@ -63,32 +63,21 @@ export class FinancialsLabelManager {
     }
 
     this.objectMeshes.set(mesh.name, mesh);
-    this.createBillboardLabel(mesh, config);
-    debugLog.info('financials-labels', `Registered ${mesh.name} for billboard labeling`);
+    this.createGeometryLabel(mesh, config);
+    debugLog.info('financials-labels', `Registered ${mesh.name} for geometry labeling`);
   }
 
   /**
-   * Create a billboard label that maintains aspect ratio
+   * Create geometry-positioned label for Financial objects
    */
-  private createBillboardLabel(mesh: AbstractMesh, config: FinancialLabelConfig): void {
-    // Create transform node for positioning (will not be scaled)
-    const transformNode = new TransformNode(`${config.objectName}_LabelTransform`, this.scene);
-    
-    // Calculate initial position based on mesh bounds
+  private createGeometryLabel(mesh: AbstractMesh, config: FinancialLabelConfig): void {
+    // Calculate position based on mesh bounds and object type
     const boundingInfo = mesh.getBoundingInfo();
     const center = boundingInfo.boundingBox.center;
     const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
     
-    // Position label using WORKING approach from successful Revenue Streams/Cost Structure labels
-    // Place on top face like other working labels in the system
-    transformNode.position = new Vector3(
-      center.x, // Center horizontally
-      center.y + (size.y * 0.7) + 0.2, // Higher positioning for better visibility
-      center.z // Center vertically (Z-axis)
-    );
-
-    // Create label plane using WORKING sizing approach
-    const labelWidth = config.baseWidth;
+    // Create label plane with proper sizing for Financial objects
+    const labelWidth = config.baseWidth * 0.8; // Slightly smaller for geometry placement
     const labelHeight = labelWidth / config.aspectRatio;
     
     const labelPlane = MeshBuilder.CreatePlane(`${config.objectName}_Label`, {
@@ -96,51 +85,86 @@ export class FinancialsLabelManager {
       height: labelHeight
     }, this.scene);
 
-    // Rotate to be flat on top (like working examples)
-    labelPlane.rotation.x = Math.PI / 2;
+    // Position based on object type and geometry bounds
+    let labelPosition: Vector3;
+    
+    if (config.objectName === 'Revenue') {
+      // Revenue: Position on front face, centered
+      labelPosition = new Vector3(
+        center.x, 
+        center.y, 
+        center.z + (size.z * 0.51) // Front face
+      );
+      labelPlane.rotation.x = 0; // Face forward
+    } else if (config.objectName === 'RevenuePL') {
+      // RevenuePL (Loss): Position on front face, centered
+      labelPosition = new Vector3(
+        center.x, 
+        center.y, 
+        center.z + (size.z * 0.51) // Front face
+      );
+      labelPlane.rotation.x = 0; // Face forward
+    } else if (config.objectName === 'Expenses') {
+      // Expenses: Position on front face, centered
+      labelPosition = new Vector3(
+        center.x, 
+        center.y, 
+        center.z + (size.z * 0.51) // Front face
+      );
+      labelPlane.rotation.x = 0; // Face forward
+    } else if (config.objectName === 'ExpensesPL') {
+      // ExpensesPL (Profit): Position on front face, centered
+      labelPosition = new Vector3(
+        center.x, 
+        center.y, 
+        center.z + (size.z * 0.51) // Front face
+      );
+      labelPlane.rotation.x = 0; // Face forward
+    } else {
+      // Default: top face positioning
+      labelPosition = new Vector3(
+        center.x, 
+        center.y + (size.y * 0.6), 
+        center.z
+      );
+      labelPlane.rotation.x = Math.PI / 2; // Flat on top
+    }
 
-    // Create material with texture using WORKING approach
+    labelPlane.position = labelPosition;
+
+    // Create material with texture
     const labelMaterial = new StandardMaterial(`${config.objectName}_LabelMat`, this.scene);
     const labelTexture = new Texture(config.texturePath, this.scene);
     labelTexture.hasAlpha = true;
     
-    // Use same material setup as working labels
     labelMaterial.diffuseTexture = labelTexture;
     labelMaterial.emissiveTexture = labelTexture;
-    labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4);
+    labelMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8); // Brighter for front-facing visibility
     labelMaterial.useAlphaFromDiffuseTexture = true;
     labelMaterial.disableLighting = true;
     labelMaterial.backFaceCulling = false;
 
-    // Apply material to plane
     labelPlane.material = labelMaterial;
+    labelPlane.isPickable = false;
 
-    // Apply scaling like working examples (Revenue Streams uses scaling)
-    labelPlane.scaling = new Vector3(1.6, 2.08, 1.0);
-
-    // Parent label to transform node
-    labelPlane.parent = transformNode;
-    labelPlane.position = Vector3.Zero(); // Local position relative to transform
-
-    // Store references
-    this.labelTransforms.set(config.objectName, transformNode);
+    // Store references without transform node (direct positioning)
     this.labelMeshes.set(config.objectName, labelPlane);
     this.labelMaterials.set(config.objectName, labelMaterial);
 
     debugLog.info('financials-labels', 
-      `Created billboard label for ${config.objectName}: ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, aspect: ${config.aspectRatio}`
+      `Created geometry label for ${config.objectName} at position (${labelPosition.x.toFixed(3)}, ${labelPosition.y.toFixed(3)}, ${labelPosition.z.toFixed(3)})`
     );
   }
 
   /**
-   * Update label position when object moves or scales (but maintain label size)
+   * Update label position when object moves or scales (maintain geometry positioning)
    */
   public updateLabelPosition(objectName: string): void {
     const mesh = this.objectMeshes.get(objectName);
-    const transformNode = this.labelTransforms.get(objectName);
+    const labelPlane = this.labelMeshes.get(objectName);
     
-    if (!mesh || !transformNode) {
-      debugLog.warn('financials-labels', `Cannot update label position for ${objectName} - missing mesh or transform`);
+    if (!mesh || !labelPlane) {
+      debugLog.warn('financials-labels', `Cannot update label position for ${objectName} - missing mesh or label`);
       return;
     }
 
@@ -149,13 +173,22 @@ export class FinancialsLabelManager {
     const center = boundingInfo.boundingBox.center;
     const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
     
-    // Update transform position using WORKING approach
-    transformNode.position.x = center.x; // Center horizontally
-    transformNode.position.y = center.y + (size.y * 0.7) + 0.2; // Higher positioning for better visibility
-    transformNode.position.z = center.z; // Center vertically (Z-axis)
+    // Update label position based on object type
+    if (objectName === 'Revenue' || objectName === 'RevenuePL' || 
+        objectName === 'Expenses' || objectName === 'ExpensesPL') {
+      // Front face positioning for all Financial objects
+      labelPlane.position.x = center.x;
+      labelPlane.position.y = center.y;
+      labelPlane.position.z = center.z + (size.z * 0.51); // Front face
+    } else {
+      // Default: top face positioning
+      labelPlane.position.x = center.x;
+      labelPlane.position.y = center.y + (size.y * 0.6);
+      labelPlane.position.z = center.z;
+    }
 
     debugLog.verbose('financials-labels', 
-      `Updated ${objectName} label position: (${transformNode.position.x.toFixed(3)}, ${transformNode.position.y.toFixed(3)}, ${transformNode.position.z.toFixed(3)})`
+      `Updated ${objectName} label position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`
     );
   }
 
@@ -191,11 +224,9 @@ export class FinancialsLabelManager {
   public dispose(): void {
     this.labelMeshes.forEach(mesh => mesh.dispose());
     this.labelMaterials.forEach(material => material.dispose());
-    this.labelTransforms.forEach(transform => transform.dispose());
     
     this.labelMeshes.clear();
     this.labelMaterials.clear();
-    this.labelTransforms.clear();
     this.objectMeshes.clear();
 
     debugLog.info('financials-labels', 'FinancialsLabelManager disposed');

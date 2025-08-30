@@ -1631,14 +1631,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (template.name.toLowerCase() === 'financials') {
           const financialsHeightManager = new FinancialsHeightManager(scene);
           const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
-          const financialsLabelManager = new FinancialsLabelManager(scene); // Initialize FinancialsLabelManager
+          const financialsLabelManager = new FinancialsLabelManager(scene);
 
           // Store managers on scene for global access
           (scene as any).financialsHeightManager = financialsHeightManager;
           (scene as any).financialsDataAdapter = financialsDataAdapter;
-          (scene as any).financialsLabelManager = financialsLabelManager; // Store reference
+          (scene as any).financialsLabelManager = financialsLabelManager;
 
           console.log('💰 Financials systems initialized');
+
+          // Register all Financial objects with the label manager
+          model.meshes.forEach((mesh) => {
+            if (mesh.name !== "__root__" && 
+                ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(mesh.name)) {
+              financialsLabelManager.registerFinancialObject(mesh);
+              console.log(`🏷️ Registered ${mesh.name} with FinancialsLabelManager`);
+            }
+          });
 
           // Register financial meshes for height manipulation
           if (financialsHeightManager) {
