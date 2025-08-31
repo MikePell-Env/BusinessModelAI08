@@ -983,17 +983,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     const unifiedManager = new EnvisionerUnifiedManager(scene);
     unifiedManagerRef.current = unifiedManager;
     
-    // Initialize unified system for current template
-    await unifiedManager.initialize(template.name);
+    // Initialize unified system for current template using proper async pattern
+    unifiedManager.initialize(template.name).then(() => {
+      // Get master transform from unified manager for camera targeting
+      const masterTransform = unifiedManager.getMasterTransform();
+      masterTransformRef.current = masterTransform;
+      
+      // CRITICAL FIX: Update camera target to master transform position after initialization
+      if (cameraRef.current && masterTransform) {
+        cameraRef.current.setTarget(masterTransform.position.clone());
+      }
+      
+      console.log(`✅ Unified Manager initialized for ${template.name}`);
+    }).catch((error) => {
+      console.error(`❌ Failed to initialize unified manager: ${error}`);
+    });
     
-    // Get master transform from unified manager for camera targeting
-    const masterTransform = unifiedManager.getMasterTransform();
-    masterTransformRef.current = masterTransform;
     
-    // CRITICAL FIX: Update camera target to master transform position after creation
-    if (cameraRef.current && masterTransform) {
-      cameraRef.current.setTarget(masterTransform.position.clone());
-    }
 
     // DYNAMIC SCALING: Handle scaling through unified manager
     const canvasForScaling = canvasRef.current;
