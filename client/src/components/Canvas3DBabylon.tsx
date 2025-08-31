@@ -3444,18 +3444,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Initialize default values when component mounts for Financials template
             if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
               setTimeout(() => {
-                // Use actual slider positions for initialization
-                const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
-                const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
-                const actualRevenue = revenueSlider ? parseInt(revenueSlider.value) : 700;
-                const actualExpenses = expensesSlider ? parseInt(expensesSlider.value) : 800;
-                const actualProfit = Math.max(0, actualRevenue - actualExpenses);
-                
                 (window as any).financialsDataAdapter.updateFromBusinessData({
-                  totalRevenue: actualRevenue,     // Use actual slider position
-                  totalExpenses: actualExpenses,   // Use actual slider position  
-                  netProfit: actualProfit,         // Calculate from actual positions
-                  netLoss: 0                       // No loss when expenses <= revenue
+                  totalRevenue: 1000,  // $10M default (99% Revenue, 1% RevenuePL)
+                  totalExpenses: 800,  // $8M default  
+                  netProfit: 200,      // $2M profit (20% ExpensesPL)
+                  netLoss: 0           // No loss (0% RevenuePL)
                 });
               }, 200); // Increased timeout to ensure sliders are ready
             }
@@ -3467,7 +3460,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 type="range"
                 min="100"
                 max="1000"
-                defaultValue="700"
+                defaultValue="1000"
                 id="revenue-slider"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
@@ -3529,7 +3522,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               />
               <div className="flex justify-between text-xs text-gray-300 mt-1 relative">
                 <span>$0M</span>
-                <span className="absolute -top-3 text-blue-400" style={{left: '66.67%'}}>|</span>
+                <span className="absolute -top-3 text-blue-400" style={{left: '100%'}}>|</span>
                 <span>$15M</span>
               </div>
             </div>
@@ -3587,7 +3580,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               />
               <div className="flex justify-between text-xs text-gray-300 mt-1 relative">
                 <span>$0M</span>
-                <span className="absolute -top-3 text-red-400" style={{left: '66.67%'}}>|</span>
+                <span className="absolute -top-3 text-red-400" style={{left: '77.78%'}}>|</span>
                 <span>$12M</span>
               </div>
             </div>
