@@ -86,29 +86,24 @@ export class FinancialsController {
 
   /**
    * Calculate financial system state following all rules
+   * EXACTLY as documented in replit.md
    */
   private calculateFinancialState(inputData: FinancialInputData): FinancialSystemState {
     const { revenue, expenses } = inputData;
     
-    // Rule 1: Equal Group Heights - based on maximum value
+    // Rule 1: Equal Group Heights - based on maximum value  
     const maxValue = Math.max(revenue, expenses);
     const groupHeight = maxValue / this.HEIGHT_SCALE;
     
-    // Rule 3: Profit/Loss Interrelationship
-    const netDifference = revenue - expenses;
-    const isProfit = netDifference >= 0;
-    const profit = isProfit ? netDifference : 0;
-    const loss = !isProfit ? Math.abs(netDifference) : 0;
+    // Rule 3: Profit/Loss Interrelationship Formula (EXACTLY as documented)
+    const isProfit = revenue >= expenses;  // Include breakeven as profit scenario
+    const profit = isProfit ? (revenue - expenses) : 0;
+    const loss = !isProfit ? Math.abs(revenue - expenses) : 0;
     
-    // Rule 2: 100% Group Composition - CORRECTED LOGIC
-    // Both groups must reach exactly the same height (groupHeight)
-    // Each group's components must sum to 100% of that group
-    
-    // Revenue Group: Revenue + RevenuePL = 100% of groupHeight
+    // Rule 2: 100% Group Composition (EXACTLY as documented)
+    // CRITICAL: Implementation exactly matches replit.md formula
     const revenueHeight = groupHeight * (revenue / maxValue);
     const revenuePLHeight = groupHeight * (loss / maxValue);
-    
-    // Expenses Group: Expenses + ExpensesPL = 100% of groupHeight  
     const expensesHeight = groupHeight * (expenses / maxValue);
     const expensesPLHeight = groupHeight * (profit / maxValue);
     
