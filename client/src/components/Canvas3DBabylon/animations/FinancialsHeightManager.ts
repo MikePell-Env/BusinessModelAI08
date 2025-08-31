@@ -314,8 +314,8 @@ export class FinancialsHeightManager {
         targetPosition = 0;
       }
 
-      // STEP 3: Use vertex manipulation for Expenses and ExpensesPL, scaling for others
-      if (objectName === 'Expenses' || objectName === 'ExpensesPL') {
+      // STEP 3: Use vertex manipulation for Expenses only, scaling for others (including ExpensesPL)
+      if (objectName === 'Expenses') {
         // Use vertex manipulation instead of scaling for Expenses group
         console.log(`🎯 VERTEX PATH: ${objectName} targetHeight=${targetHeight.toFixed(3)}, baseHeight=${this.baseHeight}`);
         debugLog.info('financials', `🔧 VERTEX: Animating ${objectName} height via vertex manipulation to ${targetHeight}`);
