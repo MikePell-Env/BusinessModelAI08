@@ -1584,8 +1584,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then(async (model) => {
+      console.log(`🔧 Template "${template.name}" loading result:`, {
+        meshCount: model.meshes.length,
+        meshNames: model.meshes.map(m => m.name),
+        rootPosition: model.rootMesh.position,
+        rootScaling: model.rootMesh.scaling
+      });
+      
       if (model.meshes.length > 0) {
-        console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
+        console.log(`✅ Template loaded: ${template.name} with ${model.meshes.length} meshes`);
 
         const rootMesh = model.rootMesh;
         rootMeshRef.current = rootMesh;
@@ -2688,8 +2695,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.error("❌ No meshes found in BMC model");
       }
     }).catch((error) => {
-      console.error("❌ Failed to load template models:", error);
+      console.error(`❌ Failed to load ${template.name} template:`, error);
       console.error("❌ Stack trace:", error.stack);
+      console.error("❌ Template name was:", template.name);
     });
 
     // Load Revenue Streams as separate GLB model positioned below Customer Channels (only if enabled in template)
