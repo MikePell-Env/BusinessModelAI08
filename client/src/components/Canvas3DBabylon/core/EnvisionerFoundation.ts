@@ -71,8 +71,8 @@ export const DEFAULT_FOUNDATION_CONFIG: EnvisionerFoundationConfig = {
     divider: { text: "Partners | Activities | Resources | Propositions | Relationships | Channels | Segments", color: "#999999" }
   },
   lighting: {
-    ambient: { color: new Color3(0.8, 0.8, 0.8), intensity: 0.6 },
-    directional: { color: new Color3(1.0, 1.0, 1.0), intensity: 0.4, direction: new Vector3(-1, -1, 0) }
+    ambient: { color: new Color3(0.7, 0.7, 0.7), intensity: 0.5 },
+    directional: { color: new Color3(1.0, 1.0, 1.0), intensity: 0.8, direction: new Vector3(-1, -1, 0) }
   }
 };
 

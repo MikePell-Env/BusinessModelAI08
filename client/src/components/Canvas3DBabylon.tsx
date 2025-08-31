@@ -1582,37 +1582,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
-    // SHARED ENVISIONER: Load ALL template models at startup for efficient switching
-    console.log('🏗️ Loading all template content for shared Envisioner...');
-    
-    // Load both Business Model and Financials templates
-    Promise.all([
-      modelLoader.loadTemplateModel('Business Model'),
-      modelLoader.loadTemplateModel('Financials')
-    ]).then(async ([businessModel, financialsModel]) => {
-      const allMeshes = [...businessModel.meshes, ...financialsModel.meshes];
-      console.log(`✅ All templates loaded: Business Model (${businessModel.meshes.length}), Financials (${financialsModel.meshes.length})`);
-      
-      // Hide all template content initially
-      allMeshes.forEach(mesh => {
-        mesh.setEnabled(false);
-        mesh.isVisible = false;
-      });
-      
-      // Store both model sets on the scene for template switching
-      (scene as any).businessModelMeshes = businessModel.meshes;
-      (scene as any).financialsMeshes = financialsModel.meshes;
-      
-      // Show only the active template's content
-      const activeModel = template.name.toLowerCase() === 'financials' ? financialsModel : businessModel;
-      activeModel.meshes.forEach(mesh => {
-        mesh.setEnabled(true);
-        mesh.isVisible = true;
-      });
-      console.log(`👁️ Initially showing ${template.name} content`);
-      
-      // Use the active template's root mesh
-      const model = activeModel;
+    // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
+    modelLoader.loadTemplateModel(template.name).then(async (model) => {
       if (model.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
 
@@ -2717,7 +2688,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.error("❌ No meshes found in BMC model");
       }
     }).catch((error) => {
-      console.error("❌ Failed to load BMC model:", error);
+      console.error("❌ Failed to load template models:", error);
+      console.error("❌ Stack trace:", error.stack);
     });
 
     // Load Revenue Streams as separate GLB model positioned below Customer Channels (only if enabled in template)
