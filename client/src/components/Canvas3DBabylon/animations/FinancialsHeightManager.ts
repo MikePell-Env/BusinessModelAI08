@@ -590,7 +590,7 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Create face-aligned label for financial mesh
+   * Create face-aligned label for financial mesh - Independent of mesh scaling
    */
   private createFaceAlignedLabel(mesh: Mesh): void {
     if (!this.labelsEnabled) return;
@@ -600,60 +600,79 @@ export class FinancialsHeightManager {
     if (!labelTexturePath) return;
     
     try {
-      // Create label plane with fixed size
+      // Create label plane with FIXED dimensions - never scales with mesh
       const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
-        size: 2.0, // Larger size for better visibility  
+        width: 1.5,  // Fixed width
+        height: 0.5, // Fixed height - maintains aspect ratio
         sideOrientation: Mesh.FRONTSIDE
       }, this.scene);
       
-      // Create material with PNG texture
+      // Create material with PNG texture using BMC enhancement pattern
       const material = new StandardMaterial(`${meshName}LabelMat`, this.scene);
       const texture = new Texture(labelTexturePath, this.scene);
+      
+      // Apply BMC label texture enhancements
+      texture.updateSamplingMode(Texture.LINEAR_LINEAR);
+      texture.wrapU = Texture.CLAMP_ADDRESSMODE;
+      texture.wrapV = Texture.CLAMP_ADDRESSMODE;
+      texture.anisotropicFilteringLevel = 4;
+      
       material.diffuseTexture = texture;
       material.useAlphaFromDiffuseTexture = true;
       material.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
       material.backFaceCulling = false;
+      material.needDepthPrePass = false;
       
       labelPlane.material = material;
       
-      // Set face-aligned orientation (no billboard)
+      // Set face-aligned orientation (no billboard, no rotation)
       labelPlane.rotation.x = 0;
       labelPlane.rotation.y = 0; 
       labelPlane.rotation.z = 0;
+      
+      // Make label always pickable and visible
+      labelPlane.isPickable = false; // Don't interfere with mesh interaction
+      labelPlane.isVisible = true;
+      labelPlane.setEnabled(true);
       
       // Store and position the label
       this.faceLabels.set(meshName, labelPlane);
       this.updateFaceAlignedLabel(mesh);
       
-      debugLog.info('financials', `Face-aligned label created for ${meshName}`);
+      debugLog.info('financials', `Independent face-aligned label created for ${meshName}`);
     } catch (error) {
       debugLog.warn('financials', `Failed to create label for ${meshName}:`, error);
     }
   }
   
   /**
-   * Update face-aligned label position based on mesh bounds
+   * Update face-aligned label position - completely independent of mesh scaling
    */
   private updateFaceAlignedLabel(mesh: Mesh): void {
     const label = this.faceLabels.get(mesh.name);
     if (!label || !this.labelsEnabled) return;
     
-    // Calculate front face center
+    // Calculate front face center from current mesh bounds
     const bounds = mesh.getBoundingInfo();
     const center = bounds.boundingBox.center;
-    const min = bounds.boundingBox.minimum;
     const max = bounds.boundingBox.maximum;
     
-    // Position at front face center - the financial objects are centered at origin
-    // so we need to position labels accordingly
+    // Position label at front face center with fixed offset
+    // Labels maintain their original size regardless of mesh height changes
     label.position.x = center.x;
-    label.position.y = center.y;
-    label.position.z = max.z + 0.1; // Small offset in front of the object
+    label.position.y = center.y; // Center vertically on the current mesh
+    label.position.z = max.z + 0.15; // Fixed offset in front of front face
     
-    // Scale label appropriately for the mesh size
-    const meshHeight = max.y - min.y;
-    const labelScale = Math.max(0.3, Math.min(1.0, meshHeight * 0.8));
-    label.scaling.setAll(labelScale);
+    // CRITICAL: Keep label scaling FIXED at 1.0 - never scale with mesh
+    label.scaling.x = 1.0;
+    label.scaling.y = 1.0; 
+    label.scaling.z = 1.0;
+    
+    // Force visibility and proper rendering order
+    label.isVisible = true;
+    label.setEnabled(true);
+    
+    debugLog.verbose('financials', `Label ${mesh.name} positioned independently at Y: ${center.y}`);
   }
   
   /**
