@@ -14,7 +14,8 @@ import {
   EasingFunction,
   MeshBuilder,
   StandardMaterial,
-  Texture
+  Texture,
+  TransformNode
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
@@ -43,7 +44,10 @@ export class FinancialsHeightManager {
   
   // Face-aligned labels system
   private faceLabels: Map<string, Mesh> = new Map();
-  private labelsEnabled: boolean = false;
+  private labelsEnabled: boolean = true;
+  
+  // Transform nodes for label anchoring
+  private labelAnchors: Map<string, TransformNode> = new Map();
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -66,16 +70,13 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        // Log actual mesh hierarchy and positions
-        const structureInfo = {
-          name: mesh.name,
-          position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
-          parent: mesh.parent ? mesh.parent.name : 'NO PARENT',
-          rootMesh: mesh.parent ? 'HAS ROOT' : 'DIRECT',
-          worldPosition: mesh.getAbsolutePosition()
-        };
-        console.warn(`🔍 FINANCIAL MESH STRUCTURE:`, structureInfo);
-        debugLog.info('financials', `Mesh structure for ${mesh.name}:`, structureInfo);
+        // Create transform node anchor for this mesh (without moving geometry)
+        this.createLabelAnchor(mesh);
+        
+        // Create label using the anchor
+        if (this.labelsEnabled) {
+          this.createFaceAlignedLabel(mesh);
+        }
         
       }
     });
@@ -583,65 +584,94 @@ export class FinancialsHeightManager {
   }
 
   /**
+   * Create transform node anchor for label positioning
+   */
+  private createLabelAnchor(mesh: Mesh): void {
+    const anchor = new TransformNode(`${mesh.name}_anchor`, this.scene);
+    
+    // Position anchor at mesh world position without moving mesh
+    const worldPos = mesh.getAbsolutePosition();
+    anchor.position.copyFrom(worldPos);
+    
+    // Store anchor reference
+    this.labelAnchors.set(mesh.name, anchor);
+    
+    debugLog.info('financials', `Label anchor created for ${mesh.name} at ${worldPos}`);
+  }
+
+  /**
    * Update label position to track mesh center after vertex manipulation
    */
   private updateLabelPosition(mesh: Mesh): void {
-    // Update label positioning after vertex changes
-    const scene = this.scene;
-    const financialsLabelManager = (scene as any).financialsLabelManager;
+    // Update anchor position to track mesh changes
+    const anchor = this.labelAnchors.get(mesh.name);
+    if (anchor) {
+      const worldPos = mesh.getAbsolutePosition();
+      anchor.position.copyFrom(worldPos);
+    }
     
-    if (financialsLabelManager) {
-      // Update the label position using the dedicated label manager
-      financialsLabelManager.updateLabelPosition(mesh.name);
-      debugLog.verbose('financials', `Label position updated for ${mesh.name}`);
+    // Update label position if it exists
+    const label = this.faceLabels.get(mesh.name);
+    if (label && anchor) {
+      // Position label in front of the anchor
+      label.position.copyFrom(anchor.position);
+      label.position.z += 0.5; // Move in front
     }
   }
 
   /**
-   * Create financial labels using exact coordinates from BMC model setup
+   * Create simple text label using transform anchor
    */
   private createFaceAlignedLabel(mesh: Mesh): void {
-    if (!this.labelsEnabled) return;
-    
     const meshName = mesh.name;
-    const labelTexturePath = this.getLabelTexturePath(meshName);
-    if (!labelTexturePath) return;
+    const anchor = this.labelAnchors.get(meshName);
+    if (!anchor) return;
     
     try {
-      // Create appropriately sized label plane
+      // Create simple text plane
       const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
-        width: 0.8,  // Smaller, proportional to financial objects
-        height: 0.3, // Proper aspect ratio for text labels
+        width: 1.0,
+        height: 0.4,
         sideOrientation: Mesh.FRONTSIDE
       }, this.scene);
       
-      // Create material with PNG texture
+      // Create simple colored material
       const material = new StandardMaterial(`${meshName}LabelMat`, this.scene);
-      const texture = new Texture(labelTexturePath, this.scene);
       
-      // Enhance texture quality
-      texture.updateSamplingMode(Texture.LINEAR_LINEAR);
-      texture.wrapU = Texture.CLAMP_ADDRESSMODE;
-      texture.wrapV = Texture.CLAMP_ADDRESSMODE;
-      texture.anisotropicFilteringLevel = 4;
+      // Color based on mesh type
+      const colors = {
+        'Revenue': '#00FF00',      // Green
+        'Expenses': '#FF0000',     // Red  
+        'ExpensesPL': '#000000',   // Black (Profit)
+        'RevenuePL': '#FFD700'     // Gold (Loss)
+      };
       
-      material.diffuseTexture = texture;
-      material.useAlphaFromDiffuseTexture = true;
-      material.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
-      material.backFaceCulling = false;
+      material.diffuseColor = this.hexToColor3(colors[meshName] || '#FFFFFF');
+      material.emissiveColor = material.diffuseColor.scale(0.3);
       
       labelPlane.material = material;
       
-      // Position using actual financial object coordinates from BMC model
-      this.positionLabelOnFinancialObject(labelPlane, meshName);
+      // Position using anchor (in front of mesh)
+      labelPlane.position.copyFrom(anchor.position);
+      labelPlane.position.z += 0.5; // Move in front
       
       // Store label
       this.faceLabels.set(meshName, labelPlane);
       
-      debugLog.info('financials', `Financial label created for ${meshName}`);
+      debugLog.info('financials', `Simple label created for ${meshName} using anchor`);
     } catch (error) {
-      debugLog.warn('financials', `Failed to create label for ${meshName}:`, error);
+      debugLog.warn('financials', `Failed to create simple label for ${meshName}:`, error);
     }
+  }
+
+  /**
+   * Convert hex color to Babylon Color3
+   */
+  private hexToColor3(hex: string): any {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    return { r, g, b };
   }
   
   /**
