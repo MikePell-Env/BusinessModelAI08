@@ -79,14 +79,31 @@ export class EnvisionerUnifiedManager {
     }
 
     debugLog.info('unified', `🔄 Switching template from ${this.currentTemplateName} to ${newTemplateName}`);
+    
+    // LOG MASTER TRANSFORM POSITION BEFORE AND AFTER EACH STEP
+    const masterTransform = this.persistence.getMasterTransform();
+    if (masterTransform) {
+      const pos = masterTransform.position;
+      console.log(`🟦 BEFORE UNLOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`);
+    }
 
 
     // Step 1: Unload current template content (but preserve foundation)
     await this.unloadCurrentTemplateContent();
+    
+    if (masterTransform) {
+      const pos = masterTransform.position;
+      console.log(`🟨 AFTER UNLOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`);
+    }
 
     // Step 2: Update foundation labels for new template
     if (this.foundation) {
       await this.foundation.createTemplateLabels(newTemplateName);
+    }
+    
+    if (masterTransform) {
+      const pos = masterTransform.position;
+      console.log(`🟩 AFTER LABELS: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`);
     }
 
     // Step 3: Update master transform rotation for new template
@@ -94,6 +111,11 @@ export class EnvisionerUnifiedManager {
 
     // Step 4: Load new template content
     await this.loadTemplateContent(newTemplateName);
+    
+    if (masterTransform) {
+      const pos = masterTransform.position;
+      console.log(`🟪 AFTER LOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`);
+    }
 
     this.currentTemplateName = newTemplateName;
     
