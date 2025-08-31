@@ -714,7 +714,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
       // CRITICAL FIX: Update camera target to master transform position after initialization
       if (cameraRef.current && masterTransform) {
+        const oldTarget = cameraRef.current.getTarget();
+        console.log(`🎯 INITIAL: Camera target before init (${oldTarget.x.toFixed(3)}, ${oldTarget.y.toFixed(3)}, ${oldTarget.z.toFixed(3)})`);
+        
         cameraRef.current.setTarget(masterTransform.position.clone());
+        
+        const newTarget = cameraRef.current.getTarget();
+        console.log(`🎯 INITIAL: Camera target after init (${newTarget.x.toFixed(3)}, ${newTarget.y.toFixed(3)}, ${newTarget.z.toFixed(3)})`);
+        console.log(`🎯 INITIAL: Master transform at (${masterTransform.position.x.toFixed(3)}, ${masterTransform.position.y.toFixed(3)}, ${masterTransform.position.z.toFixed(3)})`);
       }
 
       console.log(`✅ Unified Manager initialized for ${template.name}`);
