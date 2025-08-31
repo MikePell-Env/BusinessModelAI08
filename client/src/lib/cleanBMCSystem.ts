@@ -46,7 +46,7 @@ export class CleanBMCSystem {
     this.items.set(name, {
       mesh,
       material,
-      originalHeight: mesh.scaling.y,
+      originalHeight: originalHeight || mesh.scaling.y, // Use passed parameter or current scaling
       baseColor: baseColor.clone()
     });
 
@@ -262,7 +262,7 @@ export class CleanBMCSystem {
         } else if (name === 'Revenue Streams') {
           mesh.scaling.y = 7.7; // Height to match Customer Segments  
         } else {
-          mesh.scaling.y = mesh.scaling.x; // Full height for main BMC objects
+          mesh.scaling.y = originalHeight; // Use stored original height, not mesh.scaling.x
         }
         if (isSpecialSection && baseColor) {
           // Cost/Revenue: Bright version of original
@@ -311,7 +311,7 @@ export class CleanBMCSystem {
         } else if (name === 'Revenue Streams') {
           mesh.scaling.y = 7.7; // Height to match Customer Segments  
         } else {
-          mesh.scaling.y = mesh.scaling.x; // Full height for main BMC objects
+          mesh.scaling.y = originalHeight; // Use stored original height, not mesh.scaling.x
         }
         if (baseColor) {
           material.diffuseColor.r = baseColor.r;
