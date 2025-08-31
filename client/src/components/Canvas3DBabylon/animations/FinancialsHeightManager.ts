@@ -513,6 +513,7 @@ export class FinancialsHeightManager {
   /**
    * Set object height immediately while maintaining anchor
    * Using vertex manipulation constrained to original geometry bounds
+   * SPECIAL CASE: RevenuePL (Loss) grows upward from Revenue top when Expenses > Revenue
    */
   public setObjectHeight(
     objectName: string,
@@ -525,13 +526,43 @@ export class FinancialsHeightManager {
     const originalPos = this.originalPositions.get(objectName);
     if (!originalPos) return;
 
-    // Use vertex manipulation but keep mesh position FIXED at original position
-    this.setMeshHeightByVertices(mesh, height, anchorType);
+    // SPECIAL ANCHORING EXCEPTION: RevenuePL (Loss) in loss scenarios
+    if (objectName === 'RevenuePL' && height > 0) {
+      // When there's a loss, RevenuePL grows UPWARD from the top of Revenue
+      // This overrides the standard top-anchored behavior
+      const revenueMesh = this.financialMeshes.get('Revenue');
+      if (revenueMesh) {
+        console.log('🟡 SPECIAL CASE: RevenuePL (Loss) growing upward from Revenue top');
+        
+        // Calculate position to stack on top of Revenue
+        const revenueTopPosition = revenueMesh.position.y + (revenueMesh.scaling.y / 2);
+        const targetPosition = revenueTopPosition + (height / 2);
+        
+        // Use vertex manipulation for height
+        this.setMeshHeightByVertices(mesh, height, 'bottom'); // Use bottom-anchored behavior
+        
+        // Position RevenuePL on top of Revenue
+        mesh.position.x = originalPos.x;
+        mesh.position.y = targetPosition;
+        mesh.position.z = originalPos.z;
+        
+        console.log(`🟡 RevenuePL positioned at Y=${targetPosition.toFixed(3)} (on top of Revenue)`);
+      } else {
+        // Fallback to original position
+        this.setMeshHeightByVertices(mesh, height, anchorType);
+        mesh.position.x = originalPos.x;
+        mesh.position.y = originalPos.y;
+        mesh.position.z = originalPos.z;
+      }
+    } else {
+      // Standard anchoring behavior for all other objects
+      this.setMeshHeightByVertices(mesh, height, anchorType);
 
-    // CRITICAL: Keep mesh position at original loaded position - no movement
-    mesh.position.x = originalPos.x;
-    mesh.position.y = originalPos.y; 
-    mesh.position.z = originalPos.z;
+      // CRITICAL: Keep mesh position at original loaded position - no movement
+      mesh.position.x = originalPos.x;
+      mesh.position.y = originalPos.y; 
+      mesh.position.z = originalPos.z;
+    }
 
     // Update label position
     this.updateLabelPosition(mesh);
