@@ -39,12 +39,14 @@ import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
+import { MaterialPool } from './Canvas3DBabylon/materials/MaterialPool';
+import { MemoryManager } from './Canvas3DBabylon/utils/MemoryManager';
 import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
-import { EnvisionerTemplate } from '../lib/templates/EnvisionerTemplate';
-import { BusinessModelTemplate } from '../lib/templates/BusinessModelTemplate';
+import { EnvisionerTemplate } from '@/lib/templates/EnvisionerTemplate';
+import { BusinessModelTemplate } from '@/lib/templates/BusinessModelTemplate';
 
 import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 import { MODEL_POSITIONS, CAMERA_SETTINGS, MATERIAL_COLORS, TRANSFORM_SETTINGS, SCENE_DIMENSIONS, CAMERA_PRESETS } from './Canvas3DBabylon/constants/BMCConstants';
@@ -55,7 +57,7 @@ import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter'
 import { EnvisionerUnifiedManager } from './Canvas3DBabylon/core/EnvisionerUnifiedManager';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
-import { AssetManager } from './Canvas3DBabylon/core/AssetManager';
+import { AssetManager } from './Canvas3DBabylon/managers/AssetManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -724,8 +726,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       const canvasHeight = canvasForScaling.clientHeight;
       // Scale based on smaller dimension to ensure fit, with padding
       const scaleFactor = (Math.min(canvasWidth, canvasHeight) / 600) * 1.2; // Base reference of 600px, scale up 20%
-      if (masterTransform) {
-        masterTransform.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+      if (masterTransformRef.current) {
+        masterTransformRef.current.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
       }
     }
 
@@ -947,7 +949,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     };
 
     // TEMPLATE-SPECIFIC LABELS: Apply labels directly to ground plane for each template
-    const groundPlane = envisionerFoundation.getComponent('ground');
+    const templateFoundation = unifiedManager.getFoundation();
+    const groundPlane = templateFoundation?.getComponent('ground');
     if (groundPlane && template.name === 'Business Model') {
       // Business Model Canvas: Apply Internal/External labels to ground plane
 
@@ -1248,7 +1251,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Initialize model loader (view transitions integrated into CanvasManager)
     const modelLoader = new BMCModelLoader(scene);
 
-    // REMOVED: MaterialManager initialization - using direct property modification instead
+    // Initialize Babylon.js best practice systems
+    const materialPool = MaterialPool.getInstance(scene);
+    const memoryManager = new MemoryManager();
 
     // Setup unified interaction manager with callbacks
     interactionManagerRef.current = new UnifiedInteractionManager(scene, {
@@ -1333,6 +1338,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
+    // Get foundation from unified manager for ground plane access
+    const envisionerFoundation = unifiedManager.getFoundation();
+
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then(async (model) => {
       if (model.meshes.length > 0) {
@@ -1414,7 +1422,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
         // Keep model at normal rotation for all views
         rootMesh.rotation = Vector3.Zero();
-        rootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
+        rootMesh.parent = masterTransformRef.current; // Parent to master transform for 180° rotation
 
         // Position logging removed for better performance
 
@@ -1462,11 +1470,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
             // TransformNode created for coordinate control
 
-            // Create StandardMaterial with PBR-compatible properties for hover behavior
-            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene) as any;
-
-            // Enhanced material with better polish and depth
-            sectionMaterial.diffuseColor = baseColor;
+            // Use material pool to prevent memory leaks (Babylon.js best practice)
+            const materialConfig = {
+              type: 'standard' as const,
+              diffuseColor: baseColor
+            };
+            const sectionMaterial = materialPool.getMaterial(`bmcSection_${sectionName}`, materialConfig) as any;
+            
+            // Track for proper disposal
+            memoryManager.track(sectionMaterial);
 
             // Reduce lighting for Loss and Profit shapes to prevent blown-out look
             if (template.name.toLowerCase() === 'financials' && (mesh.name === 'RevenuePL' || mesh.name === 'ExpensesPL')) {
@@ -2464,7 +2476,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           revenueRootMesh.position = MODEL_POSITIONS.REVENUE_STREAMS.clone(); // Adjusted to align left edges
           revenueRootMesh.rotation = Vector3.Zero();
           revenueRootMesh.scaling = new Vector3(7.7, 7.7, 8); // Y-scaling matches X-scaling to match Customer Segments height
-          revenueRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
+          revenueRootMesh.parent = masterTransformRef.current; // Parent to master transform for 180° rotation
 
 
           // Apply basic material and label to Revenue Streams mesh
@@ -2618,7 +2630,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           costRootMesh.position = MODEL_POSITIONS.COST_STRUCTURE.clone(); // Shifted farther left
           costRootMesh.rotation = Vector3.Zero();
           costRootMesh.scaling = new Vector3(8.0, 8.0, 8); // Y-scaling matches X-scaling to match Customer Segments height
-          costRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
+          costRootMesh.parent = masterTransformRef.current; // Parent to master transform for 180° rotation
 
 
           // Apply basic material and label to Cost Structure mesh
@@ -3088,18 +3100,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // Safely dispose asset manager
         if (assetManagerRef.current) {
           console.log("🛡️ Safely disposing asset manager");
-          assetManagerRef.current.dispose();
+          assetManagerRef.current.disposeAll();
           assetManagerRef.current = null;
         }
       } catch (e) {
         console.warn('Error cleaning up unified systems and managers:', e);
       }
 
-      // Properly dispose of Babylon.js resources using SceneSetupAdapter
+      // Properly dispose of Babylon.js resources using SceneSetupAdapter and memory manager
       try {
+        // Clean up tracked resources first
+        if (memoryManager) {
+          memoryManager.disposeAll();
+        }
+        
         if (unifiedSceneRef.current) {
           unifiedSceneRef.current.dispose();
         }
+        
+        // Dispose material pool
+        if (MaterialPool.getInstance && scene) {
+          MaterialPool.getInstance(scene).disposeAll();
+        }
+        
         sceneRef.current = null;
         engineRef.current = null;
       } catch (e) {

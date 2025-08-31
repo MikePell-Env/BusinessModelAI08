@@ -120,9 +120,7 @@ export class AssetManager {
     // Dispose materials
     this.materials.forEach(material => {
       try {
-        if (!material.isDisposed) {
-          material.dispose();
-        }
+        material.dispose();
       } catch (error) {
         debugLog.error('asset', `❌ Error disposing material: ${error}`);
       }
@@ -132,9 +130,7 @@ export class AssetManager {
     // Dispose textures
     this.textures.forEach(texture => {
       try {
-        if (!texture.isDisposed) {
-          texture.dispose();
-        }
+        texture.dispose();
       } catch (error) {
         debugLog.error('asset', `❌ Error disposing texture: ${error}`);
       }
