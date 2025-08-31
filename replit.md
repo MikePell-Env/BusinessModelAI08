@@ -114,6 +114,7 @@ Each group operates where both elements must equal 100% total:
 - Top vertices remain fixed at original Y position
 - Bottom vertices move up/down to change height  
 - Mesh position never changes
+- **SPECIAL EXCEPTION**: RevenuePL (Loss) in loss scenarios grows upward from Revenue top, overriding standard top-anchored behavior
 
 #### 4. Height Calculation Formula (via FinancialsController)
 ```typescript
@@ -171,7 +172,14 @@ The FinancialsController automatically validates:
 - 100% composition per group (Rule 2)  
 - Profit/Loss mutual exclusivity (Rule 3)
 
-#### 9. Success Criteria Achieved
+#### 9. Special Anchoring Exception (RevenuePL Loss Behavior)
+**Critical Override**: When Expenses > Revenue (loss scenario), RevenuePL (Gold/Loss) object:
+- Abandons standard top-anchored behavior
+- Grows **upward** from the top of the Revenue object
+- Stacks on top of Revenue to show loss amount
+- Uses bottom-anchored positioning logic for this scenario only
+
+#### 10. Success Criteria Achieved
 ✅ Equal group heights enforced at all times
 ✅ 100% group composition maintained automatically
 ✅ Profit/Loss interrelationship correctly implemented
@@ -179,6 +187,7 @@ The FinancialsController automatically validates:
 ✅ Slider ranges support full spectrum (0M to 1.5x initial values)
 ✅ Real-time height updates with vertex manipulation
 ✅ System integrity validation built-in
+✅ Special RevenuePL loss anchoring exception implemented
 
 ## External Dependencies
 
