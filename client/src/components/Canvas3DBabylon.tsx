@@ -3303,7 +3303,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, saveCamera3DState]);
+  }, [canvas, template, saveCamera3DState]);
 
   // Camera is always perspective - no switching needed
 
@@ -3704,7 +3704,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         className="w-full h-full"
         style={{
           outline: 'none',
-          backgroundColor: '#e5e7eb', // Match scene clear color to prevent white flash
+          backgroundColor: '#e9ecef', // RGB(233, 236, 239) - exactly match scene clear color
           display: 'block',
           minWidth: '100%',
           minHeight: '100%',
