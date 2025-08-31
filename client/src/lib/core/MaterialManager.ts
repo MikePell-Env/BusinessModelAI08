@@ -178,9 +178,9 @@ export class MaterialManager {
       console.log(`🎨 Applied ${state} material to ${sectionId}`);
     } catch (error) {
       console.error(`❌ CRASH in MaterialManager.applyMaterialState(${sectionId}, ${state}):`, error);
-      console.error(`❌ Error name: ${error.name}`);
-      console.error(`❌ Error message: ${error.message}`);
-      console.error(`❌ Stack trace:`, error.stack);
+      console.error(`❌ Error name: ${(error as Error).name}`);
+      console.error(`❌ Error message: ${(error as Error).message}`);
+      console.error(`❌ Stack trace:`, (error as Error).stack);
       
       // Fallback: ensure mesh has some material
       try {

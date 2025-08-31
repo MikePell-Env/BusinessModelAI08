@@ -726,8 +726,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       const canvasHeight = canvasForScaling.clientHeight;
       // Scale based on smaller dimension to ensure fit, with padding
       const scaleFactor = (Math.min(canvasWidth, canvasHeight) / 600) * 1.2; // Base reference of 600px, scale up 20%
-      if (masterTransform) {
-        masterTransform.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+      if (masterTransformRef.current) {
+        masterTransformRef.current.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
       }
     }
 
@@ -949,7 +949,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     };
 
     // TEMPLATE-SPECIFIC LABELS: Apply labels directly to ground plane for each template
-    const groundPlane = envisionerFoundation.getComponent('ground');
+    const templateFoundation = unifiedManager.getFoundation();
+    const groundPlane = templateFoundation?.getComponent('ground');
     if (groundPlane && template.name === 'Business Model') {
       // Business Model Canvas: Apply Internal/External labels to ground plane
 
@@ -1470,7 +1471,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // TransformNode created for coordinate control
 
             // Use material pool to prevent memory leaks (Babylon.js best practice)
-            const sectionMaterial = materialPool.getMaterial(`bmcSection_${sectionName}`, baseColor) as any;
+            const materialConfig = {
+              type: 'standard' as const,
+              diffuseColor: baseColor
+            };
+            const sectionMaterial = materialPool.getMaterial(`bmcSection_${sectionName}`, materialConfig) as any;
             
             // Track for proper disposal
             memoryManager.track(sectionMaterial);
@@ -3095,7 +3100,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // Safely dispose asset manager
         if (assetManagerRef.current) {
           console.log("🛡️ Safely disposing asset manager");
-          assetManagerRef.current.dispose();
+          assetManagerRef.current.disposeAll();
           assetManagerRef.current = null;
         }
       } catch (e) {
@@ -3115,7 +3120,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         
         // Dispose material pool
         if (MaterialPool.getInstance && scene) {
-          MaterialPool.getInstance(scene).dispose();
+          MaterialPool.getInstance(scene).disposeAll();
         }
         
         sceneRef.current = null;
