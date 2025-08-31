@@ -304,20 +304,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     const scene = sceneRef.current;
     const templateName = template.name.toLowerCase();
     
-    // Check if both template meshes are loaded and stored
-    const businessModelMeshes = (scene as any).businessModelMeshes;
-    const financialsMeshes = (scene as any).financialsMeshes;
+    // Get ALL Business Model objects (main + Revenue Streams + Cost Structure)
+    const businessModelMeshes = (scene as any).businessModelMeshes || [];
+    const financialsMeshes = (scene as any).financialsMeshes || [];
     
-    if (!businessModelMeshes || !financialsMeshes) {
+    // Find Revenue Streams and Cost Structure meshes separately (they're loaded outside the main template)
+    const revenueStreamsMeshes = scene.meshes.filter(mesh => 
+      (mesh as any).bmcSectionName === "Revenue Streams"
+    );
+    const costStructureMeshes = scene.meshes.filter(mesh => 
+      (mesh as any).bmcSectionName === "Cost Structure"
+    );
+    
+    // Combine ALL Business Model objects
+    const allBusinessModelObjects = [...businessModelMeshes, ...revenueStreamsMeshes, ...costStructureMeshes];
+    
+    if (!businessModelMeshes.length && !financialsMeshes.length) {
       console.log('⏳ Template meshes not yet loaded, skipping visibility switch');
       return;
     }
     
     console.log(`🔄 Switching template content visibility: ${template.name}`);
-    console.log(`📊 Available: ${businessModelMeshes.length} BMC meshes, ${financialsMeshes.length} Financial meshes`);
+    console.log(`📊 Business Model: ${allBusinessModelObjects.length} objects (main: ${businessModelMeshes.length}, revenue: ${revenueStreamsMeshes.length}, cost: ${costStructureMeshes.length})`);
+    console.log(`📊 Financials: ${financialsMeshes.length} objects`);
     
-    // Hide all template content first
-    [...businessModelMeshes, ...financialsMeshes].forEach(mesh => {
+    // Hide ALL objects first (Business Model + Revenue + Cost + Financials)
+    [...allBusinessModelObjects, ...financialsMeshes].forEach(mesh => {
       mesh.setEnabled(false);
       mesh.isVisible = false;
     });
@@ -327,16 +339,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       financialsMeshes.forEach(mesh => {
         mesh.setEnabled(true);
         mesh.isVisible = true;
-        console.log(`💰 Showing: ${mesh.name}`);
+        console.log(`💰 Showing Financial object: ${mesh.name}`);
       });
-      console.log(`👁️ Switched to Financials: ${financialsMeshes.length} meshes shown`);
+      console.log(`👁️ Switched to Financials: ${financialsMeshes.length} objects visible`);
     } else {
-      businessModelMeshes.forEach(mesh => {
+      allBusinessModelObjects.forEach(mesh => {
         mesh.setEnabled(true);
         mesh.isVisible = true;
-        console.log(`🏢 Showing: ${mesh.name}`);
+        console.log(`🏢 Showing Business Model object: ${mesh.name}`);
       });
-      console.log(`👁️ Switched to Business Model: ${businessModelMeshes.length} meshes shown`);
+      console.log(`👁️ Switched to Business Model: ${allBusinessModelObjects.length} objects visible`);
     }
   }, [template.name]);
 
