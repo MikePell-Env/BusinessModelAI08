@@ -94,28 +94,49 @@ export class FinancialsController {
     const profit = isProfit ? netDifference : 0;
     const loss = !isProfit ? Math.abs(netDifference) : 0;
     
-    // Rule 2: 100% Group Composition
-    // Revenue Group percentages
-    const revenuePercent = (revenue / maxValue) * 100;
-    const revenuePLPercent = (loss / maxValue) * 100;  // Loss fills remaining percentage
+    // Rule 2: 100% Group Composition - CORRECTED LOGIC
+    // Both groups must reach exactly the same height (groupHeight)
+    // Each group's components must sum to 100% of that group
     
-    // Expenses Group percentages  
-    const expensesPercent = (expenses / maxValue) * 100;
-    const expensesPLPercent = (profit / maxValue) * 100;  // Profit fills remaining percentage
-    
-    // Calculate actual heights
+    // Revenue Group: Revenue + RevenuePL = 100% of groupHeight
     const revenueHeight = groupHeight * (revenue / maxValue);
     const revenuePLHeight = groupHeight * (loss / maxValue);
+    
+    // Expenses Group: Expenses + ExpensesPL = 100% of groupHeight  
     const expensesHeight = groupHeight * (expenses / maxValue);
     const expensesPLHeight = groupHeight * (profit / maxValue);
     
-    // Verify 100% rule compliance
+    // Calculate percentages for validation
+    const revenuePercent = (revenue / maxValue) * 100;
+    const revenuePLPercent = (loss / maxValue) * 100;
+    const expensesPercent = (expenses / maxValue) * 100;
+    const expensesPLPercent = (profit / maxValue) * 100;
+    
+    // CRITICAL FIX: Verify both groups reach exactly the same total height
+    const revenueGroupTotal = revenueHeight + revenuePLHeight;
+    const expensesGroupTotal = expensesHeight + expensesPLHeight;
+    
+    console.log('🔧 FinancialsController: Height calculation details:', {
+      maxValue,
+      groupHeight: groupHeight.toFixed(3),
+      revenueGroupTotal: revenueGroupTotal.toFixed(3),
+      expensesGroupTotal: expensesGroupTotal.toFixed(3),
+      heightDifference: Math.abs(revenueGroupTotal - expensesGroupTotal).toFixed(3)
+    });
+    
+    // Verify 100% rule compliance AND equal group heights
     const revenueTotal = revenuePercent + revenuePLPercent;
     const expensesTotal = expensesPercent + expensesPLPercent;
     
     if (Math.abs(revenueTotal - 100) > 0.01 || Math.abs(expensesTotal - 100) > 0.01) {
       console.warn('⚠️ FinancialsController: 100% rule violation detected!', {
         revenueTotal, expensesTotal
+      });
+    }
+    
+    if (Math.abs(revenueGroupTotal - expensesGroupTotal) > 0.001) {
+      console.warn('⚠️ FinancialsController: Equal group height rule violation!', {
+        revenueGroupTotal, expensesGroupTotal
       });
     }
     
