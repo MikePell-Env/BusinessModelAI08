@@ -3505,7 +3505,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   if (revenueDisplay) revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
                 }}
               />
-              <span className="text-xs text-gray-300">$1M - $10M</span>
+              <div className="flex justify-between text-xs text-gray-300 mt-1">
+                <span>$0M</span>
+                <span className="relative">
+                  <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 text-blue-400">|</span>
+                  $15M
+                </span>
+              </div>
             </div>
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
@@ -3558,7 +3564,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   if (expensesDisplay) expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
                 }}
               />
-              <span className="text-xs text-gray-300">$1M - $10M</span>
+              <div className="flex justify-between text-xs text-gray-300 mt-1">
+                <span>$0M</span>
+                <span className="relative">
+                  <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 text-red-400">|</span>
+                  $12M
+                </span>
+              </div>
             </div>
           </div>
         </div>
