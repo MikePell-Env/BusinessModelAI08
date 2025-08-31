@@ -297,6 +297,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
   }, [template.name, hasInitializedTemplate]);
 
+  // Handle template content visibility switching WITHOUT destroying scene
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    
+    console.log(`🔄 Switching template content visibility: ${template.name}`);
+    
+    const scene = sceneRef.current;
+    const templateName = template.name.toLowerCase();
+    
+    // Toggle visibility for template-specific meshes
+    scene.meshes.forEach(mesh => {
+      // Financial meshes: Revenue, Expenses, RevenuePL, ExpensesPL
+      if (['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(mesh.name)) {
+        const shouldShow = templateName === 'financials';
+        mesh.setEnabled(shouldShow);
+        mesh.isVisible = shouldShow;
+      }
+      
+      // Business Model meshes: All BMC section names
+      const bmcSectionNames = [
+        'ValuePropositions', 'KeyPartners', 'CustomerSegments', 'KeyResources', 
+        'KeyActivities', 'CustomerChannels', 'CustomerRelationships', 
+        'CostStructure', 'RevenueStreams'
+      ];
+      if (bmcSectionNames.some(section => mesh.name.includes(section))) {
+        const shouldShow = templateName === 'business model' || templateName === 'businessmodel';
+        mesh.setEnabled(shouldShow);
+        mesh.isVisible = shouldShow;
+      }
+    });
+    
+    console.log(`👁️ Template visibility switched to: ${templateName}`);
+  }, [template.name]);
+
 
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
@@ -1539,8 +1573,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
-    // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
-    modelLoader.loadTemplateModel(template.name).then(async (model) => {
+    // SHARED ENVISIONER: Load ALL template models at startup for efficient switching
+    console.log('🏗️ Loading all template content for shared Envisioner...');
+    
+    // Load both Business Model and Financials templates
+    Promise.all([
+      modelLoader.loadTemplateModel('Business Model'),
+      modelLoader.loadTemplateModel('Financials')
+    ]).then(async ([businessModel, financialsModel]) => {
+      const allMeshes = [...businessModel.meshes, ...financialsModel.meshes];
+      console.log(`✅ All templates loaded: Business Model (${businessModel.meshes.length}), Financials (${financialsModel.meshes.length})`);
+      
+      // Hide all template content initially
+      allMeshes.forEach(mesh => {
+        mesh.setEnabled(false);
+        mesh.isVisible = false;
+      });
+      
+      // Show only the active template's content
+      const activeModel = template.name.toLowerCase() === 'financials' ? financialsModel : businessModel;
+      activeModel.meshes.forEach(mesh => {
+        mesh.setEnabled(true);
+        mesh.isVisible = true;
+      });
+      
+      // Use the active template's root mesh
+      const model = activeModel;
       if (model.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
 
@@ -3282,7 +3340,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, template, saveCamera3DState]);
+  }, [canvas, saveCamera3DState]);
 
   // Camera is always perspective - no switching needed
 
