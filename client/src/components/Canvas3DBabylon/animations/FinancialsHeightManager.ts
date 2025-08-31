@@ -43,7 +43,7 @@ export class FinancialsHeightManager {
   
   // Face-aligned labels system
   private faceLabels: Map<string, Mesh> = new Map();
-  private labelsEnabled: boolean = false; // DISABLED until coordinates are verified
+  private labelsEnabled: boolean = true; // ENABLED with correct coordinates
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -66,25 +66,8 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        // DISABLED: Create face-aligned label for this mesh
-        // this.createFaceAlignedLabel(mesh);
-        
-        // LOG ACTUAL MESH COORDINATES for label positioning
-        setTimeout(() => {
-          mesh.refreshBoundingInfo();
-          const bounds = mesh.getBoundingInfo();
-          const center = bounds.boundingBox.center;
-          const min = bounds.boundingBox.minimum;
-          const max = bounds.boundingBox.maximum;
-          console.log(`🎯 ACTUAL ${mesh.name} coordinates:`, {
-            position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
-            center: { x: center.x, y: center.y, z: center.z },
-            bounds: { 
-              min: { x: min.x, y: min.y, z: min.z },
-              max: { x: max.x, y: max.y, z: max.z }
-            }
-          });
-        }, 100);
+        // Create face-aligned label using documented coordinate system
+        this.createFaceAlignedLabel(mesh);
         
       }
     });
@@ -654,57 +637,70 @@ export class FinancialsHeightManager {
   }
   
   /**
-   * Position label directly on financial object using exact coordinates
+   * Position label directly on financial object using documented coordinate system
    */
   private positionLabelOnFinancialObject(labelPlane: Mesh, meshName: string): void {
-    // Based on BMC model setup - ALL financial objects are at X=0.00 (center line)
-    // Revenue/RevenuePL at front, Expenses/ExpensesPL at back
+    // Based on financial visualization documentation in replit.md:
+    // - Revenue (Green): positioned left-front, bottom-anchored
+    // - RevenuePL (Gold): positioned left-back, top-anchored  
+    // - Expenses (Red): positioned right-front, bottom-anchored
+    // - ExpensesPL (Black): positioned right-back, top-anchored
+    //
+    // Babylon.js coordinate system:
+    // X-axis: RIGHT = positive, LEFT = negative 
+    // Y-axis: UP = positive, DOWN = negative (Y=0.1 is standard base height)
+    // Z-axis: FORWARD = positive, BACKWARD = negative
     
-    const baseX = 0.0; // All objects centered at X=0 according to BMC setup
-    let posZ: number;
+    let posX: number;
     let posY: number;
+    let posZ: number;
     
     switch (meshName) {
       case 'Revenue':
-        // Revenue: Bottom-anchored at Y=0.0, positioned in front
-        posZ = 1.2; // Front position + offset for label
-        posY = 0.5; // Above ground plane, center of typical revenue height
+        // Revenue: left-front, bottom-anchored
+        posX = -1.0; // LEFT side (negative X)
+        posZ = 1.0;  // FRONT (positive Z)
+        posY = 1.0;  // Above ground plane
         break;
         
       case 'RevenuePL':
-        // RevenuePL: Top-anchored at Y=-0.02, positioned at back
-        posZ = -1.2; // Back position + offset for label
-        posY = 0.3; // Slightly above the Y=-0.02 base
+        // RevenuePL: left-back, top-anchored
+        posX = -1.0; // LEFT side (negative X)
+        posZ = -1.0; // BACK (negative Z)
+        posY = 1.0;  // Above ground plane
         break;
         
       case 'Expenses':
-        // Expenses: Bottom-anchored at Y=0.0, positioned in front (right side)
-        posZ = 1.2; // Front position + offset for label
-        posY = 0.5; // Above ground plane, center of typical expenses height
+        // Expenses: right-front, bottom-anchored
+        posX = 1.0;  // RIGHT side (positive X)
+        posZ = 1.0;  // FRONT (positive Z)
+        posY = 1.0;  // Above ground plane
         break;
         
       case 'ExpensesPL':
-        // ExpensesPL: Top-anchored at Y=-0.02, positioned at back (right side)
-        posZ = -1.2; // Back position + offset for label
-        posY = 0.3; // Slightly above the Y=-0.02 base
+        // ExpensesPL: right-back, top-anchored
+        posX = 1.0;  // RIGHT side (positive X)
+        posZ = -1.0; // BACK (negative Z)
+        posY = 1.0;  // Above ground plane
         break;
         
       default:
+        posX = 0;
+        posY = 1.0;
         posZ = 0;
-        posY = 0.5;
     }
     
-    // Apply exact positioning
-    labelPlane.position.x = baseX;
+    // Apply positioning using documented coordinate system
+    labelPlane.position.x = posX;
     labelPlane.position.y = posY;
     labelPlane.position.z = posZ;
     
-    // Ensure label faces forward
+    // Face forward (no rotation)
     labelPlane.rotation.x = 0;
     labelPlane.rotation.y = 0;
     labelPlane.rotation.z = 0;
     
-    debugLog.verbose('financials', `${meshName} label positioned at: (${baseX}, ${posY}, ${posZ})`);
+    debugLog.verbose('financials', `${meshName} label positioned at: (${posX}, ${posY}, ${posZ})`);
   }
 
   /**
