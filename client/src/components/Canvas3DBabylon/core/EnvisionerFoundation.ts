@@ -118,10 +118,7 @@ export class EnvisionerFoundation {
     }, this.scene);
     ground.parent = this.masterTransform;
     
-    // CRITICAL: Lock master transform position after parenting
-    this.masterTransform.position.x = 0;
-    this.masterTransform.position.y = 2;
-    this.masterTransform.position.z = 0;
+    // Position managed by EnvisionerPersistence
 
     // Create dynamic texture for powder blue grid pattern with white lines
     const gridTexture = new DynamicTexture("envisionerGridTexture", { width: 1024, height: 1024 }, this.scene, false);
@@ -202,10 +199,7 @@ export class EnvisionerFoundation {
     northRail.material = railMaterial;
     northRail.parent = this.masterTransform;
     
-    // CRITICAL: Lock master transform position after parenting
-    this.masterTransform.position.x = 0;
-    this.masterTransform.position.y = 2;
-    this.masterTransform.position.z = 0;
+    // Position managed by EnvisionerPersistence
 
     // South rail (bottom)
     const southRail = MeshBuilder.CreateBox("envisionerSouthRail", {
@@ -217,10 +211,7 @@ export class EnvisionerFoundation {
     southRail.material = railMaterial;
     southRail.parent = this.masterTransform;
     
-    // CRITICAL: Lock master transform position after parenting
-    this.masterTransform.position.x = 0;
-    this.masterTransform.position.y = 2;
-    this.masterTransform.position.z = 0;
+    // Position managed by EnvisionerPersistence
 
     // East rail (right)
     const eastRail = MeshBuilder.CreateBox("envisionerEastRail", {
@@ -232,10 +223,7 @@ export class EnvisionerFoundation {
     eastRail.material = railMaterial;
     eastRail.parent = this.masterTransform;
     
-    // CRITICAL: Lock master transform position after parenting
-    this.masterTransform.position.x = 0;
-    this.masterTransform.position.y = 2;
-    this.masterTransform.position.z = 0;
+    // Position managed by EnvisionerPersistence
 
     // West rail (left)
     const westRail = MeshBuilder.CreateBox("envisionerWestRail", {
@@ -247,10 +235,7 @@ export class EnvisionerFoundation {
     westRail.material = railMaterial;
     westRail.parent = this.masterTransform;
     
-    // CRITICAL: Lock master transform position after parenting
-    this.masterTransform.position.x = 0;
-    this.masterTransform.position.y = 2;
-    this.masterTransform.position.z = 0;
+    // Position managed by EnvisionerPersistence
 
     this.foundationComponents.set('rails', { north: northRail, south: southRail, east: eastRail, west: westRail });
     debugLog.verbose('envisioner', '🛤️ Rails created');
@@ -337,10 +322,7 @@ export class EnvisionerFoundation {
     internalLabelPlane.isPickable = false;
     internalLabelPlane.parent = this.masterTransform;
     
-    // CRITICAL: Lock master transform position after parenting
-    this.masterTransform.position.x = 0;
-    this.masterTransform.position.y = 2;
-    this.masterTransform.position.z = 0;
+    // Position managed by EnvisionerPersistence
 
     this.foundationComponents.set('internalLabel', internalLabelPlane);
   }
@@ -392,10 +374,7 @@ export class EnvisionerFoundation {
     externalLabelPlane.isPickable = false;
     externalLabelPlane.parent = this.masterTransform;
     
-    // CRITICAL: Lock master transform position after parenting
-    this.masterTransform.position.x = 0;
-    this.masterTransform.position.y = 2;
-    this.masterTransform.position.z = 0;
+    // Position managed by EnvisionerPersistence
 
     this.foundationComponents.set('externalLabel', externalLabelPlane);
   }
@@ -453,10 +432,7 @@ export class EnvisionerFoundation {
     verticalDividerPlane.isPickable = false;
     verticalDividerPlane.parent = this.masterTransform;
     
-    // CRITICAL: Lock master transform position after parenting
-    this.masterTransform.position.x = 0;
-    this.masterTransform.position.y = 2;
-    this.masterTransform.position.z = 0;
+    // Position managed by EnvisionerPersistence
 
     this.foundationComponents.set('verticalDividerLabel', verticalDividerPlane);
   }
