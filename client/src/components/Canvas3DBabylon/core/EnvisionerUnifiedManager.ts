@@ -168,11 +168,10 @@ export class EnvisionerUnifiedManager {
         financialMeshes.forEach(mesh => {
           if (!mesh.parent) {
             mesh.parent = masterTransform;
-            // CRITICAL: Lock master transform position after parenting operation
-            // Babylon.js may adjust parent position during parenting
-            masterTransform.position.x = 0;
-            masterTransform.position.y = 2;
-            masterTransform.position.z = 0;
+            // DISABLED: Let EnvisionerPersistence manage position only (revert if needed)
+            // masterTransform.position.x = 0;
+            // masterTransform.position.y = 2;
+            // masterTransform.position.z = 0;
           }
         });
       }
@@ -210,10 +209,10 @@ export class EnvisionerUnifiedManager {
       box.position.y += 0.5;
       box.parent = masterTransform;
       
-      // CRITICAL: Lock master transform position after parenting operation
-      masterTransform.position.x = 0;
-      masterTransform.position.y = 2;
-      masterTransform.position.z = 0;
+      // DISABLED: Let EnvisionerPersistence manage position only (revert if needed)
+      // masterTransform.position.x = 0;
+      // masterTransform.position.y = 2;
+      // masterTransform.position.z = 0;
 
       const material = new StandardMaterial(`${obj.name}_material`, this.scene);
       material.diffuseColor = new Color3(obj.color[0], obj.color[1], obj.color[2]);
