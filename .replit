@@ -55,3 +55,4 @@ task = "shell.exec"
 args = "npm run dev"
 
 [agent]
+integrations = ["javascript_notion==1.0.0"]

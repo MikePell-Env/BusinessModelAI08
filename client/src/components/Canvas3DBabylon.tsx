@@ -301,55 +301,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   useEffect(() => {
     if (!sceneRef.current) return;
     
+    console.log(`🔄 Switching template content visibility: ${template.name}`);
+    
     const scene = sceneRef.current;
     const templateName = template.name.toLowerCase();
     
-    // Get ALL Business Model objects (main + Revenue Streams + Cost Structure)
-    const businessModelMeshes = (scene as any).businessModelMeshes || [];
-    const financialsMeshes = (scene as any).financialsMeshes || [];
-    
-    // Find Revenue Streams and Cost Structure meshes separately (they're loaded outside the main template)
-    const revenueStreamsMeshes = scene.meshes.filter(mesh => 
-      (mesh as any).bmcSectionName === "Revenue Streams"
-    );
-    const costStructureMeshes = scene.meshes.filter(mesh => 
-      (mesh as any).bmcSectionName === "Cost Structure"
-    );
-    
-    // Combine ALL Business Model objects
-    const allBusinessModelObjects = [...businessModelMeshes, ...revenueStreamsMeshes, ...costStructureMeshes];
-    
-    if (!businessModelMeshes.length && !financialsMeshes.length) {
-      console.log('⏳ Template meshes not yet loaded, skipping visibility switch');
-      return;
-    }
-    
-    console.log(`🔄 Switching template content visibility: ${template.name}`);
-    console.log(`📊 Business Model: ${allBusinessModelObjects.length} objects (main: ${businessModelMeshes.length}, revenue: ${revenueStreamsMeshes.length}, cost: ${costStructureMeshes.length})`);
-    console.log(`📊 Financials: ${financialsMeshes.length} objects`);
-    
-    // Hide ALL objects first (Business Model + Revenue + Cost + Financials)
-    [...allBusinessModelObjects, ...financialsMeshes].forEach(mesh => {
-      mesh.setEnabled(false);
-      mesh.isVisible = false;
+    // Toggle visibility for template-specific meshes
+    scene.meshes.forEach(mesh => {
+      // Financial meshes: Revenue, Expenses, RevenuePL, ExpensesPL
+      if (['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(mesh.name)) {
+        const shouldShow = templateName === 'financials';
+        mesh.setEnabled(shouldShow);
+        mesh.isVisible = shouldShow;
+      }
+      
+      // Business Model meshes: All BMC section names
+      const bmcSectionNames = [
+        'ValuePropositions', 'KeyPartners', 'CustomerSegments', 'KeyResources', 
+        'KeyActivities', 'CustomerChannels', 'CustomerRelationships', 
+        'CostStructure', 'RevenueStreams'
+      ];
+      if (bmcSectionNames.some(section => mesh.name.includes(section))) {
+        const shouldShow = templateName === 'business model' || templateName === 'businessmodel';
+        mesh.setEnabled(shouldShow);
+        mesh.isVisible = shouldShow;
+      }
     });
     
-    // Show only the active template's content
-    if (templateName === 'financials') {
-      financialsMeshes.forEach(mesh => {
-        mesh.setEnabled(true);
-        mesh.isVisible = true;
-        console.log(`💰 Showing Financial object: ${mesh.name}`);
-      });
-      console.log(`👁️ Switched to Financials: ${financialsMeshes.length} objects visible`);
-    } else {
-      allBusinessModelObjects.forEach(mesh => {
-        mesh.setEnabled(true);
-        mesh.isVisible = true;
-        console.log(`🏢 Showing Business Model object: ${mesh.name}`);
-      });
-      console.log(`👁️ Switched to Business Model: ${allBusinessModelObjects.length} objects visible`);
-    }
+    console.log(`👁️ Template visibility switched to: ${templateName}`);
   }, [template.name]);
 
 
@@ -829,12 +808,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
-    
-    // SHARED ENVISIONER: Only create scene once, not on every template change
-    if (sceneRef.current) {
-      console.log('🔄 Scene already exists, skipping recreation for template switch');
-      return;
-    }
 
     // Check if Babylon.js is properly loaded
 
@@ -1600,40 +1573,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
-    // SHARED ENVISIONER: Load BOTH templates at startup, then show only the active one
-    console.log('🏗️ Loading both templates for shared Envisioner architecture...');
+    // SHARED ENVISIONER: Load ALL template models at startup for efficient switching
+    console.log('🏗️ Loading all template content for shared Envisioner...');
     
+    // Load both Business Model and Financials templates
     Promise.all([
       modelLoader.loadTemplateModel('Business Model'),
       modelLoader.loadTemplateModel('Financials')
     ]).then(async ([businessModel, financialsModel]) => {
-      console.log(`✅ Business Model loaded: ${businessModel.meshes.length} meshes`);
-      console.log(`✅ Financials loaded: ${financialsModel.meshes.length} meshes`);
+      const allMeshes = [...businessModel.meshes, ...financialsModel.meshes];
+      console.log(`✅ All templates loaded: Business Model (${businessModel.meshes.length}), Financials (${financialsModel.meshes.length})`);
       
-      // Store both models on scene for visibility switching
-      (scene as any).businessModelMeshes = businessModel.meshes;
-      (scene as any).financialsMeshes = financialsModel.meshes;
-      
-      // Hide all template content initially  
-      [...businessModel.meshes, ...financialsModel.meshes].forEach(mesh => {
+      // Hide all template content initially
+      allMeshes.forEach(mesh => {
         mesh.setEnabled(false);
         mesh.isVisible = false;
       });
       
-      // Show only active template content
-      const isFinancials = template.name.toLowerCase() === 'financials';
-      const activeModel = isFinancials ? financialsModel : businessModel;
+      // Show only the active template's content
+      const activeModel = template.name.toLowerCase() === 'financials' ? financialsModel : businessModel;
       activeModel.meshes.forEach(mesh => {
         mesh.setEnabled(true);
         mesh.isVisible = true;
       });
       
-      console.log(`👁️ Initially showing: ${template.name} (${activeModel.meshes.length} meshes)`);
-      
-      // Use active model for initialization
+      // Use the active template's root mesh
       const model = activeModel;
       if (model.meshes.length > 0) {
-        console.log(`✅ Using ${template.name} template for initialization`);
+        console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
 
         const rootMesh = model.rootMesh;
         rootMeshRef.current = rootMesh;
@@ -2736,9 +2703,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.error("❌ No meshes found in BMC model");
       }
     }).catch((error) => {
-      console.error(`❌ Failed to load ${template.name} template:`, error);
-      console.error("❌ Stack trace:", error.stack);
-      console.error("❌ Template name was:", template.name);
+      console.error("❌ Failed to load BMC model:", error);
     });
 
     // Load Revenue Streams as separate GLB model positioned below Customer Channels (only if enabled in template)
@@ -3375,81 +3340,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas]); // Removed template dependency to prevent scene recreation
-
-  // TEMPLATE SWITCHING: Handle template changes by swapping content without recreating scene
-  useEffect(() => {
-    if (!sceneRef.current) return;
-    
-    const scene = sceneRef.current;
-    const templateName = template.name.toLowerCase();
-    
-    console.log(`🔄 Template switch triggered: ${template.name}`);
-    
-    // Clear all existing template content from the scene
-    const meshesToRemove = scene.meshes.filter(mesh => 
-      (mesh as any).bmcSectionName || 
-      mesh.name.includes('BMC') || 
-      mesh.name.includes('Financial') ||
-      mesh.name.includes('Revenue') ||
-      mesh.name.includes('Cost')
-    );
-    
-    meshesToRemove.forEach(mesh => {
-      mesh.dispose();
-    });
-    
-    console.log(`🧹 Removed ${meshesToRemove.length} existing template objects`);
-    
-    // Load the new template content
-    const modelLoader = new BMCModelLoader(scene);
-    
-    console.log(`📦 Loading ${template.name} template content...`);
-    modelLoader.loadTemplateModel(template.name).then((model) => {
-      if (model.meshes.length > 0) {
-        console.log(`✅ ${template.name} loaded: ${model.meshes.length} objects`);
-        
-        // Apply positioning and setup for the new template
-        const rootMesh = model.rootMesh;
-        rootMeshRef.current = rootMesh;
-        
-        if (templateName === 'financials') {
-          rootMesh.position = new Vector3(0, 0.1, 1.5);
-          
-          // Initialize Financials systems
-          const financialsHeightManager = new FinancialsHeightManager(scene);
-          const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
-          
-          (scene as any).financialsHeightManager = financialsHeightManager;
-          (scene as any).financialsDataAdapter = financialsDataAdapter;
-          
-          financialsHeightManager.registerFinancialMeshes(model.meshes);
-          console.log('💰 Financials systems initialized');
-        } else {
-          rootMesh.position = new Vector3(0, 0.1, 0.9);
-        }
-        
-        // Apply materials and interactions to all meshes
-        model.meshes.forEach((mesh, index) => {
-          if (mesh.name !== "__root__") {
-            // Create standard grey material
-            const material = new StandardMaterial(`template_${index}`, scene);
-            material.diffuseColor = new Color3(0.07, 0.07, 0.07);
-            material.specularColor = new Color3(0.1, 0.1, 0.1);
-            mesh.material = material;
-            
-            mesh.setEnabled(true);
-            mesh.isVisible = true;
-          }
-        });
-        
-        console.log(`👁️ ${template.name} template is now visible`);
-      }
-    }).catch(error => {
-      console.error(`❌ Failed to load ${template.name}:`, error);
-    });
-    
-  }, [template.name]);
+  }, [canvas, saveCamera3DState]);
 
   // Camera is always perspective - no switching needed
 
