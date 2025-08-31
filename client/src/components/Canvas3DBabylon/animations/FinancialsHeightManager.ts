@@ -590,7 +590,7 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Create face-aligned label for financial mesh - Independent of mesh scaling
+   * Create financial labels using exact coordinates from BMC model setup
    */
   private createFaceAlignedLabel(mesh: Mesh): void {
     if (!this.labelsEnabled) return;
@@ -600,18 +600,18 @@ export class FinancialsHeightManager {
     if (!labelTexturePath) return;
     
     try {
-      // Create label plane with FIXED dimensions - never scales with mesh
+      // Create appropriately sized label plane
       const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
-        width: 1.5,  // Fixed width
-        height: 0.5, // Fixed height - maintains aspect ratio
+        width: 0.8,  // Smaller, proportional to financial objects
+        height: 0.3, // Proper aspect ratio for text labels
         sideOrientation: Mesh.FRONTSIDE
       }, this.scene);
       
-      // Create material with PNG texture using BMC enhancement pattern
+      // Create material with PNG texture
       const material = new StandardMaterial(`${meshName}LabelMat`, this.scene);
       const texture = new Texture(labelTexturePath, this.scene);
       
-      // Apply BMC label texture enhancements
+      // Enhance texture quality
       texture.updateSamplingMode(Texture.LINEAR_LINEAR);
       texture.wrapU = Texture.CLAMP_ADDRESSMODE;
       texture.wrapV = Texture.CLAMP_ADDRESSMODE;
@@ -621,62 +621,92 @@ export class FinancialsHeightManager {
       material.useAlphaFromDiffuseTexture = true;
       material.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
       material.backFaceCulling = false;
-      material.needDepthPrePass = false;
       
       labelPlane.material = material;
       
-      // Set face-aligned orientation (no billboard, no rotation)
-      labelPlane.rotation.x = 0;
-      labelPlane.rotation.y = 0; 
-      labelPlane.rotation.z = 0;
+      // Position using actual financial object coordinates from BMC model
+      this.positionLabelOnFinancialObject(labelPlane, meshName);
       
-      // Make label always pickable and visible
-      labelPlane.isPickable = false; // Don't interfere with mesh interaction
-      labelPlane.isVisible = true;
-      labelPlane.setEnabled(true);
-      
-      // Store and position the label
+      // Store label
       this.faceLabels.set(meshName, labelPlane);
-      this.updateFaceAlignedLabel(mesh);
       
-      debugLog.info('financials', `Independent face-aligned label created for ${meshName}`);
+      debugLog.info('financials', `Financial label created for ${meshName}`);
     } catch (error) {
       debugLog.warn('financials', `Failed to create label for ${meshName}:`, error);
     }
   }
   
   /**
-   * Update face-aligned label position - based on actual geometry coordinates
+   * Position label directly on financial object using exact coordinates
+   */
+  private positionLabelOnFinancialObject(labelPlane: Mesh, meshName: string): void {
+    // Based on BMC model setup - ALL financial objects are at X=0.00 (center line)
+    // Revenue/RevenuePL at front, Expenses/ExpensesPL at back
+    
+    const baseX = 0.0; // All objects centered at X=0 according to BMC setup
+    let posZ: number;
+    let posY: number;
+    
+    switch (meshName) {
+      case 'Revenue':
+        // Revenue: Bottom-anchored at Y=0.0, positioned in front
+        posZ = 1.2; // Front position + offset for label
+        posY = 0.5; // Above ground plane, center of typical revenue height
+        break;
+        
+      case 'RevenuePL':
+        // RevenuePL: Top-anchored at Y=-0.02, positioned at back
+        posZ = -1.2; // Back position + offset for label
+        posY = 0.3; // Slightly above the Y=-0.02 base
+        break;
+        
+      case 'Expenses':
+        // Expenses: Bottom-anchored at Y=0.0, positioned in front (right side)
+        posZ = 1.2; // Front position + offset for label
+        posY = 0.5; // Above ground plane, center of typical expenses height
+        break;
+        
+      case 'ExpensesPL':
+        // ExpensesPL: Top-anchored at Y=-0.02, positioned at back (right side)
+        posZ = -1.2; // Back position + offset for label
+        posY = 0.3; // Slightly above the Y=-0.02 base
+        break;
+        
+      default:
+        posZ = 0;
+        posY = 0.5;
+    }
+    
+    // Apply exact positioning
+    labelPlane.position.x = baseX;
+    labelPlane.position.y = posY;
+    labelPlane.position.z = posZ;
+    
+    // Ensure label faces forward
+    labelPlane.rotation.x = 0;
+    labelPlane.rotation.y = 0;
+    labelPlane.rotation.z = 0;
+    
+    debugLog.verbose('financials', `${meshName} label positioned at: (${baseX}, ${posY}, ${posZ})`);
+  }
+
+  /**
+   * Update label position when mesh height changes
    */
   private updateFaceAlignedLabel(mesh: Mesh): void {
     const label = this.faceLabels.get(mesh.name);
     if (!label || !this.labelsEnabled) return;
     
-    // Get the actual current bounds after any vertex manipulation
+    // Get current mesh bounds after vertex manipulation
     mesh.refreshBoundingInfo();
     const bounds = mesh.getBoundingInfo();
     const center = bounds.boundingBox.center;
-    const min = bounds.boundingBox.minimum;
-    const max = bounds.boundingBox.maximum;
     
-    // Debug actual geometry positions
-    console.log(`📐 ${mesh.name} actual geometry:`, {
-      meshPos: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
-      center: { x: center.x, y: center.y, z: center.z },
-      min: { x: min.x, y: min.y, z: min.z },
-      max: { x: max.x, y: max.y, z: max.z },
-      height: max.y - min.y
-    });
-    
-    // Apply label directly to the front face center using actual coordinates
-    label.position.x = center.x;
+    // Update Y position to stay centered on current mesh height
     label.position.y = center.y;
-    label.position.z = max.z + 0.05;
     
-    // Keep original fixed size
-    label.scaling.setAll(1.0);
-    
-    console.log(`🏷️ ${mesh.name} label at:`, { x: label.position.x, y: label.position.y, z: label.position.z });
+    // Keep X and Z positions fixed based on object type
+    this.positionLabelOnFinancialObject(label, mesh.name);
   }
   
   /**
