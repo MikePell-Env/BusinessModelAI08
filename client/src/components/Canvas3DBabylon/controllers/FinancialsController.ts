@@ -141,21 +141,33 @@ export class FinancialsController {
   private applyHeightsToObjects(state: FinancialSystemState, animated: boolean): void {
     const duration = animated ? 1000 : 0;
     
+    // Convert state heights back to slider values for HeightManager compatibility
+    const revenueSliderValue = state.revenueHeight * this.HEIGHT_SCALE;
+    const expensesSliderValue = state.expensesHeight * this.HEIGHT_SCALE;
+    
+    console.log('🎯 FinancialsController applying heights:', {
+      revenueHeight: state.revenueHeight.toFixed(3),
+      revenuePLHeight: state.revenuePLHeight.toFixed(3),
+      expensesHeight: state.expensesHeight.toFixed(3),
+      expensesPLHeight: state.expensesPLHeight.toFixed(3),
+      scenario: state.isProfit ? 'PROFIT' : 'LOSS'
+    });
+    
     if (animated) {
       // Use animated updates
       this.heightManager.updateHeightsFromData({
-        revenue: state.revenueHeight * this.HEIGHT_SCALE,
-        expenses: state.expensesHeight * this.HEIGHT_SCALE,
+        revenue: revenueSliderValue,
+        expenses: expensesSliderValue,
         profit: state.profit,
         loss: state.loss
       }, duration);
     } else {
-      // Use immediate updates
-      this.heightManager.setImmediateHeights({
-        revenue: state.revenueHeight * this.HEIGHT_SCALE,
-        expenses: state.expensesHeight * this.HEIGHT_SCALE,
-        profit: state.profit,
-        loss: state.loss
+      // Use immediate updates - call the controller-compatible method
+      this.heightManager.setHeightsFromController({
+        revenueHeight: state.revenueHeight,
+        revenuePLHeight: state.revenuePLHeight,
+        expensesHeight: state.expensesHeight,
+        expensesPLHeight: state.expensesPLHeight
       });
     }
   }
