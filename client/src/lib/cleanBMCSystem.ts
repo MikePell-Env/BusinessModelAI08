@@ -43,15 +43,21 @@ export class CleanBMCSystem {
       mesh.material = material;
     }
 
+    // CRITICAL FIX: Don't overwrite originalHeight if item already exists (template switch)
+    const existingItem = this.items.get(name);
+    const heightToStore = existingItem ? existingItem.originalHeight : (originalHeight || mesh.scaling.y);
+
     this.items.set(name, {
       mesh,
       material,
-      originalHeight: originalHeight || mesh.scaling.y, // Use passed parameter or current scaling
+      originalHeight: heightToStore, // Preserve original height across template switches
       baseColor: baseColor.clone()
     });
 
-    // Initialize with proper state
-    this.applyState(name, 'normal');
+    // Initialize with proper state only if this is a new registration
+    if (!existingItem) {
+      this.applyState(name, 'normal');
+    }
   }
 
   // Handle selection
@@ -262,7 +268,7 @@ export class CleanBMCSystem {
         } else if (name === 'Revenue Streams') {
           mesh.scaling.y = 7.7; // Height to match Customer Segments  
         } else {
-          mesh.scaling.y = originalHeight; // Use stored original height, not mesh.scaling.x
+          mesh.scaling.y = mesh.scaling.x; // Full height for main BMC objects
         }
         if (isSpecialSection && baseColor) {
           // Cost/Revenue: Bright version of original
@@ -311,7 +317,7 @@ export class CleanBMCSystem {
         } else if (name === 'Revenue Streams') {
           mesh.scaling.y = 7.7; // Height to match Customer Segments  
         } else {
-          mesh.scaling.y = originalHeight; // Use stored original height, not mesh.scaling.x
+          mesh.scaling.y = mesh.scaling.x; // Full height for main BMC objects
         }
         if (baseColor) {
           material.diffuseColor.r = baseColor.r;
