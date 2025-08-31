@@ -8,11 +8,10 @@ import "@fontsource/inter";
 // Lazy load heavy components to avoid blocking Overview
 const HomePage = React.lazy(() => import("./components/HomePage").then(module => ({ default: module.HomePage })));
 const ExplorePage = React.lazy(() => import("./components/ExplorePage").then(module => ({ default: module.ExplorePage })));
-const ImportSelectionPage = React.lazy(() => import("./components/ImportSelectionPage").then(module => ({ default: module.ImportSelectionPage })));
 const AIChat = React.lazy(() => import("./components/AIChat").then(module => ({ default: module.AIChat })));
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'explore' | 'overview' | 'about' | 'import'>('import');
+  const [currentPage, setCurrentPage] = useState<'home' | 'explore' | 'overview' | 'about'>('home');
   const [azureConfigured, setAzureConfigured] = useState<boolean | null>(null);
   const [showCredentialSetup, setShowCredentialSetup] = useState(false);
   const [toggleChat, setToggleChat] = useState<(() => void) | null>(null);
@@ -42,11 +41,10 @@ function App() {
   const navigateToExplore = React.useCallback(() => setCurrentPage('explore'), []);
   const navigateToOverview = React.useCallback(() => setCurrentPage('overview'), []);
   const navigateToAbout = React.useCallback(() => setCurrentPage('about'), []);
-  const navigateToImport = React.useCallback(() => setCurrentPage('import'), []);
 
   // Register global navigation and emergency navigation handler
   useEffect(() => {
-    registerGlobalNavigation((page: 'home' | 'explore' | 'overview' | 'about' | 'import') => {
+    registerGlobalNavigation((page: 'home' | 'explore' | 'overview' | 'about') => {
       setCurrentPage(page);
     });
 
@@ -81,20 +79,6 @@ function App() {
       }
     } catch (error) {
       alert('Failed to configure Azure OpenAI. Please try again.');
-    }
-  };
-
-  const handleImportMethodSelect = (method: 'office' | 'ai' | 'api') => {
-    switch (method) {
-      case 'office':
-        setCurrentPage('home'); // Go to home page for file import
-        break;
-      case 'ai':
-        setCurrentPage('home'); // Go to home page and trigger AI chat
-        break;
-      case 'api':
-        // API method not implemented yet
-        break;
     }
   };
 
@@ -137,15 +121,6 @@ function App() {
               onNavigateOverview={navigateToOverview}
               onNavigateAbout={navigateToAbout}
               currentPage={currentPage}
-            />
-          ) : currentPage === 'import' ? (
-            <ImportSelectionPage 
-              onNavigateHome={navigateToHome} 
-              onNavigateExplore={navigateToExplore}
-              onNavigateOverview={navigateToOverview}
-              onNavigateAbout={navigateToAbout}
-              currentPage={currentPage}
-              onSelectImportMethod={handleImportMethodSelect}
             />
           ) : (
             <HomePage 
