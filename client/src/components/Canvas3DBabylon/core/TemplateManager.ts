@@ -126,11 +126,22 @@ export class TemplateManager {
   public showTemplate(templateName: string): void {
     debugLog.info('template', `Showing template: ${templateName}`);
     
+    // DEBUG: Check what meshes exist
+    console.log(`🔍 TEMPLATE DEBUG: All scene meshes:`);
+    this.scene.meshes.forEach(mesh => {
+      console.log(`  - ${mesh.name} (visible: ${mesh.isVisible})`);
+    });
+    
     // Hide all template meshes first
     this.hideAllTemplates();
     
     // Show meshes for the requested template
     const templateMeshes = this.getTemplateMeshes(templateName);
+    
+    console.log(`🔍 TEMPLATE DEBUG: Found ${templateMeshes.length} meshes for '${templateName}':`);
+    templateMeshes.forEach(mesh => {
+      console.log(`  - ${mesh.name}`);
+    });
     
     templateMeshes.forEach(mesh => {
       // Make visible
