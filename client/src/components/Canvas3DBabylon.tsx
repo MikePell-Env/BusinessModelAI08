@@ -3493,20 +3493,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     newValue: `$${(revenue * 10 / 1000).toFixed(0)}M`
                   });
 
-                  // EQUAL GROUP HEIGHT UPDATE: Use the new FinancialsHeightManager system
-                  if ((window as any).financialsHeightManager) {
-                    const heightManager = (window as any).financialsHeightManager;
+                  // FINANCIALS CONTROLLER UPDATE: Use centralized controller with enforced rules
+                  if ((window as any).financialsController) {
+                    const controller = (window as any).financialsController;
                     const currentExpenses = (window as any).financialSliderState.expenses;
                     
-                    // Use the equal group height system
-                    const financialData = {
+                    // Update through controller (enforces all financial system rules)
+                    controller.updateFinancialSystem({
                       revenue: revenue,
-                      expenses: currentExpenses,
-                      profit: Math.max(0, revenue - currentExpenses),
-                      loss: Math.max(0, currentExpenses - revenue)
-                    };
-                    
-                    heightManager.updateHeightsFromData(financialData, 0); // Immediate update
+                      expenses: currentExpenses
+                    }, false); // Immediate update for slider interaction
                   }
 
                   // Update the display values
@@ -3536,20 +3532,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     newValue: `$${(expenses * 10 / 1000).toFixed(0)}M`
                   });
 
-                  // EQUAL GROUP HEIGHT UPDATE: Use the new FinancialsHeightManager system
-                  if ((window as any).financialsHeightManager) {
-                    const heightManager = (window as any).financialsHeightManager;
+                  // FINANCIALS CONTROLLER UPDATE: Use centralized controller with enforced rules
+                  if ((window as any).financialsController) {
+                    const controller = (window as any).financialsController;
                     const currentRevenue = (window as any).financialSliderState.revenue;
                     
-                    // Use the equal group height system
-                    const financialData = {
+                    // Update through controller (enforces all financial system rules)
+                    controller.updateFinancialSystem({
                       revenue: currentRevenue,
-                      expenses: expenses,
-                      profit: Math.max(0, currentRevenue - expenses),
-                      loss: Math.max(0, expenses - currentRevenue)
-                    };
-                    
-                    heightManager.updateHeightsFromData(financialData, 0); // Immediate update
+                      expenses: expenses
+                    }, false); // Immediate update for slider interaction
                   }
 
                   // Update the display values
@@ -3583,8 +3575,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             </button>
             <button
               onClick={() => {
-                if ((window as any).financialsHeightManager) {
-                  (window as any).financialsHeightManager.resetToBaseHeight();
+                if ((window as any).financialsController) {
+                  // Reset to default financial state through controller
+                  (window as any).financialsController.updateFinancialSystem({
+                    revenue: 1000,  // $10M
+                    expenses: 800   // $8M
+                  }, true);
+                  
+                  // Also update slider positions
+                  const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
+                  const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+                  if (revenueSlider) revenueSlider.value = "1000";
+                  if (expensesSlider) expensesSlider.value = "800";
+                  
+                  // Update display values
+                  const revenueDisplay = document.querySelector('.revenue-display');
+                  const expensesDisplay = document.querySelector('.expenses-display');
+                  if (revenueDisplay) revenueDisplay.textContent = "$10M";
+                  if (expensesDisplay) expensesDisplay.textContent = "$8M";
+                  
+                  // Update global state
+                  if ((window as any).financialSliderState) {
+                    (window as any).financialSliderState.revenue = 1000;
+                    (window as any).financialSliderState.expenses = 800;
+                  }
                 }
               }}
               className="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-xs font-medium transition-colors"
