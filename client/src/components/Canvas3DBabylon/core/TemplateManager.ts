@@ -90,33 +90,54 @@ export class TemplateManager {
   }
 
   /**
-   * Get all meshes for a template - DYNAMIC, no pre-registration needed
+   * Get all meshes for a template - EXPLICIT NAMING, no patterns
    */
   private getTemplateMeshes(templateName: string): AbstractMesh[] {
     const normalizedTemplateName = templateName.toLowerCase();
-    return this.scene.meshes.filter(mesh => {
-      // Skip infrastructure meshes
-      if (mesh.name === '__root__' || 
-          mesh.name.includes('ground') || 
-          mesh.name.includes('rail') ||
-          mesh.name === 'masterTransform') {
-        return false;
-      }
-      
-      // Foundation labels should be template-specific
-      if (mesh.name.includes('label') || mesh.name.includes('Label')) {
-        // BMC foundation labels belong to business-model template
+    
+    // EXPLICIT FINANCIALS MESH NAMES - hardcoded for reliability
+    if (normalizedTemplateName === 'financials') {
+      return this.scene.meshes.filter(mesh => {
+        return mesh.name === 'Revenue' || 
+               mesh.name === 'Expenses' || 
+               mesh.name === 'RevenuePL' || 
+               mesh.name === 'ExpensesPL';
+      });
+    }
+    
+    // EXPLICIT BUSINESS MODEL MESH NAMES
+    if (normalizedTemplateName === 'business model' || normalizedTemplateName === 'business-model') {
+      return this.scene.meshes.filter(mesh => {
+        // Skip infrastructure
+        if (mesh.name === '__root__' || 
+            mesh.name.includes('ground') || 
+            mesh.name.includes('rail') ||
+            mesh.name === 'masterTransform') {
+          return false;
+        }
+        
+        // Foundation labels for BMC
         if (mesh.name.includes('Internal') || 
             mesh.name.includes('External') || 
             mesh.name.includes('Divider')) {
-          return normalizedTemplateName === 'business-model';
+          return true;
         }
-        // Other labels are infrastructure (skip)
-        return false;
-      }
-      
-      return this.meshBelongsToTemplate(mesh, normalizedTemplateName);
-    });
+        
+        // BMC section meshes
+        return mesh.name.includes('BMC_') ||
+               mesh.name === 'KeyPartners' ||
+               mesh.name === 'KeyActivities' ||
+               mesh.name === 'KeyResources' ||
+               mesh.name === 'ValuePropositions' ||
+               mesh.name === 'CustomerRelationships' ||
+               mesh.name === 'CustomerChannels' ||
+               mesh.name === 'CustomerSegments' ||
+               mesh.name === 'CostStructure' ||
+               mesh.name === 'RevenueStreams';
+      });
+    }
+    
+    return [];
   }
 
   /**
