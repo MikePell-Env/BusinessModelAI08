@@ -3492,94 +3492,104 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             <div>
               <label className="block text-xs mb-1">Revenue Total</label>
               <div className="revenue-display text-xs text-green-400 mb-1">$10M</div>
-              <div className="relative">
-                <input
-                  type="range"
-                  min="0"
-                  max="1500"
-                  defaultValue="1000"
-                  id="revenue-slider"
-                  className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                  onChange={(e) => {
-                  const revenue = parseInt(e.target.value);
-                  // Update isolated state
-                  (window as any).financialSliderState.revenue = revenue;
+              <div className="relative flex items-center">
+                <div className="relative flex-1">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1500"
+                    defaultValue="1000"
+                    id="revenue-slider"
+                    className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                    onChange={(e) => {
+                    const revenue = parseInt(e.target.value);
+                    // Update isolated state
+                    (window as any).financialSliderState.revenue = revenue;
 
-                  console.log('💚 Revenue slider moved:', {
-                    revenue: revenue,
-                    newValue: `$${(revenue * 10 / 1000).toFixed(0)}M`
-                  });
-
-                  // FINANCIALS CONTROLLER UPDATE: Use centralized controller with enforced rules
-                  if ((window as any).financialsController) {
-                    const controller = (window as any).financialsController;
-                    const currentExpenses = (window as any).financialSliderState.expenses;
-                    
-                    // Update through controller (enforces all financial system rules)
-                    controller.updateFinancialSystem({
+                    console.log('💚 Revenue slider moved:', {
                       revenue: revenue,
-                      expenses: currentExpenses
-                    }, false); // Immediate update for slider interaction
-                    
-                    // Save state automatically for persistence across template switches
-                    controller.saveFinancialState();
-                  }
+                      newValue: `$${(revenue * 10 / 1000).toFixed(0)}M`
+                    });
 
-                  // Update the display values
-                  const revenueDisplay = document.querySelector('.revenue-display');
-                  if (revenueDisplay) revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
-                }}
-                />
-                {/* Initial position tick mark for Revenue ($10M = 1000/1500 = 66.67%) */}
-                <div className="absolute top-0 h-2 w-0.5 bg-red-500" style={{ left: '66.67%', transform: 'translateX(-50%)' }}></div>
+                    // FINANCIALS CONTROLLER UPDATE: Use centralized controller with enforced rules
+                    if ((window as any).financialsController) {
+                      const controller = (window as any).financialsController;
+                      const currentExpenses = (window as any).financialSliderState.expenses;
+                      
+                      // Update through controller (enforces all financial system rules)
+                      controller.updateFinancialSystem({
+                        revenue: revenue,
+                        expenses: currentExpenses
+                      }, false); // Immediate update for slider interaction
+                      
+                      // Save state automatically for persistence across template switches
+                      controller.saveFinancialState();
+                    }
+
+                    // Update the display values
+                    const revenueDisplay = document.querySelector('.revenue-display');
+                    if (revenueDisplay) revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
+                  }}
+                  />
+                  {/* Initial position tick mark for Revenue ($10M = 1000/1500 = 66.67%) */}
+                  <div className="absolute top-0 h-2 w-0.5 bg-red-500" style={{ left: '66.67%', transform: 'translateX(-50%)' }}></div>
+                  {/* Max value indicator line */}
+                  <div className="absolute top-0 right-0 h-2 w-0.5 bg-green-500"></div>
+                </div>
+                <span className="text-xs text-gray-300 ml-2">$15M</span>
               </div>
-              <span className="text-xs text-gray-300">$0M - $15M</span>
+              <span className="text-xs text-gray-300">$0M</span>
             </div>
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
               <div className="expenses-display text-xs text-red-400 mb-1">$8M</div>
-              <div className="relative">
-                <input
-                  type="range"
-                  min="0"
-                  max="1200"
-                  defaultValue="800"
-                  id="expenses-slider"
-                  className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                  onChange={(e) => {
-                  const expenses = parseInt(e.target.value);
-                  // Update isolated state
-                  (window as any).financialSliderState.expenses = expenses;
+              <div className="relative flex items-center">
+                <div className="relative flex-1">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1200"
+                    defaultValue="800"
+                    id="expenses-slider"
+                    className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                    onChange={(e) => {
+                    const expenses = parseInt(e.target.value);
+                    // Update isolated state
+                    (window as any).financialSliderState.expenses = expenses;
 
-                  console.log('🔴 Expenses slider moved:', {
-                    expenses: expenses,
-                    newValue: `$${(expenses * 10 / 1000).toFixed(0)}M`
-                  });
+                    console.log('🔴 Expenses slider moved:', {
+                      expenses: expenses,
+                      newValue: `$${(expenses * 10 / 1000).toFixed(0)}M`
+                    });
 
-                  // FINANCIALS CONTROLLER UPDATE: Use centralized controller with enforced rules
-                  if ((window as any).financialsController) {
-                    const controller = (window as any).financialsController;
-                    const currentRevenue = (window as any).financialSliderState.revenue;
-                    
-                    // Update through controller (enforces all financial system rules)
-                    controller.updateFinancialSystem({
-                      revenue: currentRevenue,
-                      expenses: expenses
-                    }, false); // Immediate update for slider interaction
-                    
-                    // Save state automatically for persistence across template switches
-                    controller.saveFinancialState();
-                  }
+                    // FINANCIALS CONTROLLER UPDATE: Use centralized controller with enforced rules
+                    if ((window as any).financialsController) {
+                      const controller = (window as any).financialsController;
+                      const currentRevenue = (window as any).financialSliderState.revenue;
+                      
+                      // Update through controller (enforces all financial system rules)
+                      controller.updateFinancialSystem({
+                        revenue: currentRevenue,
+                        expenses: expenses
+                      }, false); // Immediate update for slider interaction
+                      
+                      // Save state automatically for persistence across template switches
+                      controller.saveFinancialState();
+                    }
 
-                  // Update the display values
-                  const expensesDisplay = document.querySelector('.expenses-display');
-                  if (expensesDisplay) expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
-                }}
-                />
-                {/* Initial position tick mark for Expenses ($8M = 800/1200 = 66.67%) */}
-                <div className="absolute top-0 h-2 w-0.5 bg-red-500" style={{ left: '66.67%', transform: 'translateX(-50%)' }}></div>
+                    // Update the display values
+                    const expensesDisplay = document.querySelector('.expenses-display');
+                    if (expensesDisplay) expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
+                  }}
+                  />
+                  {/* Initial position tick mark for Expenses ($8M = 800/1200 = 66.67%) */}
+                  <div className="absolute top-0 h-2 w-0.5 bg-red-500" style={{ left: '66.67%', transform: 'translateX(-50%)' }}></div>
+                  {/* Max value indicator line */}
+                  <div className="absolute top-0 right-0 h-2 w-0.5 bg-green-500"></div>
+                </div>
+                <span className="text-xs text-gray-300 ml-2">$12M</span>
               </div>
-              <span className="text-xs text-gray-300">$0M - $12M</span>
+              <span className="text-xs text-gray-300">$0M</span>
             </div>
           </div>
         </div>
