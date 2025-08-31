@@ -317,10 +317,12 @@ export class FinancialsHeightManager {
       // STEP 3: Use vertex manipulation for Expenses and ExpensesPL, scaling for others
       if (objectName === 'Expenses' || objectName === 'ExpensesPL') {
         // Use vertex manipulation instead of scaling for Expenses group
+        console.log(`🎯 VERTEX PATH: ${objectName} targetHeight=${targetHeight.toFixed(3)}, baseHeight=${this.baseHeight}`);
         debugLog.info('financials', `🔧 VERTEX: Animating ${objectName} height via vertex manipulation to ${targetHeight}`);
         
         // Convert target height to height factor (relative to base height)
         const heightFactor = targetHeight / this.baseHeight;
+        console.log(`🎯 VERTEX PATH: ${objectName} heightFactor=${heightFactor.toFixed(3)} (${targetHeight.toFixed(3)} / ${this.baseHeight})`);
         
         // Apply vertex manipulation directly (immediate, no animation for now)
         this.setMeshHeightByVertices(mesh, heightFactor, anchorType);
@@ -331,6 +333,7 @@ export class FinancialsHeightManager {
         // DO NOT MOVE THE MESH - vertex manipulation keeps mesh in fixed position
         // mesh.position.y stays exactly where it was set during model loading
         
+        console.log(`✅ VERTEX PATH: ${objectName} vertex manipulation completed - mesh position FIXED`);
         debugLog.info('financials', `🔧 VERTEX: ${objectName} height set to factor ${heightFactor} (target: ${targetHeight}) - mesh position FIXED`);
         
         // Resolve immediately since vertex manipulation is instant
@@ -430,9 +433,16 @@ export class FinancialsHeightManager {
     
     // Apply heights immediately using direct vertex manipulation
     // ALL FOUR objects updated on every slider interaction
+    console.log('🔧 Setting Revenue height:', heights.revenueHeight.toFixed(3));
     this.setObjectHeight('Revenue', heights.revenueHeight, 'bottom');
+    
+    console.log('🔧 Setting RevenuePL height:', heights.revenuePLHeight.toFixed(3));
     this.setObjectHeight('RevenuePL', heights.revenuePLHeight, 'top');
+    
+    console.log('🔧 Setting Expenses height:', heights.expensesHeight.toFixed(3));
     this.setObjectHeight('Expenses', heights.expensesHeight, 'bottom');
+    
+    console.log('🔧 Setting ExpensesPL height:', heights.expensesPLHeight.toFixed(3), '(PROFIT - should grow when Expenses decreases)');
     this.setObjectHeight('ExpensesPL', heights.expensesPLHeight, 'top');
     
     console.log('✅ HeightManager: All four objects updated in real-time following documented rules');
@@ -745,14 +755,20 @@ export class FinancialsHeightManager {
     heightFactor: number,
     anchorType: 'top' | 'bottom'
   ): void {
+    console.log(`🔧 VERTEX MANIPULATION: ${mesh.name} - heightFactor=${heightFactor.toFixed(3)}, anchor=${anchorType}`);
+    
     const originalVertices = this.originalVertices.get(mesh.name);
     if (!originalVertices) {
+      console.error(`❌ No original vertices found for ${mesh.name}, falling back to scaling`);
       debugLog.warn('financials', `No original vertices found for ${mesh.name}, falling back to scaling`);
       return;
     }
 
     const geometry = mesh.geometry;
-    if (!geometry) return;
+    if (!geometry) {
+      console.error(`❌ No geometry found for ${mesh.name}`);
+      return;
+    }
 
     // Store the height factor for label scaling
     this.currentHeightFactors.set(mesh.name, heightFactor);
