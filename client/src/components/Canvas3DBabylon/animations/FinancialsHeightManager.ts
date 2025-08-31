@@ -602,7 +602,7 @@ export class FinancialsHeightManager {
     try {
       // Create label plane with fixed size
       const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
-        size: 1.5, // Fixed size - never scales with geometry
+        size: 2.0, // Larger size for better visibility  
         sideOrientation: Mesh.FRONTSIDE
       }, this.scene);
       
@@ -640,11 +640,27 @@ export class FinancialsHeightManager {
     // Calculate front face center
     const bounds = mesh.getBoundingInfo();
     const center = bounds.boundingBox.center;
+    const min = bounds.boundingBox.minimum;
+    const max = bounds.boundingBox.maximum;
     
-    // Position at front face center with small offset
+    // Debug: Log mesh bounds for troubleshooting
+    console.log(`🏷️ ${mesh.name} bounds:`, {
+      center: { x: center.x, y: center.y, z: center.z },
+      min: { x: min.x, y: min.y, z: min.z },
+      max: { x: max.x, y: max.y, z: max.z },
+      position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z }
+    });
+    
+    // Position at front face center with larger offset to ensure visibility
     label.position.x = center.x;
     label.position.y = center.y;
-    label.position.z = bounds.boundingBox.maximum.z + 0.02;
+    label.position.z = max.z + 0.5; // Much larger offset to ensure above ground plane
+    
+    console.log(`🏷️ ${mesh.name} label positioned at:`, {
+      x: label.position.x,
+      y: label.position.y, 
+      z: label.position.z
+    });
   }
   
   /**
