@@ -90,7 +90,7 @@ export class EnvisionerUnifiedManager {
 
     debugLog.info('unified', `🔄 Switching template from ${this.currentTemplateName} to ${newTemplateName}`);
 
-    // Step 1: Update foundation labels for new template
+    // Step 1: Update foundation labels for new template ONLY
     if (this.foundation) {
       await this.foundation.createTemplateLabels(newTemplateName);
     }
