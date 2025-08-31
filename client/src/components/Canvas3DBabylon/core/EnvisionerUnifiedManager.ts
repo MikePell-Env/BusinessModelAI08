@@ -78,28 +78,21 @@ export class EnvisionerUnifiedManager {
       return;
     }
 
-    const masterTransform = this.persistence.getMasterTransform();
-    console.log(`🔍 BEFORE SWITCH - Master transform position: (${masterTransform?.position.x}, ${masterTransform?.position.y}, ${masterTransform?.position.z})`);
-
     debugLog.info('unified', `🔄 Switching template from ${this.currentTemplateName} to ${newTemplateName}`);
 
     // Step 1: Unload current template content (but preserve foundation)
     await this.unloadCurrentTemplateContent();
-    console.log(`🔍 AFTER UNLOAD - Master transform position: (${masterTransform?.position.x}, ${masterTransform?.position.y}, ${masterTransform?.position.z})`);
 
     // Step 2: Update foundation labels for new template
     if (this.foundation) {
       await this.foundation.createTemplateLabels(newTemplateName);
     }
-    console.log(`🔍 AFTER FOUNDATION - Master transform position: (${masterTransform?.position.x}, ${masterTransform?.position.y}, ${masterTransform?.position.z})`);
 
     // Step 3: Update master transform rotation for new template
     this.persistence.updateRotationForCameraPreset(newTemplateName, 'FRONT');
-    console.log(`🔍 AFTER ROTATION - Master transform position: (${masterTransform?.position.x}, ${masterTransform?.position.y}, ${masterTransform?.position.z})`);
 
     // Step 4: Load new template content
     await this.loadTemplateContent(newTemplateName);
-    console.log(`🔍 AFTER LOAD - Master transform position: (${masterTransform?.position.x}, ${masterTransform?.position.y}, ${masterTransform?.position.z})`);
 
     this.currentTemplateName = newTemplateName;
     debugLog.info('unified', `✅ Template switched to ${newTemplateName}`);
@@ -150,6 +143,11 @@ export class EnvisionerUnifiedManager {
         financialMeshes.forEach(mesh => {
           if (!mesh.parent) {
             mesh.parent = masterTransform;
+            // CRITICAL: Lock master transform position after parenting operation
+            // Babylon.js may adjust parent position during parenting
+            masterTransform.position.x = 0;
+            masterTransform.position.y = 2;
+            masterTransform.position.z = 0;
           }
         });
       }
@@ -182,6 +180,11 @@ export class EnvisionerUnifiedManager {
       const box = MeshBuilder.CreateBox(`${obj.name}_fallback`, { size: 1 }, this.scene);
       box.position.set(obj.pos[0], obj.pos[1] + 0.5, obj.pos[2]);
       box.parent = masterTransform;
+      
+      // CRITICAL: Lock master transform position after parenting operation
+      masterTransform.position.x = 0;
+      masterTransform.position.y = 2;
+      masterTransform.position.z = 0;
 
       const material = new StandardMaterial(`${obj.name}_material`, this.scene);
       material.diffuseColor = new Color3(obj.color[0], obj.color[1], obj.color[2]);
