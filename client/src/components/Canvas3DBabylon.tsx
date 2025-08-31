@@ -301,44 +301,43 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   useEffect(() => {
     if (!sceneRef.current) return;
     
-    console.log(`🔄 Switching template content visibility: ${template.name}`);
-    
     const scene = sceneRef.current;
     const templateName = template.name.toLowerCase();
     
-    // Debug: Log all mesh names to understand what's available
-    console.log('🔍 Available meshes:', scene.meshes.map(m => m.name));
+    // Check if both template meshes are loaded and stored
+    const businessModelMeshes = (scene as any).businessModelMeshes;
+    const financialsMeshes = (scene as any).financialsMeshes;
     
-    let financialMeshCount = 0;
-    let bmcMeshCount = 0;
+    if (!businessModelMeshes || !financialsMeshes) {
+      console.log('⏳ Template meshes not yet loaded, skipping visibility switch');
+      return;
+    }
     
-    // Toggle visibility for template-specific meshes
-    scene.meshes.forEach(mesh => {
-      // Financial meshes: Revenue, Expenses, RevenuePL, ExpensesPL
-      if (['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(mesh.name)) {
-        const shouldShow = templateName === 'financials';
-        mesh.setEnabled(shouldShow);
-        mesh.isVisible = shouldShow;
-        financialMeshCount++;
-        console.log(`💰 ${mesh.name}: ${shouldShow ? 'SHOWN' : 'HIDDEN'}`);
-      }
-      
-      // Business Model meshes: All BMC section names
-      const bmcSectionNames = [
-        'ValuePropositions', 'KeyPartners', 'CustomerSegments', 'KeyResources', 
-        'KeyActivities', 'CustomerChannels', 'CustomerRelationships', 
-        'CostStructure', 'RevenueStreams'
-      ];
-      if (bmcSectionNames.some(section => mesh.name.includes(section))) {
-        const shouldShow = templateName === 'business model' || templateName === 'businessmodel';
-        mesh.setEnabled(shouldShow);
-        mesh.isVisible = shouldShow;
-        bmcMeshCount++;
-        console.log(`🏢 ${mesh.name}: ${shouldShow ? 'SHOWN' : 'HIDDEN'}`);
-      }
+    console.log(`🔄 Switching template content visibility: ${template.name}`);
+    console.log(`📊 Available: ${businessModelMeshes.length} BMC meshes, ${financialsMeshes.length} Financial meshes`);
+    
+    // Hide all template content first
+    [...businessModelMeshes, ...financialsMeshes].forEach(mesh => {
+      mesh.setEnabled(false);
+      mesh.isVisible = false;
     });
     
-    console.log(`👁️ Template visibility switched to: ${templateName} (${financialMeshCount} financial, ${bmcMeshCount} BMC meshes processed)`);
+    // Show only the active template's content
+    if (templateName === 'financials') {
+      financialsMeshes.forEach(mesh => {
+        mesh.setEnabled(true);
+        mesh.isVisible = true;
+        console.log(`💰 Showing: ${mesh.name}`);
+      });
+      console.log(`👁️ Switched to Financials: ${financialsMeshes.length} meshes shown`);
+    } else {
+      businessModelMeshes.forEach(mesh => {
+        mesh.setEnabled(true);
+        mesh.isVisible = true;
+        console.log(`🏢 Showing: ${mesh.name}`);
+      });
+      console.log(`👁️ Switched to Business Model: ${businessModelMeshes.length} meshes shown`);
+    }
   }, [template.name]);
 
 
@@ -1600,12 +1599,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         mesh.isVisible = false;
       });
       
+      // Store both model sets on the scene for template switching
+      (scene as any).businessModelMeshes = businessModel.meshes;
+      (scene as any).financialsMeshes = financialsModel.meshes;
+      
       // Show only the active template's content
       const activeModel = template.name.toLowerCase() === 'financials' ? financialsModel : businessModel;
       activeModel.meshes.forEach(mesh => {
         mesh.setEnabled(true);
         mesh.isVisible = true;
       });
+      console.log(`👁️ Initially showing ${template.name} content`);
       
       // Use the active template's root mesh
       const model = activeModel;
