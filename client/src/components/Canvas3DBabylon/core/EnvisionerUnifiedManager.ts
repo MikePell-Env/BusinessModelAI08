@@ -84,7 +84,9 @@ export class EnvisionerUnifiedManager {
     const masterTransform = this.persistence.getMasterTransform();
     if (masterTransform) {
       const pos = masterTransform.position;
-      console.log(`🟦 BEFORE UNLOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`);
+      const msg = `🟦 BEFORE UNLOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`;
+      console.log(msg);
+      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) }).catch(() => {});
     }
 
 
@@ -93,7 +95,9 @@ export class EnvisionerUnifiedManager {
     
     if (masterTransform) {
       const pos = masterTransform.position;
-      console.log(`🟨 AFTER UNLOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`);
+      const msg = `🟨 AFTER UNLOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`;
+      console.log(msg);
+      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) }).catch(() => {});
     }
 
     // Step 2: Update foundation labels for new template
@@ -103,7 +107,9 @@ export class EnvisionerUnifiedManager {
     
     if (masterTransform) {
       const pos = masterTransform.position;
-      console.log(`🟩 AFTER LABELS: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`);
+      const msg = `🟩 AFTER LABELS: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`;
+      console.log(msg);
+      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) }).catch(() => {});
     }
 
     // Step 3: Update master transform rotation for new template
@@ -114,7 +120,9 @@ export class EnvisionerUnifiedManager {
     
     if (masterTransform) {
       const pos = masterTransform.position;
-      console.log(`🟪 AFTER LOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`);
+      const msg = `🟪 AFTER LOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`;
+      console.log(msg);
+      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) }).catch(() => {});
     }
 
     this.currentTemplateName = newTemplateName;
