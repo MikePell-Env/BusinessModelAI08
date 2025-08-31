@@ -41,6 +41,11 @@ export class EnvisionerPersistence {
     if (this.masterTransform && !this.masterTransform.isDisposed()) {
       debugLog.info('envisioner', `♻️ Reusing existing master transform for template: ${templateName}`);
 
+      // CRITICAL FIX: FORCE position to be absolutely locked - no drift allowed
+      this.masterTransform.position.x = 0; // Always centered horizontally 
+      this.masterTransform.position.y = 2; // Consistent vertical position
+      this.masterTransform.position.z = 0; // Always centered in depth
+
       // CRITICAL FIX: Template-specific rotation handling
       // Both templates need 180° rotation to face camera properly
       if (templateName.toLowerCase() === 'financials') {
@@ -52,11 +57,6 @@ export class EnvisionerPersistence {
         this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
         this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
       }
-
-      // Keep position absolutely consistent across all templates - no shifting
-      this.masterTransform.position.x = 0; // Always centered horizontally 
-      this.masterTransform.position.y = 2; // Consistent vertical position
-      this.masterTransform.position.z = 0; // Always centered in depth
 
       return this.masterTransform;
     }
@@ -97,6 +97,11 @@ export class EnvisionerPersistence {
   private initializeDefaultSpatialProperties(templateName: string): void {
     if (!this.masterTransform) return;
 
+    // CRITICAL: Set position FIRST and lock it - no shifting allowed
+    this.masterTransform.position.x = 0; // Always centered horizontally 
+    this.masterTransform.position.y = 2; // Consistent vertical position
+    this.masterTransform.position.z = 0; // Always centered in depth
+
     // Set default rotation and scale - CRITICAL: Template-specific rotation
     if (templateName.toLowerCase() === 'financials') {
       // Financials template - 180° rotation to face camera
@@ -107,11 +112,6 @@ export class EnvisionerPersistence {
       this.masterTransform.rotation.y = Math.PI; // 180 degrees clockwise rotation
       this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
     }
-
-    // Set consistent position for all templates - no shifting
-    this.masterTransform.position.x = 0; // Always centered horizontally 
-    this.masterTransform.position.y = 2; // Consistent vertical position
-    this.masterTransform.position.z = 0; // Always centered in depth
 
     // Apply dynamic scaling based on canvas size
     const canvas = document.querySelector('canvas');
@@ -179,9 +179,11 @@ export class EnvisionerPersistence {
   public updateSpatialProperties(position?: Vector3, rotation?: Quaternion, scale?: Vector3): void {
     if (!this.masterTransform) return;
 
-    if (position) {
-      this.masterTransform.position = position.clone();
-    }
+    // CRITICAL: NEVER allow position updates - always lock to center
+    // This prevents any drift from external position modifications
+    this.masterTransform.position.x = 0; // Always centered horizontally 
+    this.masterTransform.position.y = 2; // Consistent vertical position
+    this.masterTransform.position.z = 0; // Always centered in depth
 
     if (rotation) {
       this.masterTransform.rotationQuaternion = rotation.clone();
