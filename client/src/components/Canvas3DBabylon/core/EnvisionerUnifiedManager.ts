@@ -245,25 +245,42 @@ export class EnvisionerUnifiedManager {
 
     // Business Model meshes will be registered by the BMC system
     // We need to wait for them to load and then register them
-    setTimeout(() => {
-      const bmcMeshes = this.scene.meshes.filter(mesh => 
-        mesh.name.includes('BMC_') || 
-        mesh.name.includes('KeyPartners') ||
-        mesh.name.includes('KeyActivities') ||
-        mesh.name.includes('KeyResources') ||
-        mesh.name.includes('ValuePropositions') ||
-        mesh.name.includes('CustomerRelationships') ||
-        mesh.name.includes('CustomerChannels') ||
-        mesh.name.includes('CustomerSegments') ||
-        mesh.name.includes('CostStructure') ||
-        mesh.name.includes('RevenueStreams')
-      );
+    await new Promise<void>((resolve) => {
+      // Use a polling approach to detect when BMC meshes are created
+      let attempts = 0;
+      const maxAttempts = 20; // 2 seconds max wait
       
-      if (bmcMeshes.length > 0) {
-        this.templateManager.addMeshesToTemplate('business-model', bmcMeshes);
-        debugLog.info('unified', `Registered ${bmcMeshes.length} BMC meshes`);
-      }
-    }, 1000); // Wait for BMC system to create meshes
+      const checkForBMCMeshes = () => {
+        const bmcMeshes = this.scene.meshes.filter(mesh => 
+          mesh.name.includes('BMC_') || 
+          mesh.name.includes('KeyPartners') ||
+          mesh.name.includes('KeyActivities') ||
+          mesh.name.includes('KeyResources') ||
+          mesh.name.includes('ValuePropositions') ||
+          mesh.name.includes('CustomerRelationships') ||
+          mesh.name.includes('CustomerChannels') ||
+          mesh.name.includes('CustomerSegments') ||
+          mesh.name.includes('CostStructure') ||
+          mesh.name.includes('RevenueStreams')
+        );
+        
+        if (bmcMeshes.length > 0) {
+          this.templateManager.addMeshesToTemplate('business-model', bmcMeshes);
+          debugLog.info('unified', `Registered ${bmcMeshes.length} BMC meshes`);
+          resolve();
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          setTimeout(checkForBMCMeshes, 100); // Check again in 100ms
+        } else {
+          // Timeout - BMC meshes not found, resolve anyway
+          debugLog.warn('unified', 'BMC meshes not found after 2 seconds');
+          resolve();
+        }
+      };
+      
+      // Start checking after a short delay to allow BMC system to initialize
+      setTimeout(checkForBMCMeshes, 100);
+    });
 
     debugLog.info('unified', '✅ Business Model content loaded');
   }
