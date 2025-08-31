@@ -443,7 +443,9 @@ export class FinancialsHeightManager {
     this.setObjectHeight('Expenses', heights.expensesHeight, 'bottom');
     
     console.log('🔧 Setting ExpensesPL height:', heights.expensesPLHeight.toFixed(3), '(PROFIT - should grow when Expenses decreases)');
+    console.log('🎯 EXPENSEPL DEBUG: About to call setObjectHeight for ExpensesPL');
     this.setObjectHeight('ExpensesPL', heights.expensesPLHeight, 'top');
+    console.log('✅ EXPENSEPL DEBUG: setObjectHeight completed for ExpensesPL');
     
     console.log('✅ HeightManager: All four objects updated in real-time following documented rules');
   }
@@ -530,11 +532,21 @@ export class FinancialsHeightManager {
     height: number,
     anchorType: 'top' | 'bottom'
   ): void {
+    console.log(`🎯 setObjectHeight: ${objectName}, height=${height.toFixed(3)}, anchor=${anchorType}`);
+    
     const mesh = this.financialMeshes.get(objectName);
-    if (!mesh) return;
+    if (!mesh) {
+      console.error(`❌ Mesh not found: ${objectName}. Available:`, Array.from(this.financialMeshes.keys()));
+      return;
+    }
 
     const originalPos = this.originalPositions.get(objectName);
-    if (!originalPos) return;
+    if (!originalPos) {
+      console.error(`❌ Original position not found for: ${objectName}`);
+      return;
+    }
+    
+    console.log(`✅ Found mesh and position for: ${objectName}`);
 
     // SPECIAL ANCHORING EXCEPTION: RevenuePL (Loss) in loss scenarios
     if (objectName === 'RevenuePL' && height > 0) {
