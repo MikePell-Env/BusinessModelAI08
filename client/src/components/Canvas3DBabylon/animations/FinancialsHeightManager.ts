@@ -529,24 +529,22 @@ export class FinancialsHeightManager {
     // SPECIAL ANCHORING EXCEPTION: RevenuePL (Loss) in loss scenarios
     if (objectName === 'RevenuePL' && height > 0) {
       // When there's a loss, RevenuePL grows UPWARD from the top of Revenue
-      // This overrides the standard top-anchored behavior
+      // Bottom vertices stay at Revenue top, top vertices extend to match Expenses height
       const revenueMesh = this.financialMeshes.get('Revenue');
-      if (revenueMesh) {
-        console.log('🟡 SPECIAL CASE: RevenuePL (Loss) growing upward from Revenue top');
+      const expensesMesh = this.financialMeshes.get('Expenses');
+      
+      if (revenueMesh && expensesMesh) {
+        console.log('🟡 SPECIAL CASE: RevenuePL (Loss) - custom vertex manipulation');
         
-        // Calculate position to stack on top of Revenue
-        const revenueTopPosition = revenueMesh.position.y + (revenueMesh.scaling.y / 2);
-        const targetPosition = revenueTopPosition + (height / 2);
-        
-        // Use vertex manipulation for height
-        this.setMeshHeightByVertices(mesh, height, 'bottom'); // Use bottom-anchored behavior
-        
-        // Position RevenuePL on top of Revenue
+        // Keep mesh at original position - only manipulate vertices
         mesh.position.x = originalPos.x;
-        mesh.position.y = targetPosition;
+        mesh.position.y = originalPos.y;
         mesh.position.z = originalPos.z;
         
-        console.log(`🟡 RevenuePL positioned at Y=${targetPosition.toFixed(3)} (on top of Revenue)`);
+        // Custom vertex manipulation for RevenuePL loss scenario
+        this.setRevenuePLLossVertices(mesh, revenueMesh, expensesMesh);
+        
+        console.log(`🟡 RevenuePL vertices: bottom anchored to Revenue top, top extended to Expenses height`);
       } else {
         // Fallback to original position
         this.setMeshHeightByVertices(mesh, height, anchorType);
@@ -568,6 +566,63 @@ export class FinancialsHeightManager {
     this.updateLabelPosition(mesh);
     
     debugLog.verbose('financials', `Set height for ${objectName}: ${height} (${anchorType}-anchored) using constrained vertex manipulation`);
+  }
+
+  /**
+   * Custom vertex manipulation for RevenuePL in loss scenarios
+   * Bottom vertices stay at Revenue top, top vertices extend to match Expenses height
+   */
+  private setRevenuePLLossVertices(revenuePLMesh: Mesh, revenueMesh: Mesh, expensesMesh: Mesh): void {
+    const geometry = revenuePLMesh.geometry;
+    if (!geometry) return;
+
+    const originalVertices = this.originalVertices.get(revenuePLMesh.name);
+    if (!originalVertices) return;
+
+    const vertexData = geometry.getVerticesData('position');
+    if (!vertexData) return;
+
+    // Calculate target positions
+    const revenueTopY = revenueMesh.position.y + (revenueMesh.scaling.y / 2);
+    const expensesTopY = expensesMesh.position.y + (expensesMesh.scaling.y / 2);
+    
+    console.log('🟡 RevenuePL Loss Vertex Calculation:', {
+      revenueTopY: revenueTopY.toFixed(3),
+      expensesTopY: expensesTopY.toFixed(3),
+      heightDifference: (expensesTopY - revenueTopY).toFixed(3)
+    });
+
+    // Create new vertex array based on original
+    const newVertices = new Float32Array(vertexData);
+
+    // Find min and max Y values in original vertices to identify top and bottom
+    let minY = Infinity, maxY = -Infinity;
+    for (let i = 1; i < originalVertices.length; i += 3) {
+      minY = Math.min(minY, originalVertices[i]);
+      maxY = Math.max(maxY, originalVertices[i]);
+    }
+
+    const yRange = maxY - minY;
+    const yMidpoint = (minY + maxY) / 2;
+
+    // Transform vertices: bottom vertices to Revenue top, top vertices to Expenses top
+    for (let i = 1; i < newVertices.length; i += 3) {
+      const originalY = originalVertices[i];
+      
+      if (originalY < yMidpoint) {
+        // Bottom vertices: anchor to Revenue top position
+        newVertices[i] = revenueTopY - revenuePLMesh.position.y;
+      } else {
+        // Top vertices: extend to Expenses top position
+        newVertices[i] = expensesTopY - revenuePLMesh.position.y;
+      }
+    }
+
+    // Apply the new vertex positions
+    geometry.setVerticesData('position', newVertices);
+    geometry.computeVertexNormals();
+
+    console.log('🟡 RevenuePL vertices updated: bottom anchored to Revenue top, top extended to Expenses height');
   }
 
   /**
