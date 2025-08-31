@@ -11,7 +11,7 @@ import { EnvisionerDataContext, createEnvisionerObject } from '../../../core/obj
 import { EnvisionerFoundation } from './EnvisionerFoundation';
 import { EnvisionerPersistence } from './EnvisionerPersistence';
 import { TemplateManager } from './TemplateManager';
-import { FinancialsTemplate } from '../../../core/templates/FinancialsTemplate';
+// import { FinancialsTemplate } from '../../../core/templates/FinancialsTemplate'; // Not used - BMCModelLoader handles Financials
 import { debugLog } from '../../../lib/debug/DebugLogger';
 
 export class EnvisionerUnifiedManager {
@@ -142,52 +142,12 @@ export class EnvisionerUnifiedManager {
   }
 
   /**
-   * Load Financials template using proper 4DVL system
+   * Financials content handled by BMCModelLoader in main component
    */
   private async loadFinancialsContent(): Promise<void> {
-    debugLog.info('unified', '📊 Loading Financials 4DVL content...');
-
-    try {
-      // Create and load Financials template
-      const financialsTemplate = new FinancialsTemplate();
-
-      // Sample financial data
-      const sampleData = {
-        totalRevenue: 1200,
-        totalExpenses: 800,
-        netProfit: 400,
-        netLoss: 0
-      };
-
-      await financialsTemplate.load(this.scene, sampleData);
-
-      // Ensure content is parented to master transform
-      const masterTransform = this.persistence.getMasterTransform();
-      if (masterTransform) {
-        // Parent all financial objects to master transform
-        const financialMeshes = this.scene.meshes.filter(mesh => 
-          mesh.name.includes('Revenue') || 
-          mesh.name.includes('Expenses') || 
-          mesh.name.includes('Profit') || 
-          mesh.name.includes('Loss')
-        );
-
-        financialMeshes.forEach(mesh => {
-          if (!mesh.parent) {
-            mesh.parent = masterTransform;
-          }
-        });
-        
-        // Template manager will find these dynamically by name patterns
-      }
-
-      debugLog.info('unified', '✅ Financials 4DVL content loaded');
-    } catch (error) {
-      debugLog.error('unified', `❌ Failed to load Financials content: ${error}`);
-
-      // Create fallback objects to ensure something displays
-      await this.createFinancialsFallbackObjects();
-    }
+    debugLog.info('unified', '📊 Financials handled by BMCModelLoader in main component');
+    // BMCModelLoader loads the Financials GLB model directly
+    // Template manager finds the meshes dynamically
   }
 
   /**
