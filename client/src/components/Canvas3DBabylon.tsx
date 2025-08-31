@@ -306,6 +306,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     const scene = sceneRef.current;
     const templateName = template.name.toLowerCase();
     
+    // Debug: Log all mesh names to understand what's available
+    console.log('🔍 Available meshes:', scene.meshes.map(m => m.name));
+    
+    let financialMeshCount = 0;
+    let bmcMeshCount = 0;
+    
     // Toggle visibility for template-specific meshes
     scene.meshes.forEach(mesh => {
       // Financial meshes: Revenue, Expenses, RevenuePL, ExpensesPL
@@ -313,6 +319,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         const shouldShow = templateName === 'financials';
         mesh.setEnabled(shouldShow);
         mesh.isVisible = shouldShow;
+        financialMeshCount++;
+        console.log(`💰 ${mesh.name}: ${shouldShow ? 'SHOWN' : 'HIDDEN'}`);
       }
       
       // Business Model meshes: All BMC section names
@@ -325,10 +333,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         const shouldShow = templateName === 'business model' || templateName === 'businessmodel';
         mesh.setEnabled(shouldShow);
         mesh.isVisible = shouldShow;
+        bmcMeshCount++;
+        console.log(`🏢 ${mesh.name}: ${shouldShow ? 'SHOWN' : 'HIDDEN'}`);
       }
     });
     
-    console.log(`👁️ Template visibility switched to: ${templateName}`);
+    console.log(`👁️ Template visibility switched to: ${templateName} (${financialMeshCount} financial, ${bmcMeshCount} BMC meshes processed)`);
   }, [template.name]);
 
 
