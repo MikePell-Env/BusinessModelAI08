@@ -51,10 +51,12 @@ export class TemplateManager {
 
     // Financials template patterns
     this.templatePatterns.set('financials', [
-      'Revenue',
-      'Expenses',
+      'Revenue',    // Matches "Revenue" 
+      'Expenses',   // Matches "Expenses"
+      'RevenuePL',  // Matches "RevenuePL"
+      'ExpensesPL', // Matches "ExpensesPL"
       'Profit',
-      'Loss',
+      'Loss', 
       'Financial_',
       '_fallback'
     ]);
@@ -80,7 +82,7 @@ export class TemplateManager {
    * Check if a mesh belongs to a template based on naming patterns
    */
   private meshBelongsToTemplate(mesh: AbstractMesh, templateName: string): boolean {
-    const patterns = this.templatePatterns.get(templateName);
+    const patterns = this.templatePatterns.get(templateName.toLowerCase());
     if (!patterns) return false;
 
     // Check if mesh name matches any pattern for this template
@@ -91,6 +93,7 @@ export class TemplateManager {
    * Get all meshes for a template - DYNAMIC, no pre-registration needed
    */
   private getTemplateMeshes(templateName: string): AbstractMesh[] {
+    const normalizedTemplateName = templateName.toLowerCase();
     return this.scene.meshes.filter(mesh => {
       // Skip infrastructure meshes
       if (mesh.name === '__root__' || 
@@ -106,13 +109,13 @@ export class TemplateManager {
         if (mesh.name.includes('Internal') || 
             mesh.name.includes('External') || 
             mesh.name.includes('Divider')) {
-          return templateName === 'business-model';
+          return normalizedTemplateName === 'business-model';
         }
         // Other labels are infrastructure (skip)
         return false;
       }
       
-      return this.meshBelongsToTemplate(mesh, templateName);
+      return this.meshBelongsToTemplate(mesh, normalizedTemplateName);
     });
   }
 
@@ -123,22 +126,11 @@ export class TemplateManager {
   public showTemplate(templateName: string): void {
     debugLog.info('template', `Showing template: ${templateName}`);
     
-    // DEBUG: List all meshes in scene
-    console.log(`🔍 DEBUG: All meshes in scene:`);
-    this.scene.meshes.forEach(mesh => {
-      console.log(`  - ${mesh.name} (visible: ${mesh.isVisible})`);
-    });
-    
     // Hide all template meshes first
     this.hideAllTemplates();
     
     // Show meshes for the requested template
     const templateMeshes = this.getTemplateMeshes(templateName);
-    
-    console.log(`🔍 DEBUG: Found ${templateMeshes.length} meshes for template '${templateName}':`);
-    templateMeshes.forEach(mesh => {
-      console.log(`  - ${mesh.name}`);
-    });
     
     templateMeshes.forEach(mesh => {
       // Make visible
