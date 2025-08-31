@@ -53,17 +53,12 @@ export class EnvisionerPersistence {
         this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
       }
       
-      // CRITICAL: Only adjust Y position, preserve X and Z to prevent drift
-      const currentX = this.masterTransform.position.x;
-      const currentZ = this.masterTransform.position.z;
+      // Adjust Y position based on template
       if (templateName.toLowerCase() === 'financials') {
         this.masterTransform.position.y = 0.5; // Lower position for Financials
       } else {
         this.masterTransform.position.y = 2; // Original position for Business Model
       }
-      // Ensure X and Z never change during template switch
-      this.masterTransform.position.x = currentX;
-      this.masterTransform.position.z = currentZ;
       
       return this.masterTransform;
     }
@@ -73,12 +68,10 @@ export class EnvisionerPersistence {
     
     if (this.spatialState && this.spatialState.isInitialized) {
       // Restore position and scale only - rotation is template-specific
-      this.masterTransform.position.x = this.spatialState.position.x;
-      this.masterTransform.position.z = this.spatialState.position.z;
-      // Y position will be set by template-specific logic below
+      this.masterTransform.position = this.spatialState.position.clone();
       this.masterTransform.scaling = this.spatialState.scale.clone();
       
-      debugLog.info('envisioner', `🔄 Restored Envisioner X/Z position and scale for template: ${templateName}`);
+      debugLog.info('envisioner', `🔄 Restored Envisioner position and scale for template: ${templateName}`);
     } else {
       // Initialize with default spatial properties
       this.initializeDefaultSpatialProperties(templateName);
@@ -117,9 +110,7 @@ export class EnvisionerPersistence {
       this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
     }
     
-    // Set default position - ensure X and Z are centered
-    this.masterTransform.position.x = 0; // Always centered
-    this.masterTransform.position.z = 0; // Always centered
+    // Set position based on template
     if (templateName.toLowerCase() === 'financials') {
       this.masterTransform.position.y = 0.5; // Lower position for Financials
     } else {

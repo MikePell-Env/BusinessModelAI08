@@ -98,13 +98,8 @@ export class FinancialsHeightManager {
 
     const vertexData = geometry.getVerticesData('position');
     if (vertexData) {
-      // Store a DEEP copy of the original vertex positions to prevent reference corruption
-      const originalCopy = new Float32Array(vertexData.length);
-      for (let i = 0; i < vertexData.length; i++) {
-        originalCopy[i] = vertexData[i];
-      }
-      this.originalVertices.set(mesh.name, originalCopy);
-      console.log(`🔧 Captured ${vertexData.length} original vertices for ${mesh.name}`);
+      // Store a copy of the original vertex positions
+      this.originalVertices.set(mesh.name, new Float32Array(vertexData));
     }
   }
 
@@ -521,18 +516,12 @@ export class FinancialsHeightManager {
       debugLog.warn('financials', `No original vertices found for ${mesh.name}, falling back to scaling`);
       return;
     }
-    
-    console.log(`🔧 Setting height for ${mesh.name}: factor=${heightFactor}, anchor=${anchorType}`);
 
     const geometry = mesh.geometry;
     if (!geometry) return;
 
-    // Calculate the VISUAL scaling factor for labels (inverse of compression)
-    // If heightFactor = 0.5 (half height), visual stretch = 2.0 (double stretch)
-    const visualStretchFactor = 1.0 / heightFactor;
-    
-    // Store the VISUAL stretch factor for label correction (not the heightFactor)
-    this.currentHeightFactors.set(mesh.name, visualStretchFactor);
+    // Store the height factor for label scaling
+    this.currentHeightFactors.set(mesh.name, heightFactor);
 
     // Create a copy of original vertices to modify
     const newVertices = new Float32Array(originalVertices);
@@ -552,6 +541,13 @@ export class FinancialsHeightManager {
     // CONSTRAIN SCALING: heightFactor represents percentage of original height to show
     // heightFactor 1.0 = full original height, 0.5 = half height, etc.
     // This keeps all scaling WITHIN the original geometry bounds
+    
+    // Calculate the VISUAL scaling factor for labels (inverse of compression)
+    // If heightFactor = 0.5 (half height), visual stretch = 2.0 (double stretch)
+    const visualStretchFactor = 1.0 / heightFactor;
+    
+    // Store the VISUAL stretch factor for label correction (not the heightFactor)
+    this.currentHeightFactors.set(mesh.name, visualStretchFactor);
     
     // Modify vertices based on anchor type - CONSTRAINED to original bounds
     for (let i = 1; i < newVertices.length; i += 3) {
@@ -579,7 +575,6 @@ export class FinancialsHeightManager {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
 
-    console.log(`🔧 Vertex manipulation completed: ${mesh.name} height ${heightFactor}x (${anchorType}-anchored)`);
     debugLog.verbose('financials', `Vertex manipulation: ${mesh.name} height ${heightFactor}x (${anchorType}-anchored)`);
   }
 

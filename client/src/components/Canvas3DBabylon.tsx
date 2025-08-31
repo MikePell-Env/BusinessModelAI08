@@ -297,41 +297,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
   }, [template.name, hasInitializedTemplate]);
 
-  // Handle template content visibility switching WITHOUT destroying scene
-  useEffect(() => {
-    if (!sceneRef.current) return;
-    
-    console.log(`🔄 Switching template content visibility: ${template.name}`);
-    
-    const scene = sceneRef.current;
-    const templateName = template.name.toLowerCase();
-    
-    // Toggle visibility for template-specific meshes
-    scene.meshes.forEach(mesh => {
-      // Financial meshes: Revenue, Expenses, RevenuePL, ExpensesPL
-      if (['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(mesh.name)) {
-        const shouldShow = templateName === 'financials';
-        mesh.setEnabled(shouldShow);
-        mesh.isVisible = shouldShow;
-      }
-      
-      // Business Model meshes: All BMC section names
-      const bmcSectionNames = [
-        'ValuePropositions', 'KeyPartners', 'CustomerSegments', 'KeyResources', 
-        'KeyActivities', 'CustomerChannels', 'CustomerRelationships', 
-        'CostStructure', 'RevenueStreams'
-      ];
-      if (bmcSectionNames.some(section => mesh.name.includes(section))) {
-        const shouldShow = templateName === 'business model' || templateName === 'businessmodel';
-        mesh.setEnabled(shouldShow);
-        mesh.isVisible = shouldShow;
-      }
-    });
-    
-    console.log(`👁️ Template visibility switched to: ${templateName}`);
-  }, [template.name]);
-
-
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
 
@@ -1573,32 +1538,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
-    // SHARED ENVISIONER: Load ALL template models at startup for efficient switching
-    console.log('🏗️ Loading all template content for shared Envisioner...');
-    
-    // Load both Business Model and Financials templates
-    Promise.all([
-      modelLoader.loadTemplateModel('Business Model'),
-      modelLoader.loadTemplateModel('Financials')
-    ]).then(async ([businessModel, financialsModel]) => {
-      const allMeshes = [...businessModel.meshes, ...financialsModel.meshes];
-      console.log(`✅ All templates loaded: Business Model (${businessModel.meshes.length}), Financials (${financialsModel.meshes.length})`);
-      
-      // Hide all template content initially
-      allMeshes.forEach(mesh => {
-        mesh.setEnabled(false);
-        mesh.isVisible = false;
-      });
-      
-      // Show only the active template's content
-      const activeModel = template.name.toLowerCase() === 'financials' ? financialsModel : businessModel;
-      activeModel.meshes.forEach(mesh => {
-        mesh.setEnabled(true);
-        mesh.isVisible = true;
-      });
-      
-      // Use the active template's root mesh
-      const model = activeModel;
+    // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
+    modelLoader.loadTemplateModel(template.name).then(async (model) => {
       if (model.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
 
@@ -3340,7 +3281,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, saveCamera3DState]);
+  }, [canvas, template, saveCamera3DState]);
 
   // Camera is always perspective - no switching needed
 
@@ -3393,8 +3334,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         <h1 className="text-xl font-medium text-gray-900" style={{ fontFamily: 'Segoe UI, sans-serif' }}>{canvas.name}</h1>
       </div>
 
-      {/* Camera Preset Buttons - Top Right with transition feedback */}
-      <div className="absolute right-4 z-10" style={{ top: '25px' }}>
+      {/* Camera Preset Buttons - Top Left with transition feedback */}
+      <div className="absolute left-96 z-10" style={{ top: '25px' }}>
         <div className="flex gap-2">
           <button
             onClick={() => switchCameraPreset('PERSPECTIVE_LEFT')}
@@ -3741,7 +3682,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         className="w-full h-full"
         style={{
           outline: 'none',
-          backgroundColor: '#e9ecef', // RGB(233, 236, 239) - exactly match scene clear color
+          backgroundColor: '#e5e7eb', // Match scene clear color to prevent white flash
           display: 'block',
           minWidth: '100%',
           minHeight: '100%',

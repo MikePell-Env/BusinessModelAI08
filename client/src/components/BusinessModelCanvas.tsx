@@ -45,25 +45,12 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   } = useCanvas();
   
   // Envisioner type state  
-  const { currentTemplate, currentType, isTransitioning: isTemplateTransitioning, transitionProgress, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
-  
-  // Stabilize template object to prevent unnecessary Canvas3D re-renders during transitions
-  const stableTemplate = React.useMemo(() => currentTemplate, [currentTemplate.name, currentTemplate.sections.length]);
+  const { currentTemplate, currentType, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
   
   console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isTransitioning=${isTransitioning}`);
   console.log(`🟡 Current Envisioner Type: ${currentType}, Template: ${currentTemplate.name}`);
   console.log(`🟡 Template sections count: ${currentTemplate.sections.length}`);
   console.log(`🟡 Will render: ${is3D ? 'Canvas3DBabylon' : 'Canvas2D'}`);
-  
-  // REVERTIBLE: Add global revert function for easy rollback
-  React.useEffect(() => {
-    const { _revertToOriginal } = useEnvisionerType.getState();
-    (window as any).revertTemplateTransitions = () => {
-      _revertToOriginal();
-      console.log('🔄 Template transitions reverted to original behavior. Refresh the page to see the changes.');
-    };
-    console.log('💡 To revert enhanced transitions, run: revertTemplateTransitions()');
-  }, []);
   
 
 
@@ -186,7 +173,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
         {/* Envisioner Type Buttons */}
         <Button
           onClick={switchToBusinessModel}
-          disabled={isTransitioning || isTemplateTransitioning}
+          disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
             currentType === 'business-model' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
@@ -198,7 +185,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
 
         <Button
           onClick={switchToFinancials}
-          disabled={isTransitioning || isTemplateTransitioning}
+          disabled={isTransitioning}
           className={`border border-gray-300 shadow-md ${
             currentType === 'financials' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
           }`}
@@ -209,7 +196,6 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
         </Button>
 
       </div>
-      
       
       {/* Main content with minimal padding */}
       <div className="pt-12 h-full relative">
@@ -258,12 +244,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
       {/* Canvas Views */}
       <div className="w-full h-full relative">
         {is3D ? (
-          <Canvas3DBabylon 
-            key="envisioner-3d-canvas" 
-            canvas={canvas} 
-            isTransitioning={isTransitioning} 
-            template={stableTemplate} 
-          />
+          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} template={currentTemplate} />
         ) : (
           <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
         )}
