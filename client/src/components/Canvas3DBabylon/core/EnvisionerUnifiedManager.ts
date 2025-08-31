@@ -5,7 +5,7 @@
  * Handles template switching while maintaining spatial persistence and proper 4DVL content loading.
  */
 
-import { Scene } from '@babylonjs/core';
+import { Scene, ArcRotateCamera } from '@babylonjs/core';
 import { Envisioner, EnvisionerConfig } from '../../../core/Envisioner';
 import { EnvisionerDataContext, createEnvisionerObject } from '../../../core/objects/EnvisionerObject';
 import { EnvisionerFoundation } from './EnvisionerFoundation';
@@ -15,13 +15,15 @@ import { debugLog } from '../../../lib/debug/DebugLogger';
 
 export class EnvisionerUnifiedManager {
   private scene: Scene;
+  private camera: ArcRotateCamera | null = null;
   private coreEnvisioner: Envisioner | null = null;
   private foundation: EnvisionerFoundation | null = null;
   private persistence: EnvisionerPersistence;
   private currentTemplateName: string | null = null;
 
-  constructor(scene: Scene) {
+  constructor(scene: Scene, camera?: ArcRotateCamera) {
     this.scene = scene;
+    this.camera = camera || null;
     this.persistence = EnvisionerPersistence.getInstance();
   }
 
@@ -79,37 +81,14 @@ export class EnvisionerUnifiedManager {
     }
 
     debugLog.info('unified', `🔄 Switching template from ${this.currentTemplateName} to ${newTemplateName}`);
-    
-    // LOG MASTER TRANSFORM POSITION BEFORE AND AFTER EACH STEP
-    const masterTransform = this.persistence.getMasterTransform();
-    if (masterTransform) {
-      const pos = masterTransform.position;
-      const msg = `🟦 BEFORE UNLOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`;
-      console.log(msg);
-      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) }).catch(() => {});
-    }
 
 
     // Step 1: Unload current template content (but preserve foundation)
     await this.unloadCurrentTemplateContent();
-    
-    if (masterTransform) {
-      const pos = masterTransform.position;
-      const msg = `🟨 AFTER UNLOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`;
-      console.log(msg);
-      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) }).catch(() => {});
-    }
 
     // Step 2: Update foundation labels for new template
     if (this.foundation) {
       await this.foundation.createTemplateLabels(newTemplateName);
-    }
-    
-    if (masterTransform) {
-      const pos = masterTransform.position;
-      const msg = `🟩 AFTER LABELS: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`;
-      console.log(msg);
-      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) }).catch(() => {});
     }
 
     // Step 3: Update master transform rotation for new template
@@ -117,16 +96,11 @@ export class EnvisionerUnifiedManager {
 
     // Step 4: Load new template content
     await this.loadTemplateContent(newTemplateName);
-    
-    if (masterTransform) {
-      const pos = masterTransform.position;
-      const msg = `🟪 AFTER LOAD: Master transform at (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`;
-      console.log(msg);
-      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) }).catch(() => {});
-    }
+
+    // Step 5: CRITICAL FIX - Update camera target to master transform position
+    this.updateCameraTarget();
 
     this.currentTemplateName = newTemplateName;
-    
     
     debugLog.info('unified', `✅ Template switched to ${newTemplateName}`);
   }
@@ -290,6 +264,27 @@ export class EnvisionerUnifiedManager {
    */
   public getMasterTransform() {
     return this.persistence.getMasterTransform();
+  }
+
+  /**
+   * Update camera target to master transform position
+   * CRITICAL: Prevents "shift left" issue during template switches
+   */
+  private updateCameraTarget(): void {
+    if (!this.camera) {
+      debugLog.warn('unified', 'No camera reference available for target update');
+      return;
+    }
+
+    const masterTransform = this.persistence.getMasterTransform();
+    if (!masterTransform) {
+      debugLog.warn('unified', 'No master transform available for camera target');
+      return;
+    }
+
+    // Update camera target to master transform position
+    this.camera.setTarget(masterTransform.position.clone());
+    debugLog.info('unified', `📹 Updated camera target to master transform position: (${masterTransform.position.x.toFixed(3)}, ${masterTransform.position.y.toFixed(3)}, ${masterTransform.position.z.toFixed(3)})`);
   }
 
   /**

@@ -253,23 +253,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Handle template switching with unified manager
   useEffect(() => {
     if (unifiedManagerRef.current && hasInitializedTemplate && hasInitializedTemplate !== template.name) {
-      const msg = `🔄 Unified template switch: ${hasInitializedTemplate} -> ${template.name}`;
-      console.log(msg);
-      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) }).catch(() => {});
+      console.log(`🔄 Unified template switch: ${hasInitializedTemplate} -> ${template.name}`);
       
       unifiedManagerRef.current.switchTemplate(template.name).then(() => {
-        const successMsg = `✅ Unified template switch completed to ${template.name}`;
-        console.log(successMsg);
-        fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: successMsg}) }).catch(() => {});
+        console.log(`✅ Unified template switch completed to ${template.name}`);
       }).catch((error) => {
-        const errorMsg = `❌ Unified template switch failed: ${error}`;
-        console.error(errorMsg);
-        fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: errorMsg}) }).catch(() => {});
+        console.error(`❌ Unified template switch failed:`, error);
       });
-    } else {
-      const skipMsg = `⏭️ SKIP: unifiedManager=${!!unifiedManagerRef.current}, hasInit=${hasInitializedTemplate}, template=${template.name}`;
-      console.log(skipMsg);
-      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: skipMsg}) }).catch(() => {});
     }
   }, [template.name, hasInitializedTemplate]);
 
@@ -713,7 +703,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Lighting is now handled by SceneSetupAdapter
 
     // UNIFIED ENVISIONER SYSTEM: Replace fragmented managers with single unified system
-    const unifiedManager = new EnvisionerUnifiedManager(scene);
+    const unifiedManager = new EnvisionerUnifiedManager(scene, perspectiveCamera);
     unifiedManagerRef.current = unifiedManager;
 
     // Initialize unified system for current template using proper async pattern
@@ -3144,7 +3134,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, saveCamera3DState]); // REMOVED template dependency - let unified manager handle template switches
+  }, [canvas, template, saveCamera3DState]);
 
   // Camera is always perspective - no switching needed
 
