@@ -67,12 +67,15 @@ export class FinancialsHeightManager {
         this.currentHeightFactors.set(mesh.name, 1.0);
         
         // Log actual mesh hierarchy and positions
-        console.log(`🔍 ${mesh.name} STRUCTURE:`, {
+        const structureInfo = {
+          name: mesh.name,
           position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
           parent: mesh.parent ? mesh.parent.name : 'NO PARENT',
           rootMesh: mesh.parent ? 'HAS ROOT' : 'DIRECT',
           worldPosition: mesh.getAbsolutePosition()
-        });
+        };
+        console.warn(`🔍 FINANCIAL MESH STRUCTURE:`, structureInfo);
+        debugLog.info('financials', `Mesh structure for ${mesh.name}:`, structureInfo);
         
       }
     });
