@@ -466,18 +466,8 @@ export class FinancialsHeightManager {
     const originalPos = this.originalPositions.get(objectName);
     if (!originalPos) return;
 
-    // SIMPLE SCALING: Use reliable scaling instead of complex vertex manipulation
-    mesh.scaling.y = height / this.baseHeight;
-    
-    // Adjust position based on anchor type to maintain proper anchoring
-    if (anchorType === 'bottom') {
-      // Bottom-anchored: Y position stays at original 
-      mesh.position.y = originalPos.y;
-    } else {
-      // Top-anchored: Adjust Y position to keep top fixed
-      const heightDifference = (height - this.baseHeight);
-      mesh.position.y = originalPos.y - heightDifference / 2;
-    }
+    // Use vertex manipulation but keep mesh position FIXED at original position
+    this.setMeshHeightByVertices(mesh, height, anchorType);
 
     // CRITICAL: Keep mesh position at original loaded position - no movement
     mesh.position.x = originalPos.x;
