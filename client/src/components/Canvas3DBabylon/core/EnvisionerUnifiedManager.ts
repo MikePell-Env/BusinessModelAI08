@@ -151,9 +151,8 @@ export class EnvisionerUnifiedManager {
     } catch (error) {
       debugLog.error('unified', `❌ Failed to load Financials content: ${error}`);
 
-      // Fallback to simple placeholder objects if 4DVL fails
-      debugLog.info('unified', '🔄 Using fallback Financials objects...');
-      await this.createFinancialsFallbackObjects();
+      // Skip fallback - BMCModelLoader handles Financials GLB loading
+      debugLog.info('unified', '⏸️ Skipping fallback objects - GLB system active');
     }
   }
 
