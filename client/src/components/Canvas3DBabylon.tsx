@@ -3581,38 +3581,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               <span className="text-xs text-gray-300">$1M - $10M</span>
             </div>
           </div>
-          <div className="flex gap-2 justify-center">
-            <button
-              onClick={() => {
-                if ((window as any).financialsDataAdapter) {
-                  (window as any).financialsDataAdapter.startSimulation();
-                }
-              }}
-              className="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-xs font-medium transition-colors"
-            >
-              Start Simulation
-            </button>
-            <button
-              onClick={() => {
-                if ((window as any).financialsDataAdapter) {
-                  (window as any).financialsDataAdapter.stopRealTimeUpdates();
-                }
-              }}
-              className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-xs font-medium transition-colors"
-            >
-              Stop Simulation
-            </button>
-            <button
-              onClick={() => {
-                if ((window as any).financialsHeightManager) {
-                  (window as any).financialsHeightManager.resetToBaseHeight();
-                }
-              }}
-              className="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-xs font-medium transition-colors"
-            >
-              Reset Heights
-            </button>
-          </div>
         </div>
       )}
 
