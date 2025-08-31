@@ -11,12 +11,9 @@ import {
   Vector3,
   Animation,
   CubicEase,
-  EasingFunction,
-  MeshBuilder,
-  StandardMaterial,
-  Texture,
-  TransformNode
+  EasingFunction
 } from '@babylonjs/core';
+import * as GUI from '@babylonjs/gui';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
 export interface FinancialData {
@@ -42,15 +39,21 @@ export class FinancialsHeightManager {
   private maxVisualizationHeight: number = 5.0;
   private previousData: FinancialData | null = null;
   
-  // Face-aligned labels system
-  private faceLabels: Map<string, Mesh> = new Map();
+  // GUI labels system using proper Babylon.js approach
+  private guiTexture: GUI.AdvancedDynamicTexture | null = null;
+  private textLabels: Map<string, GUI.TextBlock> = new Map();
   private labelsEnabled: boolean = true;
-  
-  // Transform nodes for label anchoring
-  private labelAnchors: Map<string, TransformNode> = new Map();
 
   constructor(scene: Scene) {
     this.scene = scene;
+    this.initializeGUI();
+  }
+
+  /**
+   * Initialize fullscreen GUI texture for labels (proper Babylon.js approach)
+   */
+  private initializeGUI(): void {
+    this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("FinancialsUI");
   }
 
 
@@ -70,12 +73,9 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        // Create transform node anchor for this mesh (without moving geometry)
-        this.createLabelAnchor(mesh);
-        
-        // Create label using the anchor
+        // Create GUI text label using proper Babylon.js approach
         if (this.labelsEnabled) {
-          this.createFaceAlignedLabel(mesh);
+          this.createTextLabel(mesh);
         }
         
       }
@@ -584,108 +584,48 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Create transform node anchor for label positioning
+   * Create GUI text label using proper Babylon.js method
    */
-  private createLabelAnchor(mesh: Mesh): void {
-    const anchor = new TransformNode(`${mesh.name}_anchor`, this.scene);
+  private createTextLabel(mesh: Mesh): void {
+    if (!this.guiTexture) return;
     
-    // Get mesh bounding info to position anchor at top center
-    mesh.refreshBoundingInfo();
-    const bounds = mesh.getBoundingInfo();
-    const center = bounds.boundingBox.center;
-    const max = bounds.boundingBox.maximum;
+    const meshName = mesh.name;
     
-    // Position anchor at the top center of the mesh (above ground)
-    anchor.position.x = center.x;
-    anchor.position.y = Math.max(max.y + 0.5, 1.0); // Ensure above ground plane
-    anchor.position.z = center.z;
+    // Create TextBlock using proper Babylon.js GUI
+    const textBlock = new GUI.TextBlock();
     
-    // Store anchor reference
-    this.labelAnchors.set(mesh.name, anchor);
+    // Set display names
+    const displayNames: Record<string, string> = {
+      'Revenue': 'Revenue $10M',
+      'Expenses': 'Expenses $8M', 
+      'ExpensesPL': 'Profit $2M',
+      'RevenuePL': 'Loss $0M'
+    };
     
-    debugLog.info('financials', `Label anchor created for ${mesh.name} at (${anchor.position.x}, ${anchor.position.y}, ${anchor.position.z})`);
+    textBlock.text = displayNames[meshName] || meshName;
+    textBlock.color = "white";
+    textBlock.fontSize = 18;
+    textBlock.fontFamily = "Arial";
+    
+    // Add to GUI texture (must be at root level)
+    this.guiTexture.addControl(textBlock);
+    
+    // Link to mesh - this is the key method that makes it work!
+    textBlock.linkWithMesh(mesh);
+    textBlock.linkOffsetY = -30; // Position above mesh
+    
+    // Store reference
+    this.textLabels.set(meshName, textBlock);
+    
+    debugLog.info('financials', `GUI text label created for ${meshName}`);
   }
 
   /**
-   * Update label position to track mesh center after vertex manipulation
+   * Update label text values (called when financial data changes)
    */
   private updateLabelPosition(mesh: Mesh): void {
-    // Update anchor position to track mesh changes
-    const anchor = this.labelAnchors.get(mesh.name);
-    if (anchor) {
-      // Get updated mesh bounds after vertex manipulation
-      mesh.refreshBoundingInfo();
-      const bounds = mesh.getBoundingInfo();
-      const center = bounds.boundingBox.center;
-      const max = bounds.boundingBox.maximum;
-      
-      // Keep anchor at top center of mesh
-      anchor.position.x = center.x;
-      anchor.position.y = Math.max(max.y + 0.5, 1.0); // Always above ground
-      anchor.position.z = center.z;
-    }
-    
-    // Update label position if it exists
-    const label = this.faceLabels.get(mesh.name);
-    if (label && anchor) {
-      // Position label at anchor position (already above mesh)
-      label.position.copyFrom(anchor.position);
-    }
-  }
-
-  /**
-   * Create simple text label using transform anchor
-   */
-  private createFaceAlignedLabel(mesh: Mesh): void {
-    const meshName = mesh.name;
-    const anchor = this.labelAnchors.get(meshName);
-    if (!anchor) return;
-    
-    try {
-      // Create simple text plane
-      const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
-        width: 1.0,
-        height: 0.4,
-        sideOrientation: Mesh.FRONTSIDE
-      }, this.scene);
-      
-      // Create simple colored material
-      const material = new StandardMaterial(`${meshName}LabelMat`, this.scene);
-      
-      // Color based on mesh type
-      const colors = {
-        'Revenue': '#00FF00',      // Green
-        'Expenses': '#FF0000',     // Red  
-        'ExpensesPL': '#000000',   // Black (Profit)
-        'RevenuePL': '#FFD700'     // Gold (Loss)
-      };
-      
-      const colorHex = (colors as any)[meshName] || '#FFFFFF';
-      material.diffuseColor = this.hexToColor3(colorHex);
-      material.emissiveColor = material.diffuseColor;
-      
-      labelPlane.material = material;
-      
-      // Position using anchor (already positioned above mesh)
-      labelPlane.position.copyFrom(anchor.position);
-      
-      // Store label
-      this.faceLabels.set(meshName, labelPlane);
-      
-      debugLog.info('financials', `Simple label created for ${meshName} using anchor`);
-    } catch (error) {
-      debugLog.warn('financials', `Failed to create simple label for ${meshName}:`, error);
-    }
-  }
-
-  /**
-   * Convert hex color to Babylon Color3
-   */
-  private hexToColor3(hex: string): any {
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-    return new Vector3(r, g, b);
+    // Labels automatically track mesh position via linkWithMesh - no manual update needed!
+    // This is the beauty of the proper Babylon.js GUI approach
   }
   
   /**
