@@ -253,9 +253,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Handle template switching with unified manager
   useEffect(() => {
     if (unifiedManagerRef.current && hasInitializedTemplate && hasInitializedTemplate !== template.name) {
+      // Log full camera state BEFORE template switch
+      if (cameraRef.current) {
+        const cam = cameraRef.current;
+        const target = cam.getTarget();
+        console.log(`🔄 BEFORE SWITCH: Camera α=${cam.alpha.toFixed(3)}, β=${cam.beta.toFixed(3)}, r=${cam.radius.toFixed(3)}, target=(${target.x.toFixed(3)}, ${target.y.toFixed(3)}, ${target.z.toFixed(3)})`);
+      }
+      
       console.log(`🔄 Unified template switch: ${hasInitializedTemplate} -> ${template.name}`);
       
       unifiedManagerRef.current.switchTemplate(template.name).then(() => {
+        // Log full camera state AFTER template switch
+        if (cameraRef.current) {
+          const cam = cameraRef.current;
+          const target = cam.getTarget();
+          console.log(`✅ AFTER SWITCH: Camera α=${cam.alpha.toFixed(3)}, β=${cam.beta.toFixed(3)}, r=${cam.radius.toFixed(3)}, target=(${target.x.toFixed(3)}, ${target.y.toFixed(3)}, ${target.z.toFixed(3)})`);
+        }
         console.log(`✅ Unified template switch completed to ${template.name}`);
       }).catch((error) => {
         console.error(`❌ Unified template switch failed:`, error);
