@@ -3436,8 +3436,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Store current slider values in window object for isolation
             if (!((window as any).financialSliderState)) {
               (window as any).financialSliderState = {
-                revenue: 1000,  // $10M default (100% on slider)
-                expenses: 800   // $8M default (80% on slider)
+                revenue: 100,   // 100% Revenue (no loss)
+                expenses: 80    // 80% Expenses (20% profit)
               };
             }
             
@@ -3458,19 +3458,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               <div className="revenue-display text-xs text-green-400 mb-1">$10M</div>
               <input
                 type="range"
-                min="100"
-                max="1000"
-                defaultValue="1000"
+                min="0"
+                max="100"
+                defaultValue="100"
                 id="revenue-slider"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
-                  const revenue = parseInt(e.target.value);
+                  const revenuePercent = parseInt(e.target.value);
                   // Update isolated state
-                  (window as any).financialSliderState.revenue = revenue;
+                  (window as any).financialSliderState.revenue = revenuePercent;
 
                   console.log('💚 Revenue slider moved:', {
-                    revenue: revenue,
-                    newValue: `$${(revenue * 10 / 1000).toFixed(0)}M`
+                    revenuePercent: revenuePercent + '%',
+                    newValue: `${revenuePercent}% Revenue, ${100-revenuePercent}% Loss`
                   });
 
                   // ISOLATED REVENUE UPDATE: Percentage-based height distribution
@@ -3481,8 +3481,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     const HEIGHT_SCALE = 500.0;
                     const FIXED_TOTAL_HEIGHT = 1000 / HEIGHT_SCALE; // Always 2.0 units total
                     
-                    // Calculate percentages: Revenue slider value determines the split
-                    const revenuePercentage = revenue / 1000; // 0.0 to 1.0
+                    // Calculate percentages: Revenue slider is already percentage
+                    const revenuePercentage = revenuePercent / 100; // 0.0 to 1.0
                     const lossPercentage = 1.0 - revenuePercentage; // Remaining percentage
                     
                     // Apply percentage distribution
@@ -3501,23 +3501,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     
                     // ALSO UPDATE EXPENSES GROUP: When revenue changes, profit changes
                     const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
-                    const currentExpenses = expensesSlider ? parseInt(expensesSlider.value) : 800;
-                    const profit = Math.max(0, revenue - currentExpenses);
+                    const currentExpensesPercent = expensesSlider ? parseInt(expensesSlider.value) : 80;
+                    const currentExpensesValue = currentExpensesPercent * 10; // Convert % to dollar value ($1M per %)
+                    const totalRevenueValue = 1000; // Fixed $10M revenue
+                    const profit = Math.max(0, totalRevenueValue - currentExpensesValue);
                     const expensesPLHeight = profit / HEIGHT_SCALE;
                     
                     console.log('💚 Revenue changed - updating ExpensesPL:', {
-                      revenue: revenue,
-                      expenses: currentExpenses,
-                      profit: profit,
+                      revenuePercent: revenuePercent + '%',
+                      expensesValue: '$' + (currentExpensesValue/100).toFixed(0) + 'M',
+                      profit: '$' + (profit/100).toFixed(0) + 'M',
                       expensesPLHeight: expensesPLHeight.toFixed(3)
                     });
                     
                     heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
                   }
 
-                  // Update the display values
+                  // Update the display values (Revenue is always $10M total)
                   const revenueDisplay = document.querySelector('.revenue-display');
-                  if (revenueDisplay) revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
+                  if (revenueDisplay) revenueDisplay.textContent = `$10M (${revenuePercent}% Rev, ${100-revenuePercent}% Loss)`;
                 }}
               />
               <div className="flex justify-between text-xs text-gray-300 mt-1 relative">
@@ -3531,40 +3533,41 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               <div className="expenses-display text-xs text-red-400 mb-1">$8M</div>
               <input
                 type="range"
-                min="100"
-                max="1000"
-                defaultValue="800"
+                min="0"
+                max="100"
+                defaultValue="80"
                 id="expenses-slider"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
-                  const expenses = parseInt(e.target.value);
+                  const expensesPercent = parseInt(e.target.value);
                   // Update isolated state
-                  (window as any).financialSliderState.expenses = expenses;
+                  (window as any).financialSliderState.expenses = expensesPercent;
 
                   console.log('🔴 Expenses slider moved:', {
-                    expenses: expenses,
-                    newValue: `$${(expenses * 10 / 1000).toFixed(0)}M`
+                    expensesPercent: expensesPercent + '%',
+                    newValue: `$${(expensesPercent/10).toFixed(0)}M`
                   });
 
                   // ISOLATED EXPENSES UPDATE: Only update Expenses objects, no cross-contamination
                   if ((window as any).financialsHeightManager) {
                     const heightManager = (window as any).financialsHeightManager;
                     
-                    // Get current revenue value from actual slider position for profit calculation
-                    const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
-                    const currentRevenue = revenueSlider ? parseInt(revenueSlider.value) : 700;
+                    // Fixed revenue is always $10M
+                    const totalRevenue = 1000; // Always $10M
+                    const expensesValue = expensesPercent * 10; // Convert % to dollar value
                     
                     // Calculate profit for ExpensesPL object
-                    const profit = Math.max(0, currentRevenue - expenses);
+                    const profit = Math.max(0, totalRevenue - expensesValue);
                     
                     // Direct height updates
                     const HEIGHT_SCALE = 500.0;
-                    const expensesHeight = expenses / HEIGHT_SCALE;
+                    const expensesHeight = expensesValue / HEIGHT_SCALE;
                     const expensesPLHeight = profit / HEIGHT_SCALE;
                     
                     console.log('🔴 Expenses Group Update:', {
-                      expenses: expenses,
-                      profit: profit,
+                      expensesPercent: expensesPercent + '%',
+                      expensesValue: '$' + (expensesValue/100).toFixed(0) + 'M',
+                      profit: '$' + (profit/100).toFixed(0) + 'M',
                       expensesHeight: expensesHeight.toFixed(3),
                       expensesPLHeight: expensesPLHeight.toFixed(3)
                     });
@@ -3575,12 +3578,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
                   // Update the display values
                   const expensesDisplay = document.querySelector('.expenses-display');
-                  if (expensesDisplay) expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
+                  if (expensesDisplay) expensesDisplay.textContent = `$${(expensesValue/100).toFixed(0)}M`;
                 }}
               />
               <div className="flex justify-between text-xs text-gray-300 mt-1 relative">
                 <span>$0M</span>
-                <span className="absolute -top-3 text-red-400" style={{left: '77.78%'}}>|</span>
+                <span className="absolute -top-3 text-red-400" style={{left: '80%'}}>|</span>
                 <span>$12M</span>
               </div>
             </div>
