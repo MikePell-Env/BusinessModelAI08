@@ -158,39 +158,30 @@ export class FinancialsController {
 
   /**
    * Apply calculated heights to 3D objects through HeightManager
+   * CRITICAL: ALL FOUR objects must be updated on every slider interaction
    */
   private applyHeightsToObjects(state: FinancialSystemState, animated: boolean): void {
     const duration = animated ? 1000 : 0;
     
-    // Convert state heights back to slider values for HeightManager compatibility
-    const revenueSliderValue = state.revenueHeight * this.HEIGHT_SCALE;
-    const expensesSliderValue = state.expensesHeight * this.HEIGHT_SCALE;
-    
-    console.log('🎯 FinancialsController applying heights:', {
-      revenueHeight: state.revenueHeight.toFixed(3),
-      revenuePLHeight: state.revenuePLHeight.toFixed(3),
-      expensesHeight: state.expensesHeight.toFixed(3),
-      expensesPLHeight: state.expensesPLHeight.toFixed(3),
-      scenario: state.isProfit ? 'PROFIT' : 'LOSS'
+    console.log('🎯 FinancialsController: Applying ALL FOUR object heights in real-time:', {
+      scenario: state.isProfit ? 'PROFIT' : 'LOSS',
+      revenue: `${state.revenueHeight.toFixed(3)} (${state.revenuePercent}%)`,
+      revenuePL: `${state.revenuePLHeight.toFixed(3)} (${state.revenuePLPercent}%)`,
+      expenses: `${state.expensesHeight.toFixed(3)} (${state.expensesPercent}%)`,
+      expensesPL: `${state.expensesPLHeight.toFixed(3)} (${state.expensesPLPercent}%)`,
+      groupHeight: state.groupHeight.toFixed(3)
     });
     
-    if (animated) {
-      // Use animated updates
-      this.heightManager.updateHeightsFromData({
-        revenue: revenueSliderValue,
-        expenses: expensesSliderValue,
-        profit: state.profit,
-        loss: state.loss
-      }, duration);
-    } else {
-      // Use immediate updates - call the controller-compatible method
-      this.heightManager.setHeightsFromController({
-        revenueHeight: state.revenueHeight,
-        revenuePLHeight: state.revenuePLHeight,
-        expensesHeight: state.expensesHeight,
-        expensesPLHeight: state.expensesPLHeight
-      });
-    }
+    // ALWAYS use immediate updates for real-time slider tracking
+    // This ensures ALL FOUR objects update on every slider movement
+    this.heightManager.setHeightsFromController({
+      revenueHeight: state.revenueHeight,
+      revenuePLHeight: state.revenuePLHeight,
+      expensesHeight: state.expensesHeight,
+      expensesPLHeight: state.expensesPLHeight
+    });
+    
+    console.log('✅ FinancialsController: All four object heights applied successfully');
   }
 
   /**

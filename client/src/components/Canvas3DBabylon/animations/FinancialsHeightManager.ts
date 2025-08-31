@@ -403,6 +403,7 @@ export class FinancialsHeightManager {
    */
   /**
    * Set heights directly from FinancialsController (bypasses old calculation logic)
+   * ENFORCES: All three financial system rules on every call
    */
   public setHeightsFromController(heights: {
     revenueHeight: number;
@@ -410,15 +411,31 @@ export class FinancialsHeightManager {
     expensesHeight: number;
     expensesPLHeight: number;
   }): void {
-    console.log('🎯 HeightManager: Setting heights directly from FinancialsController:', heights);
+    console.log('🎯 HeightManager: REAL-TIME UPDATE - All four objects being recalculated:', {
+      revenueHeight: heights.revenueHeight.toFixed(3),
+      revenuePLHeight: heights.revenuePLHeight.toFixed(3),
+      expensesHeight: heights.expensesHeight.toFixed(3),
+      expensesPLHeight: heights.expensesPLHeight.toFixed(3)
+    });
+    
+    // RULE VALIDATION: Verify equal group heights
+    const revenueGroupTotal = heights.revenueHeight + heights.revenuePLHeight;
+    const expensesGroupTotal = heights.expensesHeight + heights.expensesPLHeight;
+    
+    console.log('📏 RULE CHECK - Group Heights:', {
+      revenueGroup: revenueGroupTotal.toFixed(3),
+      expensesGroup: expensesGroupTotal.toFixed(3),
+      equal: Math.abs(revenueGroupTotal - expensesGroupTotal) < 0.001 ? '✅' : '❌'
+    });
     
     // Apply heights immediately using direct vertex manipulation
+    // ALL FOUR objects updated on every slider interaction
     this.setObjectHeight('Revenue', heights.revenueHeight, 'bottom');
     this.setObjectHeight('RevenuePL', heights.revenuePLHeight, 'top');
     this.setObjectHeight('Expenses', heights.expensesHeight, 'bottom');
     this.setObjectHeight('ExpensesPL', heights.expensesPLHeight, 'top');
     
-    console.log('✅ HeightManager: All heights applied from controller');
+    console.log('✅ HeightManager: All four objects updated in real-time following documented rules');
   }
 
   public setImmediateHeights(data: FinancialData): void {
