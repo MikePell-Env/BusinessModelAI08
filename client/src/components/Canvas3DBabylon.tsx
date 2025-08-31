@@ -253,22 +253,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Handle template switching with unified manager
   useEffect(() => {
     if (unifiedManagerRef.current && currentTemplate && currentTemplate !== template.name) {
-      // Log full camera state BEFORE template switch
-      if (cameraRef.current) {
-        const cam = cameraRef.current;
-        const target = cam.getTarget();
-        console.log(`🔄 BEFORE SWITCH: Camera α=${cam.alpha.toFixed(3)}, β=${cam.beta.toFixed(3)}, r=${cam.radius.toFixed(3)}, target=(${target.x.toFixed(3)}, ${target.y.toFixed(3)}, ${target.z.toFixed(3)})`);
-      }
-      
       console.log(`🔄 Unified template switch: ${currentTemplate} -> ${template.name}`);
       
       unifiedManagerRef.current.switchTemplate(template.name).then(() => {
-        // Log full camera state AFTER template switch
-        if (cameraRef.current) {
-          const cam = cameraRef.current;
-          const target = cam.getTarget();
-          console.log(`✅ AFTER SWITCH: Camera α=${cam.alpha.toFixed(3)}, β=${cam.beta.toFixed(3)}, r=${cam.radius.toFixed(3)}, target=(${target.x.toFixed(3)}, ${target.y.toFixed(3)}, ${target.z.toFixed(3)})`);
-        }
         console.log(`✅ Unified template switch completed to ${template.name}`);
         setCurrentTemplate(template.name); // Update current template AFTER switch completes
       }).catch((error) => {
@@ -733,14 +720,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
       // CRITICAL FIX: Update camera target to master transform position after initialization
       if (cameraRef.current && masterTransform) {
-        const oldTarget = cameraRef.current.getTarget();
-        console.log(`🎯 INITIAL: Camera target before init (${oldTarget.x.toFixed(3)}, ${oldTarget.y.toFixed(3)}, ${oldTarget.z.toFixed(3)})`);
-        
         cameraRef.current.setTarget(masterTransform.position.clone());
-        
-        const newTarget = cameraRef.current.getTarget();
-        console.log(`🎯 INITIAL: Camera target after init (${newTarget.x.toFixed(3)}, ${newTarget.y.toFixed(3)}, ${newTarget.z.toFixed(3)})`);
-        console.log(`🎯 INITIAL: Master transform at (${masterTransform.position.x.toFixed(3)}, ${masterTransform.position.y.toFixed(3)}, ${masterTransform.position.z.toFixed(3)})`);
       }
 
       console.log(`✅ Unified Manager initialized for ${template.name}`);
@@ -2994,16 +2974,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     }, 1000);
 
-    // AUTO-SWITCH: After 3 seconds, automatically switch on VERY FIRST instantiation only
-    // Business Model (TOP) -> PERSPECTIVE_RIGHT, Financials (FRONT) -> FRONT
-    // This should NEVER happen when switching between templates - only on first-ever load
-    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && shouldAutoAnimateRef.current) {
-      console.log(`🎬 First-time instantiation: Will auto-animate ${template.name} after 2 seconds`);
-    } else if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && !shouldAutoAnimateRef.current) {
-      console.log(`🔄 Template switch: Skipping auto-animation for ${template.name} (preserving camera position)`);
+    // AUTO-SWITCH: Business Model only - automatically switch from TOP -> PERSPECTIVE_RIGHT
+    // Financials should NEVER auto-animate
+    const shouldAutoSwitch = template.name.toLowerCase() !== 'financials' && 
+                            currentCameraPreset === 'TOP' && 
+                            shouldAutoAnimateRef.current;
+    
+    if (shouldAutoSwitch) {
+      console.log(`🎬 First-time instantiation: Will auto-animate Business Model after 2 seconds`);
+    } else if (!shouldAutoSwitch && shouldAutoAnimateRef.current) {
+      console.log(`🔄 No auto-animation for ${template.name}`);
     }
 
-    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && shouldAutoAnimateRef.current) {
+    if (shouldAutoSwitch) {
       // Flag to track if user has manually moved camera - EASY TO REVERT: just remove this flag and the condition below
       let userHasMovedCamera = false;
 
@@ -3042,15 +3025,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       setTimeout(() => {
         // Check if user moved camera before auto-switching
         if (!userHasMovedCamera) {
-          // Auto-switch logic: Business Model goes to PERSPECTIVE_RIGHT, Financials stays manual
-          if (template.name.toLowerCase() === 'financials') {
-            console.log("🎬 Auto-switch disabled for Financials - manual preset selection only");
-          } else {
-            console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds for Business Model");
-            // Force transition to false to ensure switchCameraPreset works
-            setIsTransitioningCamera(false);
-            setTimeout(() => switchCameraPreset('PERSPECTIVE_RIGHT'), 100);
-          }
+          console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds for Business Model");
+          // Force transition to false to ensure switchCameraPreset works
+          setIsTransitioningCamera(false);
+          setTimeout(() => switchCameraPreset('PERSPECTIVE_RIGHT'), 100);
         } else {
           console.log("🎬 Auto-switch cancelled - user moved camera manually");
         }

@@ -179,10 +179,10 @@ export class EnvisionerUnifiedManager {
     const { Vector3 } = await import('@babylonjs/core');
     
     const financialObjects = [
-      { name: 'Revenue', pos: new Vector3(-0.221, 0, 2), color: [0.2, 0.8, 0.3] },    // Same X as Revenue Streams
-      { name: 'Loss', pos: new Vector3(-0.221, 0, -2), color: [1.0, 0.8, 0.0] },      // Same X as Revenue Streams  
-      { name: 'Expenses', pos: new Vector3(-10.1, 0, 2), color: [0.8, 0.2, 0.2] },   // Same X as Cost Structure
-      { name: 'Profit', pos: new Vector3(-10.1, 0, -2), color: [0.1, 0.1, 0.1] }     // Same X as Cost Structure
+      { name: 'Revenue', pos: new Vector3(-3, 0, 2), color: [0.2, 0.8, 0.3] },    // Left side, front
+      { name: 'Loss', pos: new Vector3(-3, 0, -2), color: [1.0, 0.8, 0.0] },      // Left side, back  
+      { name: 'Expenses', pos: new Vector3(3, 0, 2), color: [0.8, 0.2, 0.2] },    // Right side, front
+      { name: 'Profit', pos: new Vector3(3, 0, -2), color: [0.1, 0.1, 0.1] }      // Right side, back
     ];
 
     financialObjects.forEach(obj => {
@@ -272,27 +272,19 @@ export class EnvisionerUnifiedManager {
    */
   private updateCameraTarget(): void {
     if (!this.camera) {
-      console.log('❌ CAMERA UPDATE FAILED: No camera reference available');
+      debugLog.warn('unified', 'No camera reference available for target update');
       return;
     }
 
     const masterTransform = this.persistence.getMasterTransform();
     if (!masterTransform) {
-      console.log('❌ CAMERA UPDATE FAILED: No master transform available');
+      debugLog.warn('unified', 'No master transform available for camera target');
       return;
     }
 
-    // Get current camera target before update
-    const oldTarget = this.camera.getTarget();
-    console.log(`📹 BEFORE: Camera target at (${oldTarget.x.toFixed(3)}, ${oldTarget.y.toFixed(3)}, ${oldTarget.z.toFixed(3)})`);
-
     // Update camera target to master transform position
     this.camera.setTarget(masterTransform.position.clone());
-    
-    // Get new camera target after update
-    const newTarget = this.camera.getTarget();
-    console.log(`📹 AFTER: Camera target at (${newTarget.x.toFixed(3)}, ${newTarget.y.toFixed(3)}, ${newTarget.z.toFixed(3)})`);
-    console.log(`📹 Master transform at (${masterTransform.position.x.toFixed(3)}, ${masterTransform.position.y.toFixed(3)}, ${masterTransform.position.z.toFixed(3)})`);
+    debugLog.info('unified', `Updated camera target to master transform position`);
   }
 
   /**
