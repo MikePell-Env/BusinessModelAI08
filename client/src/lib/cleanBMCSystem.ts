@@ -43,21 +43,15 @@ export class CleanBMCSystem {
       mesh.material = material;
     }
 
-    // CRITICAL FIX: Don't overwrite originalHeight if item already exists (template switch)
-    const existingItem = this.items.get(name);
-    const heightToStore = existingItem ? existingItem.originalHeight : (originalHeight || mesh.scaling.y);
-
     this.items.set(name, {
       mesh,
       material,
-      originalHeight: heightToStore, // Preserve original height across template switches
+      originalHeight: mesh.scaling.y,
       baseColor: baseColor.clone()
     });
 
-    // Initialize with proper state only if this is a new registration
-    if (!existingItem) {
-      this.applyState(name, 'normal');
-    }
+    // Initialize with proper state
+    this.applyState(name, 'normal');
   }
 
   // Handle selection

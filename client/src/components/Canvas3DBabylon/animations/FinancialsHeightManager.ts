@@ -34,11 +34,6 @@ export class FinancialsHeightManager {
   private originalPositions: Map<string, Vector3> = new Map();
   private originalVertices: Map<string, Float32Array> = new Map();
   private currentHeightFactors: Map<string, number> = new Map();
-  
-  // PURE VERTEX SYSTEM: Track actual vertex-based heights instead of scaling
-  private currentVertexHeights: Map<string, number> = new Map();
-  private originalMeshBounds: Map<string, {minY: number, maxY: number, height: number}> = new Map();
-  
   private baseHeight: number = 1.0;
   private maxVisualizationHeight: number = 5.0;
   private previousData: FinancialData | null = null;
@@ -61,9 +56,8 @@ export class FinancialsHeightManager {
         // Store original vertex positions for direct manipulation
         this.captureOriginalVertices(mesh);
         
-        // Initialize vertex-based height tracking
+        // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
-        this.currentVertexHeights.set(mesh.name, 1.0); // Default height
         
         console.log(`🔧 Registered financial mesh: ${mesh.name}`);
       }
@@ -76,10 +70,10 @@ export class FinancialsHeightManager {
       console.log('🔧 All 4 meshes registered, applying default heights immediately...');
       setTimeout(() => {
         this.setImmediateHeights({
-          revenue: 1000,   // $10M - Revenue block
-          expenses: 800,   // $8M - Expenses block
-          profit: 200,     // $2M profit - ExpensesPL block on top
-          loss: 0          // $0M - RevenuePL invisible
+          revenue: 1000,   // $10M
+          expenses: 800,   // $8M
+          profit: 200,     // $2M profit
+          loss: 0          // No loss
         });
         console.log('🔧 Default heights applied immediately after mesh registration');
       }, 10); // Very short delay to ensure mesh setup is complete
@@ -96,7 +90,7 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Capture original vertex positions and bounds for pure vertex manipulation
+   * Capture original vertex positions for later manipulation
    */
   private captureOriginalVertices(mesh: Mesh): void {
     const geometry = mesh.geometry;
@@ -106,24 +100,6 @@ export class FinancialsHeightManager {
     if (vertexData) {
       // Store a copy of the original vertex positions
       this.originalVertices.set(mesh.name, new Float32Array(vertexData));
-      
-      // Calculate original mesh bounds for vertex manipulation
-      let minY = Number.MAX_VALUE;
-      let maxY = Number.MIN_VALUE;
-      
-      for (let i = 1; i < vertexData.length; i += 3) {
-        const y = vertexData[i];
-        minY = Math.min(minY, y);
-        maxY = Math.max(maxY, y);
-      }
-      
-      this.originalMeshBounds.set(mesh.name, {
-        minY: minY,
-        maxY: maxY,
-        height: maxY - minY
-      });
-      
-      console.log(`🔧 Captured vertex bounds for ${mesh.name}: minY=${minY.toFixed(3)}, maxY=${maxY.toFixed(3)}, height=${(maxY - minY).toFixed(3)}`);
     }
   }
 
@@ -177,26 +153,21 @@ export class FinancialsHeightManager {
     const revenue = Math.max(Math.min(data.revenue, 1000), 100);
     const expenses = Math.max(Math.min(data.expenses, 1000), 100);
     
-    // CENTRALIZED: Use FinancialsController for ALL calculations
-    // Import the global FinancialsController instance
-    const controller = (window as any).financialsController;
-    if (!controller) {
-      console.error('❌ FinancialsController not found on window object');
-      return;
-    }
+    // Calculate profit/loss based on actual slider values
+    const profit = Math.max(0, revenue - expenses);
+    const loss = Math.max(0, expenses - revenue);
     
-    // Let FinancialsController handle all calculations and rule enforcement
-    const state = controller.updateFinancialSystem({ revenue, expenses }, false);
+    const HEIGHT_SCALE = 500.0;
     
-    // Use the calculated values from controller
-    const revenueHeight = state.revenueHeight;
-    const revenuePLHeight = state.revenuePLHeight;
-    const expensesHeight = state.expensesHeight;
-    const expensesPLHeight = state.expensesPLHeight;
-    const profit = state.profit;
-    const loss = state.loss;
+    // Calculate heights EXACTLY like Expenses Group logic
+    // Revenue Group: Revenue object = slider value, RevenuePL object = loss amount
+    // SAME PATTERN as Expenses Group: Expenses object = slider value, ExpensesPL object = profit amount
+    const revenueHeight = revenue / HEIGHT_SCALE;  // Revenue object: direct slider value
+    const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
     
-    console.log(`🎯 SIMPLIFIED: Using FinancialsController for all calculations`);
+    // Expenses Group: Expenses = actual value, ExpensesPL = profit
+    const expensesHeight = expenses / HEIGHT_SCALE;
+    const expensesPLHeight = profit / HEIGHT_SCALE;
     
     // SELECTIVE UPDATES: Only animate objects whose values actually changed
     const animations: Promise<void>[] = [];
@@ -207,9 +178,9 @@ export class FinancialsHeightManager {
     const profitChanged = this.previousData.profit !== profit;
     const lossChanged = this.previousData.loss !== loss;
     
-    // Revenue object updates (when group height changes due to revenue or expenses)
-    if (revenueChanged || expensesChanged) {
-      console.log('🟢 REVENUE UPDATE: Group height changed, new Revenue height:', revenueHeight.toFixed(3));
+    // Revenue object updates (when Revenue slider moves)
+    if (revenueChanged) {
+      console.log('🟢 REVENUE UPDATE: Revenue changed:', this.previousData.revenue, '→', revenue);
       animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
     }
     
@@ -330,15 +301,13 @@ export class FinancialsHeightManager {
         targetPosition = 0;
       }
 
-      // STEP 3: Use vertex manipulation for Expenses only, scaling for others (including ExpensesPL)
-      if (objectName === 'Expenses') {
+      // STEP 3: Use vertex manipulation for Expenses and ExpensesPL, scaling for others
+      if (objectName === 'Expenses' || objectName === 'ExpensesPL') {
         // Use vertex manipulation instead of scaling for Expenses group
-        console.log(`🎯 VERTEX PATH: ${objectName} targetHeight=${targetHeight.toFixed(3)}, baseHeight=${this.baseHeight}`);
         debugLog.info('financials', `🔧 VERTEX: Animating ${objectName} height via vertex manipulation to ${targetHeight}`);
         
         // Convert target height to height factor (relative to base height)
         const heightFactor = targetHeight / this.baseHeight;
-        console.log(`🎯 VERTEX PATH: ${objectName} heightFactor=${heightFactor.toFixed(3)} (${targetHeight.toFixed(3)} / ${this.baseHeight})`);
         
         // Apply vertex manipulation directly (immediate, no animation for now)
         this.setMeshHeightByVertices(mesh, heightFactor, anchorType);
@@ -349,7 +318,6 @@ export class FinancialsHeightManager {
         // DO NOT MOVE THE MESH - vertex manipulation keeps mesh in fixed position
         // mesh.position.y stays exactly where it was set during model loading
         
-        console.log(`✅ VERTEX PATH: ${objectName} vertex manipulation completed - mesh position FIXED`);
         debugLog.info('financials', `🔧 VERTEX: ${objectName} height set to factor ${heightFactor} (target: ${targetHeight}) - mesh position FIXED`);
         
         // Resolve immediately since vertex manipulation is instant
@@ -420,52 +388,6 @@ export class FinancialsHeightManager {
    * Set immediate heights without animation (for initialization)
    * Uses corrected direct mapping logic
    */
-  /**
-   * Set heights directly from FinancialsController (bypasses old calculation logic)
-   * ENFORCES: All three financial system rules on every call
-   */
-  public setHeightsFromController(heights: {
-    revenueHeight: number;
-    revenuePLHeight: number;
-    expensesHeight: number;
-    expensesPLHeight: number;
-  }): void {
-    console.log('🎯 HeightManager: REAL-TIME UPDATE - All four objects being recalculated:', {
-      revenueHeight: heights.revenueHeight.toFixed(3),
-      revenuePLHeight: heights.revenuePLHeight.toFixed(3),
-      expensesHeight: heights.expensesHeight.toFixed(3),
-      expensesPLHeight: heights.expensesPLHeight.toFixed(3)
-    });
-    
-    // RULE VALIDATION: Verify equal group heights
-    const revenueGroupTotal = heights.revenueHeight + heights.revenuePLHeight;
-    const expensesGroupTotal = heights.expensesHeight + heights.expensesPLHeight;
-    
-    console.log('📏 RULE CHECK - Group Heights:', {
-      revenueGroup: revenueGroupTotal.toFixed(3),
-      expensesGroup: expensesGroupTotal.toFixed(3),
-      equal: Math.abs(revenueGroupTotal - expensesGroupTotal) < 0.001 ? '✅' : '❌'
-    });
-    
-    // Apply heights immediately using direct vertex manipulation
-    // ALL FOUR objects updated on every slider interaction
-    console.log('🔧 Setting Revenue height:', heights.revenueHeight.toFixed(3));
-    this.setObjectHeight('Revenue', heights.revenueHeight, 'bottom');
-    
-    console.log('🔧 Setting RevenuePL height:', heights.revenuePLHeight.toFixed(3));
-    this.setObjectHeight('RevenuePL', heights.revenuePLHeight, 'top');
-    
-    console.log('🔧 Setting Expenses height:', heights.expensesHeight.toFixed(3));
-    this.setObjectHeight('Expenses', heights.expensesHeight, 'bottom');
-    
-    console.log('🔧 Setting ExpensesPL height:', heights.expensesPLHeight.toFixed(3), '(PROFIT - should grow when Expenses decreases)');
-    console.log('🎯 EXPENSEPL DEBUG: About to call setObjectHeight for ExpensesPL');
-    this.setObjectHeight('ExpensesPL', heights.expensesPLHeight, 'top');
-    console.log('✅ EXPENSEPL DEBUG: setObjectHeight completed for ExpensesPL');
-    
-    console.log('✅ HeightManager: All four objects updated in real-time following documented rules');
-  }
-
   public setImmediateHeights(data: FinancialData): void {
     // ISOLATED SYSTEM: Track previous values to prevent unwanted changes
     if (!this.previousData) {
@@ -475,26 +397,21 @@ export class FinancialsHeightManager {
     const revenue = Math.max(data.revenue, 0.1);
     const expenses = Math.max(data.expenses, 0.1);
     
-    // CENTRALIZED: Use FinancialsController for ALL calculations  
-    // Import the global FinancialsController instance
-    const controller = (window as any).financialsController;
-    if (!controller) {
-      console.error('❌ FinancialsController not found on window object');
-      return;
-    }
+    // Calculate profit/loss for display
+    const profit = Math.max(0, revenue - expenses);
+    const loss = Math.max(0, expenses - revenue);
     
-    // Let FinancialsController handle all calculations and rule enforcement
-    const state = controller.updateFinancialSystem({ revenue, expenses }, false);
+    const HEIGHT_SCALE = 500.0;
     
-    // Use the calculated values from controller
-    const revenueHeight = state.revenueHeight;
-    const revenuePLHeight = state.revenuePLHeight;
-    const expensesHeight = state.expensesHeight;
-    const expensesPLHeight = state.expensesPLHeight;
-    const profit = state.profit;
-    const loss = state.loss;
+    // Calculate heights EXACTLY like Expenses Group logic
+    // Revenue Group: Revenue object = slider value, RevenuePL object = loss amount
+    // SAME PATTERN as Expenses Group: Expenses object = slider value, ExpensesPL object = profit amount
+    const revenueHeight = revenue / HEIGHT_SCALE;  // Revenue object: direct slider value
+    const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
     
-    console.log(`🎯 IMMEDIATE: Using FinancialsController for all calculations`);
+    // Expenses Group: Expenses = actual value, ExpensesPL = profit
+    const expensesHeight = expenses / HEIGHT_SCALE;
+    const expensesPLHeight = profit / HEIGHT_SCALE;
     
     console.log('💰 IMMEDIATE HEIGHT CALCULATIONS:', {
       revenue: revenue, expenses: expenses, profit: profit, loss: loss,
@@ -505,9 +422,8 @@ export class FinancialsHeightManager {
     // FORCE INITIAL SETUP: Always set heights on first call (initialization)
     const isInitialization = this.previousData.revenue === 1000 && this.previousData.expenses === 800;
     
-    // Revenue object updates when group height changes
-    if (this.previousData.revenue !== revenue || this.previousData.expenses !== expenses || isInitialization) {
-      console.log('🟢 IMMEDIATE: Revenue height changed due to group height:', revenueHeight.toFixed(3));
+    if (this.previousData.revenue !== revenue || isInitialization) {
+      console.log('🟢 IMMEDIATE: Revenue changed:', this.previousData.revenue, '→', revenue, 'Height:', revenueHeight.toFixed(3));
       this.setObjectHeight('Revenue', revenueHeight, 'bottom');
     }
     
@@ -531,311 +447,41 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * PURE VERTEX MANIPULATION: Set object height using only vertex data
-   * Implements all Financial System Rules via direct vertex modification
-   * 
-   * FINANCIAL SYSTEM RULES IMPLEMENTED:
-   * 1. Equal Group Heights: Revenue Group = Expenses Group at ALL times
-   * 2. 100% Group Composition: Each group totals exactly 100%
-   * 3. Profit/Loss Interrelationship: ExpensesPL OR RevenuePL, never both
-   * 
-   * ANCHORING SYSTEM:
-   * - Revenue, Expenses: Bottom-anchored (grow upward from base)
-   * - RevenuePL, ExpensesPL: Top-anchored (grow downward from top)
-   * - EXCEPTION: RevenuePL in loss scenarios grows upward from Revenue top
+   * Set object height immediately while maintaining anchor
+   * Using vertex manipulation constrained to original geometry bounds
    */
   public setObjectHeight(
     objectName: string,
     height: number,
     anchorType: 'top' | 'bottom'
   ): void {
-    console.log(`🎯 PURE VERTEX setObjectHeight: ${objectName}, height=${height.toFixed(3)}, anchor=${anchorType}`);
-    
     const mesh = this.financialMeshes.get(objectName);
-    if (!mesh) {
-      console.error(`❌ Mesh not found: ${objectName}. Available:`, Array.from(this.financialMeshes.keys()));
-      return;
-    }
+    if (!mesh) return;
 
     const originalPos = this.originalPositions.get(objectName);
-    if (!originalPos) {
-      console.error(`❌ Original position not found for: ${objectName}`);
-      return;
-    }
+    if (!originalPos) return;
 
-    // Store the vertex-based height for tracking
-    this.currentVertexHeights.set(objectName, height);
-    
-    console.log(`✅ Pure vertex manipulation for: ${objectName}`);
+    // Use vertex manipulation but keep mesh position FIXED at original position
+    this.setMeshHeightByVertices(mesh, height, anchorType);
 
-    // SPECIAL ANCHORING EXCEPTION: RevenuePL (Loss) in loss scenarios
-    if (objectName === 'RevenuePL' && height > 0) {
-      // When there's a loss, RevenuePL grows UPWARD from the top of Revenue
-      // Bottom vertices stay at Revenue top, top vertices extend upward
-      const revenueMesh = this.financialMeshes.get('Revenue');
-      const expensesMesh = this.financialMeshes.get('Expenses');
-      
-      if (revenueMesh && expensesMesh) {
-        // Get vertex-based heights instead of scaling-based
-        const revenueVertexHeight = this.currentVertexHeights.get('Revenue') || 0;
-        const expensesVertexHeight = this.currentVertexHeights.get('Expenses') || 0;
-        
-        // CROSSOVER THRESHOLD SAFETY: Check if vertex heights are too similar
-        const heightDifference = Math.abs(expensesVertexHeight - revenueVertexHeight);
-        
-        if (heightDifference < 0.001) {
-          // At breakeven threshold - use standard vertex manipulation
-          console.log('🟡 BREAKEVEN: Using standard vertex manipulation');
-          this.applyPureVertexHeight(mesh, height, anchorType);
-        } else {
-          // Safe to use custom vertex manipulation for loss scenario
-          console.log('🟡 LOSS SCENARIO: RevenuePL grows upward from Revenue top');
-          this.applyRevenuePLLossVertices(mesh, revenueMesh, expensesMesh);
-        }
-      } else {
-        // Fallback to standard vertex manipulation
-        this.applyPureVertexHeight(mesh, height, anchorType);
-      }
-    } else {
-      // Standard anchoring behavior: pure vertex manipulation
-      this.applyPureVertexHeight(mesh, height, anchorType);
-      
-      // Keep mesh at original position - only vertices move
-      mesh.position.x = originalPos.x;
-      mesh.position.y = originalPos.y;
-      mesh.position.z = originalPos.z;
-    }
+    // CRITICAL: Keep mesh position at original loaded position - no movement
+    mesh.position.x = originalPos.x;
+    mesh.position.y = originalPos.y; 
+    mesh.position.z = originalPos.z;
 
     // Update label position
     this.updateLabelPosition(mesh);
     
-    debugLog.verbose('financials', `Pure vertex manipulation complete for ${objectName}: ${height} (${anchorType}-anchored)`);
+    debugLog.verbose('financials', `Set height for ${objectName}: ${height} (${anchorType}-anchored) using constrained vertex manipulation`);
   }
 
   /**
-   * Custom vertex manipulation for RevenuePL in loss scenarios
-   * Bottom vertices stay at Revenue top, top vertices extend to match Expenses height
-   */
-  private setRevenuePLLossVertices(revenuePLMesh: Mesh, revenueMesh: Mesh, expensesMesh: Mesh): void {
-    const geometry = revenuePLMesh.geometry;
-    if (!geometry) {
-      console.warn('🟡 RevenuePL geometry not found, skipping vertex manipulation');
-      return;
-    }
-
-    const originalVertices = this.originalVertices.get(revenuePLMesh.name);
-    if (!originalVertices) {
-      console.warn('🟡 RevenuePL original vertices not found, skipping vertex manipulation');
-      return;
-    }
-
-    const vertexData = geometry.getVerticesData('position');
-    if (!vertexData) {
-      console.warn('🟡 RevenuePL vertex data not found, skipping vertex manipulation');
-      return;
-    }
-
-    // Calculate target positions
-    const revenueTopY = revenueMesh.position.y + (revenueMesh.scaling.y / 2);
-    const expensesTopY = expensesMesh.position.y + (expensesMesh.scaling.y / 2);
-    
-    console.log('🟡 RevenuePL Loss Vertex Calculation:', {
-      revenueTopY: revenueTopY.toFixed(3),
-      expensesTopY: expensesTopY.toFixed(3),
-      heightDifference: (expensesTopY - revenueTopY).toFixed(3)
-    });
-
-    // Create new vertex array based on original
-    const newVertices = new Float32Array(vertexData);
-
-    // Find min and max Y values in original vertices to identify top and bottom
-    let minY = Infinity, maxY = -Infinity;
-    for (let i = 1; i < originalVertices.length; i += 3) {
-      minY = Math.min(minY, originalVertices[i]);
-      maxY = Math.max(maxY, originalVertices[i]);
-    }
-
-    const yRange = maxY - minY;
-    const yMidpoint = (minY + maxY) / 2;
-
-    // Transform vertices: bottom vertices to Revenue top, top vertices to Expenses top
-    for (let i = 1; i < newVertices.length; i += 3) {
-      const originalY = originalVertices[i];
-      
-      if (originalY < yMidpoint) {
-        // Bottom vertices: anchor to Revenue top position
-        newVertices[i] = revenueTopY - revenuePLMesh.position.y;
-      } else {
-        // Top vertices: extend to Expenses top position
-        newVertices[i] = expensesTopY - revenuePLMesh.position.y;
-      }
-    }
-
-    // Apply the new vertex positions
-    geometry.setVerticesData('position', newVertices);
-    
-    // Update normals using correct Babylon.js API
-    try {
-      if (typeof (geometry as any).createNormals === 'function') {
-        (geometry as any).createNormals(true);
-      }
-    } catch (error) {
-      console.warn('🟡 Could not update normals, continuing without normal recalculation');
-    }
-
-    console.log('🟡 RevenuePL vertices updated: bottom anchored to Revenue top, top extended to Expenses height');
-  }
-
-  /**
-   * PURE VERTEX MANIPULATION: Core method for height changes via vertex modification
-   * Implements proper anchoring without any scaling dependencies
-   * 
-   * ANCHORING RULES:
-   * - Bottom-anchored: Bottom vertices stay fixed, top vertices move up/down
-   * - Top-anchored: Top vertices stay fixed, bottom vertices move up/down
-   */
-  private applyPureVertexHeight(
-    mesh: Mesh,
-    targetHeight: number,
-    anchorType: 'top' | 'bottom'
-  ): void {
-    const geometry = mesh.geometry;
-    if (!geometry) {
-      console.warn(`🟡 ${mesh.name} geometry not found, skipping vertex manipulation`);
-      return;
-    }
-
-    const originalVertices = this.originalVertices.get(mesh.name);
-    const originalBounds = this.originalMeshBounds.get(mesh.name);
-    
-    if (!originalVertices || !originalBounds) {
-      console.warn(`🟡 ${mesh.name} original data not found, skipping vertex manipulation`);
-      return;
-    }
-
-    const vertexData = geometry.getVerticesData('position');
-    if (!vertexData) {
-      console.warn(`🟡 ${mesh.name} vertex data not found, skipping vertex manipulation`);
-      return;
-    }
-
-    // Create new vertex array from original data
-    const newVertices = new Float32Array(originalVertices);
-    
-    // Calculate height scaling factor based on target height
-    const heightScale = targetHeight / originalBounds.height;
-    
-    console.log(`🎯 Pure vertex manipulation for ${mesh.name}: targetHeight=${targetHeight.toFixed(3)}, originalHeight=${originalBounds.height.toFixed(3)}, scale=${heightScale.toFixed(3)}, anchor=${anchorType}`);
-
-    // Apply anchoring-based vertex transformation
-    for (let i = 1; i < newVertices.length; i += 3) {
-      const originalY = originalVertices[i];
-      
-      if (anchorType === 'bottom') {
-        // Bottom-anchored: Scale from minimum Y position
-        const relativeY = originalY - originalBounds.minY;
-        newVertices[i] = originalBounds.minY + (relativeY * heightScale);
-      } else {
-        // Top-anchored: Scale from maximum Y position
-        const relativeY = originalBounds.maxY - originalY;
-        newVertices[i] = originalBounds.maxY - (relativeY * heightScale);
-      }
-    }
-
-    // Apply the new vertex positions
-    geometry.setVerticesData('position', newVertices);
-    
-    // Update normals using correct Babylon.js API
-    try {
-      if (typeof (geometry as any).createNormals === 'function') {
-        (geometry as any).createNormals(true);
-      }
-    } catch (error) {
-      console.warn(`🟡 Could not update normals for ${mesh.name}, continuing without normal recalculation`);
-    }
-
-    console.log(`✅ Pure vertex manipulation complete for ${mesh.name}: ${anchorType}-anchored to height ${targetHeight.toFixed(3)}`);
-  }
-
-  /**
-   * SPECIAL CASE: Pure vertex manipulation for RevenuePL in loss scenarios
-   * RevenuePL grows UPWARD from Revenue top, overriding normal top-anchored behavior
-   */
-  private applyRevenuePLLossVertices(
-    revenuePLMesh: Mesh, 
-    revenueMesh: Mesh, 
-    expensesMesh: Mesh
-  ): void {
-    const geometry = revenuePLMesh.geometry;
-    if (!geometry) {
-      console.warn('🟡 RevenuePL geometry not found, skipping loss vertex manipulation');
-      return;
-    }
-
-    const originalVertices = this.originalVertices.get(revenuePLMesh.name);
-    const originalBounds = this.originalMeshBounds.get(revenuePLMesh.name);
-    
-    if (!originalVertices || !originalBounds) {
-      console.warn('🟡 RevenuePL original data not found, skipping loss vertex manipulation');
-      return;
-    }
-
-    // Get vertex-based heights for proper positioning
-    const revenueHeight = this.currentVertexHeights.get('Revenue') || 0;
-    const expensesHeight = this.currentVertexHeights.get('Expenses') || 0;
-    const lossHeight = this.currentVertexHeights.get('RevenuePL') || 0;
-    
-    console.log(`🟡 Loss vertex calculation: Revenue=${revenueHeight.toFixed(3)}, Expenses=${expensesHeight.toFixed(3)}, Loss=${lossHeight.toFixed(3)}`);
-
-    // Create new vertex array from original data
-    const newVertices = new Float32Array(originalVertices);
-    
-    // Calculate loss object positioning: grows upward from Revenue top
-    const revenueBounds = this.originalMeshBounds.get('Revenue');
-    if (!revenueBounds) {
-      console.warn('🟡 Revenue bounds not found, using fallback positioning');
-      return;
-    }
-    
-    // RevenuePL bottom should align with Revenue top
-    const revenueTopY = revenueBounds.minY + revenueHeight;
-    // RevenuePL top should extend upward by loss amount
-    const lossTopY = revenueTopY + lossHeight;
-    
-    console.log(`🟡 Loss positioning: Revenue top at ${revenueTopY.toFixed(3)}, Loss extends to ${lossTopY.toFixed(3)}`);
-
-    // Transform vertices: bottom vertices to Revenue top, top vertices extend upward
-    for (let i = 1; i < newVertices.length; i += 3) {
-      const originalY = originalVertices[i];
-      const relativePosition = (originalY - originalBounds.minY) / originalBounds.height;
-      
-      // Linear interpolation from Revenue top to Loss top
-      newVertices[i] = revenueTopY + (relativePosition * lossHeight);
-    }
-
-    // Apply the new vertex positions
-    geometry.setVerticesData('position', newVertices);
-    
-    // Update normals using correct Babylon.js API
-    try {
-      if (typeof (geometry as any).createNormals === 'function') {
-        (geometry as any).createNormals(true);
-      }
-    } catch (error) {
-      console.warn('🟡 Could not update normals for RevenuePL loss vertices, continuing without normal recalculation');
-    }
-
-    console.log('🟡 RevenuePL loss vertices: bottom anchored to Revenue top, top extended upward for loss amount');
-  }
-
-  /**
-   * Get current vertex-based height data for debugging
+   * Get current height data for debugging
    */
   public getCurrentHeights(): Record<string, number> {
     const heights: Record<string, number> = {};
     this.financialMeshes.forEach((mesh, name) => {
-      // Use vertex-based height instead of scaling
-      heights[name] = this.currentVertexHeights.get(name) || 0;
+      heights[name] = mesh.scaling.y;
     });
     return heights;
   }
@@ -844,63 +490,13 @@ export class FinancialsHeightManager {
    * Reset all objects to base height
    */
   public resetToBaseHeight(): void {
-    // Reset to default financial state: Revenue $10M, Expenses $8M, Profit $2M
-    // This results in: Revenue $10M, RevenuePL $0, ExpensesPL $2M, Expenses $8M
     const baseData: FinancialData = {
-      revenue: 1000,  // $10M - Revenue block
-      expenses: 800,  // $8M - Expenses block
-      profit: 200,    // $2M profit - ExpensesPL block on top
-      loss: 0         // $0M - RevenuePL invisible
+      revenue: 1,
+      expenses: 1,
+      profit: 0,
+      loss: 0
     };
-    
-    console.log('🔄 Resetting to default financial state:', {
-      revenue: '$10M (Revenue)',
-      expenses: '$8M (Expenses)', 
-      profit: '$2M (ExpensesPL on top)',
-      loss: '$0M (RevenuePL invisible)'
-    });
-    
     this.setImmediateHeights(baseData);
-    
-    // Also update the slider positions and display values to match
-    this.updateUIToMatchData(baseData);
-  }
-
-  /**
-   * Update UI elements (sliders and displays) to match the given financial data
-   */
-  private updateUIToMatchData(data: FinancialData): void {
-    // Update slider values
-    const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
-    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
-    
-    if (revenueSlider) {
-      revenueSlider.value = data.revenue.toString();
-    }
-    
-    if (expensesSlider) {
-      expensesSlider.value = data.expenses.toString();
-    }
-    
-    // Update display values
-    const revenueDisplay = document.querySelector('.revenue-display');
-    const expensesDisplay = document.querySelector('.expenses-display');
-    
-    if (revenueDisplay) {
-      revenueDisplay.textContent = `$${(data.revenue * 10 / 1000).toFixed(0)}M`;
-    }
-    
-    if (expensesDisplay) {
-      expensesDisplay.textContent = `$${(data.expenses * 10 / 1000).toFixed(0)}M`;
-    }
-    
-    // Update global state for consistency
-    if ((window as any).financialSliderState) {
-      (window as any).financialSliderState.revenue = data.revenue;
-      (window as any).financialSliderState.expenses = data.expenses;
-    }
-    
-    console.log('🎚️ Reset UI elements to default values');
   }
 
   private isFinancialMesh(name: string): boolean {
@@ -915,22 +511,14 @@ export class FinancialsHeightManager {
     heightFactor: number,
     anchorType: 'top' | 'bottom'
   ): void {
-    console.log(`🔧 VERTEX MANIPULATION: ${mesh.name} - heightFactor=${heightFactor.toFixed(3)}, anchor=${anchorType}, baseHeight=${this.baseHeight}`);
-    
     const originalVertices = this.originalVertices.get(mesh.name);
     if (!originalVertices) {
-      console.error(`❌ No original vertices found for ${mesh.name}, falling back to scaling`);
       debugLog.warn('financials', `No original vertices found for ${mesh.name}, falling back to scaling`);
       return;
     }
-    
-    console.log(`🔧 VERTEX MANIPULATION: ${mesh.name} - Original vertices count: ${originalVertices.length / 3} vertices`);
 
     const geometry = mesh.geometry;
-    if (!geometry) {
-      console.error(`❌ No geometry found for ${mesh.name}`);
-      return;
-    }
+    if (!geometry) return;
 
     // Store the height factor for label scaling
     this.currentHeightFactors.set(mesh.name, heightFactor);
@@ -961,10 +549,7 @@ export class FinancialsHeightManager {
     // Store the VISUAL stretch factor for label correction (not the heightFactor)
     this.currentHeightFactors.set(mesh.name, visualStretchFactor);
     
-    console.log(`🔧 VERTEX BOUNDS: ${mesh.name} - minY=${minY.toFixed(3)}, maxY=${maxY.toFixed(3)}, originalHeight=${originalHeight.toFixed(3)}`);
-    
     // Modify vertices based on anchor type - CONSTRAINED to original bounds
-    let modifiedVertices = 0;
     for (let i = 1; i < newVertices.length; i += 3) {
       const originalY = originalVertices[i];
       
@@ -975,25 +560,15 @@ export class FinancialsHeightManager {
         const normalizedPosition = relativeY / originalHeight; // 0.0 to 1.0
         const scaledPosition = normalizedPosition * heightFactor; // Scale by factor
         newVertices[i] = minY + (scaledPosition * originalHeight);
-        modifiedVertices++;
       } else {
-        // Top-anchored: scale Y from the top (maxY stays fixed, minY moves up)
-        // Simple approach: just like bottom-anchored but in reverse
-        const relativeY = maxY - originalY;  // Distance from top
-        const normalizedPosition = relativeY / originalHeight; // 0.0 (top) to 1.0 (bottom)
+        // Top-anchored: scale Y from the top (maxY stays fixed) 
+        // Only show heightFactor percentage of the original height
+        const relativeY = maxY - originalY;
+        const normalizedPosition = relativeY / originalHeight; // 0.0 to 1.0
         const scaledPosition = normalizedPosition * heightFactor; // Scale by factor
         newVertices[i] = maxY - (scaledPosition * originalHeight);
-        
-        // Debug specific vertices for ExpensesPL
-        if (mesh.name === 'ExpensesPL' && modifiedVertices < 5) {
-          console.log(`🔧 ExpensesPL VERTEX ${modifiedVertices}: originalY=${originalY.toFixed(3)} → newY=${newVertices[i].toFixed(3)}, relativeY=${relativeY.toFixed(3)}, normalized=${normalizedPosition.toFixed(3)}, heightFactor=${heightFactor.toFixed(3)}`);
-        }
-        
-        modifiedVertices++;
       }
     }
-    
-    console.log(`🔧 VERTEX MANIPULATION: ${mesh.name} - Modified ${modifiedVertices} vertices (${anchorType}-anchored)`);
 
     // Update the mesh geometry
     geometry.setVerticesData('position', newVertices);

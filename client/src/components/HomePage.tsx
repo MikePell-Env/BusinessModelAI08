@@ -123,18 +123,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
             <div className="mb-8 mt-32">
               <div className="bg-white rounded-lg shadow-2xl border border-black">
                 {/* Dark Blue Header matching the image */}
-                <div className="bg-slate-700 text-white px-6 pt-4 pb-6 rounded-t-lg">
-                  <h1 className="text-xl font-semibold text-center mb-1">Envisioner Demo</h1>
-                  <div className="flex items-start gap-4 mt-4">
-                    <img 
-                      src="/chat-icon.png" 
-                      alt="Chat icon" 
-                      className="w-12 h-12 mt-1 flex-shrink-0"
-                    />
-                    <p className="text-sm leading-relaxed text-left">
-                      Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very new way, unlocking the ability to play what-if and ask the hard questions...
-                    </p>
-                  </div>
+                <div className="bg-slate-700 text-white p-6 rounded-t-lg">
+                  <h1 className="text-xl font-semibold text-center mb-3">Envisioner Demo</h1>
+                  <p className="text-sm text-center leading-relaxed">
+                    Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very new way,<br />unlocking the ability to play what-if and ask the hard questions...
+                  </p>
                 </div>
                 
                 {/* Dialog Content */}
