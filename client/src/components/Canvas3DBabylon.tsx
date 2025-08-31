@@ -297,6 +297,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
   }, [template.name, hasInitializedTemplate]);
 
+  // Handle template updates without recreating the scene - SIMPLIFIED
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    
+    console.log(`🔄 Template content updated for: ${template.name}`);
+    
+    // Only handle essential template-specific setup without touching foundation
+    if (template.name.toLowerCase() === 'financials') {
+      // Ensure financial systems are properly initialized for Financials template
+      setTimeout(() => {
+        if ((window as any).financialsDataAdapter) {
+          (window as any).financialsDataAdapter.updateFromBusinessData({
+            totalRevenue: 1000,
+            totalExpenses: 800, 
+            netProfit: 200,
+          });
+        }
+      }, 100);
+    }
+    
+  }, [template.name]);
+
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
 
