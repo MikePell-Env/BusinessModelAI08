@@ -47,6 +47,9 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   // Envisioner type state  
   const { currentTemplate, currentType, isTransitioning: isTemplateTransitioning, transitionProgress, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
   
+  // Stabilize template object to prevent unnecessary Canvas3D re-renders during transitions
+  const stableTemplate = React.useMemo(() => currentTemplate, [currentTemplate.name, currentTemplate.sections.length]);
+  
   console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isTransitioning=${isTransitioning}`);
   console.log(`🟡 Current Envisioner Type: ${currentType}, Template: ${currentTemplate.name}`);
   console.log(`🟡 Template sections count: ${currentTemplate.sections.length}`);
@@ -255,7 +258,12 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
       {/* Canvas Views */}
       <div className="w-full h-full relative">
         {is3D ? (
-          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} template={currentTemplate} />
+          <Canvas3DBabylon 
+            key="envisioner-3d-canvas" 
+            canvas={canvas} 
+            isTransitioning={isTransitioning} 
+            template={stableTemplate} 
+          />
         ) : (
           <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
         )}
