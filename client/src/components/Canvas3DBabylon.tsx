@@ -3519,7 +3519,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
                   // Update the display values (Revenue is always $10M total)
                   const revenueDisplay = document.querySelector('.revenue-display');
-                  if (revenueDisplay) revenueDisplay.textContent = `$10M (${revenuePercent}% Rev, ${100-revenuePercent}% Loss)`;
+                  if (revenueDisplay) revenueDisplay.textContent = `$10M`;
                 }}
               />
               <div className="flex justify-between text-xs text-gray-300 mt-1 relative">
