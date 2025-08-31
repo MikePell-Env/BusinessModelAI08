@@ -59,24 +59,19 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        console.log(`🔧 Registered financial mesh: ${mesh.name}`);
       }
     });
     
-    console.log(`🔧 Total financial meshes registered: ${this.financialMeshes.size}`);
-    
-    // IMMEDIATE: Apply correct default heights as soon as meshes are registered
+    // Apply correct default heights as soon as meshes are registered
     if (this.financialMeshes.size === 4) {
-      console.log('🔧 All 4 meshes registered, applying default heights immediately...');
       setTimeout(() => {
         this.setImmediateHeights({
-          revenue: 1000,   // $10M
-          expenses: 800,   // $8M
-          profit: 200,     // $2M profit
-          loss: 0          // No loss
+          revenue: 1000,
+          expenses: 800,
+          profit: 200,
+          loss: 0
         });
-        console.log('🔧 Default heights applied immediately after mesh registration');
-      }, 10); // Very short delay to ensure mesh setup is complete
+      }, 10);
     }
   }
 
@@ -486,18 +481,6 @@ export class FinancialsHeightManager {
     return heights;
   }
 
-  /**
-   * Reset all objects to base height
-   */
-  public resetToBaseHeight(): void {
-    const baseData: FinancialData = {
-      revenue: 1,
-      expenses: 1,
-      profit: 0,
-      loss: 0
-    };
-    this.setImmediateHeights(baseData);
-  }
 
   private isFinancialMesh(name: string): boolean {
     return ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(name);
