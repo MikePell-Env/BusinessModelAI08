@@ -805,29 +805,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           // Initialize Financials systems if needed
           if (template.name.toLowerCase() === 'financials') {
             const financialsHeightManager = new FinancialsHeightManager(scene);
-            
-            // OLD SYSTEM REMOVED: const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
-            // OLD SYSTEM REMOVED: const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
-            
-            // CRITICAL: Create FinancialsController immediately for slider access
-            const { FinancialsController } = await import('./Canvas3DBabylon/controllers/FinancialsController');
-            const financialsController = new FinancialsController(financialsHeightManager);
+            const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
             
             (scene as any).financialsHeightManager = financialsHeightManager;
-            (scene as any).financialsController = financialsController;
-            
-            // Make controller globally accessible for sliders
-            (window as any).financialsController = financialsController;
-            (window as any).financialsHeightManager = financialsHeightManager;
+            (scene as any).financialsDataAdapter = financialsDataAdapter;
             
             financialsHeightManager.registerFinancialMeshes(model.meshes);
             
-            // NEW SYSTEM: Use FinancialsController for initialization
-            const initialData = { revenue: 1000, expenses: 800 }; // $10M revenue, $8M expenses
-            setTimeout(() => {
-              if (financialsController) {
-                financialsController.updateFinancialSystem(initialData, false);
-                console.log('💰 Financials initialized using FinancialsController after template switch');
+            const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
+            const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
+            
+            (window as any).financialsHeightManager = financialsHeightManager;
+            (window as any).financialsDataAdapter = financialsDataAdapter;
+            (window as any).financialsDemo = financialsDemo;
+            
+            const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
+            setTimeout(async () => {
+              if (financialsDataAdapter) {
+                await financialsDataAdapter.updateFromBusinessData(initialData);
+                console.log('💰 Financials reinitialized after template switch');
               }
             }, 100);
           }
@@ -1614,51 +1610,56 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // Initialize Financials-specific systems
         if (template.name.toLowerCase() === 'financials') {
           const financialsHeightManager = new FinancialsHeightManager(scene);
-          
-          // OLD SYSTEM REMOVED: const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
-          // OLD SYSTEM REMOVED: const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
-          
-          // CRITICAL: Create FinancialsController immediately for slider access
-          const { FinancialsController } = await import('./Canvas3DBabylon/controllers/FinancialsController');
-          const financialsController = new FinancialsController(financialsHeightManager);
+          const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
 
           // Store managers on scene for global access
           (scene as any).financialsHeightManager = financialsHeightManager;
-          (scene as any).financialsController = financialsController;
-          
-          // Make controller globally accessible for sliders
-          (window as any).financialsController = financialsController;
-          (window as any).financialsHeightManager = financialsHeightManager;
+          (scene as any).financialsDataAdapter = financialsDataAdapter;
 
-          console.log('💰 Financials systems initialized with FinancialsController only');
+          console.log('💰 Financials systems initialized');
+
 
           // Register financial meshes for height manipulation
           if (financialsHeightManager) {
-            financialsHeightManager.registerFinancialMeshes(model.meshes);
-            console.log('✅ Financials height system initialized for vertex manipulation');
+            financialsHeightManager.registerFinancialMeshes(model.meshes); // Pass all meshes
+
+            console.log('✅ Financials height system initialized (deferred vertex processing)');
           }
 
-          // NEW SYSTEM: Initialize with FinancialsController
+
+          // Create comprehensive demo system
+          const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
+          const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
+
+          // Expose controls for testing and real-time manipulation
+          (window as any).financialsHeightManager = financialsHeightManager;
+          (window as any).financialsDataAdapter = financialsDataAdapter;
+          (window as any).financialsDemo = financialsDemo;
+
+          // Initialize with corrected financial data
           // Revenue slider default: 1000 → Revenue object height
           // Expenses slider default: 800 → Expenses object height
-          // Controller calculates profit/loss automatically
-          const initialInputData = {
-            revenue: 1000,  // $10M revenue
-            expenses: 800   // $8M expenses (results in $2M profit)
+          // Profit: 200 → ExpensesPL object height
+          // Loss: 0 → RevenuePL object height
+          const initialData: FinancialBusinessData = {
+            totalRevenue: 1000,  // Revenue slider value → Revenue height
+            totalExpenses: 800,  // Expenses slider value → Expenses height
+            netProfit: 200,      // Profit → ExpensesPL height
+            netLoss: 0           // Loss → RevenuePL height
           };
 
-          // Apply initial data immediately using FinancialsController
-          setTimeout(() => {
+          // Apply initial data immediately to prevent 50/50 flash
+          setTimeout(async () => {
             try {
-              if (financialsController && financialsHeightManager) {
-                financialsController.updateFinancialSystem(initialInputData, false);
-                console.log('💰 Initial Financials data applied using FinancialsController');
+              if (financialsDataAdapter && financialsHeightManager) {
+                await financialsDataAdapter.updateFromBusinessData(initialData, false);
+                console.log('💰 Initial Financials data applied immediately');
 
                 // Verify heights were applied
                 const heights = financialsHeightManager.getCurrentHeights();
-                console.log('💰 Current heights after FinancialsController initialization:', heights);
+                console.log('💰 Current heights after initialization:', heights);
               } else {
-                console.error('❌ FinancialsController not properly initialized');
+                console.error('❌ Financials managers not properly initialized');
               }
             } catch (error) {
               console.error('❌ Failed to apply initial Financials data:', error);
@@ -3461,30 +3462,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             }
             
             // Initialize default values when component mounts for Financials template
-            // OLD SYSTEM REMOVED: financialsDataAdapter.updateFromBusinessData() call
-            if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsController) {
+            if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
               setTimeout(() => {
-                const controller = (window as any).financialsController;
-                controller.updateFinancialSystem({
-                  revenue: 1000,  // $10M default
-                  expenses: 800   // $8M default (controller calculates profit automatically)
-                }, false);
-                console.log('💰 UI component initialized using FinancialsController');
+                (window as any).financialsDataAdapter.updateFromBusinessData({
+                  totalRevenue: 1000,  // $10M default (99% Revenue, 1% RevenuePL)
+                  totalExpenses: 800,  // $8M default  
+                  netProfit: 200,      // $2M profit (20% ExpensesPL)
+                  netLoss: 0           // No loss (0% RevenuePL)
+                });
               }, 100);
             }
           }}>
             <div>
               <label className="block text-xs mb-1">Revenue Total</label>
               <div className="revenue-display text-xs text-green-400 mb-1">$10M</div>
-              <div className="relative">
-                <input
-                  type="range"
-                  min="0"
-                  max="1500"
-                  defaultValue="1000"
-                  id="revenue-slider"
-                  className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                  onChange={(e) => {
+              <input
+                type="range"
+                min="100"
+                max="1000"
+                defaultValue="1000"
+                id="revenue-slider"
+                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                onChange={(e) => {
                   const revenue = parseInt(e.target.value);
                   // Update isolated state
                   (window as any).financialSliderState.revenue = revenue;
@@ -3494,46 +3493,51 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     newValue: `$${(revenue * 10 / 1000).toFixed(0)}M`
                   });
 
-                  // FINANCIALS CONTROLLER UPDATE: Use centralized controller with enforced rules
-                  if ((window as any).financialsController) {
-                    const controller = (window as any).financialsController;
-                    const currentExpenses = (window as any).financialSliderState.expenses;
+                  // ISOLATED REVENUE UPDATE: Percentage-based height distribution
+                  if ((window as any).financialsHeightManager) {
+                    const heightManager = (window as any).financialsHeightManager;
                     
-                    // Update through controller (enforces all financial system rules)
-                    controller.updateFinancialSystem({
-                      revenue: revenue,
-                      expenses: currentExpenses
-                    }, false); // Immediate update for slider interaction
+                    // PERCENTAGE SYSTEM: Revenue Group has fixed total height, split by percentage
+                    const HEIGHT_SCALE = 500.0;
+                    const FIXED_TOTAL_HEIGHT = 1000 / HEIGHT_SCALE; // Always 2.0 units total
                     
-                    // Save state automatically for persistence across template switches
-                    controller.saveFinancialState();
+                    // Calculate percentages: Revenue slider value determines the split
+                    const revenuePercentage = revenue / 1000; // 0.0 to 1.0
+                    const lossPercentage = 1.0 - revenuePercentage; // Remaining percentage
+                    
+                    // Apply percentage distribution
+                    const revenueHeight = FIXED_TOTAL_HEIGHT * revenuePercentage;
+                    const revenuePLHeight = FIXED_TOTAL_HEIGHT * lossPercentage;
+                    
+                    console.log('💚 Revenue Group Update:', {
+                      revenuePercent: (revenuePercentage * 100).toFixed(1) + '%',
+                      lossPercent: (lossPercentage * 100).toFixed(1) + '%',
+                      revenueHeight: revenueHeight.toFixed(3),
+                      revenuePLHeight: revenuePLHeight.toFixed(3)
+                    });
+                    
+                    heightManager.setObjectHeight('Revenue', revenueHeight, 'bottom');
+                    heightManager.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
                   }
 
                   // Update the display values
                   const revenueDisplay = document.querySelector('.revenue-display');
                   if (revenueDisplay) revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
                 }}
-                />
-                {/* Initial position tick mark for Revenue ($10M = 1000/1500 = 66.67%) */}
-                <div className="absolute top-0 h-2 w-0.5 bg-red-500" style={{ left: '66.67%', transform: 'translateX(-50%)' }}></div>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-xs text-gray-300">$0M</span>
-                <span className="text-xs text-gray-300">$15M</span>
-              </div>
+              />
+              <span className="text-xs text-gray-300">$1M - $10M</span>
             </div>
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
               <div className="expenses-display text-xs text-red-400 mb-1">$8M</div>
-              <div className="relative">
-                <input
-                  type="range"
-                  min="0"
-                  max="1200"
-                  defaultValue="800"
-                  id="expenses-slider"
-                  className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                  onChange={(e) => {
+              <input
+                type="range"
+                min="100"
+                max="1000"
+                defaultValue="800"
+                id="expenses-slider"
+                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                onChange={(e) => {
                   const expenses = parseInt(e.target.value);
                   // Update isolated state
                   (window as any).financialSliderState.expenses = expenses;
@@ -3543,34 +3547,71 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     newValue: `$${(expenses * 10 / 1000).toFixed(0)}M`
                   });
 
-                  // FINANCIALS CONTROLLER UPDATE: Use centralized controller with enforced rules
-                  if ((window as any).financialsController) {
-                    const controller = (window as any).financialsController;
+                  // ISOLATED EXPENSES UPDATE: Only update Expenses objects, no cross-contamination
+                  if ((window as any).financialsHeightManager) {
+                    const heightManager = (window as any).financialsHeightManager;
+                    
+                    // Get current revenue value for profit calculation
                     const currentRevenue = (window as any).financialSliderState.revenue;
                     
-                    // Update through controller (enforces all financial system rules)
-                    controller.updateFinancialSystem({
-                      revenue: currentRevenue,
-                      expenses: expenses
-                    }, false); // Immediate update for slider interaction
+                    // Calculate profit for ExpensesPL object
+                    const profit = Math.max(0, currentRevenue - expenses);
                     
-                    // Save state automatically for persistence across template switches
-                    controller.saveFinancialState();
+                    // Direct height updates
+                    const HEIGHT_SCALE = 500.0;
+                    const expensesHeight = expenses / HEIGHT_SCALE;
+                    const expensesPLHeight = profit / HEIGHT_SCALE;
+                    
+                    console.log('🔴 Expenses Group Update:', {
+                      expenses: expenses,
+                      profit: profit,
+                      expensesHeight: expensesHeight.toFixed(3),
+                      expensesPLHeight: expensesPLHeight.toFixed(3)
+                    });
+                    
+                    heightManager.setObjectHeight('Expenses', expensesHeight, 'bottom');
+                    heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
                   }
 
                   // Update the display values
                   const expensesDisplay = document.querySelector('.expenses-display');
                   if (expensesDisplay) expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
                 }}
-                />
-                {/* Initial position tick mark for Expenses ($8M = 800/1200 = 66.67%) */}
-                <div className="absolute top-0 h-2 w-0.5 bg-red-500" style={{ left: '66.67%', transform: 'translateX(-50%)' }}></div>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-xs text-gray-300">$0M</span>
-                <span className="text-xs text-gray-300">$12M</span>
-              </div>
+              />
+              <span className="text-xs text-gray-300">$1M - $10M</span>
             </div>
+          </div>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={() => {
+                if ((window as any).financialsDataAdapter) {
+                  (window as any).financialsDataAdapter.startSimulation();
+                }
+              }}
+              className="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+            >
+              Start Simulation
+            </button>
+            <button
+              onClick={() => {
+                if ((window as any).financialsDataAdapter) {
+                  (window as any).financialsDataAdapter.stopRealTimeUpdates();
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+            >
+              Stop Simulation
+            </button>
+            <button
+              onClick={() => {
+                if ((window as any).financialsHeightManager) {
+                  (window as any).financialsHeightManager.resetToBaseHeight();
+                }
+              }}
+              className="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-xs font-medium transition-colors"
+            >
+              Reset Heights
+            </button>
           </div>
         </div>
       )}

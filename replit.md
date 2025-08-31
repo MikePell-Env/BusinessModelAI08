@@ -4,15 +4,6 @@
 The 4D Time Machine is a comprehensive platform for business visualization and analysis. It integrates the **Envisioner** foundational platform with the **4D Visual Language (4DVL)** dynamic visualization system. The application showcases various business use cases through self-contained, connected templates that process Microsoft Office document data and display it in specialized 3D visualizations. Its purpose is to provide a powerful tool for strategic analysis, financial forecasting, and "what-if" scenario planning, aiming to transform how businesses interact with their data.
 
 ## Recent Changes
-**August 31, 2025 - Financial State Persistence System Implemented**
-- **COMPLETED**: Financial values now persist across template switches using FinancialsController
-- **Auto-Save**: Slider interactions automatically save financial state for template persistence
-- **Save on Switch**: Financial state saved when switching away from Financials template
-- **Restore on Switch**: Financial state restored when switching to Financials template (with 100ms delay)
-- **UI Synchronization**: Slider positions and display values automatically update to match persisted state
-- **RevenuePL Loss Vertex Fix**: Custom vertex manipulation for loss scenarios with crossover threshold protection
-- **Babylon.js API Fix**: Corrected geometry.computeVertexNormals() to geometry.createNormals() with error handling
-
 **August 30, 2025 - Financial Visualization System Completed**
 - **PERFECTED**: Complete financial visualization system with vertex manipulation
 - **Revenue Group**: Fixed at $10M, completely locked (no animations, no vertex manipulation)
@@ -72,49 +63,17 @@ The application features a full-stack monorepo architecture, emphasizing modular
 ## Financial Visualization System - Complete Technical Specification
 
 ### System Overview
-The financial visualization system displays four 3D objects representing Revenue, Expenses, Profit, and Loss with real-time height manipulation based on business metrics. The system uses the **FinancialsController** to enforce strict business rules and vertex manipulation for proper anchored surfaces.
-
-### FINANCIAL SYSTEM RULES (MANDATORY)
-
-#### Rule 1: Equal Group Heights
-**Revenue Group height = Expense Group height at ALL times**
-- This overall height can dynamically change based on data values provided by the FinancialsController
-- Both groups grow and shrink together maintaining visual balance
-
-#### Rule 2: 100% Group Composition  
-Each group operates where both elements must equal 100% total:
-- **Revenue Group**: Revenue% + RevenuePL% = 100%
-- **Expenses Group**: Expenses% + ExpensesPL% = 100%
-
-#### Rule 3: Profit/Loss Interrelationship Formula
-- **When Revenue > Expenses (Profit scenario)**:
-  * ExpensesPL (Profit) = positive height
-  * RevenuePL (Loss) = 0% height
-- **When Revenue < Expenses (Loss scenario)**:
-  * RevenuePL (Loss) = positive height  
-  * ExpensesPL (Profit) = 0% height
+The financial visualization system displays four 3D objects representing Revenue, Expenses, Profit, and Loss with real-time height manipulation based on business metrics. The system uses vertex manipulation instead of mesh scaling to maintain proper anchored surfaces.
 
 ### Core Architecture Components
 
-#### 1. FinancialsController (Central System Controller)
-- **Location**: `client/src/components/Canvas3DBabylon/controllers/FinancialsController.ts`
-- **Purpose**: Enforces all financial system rules automatically
-- **Global Access**: Available as `(window as any).financialsController`
-- **Key Methods**:
-  - `updateFinancialSystem(inputData, animated)`: Main update method
-  - `validateSystemIntegrity()`: Ensures rule compliance
-  - `getCurrentState()`: Returns current financial state
-  - `saveFinancialState()`: Saves current state for template persistence
-  - `restoreFinancialState()`: Restores persisted state after template switch
-  - `getPersistedData()`: Returns saved financial data
-
-#### 2. Financial Objects Layout
-- **Revenue (Green)**: Variable height, positioned left-front, bottom-anchored
+#### 1. Financial Objects Layout
+- **Revenue (Green)**: Fixed at $10M, positioned left-front, bottom-anchored
 - **RevenuePL (Gold)**: Shows loss amount, positioned left-back, top-anchored  
-- **Expenses (Red)**: Variable height, positioned right-front, bottom-anchored
+- **Expenses (Red)**: Variable $1M-$10M, positioned right-front, bottom-anchored
 - **ExpensesPL (Black)**: Shows profit amount, positioned right-back, top-anchored
 
-#### 3. Vertex Manipulation System
+#### 2. Vertex Manipulation System
 **Critical Rule**: Meshes stay in FIXED positions, only vertices move to change height.
 
 **Bottom-Anchored Objects** (Revenue, Expenses):
@@ -126,80 +85,75 @@ Each group operates where both elements must equal 100% total:
 - Top vertices remain fixed at original Y position
 - Bottom vertices move up/down to change height  
 - Mesh position never changes
-- **SPECIAL EXCEPTION**: RevenuePL (Loss) in loss scenarios grows upward from Revenue top, overriding standard top-anchored behavior
 
-#### 4. Height Calculation Formula (via FinancialsController)
+#### 3. Financial Logic Parameters
+- **Revenue**: LOCKED at $10M (slider disabled, value=1000)
+- **Expenses**: Variable $1M-$10M (slider 100-1000, default=800 for $8M)
+- **Profit**: Calculated as Revenue - Expenses ($0M-$9M range, 0%-99% margin)
+- **Loss**: Always $0M (since Expenses ≤ Revenue)
+
+#### 4. Height Calculation Formula
 ```typescript
-// Rule 1: Equal Group Heights - based on maximum value
-const maxValue = Math.max(revenue, expenses);
-const groupHeight = maxValue / HEIGHT_SCALE;
+// Fixed scaling factor
+const HEIGHT_SCALE = 500.0;
 
-// Rule 2: 100% Group Composition
-const revenueHeight = groupHeight * (revenue / maxValue);
-const revenuePLHeight = groupHeight * (loss / maxValue);
-const expensesHeight = groupHeight * (expenses / maxValue);
-const expensesPLHeight = groupHeight * (profit / maxValue);
-
-// Rule 3: Profit/Loss Interrelationship
-const profit = isProfit ? (revenue - expenses) : 0;
-const loss = !isProfit ? Math.abs(revenue - expenses) : 0;
+// Heights (all use same scale)
+const revenueHeight = 1000 / HEIGHT_SCALE;     // Fixed: 2.0 units
+const expensesHeight = expenses / HEIGHT_SCALE; // Variable: 0.2-2.0 units  
+const expensesPLHeight = profit / HEIGHT_SCALE; // Variable: 0.0-1.8 units
+const revenuePLHeight = 0 / HEIGHT_SCALE;      // Fixed: 0.0 units
 ```
 
-#### 5. Slider Configuration (Updated Ranges)
-**Revenue Slider**:
+#### 5. Slider Configuration (React)
+**Revenue Slider** (Locked):
 ```html
-<input type="range" min="0" max="1500" defaultValue="1000" />
+<input type="range" min="1000" max="1000" defaultValue="1000" disabled />
 ```
 
-**Expenses Slider**:
+**Expenses Slider** (Interactive):
 ```html
-<input type="range" min="0" max="1200" defaultValue="800" />
+<input type="range" min="100" max="1000" defaultValue="800" />
 ```
 
-#### 6. UI Integration
-All slider interactions route through FinancialsController:
-```typescript
-// Revenue slider change
-controller.updateFinancialSystem({
-  revenue: revenue,
-  expenses: currentExpenses
-}, false); // Immediate update
+**Critical Implementation Detail**: Use `defaultValue` only (no `value` prop) for interactive sliders to avoid controlled/uncontrolled component conflicts.
 
-// Expenses slider change  
-controller.updateFinancialSystem({
-  revenue: currentRevenue,
-  expenses: expenses
-}, false); // Immediate update
-```
+#### 6. Animation System
+**Revenue Group**: NO animations (completely locked)
+- Revenue: No height changes
+- RevenuePL: No height changes
+
+**Expenses Group**: Vertex manipulation animations only
+- Expenses: Bottom-anchored vertex animation
+- ExpensesPL: Top-anchored vertex animation
 
 #### 7. Key Files & Responsibilities
-- **FinancialsController.ts**: Central business rules enforcement
 - **FinancialsHeightManager.ts**: Core vertex manipulation logic
-- **FinancialsDataAdapter.ts**: Business data transformation (uses Controller)
-- **Canvas3DBabylon.tsx**: Slider UI integration with Controller
+- **FinancialsDataAdapter.ts**: Business data transformation  
+- **Canvas3DBabylon.tsx**: Slider UI and event handlers (lines 3390-3480)
+- **EnvisionerFoundation.ts**: Frame system and mesh management
 
-#### 8. System Validation
-The FinancialsController automatically validates:
-- Equal group heights (Rule 1)
-- 100% composition per group (Rule 2)  
-- Profit/Loss mutual exclusivity (Rule 3)
+#### 8. Bounds Checking & Safety
+```typescript
+// Ensure values stay within valid ranges
+const expenses = Math.max(Math.min(data.expenses, 1000), 100); // $1M-$10M
+const revenue = 1000; // Always $10M
+const profit = Math.max(0, revenue - expenses); // $0M-$9M
+```
 
-#### 9. Special Anchoring Exception (RevenuePL Loss Behavior)
-**Critical Override**: When Expenses > Revenue (loss scenario), RevenuePL (Gold/Loss) object:
-- Abandons standard top-anchored behavior
-- Grows **upward** from the top of the Revenue object
-- Stacks on top of Revenue to show loss amount
-- Uses bottom-anchored positioning logic for this scenario only
+#### 9. Display Value Calculations
+```typescript
+// Convert slider values to display values
+const displayRevenue = `$${(revenue * 10 / 1000).toFixed(0)}M`; // Always "$10M"
+const displayExpenses = `$${(expenses * 10 / 1000).toFixed(0)}M`; // "$1M" to "$10M"
+```
 
-#### 10. Success Criteria Achieved
-✅ Equal group heights enforced at all times
-✅ 100% group composition maintained automatically
-✅ Profit/Loss interrelationship correctly implemented
-✅ Centralized controller enforces all business rules
-✅ Slider ranges support full spectrum (0M to 1.5x initial values)
+### Success Criteria Achieved
+✅ Revenue locked at $10M with no movement
+✅ Expenses range $1M-$10M with smooth interaction  
+✅ Profit margins 0%-99% visualization
+✅ Proper anchored surface behavior
+✅ Interactive slider without React conflicts
 ✅ Real-time height updates with vertex manipulation
-✅ System integrity validation built-in
-✅ Special RevenuePL loss anchoring exception implemented
 
 ## External Dependencies
 
