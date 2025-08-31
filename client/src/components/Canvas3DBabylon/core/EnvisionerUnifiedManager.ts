@@ -80,12 +80,6 @@ export class EnvisionerUnifiedManager {
 
     debugLog.info('unified', `🔄 Switching template from ${this.currentTemplateName} to ${newTemplateName}`);
 
-    // CAPTURE ACTUAL CAMERA TARGET - this is what the user sees shifting
-    const camera = this.scene.activeCamera as any;
-    if (camera && camera.getTarget) {
-      const target = camera.getTarget();
-      console.log(`🎯 BEFORE SWITCH - Camera target: (${target.x.toFixed(3)}, ${target.y.toFixed(3)}, ${target.z.toFixed(3)})`);
-    }
 
     // Step 1: Unload current template content (but preserve foundation)
     await this.unloadCurrentTemplateContent();
@@ -103,11 +97,6 @@ export class EnvisionerUnifiedManager {
 
     this.currentTemplateName = newTemplateName;
     
-    // CAPTURE CAMERA TARGET AFTER SWITCH
-    if (camera && camera.getTarget) {
-      const target = camera.getTarget();
-      console.log(`🎯 AFTER SWITCH - Camera target: (${target.x.toFixed(3)}, ${target.y.toFixed(3)}, ${target.z.toFixed(3)})`);
-    }
     
     debugLog.info('unified', `✅ Template switched to ${newTemplateName}`);
   }
@@ -183,32 +172,14 @@ export class EnvisionerUnifiedManager {
     const { MeshBuilder, StandardMaterial, Color3 } = await import('@babylonjs/core');
     const masterTransform = this.persistence.getMasterTransform()!;
 
-    // Use standardized layout system for consistent positioning across templates
-    const { getContentPosition } = await import('./EnvisionerLayoutSystem');
-    
-    const revenuePos = getContentPosition('financials', 'revenue');
-    const revenuePlPos = getContentPosition('financials', 'revenue_pl');
-    const expensesPos = getContentPosition('financials', 'expenses');
-    const expensesPlPos = getContentPosition('financials', 'expenses_pl');
-    
-    console.log('💰 FINANCIAL LAYOUT POSITIONS:');
-    console.log(`Revenue: (${revenuePos.x}, ${revenuePos.y}, ${revenuePos.z})`);
-    console.log(`Revenue PL: (${revenuePlPos.x}, ${revenuePlPos.y}, ${revenuePlPos.z})`);
-    console.log(`Expenses: (${expensesPos.x}, ${expensesPos.y}, ${expensesPos.z})`);
-    console.log(`Expenses PL: (${expensesPlPos.x}, ${expensesPlPos.y}, ${expensesPlPos.z})`);
-    
-    // Calculate content bounds for Financial template
-    const allX = [revenuePos.x, revenuePlPos.x, expensesPos.x, expensesPlPos.x];
-    const minX = Math.min(...allX);
-    const maxX = Math.max(...allX);
-    const centerX = (minX + maxX) / 2;
-    console.log(`💰 FINANCIAL BOUNDS: minX=${minX.toFixed(3)}, maxX=${maxX.toFixed(3)}, centerX=${centerX.toFixed(3)}`);
+    // Use EXACT Business Model Canvas positions to eliminate visual shift
+    const { Vector3 } = await import('@babylonjs/core');
     
     const financialObjects = [
-      { name: 'Revenue', pos: revenuePos, color: [0.2, 0.8, 0.3] },
-      { name: 'Loss', pos: revenuePlPos, color: [1.0, 0.8, 0.0] },
-      { name: 'Expenses', pos: expensesPos, color: [0.8, 0.2, 0.2] },
-      { name: 'Profit', pos: expensesPlPos, color: [0.1, 0.1, 0.1] }
+      { name: 'Revenue', pos: new Vector3(-0.221, 0, 2), color: [0.2, 0.8, 0.3] },    // Same X as Revenue Streams
+      { name: 'Loss', pos: new Vector3(-0.221, 0, -2), color: [1.0, 0.8, 0.0] },      // Same X as Revenue Streams  
+      { name: 'Expenses', pos: new Vector3(-10.1, 0, 2), color: [0.8, 0.2, 0.2] },   // Same X as Cost Structure
+      { name: 'Profit', pos: new Vector3(-10.1, 0, -2), color: [0.1, 0.1, 0.1] }     // Same X as Cost Structure
     ];
 
     financialObjects.forEach(obj => {
