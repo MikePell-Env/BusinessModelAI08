@@ -1377,33 +1377,38 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           console.log(`  - GLB: ${mesh.name} (visible: ${mesh.isVisible})`);
         });
 
-        // CRITICAL FIX: Do template switching AFTER meshes are loaded
-        if (unifiedManagerRef.current && currentTemplate !== template.name) {
-          console.log(`🔄 Template switch after GLB loading: ${currentTemplate} -> ${template.name}`);
-          
-          // Add delay to ensure meshes are fully registered
+        // FIXED: Force immediate template visibility after mesh loading
+        console.log(`🔍 GLB LOADED: Setting template to ${template.name}`);
+        setCurrentTemplate(template.name);
+        
+        // Force show the correct template immediately
+        if (unifiedManagerRef.current) {
           setTimeout(() => {
-            if (unifiedManagerRef.current) {
-              unifiedManagerRef.current.switchTemplate(template.name).then(() => {
-                console.log(`✅ Post-GLB template switch completed to ${template.name}`);
-                setCurrentTemplate(template.name);
-                
-                // Debug: Log all meshes and their visibility
-                console.log('🔍 POST-SWITCH DEBUG: All scene meshes:');
-                sceneRef.current?.meshes.forEach(mesh => {
-                  console.log(`  - ${mesh.name} (visible: ${mesh.isVisible}, pickable: ${mesh.isPickable})`);
+            // Direct template manager call to ensure visibility
+            const templateManager = (unifiedManagerRef.current as any).templateManager;
+            if (templateManager) {
+              console.log(`🔄 FORCE SHOW: ${template.name}`);
+              templateManager.showTemplate(template.name);
+              
+              // Double check - force visibility on all matching meshes
+              const scene = sceneRef.current;
+              if (scene && template.name.toLowerCase() === 'financials') {
+                console.log(`💰 FINANCIALS FIX: Force showing Financial meshes`);
+                scene.meshes.forEach(mesh => {
+                  if (mesh.name === 'Revenue' || mesh.name === 'Expenses' || 
+                      mesh.name === 'RevenuePL' || mesh.name === 'ExpensesPL') {
+                    mesh.isVisible = true;
+                    mesh.isPickable = true;
+                    console.log(`💰 FORCED VISIBLE: ${mesh.name}`);
+                  }
                 });
-              }).catch((error) => {
-                console.error(`❌ Post-GLB template switch failed:`, error);
+              }
+              
+              // Debug: Log all meshes and their visibility
+              console.log('🔍 FORCED VISIBILITY DEBUG: All scene meshes:');
+              sceneRef.current?.meshes.forEach(mesh => {
+                console.log(`  - ${mesh.name} (visible: ${mesh.isVisible}, pickable: ${mesh.isPickable})`);
               });
-            }
-          }, 300);
-        } else if (unifiedManagerRef.current) {
-          // Force refresh if no template change but unified manager exists
-          setTimeout(() => {
-            if (unifiedManagerRef.current) {
-              unifiedManagerRef.current.refreshTemplateVisibility();
-              console.log(`✅ Template visibility refreshed for current template: ${template.name}`);
             }
           }, 100);
         }

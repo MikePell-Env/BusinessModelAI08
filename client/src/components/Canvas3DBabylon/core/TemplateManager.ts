@@ -174,6 +174,29 @@ export class TemplateManager {
       console.log(`  - ${mesh.name}`);
     });
     
+    // FINANCIALS DEBUG: Special handling for Financials template
+    if (templateName.toLowerCase() === 'financials') {
+      console.log(`💰 FINANCIALS DEBUG: Checking for exact Financial mesh names...`);
+      const financialMeshNames = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
+      
+      financialMeshNames.forEach(name => {
+        const mesh = this.scene.meshes.find(m => m.name === name);
+        if (mesh) {
+          console.log(`💰 FOUND: ${name} - forcing visible`);
+          mesh.isVisible = true;
+          mesh.isPickable = true;
+          
+          // Also ensure it's not in the action manager cache incorrectly
+          const cachedActionManager = this.actionManagerCache.get(mesh);
+          if (cachedActionManager) {
+            mesh.actionManager = cachedActionManager as ActionManager;
+          }
+        } else {
+          console.log(`💰 MISSING: ${name} - mesh not found in scene`);
+        }
+      });
+    }
+    
     templateMeshes.forEach(mesh => {
       // Make visible
       mesh.isVisible = true;
@@ -184,10 +207,20 @@ export class TemplateManager {
       if (cachedActionManager) {
         mesh.actionManager = cachedActionManager as ActionManager;
       }
+      
+      console.log(`✅ MADE VISIBLE: ${mesh.name}`);
     });
     
     this.currentTemplate = templateName;
     debugLog.info('template', `Showed ${templateMeshes.length} meshes for ${templateName}`);
+    
+    // FINAL DEBUG: Verify what's actually visible now
+    console.log(`🔍 FINAL CHECK: Visible meshes after template switch:`);
+    this.scene.meshes.forEach(mesh => {
+      if (mesh.isVisible) {
+        console.log(`  ✅ VISIBLE: ${mesh.name}`);
+      }
+    });
   }
 
   /**
