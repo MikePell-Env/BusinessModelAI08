@@ -57,7 +57,7 @@ import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter'
 import { EnvisionerUnifiedManager } from './Canvas3DBabylon/core/EnvisionerUnifiedManager';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
-import { AssetManager } from './Canvas3DBabylon/core/AssetManager';
+import { AssetManager } from './Canvas3DBabylon/managers/AssetManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
