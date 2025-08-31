@@ -45,6 +45,13 @@ app.use((req, res, next) => {
     console.log('No saved Azure credentials found');
   }
 
+  // Debug endpoint to capture browser console logs
+  app.post('/api/debug/capture', express.json(), (req, res) => {
+    const { message, data } = req.body;
+    console.log(`[BROWSER] ${message}`, data || '');
+    res.json({ success: true });
+  });
+
 
 
   const server = await registerRoutes(app);
