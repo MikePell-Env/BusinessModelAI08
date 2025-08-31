@@ -3535,8 +3535,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   if ((window as any).financialsHeightManager) {
                     const heightManager = (window as any).financialsHeightManager;
                     
-                    // Get current revenue value for profit calculation
-                    const currentRevenue = (window as any).financialSliderState.revenue;
+                    // Get current revenue value from actual slider position for profit calculation
+                    const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
+                    const currentRevenue = revenueSlider ? parseInt(revenueSlider.value) : 700;
                     
                     // Calculate profit for ExpensesPL object
                     const profit = Math.max(0, currentRevenue - expenses);
