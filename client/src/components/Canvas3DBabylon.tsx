@@ -807,8 +807,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             const financialsHeightManager = new FinancialsHeightManager(scene);
             const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
             
+            // CRITICAL: Create FinancialsController immediately for slider access
+            const { FinancialsController } = await import('./Canvas3DBabylon/controllers/FinancialsController');
+            const financialsController = new FinancialsController(financialsHeightManager);
+            
             (scene as any).financialsHeightManager = financialsHeightManager;
             (scene as any).financialsDataAdapter = financialsDataAdapter;
+            (scene as any).financialsController = financialsController;
+            
+            // Make controller globally accessible for sliders
+            (window as any).financialsController = financialsController;
             
             financialsHeightManager.registerFinancialMeshes(model.meshes);
             
@@ -1611,12 +1619,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (template.name.toLowerCase() === 'financials') {
           const financialsHeightManager = new FinancialsHeightManager(scene);
           const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
+          
+          // CRITICAL: Create FinancialsController immediately for slider access
+          const { FinancialsController } = await import('./Canvas3DBabylon/controllers/FinancialsController');
+          const financialsController = new FinancialsController(financialsHeightManager);
 
           // Store managers on scene for global access
           (scene as any).financialsHeightManager = financialsHeightManager;
           (scene as any).financialsDataAdapter = financialsDataAdapter;
+          (scene as any).financialsController = financialsController;
+          
+          // Make controller globally accessible for sliders
+          (window as any).financialsController = financialsController;
 
-          console.log('💰 Financials systems initialized');
+          console.log('💰 Financials systems initialized with controller for sliders');
 
 
           // Register financial meshes for height manipulation
