@@ -805,33 +805,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           // Initialize Financials systems if needed
           if (template.name.toLowerCase() === 'financials') {
             const financialsHeightManager = new FinancialsHeightManager(scene);
-            const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
+            
+            // OLD SYSTEM REMOVED: const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
+            // OLD SYSTEM REMOVED: const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
             
             // CRITICAL: Create FinancialsController immediately for slider access
             const { FinancialsController } = await import('./Canvas3DBabylon/controllers/FinancialsController');
             const financialsController = new FinancialsController(financialsHeightManager);
             
             (scene as any).financialsHeightManager = financialsHeightManager;
-            (scene as any).financialsDataAdapter = financialsDataAdapter;
             (scene as any).financialsController = financialsController;
             
             // Make controller globally accessible for sliders
             (window as any).financialsController = financialsController;
+            (window as any).financialsHeightManager = financialsHeightManager;
             
             financialsHeightManager.registerFinancialMeshes(model.meshes);
             
-            const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
-            const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
-            
-            (window as any).financialsHeightManager = financialsHeightManager;
-            (window as any).financialsDataAdapter = financialsDataAdapter;
-            (window as any).financialsDemo = financialsDemo;
-            
-            const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
-            setTimeout(async () => {
-              if (financialsDataAdapter) {
-                await financialsDataAdapter.updateFromBusinessData(initialData);
-                console.log('💰 Financials reinitialized after template switch');
+            // NEW SYSTEM: Use FinancialsController for initialization
+            const initialData = { revenue: 1000, expenses: 800 }; // $10M revenue, $8M expenses
+            setTimeout(() => {
+              if (financialsController) {
+                financialsController.updateFinancialSystem(initialData, false);
+                console.log('💰 Financials initialized using FinancialsController after template switch');
               }
             }, 100);
           }
@@ -1618,7 +1614,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // Initialize Financials-specific systems
         if (template.name.toLowerCase() === 'financials') {
           const financialsHeightManager = new FinancialsHeightManager(scene);
-          const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
+          
+          // OLD SYSTEM REMOVED: const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
+          // OLD SYSTEM REMOVED: const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
           
           // CRITICAL: Create FinancialsController immediately for slider access
           const { FinancialsController } = await import('./Canvas3DBabylon/controllers/FinancialsController');
@@ -1626,56 +1624,41 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
           // Store managers on scene for global access
           (scene as any).financialsHeightManager = financialsHeightManager;
-          (scene as any).financialsDataAdapter = financialsDataAdapter;
           (scene as any).financialsController = financialsController;
           
           // Make controller globally accessible for sliders
           (window as any).financialsController = financialsController;
+          (window as any).financialsHeightManager = financialsHeightManager;
 
-          console.log('💰 Financials systems initialized with controller for sliders');
-
+          console.log('💰 Financials systems initialized with FinancialsController only');
 
           // Register financial meshes for height manipulation
           if (financialsHeightManager) {
-            financialsHeightManager.registerFinancialMeshes(model.meshes); // Pass all meshes
-
-            console.log('✅ Financials height system initialized (deferred vertex processing)');
+            financialsHeightManager.registerFinancialMeshes(model.meshes);
+            console.log('✅ Financials height system initialized for vertex manipulation');
           }
 
-
-          // Create comprehensive demo system
-          const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
-          const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
-
-          // Expose controls for testing and real-time manipulation
-          (window as any).financialsHeightManager = financialsHeightManager;
-          (window as any).financialsDataAdapter = financialsDataAdapter;
-          (window as any).financialsDemo = financialsDemo;
-
-          // Initialize with corrected financial data
+          // NEW SYSTEM: Initialize with FinancialsController
           // Revenue slider default: 1000 → Revenue object height
           // Expenses slider default: 800 → Expenses object height
-          // Profit: 200 → ExpensesPL object height
-          // Loss: 0 → RevenuePL object height
-          const initialData: FinancialBusinessData = {
-            totalRevenue: 1000,  // Revenue slider value → Revenue height
-            totalExpenses: 800,  // Expenses slider value → Expenses height
-            netProfit: 200,      // Profit → ExpensesPL height
-            netLoss: 0           // Loss → RevenuePL height
+          // Controller calculates profit/loss automatically
+          const initialInputData = {
+            revenue: 1000,  // $10M revenue
+            expenses: 800   // $8M expenses (results in $2M profit)
           };
 
-          // Apply initial data immediately to prevent 50/50 flash
-          setTimeout(async () => {
+          // Apply initial data immediately using FinancialsController
+          setTimeout(() => {
             try {
-              if (financialsDataAdapter && financialsHeightManager) {
-                await financialsDataAdapter.updateFromBusinessData(initialData, false);
-                console.log('💰 Initial Financials data applied immediately');
+              if (financialsController && financialsHeightManager) {
+                financialsController.updateFinancialSystem(initialInputData, false);
+                console.log('💰 Initial Financials data applied using FinancialsController');
 
                 // Verify heights were applied
                 const heights = financialsHeightManager.getCurrentHeights();
-                console.log('💰 Current heights after initialization:', heights);
+                console.log('💰 Current heights after FinancialsController initialization:', heights);
               } else {
-                console.error('❌ Financials managers not properly initialized');
+                console.error('❌ FinancialsController not properly initialized');
               }
             } catch (error) {
               console.error('❌ Failed to apply initial Financials data:', error);
@@ -3478,14 +3461,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             }
             
             // Initialize default values when component mounts for Financials template
-            if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
+            // OLD SYSTEM REMOVED: financialsDataAdapter.updateFromBusinessData() call
+            if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsController) {
               setTimeout(() => {
-                (window as any).financialsDataAdapter.updateFromBusinessData({
-                  totalRevenue: 1000,  // $10M default (99% Revenue, 1% RevenuePL)
-                  totalExpenses: 800,  // $8M default  
-                  netProfit: 200,      // $2M profit (20% ExpensesPL)
-                  netLoss: 0           // No loss (0% RevenuePL)
-                });
+                const controller = (window as any).financialsController;
+                controller.updateFinancialSystem({
+                  revenue: 1000,  // $10M default
+                  expenses: 800   // $8M default (controller calculates profit automatically)
+                }, false);
+                console.log('💰 UI component initialized using FinancialsController');
               }, 100);
             }
           }}>
