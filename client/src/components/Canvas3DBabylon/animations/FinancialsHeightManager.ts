@@ -490,13 +490,63 @@ export class FinancialsHeightManager {
    * Reset all objects to base height
    */
   public resetToBaseHeight(): void {
+    // Reset to default financial state: Revenue $10M (100%), Expenses $8M (80%)
+    // This results in: RevenuePL 0%, Revenue 100%, ExpensesPL 20% profit, Expenses 80%
     const baseData: FinancialData = {
-      revenue: 1,
-      expenses: 1,
-      profit: 0,
-      loss: 0
+      revenue: 1000,  // $10M (Revenue slider at 100%)
+      expenses: 800,  // $8M (Expenses slider at 80%)
+      profit: 200,    // $2M profit (20% margin - goes to ExpensesPL)
+      loss: 0         // No loss (0% - RevenuePL stays at 0%)
     };
+    
+    console.log('🔄 Resetting to default financial state:', {
+      revenue: '$10M (100%)',
+      expenses: '$8M (80%)', 
+      profit: '$2M (20% margin)',
+      loss: '$0M (0%)'
+    });
+    
     this.setImmediateHeights(baseData);
+    
+    // Also update the slider positions and display values to match
+    this.updateUIToMatchData(baseData);
+  }
+
+  /**
+   * Update UI elements (sliders and displays) to match the given financial data
+   */
+  private updateUIToMatchData(data: FinancialData): void {
+    // Update slider values
+    const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
+    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+    
+    if (revenueSlider) {
+      revenueSlider.value = data.revenue.toString();
+    }
+    
+    if (expensesSlider) {
+      expensesSlider.value = data.expenses.toString();
+    }
+    
+    // Update display values
+    const revenueDisplay = document.querySelector('.revenue-display');
+    const expensesDisplay = document.querySelector('.expenses-display');
+    
+    if (revenueDisplay) {
+      revenueDisplay.textContent = `$${(data.revenue * 10 / 1000).toFixed(0)}M`;
+    }
+    
+    if (expensesDisplay) {
+      expensesDisplay.textContent = `$${(data.expenses * 10 / 1000).toFixed(0)}M`;
+    }
+    
+    // Update global state for consistency
+    if ((window as any).financialSliderState) {
+      (window as any).financialSliderState.revenue = data.revenue;
+      (window as any).financialSliderState.expenses = data.expenses;
+    }
+    
+    console.log('🎚️ Reset UI elements to default values');
   }
 
   private isFinancialMesh(name: string): boolean {
