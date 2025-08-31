@@ -86,32 +86,39 @@ export class FinancialsController {
 
   /**
    * Calculate financial system state following all rules
-   * EXACTLY as documented in replit.md
-   * BASE RULE: Expenses object = 1.0 units tall, everything else scales from that
+   * SIMPLE RULE: Both groups = 1.0 unit total height each
    */
   private calculateFinancialState(inputData: FinancialInputData): FinancialSystemState {
     const { revenue, expenses } = inputData;
     
-    // BASE SCALING: Expenses = 1.0 units tall
-    // For default values: Expenses = 800, so scale = 800/1.0 = 800
-    const baseScale = expenses; // This makes Expenses exactly 1.0 units tall
-    const groupHeight = Math.max(revenue, expenses) / baseScale;
+    // SIMPLE: Both groups are exactly 1.0 unit tall total
+    const groupHeight = 1.0;
     
-    // Rule 3: Profit/Loss Interrelationship Formula (EXACTLY as documented)
-    const isProfit = revenue >= expenses;  // Include breakeven as profit scenario
+    // Rule 3: Profit/Loss Interrelationship Formula
+    const isProfit = revenue >= expenses;
     const profit = isProfit ? (revenue - expenses) : 0;
     const loss = !isProfit ? Math.abs(revenue - expenses) : 0;
     
-    // Rule 2: 100% Group Composition with BASE SCALING
-    // CRITICAL: Expenses = 1.0 units tall, everything scales from that
-    const maxValue = Math.max(revenue, expenses);
+    // Rule 1: Equal Group Heights = 1.0 unit each
+    // Rule 2: 100% Group Composition within each 1.0 unit group
+    let revenueHeight, revenuePLHeight, expensesHeight, expensesPLHeight;
     
-    const revenueHeight = groupHeight * (revenue / maxValue);
-    const revenuePLHeight = groupHeight * (loss / maxValue);
-    const expensesHeight = groupHeight * (expenses / maxValue);  // This will be 1.0 when expenses is the base
-    const expensesPLHeight = groupHeight * (profit / maxValue);
+    if (isProfit) {
+      // PROFIT: Revenue group = Revenue only, Expenses group = Expenses + Profit
+      revenueHeight = groupHeight;  // Revenue = 1.0 unit (100% of group)
+      revenuePLHeight = 0;          // No loss
+      expensesHeight = groupHeight * (expenses / revenue);  // Expenses portion
+      expensesPLHeight = groupHeight * (profit / revenue);  // Profit portion
+    } else {
+      // LOSS: Revenue group = Revenue + Loss, Expenses group = Expenses only  
+      revenueHeight = groupHeight * (revenue / expenses);   // Revenue portion
+      revenuePLHeight = groupHeight * (loss / expenses);    // Loss portion
+      expensesHeight = groupHeight;  // Expenses = 1.0 unit (100% of group)
+      expensesPLHeight = 0;          // No profit
+    }
     
     // Calculate percentages for validation
+    const maxValue = Math.max(revenue, expenses);
     const revenuePercent = (revenue / maxValue) * 100;
     const revenuePLPercent = (loss / maxValue) * 100;
     const expensesPercent = (expenses / maxValue) * 100;
