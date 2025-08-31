@@ -1582,17 +1582,40 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
-    // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
-    modelLoader.loadTemplateModel(template.name).then(async (model) => {
-      console.log(`🔧 Template "${template.name}" loading result:`, {
-        meshCount: model.meshes.length,
-        meshNames: model.meshes.map(m => m.name),
-        rootPosition: model.rootMesh.position,
-        rootScaling: model.rootMesh.scaling
+    // SHARED ENVISIONER: Load BOTH templates at startup, then show only the active one
+    console.log('🏗️ Loading both templates for shared Envisioner architecture...');
+    
+    Promise.all([
+      modelLoader.loadTemplateModel('Business Model'),
+      modelLoader.loadTemplateModel('Financials')
+    ]).then(async ([businessModel, financialsModel]) => {
+      console.log(`✅ Business Model loaded: ${businessModel.meshes.length} meshes`);
+      console.log(`✅ Financials loaded: ${financialsModel.meshes.length} meshes`);
+      
+      // Store both models on scene for visibility switching
+      (scene as any).businessModelMeshes = businessModel.meshes;
+      (scene as any).financialsMeshes = financialsModel.meshes;
+      
+      // Hide all template content initially  
+      [...businessModel.meshes, ...financialsModel.meshes].forEach(mesh => {
+        mesh.setEnabled(false);
+        mesh.isVisible = false;
       });
       
+      // Show only active template content
+      const isFinancials = template.name.toLowerCase() === 'financials';
+      const activeModel = isFinancials ? financialsModel : businessModel;
+      activeModel.meshes.forEach(mesh => {
+        mesh.setEnabled(true);
+        mesh.isVisible = true;
+      });
+      
+      console.log(`👁️ Initially showing: ${template.name} (${activeModel.meshes.length} meshes)`);
+      
+      // Use active model for initialization
+      const model = activeModel;
       if (model.meshes.length > 0) {
-        console.log(`✅ Template loaded: ${template.name} with ${model.meshes.length} meshes`);
+        console.log(`✅ Using ${template.name} template for initialization`);
 
         const rootMesh = model.rootMesh;
         rootMeshRef.current = rootMesh;
