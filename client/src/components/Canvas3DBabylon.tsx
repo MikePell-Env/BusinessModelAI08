@@ -812,18 +812,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             
             financialsHeightManager.registerFinancialMeshes(model.meshes);
             
-            const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
-            const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
-            
             (window as any).financialsHeightManager = financialsHeightManager;
             (window as any).financialsDataAdapter = financialsDataAdapter;
-            (window as any).financialsDemo = financialsDemo;
             
             const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
             setTimeout(async () => {
               if (financialsDataAdapter) {
                 await financialsDataAdapter.updateFromBusinessData(initialData);
-                console.log('💰 Financials reinitialized after template switch');
               }
             }, 100);
           }
@@ -1616,25 +1611,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           (scene as any).financialsHeightManager = financialsHeightManager;
           (scene as any).financialsDataAdapter = financialsDataAdapter;
 
-          console.log('💰 Financials systems initialized');
 
 
           // Register financial meshes for height manipulation
           if (financialsHeightManager) {
             financialsHeightManager.registerFinancialMeshes(model.meshes); // Pass all meshes
 
-            console.log('✅ Financials height system initialized (deferred vertex processing)');
           }
 
-
-          // Create comprehensive demo system
-          const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
-          const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
 
           // Expose controls for testing and real-time manipulation
           (window as any).financialsHeightManager = financialsHeightManager;
           (window as any).financialsDataAdapter = financialsDataAdapter;
-          (window as any).financialsDemo = financialsDemo;
 
           // Initialize with corrected financial data
           // Revenue slider default: 1000 → Revenue object height
@@ -1653,20 +1641,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             try {
               if (financialsDataAdapter && financialsHeightManager) {
                 await financialsDataAdapter.updateFromBusinessData(initialData, false);
-                console.log('💰 Initial Financials data applied immediately');
-
-                // Verify heights were applied
-                const heights = financialsHeightManager.getCurrentHeights();
-                console.log('💰 Current heights after initialization:', heights);
-              } else {
-                console.error('❌ Financials managers not properly initialized');
               }
             } catch (error) {
-              console.error('❌ Failed to apply initial Financials data:', error);
+              // Silent error handling for initialization
             }
           }, 50); // Minimal delay to ensure meshes are registered
 
-          console.log('💰 Financials demo system ready - try: financialsDemo.demonstrateProportionalHeights()');
         }
 
         // Position for template-specific layout
