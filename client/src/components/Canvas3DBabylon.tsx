@@ -250,7 +250,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Track if this specific template should auto-animate (first time only)
   const shouldAutoAnimateRef = useRef(false);
 
-  // Handle template switching with unified manager
+  // DISABLED: Template switching moved to after GLB loading
+  // This prevents race condition where template switch happens before meshes exist
+  /*
   useEffect(() => {
     if (unifiedManagerRef.current && currentTemplate && currentTemplate !== template.name) {
       console.log(`🔄 Unified template switch: ${currentTemplate} -> ${template.name}`);
@@ -263,6 +265,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       });
     }
   }, [template.name]);
+  */
 
   useEffect(() => {
     // Only set initial preset for first-time template loading, not during transitions
@@ -1365,8 +1368,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           console.log(`  - GLB: ${mesh.name} (visible: ${mesh.isVisible})`);
         });
         
-        // Refresh template visibility now that meshes are loaded
-        if (unifiedManagerRef.current) {
+        // CRITICAL FIX: Do template switching AFTER meshes are loaded
+        if (unifiedManagerRef.current && currentTemplate !== template.name) {
+          console.log(`🔄 Template switch after GLB loading: ${currentTemplate} -> ${template.name}`);
+          unifiedManagerRef.current.switchTemplate(template.name).then(() => {
+            console.log(`✅ Post-GLB template switch completed to ${template.name}`);
+            setCurrentTemplate(template.name);
+          });
+        } else if (unifiedManagerRef.current) {
           unifiedManagerRef.current.refreshTemplateVisibility();
         }
 
