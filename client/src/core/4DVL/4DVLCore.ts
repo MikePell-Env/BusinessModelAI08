@@ -13,17 +13,17 @@
 
 import { AbstractMesh, Scene, Vector3, Color3 } from '@babylonjs/core';
 
-export interface 4DVLGeometry {
+export interface The4DVLGeometry {
   id: string;
   type: 'glb' | 'primitive' | 'procedural';
   source: string; // Path to GLB or geometric definition
   position: Vector3;
   rotation: Vector3;
   scaling: Vector3;
-  materials: 4DVLMaterial[];
+  materials: The4DVLMaterial[];
 }
 
-export interface 4DVLMaterial {
+export interface The4DVLMaterial {
   id: string;
   type: 'standard' | 'pbr' | 'data-driven';
   baseColor: Color3;
@@ -31,7 +31,7 @@ export interface 4DVLMaterial {
   dataBoundProperties?: string[]; // Properties that change based on data
 }
 
-export interface 4DVLLabel {
+export interface The4DVLLabel {
   id: string;
   type: 'billboard' | 'flat' | 'embedded';
   text: string;
@@ -45,7 +45,7 @@ export interface 4DVLLabel {
   dataBinding?: string; // Path to data that updates this label
 }
 
-export interface 4DVLBehavior {
+export interface The4DVLBehavior {
   id: string;
   trigger: 'click' | 'hover' | 'data-change' | 'time';
   action: 'animate' | 'transform' | 'highlight' | 'panel' | 'custom';
@@ -53,7 +53,7 @@ export interface 4DVLBehavior {
   targetIds: string[]; // IDs of geometry/labels affected
 }
 
-export interface 4DVLDataBinding {
+export interface The4DVLDataBinding {
   sourceField: string; // Field from data source
   targetProperty: string; // Property in 4DVL object
   transform?: (value: any) => any; // Optional data transformation
@@ -62,24 +62,24 @@ export interface 4DVLDataBinding {
 /**
  * 4DVL Object - represents a complete visual element
  */
-export interface 4DVLObject {
+export interface The4DVLObject {
   id: string;
   name: string;
-  geometry: 4DVLGeometry;
-  labels: 4DVLLabel[];
-  behaviors: 4DVLBehavior[];
-  dataBindings: 4DVLDataBinding[];
+  geometry: The4DVLGeometry;
+  labels: The4DVLLabel[];
+  behaviors: The4DVLBehavior[];
+  dataBindings: The4DVLDataBinding[];
   metadata: Record<string, any>;
 }
 
 /**
  * 4DVL Scene - collection of objects forming a complete visualization
  */
-export interface 4DVLScene {
+export interface The4DVLScene {
   id: string;
   name: string;
-  objects: 4DVLObject[];
-  globalBehaviors: 4DVLBehavior[];
+  objects: The4DVLObject[];
+  globalBehaviors: The4DVLBehavior[];
   dataSchema: Record<string, any>;
   renderSettings: {
     lighting: string;
@@ -91,7 +91,7 @@ export interface 4DVLScene {
 /**
  * 4DVL Renderer - handles the actual display and manipulation of 4DVL scenes
  */
-export class 4DVLRenderer {
+export class The4DVLRenderer {
   private scene: Scene;
   private loadedObjects: Map<string, AbstractMesh> = new Map();
   private activeBehaviors: Map<string, any> = new Map();
@@ -103,7 +103,7 @@ export class 4DVLRenderer {
   /**
    * Render a complete 4DVL scene
    */
-  public async renderScene(dvlScene: 4DVLScene): Promise<void> {
+  public async renderScene(dvlScene: The4DVLScene): Promise<void> {
     // Clear existing objects
     this.clearScene();
 
@@ -121,7 +121,7 @@ export class 4DVLRenderer {
   /**
    * Render a single 4DVL object
    */
-  public async renderObject(dvlObject: 4DVLObject): Promise<void> {
+  public async renderObject(dvlObject: The4DVLObject): Promise<void> {
     // Load geometry
     const mesh = await this.loadGeometry(dvlObject.geometry);
     this.loadedObjects.set(dvlObject.id, mesh);
@@ -151,20 +151,20 @@ export class 4DVLRenderer {
   }
 
   // Private implementation methods
-  private async loadGeometry(geometry: 4DVLGeometry): Promise<AbstractMesh> {
+  private async loadGeometry(geometry: The4DVLGeometry): Promise<AbstractMesh> {
     // Geometry loading implementation
     throw new Error('Geometry loading not implemented');
   }
 
-  private applyMaterials(mesh: AbstractMesh, materials: 4DVLMaterial[]): void {
+  private applyMaterials(mesh: AbstractMesh, materials: The4DVLMaterial[]): void {
     // Material application implementation
   }
 
-  private async createLabel(label: 4DVLLabel): Promise<void> {
+  private async createLabel(label: The4DVLLabel): Promise<void> {
     // Label creation implementation
   }
 
-  private setupBehavior(behavior: 4DVLBehavior): void {
+  private setupBehavior(behavior: The4DVLBehavior): void {
     // Behavior setup implementation
   }
 

@@ -6,7 +6,7 @@
  */
 
 import { UseCase4DVLTemplate, UseCaseTemplateConfig } from '../4DVL/UseCase4DVLTemplate';
-import { 4DVLScene, 4DVLObject } from '../4DVL/4DVLCore';
+import { The4DVLScene, The4DVLObject } from '../4DVL/4DVLCore';
 import { Vector3, Color3 } from '@babylonjs/core';
 
 export class SWOTTemplate extends UseCase4DVLTemplate {
@@ -21,7 +21,7 @@ export class SWOTTemplate extends UseCase4DVLTemplate {
     super(config);
   }
 
-  protected async create4DVLScene(): Promise<4DVLScene> {
+  protected async create4DVLScene(): Promise<The4DVLScene> {
     const swotQuadrants = [
       {
         name: 'Strengths',
@@ -49,7 +49,7 @@ export class SWOTTemplate extends UseCase4DVLTemplate {
       }
     ];
 
-    const objects: 4DVLObject[] = swotQuadrants.map(quadrant => ({
+    const objects: The4DVLObject[] = swotQuadrants.map(quadrant => ({
       id: quadrant.name.toLowerCase(),
       name: quadrant.name,
       geometry: {
