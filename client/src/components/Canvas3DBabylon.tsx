@@ -243,16 +243,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Track if camera is actually in a preset position (for button highlighting)
   const [isInPresetPosition, setIsInPresetPosition] = useState(true);
 
-  // Camera preset switching only for initial template load (not during transitions)
-  // Preserve camera state during template transitions for steady ground plane
-  const [hasInitializedTemplate, setHasInitializedTemplate] = useState<string | null>(null);
+  // Track scene initialization separately from template state
+  const [isSceneInitialized, setIsSceneInitialized] = useState(false);
+  const [currentTemplate, setCurrentTemplate] = useState<string | null>(null);
 
   // Track if this specific template should auto-animate (first time only)
   const shouldAutoAnimateRef = useRef(false);
 
   // Handle template switching with unified manager
   useEffect(() => {
-    if (unifiedManagerRef.current && hasInitializedTemplate && hasInitializedTemplate !== template.name) {
+    if (unifiedManagerRef.current && currentTemplate && currentTemplate !== template.name) {
       // Log full camera state BEFORE template switch
       if (cameraRef.current) {
         const cam = cameraRef.current;
@@ -260,7 +260,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.log(`🔄 BEFORE SWITCH: Camera α=${cam.alpha.toFixed(3)}, β=${cam.beta.toFixed(3)}, r=${cam.radius.toFixed(3)}, target=(${target.x.toFixed(3)}, ${target.y.toFixed(3)}, ${target.z.toFixed(3)})`);
       }
       
-      console.log(`🔄 Unified template switch: ${hasInitializedTemplate} -> ${template.name}`);
+      console.log(`🔄 Unified template switch: ${currentTemplate} -> ${template.name}`);
       
       unifiedManagerRef.current.switchTemplate(template.name).then(() => {
         // Log full camera state AFTER template switch
@@ -270,16 +270,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           console.log(`✅ AFTER SWITCH: Camera α=${cam.alpha.toFixed(3)}, β=${cam.beta.toFixed(3)}, r=${cam.radius.toFixed(3)}, target=(${target.x.toFixed(3)}, ${target.y.toFixed(3)}, ${target.z.toFixed(3)})`);
         }
         console.log(`✅ Unified template switch completed to ${template.name}`);
+        setCurrentTemplate(template.name); // Update current template AFTER switch completes
       }).catch((error) => {
         console.error(`❌ Unified template switch failed:`, error);
       });
     }
-  }, [template.name, hasInitializedTemplate]);
+  }, [template.name]);
 
   useEffect(() => {
     // Only set initial preset for first-time template loading, not during transitions
     // Preserve camera position when switching between templates that have been initialized
-    if (hasInitializedTemplate !== template.name) {
+    if (currentTemplate !== template.name) {
       // Save current camera position before switching (if camera exists)
       if (cameraRef.current) {
         saveCamera3DState(
@@ -291,7 +292,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
 
       // Check if this template has been initialized before
-      const isFirstTimeForThisTemplate = !hasInitializedTemplate;
+      const isFirstTimeForThisTemplate = !currentTemplate || currentTemplate !== template.name;
       const currentState = getCamera3DState();
 
       if (!isFirstTimeForThisTemplate && currentState && (currentState.alpha !== 0 || currentState.beta !== 0 || currentState.radius !== 0)) {
@@ -322,9 +323,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         shouldAutoAnimateRef.current = true; // Enable auto-animation for first instantiation
         console.log(`🎬 First instantiation: Setting default preset ${newPreset} for ${template.name}`);
       }
-      setHasInitializedTemplate(template.name);
+      if (!currentTemplate) {
+        setCurrentTemplate(template.name);
+      }
     }
-  }, [template.name, hasInitializedTemplate]);
+  }, [template.name, currentTemplate]);
 
 
   // Camera transition state
@@ -519,7 +522,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     if (!canvasRef.current || !canvas) return;
 
     // CRITICAL: Prevent scene recreation if scene already exists (template switching)
-    if (sceneRef.current && engineRef.current && hasInitializedTemplate) {
+    if (sceneRef.current && engineRef.current && isSceneInitialized) {
       console.log(`🔄 Template switch to ${template.name} - preserving existing scene`);
       return; // EXIT EARLY - let unified manager handle template switching
     }
@@ -652,7 +655,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Preserve camera state when switching between templates for seamless transitions
     // Only clear state on very first app initialization, not during template switches
-    if (!hasInitializedTemplate) {
+    if (!isSceneInitialized) {
       // First time ever - clear any stale state
       const currentState = getCamera3DState();
       if (currentState) {
@@ -675,7 +678,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let cameraRadius = currentPreset.radius;
 
     // Only restore saved state if we had a previous template initialized and have valid saved state
-    const hadPreviousTemplate = hasInitializedTemplate && hasInitializedTemplate !== template.name;
+    const hadPreviousTemplate = currentTemplate && currentTemplate !== template.name;
     if (savedState && hadPreviousTemplate &&
       (savedState.alpha !== 0 || savedState.beta !== 0 || savedState.radius !== 0)) {
       cameraAlpha = savedState.alpha;
@@ -683,7 +686,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       cameraRadius = savedState.radius as 60 | 55; // Type assertion for radius
       console.log(`🔄 Restoring saved camera: α=${cameraAlpha.toFixed(2)}, β=${cameraBeta.toFixed(2)}, r=${cameraRadius.toFixed(2)}`);
     } else {
-      console.log(`🎬 Using preset camera for ${hasInitializedTemplate ? 'first' : 'initial'} instantiation: ${currentCameraPreset}`);
+      console.log(`🎬 Using preset camera for ${currentTemplate ? 'template switch' : 'initial'} instantiation: ${currentCameraPreset}`);
     }
 
     // Use scene center (0,0,0) for initial camera creation - will be updated after master transform
@@ -741,6 +744,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
 
       console.log(`✅ Unified Manager initialized for ${template.name}`);
+      setIsSceneInitialized(true);
+      setCurrentTemplate(template.name);
     }).catch((error) => {
       console.error(`❌ Failed to initialize unified manager: ${error}`);
     });
