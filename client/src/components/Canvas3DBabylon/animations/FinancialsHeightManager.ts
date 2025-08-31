@@ -76,10 +76,10 @@ export class FinancialsHeightManager {
       console.log('🔧 All 4 meshes registered, applying default heights immediately...');
       setTimeout(() => {
         this.setImmediateHeights({
-          revenue: 200,    // $20M - Large green block (base height 4.0)
-          expenses: 100,   // $10M - Smaller red block (base height 2.0)
-          profit: 100,     // $10M profit - Small black block on top of expenses
-          loss: 0          // No loss - RevenuePL invisible
+          revenue: 1000,   // $10M - Revenue block
+          expenses: 800,   // $8M - Expenses block
+          profit: 200,     // $2M profit - ExpensesPL block on top
+          loss: 0          // $0M - RevenuePL invisible
         });
         console.log('🔧 Default heights applied immediately after mesh registration');
       }, 10); // Very short delay to ensure mesh setup is complete
@@ -132,7 +132,7 @@ export class FinancialsHeightManager {
    * Maintains visual balance: both sides always have equal total height
    */
   private calculateProportionalHeights(data: FinancialData): GroupHeights {
-    const baseHeight = 4.0; // Base visualization height for proper proportions
+    const baseHeight = 2.0; // Base visualization height
     
     // Ensure minimum values for visualization
     const revenue = Math.max(data.revenue, 0.1);
@@ -860,20 +860,20 @@ export class FinancialsHeightManager {
    * Reset all objects to base height
    */
   public resetToBaseHeight(): void {
-    // Reset to default financial state: Revenue $20M, Expenses $10M
-    // This results in: Revenue large green block, Expenses smaller red block, Profit small black block
+    // Reset to default financial state: Revenue $10M, Expenses $8M, Profit $2M
+    // This results in: Revenue $10M, RevenuePL $0, ExpensesPL $2M, Expenses $8M
     const baseData: FinancialData = {
-      revenue: 200,   // $20M - Large green block
-      expenses: 100,  // $10M - Smaller red block  
-      profit: 100,    // $10M profit - Small black block on top
-      loss: 0         // No loss - RevenuePL invisible
+      revenue: 1000,  // $10M - Revenue block
+      expenses: 800,  // $8M - Expenses block
+      profit: 200,    // $2M profit - ExpensesPL block on top
+      loss: 0         // $0M - RevenuePL invisible
     };
     
     console.log('🔄 Resetting to default financial state:', {
-      revenue: '$20M (large green block)',
-      expenses: '$10M (smaller red block)', 
-      profit: '$10M (black profit block on top)',
-      loss: '$0M (invisible)'
+      revenue: '$10M (Revenue)',
+      expenses: '$8M (Expenses)', 
+      profit: '$2M (ExpensesPL on top)',
+      loss: '$0M (RevenuePL invisible)'
     });
     
     this.setImmediateHeights(baseData);
