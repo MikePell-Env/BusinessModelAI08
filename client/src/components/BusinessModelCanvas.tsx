@@ -87,6 +87,27 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
     }
   }, [loadCanvas, setError, pendingPowerPointFile, setPendingPowerPointFile, canvas]);
 
+  // Test template switching after the app loads
+  useEffect(() => {
+    if (!is3D) return; // Only in 3D mode
+    
+    const testSwitching = async () => {
+      await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for initialization
+      console.log('🧪 TEST: Starting template switch test...');
+      
+      console.log('🧪 TEST: Switching to Financials...');
+      switchToFinancials();
+      
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      console.log('🧪 TEST: Switching back to Business Model...');
+      switchToBusinessModel();
+      
+      console.log('🧪 TEST: Template switching test completed');
+    };
+    
+    testSwitching();
+  }, [is3D, switchToFinancials, switchToBusinessModel]);
+
 
 
   const handleToggleView = () => {

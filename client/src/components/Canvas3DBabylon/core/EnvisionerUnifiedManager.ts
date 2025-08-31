@@ -172,32 +172,28 @@ export class EnvisionerUnifiedManager {
     // Use standardized layout system for consistent positioning across templates
     const { getContentPosition } = await import('./EnvisionerLayoutSystem');
     
+    const revenuePos = getContentPosition('financials', 'revenue');
+    const revenuePlPos = getContentPosition('financials', 'revenue_pl');
+    const expensesPos = getContentPosition('financials', 'expenses');
+    const expensesPlPos = getContentPosition('financials', 'expenses_pl');
+    
+    console.log('💰 LAYOUT POSITIONS:');
+    console.log(`Revenue: (${revenuePos.x}, ${revenuePos.y}, ${revenuePos.z})`);
+    console.log(`Revenue PL: (${revenuePlPos.x}, ${revenuePlPos.y}, ${revenuePlPos.z})`);
+    console.log(`Expenses: (${expensesPos.x}, ${expensesPos.y}, ${expensesPos.z})`);
+    console.log(`Expenses PL: (${expensesPlPos.x}, ${expensesPlPos.y}, ${expensesPlPos.z})`);
+    
     const financialObjects = [
-      { 
-        name: 'Revenue', 
-        pos: getContentPosition('financials', 'revenue').asArray(), 
-        color: [0.2, 0.8, 0.3] 
-      },
-      { 
-        name: 'Loss', 
-        pos: getContentPosition('financials', 'revenue_pl').asArray(), 
-        color: [1.0, 0.8, 0.0] 
-      },
-      { 
-        name: 'Expenses', 
-        pos: getContentPosition('financials', 'expenses').asArray(), 
-        color: [0.8, 0.2, 0.2] 
-      },
-      { 
-        name: 'Profit', 
-        pos: getContentPosition('financials', 'expenses_pl').asArray(), 
-        color: [0.1, 0.1, 0.1] 
-      }
+      { name: 'Revenue', pos: revenuePos, color: [0.2, 0.8, 0.3] },
+      { name: 'Loss', pos: revenuePlPos, color: [1.0, 0.8, 0.0] },
+      { name: 'Expenses', pos: expensesPos, color: [0.8, 0.2, 0.2] },
+      { name: 'Profit', pos: expensesPlPos, color: [0.1, 0.1, 0.1] }
     ];
 
     financialObjects.forEach(obj => {
       const box = MeshBuilder.CreateBox(`${obj.name}_fallback`, { size: 1 }, this.scene);
-      box.position.set(obj.pos[0], obj.pos[1] + 0.5, obj.pos[2]);
+      box.position.copyFrom(obj.pos);
+      box.position.y += 0.5;
       box.parent = masterTransform;
       
       // CRITICAL: Lock master transform position after parenting operation
