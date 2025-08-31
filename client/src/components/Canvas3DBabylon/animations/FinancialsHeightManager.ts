@@ -111,8 +111,8 @@ export class FinancialsHeightManager {
     const baseHeight = 2.0; // Base visualization height
     
     // Ensure minimum values for visualization
-    const revenue = Math.max(data.revenue, 0.1);
-    const expenses = Math.max(data.expenses, 0.1);
+    const revenue = Math.max(data.revenue, 0);
+    const expenses = Math.max(data.expenses, 0);
     
     // Calculate profit/loss
     const profit = revenue - expenses;
@@ -394,8 +394,8 @@ export class FinancialsHeightManager {
       this.previousData = { revenue: 1000, expenses: 800, profit: 200, loss: 0 };
     }
     
-    const revenue = Math.max(data.revenue, 0.1);
-    const expenses = Math.max(data.expenses, 0.1);
+    const revenue = Math.max(data.revenue, 0);
+    const expenses = Math.max(data.expenses, 0);
     
     // Calculate profit/loss for display
     const profit = Math.max(0, revenue - expenses);
@@ -460,6 +460,18 @@ export class FinancialsHeightManager {
 
     const originalPos = this.originalPositions.get(objectName);
     if (!originalPos) return;
+
+    // HIDE OBJECTS WITH ZERO HEIGHT: Make objects invisible when they should be zero
+    if (height <= 0.001) { // Use small threshold to account for floating point precision
+      mesh.setEnabled(false);
+      mesh.isVisible = false;
+      console.log(`🫥 HIDING: ${objectName} - height is ${height.toFixed(6)} (effectively zero)`);
+      return;
+    }
+
+    // SHOW OBJECTS WITH POSITIVE HEIGHT: Make objects visible when they have height
+    mesh.setEnabled(true);
+    mesh.isVisible = true;
 
     // Use vertex manipulation but keep mesh position FIXED at original position
     this.setMeshHeightByVertices(mesh, height, anchorType);
