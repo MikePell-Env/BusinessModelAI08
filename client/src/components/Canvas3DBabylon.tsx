@@ -1360,9 +1360,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     modelLoader.loadTemplateModel(template.name).then(async (model) => {
       if (model.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
-        console.log(`🔍 DEBUG: Loaded meshes for ${template.name}:`);
+        console.log(`🔍 GLB DEBUG: Loaded ${model.meshes.length} meshes for ${template.name}:`);
         model.meshes.forEach(mesh => {
-          console.log(`  - ${mesh.name} (visible: ${mesh.isVisible})`);
+          console.log(`  - GLB: ${mesh.name} (visible: ${mesh.isVisible})`);
         });
         
         // Refresh template visibility now that meshes are loaded
