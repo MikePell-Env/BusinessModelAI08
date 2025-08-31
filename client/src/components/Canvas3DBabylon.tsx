@@ -3476,14 +3476,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             <div>
               <label className="block text-xs mb-1">Revenue Total</label>
               <div className="revenue-display text-xs text-green-400 mb-1">$10M</div>
-              <input
-                type="range"
-                min="0"
-                max="1500"
-                defaultValue="1000"
-                id="revenue-slider"
-                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                onChange={(e) => {
+              <div className="relative">
+                <input
+                  type="range"
+                  min="0"
+                  max="1500"
+                  defaultValue="1000"
+                  id="revenue-slider"
+                  className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                  onChange={(e) => {
                   const revenue = parseInt(e.target.value);
                   // Update isolated state
                   (window as any).financialSliderState.revenue = revenue;
@@ -3509,20 +3510,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   const revenueDisplay = document.querySelector('.revenue-display');
                   if (revenueDisplay) revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
                 }}
-              />
+                />
+                {/* Initial position tick mark for Revenue ($10M = 1000/1500 = 66.67%) */}
+                <div className="absolute top-0 h-2 w-0.5 bg-red-500" style={{ left: '66.67%', transform: 'translateX(-50%)' }}></div>
+              </div>
               <span className="text-xs text-gray-300">$0M - $15M</span>
             </div>
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
               <div className="expenses-display text-xs text-red-400 mb-1">$8M</div>
-              <input
-                type="range"
-                min="0"
-                max="1200"
-                defaultValue="800"
-                id="expenses-slider"
-                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                onChange={(e) => {
+              <div className="relative">
+                <input
+                  type="range"
+                  min="0"
+                  max="1200"
+                  defaultValue="800"
+                  id="expenses-slider"
+                  className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                  onChange={(e) => {
                   const expenses = parseInt(e.target.value);
                   // Update isolated state
                   (window as any).financialSliderState.expenses = expenses;
@@ -3548,7 +3553,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   const expensesDisplay = document.querySelector('.expenses-display');
                   if (expensesDisplay) expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
                 }}
-              />
+                />
+                {/* Initial position tick mark for Expenses ($8M = 800/1200 = 66.67%) */}
+                <div className="absolute top-0 h-2 w-0.5 bg-red-500" style={{ left: '66.67%', transform: 'translateX(-50%)' }}></div>
+              </div>
               <span className="text-xs text-gray-300">$0M - $12M</span>
             </div>
           </div>
