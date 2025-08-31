@@ -98,8 +98,13 @@ export class FinancialsHeightManager {
 
     const vertexData = geometry.getVerticesData('position');
     if (vertexData) {
-      // Store a copy of the original vertex positions
-      this.originalVertices.set(mesh.name, new Float32Array(vertexData));
+      // Store a DEEP copy of the original vertex positions to prevent reference corruption
+      const originalCopy = new Float32Array(vertexData.length);
+      for (let i = 0; i < vertexData.length; i++) {
+        originalCopy[i] = vertexData[i];
+      }
+      this.originalVertices.set(mesh.name, originalCopy);
+      console.log(`🔧 Captured ${vertexData.length} original vertices for ${mesh.name}`);
     }
   }
 
@@ -461,8 +466,18 @@ export class FinancialsHeightManager {
     const originalPos = this.originalPositions.get(objectName);
     if (!originalPos) return;
 
-    // Use vertex manipulation but keep mesh position FIXED at original position
-    this.setMeshHeightByVertices(mesh, height, anchorType);
+    // SIMPLE SCALING: Use reliable scaling instead of complex vertex manipulation
+    mesh.scaling.y = height / this.baseHeight;
+    
+    // Adjust position based on anchor type to maintain proper anchoring
+    if (anchorType === 'bottom') {
+      // Bottom-anchored: Y position stays at original 
+      mesh.position.y = originalPos.y;
+    } else {
+      // Top-anchored: Adjust Y position to keep top fixed
+      const heightDifference = (height - this.baseHeight);
+      mesh.position.y = originalPos.y - heightDifference / 2;
+    }
 
     // CRITICAL: Keep mesh position at original loaded position - no movement
     mesh.position.x = originalPos.x;
@@ -574,6 +589,14 @@ export class FinancialsHeightManager {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
 
+    // Verify original vertices are still intact
+    const currentOriginals = this.originalVertices.get(mesh.name);
+    if (currentOriginals && Math.abs(currentOriginals[1] - originalVertices[1]) > 0.001) {
+      console.error(`🚨 Original vertices corrupted for ${mesh.name}! Recapturing...`);
+      this.captureOriginalVertices(mesh);
+    }
+
+    console.log(`🔧 Vertex manipulation completed: ${mesh.name} height ${heightFactor}x (${anchorType}-anchored)`);
     debugLog.verbose('financials', `Vertex manipulation: ${mesh.name} height ${heightFactor}x (${anchorType}-anchored)`);
   }
 
