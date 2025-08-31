@@ -40,23 +40,3 @@ export const createEnvisionerTemplate = (
     showBorderGeometry: options.showBorderGeometry ?? true,
   };
 };
-/**
- * Base template interface for Envisioner templates
- */
-export interface EnvisionerTemplate {
-  name: string;
-  displayName: string;
-  description: string;
-  sections: Array<{
-    name: string;
-    displayName: string;
-    color: { r: number; g: number; b: number };
-    position?: { x: number; y: number; z: number };
-  }>;
-  revenueStreamsEnabled?: boolean;
-  costStructureEnabled?: boolean;
-  cameraPresets?: {
-    default: 'TOP' | 'FRONT' | 'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT';
-    available: Array<'TOP' | 'FRONT' | 'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT'>;
-  };
-}

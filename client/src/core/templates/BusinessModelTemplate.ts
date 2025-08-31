@@ -6,7 +6,7 @@
  */
 
 import { UseCase4DVLTemplate, UseCaseTemplateConfig } from '../4DVL/UseCase4DVLTemplate';
-import { The4DVLScene, The4DVLObject } from '../4DVL/4DVLCore';
+import { 4DVLScene, 4DVLObject } from '../4DVL/4DVLCore';
 import { DataSourceAdapter } from '../data/DataSourceAdapter';
 import { Vector3, Color3 } from '@babylonjs/core';
 
@@ -22,7 +22,7 @@ export class BusinessModelTemplate extends UseCase4DVLTemplate {
     super(config);
   }
 
-  protected async create4DVLScene(): Promise<The4DVLScene> {
+  protected async create4DVLScene(): Promise<4DVLScene> {
     const businessModelSections = [
       { name: 'Key Partners', position: new Vector3(-15, 0, 7.5), color: new Color3(0.2, 0.6, 0.9) },
       { name: 'Key Activities', position: new Vector3(-7.5, 0, 7.5), color: new Color3(0.3, 0.7, 0.8) },
@@ -35,7 +35,7 @@ export class BusinessModelTemplate extends UseCase4DVLTemplate {
       { name: 'Revenue Streams', position: new Vector3(7.5, 0, -5), color: new Color3(0.3, 0.9, 0.3) }
     ];
 
-    const objects: The4DVLObject[] = businessModelSections.map(section => ({
+    const objects: 4DVLObject[] = businessModelSections.map(section => ({
       id: section.name.replace(/\s+/g, ''),
       name: section.name,
       geometry: {
