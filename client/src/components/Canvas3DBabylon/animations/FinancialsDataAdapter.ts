@@ -5,6 +5,7 @@
  */
 
 import { FinancialsHeightManager, FinancialData } from './FinancialsHeightManager';
+import { FinancialsController } from '../controllers/FinancialsController';
 
 export interface FinancialBusinessData {
   totalRevenue: number;
@@ -24,12 +25,19 @@ export interface QuarterlyData {
 
 export class FinancialsDataAdapter {
   private heightManager: FinancialsHeightManager;
+  private controller: FinancialsController;
   private updateInterval: number = 2000; // 2 seconds
   private isRealTimeMode: boolean = false;
   private intervalId: NodeJS.Timeout | null = null;
 
   constructor(heightManager: FinancialsHeightManager) {
     this.heightManager = heightManager;
+    this.controller = new FinancialsController(heightManager);
+    
+    // Make controller globally accessible for UI components
+    (window as any).financialsController = this.controller;
+    
+    console.log('🎮 FinancialsController initialized and made globally accessible');
   }
 
   /**
@@ -70,13 +78,11 @@ export class FinancialsDataAdapter {
     businessData: FinancialBusinessData,
     animated: boolean = true
   ): Promise<void> {
-    const financialData = this.transformBusinessData(businessData);
-    
-    if (animated) {
-      await this.heightManager.updateHeightsFromData(financialData);
-    } else {
-      this.heightManager.setImmediateHeights(financialData);
-    }
+    // Use FinancialsController instead of direct HeightManager calls
+    this.controller.updateFinancialSystem({
+      revenue: businessData.totalRevenue,
+      expenses: businessData.totalExpenses
+    }, animated);
   }
 
   /**
@@ -124,15 +130,11 @@ export class FinancialsDataAdapter {
       const state = simulationStates[currentStateIndex];
       console.log(`💰 Simulation Step ${currentStateIndex + 1}: ${state.label}`);
       
-      // Update the height visualization
-      const financialData = {
+      // Update through FinancialsController (enforces all rules)
+      this.controller.updateFinancialSystem({
         revenue: state.revenue,
-        expenses: state.expenses,
-        profit: Math.max(0, state.revenue - state.expenses),
-        loss: Math.max(0, state.expenses - state.revenue)
-      };
-      
-      await this.heightManager.updateHeightsFromData(financialData, 1000);
+        expenses: state.expenses
+      }, true); // Animated update for simulation
       
       // Update slider positions and display values
       this.updateSliderValues(state.revenue, state.expenses);
