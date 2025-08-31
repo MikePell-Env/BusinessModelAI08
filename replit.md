@@ -4,6 +4,15 @@
 The 4D Time Machine is a comprehensive platform for business visualization and analysis. It integrates the **Envisioner** foundational platform with the **4D Visual Language (4DVL)** dynamic visualization system. The application showcases various business use cases through self-contained, connected templates that process Microsoft Office document data and display it in specialized 3D visualizations. Its purpose is to provide a powerful tool for strategic analysis, financial forecasting, and "what-if" scenario planning, aiming to transform how businesses interact with their data.
 
 ## Recent Changes
+**August 31, 2025 - Financial State Persistence System Implemented**
+- **COMPLETED**: Financial values now persist across template switches using FinancialsController
+- **Auto-Save**: Slider interactions automatically save financial state for template persistence
+- **Save on Switch**: Financial state saved when switching away from Financials template
+- **Restore on Switch**: Financial state restored when switching to Financials template (with 100ms delay)
+- **UI Synchronization**: Slider positions and display values automatically update to match persisted state
+- **RevenuePL Loss Vertex Fix**: Custom vertex manipulation for loss scenarios with crossover threshold protection
+- **Babylon.js API Fix**: Corrected geometry.computeVertexNormals() to geometry.createNormals() with error handling
+
 **August 30, 2025 - Financial Visualization System Completed**
 - **PERFECTED**: Complete financial visualization system with vertex manipulation
 - **Revenue Group**: Fixed at $10M, completely locked (no animations, no vertex manipulation)
@@ -95,6 +104,9 @@ Each group operates where both elements must equal 100% total:
   - `updateFinancialSystem(inputData, animated)`: Main update method
   - `validateSystemIntegrity()`: Ensures rule compliance
   - `getCurrentState()`: Returns current financial state
+  - `saveFinancialState()`: Saves current state for template persistence
+  - `restoreFinancialState()`: Restores persisted state after template switch
+  - `getPersistedData()`: Returns saved financial data
 
 #### 2. Financial Objects Layout
 - **Revenue (Green)**: Variable height, positioned left-front, bottom-anchored

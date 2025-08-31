@@ -52,6 +52,12 @@ export class FinancialsController {
   private heightManager: FinancialsHeightManager;
   private currentState: FinancialSystemState | null = null;
   private readonly HEIGHT_SCALE = 500.0;
+  
+  // FINANCIAL STATE PERSISTENCE
+  private persistedFinancialData: FinancialInputData = {
+    revenue: 1000,  // Default $10M
+    expenses: 800   // Default $8M
+  };
 
   constructor(heightManager: FinancialsHeightManager) {
     this.heightManager = heightManager;
@@ -227,5 +233,87 @@ export class FinancialsController {
     
     console.log('✅ FinancialsController: System integrity validated');
     return true;
+  }
+
+  /**
+   * Save current financial state for template persistence
+   */
+  public saveFinancialState(): void {
+    if (this.currentState) {
+      // Save the raw input values that generated the current state
+      this.persistedFinancialData = {
+        revenue: this.currentState.revenueHeight * this.HEIGHT_SCALE / (this.currentState.groupHeight),
+        expenses: this.currentState.expensesHeight * this.HEIGHT_SCALE / (this.currentState.groupHeight)
+      };
+      
+      // Also save to global state for UI consistency
+      if ((window as any).financialSliderState) {
+        (window as any).financialSliderState.revenue = this.persistedFinancialData.revenue;
+        (window as any).financialSliderState.expenses = this.persistedFinancialData.expenses;
+      }
+      
+      console.log('💾 FinancialsController: Financial state saved for persistence:', this.persistedFinancialData);
+    }
+  }
+
+  /**
+   * Restore financial state after template switch
+   */
+  public restoreFinancialState(): void {
+    console.log('🔄 FinancialsController: Restoring persisted financial state:', this.persistedFinancialData);
+    
+    // Restore the financial system with persisted values
+    this.updateFinancialSystem(this.persistedFinancialData, true);
+    
+    // Update UI elements to match restored state
+    this.updateUIToMatchPersistedState();
+    
+    console.log('✅ FinancialsController: Financial state restored successfully');
+  }
+
+  /**
+   * Update UI elements to match persisted financial state
+   */
+  private updateUIToMatchPersistedState(): void {
+    const { revenue, expenses } = this.persistedFinancialData;
+    
+    // Update slider values
+    const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
+    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+    
+    if (revenueSlider) {
+      revenueSlider.value = revenue.toString();
+    }
+    
+    if (expensesSlider) {
+      expensesSlider.value = expenses.toString();
+    }
+    
+    // Update display values
+    const revenueDisplay = document.querySelector('.revenue-display');
+    const expensesDisplay = document.querySelector('.expenses-display');
+    
+    if (revenueDisplay) {
+      revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
+    }
+    
+    if (expensesDisplay) {
+      expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
+    }
+    
+    // Update global state for consistency
+    if ((window as any).financialSliderState) {
+      (window as any).financialSliderState.revenue = revenue;
+      (window as any).financialSliderState.expenses = expenses;
+    }
+    
+    console.log('🎚️ FinancialsController: UI updated to match persisted state');
+  }
+
+  /**
+   * Get persisted financial data
+   */
+  public getPersistedData(): FinancialInputData {
+    return { ...this.persistedFinancialData };
   }
 }

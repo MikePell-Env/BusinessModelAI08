@@ -26,6 +26,16 @@ export const useEnvisionerType = create<EnvisionerTypeState>((set) => ({
   currentTemplate: BusinessModelTemplate,
 
   switchToBusinessModel: () => {
+    // Save current financial state before switching away from Financials
+    const currentState = useEnvisionerType.getState();
+    if (currentState.currentType === 'financials') {
+      const controller = (window as any).financialsController;
+      if (controller) {
+        controller.saveFinancialState();
+        console.log('💾 Saved financial state before switching to Business Model');
+      }
+    }
+    
     set({
       currentType: 'business-model',
       currentTemplate: TEMPLATES['business-model'],
@@ -37,6 +47,15 @@ export const useEnvisionerType = create<EnvisionerTypeState>((set) => ({
       currentType: 'financials',
       currentTemplate: TEMPLATES['financials'],
     });
+    
+    // Restore financial state after switching to Financials
+    setTimeout(() => {
+      const controller = (window as any).financialsController;
+      if (controller) {
+        controller.restoreFinancialState();
+        console.log('🔄 Restored financial state after switching to Financials');
+      }
+    }, 100); // Small delay to ensure 3D objects are loaded
   },
 
   setEnvisionerType: (type: EnvisionerType) => {
