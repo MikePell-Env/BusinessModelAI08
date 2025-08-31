@@ -13,6 +13,8 @@ import { EnvisionerPersistence } from './EnvisionerPersistence';
 import { TemplateManager } from './TemplateManager';
 // import { FinancialsTemplate } from '../../../core/templates/FinancialsTemplate'; // Not used - BMCModelLoader handles Financials
 import { debugLog } from '../../../lib/debug/DebugLogger';
+import { checkpoints } from '../../../lib/debug/CheckpointSystem';
+import { TemplateRegistry } from '../../../core/templates/TemplateRegistry';
 
 export class EnvisionerUnifiedManager {
   private scene: Scene;
@@ -75,7 +77,7 @@ export class EnvisionerUnifiedManager {
     // Step 6: Show the current template (will dynamically find meshes)
     this.templateManager.showTemplate(templateName);
     this.currentTemplateName = templateName;
-    
+
     debugLog.info('unified', '✅ Envisioner Unified Manager initialized');
   }
 
@@ -105,7 +107,7 @@ export class EnvisionerUnifiedManager {
     this.updateCameraTarget();
 
     this.currentTemplateName = newTemplateName;
-    
+
     debugLog.info('unified', `✅ Template switched to ${newTemplateName}`);
   }
 
@@ -114,19 +116,19 @@ export class EnvisionerUnifiedManager {
    */
   private async loadAllTemplates(): Promise<void> {
     debugLog.info('unified', 'Loading all templates...');
-    
+
     // Load Business Model template
     if (!this.loadedTemplates.has('business-model')) {
       await this.loadBusinessModelContent();
       this.loadedTemplates.add('business-model');
     }
-    
+
     // Load Financials template  
     if (!this.loadedTemplates.has('financials')) {
       await this.loadFinancialsContent();
       this.loadedTemplates.add('financials');
     }
-    
+
     debugLog.info('unified', 'All templates loaded');
   }
 
@@ -160,7 +162,7 @@ export class EnvisionerUnifiedManager {
 
     // Use EXACT Business Model Canvas positions to eliminate visual shift
     const { Vector3 } = await import('@babylonjs/core');
-    
+
     const financialObjects = [
       { name: 'Revenue', pos: new Vector3(-3, 0, 2), color: [0.2, 0.8, 0.3] },    // Left side, front
       { name: 'Loss', pos: new Vector3(-3, 0, -2), color: [1.0, 0.8, 0.0] },      // Left side, back  
@@ -173,7 +175,7 @@ export class EnvisionerUnifiedManager {
       box.position.copyFrom(obj.pos);
       box.position.y += 0.5;
       box.parent = masterTransform;
-      
+
       // DISABLED: Let EnvisionerPersistence manage position only (revert if needed)
       // masterTransform.position.x = 0;
       // masterTransform.position.y = 2;
@@ -183,7 +185,7 @@ export class EnvisionerUnifiedManager {
       material.diffuseColor = new Color3(obj.color[0], obj.color[1], obj.color[2]);
       box.material = material;
     });
-    
+
     // Template manager will find fallback meshes dynamically by name patterns
   }
 
@@ -233,7 +235,7 @@ export class EnvisionerUnifiedManager {
   public getFoundation(): EnvisionerFoundation | null {
     return this.foundation;
   }
-  
+
   /**
    * Refresh template visibility - useful after async mesh loading
    */

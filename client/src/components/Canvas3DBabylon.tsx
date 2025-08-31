@@ -256,7 +256,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   useEffect(() => {
     if (unifiedManagerRef.current && currentTemplate && currentTemplate !== template.name) {
       console.log(`🔄 Unified template switch: ${currentTemplate} -> ${template.name}`);
-      
+
       unifiedManagerRef.current.switchTemplate(template.name).then(() => {
         console.log(`✅ Unified template switch completed to ${template.name}`);
         setCurrentTemplate(template.name); // Update current template AFTER switch completes
@@ -729,7 +729,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       console.log(`✅ Unified Manager initialized for ${template.name}`);
       setIsSceneInitialized(true);
       setCurrentTemplate(template.name);
-      
+
       // NO TIMING DEPENDENCIES - Template manager will find meshes dynamically
     }).catch((error) => {
       console.error(`❌ Failed to initialize unified manager: ${error}`);
@@ -835,7 +835,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
       console.log(`✅ Section data found for ${sectionName}, creating panel...`);
 
-      // Calculate proper height based on content
+      // Calculate total height based on content
       const bulletPoints = (sectionData as CanvasElement).content.map((item: string) => `• ${item}`).join('\n');
       const lineHeight = 18; // More realistic line height for 12px font
       const padding = 80; // Header (40px) + top/bottom padding (40px)
@@ -1367,7 +1367,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         model.meshes.forEach(mesh => {
           console.log(`  - GLB: ${mesh.name} (visible: ${mesh.isVisible})`);
         });
-        
+
         // CRITICAL FIX: Do template switching AFTER meshes are loaded
         if (unifiedManagerRef.current && currentTemplate !== template.name) {
           console.log(`🔄 Template switch after GLB loading: ${currentTemplate} -> ${template.name}`);
@@ -1509,7 +1509,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               diffuseColor: baseColor
             };
             const sectionMaterial = materialPool.getMaterial(`bmcSection_${sectionName}`, materialConfig) as any;
-            
+
             // Track for proper disposal
             memoryManager.track(sectionMaterial);
 
@@ -2996,10 +2996,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // AUTO-SWITCH: Business Model only - automatically switch from TOP -> PERSPECTIVE_RIGHT
     // Financials should NEVER auto-animate
-    const shouldAutoSwitch = template.name.toLowerCase() !== 'financials' && 
-                            currentCameraPreset === 'TOP' && 
+    const shouldAutoSwitch = template.name.toLowerCase() !== 'financials' &&
+                            currentCameraPreset === 'TOP' &&
                             shouldAutoAnimateRef.current;
-    
+
     if (shouldAutoSwitch) {
       console.log(`🎬 First-time instantiation: Will auto-animate Business Model after 2 seconds`);
     } else if (!shouldAutoSwitch && shouldAutoAnimateRef.current) {
@@ -3144,16 +3144,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (memoryManager) {
           memoryManager.disposeAll();
         }
-        
+
         if (unifiedSceneRef.current) {
           unifiedSceneRef.current.dispose();
         }
-        
+
         // Dispose material pool
         if (MaterialPool.getInstance && scene) {
           MaterialPool.getInstance(scene).disposeAll();
         }
-        
+
         sceneRef.current = null;
         engineRef.current = null;
       } catch (e) {
