@@ -103,22 +103,88 @@ export class FinancialsDataAdapter {
   }
 
   /**
-   * Simulate dynamic financial data (for testing)
+   * Start simulation with predefined states
+   * Cycles through: $10M Revenue/$8M Expenses, $5M Revenue/$5M Expenses, $2M Revenue/$8M Expenses
    */
-  public startSimulation(): void {
-    let cycle = 0;
-    const simulationData = (): FinancialBusinessData => {
-      cycle += 0.1;
-      return {
-        totalRevenue: 100 + Math.sin(cycle) * 50,
-        totalExpenses: 80 + Math.cos(cycle * 0.8) * 30,
-        netProfit: Math.max(0, 20 + Math.sin(cycle * 0.5) * 25),
-        netLoss: Math.max(0, -20 - Math.sin(cycle * 0.5) * 25)
+  public async startSimulation(): Promise<void> {
+    console.log('🎬 Starting financial simulation with predefined states...');
+    
+    // Stop any existing real-time updates
+    this.stopRealTimeUpdates();
+    
+    const simulationStates = [
+      { revenue: 1000, expenses: 800, label: '$10M Revenue, $8M Expenses (Healthy Profit)' },
+      { revenue: 500, expenses: 500, label: '$5M Revenue, $5M Expenses (Break Even)' },
+      { revenue: 200, expenses: 800, label: '$2M Revenue, $8M Expenses (Operating Loss)' }
+    ];
+    
+    let currentStateIndex = 0;
+    
+    const cycleStates = async () => {
+      const state = simulationStates[currentStateIndex];
+      console.log(`💰 Simulation Step ${currentStateIndex + 1}: ${state.label}`);
+      
+      // Update the height visualization
+      const financialData = {
+        revenue: state.revenue,
+        expenses: state.expenses,
+        profit: Math.max(0, state.revenue - state.expenses),
+        loss: Math.max(0, state.expenses - state.revenue)
       };
+      
+      await this.heightManager.updateHeightsFromData(financialData, 1000);
+      
+      // Update slider positions and display values
+      this.updateSliderValues(state.revenue, state.expenses);
+      
+      currentStateIndex = (currentStateIndex + 1) % simulationStates.length;
     };
+    
+    // Start with first state immediately
+    await cycleStates();
+    
+    // Continue cycling every 2 seconds
+    this.intervalId = setInterval(cycleStates, 2000);
+    this.isRealTimeMode = true;
+    
+    console.log('✅ Financial simulation started - cycling every 2 seconds');
+  }
 
-    this.startRealTimeUpdates(simulationData);
-    console.log('🎮 Started financial data simulation');
+  /**
+   * Update slider positions and display values to match simulation state
+   */
+  private updateSliderValues(revenue: number, expenses: number): void {
+    // Update slider values
+    const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
+    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+    
+    if (revenueSlider) {
+      revenueSlider.value = revenue.toString();
+    }
+    
+    if (expensesSlider) {
+      expensesSlider.value = expenses.toString();
+    }
+    
+    // Update display values
+    const revenueDisplay = document.querySelector('.revenue-display');
+    const expensesDisplay = document.querySelector('.expenses-display');
+    
+    if (revenueDisplay) {
+      revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
+    }
+    
+    if (expensesDisplay) {
+      expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
+    }
+    
+    // Update global state for consistency
+    if ((window as any).financialSliderState) {
+      (window as any).financialSliderState.revenue = revenue;
+      (window as any).financialSliderState.expenses = expenses;
+    }
+    
+    console.log(`🎚️ Updated sliders: Revenue=${revenue} ($${(revenue * 10 / 1000).toFixed(0)}M), Expenses=${expenses} ($${(expenses * 10 / 1000).toFixed(0)}M)`);
   }
 
   public isInRealTimeMode(): boolean {
