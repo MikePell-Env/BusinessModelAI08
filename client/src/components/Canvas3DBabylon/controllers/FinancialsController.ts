@@ -104,17 +104,19 @@ export class FinancialsController {
     let revenueHeight, revenuePLHeight, expensesHeight, expensesPLHeight;
     
     if (isProfit) {
-      // PROFIT: Revenue group = Revenue only, Expenses group = Expenses + Profit
-      revenueHeight = groupHeight;  // Revenue = 1.0 unit (100% of group)
-      revenuePLHeight = 0;          // No loss
-      expensesHeight = groupHeight * (expenses / revenue);  // Expenses portion
-      expensesPLHeight = groupHeight * (profit / revenue);  // Profit portion
+      // PROFIT: Revenue group = Revenue only, Expenses group = Expenses + Profit  
+      // Both groups = 1.0 unit total height
+      revenueHeight = groupHeight;                         // Revenue = 1.0 unit (100% of group)
+      revenuePLHeight = 0;                                // No loss
+      expensesHeight = groupHeight * (expenses / revenue); // Expenses portion of 1.0 unit group
+      expensesPLHeight = groupHeight * (profit / revenue); // Profit portion of 1.0 unit group
     } else {
-      // LOSS: Revenue group = Revenue + Loss, Expenses group = Expenses only  
-      revenueHeight = groupHeight * (revenue / expenses);   // Revenue portion
-      revenuePLHeight = groupHeight * (loss / expenses);    // Loss portion
-      expensesHeight = groupHeight;  // Expenses = 1.0 unit (100% of group)
-      expensesPLHeight = 0;          // No profit
+      // LOSS: Revenue group = Revenue + Loss, Expenses group = Expenses only
+      // Both groups = 1.0 unit total height  
+      revenueHeight = groupHeight * (revenue / expenses);  // Revenue portion of 1.0 unit group
+      revenuePLHeight = groupHeight * (loss / expenses);   // Loss portion of 1.0 unit group
+      expensesHeight = groupHeight;                        // Expenses = 1.0 unit (100% of group)
+      expensesPLHeight = 0;                               // No profit
     }
     
     // Calculate percentages for validation
