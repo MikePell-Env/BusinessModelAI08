@@ -829,6 +829,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
+    
+    // SHARED ENVISIONER: Only create scene once, not on every template change
+    if (sceneRef.current) {
+      console.log('🔄 Scene already exists, skipping recreation for template switch');
+      return;
+    }
 
     // Check if Babylon.js is properly loaded
 
@@ -3369,7 +3375,81 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, saveCamera3DState]);
+  }, [canvas]); // Removed template dependency to prevent scene recreation
+
+  // TEMPLATE SWITCHING: Handle template changes by swapping content without recreating scene
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    
+    const scene = sceneRef.current;
+    const templateName = template.name.toLowerCase();
+    
+    console.log(`🔄 Template switch triggered: ${template.name}`);
+    
+    // Clear all existing template content from the scene
+    const meshesToRemove = scene.meshes.filter(mesh => 
+      (mesh as any).bmcSectionName || 
+      mesh.name.includes('BMC') || 
+      mesh.name.includes('Financial') ||
+      mesh.name.includes('Revenue') ||
+      mesh.name.includes('Cost')
+    );
+    
+    meshesToRemove.forEach(mesh => {
+      mesh.dispose();
+    });
+    
+    console.log(`🧹 Removed ${meshesToRemove.length} existing template objects`);
+    
+    // Load the new template content
+    const modelLoader = new BMCModelLoader(scene);
+    
+    console.log(`📦 Loading ${template.name} template content...`);
+    modelLoader.loadTemplateModel(template.name).then((model) => {
+      if (model.meshes.length > 0) {
+        console.log(`✅ ${template.name} loaded: ${model.meshes.length} objects`);
+        
+        // Apply positioning and setup for the new template
+        const rootMesh = model.rootMesh;
+        rootMeshRef.current = rootMesh;
+        
+        if (templateName === 'financials') {
+          rootMesh.position = new Vector3(0, 0.1, 1.5);
+          
+          // Initialize Financials systems
+          const financialsHeightManager = new FinancialsHeightManager(scene);
+          const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
+          
+          (scene as any).financialsHeightManager = financialsHeightManager;
+          (scene as any).financialsDataAdapter = financialsDataAdapter;
+          
+          financialsHeightManager.registerFinancialMeshes(model.meshes);
+          console.log('💰 Financials systems initialized');
+        } else {
+          rootMesh.position = new Vector3(0, 0.1, 0.9);
+        }
+        
+        // Apply materials and interactions to all meshes
+        model.meshes.forEach((mesh, index) => {
+          if (mesh.name !== "__root__") {
+            // Create standard grey material
+            const material = new StandardMaterial(`template_${index}`, scene);
+            material.diffuseColor = new Color3(0.07, 0.07, 0.07);
+            material.specularColor = new Color3(0.1, 0.1, 0.1);
+            mesh.material = material;
+            
+            mesh.setEnabled(true);
+            mesh.isVisible = true;
+          }
+        });
+        
+        console.log(`👁️ ${template.name} template is now visible`);
+      }
+    }).catch(error => {
+      console.error(`❌ Failed to load ${template.name}:`, error);
+    });
+    
+  }, [template.name]);
 
   // Camera is always perspective - no switching needed
 
