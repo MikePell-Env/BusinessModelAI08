@@ -159,10 +159,10 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // Calculate heights EXACTLY like Expenses Group logic
-    // Revenue Group: Revenue object = slider value, RevenuePL object = loss amount
-    // SAME PATTERN as Expenses Group: Expenses object = slider value, ExpensesPL object = profit amount
-    const revenueHeight = revenue / HEIGHT_SCALE;  // Revenue object: direct slider value
+    // CORRECTED LOGIC: Revenue is ALWAYS LOCKED at $10M (per design specification)
+    // Revenue Group: Revenue object = FIXED at $10M, RevenuePL object = loss amount
+    // Only Expenses Group varies: Expenses object = slider value, ExpensesPL object = profit amount
+    const revenueHeight = 1000 / HEIGHT_SCALE;    // Revenue object: LOCKED at $10M (2.0 units)
     const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
     
     // Expenses Group: Expenses = actual value, ExpensesPL = profit
@@ -178,11 +178,11 @@ export class FinancialsHeightManager {
     const profitChanged = this.previousData.profit !== profit;
     const lossChanged = this.previousData.loss !== loss;
     
-    // Revenue object updates (when Revenue slider moves)
-    if (revenueChanged) {
-      console.log('🟢 REVENUE UPDATE: Revenue changed:', this.previousData.revenue, '→', revenue);
-      animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
-    }
+    // Revenue object NEVER updates (always locked at $10M)
+    // if (revenueChanged) {
+    //   console.log('🟢 REVENUE UPDATE: Revenue changed:', this.previousData.revenue, '→', revenue);
+    //   animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
+    // }
     
     // RevenuePL (Loss) object updates (when loss amount changes due to revenue OR expenses)
     if (lossChanged) {
@@ -403,10 +403,10 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // Calculate heights EXACTLY like Expenses Group logic
-    // Revenue Group: Revenue object = slider value, RevenuePL object = loss amount
-    // SAME PATTERN as Expenses Group: Expenses object = slider value, ExpensesPL object = profit amount
-    const revenueHeight = revenue / HEIGHT_SCALE;  // Revenue object: direct slider value
+    // CORRECTED LOGIC: Revenue is ALWAYS LOCKED at $10M (per design specification)
+    // Revenue Group: Revenue object = FIXED at $10M, RevenuePL object = loss amount
+    // Only Expenses Group varies: Expenses object = slider value, ExpensesPL object = profit amount
+    const revenueHeight = 1000 / HEIGHT_SCALE;    // Revenue object: LOCKED at $10M (2.0 units)
     const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
     
     // Expenses Group: Expenses = actual value, ExpensesPL = profit
@@ -422,8 +422,9 @@ export class FinancialsHeightManager {
     // FORCE INITIAL SETUP: Always set heights on first call (initialization)
     const isInitialization = this.previousData.revenue === 1000 && this.previousData.expenses === 800;
     
-    if (this.previousData.revenue !== revenue || isInitialization) {
-      console.log('🟢 IMMEDIATE: Revenue changed:', this.previousData.revenue, '→', revenue, 'Height:', revenueHeight.toFixed(3));
+    // Revenue object NEVER changes (always locked at $10M)
+    if (isInitialization) {
+      console.log('🟢 IMMEDIATE: Setting Revenue to LOCKED $10M height:', revenueHeight.toFixed(3));
       this.setObjectHeight('Revenue', revenueHeight, 'bottom');
     }
     
