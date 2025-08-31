@@ -297,15 +297,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
   }, [template.name, hasInitializedTemplate]);
 
-  // Handle template updates without recreating the scene - SIMPLIFIED
+  // Handle template content visibility without destroying scene
   useEffect(() => {
     if (!sceneRef.current) return;
     
-    console.log(`🔄 Template content updated for: ${template.name}`);
+    console.log(`🔄 Switching template content visibility: ${template.name}`);
     
-    // Only handle essential template-specific setup without touching foundation
-    if (template.name.toLowerCase() === 'financials') {
-      // Ensure financial systems are properly initialized for Financials template
+    const scene = sceneRef.current;
+    const templateName = template.name.toLowerCase();
+    
+    // Hide/show template-specific meshes based on current template
+    scene.meshes.forEach(mesh => {
+      // Financial meshes (Revenue, Expenses, etc.) - show only for Financials template
+      if (['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(mesh.name)) {
+        mesh.setEnabled(templateName === 'financials');
+        mesh.isVisible = templateName === 'financials';
+      }
+      
+      // Business Model meshes - show only for Business Model template  
+      if (mesh.name.includes('ValuePropositions') || mesh.name.includes('CustomerSegments') || 
+          mesh.name.includes('KeyPartners') || mesh.name.includes('KeyActivities') ||
+          mesh.name.includes('KeyResources') || mesh.name.includes('Channels') ||
+          mesh.name.includes('CustomerRelationships') || mesh.name.includes('RevenueStreams') ||
+          mesh.name.includes('CostStructure')) {
+        mesh.setEnabled(templateName === 'business-model');
+        mesh.isVisible = templateName === 'business-model';
+      }
+    });
+    
+    // Handle template-specific initialization
+    if (templateName === 'financials') {
       setTimeout(() => {
         if ((window as any).financialsDataAdapter) {
           (window as any).financialsDataAdapter.updateFromBusinessData({
@@ -3303,7 +3324,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, template, saveCamera3DState]);
+  }, [canvas, saveCamera3DState]);
 
   // Camera is always perspective - no switching needed
 
