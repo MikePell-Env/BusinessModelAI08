@@ -43,7 +43,7 @@ export class FinancialsHeightManager {
   
   // Face-aligned labels system
   private faceLabels: Map<string, Mesh> = new Map();
-  private labelsEnabled: boolean = false; // DISABLED - need to analyze correct positioning
+  private labelsEnabled: boolean = true; // ENABLED with real coordinates
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -66,28 +66,8 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        // DISABLED: Create face-aligned label using documented coordinate system
-        // this.createFaceAlignedLabel(mesh);
-        
-        // ANALYZE: Log actual mesh coordinates to understand real positioning
-        setTimeout(() => {
-          mesh.refreshBoundingInfo();
-          const bounds = mesh.getBoundingInfo();
-          const center = bounds.boundingBox.center;
-          const min = bounds.boundingBox.minimum;
-          const max = bounds.boundingBox.maximum;
-          console.log(`📍 REAL ${mesh.name} coordinates:`, {
-            meshPosition: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
-            boundingCenter: { x: center.x, y: center.y, z: center.z },
-            boundingMin: { x: min.x, y: min.y, z: min.z },
-            boundingMax: { x: max.x, y: max.y, z: max.z },
-            size: { 
-              width: max.x - min.x, 
-              height: max.y - min.y, 
-              depth: max.z - min.z 
-            }
-          });
-        }, 100);
+        // Create face-aligned label on the front face of each mesh
+        this.createFaceAlignedLabel(mesh);
         
       }
     });
@@ -657,70 +637,31 @@ export class FinancialsHeightManager {
   }
   
   /**
-   * Position label directly on financial object using documented coordinate system
+   * Position label directly on the front face of financial objects
    */
   private positionLabelOnFinancialObject(labelPlane: Mesh, meshName: string): void {
-    // Based on financial visualization documentation in replit.md:
-    // - Revenue (Green): positioned left-front, bottom-anchored
-    // - RevenuePL (Gold): positioned left-back, top-anchored  
-    // - Expenses (Red): positioned right-front, bottom-anchored
-    // - ExpensesPL (Black): positioned right-back, top-anchored
-    //
-    // Babylon.js coordinate system:
-    // X-axis: RIGHT = positive, LEFT = negative 
-    // Y-axis: UP = positive, DOWN = negative (Y=0.1 is standard base height)
-    // Z-axis: FORWARD = positive, BACKWARD = negative
+    // Get the actual mesh to position label on its front face
+    const mesh = this.scene.getMeshByName(meshName);
+    if (!mesh) return;
     
-    let posX: number;
-    let posY: number;
-    let posZ: number;
+    // Refresh bounding info to get current size
+    mesh.refreshBoundingInfo();
+    const bounds = mesh.getBoundingInfo();
+    const center = bounds.boundingBox.center;
+    const max = bounds.boundingBox.maximum;
     
-    switch (meshName) {
-      case 'Revenue':
-        // Revenue: left-front, bottom-anchored
-        posX = -1.0; // LEFT side (negative X)
-        posZ = 1.0;  // FRONT (positive Z)
-        posY = 1.0;  // Above ground plane
-        break;
-        
-      case 'RevenuePL':
-        // RevenuePL: left-back, top-anchored
-        posX = -1.0; // LEFT side (negative X)
-        posZ = -1.0; // BACK (negative Z)
-        posY = 1.0;  // Above ground plane
-        break;
-        
-      case 'Expenses':
-        // Expenses: right-front, bottom-anchored
-        posX = 1.0;  // RIGHT side (positive X)
-        posZ = 1.0;  // FRONT (positive Z)
-        posY = 1.0;  // Above ground plane
-        break;
-        
-      case 'ExpensesPL':
-        // ExpensesPL: right-back, top-anchored
-        posX = 1.0;  // RIGHT side (positive X)
-        posZ = -1.0; // BACK (negative Z)
-        posY = 1.0;  // Above ground plane
-        break;
-        
-      default:
-        posX = 0;
-        posY = 1.0;
-        posZ = 0;
-    }
+    // Position label directly on the FRONT FACE of each object
+    // The front face is at the max Z position of the bounding box
+    labelPlane.position.x = center.x;
+    labelPlane.position.y = center.y;
+    labelPlane.position.z = max.z + 0.01; // Just slightly in front of the face
     
-    // Apply positioning using documented coordinate system
-    labelPlane.position.x = posX;
-    labelPlane.position.y = posY;
-    labelPlane.position.z = posZ;
-    
-    // Face forward (no rotation)
+    // Face forward toward camera
     labelPlane.rotation.x = 0;
     labelPlane.rotation.y = 0;
     labelPlane.rotation.z = 0;
     
-    debugLog.verbose('financials', `${meshName} label positioned at: (${posX}, ${posY}, ${posZ})`);
+    debugLog.verbose('financials', `${meshName} label on front face at: (${labelPlane.position.x}, ${labelPlane.position.y}, ${labelPlane.position.z})`);
   }
 
   /**
@@ -730,15 +671,7 @@ export class FinancialsHeightManager {
     const label = this.faceLabels.get(mesh.name);
     if (!label || !this.labelsEnabled) return;
     
-    // Get current mesh bounds after vertex manipulation
-    mesh.refreshBoundingInfo();
-    const bounds = mesh.getBoundingInfo();
-    const center = bounds.boundingBox.center;
-    
-    // Update Y position to stay centered on current mesh height
-    label.position.y = center.y;
-    
-    // Keep X and Z positions fixed based on object type
+    // Simply reposition the label on the front face with updated bounds
     this.positionLabelOnFinancialObject(label, mesh.name);
   }
   
