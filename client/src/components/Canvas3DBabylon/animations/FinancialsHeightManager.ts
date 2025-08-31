@@ -66,8 +66,13 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        // Labels disabled for now
-        // this.createFaceAlignedLabel(mesh);
+        // Log actual mesh hierarchy and positions
+        console.log(`🔍 ${mesh.name} STRUCTURE:`, {
+          position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
+          parent: mesh.parent ? mesh.parent.name : 'NO PARENT',
+          rootMesh: mesh.parent ? 'HAS ROOT' : 'DIRECT',
+          worldPosition: mesh.getAbsolutePosition()
+        });
         
       }
     });
