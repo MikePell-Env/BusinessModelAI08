@@ -534,17 +534,32 @@ export class FinancialsHeightManager {
       const expensesMesh = this.financialMeshes.get('Expenses');
       
       if (revenueMesh && expensesMesh) {
-        console.log('🟡 SPECIAL CASE: RevenuePL (Loss) - custom vertex manipulation');
+        // CROSSOVER THRESHOLD SAFETY: Check if heights are too similar (breakeven scenario)
+        const revenueTop = revenueMesh.position.y + (revenueMesh.scaling.y / 2);
+        const expensesTop = expensesMesh.position.y + (expensesMesh.scaling.y / 2);
+        const heightDifference = Math.abs(expensesTop - revenueTop);
         
-        // Keep mesh at original position - only manipulate vertices
-        mesh.position.x = originalPos.x;
-        mesh.position.y = originalPos.y;
-        mesh.position.z = originalPos.z;
-        
-        // Custom vertex manipulation for RevenuePL loss scenario
-        this.setRevenuePLLossVertices(mesh, revenueMesh, expensesMesh);
-        
-        console.log(`🟡 RevenuePL vertices: bottom anchored to Revenue top, top extended to Expenses height`);
+        if (heightDifference < 0.001) {
+          // At breakeven threshold - use standard vertex manipulation to avoid crashes
+          console.log('🟡 BREAKEVEN THRESHOLD: Using standard vertex manipulation');
+          this.setMeshHeightByVertices(mesh, height, anchorType);
+          mesh.position.x = originalPos.x;
+          mesh.position.y = originalPos.y;
+          mesh.position.z = originalPos.z;
+        } else {
+          // Safe to use custom vertex manipulation
+          console.log('🟡 SPECIAL CASE: RevenuePL (Loss) - custom vertex manipulation');
+          
+          // Keep mesh at original position - only manipulate vertices
+          mesh.position.x = originalPos.x;
+          mesh.position.y = originalPos.y;
+          mesh.position.z = originalPos.z;
+          
+          // Custom vertex manipulation for RevenuePL loss scenario
+          this.setRevenuePLLossVertices(mesh, revenueMesh, expensesMesh);
+          
+          console.log(`🟡 RevenuePL vertices: bottom anchored to Revenue top, top extended to Expenses height`);
+        }
       } else {
         // Fallback to original position
         this.setMeshHeightByVertices(mesh, height, anchorType);
@@ -574,13 +589,22 @@ export class FinancialsHeightManager {
    */
   private setRevenuePLLossVertices(revenuePLMesh: Mesh, revenueMesh: Mesh, expensesMesh: Mesh): void {
     const geometry = revenuePLMesh.geometry;
-    if (!geometry) return;
+    if (!geometry) {
+      console.warn('🟡 RevenuePL geometry not found, skipping vertex manipulation');
+      return;
+    }
 
     const originalVertices = this.originalVertices.get(revenuePLMesh.name);
-    if (!originalVertices) return;
+    if (!originalVertices) {
+      console.warn('🟡 RevenuePL original vertices not found, skipping vertex manipulation');
+      return;
+    }
 
     const vertexData = geometry.getVerticesData('position');
-    if (!vertexData) return;
+    if (!vertexData) {
+      console.warn('🟡 RevenuePL vertex data not found, skipping vertex manipulation');
+      return;
+    }
 
     // Calculate target positions
     const revenueTopY = revenueMesh.position.y + (revenueMesh.scaling.y / 2);
@@ -620,7 +644,13 @@ export class FinancialsHeightManager {
 
     // Apply the new vertex positions
     geometry.setVerticesData('position', newVertices);
-    geometry.computeVertexNormals();
+    
+    // Update normals using correct Babylon.js API
+    try {
+      geometry.createNormals(true);
+    } catch (error) {
+      console.warn('🟡 Could not update normals, continuing without normal recalculation');
+    }
 
     console.log('🟡 RevenuePL vertices updated: bottom anchored to Revenue top, top extended to Expenses height');
   }
