@@ -40,16 +40,16 @@ export const STANDARD_CONTENT_ZONES: Record<string, ContentZone> = {
     size: { width: 4, height: 2, depth: 4 }
   },
 
-  // Middle row
+  // Middle row - Adjusted to match BMC positioning
   MIDDLE_LEFT: {
     id: 'middle_left',
-    position: new Vector3(-6, 0, 0),
+    position: new Vector3(-10.1, 0, 0),  // Match Cost Structure X position
     description: 'Middle left content area',
     size: { width: 4, height: 2, depth: 4 }
   },
   MIDDLE_CENTER: {
     id: 'middle_center',
-    position: new Vector3(0, 0, 0),
+    position: new Vector3(-0.221, 0, 0),  // Match Revenue Streams X position
     description: 'Middle center content area',
     size: { width: 4, height: 2, depth: 4 }
   },
@@ -109,10 +109,10 @@ export const TEMPLATE_LAYOUTS: Record<string, TemplateLayoutMapping> = {
   'financials': {
     templateId: 'financials',
     contentMappings: {
-      'revenue': 'TOP_LEFT',
-      'revenue_pl': 'TOP_CENTER', 
-      'expenses': 'BOTTOM_LEFT',
-      'expenses_pl': 'BOTTOM_CENTER'
+      'revenue': 'MIDDLE_CENTER',    // Match Revenue Streams position (X=-0.221)
+      'revenue_pl': 'MIDDLE_CENTER',  // Keep with revenue
+      'expenses': 'MIDDLE_LEFT',      // Match Cost Structure position (X=-10.1) 
+      'expenses_pl': 'MIDDLE_LEFT'    // Keep with expenses
     }
   },
 
