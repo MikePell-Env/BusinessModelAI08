@@ -646,33 +646,37 @@ export class FinancialsHeightManager {
   }
   
   /**
-   * Update face-aligned label position - completely independent of mesh scaling
+   * Update face-aligned label position - based on actual geometry coordinates
    */
   private updateFaceAlignedLabel(mesh: Mesh): void {
     const label = this.faceLabels.get(mesh.name);
     if (!label || !this.labelsEnabled) return;
     
-    // Calculate front face center from current mesh bounds
+    // Get the actual current bounds after any vertex manipulation
+    mesh.refreshBoundingInfo();
     const bounds = mesh.getBoundingInfo();
     const center = bounds.boundingBox.center;
+    const min = bounds.boundingBox.minimum;
     const max = bounds.boundingBox.maximum;
     
-    // Position label at front face center with fixed offset
-    // Labels maintain their original size regardless of mesh height changes
+    // Debug actual geometry positions
+    console.log(`📐 ${mesh.name} actual geometry:`, {
+      meshPos: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
+      center: { x: center.x, y: center.y, z: center.z },
+      min: { x: min.x, y: min.y, z: min.z },
+      max: { x: max.x, y: max.y, z: max.z },
+      height: max.y - min.y
+    });
+    
+    // Apply label directly to the front face center using actual coordinates
     label.position.x = center.x;
-    label.position.y = center.y; // Center vertically on the current mesh
-    label.position.z = max.z + 0.15; // Fixed offset in front of front face
+    label.position.y = center.y;
+    label.position.z = max.z + 0.05;
     
-    // CRITICAL: Keep label scaling FIXED at 1.0 - never scale with mesh
-    label.scaling.x = 1.0;
-    label.scaling.y = 1.0; 
-    label.scaling.z = 1.0;
+    // Keep original fixed size
+    label.scaling.setAll(1.0);
     
-    // Force visibility and proper rendering order
-    label.isVisible = true;
-    label.setEnabled(true);
-    
-    debugLog.verbose('financials', `Label ${mesh.name} positioned independently at Y: ${center.y}`);
+    console.log(`🏷️ ${mesh.name} label at:`, { x: label.position.x, y: label.position.y, z: label.position.z });
   }
   
   /**
