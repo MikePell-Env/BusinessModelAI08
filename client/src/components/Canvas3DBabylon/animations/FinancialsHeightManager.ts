@@ -608,9 +608,10 @@ export class FinancialsHeightManager {
       
       // Create material with PNG texture
       const material = new StandardMaterial(`${meshName}LabelMat`, this.scene);
-      material.diffuseTexture = new Texture(labelTexturePath, this.scene);
-      material.hasAlpha = true;
+      const texture = new Texture(labelTexturePath, this.scene);
+      material.diffuseTexture = texture;
       material.useAlphaFromDiffuseTexture = true;
+      material.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
       material.backFaceCulling = false;
       
       labelPlane.material = material;
@@ -643,24 +644,16 @@ export class FinancialsHeightManager {
     const min = bounds.boundingBox.minimum;
     const max = bounds.boundingBox.maximum;
     
-    // Debug: Log mesh bounds for troubleshooting
-    console.log(`🏷️ ${mesh.name} bounds:`, {
-      center: { x: center.x, y: center.y, z: center.z },
-      min: { x: min.x, y: min.y, z: min.z },
-      max: { x: max.x, y: max.y, z: max.z },
-      position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z }
-    });
-    
-    // Position at front face center with larger offset to ensure visibility
+    // Position at front face center - the financial objects are centered at origin
+    // so we need to position labels accordingly
     label.position.x = center.x;
     label.position.y = center.y;
-    label.position.z = max.z + 0.5; // Much larger offset to ensure above ground plane
+    label.position.z = max.z + 0.1; // Small offset in front of the object
     
-    console.log(`🏷️ ${mesh.name} label positioned at:`, {
-      x: label.position.x,
-      y: label.position.y, 
-      z: label.position.z
-    });
+    // Scale label appropriately for the mesh size
+    const meshHeight = max.y - min.y;
+    const labelScale = Math.max(0.3, Math.min(1.0, meshHeight * 0.8));
+    label.scaling.setAll(labelScale);
   }
   
   /**
@@ -690,7 +683,8 @@ export class FinancialsHeightManager {
    * Clean up resources and animations
    */
   public dispose(): void {
-    this.stopAllAnimations();
+    // Stop any ongoing animations
+    this.scene.stopAllAnimations();
     
     // Dispose face-aligned labels
     this.faceLabels.forEach(label => {
