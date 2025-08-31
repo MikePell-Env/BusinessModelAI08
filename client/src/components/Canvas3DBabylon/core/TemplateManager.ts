@@ -5,13 +5,13 @@
  * Ensures only one template is active at a time and handles proper show/hide logic.
  */
 
-import { Scene, Mesh, AbstractMesh, ActionManager } from '@babylonjs/core';
+import { Scene, Mesh, AbstractMesh, ActionManager, AbstractActionManager } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
 export interface ManagedTemplate {
   name: string;
   meshes: Set<AbstractMesh>;
-  actionManagers: Map<AbstractMesh, ActionManager | null>;
+  actionManagers: Map<AbstractMesh, AbstractActionManager | null>;
   isLoaded: boolean;
   isVisible: boolean;
 }
@@ -102,7 +102,7 @@ export class TemplateManager {
       // Restore action manager for interactions
       const storedActionManager = template.actionManagers.get(mesh);
       if (storedActionManager) {
-        mesh.actionManager = storedActionManager;
+        mesh.actionManager = storedActionManager as ActionManager;
       }
       
       // Enable children visibility
