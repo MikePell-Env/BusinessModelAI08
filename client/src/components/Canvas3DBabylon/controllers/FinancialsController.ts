@@ -87,24 +87,28 @@ export class FinancialsController {
   /**
    * Calculate financial system state following all rules
    * EXACTLY as documented in replit.md
+   * BASE RULE: Expenses object = 1.0 units tall, everything else scales from that
    */
   private calculateFinancialState(inputData: FinancialInputData): FinancialSystemState {
     const { revenue, expenses } = inputData;
     
-    // Rule 1: Equal Group Heights - based on maximum value  
-    const maxValue = Math.max(revenue, expenses);
-    const groupHeight = maxValue / this.HEIGHT_SCALE;
+    // BASE SCALING: Expenses = 1.0 units tall
+    // For default values: Expenses = 800, so scale = 800/1.0 = 800
+    const baseScale = expenses; // This makes Expenses exactly 1.0 units tall
+    const groupHeight = Math.max(revenue, expenses) / baseScale;
     
     // Rule 3: Profit/Loss Interrelationship Formula (EXACTLY as documented)
     const isProfit = revenue >= expenses;  // Include breakeven as profit scenario
     const profit = isProfit ? (revenue - expenses) : 0;
     const loss = !isProfit ? Math.abs(revenue - expenses) : 0;
     
-    // Rule 2: 100% Group Composition (EXACTLY as documented)
-    // CRITICAL: Implementation exactly matches replit.md formula
+    // Rule 2: 100% Group Composition with BASE SCALING
+    // CRITICAL: Expenses = 1.0 units tall, everything scales from that
+    const maxValue = Math.max(revenue, expenses);
+    
     const revenueHeight = groupHeight * (revenue / maxValue);
     const revenuePLHeight = groupHeight * (loss / maxValue);
-    const expensesHeight = groupHeight * (expenses / maxValue);
+    const expensesHeight = groupHeight * (expenses / maxValue);  // This will be 1.0 when expenses is the base
     const expensesPLHeight = groupHeight * (profit / maxValue);
     
     // Calculate percentages for validation
