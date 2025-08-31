@@ -401,6 +401,26 @@ export class FinancialsHeightManager {
    * Set immediate heights without animation (for initialization)
    * Uses corrected direct mapping logic
    */
+  /**
+   * Set heights directly from FinancialsController (bypasses old calculation logic)
+   */
+  public setHeightsFromController(heights: {
+    revenueHeight: number;
+    revenuePLHeight: number;
+    expensesHeight: number;
+    expensesPLHeight: number;
+  }): void {
+    console.log('🎯 HeightManager: Setting heights directly from FinancialsController:', heights);
+    
+    // Apply heights immediately using direct vertex manipulation
+    this.setObjectHeight('Revenue', heights.revenueHeight, 'bottom');
+    this.setObjectHeight('RevenuePL', heights.revenuePLHeight, 'top');
+    this.setObjectHeight('Expenses', heights.expensesHeight, 'bottom');
+    this.setObjectHeight('ExpensesPL', heights.expensesPLHeight, 'top');
+    
+    console.log('✅ HeightManager: All heights applied from controller');
+  }
+
   public setImmediateHeights(data: FinancialData): void {
     // ISOLATED SYSTEM: Track previous values to prevent unwanted changes
     if (!this.previousData) {
