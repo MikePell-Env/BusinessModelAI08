@@ -518,12 +518,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
 
-    // DISABLED LEGACY TEMPLATE SWITCHING: Let unified manager handle all template switches
-    // Keeping this commented for easy revert if needed
-    /*
     // CRITICAL: Prevent scene recreation if scene already exists (template switching)
     if (sceneRef.current && engineRef.current && hasInitializedTemplate) {
       console.log(`🔄 Template switch to ${template.name} - preserving existing scene`);
+      return; // EXIT EARLY - let unified manager handle template switching
+    }
+
+    // DISABLED LEGACY TEMPLATE SWITCHING: Let unified manager handle all template switches
+    // Keeping this commented for easy revert if needed
+    /*
 
       // Clear existing template content but keep scene infrastructure
       const scene = sceneRef.current;
