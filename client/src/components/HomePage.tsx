@@ -122,17 +122,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
             {/* Combined Dialog Box with Demo Banner Inside */}
             <div className="mb-8 mt-32">
               <div className="bg-white rounded-lg shadow-2xl border border-black">
-                {/* Dark Grey Demo Banner - Now inside the dialog */}
-                <div className="bg-gray-700 text-white p-4 rounded-t-lg">
-                  <p className="text-base leading-tight">
-                    <strong className="text-blue-400">DEMO:</strong> <span className="text-gray-300">Let's illustrate the value of an</span> <strong className="text-gray-300">Envisioner</strong> <span className="text-gray-300">by helping you analyze a</span> <strong className="text-white">business model</strong> <span className="text-gray-300">in a very</span> <strong className="text-gray-300">new way</strong><span className="text-gray-300">, unlocking the ability to play what-if and ask the hard questions...</span>
+                {/* Dark Blue Header matching the image */}
+                <div className="bg-slate-700 text-white p-6 rounded-t-lg">
+                  <h1 className="text-xl font-semibold text-center mb-3">Envisioner Demo</h1>
+                  <p className="text-sm text-center leading-relaxed">
+                    Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very new way, unlocking the ability to play what-if and ask the hard questions...
                   </p>
                 </div>
                 
                 {/* Dialog Content */}
                 <div className="p-8">
-                  <h2 className="text-xl text-gray-800 mb-6 text-center">
-                    <strong>Select</strong> how you want to import your business model information:
+                  <h2 className="text-lg text-gray-800 mb-8 text-center font-normal">
+                    Select how you want to import your business model information:
                   </h2>
 
                   <div className="grid grid-cols-3 gap-6">
@@ -151,16 +152,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                         </div>
                         
                         {/* Office Icons in center - flexible space */}
-                        <div className="flex items-center justify-center space-x-2 flex-grow mt-8">
+                        <div className="flex items-center justify-center space-x-1 flex-grow mt-8">
                           <img 
                             src="/powerpoint-icon.webp" 
                             alt="PowerPoint" 
-                            className="w-16 h-16"
+                            className="w-12 h-12"
                           />
                           <img 
                             src="/excel-icon.webp" 
                             alt="Excel" 
-                            className="w-16 h-16"
+                            className="w-12 h-12"
                           />
                         </div>
                         
@@ -193,7 +194,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                           <img 
                             src="/copilot-logo.png" 
                             alt="Microsoft Copilot" 
-                            className="w-16 h-16"
+                            className="w-12 h-12"
                           />
                         </div>
                         
@@ -222,7 +223,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                           <img 
                             src="/ai-foundry-icon.png" 
                             alt="AI Foundry" 
-                            className="w-16 h-16"
+                            className="w-12 h-12"
                           />
                         </div>
                         
