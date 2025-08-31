@@ -125,9 +125,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                 {/* Dark Blue Header matching the image */}
                 <div className="bg-slate-700 text-white p-6 rounded-t-lg">
                   <h1 className="text-xl font-semibold text-center mb-3">Envisioner Demo</h1>
-                  <p className="text-sm text-center leading-relaxed">
-                    Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very new way,<br />unlocking the ability to play what-if and ask the hard questions...
-                  </p>
+                  <div className="flex items-start gap-4">
+                    <img 
+                      src="/icon_chat_whiteframe.png" 
+                      alt="Chat Icon" 
+                      className="w-12 h-12 flex-shrink-0 mt-1"
+                    />
+                    <p className="text-sm leading-relaxed text-left">
+                      Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very new way,<br />unlocking the ability to play what-if and ask the hard questions...
+                    </p>
+                  </div>
                 </div>
                 
                 {/* Dialog Content */}
