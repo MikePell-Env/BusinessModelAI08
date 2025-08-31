@@ -169,11 +169,14 @@ export class EnvisionerUnifiedManager {
     const { MeshBuilder, StandardMaterial, Color3 } = await import('@babylonjs/core');
     const masterTransform = this.persistence.getMasterTransform()!;
 
+    // CRITICAL: Position financial objects to align with BMC content layout
+    // BMC has Revenue Streams at X=-0.221, Cost Structure at X=-10.1
+    // Adjust financial positions to match this left-weighted distribution
     const financialObjects = [
-      { name: 'Revenue', pos: [-2, 0, 2], color: [0.2, 0.8, 0.3] },
-      { name: 'Loss', pos: [-2, 0, -2], color: [1.0, 0.8, 0.0] },
-      { name: 'Expenses', pos: [2, 0, 2], color: [0.8, 0.2, 0.2] },
-      { name: 'Profit', pos: [2, 0, -2], color: [0.1, 0.1, 0.1] }
+      { name: 'Revenue', pos: [-5, 0, 2], color: [0.2, 0.8, 0.3] },     // Left side to match BMC weight
+      { name: 'Loss', pos: [-5, 0, -2], color: [1.0, 0.8, 0.0] },       // Keep with Revenue
+      { name: 'Expenses', pos: [-1, 0, 2], color: [0.8, 0.2, 0.2] },    // Closer to center like Revenue Streams
+      { name: 'Profit', pos: [-1, 0, -2], color: [0.1, 0.1, 0.1] }      // Keep with Expenses
     ];
 
     financialObjects.forEach(obj => {
