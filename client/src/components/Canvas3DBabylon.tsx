@@ -3498,6 +3498,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     
                     heightManager.setObjectHeight('Revenue', revenueHeight, 'bottom');
                     heightManager.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
+                    
+                    // ALSO UPDATE EXPENSES GROUP: When revenue changes, profit changes
+                    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+                    const currentExpenses = expensesSlider ? parseInt(expensesSlider.value) : 800;
+                    const profit = Math.max(0, revenue - currentExpenses);
+                    const expensesPLHeight = profit / HEIGHT_SCALE;
+                    
+                    console.log('💚 Revenue changed - updating ExpensesPL:', {
+                      revenue: revenue,
+                      expenses: currentExpenses,
+                      profit: profit,
+                      expensesPLHeight: expensesPLHeight.toFixed(3)
+                    });
+                    
+                    heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
                   }
 
                   // Update the display values
