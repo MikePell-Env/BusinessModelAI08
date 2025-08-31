@@ -144,10 +144,12 @@ export class Envisioner {
   public updateSpatialProperties(position?: Vector3, rotation?: any, scale?: Vector3): void {
     if (!this.masterTransform) return;
 
-    if (position) {
-      this.envisionerObject.spatial.position = position.clone();
-      this.masterTransform.position = position.clone();
-    }
+    // CRITICAL: NEVER allow position updates - always lock to center
+    // This prevents any drift from external position modifications during template switches
+    this.masterTransform.position.x = 0; // Always centered horizontally 
+    this.masterTransform.position.y = 2; // Consistent vertical position
+    this.masterTransform.position.z = 0; // Always centered in depth
+    this.envisionerObject.spatial.position = new Vector3(0, 2, 0); // Keep spatial data consistent
     
     if (rotation) {
       this.envisionerObject.spatial.rotation = rotation.clone();
