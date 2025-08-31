@@ -16,7 +16,6 @@ import {
   StandardMaterial,
   Texture
 } from '@babylonjs/core';
-import * as GUI from '@babylonjs/gui';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
 export interface FinancialData {
@@ -42,21 +41,12 @@ export class FinancialsHeightManager {
   private maxVisualizationHeight: number = 5.0;
   private previousData: FinancialData | null = null;
   
-  // GUI label system using Babylon.js TextBlock
-  private guiTexture: GUI.AdvancedDynamicTexture | null = null;
-  private textLabels: Map<string, GUI.TextBlock> = new Map();
-  private labelsEnabled: boolean = true;
+  // Face-aligned labels system
+  private faceLabels: Map<string, Mesh> = new Map();
+  private labelsEnabled: boolean = false;
 
   constructor(scene: Scene) {
     this.scene = scene;
-    this.initializeGUI();
-  }
-
-  /**
-   * Initialize GUI texture for labels
-   */
-  private initializeGUI(): void {
-    this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("FinancialsLabels");
   }
 
 
@@ -76,10 +66,8 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        // Create GUI TextBlock label that follows the mesh (if enabled)
-        if (this.labelsEnabled) {
-          this.createTextLabel(mesh);
-        }
+        // Labels disabled for now
+        // this.createFaceAlignedLabel(mesh);
         
       }
     });
