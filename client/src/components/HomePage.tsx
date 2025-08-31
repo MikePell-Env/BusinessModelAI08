@@ -126,14 +126,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                 <div className="bg-slate-700 text-white p-6 rounded-t-lg">
                   <h1 className="text-xl font-semibold text-center mb-3">Envisioner Demo</h1>
                   <p className="text-sm text-center leading-relaxed">
-                    Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very new way, unlocking the ability to play what-if and ask the hard questions...
+                    Let's illustrate the value of an <strong>Envisioner</strong> by helping you analyze a <strong>business model</strong> in a very new way,<br />unlocking the ability to play what-if and ask the hard questions...
                   </p>
                 </div>
                 
                 {/* Dialog Content */}
                 <div className="p-8">
                   <h2 className="text-lg text-gray-800 mb-8 text-center font-normal">
-                    Select how you want to import your business model information:
+                    <strong>Select</strong> how you want to import your business model information:
                   </h2>
 
                   <div className="grid grid-cols-3 gap-6">
