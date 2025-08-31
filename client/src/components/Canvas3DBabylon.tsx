@@ -52,8 +52,7 @@ import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabe
 
 // UNIFIED SYSTEM: Replace competing managers with unified architecture
 import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter';
-import { EnvisionerPersistence } from './Canvas3DBabylon/core/EnvisionerPersistence';
-import { EnvisionerFoundation } from './Canvas3DBabylon/core/EnvisionerFoundation';
+import { EnvisionerUnifiedManager } from './Canvas3DBabylon/core/EnvisionerUnifiedManager';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
 
@@ -247,6 +246,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Track if this specific template should auto-animate (first time only)
   const shouldAutoAnimateRef = useRef(false);
 
+  // Handle template switching with unified manager
+  useEffect(() => {
+    if (unifiedManagerRef.current && hasInitializedTemplate && hasInitializedTemplate !== template.name) {
+      console.log(`🔄 Unified template switch: ${hasInitializedTemplate} -> ${template.name}`);
+      unifiedManagerRef.current.switchTemplate(template.name).then(() => {
+        console.log(`✅ Unified template switch completed to ${template.name}`);
+      }).catch((error) => {
+        console.error(`❌ Unified template switch failed:`, error);
+      });
+    }
+  }, [template.name, hasInitializedTemplate]);
+
   useEffect(() => {
     // Only set initial preset for first-time template loading, not during transitions
     // Preserve camera position when switching between templates that have been initialized
@@ -308,6 +319,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     setCurrentCameraPreset(preset);
     setIsInPresetPosition(true); // Camera will be in preset position after animation
     setIsTransitioningCamera(true);
+
+    // Update unified manager with new camera preset
+    if (unifiedManagerRef.current) {
+      unifiedManagerRef.current.updateCameraPreset(preset);
+    }
 
     if (!cameraRef.current || !sceneRef.current) {
       setIsTransitioningCamera(false);
@@ -392,6 +408,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
 
   const unifiedSceneRef = useRef<SceneSetupAdapter | null>(null);
+  const unifiedManagerRef = useRef<EnvisionerUnifiedManager | null>(null);
   const {
     saveCamera3DState,
     getCamera3DState,
@@ -962,11 +979,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Lighting is now handled by SceneSetupAdapter
 
-    // ENVISIONER PERSISTENCE: Get or create persistent master transform that maintains spatial properties across template switches
-    const envisionerPersistence = EnvisionerPersistence.getInstance();
-    const masterTransform = envisionerPersistence.getOrCreateMasterTransform(scene, template.name, currentCameraPreset);
+    // UNIFIED ENVISIONER SYSTEM: Replace fragmented managers with single unified system
+    const unifiedManager = new EnvisionerUnifiedManager(scene);
+    unifiedManagerRef.current = unifiedManager;
     
-    // Store master transform reference for camera targeting
+    // Initialize unified system for current template
+    await unifiedManager.initialize(template.name);
+    
+    // Get master transform from unified manager for camera targeting
+    const masterTransform = unifiedManager.getMasterTransform();
     masterTransformRef.current = masterTransform;
     
     // CRITICAL FIX: Update camera target to master transform position after creation
@@ -974,30 +995,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       cameraRef.current.setTarget(masterTransform.position.clone());
     }
 
-    // DYNAMIC SCALING: Only update scaling if this is the first initialization
+    // DYNAMIC SCALING: Handle scaling through unified manager
     const canvasForScaling = canvasRef.current;
-    const spatialState = envisionerPersistence.getSpatialState();
-    if (canvasForScaling && (!spatialState || !spatialState.isInitialized)) {
+    if (canvasForScaling) {
       const canvasWidth = canvasForScaling.clientWidth;
       const canvasHeight = canvasForScaling.clientHeight;
       // Scale based on smaller dimension to ensure fit, with padding
       const scaleFactor = (Math.min(canvasWidth, canvasHeight) / 600) * 1.2; // Base reference of 600px, scale up 20%
-      masterTransform.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
-      envisionerPersistence.saveSpatialState(); // Save the scaling changes
+      if (masterTransform) {
+        masterTransform.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+      }
     }
 
-
-    // ENVISIONER FOUNDATION: Create the persistent base platform (ground, rails, labels, lighting)
-    const envisionerFoundation = new EnvisionerFoundation(scene, masterTransform);
-    envisionerFoundation.initialize(); // Initialize foundation components
-    
-    // CREATE TEMPLATE-SPECIFIC LABELS: Add template-specific labels to the foundation
-    (async () => {
-      await envisionerFoundation.createTemplateLabels(template.name);
-    })();
-    
-    // Store foundation reference for potential template access
-    const foundationGround = envisionerFoundation.getComponent('ground');
+    // Get foundation ground from unified manager
+    const foundation = unifiedManager.getFoundation();
+    const foundationGround = foundation?.getComponent('ground');
 
     // Rails are now created by the EnvisionerFoundation
 
@@ -3315,6 +3327,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
       // Clean up unified systems and managers
       try {
+        // Safely dispose unified manager
+        if (unifiedManagerRef.current) {
+          console.log("🛡️ Safely disposing unified manager");
+          unifiedManagerRef.current.dispose();
+          unifiedManagerRef.current = null;
+        }
         // Safely dispose interaction manager
         if (interactionManagerRef.current) {
           console.log("🛡️ Safely disposing interaction manager to prevent crashes");
