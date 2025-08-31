@@ -253,12 +253,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Handle template switching with unified manager
   useEffect(() => {
     if (unifiedManagerRef.current && hasInitializedTemplate && hasInitializedTemplate !== template.name) {
-      console.log(`🔄 Unified template switch: ${hasInitializedTemplate} -> ${template.name}`);
+      const msg = `🔄 Unified template switch: ${hasInitializedTemplate} -> ${template.name}`;
+      console.log(msg);
+      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) }).catch(() => {});
+      
       unifiedManagerRef.current.switchTemplate(template.name).then(() => {
-        console.log(`✅ Unified template switch completed to ${template.name}`);
+        const successMsg = `✅ Unified template switch completed to ${template.name}`;
+        console.log(successMsg);
+        fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: successMsg}) }).catch(() => {});
       }).catch((error) => {
-        console.error(`❌ Unified template switch failed:`, error);
+        const errorMsg = `❌ Unified template switch failed: ${error}`;
+        console.error(errorMsg);
+        fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: errorMsg}) }).catch(() => {});
       });
+    } else {
+      const skipMsg = `⏭️ SKIP: unifiedManager=${!!unifiedManagerRef.current}, hasInit=${hasInitializedTemplate}, template=${template.name}`;
+      console.log(skipMsg);
+      fetch('/api/debug/capture', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: skipMsg}) }).catch(() => {});
     }
   }, [template.name, hasInitializedTemplate]);
 
