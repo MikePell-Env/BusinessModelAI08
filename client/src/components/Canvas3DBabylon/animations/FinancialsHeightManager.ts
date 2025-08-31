@@ -159,15 +159,28 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // CORRECTED LOGIC: Revenue is ALWAYS LOCKED at $10M (per design specification)
-    // Revenue Group: Revenue object = FIXED at $10M, RevenuePL object = loss amount
-    // Only Expenses Group varies: Expenses object = slider value, ExpensesPL object = profit amount
-    const revenueHeight = 1000 / HEIGHT_SCALE;    // Revenue object: LOCKED at $10M (2.0 units)
-    const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
+    // EQUAL GROUP HEIGHT RULE: Revenue Group total height = Expenses Group total height
+    // Both groups grow/shrink together but have different internal ratios
     
-    // Expenses Group: Expenses = actual value, ExpensesPL = profit
-    const expensesHeight = expenses / HEIGHT_SCALE;
-    const expensesPLHeight = profit / HEIGHT_SCALE;
+    // Calculate total group height based on maximum of (revenue total, expenses total)
+    const revenueTotal = revenue;  // Revenue amount
+    const expensesTotal = expenses;  // Expenses amount
+    const maxGroupValue = Math.max(revenueTotal, expensesTotal);
+    const groupHeight = maxGroupValue / HEIGHT_SCALE;  // Equal height for both groups
+    
+    // Revenue Group ratios (within equal group height)
+    const revenueRatio = revenueTotal / maxGroupValue;  // Revenue portion of group
+    const lossRatio = Math.max(0, (expensesTotal - revenueTotal)) / maxGroupValue;  // Loss portion
+    
+    // Expenses Group ratios (within equal group height)  
+    const expensesRatio = expensesTotal / maxGroupValue;  // Expenses portion of group
+    const profitRatio = Math.max(0, (revenueTotal - expensesTotal)) / maxGroupValue;  // Profit portion
+    
+    // Apply equal group height with internal ratios
+    const revenueHeight = groupHeight * revenueRatio;
+    const revenuePLHeight = groupHeight * lossRatio;
+    const expensesHeight = groupHeight * expensesRatio;  
+    const expensesPLHeight = groupHeight * profitRatio;
     
     // SELECTIVE UPDATES: Only animate objects whose values actually changed
     const animations: Promise<void>[] = [];
@@ -178,11 +191,11 @@ export class FinancialsHeightManager {
     const profitChanged = this.previousData.profit !== profit;
     const lossChanged = this.previousData.loss !== loss;
     
-    // Revenue object NEVER updates (always locked at $10M)
-    // if (revenueChanged) {
-    //   console.log('🟢 REVENUE UPDATE: Revenue changed:', this.previousData.revenue, '→', revenue);
-    //   animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
-    // }
+    // Revenue object updates (when group height changes due to revenue or expenses)
+    if (revenueChanged || expensesChanged) {
+      console.log('🟢 REVENUE UPDATE: Group height changed, new Revenue height:', revenueHeight.toFixed(3));
+      animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
+    }
     
     // RevenuePL (Loss) object updates (when loss amount changes due to revenue OR expenses)
     if (lossChanged) {
@@ -403,15 +416,28 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // CORRECTED LOGIC: Revenue is ALWAYS LOCKED at $10M (per design specification)
-    // Revenue Group: Revenue object = FIXED at $10M, RevenuePL object = loss amount
-    // Only Expenses Group varies: Expenses object = slider value, ExpensesPL object = profit amount
-    const revenueHeight = 1000 / HEIGHT_SCALE;    // Revenue object: LOCKED at $10M (2.0 units)
-    const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
+    // EQUAL GROUP HEIGHT RULE: Revenue Group total height = Expenses Group total height
+    // Both groups grow/shrink together but have different internal ratios
     
-    // Expenses Group: Expenses = actual value, ExpensesPL = profit
-    const expensesHeight = expenses / HEIGHT_SCALE;
-    const expensesPLHeight = profit / HEIGHT_SCALE;
+    // Calculate total group height based on maximum of (revenue total, expenses total)
+    const revenueTotal = revenue;  // Revenue amount
+    const expensesTotal = expenses;  // Expenses amount
+    const maxGroupValue = Math.max(revenueTotal, expensesTotal);
+    const groupHeight = maxGroupValue / HEIGHT_SCALE;  // Equal height for both groups
+    
+    // Revenue Group ratios (within equal group height)
+    const revenueRatio = revenueTotal / maxGroupValue;  // Revenue portion of group
+    const lossRatio = Math.max(0, (expensesTotal - revenueTotal)) / maxGroupValue;  // Loss portion
+    
+    // Expenses Group ratios (within equal group height)  
+    const expensesRatio = expensesTotal / maxGroupValue;  // Expenses portion of group
+    const profitRatio = Math.max(0, (revenueTotal - expensesTotal)) / maxGroupValue;  // Profit portion
+    
+    // Apply equal group height with internal ratios
+    const revenueHeight = groupHeight * revenueRatio;
+    const revenuePLHeight = groupHeight * lossRatio;
+    const expensesHeight = groupHeight * expensesRatio;  
+    const expensesPLHeight = groupHeight * profitRatio;
     
     console.log('💰 IMMEDIATE HEIGHT CALCULATIONS:', {
       revenue: revenue, expenses: expenses, profit: profit, loss: loss,
@@ -422,9 +448,9 @@ export class FinancialsHeightManager {
     // FORCE INITIAL SETUP: Always set heights on first call (initialization)
     const isInitialization = this.previousData.revenue === 1000 && this.previousData.expenses === 800;
     
-    // Revenue object NEVER changes (always locked at $10M)
-    if (isInitialization) {
-      console.log('🟢 IMMEDIATE: Setting Revenue to LOCKED $10M height:', revenueHeight.toFixed(3));
+    // Revenue object updates when group height changes
+    if (this.previousData.revenue !== revenue || this.previousData.expenses !== expenses || isInitialization) {
+      console.log('🟢 IMMEDIATE: Revenue height changed due to group height:', revenueHeight.toFixed(3));
       this.setObjectHeight('Revenue', revenueHeight, 'bottom');
     }
     
