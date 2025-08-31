@@ -3525,7 +3525,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               <div className="flex justify-between text-xs text-gray-300 mt-1 relative">
                 <span>$0M</span>
                 <span className="absolute -top-3 text-blue-400" style={{left: '100%'}}>|</span>
-                <span>$15M</span>
+                <span>$10M</span>
               </div>
             </div>
             <div>
@@ -3578,13 +3578,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
                   // Update the display values
                   const expensesDisplay = document.querySelector('.expenses-display');
-                  if (expensesDisplay) expensesDisplay.textContent = `$${(expensesValue/100).toFixed(0)}M`;
+                  if (expensesDisplay) expensesDisplay.textContent = `$${(expensesPercent/10).toFixed(0)}M`;
                 }}
               />
               <div className="flex justify-between text-xs text-gray-300 mt-1 relative">
                 <span>$0M</span>
                 <span className="absolute -top-3 text-red-400" style={{left: '80%'}}>|</span>
-                <span>$12M</span>
+                <span>$10M</span>
               </div>
             </div>
           </div>
