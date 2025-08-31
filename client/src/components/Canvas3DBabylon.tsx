@@ -3517,9 +3517,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
                   }
 
-                  // Update the display values (Revenue is always $10M total)
+                  // Update the display values - show actual revenue amount based on slider
+                  const revenueAmount = (revenuePercent / 10).toFixed(0); // Convert percentage to dollar amount
                   const revenueDisplay = document.querySelector('.revenue-display');
-                  if (revenueDisplay) revenueDisplay.textContent = `$10M`;
+                  if (revenueDisplay) revenueDisplay.textContent = `$${revenueAmount}M`;
                 }}
               />
               <div className="flex justify-between text-xs text-gray-300 mt-1 relative">
