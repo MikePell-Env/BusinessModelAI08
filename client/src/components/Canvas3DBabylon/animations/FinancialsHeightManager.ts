@@ -183,28 +183,47 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // EQUAL GROUP HEIGHT RULE: Revenue Group total height = Expenses Group total height
-    // Both groups grow/shrink together but have different internal ratios
+    // FINANCIAL RULE #1: EQUAL GROUP HEIGHTS - Both groups ALWAYS have identical total height
+    // Revenue Group = Revenue + RevenuePL 
+    // Expenses Group = Expenses + ExpensesPL
+    // Group Heights MUST be equal: Revenue + RevenuePL = Expenses + ExpensesPL
     
-    // Calculate total group height based on maximum of (revenue total, expenses total)
-    const revenueTotal = revenue;  // Revenue amount
-    const expensesTotal = expenses;  // Expenses amount
-    const maxGroupValue = Math.max(revenueTotal, expensesTotal);
-    const groupHeight = maxGroupValue / HEIGHT_SCALE;  // Equal height for both groups
+    let revenueHeight, revenuePLHeight, expensesHeight, expensesPLHeight;
     
-    // Revenue Group ratios (within equal group height)
-    const revenueRatio = revenueTotal / maxGroupValue;  // Revenue portion of group
-    const lossRatio = Math.max(0, (expensesTotal - revenueTotal)) / maxGroupValue;  // Loss portion
-    
-    // Expenses Group ratios (within equal group height)  
-    const expensesRatio = expensesTotal / maxGroupValue;  // Expenses portion of group
-    const profitRatio = Math.max(0, (revenueTotal - expensesTotal)) / maxGroupValue;  // Profit portion
-    
-    // Apply equal group height with internal ratios
-    const revenueHeight = groupHeight * revenueRatio;
-    const revenuePLHeight = groupHeight * lossRatio;
-    const expensesHeight = groupHeight * expensesRatio;  
-    const expensesPLHeight = groupHeight * profitRatio;
+    if (revenue >= expenses) {
+      // PROFIT SCENARIO: Revenue >= Expenses
+      // Revenue Group: Revenue only (RevenuePL = 0)
+      // Expenses Group: Expenses + ExpensesPL (profit)
+      // Both groups equal to Revenue value
+      
+      const groupHeight = revenue / HEIGHT_SCALE;  // Equal height for both groups
+      
+      revenueHeight = groupHeight;                         // Revenue = full group height
+      revenuePLHeight = 0;                                // RevenuePL = 0 (no loss)
+      expensesHeight = (expenses / revenue) * groupHeight; // Expenses portion
+      expensesPLHeight = (profit / revenue) * groupHeight; // Profit portion
+      
+      console.log(`🎯 PROFIT SCENARIO: Both groups = ${groupHeight.toFixed(3)} height`);
+      console.log(`   Revenue Group: Revenue=${revenueHeight.toFixed(3)} + RevenuePL=${revenuePLHeight.toFixed(3)} = ${(revenueHeight + revenuePLHeight).toFixed(3)}`);
+      console.log(`   Expenses Group: Expenses=${expensesHeight.toFixed(3)} + ExpensesPL=${expensesPLHeight.toFixed(3)} = ${(expensesHeight + expensesPLHeight).toFixed(3)}`);
+      
+    } else {
+      // LOSS SCENARIO: Expenses > Revenue  
+      // Revenue Group: Revenue + RevenuePL (loss)
+      // Expenses Group: Expenses only (ExpensesPL = 0)
+      // Both groups equal to Expenses value
+      
+      const groupHeight = expenses / HEIGHT_SCALE;  // Equal height for both groups
+      
+      revenueHeight = (revenue / expenses) * groupHeight;  // Revenue portion
+      revenuePLHeight = (loss / expenses) * groupHeight;   // Loss portion
+      expensesHeight = groupHeight;                        // Expenses = full group height
+      expensesPLHeight = 0;                               // ExpensesPL = 0 (no profit)
+      
+      console.log(`🎯 LOSS SCENARIO: Both groups = ${groupHeight.toFixed(3)} height`);
+      console.log(`   Revenue Group: Revenue=${revenueHeight.toFixed(3)} + RevenuePL=${revenuePLHeight.toFixed(3)} = ${(revenueHeight + revenuePLHeight).toFixed(3)}`);
+      console.log(`   Expenses Group: Expenses=${expensesHeight.toFixed(3)} + ExpensesPL=${expensesPLHeight.toFixed(3)} = ${(expensesHeight + expensesPLHeight).toFixed(3)}`);
+    }
     
     // SELECTIVE UPDATES: Only animate objects whose values actually changed
     const animations: Promise<void>[] = [];
@@ -489,28 +508,47 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // EQUAL GROUP HEIGHT RULE: Revenue Group total height = Expenses Group total height
-    // Both groups grow/shrink together but have different internal ratios
+    // FINANCIAL RULE #1: EQUAL GROUP HEIGHTS - Both groups ALWAYS have identical total height
+    // Revenue Group = Revenue + RevenuePL 
+    // Expenses Group = Expenses + ExpensesPL
+    // Group Heights MUST be equal: Revenue + RevenuePL = Expenses + ExpensesPL
     
-    // Calculate total group height based on maximum of (revenue total, expenses total)
-    const revenueTotal = revenue;  // Revenue amount
-    const expensesTotal = expenses;  // Expenses amount
-    const maxGroupValue = Math.max(revenueTotal, expensesTotal);
-    const groupHeight = maxGroupValue / HEIGHT_SCALE;  // Equal height for both groups
+    let revenueHeight, revenuePLHeight, expensesHeight, expensesPLHeight;
     
-    // Revenue Group ratios (within equal group height)
-    const revenueRatio = revenueTotal / maxGroupValue;  // Revenue portion of group
-    const lossRatio = Math.max(0, (expensesTotal - revenueTotal)) / maxGroupValue;  // Loss portion
-    
-    // Expenses Group ratios (within equal group height)  
-    const expensesRatio = expensesTotal / maxGroupValue;  // Expenses portion of group
-    const profitRatio = Math.max(0, (revenueTotal - expensesTotal)) / maxGroupValue;  // Profit portion
-    
-    // Apply equal group height with internal ratios
-    const revenueHeight = groupHeight * revenueRatio;
-    const revenuePLHeight = groupHeight * lossRatio;
-    const expensesHeight = groupHeight * expensesRatio;  
-    const expensesPLHeight = groupHeight * profitRatio;
+    if (revenue >= expenses) {
+      // PROFIT SCENARIO: Revenue >= Expenses
+      // Revenue Group: Revenue only (RevenuePL = 0)
+      // Expenses Group: Expenses + ExpensesPL (profit)
+      // Both groups equal to Revenue value
+      
+      const groupHeight = revenue / HEIGHT_SCALE;  // Equal height for both groups
+      
+      revenueHeight = groupHeight;                         // Revenue = full group height
+      revenuePLHeight = 0;                                // RevenuePL = 0 (no loss)
+      expensesHeight = (expenses / revenue) * groupHeight; // Expenses portion
+      expensesPLHeight = (profit / revenue) * groupHeight; // Profit portion
+      
+      console.log(`🎯 IMMEDIATE PROFIT: Both groups = ${groupHeight.toFixed(3)} height`);
+      console.log(`   Revenue Group: Revenue=${revenueHeight.toFixed(3)} + RevenuePL=${revenuePLHeight.toFixed(3)} = ${(revenueHeight + revenuePLHeight).toFixed(3)}`);
+      console.log(`   Expenses Group: Expenses=${expensesHeight.toFixed(3)} + ExpensesPL=${expensesPLHeight.toFixed(3)} = ${(expensesHeight + expensesPLHeight).toFixed(3)}`);
+      
+    } else {
+      // LOSS SCENARIO: Expenses > Revenue  
+      // Revenue Group: Revenue + RevenuePL (loss)
+      // Expenses Group: Expenses only (ExpensesPL = 0)
+      // Both groups equal to Expenses value
+      
+      const groupHeight = expenses / HEIGHT_SCALE;  // Equal height for both groups
+      
+      revenueHeight = (revenue / expenses) * groupHeight;  // Revenue portion
+      revenuePLHeight = (loss / expenses) * groupHeight;   // Loss portion
+      expensesHeight = groupHeight;                        // Expenses = full group height
+      expensesPLHeight = 0;                               // ExpensesPL = 0 (no profit)
+      
+      console.log(`🎯 IMMEDIATE LOSS: Both groups = ${groupHeight.toFixed(3)} height`);
+      console.log(`   Revenue Group: Revenue=${revenueHeight.toFixed(3)} + RevenuePL=${revenuePLHeight.toFixed(3)} = ${(revenueHeight + revenuePLHeight).toFixed(3)}`);
+      console.log(`   Expenses Group: Expenses=${expensesHeight.toFixed(3)} + ExpensesPL=${expensesPLHeight.toFixed(3)} = ${(expensesHeight + expensesPLHeight).toFixed(3)}`);
+    }
     
     console.log('💰 IMMEDIATE HEIGHT CALCULATIONS:', {
       revenue: revenue, expenses: expenses, profit: profit, loss: loss,
