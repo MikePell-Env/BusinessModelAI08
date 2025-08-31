@@ -125,7 +125,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateHome, onNavigateEx
                 {/* Dark Blue Header matching the image */}
                 <div className="bg-slate-700 text-white px-6 pt-4 pb-6 rounded-t-lg">
                   <h1 className="text-xl font-semibold text-center mb-1">Envisioner Demo</h1>
-                  <div className="flex items-start gap-4 mt-2">
+                  <div className="flex items-start gap-4 mt-4">
                     <img 
                       src="/chat-icon.png" 
                       alt="Chat icon" 
