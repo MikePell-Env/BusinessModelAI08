@@ -55,20 +55,13 @@ export class FinancialsDataAdapter {
   }
   
   /**
-   * Initialize FinancialsController when needed
-   * This ensures proper timing and prevents initialization issues
+   * Check if FinancialsController exists
+   * Controller is now created explicitly during scene initialization
    */
   private ensureControllerExists(): boolean {
     if (!(window as any).financialsController) {
-      try {
-        const { FinancialsController } = require('../controllers/FinancialsController');
-        (window as any).financialsController = new FinancialsController(this.heightManager);
-        console.log('🎮 FinancialsController created and made globally accessible');
-        return true;
-      } catch (error) {
-        console.error('❌ Failed to create FinancialsController:', error);
-        return false;
-      }
+      console.warn('⚠️ FinancialsController not available - should be created during scene initialization');
+      return false;
     }
     return true;
   }
