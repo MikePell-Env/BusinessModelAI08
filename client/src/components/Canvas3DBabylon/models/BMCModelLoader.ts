@@ -255,9 +255,8 @@ export class BMCModelLoader {
         return this.loadMainBMC();
       
       case 'financials':
-        console.log(`⏸️ Skipping Financials GLB - handled by FinancialsTemplate system`);
-        // Return empty model since FinancialsTemplate.ts handles object creation
-        return { meshes: [], rootMesh: null, transformNodes: [] };
+        console.log(`✅ Loading Financials model`);
+        return this.loadFinancialsModel();
       
       default:
         console.log(`❌ Unknown template: "${templateName}", falling back to main BMC`);
