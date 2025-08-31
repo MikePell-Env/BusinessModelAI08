@@ -6,7 +6,7 @@
  */
 
 import { UseCase4DVLTemplate, UseCaseTemplateConfig } from '../4DVL/UseCase4DVLTemplate';
-import { FourDVLScene, FourDVLObject } from '../4DVL/4DVLCore';
+import { The4DVLScene, The4DVLObject } from '../4DVL/4DVLCore';
 import { Vector3, Color3 } from '@babylonjs/core';
 
 export class WhatIfTemplate extends UseCase4DVLTemplate {
@@ -21,7 +21,7 @@ export class WhatIfTemplate extends UseCase4DVLTemplate {
     super(config);
   }
 
-  protected async create4DVLScene(): Promise<FourDVLScene> {
+  protected async create4DVLScene(): Promise<The4DVLScene> {
     const scenarios = [
       {
         name: 'Baseline',
@@ -49,7 +49,7 @@ export class WhatIfTemplate extends UseCase4DVLTemplate {
       }
     ];
 
-    const objects: 4DVLObject[] = scenarios.map(scenario => ({
+    const objects: The4DVLObject[] = scenarios.map(scenario => ({
       id: scenario.name.toLowerCase(),
       name: scenario.name,
       geometry: {

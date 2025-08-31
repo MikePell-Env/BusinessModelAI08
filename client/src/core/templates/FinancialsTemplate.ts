@@ -6,7 +6,7 @@
  */
 
 import { UseCase4DVLTemplate, UseCaseTemplateConfig } from '../4DVL/UseCase4DVLTemplate';
-import { FourDVLScene, FourDVLObject } from '../4DVL/4DVLCore';
+import { The4DVLScene, The4DVLObject } from '../4DVL/4DVLCore';
 import { Vector3, Color3 } from '@babylonjs/core';
 
 export class FinancialsTemplate extends UseCase4DVLTemplate {
@@ -21,7 +21,7 @@ export class FinancialsTemplate extends UseCase4DVLTemplate {
     super(config);
   }
 
-  protected async create4DVLScene(): Promise<FourDVLScene> {
+  protected async create4DVLScene(): Promise<The4DVLScene> {
     const financialObjects = [
       {
         name: 'Revenue',
@@ -53,7 +53,7 @@ export class FinancialsTemplate extends UseCase4DVLTemplate {
       }
     ];
 
-    const objects: FourDVLObject[] = financialObjects.map(obj => ({
+    const objects: The4DVLObject[] = financialObjects.map(obj => ({
       id: obj.name,
       name: obj.name,
       geometry: {

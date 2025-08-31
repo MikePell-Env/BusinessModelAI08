@@ -8,7 +8,7 @@
  */
 
 import { Scene } from '@babylonjs/core';
-import { FourDVLScene, FourDVLRenderer } from './4DVLCore';
+import { The4DVLScene, The4DVLRenderer } from './4DVLCore';
 import { DataSourceAdapter } from '../data/DataSourceAdapter';
 
 export interface UseCaseTemplateConfig {
@@ -33,9 +33,9 @@ export abstract class UseCase4DVLTemplate {
   protected config: UseCaseTemplateConfig;
   protected state: UseCaseTemplateState;
   protected scene: Scene | null = null;
-  protected renderer: FourDVLRenderer | null = null;
+  protected renderer: The4DVLRenderer | null = null;
   protected dataAdapter: DataSourceAdapter | null = null;
-  protected dvlScene: FourDVLScene | null = null;
+  protected dvlScene: The4DVLScene | null = null;
 
   constructor(config: UseCaseTemplateConfig) {
     this.config = config;
@@ -52,7 +52,7 @@ export abstract class UseCase4DVLTemplate {
    */
   public async load(scene: Scene, dataSource?: any): Promise<void> {
     this.scene = scene;
-    this.renderer = new FourDVLRenderer(scene);
+    this.renderer = new The4DVLRenderer(scene);
 
     if (dataSource) {
       await this.loadDataSource(dataSource);
@@ -118,7 +118,7 @@ export abstract class UseCase4DVLTemplate {
   }
 
   // Abstract methods that each template must implement
-  protected abstract create4DVLScene(): Promise<FourDVLScene>;
+  protected abstract create4DVLScene(): Promise<The4DVLScene>;
   protected abstract loadDataSource(dataSource: any): Promise<void>;
   protected abstract performCleanup(): Promise<void>;
 
