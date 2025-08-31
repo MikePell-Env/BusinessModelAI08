@@ -755,7 +755,7 @@ export class FinancialsHeightManager {
     heightFactor: number,
     anchorType: 'top' | 'bottom'
   ): void {
-    console.log(`🔧 VERTEX MANIPULATION: ${mesh.name} - heightFactor=${heightFactor.toFixed(3)}, anchor=${anchorType}`);
+    console.log(`🔧 VERTEX MANIPULATION: ${mesh.name} - heightFactor=${heightFactor.toFixed(3)}, anchor=${anchorType}, baseHeight=${this.baseHeight}`);
     
     const originalVertices = this.originalVertices.get(mesh.name);
     if (!originalVertices) {
@@ -763,6 +763,8 @@ export class FinancialsHeightManager {
       debugLog.warn('financials', `No original vertices found for ${mesh.name}, falling back to scaling`);
       return;
     }
+    
+    console.log(`🔧 VERTEX MANIPULATION: ${mesh.name} - Original vertices count: ${originalVertices.length / 3} vertices`);
 
     const geometry = mesh.geometry;
     if (!geometry) {
@@ -799,7 +801,10 @@ export class FinancialsHeightManager {
     // Store the VISUAL stretch factor for label correction (not the heightFactor)
     this.currentHeightFactors.set(mesh.name, visualStretchFactor);
     
+    console.log(`🔧 VERTEX BOUNDS: ${mesh.name} - minY=${minY.toFixed(3)}, maxY=${maxY.toFixed(3)}, originalHeight=${originalHeight.toFixed(3)}`);
+    
     // Modify vertices based on anchor type - CONSTRAINED to original bounds
+    let modifiedVertices = 0;
     for (let i = 1; i < newVertices.length; i += 3) {
       const originalY = originalVertices[i];
       
@@ -810,15 +815,26 @@ export class FinancialsHeightManager {
         const normalizedPosition = relativeY / originalHeight; // 0.0 to 1.0
         const scaledPosition = normalizedPosition * heightFactor; // Scale by factor
         newVertices[i] = minY + (scaledPosition * originalHeight);
+        modifiedVertices++;
       } else {
         // Top-anchored: scale Y from the top (maxY stays fixed) 
         // Only show heightFactor percentage of the original height
         const relativeY = maxY - originalY;
         const normalizedPosition = relativeY / originalHeight; // 0.0 to 1.0
         const scaledPosition = normalizedPosition * heightFactor; // Scale by factor
-        newVertices[i] = maxY - (scaledPosition * originalHeight);
+        const newY = maxY - (scaledPosition * originalHeight);
+        
+        // Debug specific vertices for ExpensesPL
+        if (mesh.name === 'ExpensesPL' && modifiedVertices < 5) {
+          console.log(`🔧 ExpensesPL VERTEX ${modifiedVertices}: originalY=${originalY.toFixed(3)} → newY=${newY.toFixed(3)}, relativeY=${relativeY.toFixed(3)}, normalized=${normalizedPosition.toFixed(3)}, scaled=${scaledPosition.toFixed(3)}`);
+        }
+        
+        newVertices[i] = newY;
+        modifiedVertices++;
       }
     }
+    
+    console.log(`🔧 VERTEX MANIPULATION: ${mesh.name} - Modified ${modifiedVertices} vertices (${anchorType}-anchored)`);
 
     // Update the mesh geometry
     geometry.setVerticesData('position', newVertices);
