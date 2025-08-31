@@ -250,22 +250,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Track if this specific template should auto-animate (first time only)
   const shouldAutoAnimateRef = useRef(false);
 
-  // DISABLED: Template switching moved to after GLB loading
-  // This prevents race condition where template switch happens before meshes exist
-  /*
+  // Template switching with proper timing
   useEffect(() => {
     if (unifiedManagerRef.current && currentTemplate && currentTemplate !== template.name) {
       console.log(`🔄 Unified template switch: ${currentTemplate} -> ${template.name}`);
 
-      unifiedManagerRef.current.switchTemplate(template.name).then(() => {
-        console.log(`✅ Unified template switch completed to ${template.name}`);
-        setCurrentTemplate(template.name); // Update current template AFTER switch completes
-      }).catch((error) => {
-        console.error(`❌ Unified template switch failed:`, error);
-      });
+      // Add delay to ensure all meshes are loaded
+      setTimeout(() => {
+        if (unifiedManagerRef.current) {
+          unifiedManagerRef.current.switchTemplate(template.name).then(() => {
+            console.log(`✅ Unified template switch completed to ${template.name}`);
+            setCurrentTemplate(template.name);
+            
+            // Force another refresh after state update
+            setTimeout(() => {
+              if (unifiedManagerRef.current) {
+                unifiedManagerRef.current.refreshTemplateVisibility();
+              }
+            }, 200);
+          }).catch((error) => {
+            console.error(`❌ Unified template switch failed:`, error);
+          });
+        }
+      }, 500);
     }
-  }, [template.name]);
-  */
+  }, [template.name, currentTemplate]);
 
   useEffect(() => {
     // Only set initial preset for first-time template loading, not during transitions
@@ -1371,12 +1380,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // CRITICAL FIX: Do template switching AFTER meshes are loaded
         if (unifiedManagerRef.current && currentTemplate !== template.name) {
           console.log(`🔄 Template switch after GLB loading: ${currentTemplate} -> ${template.name}`);
-          unifiedManagerRef.current.switchTemplate(template.name).then(() => {
-            console.log(`✅ Post-GLB template switch completed to ${template.name}`);
-            setCurrentTemplate(template.name);
-          });
+          
+          // Add delay to ensure meshes are fully registered
+          setTimeout(() => {
+            if (unifiedManagerRef.current) {
+              unifiedManagerRef.current.switchTemplate(template.name).then(() => {
+                console.log(`✅ Post-GLB template switch completed to ${template.name}`);
+                setCurrentTemplate(template.name);
+                
+                // Debug: Log all meshes and their visibility
+                console.log('🔍 POST-SWITCH DEBUG: All scene meshes:');
+                sceneRef.current?.meshes.forEach(mesh => {
+                  console.log(`  - ${mesh.name} (visible: ${mesh.isVisible}, pickable: ${mesh.isPickable})`);
+                });
+              }).catch((error) => {
+                console.error(`❌ Post-GLB template switch failed:`, error);
+              });
+            }
+          }, 300);
         } else if (unifiedManagerRef.current) {
-          unifiedManagerRef.current.refreshTemplateVisibility();
+          // Force refresh if no template change but unified manager exists
+          setTimeout(() => {
+            if (unifiedManagerRef.current) {
+              unifiedManagerRef.current.refreshTemplateVisibility();
+              console.log(`✅ Template visibility refreshed for current template: ${template.name}`);
+            }
+          }, 100);
         }
 
         const rootMesh = model.rootMesh;

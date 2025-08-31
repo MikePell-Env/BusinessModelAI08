@@ -46,15 +46,24 @@ export class TemplateManager {
       'Section_',
       'Internal',   // Foundation labels
       'External',
-      'Divider'
+      'Divider',
+      'keyPartners',
+      'keyActivities',
+      'keyResources',
+      'valuePropositions',
+      'customerRelationships',
+      'customerChannels',
+      'customerSegments',
+      'costStructure',
+      'revenueStreams'
     ]);
 
-    // Financials template patterns
+    // Financials template patterns - be more specific with exact matches
     this.templatePatterns.set('financials', [
-      'Revenue',    // Matches "Revenue" 
-      'Expenses',   // Matches "Expenses"
-      'RevenuePL',  // Matches "RevenuePL"
-      'ExpensesPL', // Matches "ExpensesPL"
+      'Revenue',    // Exact match for "Revenue" 
+      'Expenses',   // Exact match for "Expenses"
+      'RevenuePL',  // Exact match for "RevenuePL"
+      'ExpensesPL', // Exact match for "ExpensesPL"
       'Profit',
       'Loss', 
       'Financial_',
@@ -85,8 +94,30 @@ export class TemplateManager {
     const patterns = this.templatePatterns.get(templateName.toLowerCase());
     if (!patterns) return false;
 
+    const meshName = mesh.name;
+    
+    // For Financials, use exact matches to avoid conflicts
+    if (templateName.toLowerCase() === 'financials') {
+      return patterns.some(pattern => {
+        // Exact match for core financial objects
+        if (['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'].includes(pattern)) {
+          return meshName === pattern;
+        }
+        // Contains match for others
+        return meshName.includes(pattern);
+      });
+    }
+    
+    // For Business Model, exclude exact Financials matches first
+    if (templateName.toLowerCase() === 'business-model') {
+      const financialExactMatches = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
+      if (financialExactMatches.includes(meshName)) {
+        return false; // This is a Financials mesh
+      }
+    }
+
     // Check if mesh name matches any pattern for this template
-    return patterns.some(pattern => mesh.name.includes(pattern));
+    return patterns.some(pattern => meshName.includes(pattern));
   }
 
   /**

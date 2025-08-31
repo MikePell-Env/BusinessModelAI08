@@ -103,7 +103,13 @@ export class EnvisionerUnifiedManager {
     // Step 3: Simply show the new template (hides others automatically)
     this.templateManager.showTemplate(newTemplateName);
 
-    // Step 4: CRITICAL FIX - Update camera target to master transform position
+    // Step 4: Force a refresh to ensure meshes are properly shown/hidden
+    setTimeout(() => {
+      this.templateManager.refreshCurrentTemplate();
+      debugLog.info('unified', `Template visibility refreshed for ${newTemplateName}`);
+    }, 100);
+
+    // Step 5: CRITICAL FIX - Update camera target to master transform position
     this.updateCameraTarget();
 
     this.currentTemplateName = newTemplateName;
