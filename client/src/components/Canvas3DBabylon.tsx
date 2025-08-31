@@ -508,10 +508,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
 
-    // CRITICAL: Prevent scene recreation if scene already exists (template switching)
+    // CRITICAL: Scene created ONCE per session
     if (sceneRef.current && engineRef.current && isSceneInitialized) {
-      console.log(`🔄 Template switch to ${template.name} - preserving existing scene`);
-      return; // EXIT EARLY - let unified manager handle template switching
+      // Scene already exists - template switching handled by unified manager
+      return;
     }
 
     // DISABLED LEGACY TEMPLATE SWITCHING: Let unified manager handle all template switches
@@ -3140,7 +3140,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, template, saveCamera3DState]);
+  }, [canvas, saveCamera3DState]); // CRITICAL: Only canvas and saveCamera3DState - no template dependency
 
   // Camera is always perspective - no switching needed
 

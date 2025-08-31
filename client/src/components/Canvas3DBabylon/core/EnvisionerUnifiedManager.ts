@@ -5,11 +5,12 @@
  * Handles template switching while maintaining spatial persistence and proper 4DVL content loading.
  */
 
-import { Scene, ArcRotateCamera } from '@babylonjs/core';
+import { Scene, ArcRotateCamera, AbstractMesh } from '@babylonjs/core';
 import { Envisioner, EnvisionerConfig } from '../../../core/Envisioner';
 import { EnvisionerDataContext, createEnvisionerObject } from '../../../core/objects/EnvisionerObject';
 import { EnvisionerFoundation } from './EnvisionerFoundation';
 import { EnvisionerPersistence } from './EnvisionerPersistence';
+import { TemplateManager } from './TemplateManager';
 import { FinancialsTemplate } from '../../../core/templates/FinancialsTemplate';
 import { debugLog } from '../../../lib/debug/DebugLogger';
 
@@ -19,12 +20,15 @@ export class EnvisionerUnifiedManager {
   private coreEnvisioner: Envisioner | null = null;
   private foundation: EnvisionerFoundation | null = null;
   private persistence: EnvisionerPersistence;
+  private templateManager: TemplateManager;
   private currentTemplateName: string | null = null;
+  private loadedTemplates: Set<string> = new Set();
 
   constructor(scene: Scene, camera?: ArcRotateCamera) {
     this.scene = scene;
     this.camera = camera || null;
     this.persistence = EnvisionerPersistence.getInstance();
+    this.templateManager = new TemplateManager(scene);
   }
 
   /**
@@ -36,14 +40,20 @@ export class EnvisionerUnifiedManager {
     // Step 1: Get persistent master transform
     const masterTransform = this.persistence.getOrCreateMasterTransform(this.scene, templateName);
 
-    // Step 2: Initialize foundation platform (ground, rails, lighting)
-    this.foundation = new EnvisionerFoundation(this.scene, masterTransform);
-    await this.foundation.initialize();
+    // Step 2: Initialize foundation platform (ground, rails, lighting) - ONLY ONCE
+    if (!this.foundation) {
+      this.foundation = new EnvisionerFoundation(this.scene, masterTransform);
+      await this.foundation.initialize();
+    }
 
     // Step 3: Create foundation labels for this template
     await this.foundation.createTemplateLabels(templateName);
 
-    // Step 4: Initialize core Envisioner if not exists
+    // Step 4: Register templates with manager
+    this.templateManager.registerTemplate('business-model');
+    this.templateManager.registerTemplate('financials');
+
+    // Step 5: Initialize core Envisioner if not exists
     if (!this.coreEnvisioner) {
       const dataContext: EnvisionerDataContext = {
         sourceType: 'json',
@@ -64,10 +74,13 @@ export class EnvisionerUnifiedManager {
       await this.coreEnvisioner.initialize();
     }
 
-    // Step 5: Load template content
-    await this.loadTemplateContent(templateName);
+    // Step 6: Load ALL templates on first init (but only show the current one)
+    await this.loadAllTemplates();
 
+    // Step 7: Show only the current template
+    this.templateManager.showTemplate(templateName);
     this.currentTemplateName = templateName;
+    
     debugLog.info('unified', '✅ Envisioner Unified Manager initialized');
   }
 
@@ -82,27 +95,44 @@ export class EnvisionerUnifiedManager {
 
     debugLog.info('unified', `🔄 Switching template from ${this.currentTemplateName} to ${newTemplateName}`);
 
-
-    // Step 1: Unload current template content (but preserve foundation)
-    await this.unloadCurrentTemplateContent();
-
-    // Step 2: Update foundation labels for new template
+    // Step 1: Update foundation labels for new template
     if (this.foundation) {
       await this.foundation.createTemplateLabels(newTemplateName);
     }
 
-    // Step 3: Update master transform rotation for new template
+    // Step 2: Update master transform rotation for new template
     this.persistence.updateRotationForCameraPreset(newTemplateName, 'FRONT');
 
-    // Step 4: Load new template content
-    await this.loadTemplateContent(newTemplateName);
+    // Step 3: Simply show the new template (hides others automatically)
+    this.templateManager.showTemplate(newTemplateName);
 
-    // Step 5: CRITICAL FIX - Update camera target to master transform position
+    // Step 4: CRITICAL FIX - Update camera target to master transform position
     this.updateCameraTarget();
 
     this.currentTemplateName = newTemplateName;
     
     debugLog.info('unified', `✅ Template switched to ${newTemplateName}`);
+  }
+
+  /**
+   * Load ALL templates on initialization (but keep them hidden)
+   */
+  private async loadAllTemplates(): Promise<void> {
+    debugLog.info('unified', 'Loading all templates...');
+    
+    // Load Business Model template
+    if (!this.loadedTemplates.has('business-model')) {
+      await this.loadBusinessModelContent();
+      this.loadedTemplates.add('business-model');
+    }
+    
+    // Load Financials template  
+    if (!this.loadedTemplates.has('financials')) {
+      await this.loadFinancialsContent();
+      this.loadedTemplates.add('financials');
+    }
+    
+    debugLog.info('unified', 'All templates loaded');
   }
 
   /**
@@ -150,20 +180,19 @@ export class EnvisionerUnifiedManager {
         financialMeshes.forEach(mesh => {
           if (!mesh.parent) {
             mesh.parent = masterTransform;
-            // DISABLED: Let EnvisionerPersistence manage position only (revert if needed)
-            // masterTransform.position.x = 0;
-            // masterTransform.position.y = 2;
-            // masterTransform.position.z = 0;
           }
         });
+        
+        // Register financial meshes with template manager
+        this.templateManager.addMeshesToTemplate('financials', financialMeshes);
       }
 
       debugLog.info('unified', '✅ Financials 4DVL content loaded');
     } catch (error) {
       debugLog.error('unified', `❌ Failed to load Financials content: ${error}`);
 
-      // Skip fallback - BMCModelLoader handles Financials GLB loading
-      debugLog.info('unified', '⏸️ Skipping fallback objects - GLB system active');
+      // Create fallback objects to ensure something displays
+      await this.createFinancialsFallbackObjects();
     }
   }
 
@@ -200,6 +229,12 @@ export class EnvisionerUnifiedManager {
       material.diffuseColor = new Color3(obj.color[0], obj.color[1], obj.color[2]);
       box.material = material;
     });
+    
+    // Register fallback meshes with template manager
+    const fallbackMeshes = this.scene.meshes.filter(mesh => 
+      mesh.name.includes('_fallback')
+    );
+    this.templateManager.addMeshesToTemplate('financials', fallbackMeshes);
   }
 
   /**
@@ -208,8 +243,27 @@ export class EnvisionerUnifiedManager {
   private async loadBusinessModelContent(): Promise<void> {
     debugLog.info('unified', '🏢 Loading Business Model content...');
 
-    // For now, use existing BMC system - will be upgraded to 4DVL in future
-    // This maintains backward compatibility while we transition
+    // Business Model meshes will be registered by the BMC system
+    // We need to wait for them to load and then register them
+    setTimeout(() => {
+      const bmcMeshes = this.scene.meshes.filter(mesh => 
+        mesh.name.includes('BMC_') || 
+        mesh.name.includes('KeyPartners') ||
+        mesh.name.includes('KeyActivities') ||
+        mesh.name.includes('KeyResources') ||
+        mesh.name.includes('ValuePropositions') ||
+        mesh.name.includes('CustomerRelationships') ||
+        mesh.name.includes('CustomerChannels') ||
+        mesh.name.includes('CustomerSegments') ||
+        mesh.name.includes('CostStructure') ||
+        mesh.name.includes('RevenueStreams')
+      );
+      
+      if (bmcMeshes.length > 0) {
+        this.templateManager.addMeshesToTemplate('business-model', bmcMeshes);
+        debugLog.info('unified', `Registered ${bmcMeshes.length} BMC meshes`);
+      }
+    }, 1000); // Wait for BMC system to create meshes
 
     debugLog.info('unified', '✅ Business Model content loaded');
   }
