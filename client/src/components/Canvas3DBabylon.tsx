@@ -232,6 +232,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
+  const assetManagerRef = useRef<AssetManager | null>(null);
   const [showBulletText, setShowBulletText] = useState(false);
 
   // Camera preset state - initialize with FRONT for Financials, TOP for others
@@ -623,8 +624,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     sceneRef.current = scene;
 
     // Initialize AssetManager for tracking assets
-    const assetManagerRef = useRef<AssetManager | null>(null);
-    if (scene) {
+    if (scene && !assetManagerRef.current) {
       assetManagerRef.current = new AssetManager(scene);
       console.log('📦 Asset Manager initialized');
     }
