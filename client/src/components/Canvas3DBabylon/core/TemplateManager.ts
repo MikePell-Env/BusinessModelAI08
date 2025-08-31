@@ -1,182 +1,157 @@
 /**
- * Template Manager
+ * Template Manager - Dynamic mesh filtering without timing dependencies
  * 
- * Manages template visibility and interaction isolation.
- * Ensures only one template is active at a time and handles proper show/hide logic.
+ * Instead of pre-registering meshes, this manager dynamically filters
+ * meshes based on naming patterns when showing/hiding templates.
  */
 
 import { Scene, Mesh, AbstractMesh, ActionManager, AbstractActionManager } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
-export interface ManagedTemplate {
+export interface TemplatePattern {
   name: string;
-  meshes: Set<AbstractMesh>;
-  actionManagers: Map<AbstractMesh, AbstractActionManager | null>;
-  isLoaded: boolean;
-  isVisible: boolean;
+  patterns: string[]; // Mesh name patterns for this template
 }
 
 export class TemplateManager {
-  private templates: Map<string, ManagedTemplate> = new Map();
-  private currentTemplate: string | null = null;
   private scene: Scene;
+  private currentTemplate: string | null = null;
+  private templatePatterns: Map<string, string[]> = new Map();
+  
+  // Cache for action managers when hiding meshes
+  private actionManagerCache: Map<AbstractMesh, AbstractActionManager | null> = new Map();
 
   constructor(scene: Scene) {
     this.scene = scene;
+    this.initializeTemplatePatterns();
   }
 
   /**
-   * Register a template and its meshes
+   * Initialize patterns for identifying meshes belonging to each template
+   * NO TIMING DEPENDENCIES - just pattern definitions
    */
-  public registerTemplate(name: string): void {
-    if (!this.templates.has(name)) {
-      this.templates.set(name, {
-        name,
-        meshes: new Set(),
-        actionManagers: new Map(),
-        isLoaded: false,
-        isVisible: false
-      });
-      debugLog.info('template', `Registered template: ${name}`);
-    }
+  private initializeTemplatePatterns(): void {
+    // Business Model template patterns
+    this.templatePatterns.set('business-model', [
+      'BMC_',
+      'KeyPartners',
+      'KeyActivities', 
+      'KeyResources',
+      'ValuePropositions',
+      'CustomerRelationships',
+      'CustomerChannels',
+      'CustomerSegments',
+      'CostStructure',
+      'RevenueStreams',
+      'Section_'
+    ]);
+
+    // Financials template patterns
+    this.templatePatterns.set('financials', [
+      'Revenue',
+      'Expenses',
+      'Profit',
+      'Loss',
+      'Financial_',
+      '_fallback'
+    ]);
+
+    // SWOT template patterns (future)
+    this.templatePatterns.set('swot', [
+      'Strengths',
+      'Weaknesses',
+      'Opportunities',
+      'Threats',
+      'SWOT_'
+    ]);
+
+    // What-If template patterns (future)
+    this.templatePatterns.set('what-if', [
+      'Scenario',
+      'WhatIf_',
+      'Simulation_'
+    ]);
   }
 
   /**
-   * Add meshes to a template
+   * Check if a mesh belongs to a template based on naming patterns
    */
-  public addMeshesToTemplate(templateName: string, meshes: AbstractMesh[]): void {
-    const template = this.templates.get(templateName);
-    if (!template) {
-      debugLog.warn('template', `Template ${templateName} not registered`);
-      return;
-    }
+  private meshBelongsToTemplate(mesh: AbstractMesh, templateName: string): boolean {
+    const patterns = this.templatePatterns.get(templateName);
+    if (!patterns) return false;
 
-    meshes.forEach(mesh => {
-      template.meshes.add(mesh);
-      // Store original action manager for restoration
-      if (mesh.actionManager) {
-        template.actionManagers.set(mesh, mesh.actionManager);
+    // Check if mesh name matches any pattern for this template
+    return patterns.some(pattern => mesh.name.includes(pattern));
+  }
+
+  /**
+   * Get all meshes for a template - DYNAMIC, no pre-registration needed
+   */
+  private getTemplateMeshes(templateName: string): AbstractMesh[] {
+    return this.scene.meshes.filter(mesh => {
+      // Skip infrastructure meshes
+      if (mesh.name === '__root__' || 
+          mesh.name.includes('ground') || 
+          mesh.name.includes('rail') ||
+          mesh.name.includes('label') ||
+          mesh.name === 'masterTransform') {
+        return false;
       }
+      
+      return this.meshBelongsToTemplate(mesh, templateName);
     });
-
-    template.isLoaded = true;
-    debugLog.info('template', `Added ${meshes.length} meshes to template ${templateName}`);
   }
 
   /**
-   * Show a template and hide all others
-   * This handles visibility AND interaction isolation
+   * Show a template and hide all others - NO TIMING DEPENDENCIES
+   * Works with whatever meshes exist at the time of call
    */
   public showTemplate(templateName: string): void {
-    const targetTemplate = this.templates.get(templateName);
-    if (!targetTemplate) {
-      debugLog.warn('template', `Template ${templateName} not found`);
-      return;
-    }
-
-    // Hide all other templates
-    this.templates.forEach((template, name) => {
-      if (name !== templateName) {
-        this.hideTemplateInternal(template);
-      }
-    });
-
-    // Show the target template
-    this.showTemplateInternal(targetTemplate);
-    this.currentTemplate = templateName;
+    debugLog.info('template', `Showing template: ${templateName}`);
     
-    debugLog.info('template', `Switched to template: ${templateName}`);
-  }
-
-  /**
-   * Internal method to show a template
-   */
-  private showTemplateInternal(template: ManagedTemplate): void {
-    template.meshes.forEach(mesh => {
+    // Hide all template meshes first
+    this.hideAllTemplates();
+    
+    // Show meshes for the requested template
+    const templateMeshes = this.getTemplateMeshes(templateName);
+    
+    templateMeshes.forEach(mesh => {
       // Make visible
       mesh.isVisible = true;
-      
-      // Enable picking (for interaction)
       mesh.isPickable = true;
       
-      // Restore action manager for interactions
-      const storedActionManager = template.actionManagers.get(mesh);
-      if (storedActionManager) {
-        mesh.actionManager = storedActionManager as ActionManager;
+      // Restore action manager from cache if exists
+      const cachedActionManager = this.actionManagerCache.get(mesh);
+      if (cachedActionManager) {
+        mesh.actionManager = cachedActionManager as ActionManager;
       }
-      
-      // Enable children visibility
-      mesh.getChildMeshes().forEach(child => {
-        child.isVisible = true;
-        child.isPickable = true;
-      });
     });
-
-    template.isVisible = true;
+    
+    this.currentTemplate = templateName;
+    debugLog.info('template', `Showed ${templateMeshes.length} meshes for ${templateName}`);
   }
 
   /**
-   * Internal method to hide a template
-   * CRITICAL: This disables ALL interactions for hidden templates
+   * Hide all template meshes - keeps infrastructure visible
    */
-  private hideTemplateInternal(template: ManagedTemplate): void {
-    template.meshes.forEach(mesh => {
-      // Hide mesh
-      mesh.isVisible = false;
+  private hideAllTemplates(): void {
+    // Get all template names
+    const allTemplates = Array.from(this.templatePatterns.keys());
+    
+    allTemplates.forEach(templateName => {
+      const meshes = this.getTemplateMeshes(templateName);
       
-      // CRITICAL: Disable picking to prevent hover/click on hidden meshes
-      mesh.isPickable = false;
-      
-      // CRITICAL: Remove action manager to prevent any interactions
-      if (mesh.actionManager) {
-        template.actionManagers.set(mesh, mesh.actionManager); // Store for later
-        mesh.actionManager = null; // Disable all actions
-      }
-      
-      // Hide and disable children
-      mesh.getChildMeshes().forEach(child => {
-        child.isVisible = false;
-        child.isPickable = false;
+      meshes.forEach(mesh => {
+        // Cache action manager before clearing
+        if (mesh.actionManager && !this.actionManagerCache.has(mesh)) {
+          this.actionManagerCache.set(mesh, mesh.actionManager);
+        }
+        
+        // Hide and disable interactions
+        mesh.isVisible = false;
+        mesh.isPickable = false;
+        mesh.actionManager = null;
       });
-    });
-
-    template.isVisible = false;
-  }
-
-  /**
-   * Check if a mesh belongs to the current visible template
-   */
-  public isMeshInCurrentTemplate(mesh: AbstractMesh): boolean {
-    if (!this.currentTemplate) return false;
-    
-    const template = this.templates.get(this.currentTemplate);
-    if (!template || !template.isVisible) return false;
-    
-    return template.meshes.has(mesh);
-  }
-
-  /**
-   * Get all visible meshes (from current template only)
-   */
-  public getVisibleMeshes(): AbstractMesh[] {
-    if (!this.currentTemplate) return [];
-    
-    const template = this.templates.get(this.currentTemplate);
-    if (!template || !template.isVisible) return [];
-    
-    return Array.from(template.meshes);
-  }
-
-  /**
-   * Remove meshes from a template (for cleanup)
-   */
-  public removeMeshesFromTemplate(templateName: string, meshes: AbstractMesh[]): void {
-    const template = this.templates.get(templateName);
-    if (!template) return;
-
-    meshes.forEach(mesh => {
-      template.meshes.delete(mesh);
-      template.actionManagers.delete(mesh);
     });
   }
 
@@ -188,18 +163,20 @@ export class TemplateManager {
   }
 
   /**
-   * Check if a template is loaded
+   * Refresh visibility for current template
+   * Useful after new meshes are added to the scene
    */
-  public isTemplateLoaded(templateName: string): boolean {
-    const template = this.templates.get(templateName);
-    return template ? template.isLoaded : false;
+  public refreshCurrentTemplate(): void {
+    if (this.currentTemplate) {
+      this.showTemplate(this.currentTemplate);
+    }
   }
 
   /**
-   * Clear all templates (for cleanup)
+   * Clear all cached data
    */
   public dispose(): void {
-    this.templates.clear();
+    this.actionManagerCache.clear();
     this.currentTemplate = null;
   }
 }
