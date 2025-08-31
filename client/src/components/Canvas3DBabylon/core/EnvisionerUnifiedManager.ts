@@ -272,19 +272,27 @@ export class EnvisionerUnifiedManager {
    */
   private updateCameraTarget(): void {
     if (!this.camera) {
-      debugLog.warn('unified', 'No camera reference available for target update');
+      console.log('❌ CAMERA UPDATE FAILED: No camera reference available');
       return;
     }
 
     const masterTransform = this.persistence.getMasterTransform();
     if (!masterTransform) {
-      debugLog.warn('unified', 'No master transform available for camera target');
+      console.log('❌ CAMERA UPDATE FAILED: No master transform available');
       return;
     }
 
+    // Get current camera target before update
+    const oldTarget = this.camera.getTarget();
+    console.log(`📹 BEFORE: Camera target at (${oldTarget.x.toFixed(3)}, ${oldTarget.y.toFixed(3)}, ${oldTarget.z.toFixed(3)})`);
+
     // Update camera target to master transform position
     this.camera.setTarget(masterTransform.position.clone());
-    debugLog.info('unified', `📹 Updated camera target to master transform position: (${masterTransform.position.x.toFixed(3)}, ${masterTransform.position.y.toFixed(3)}, ${masterTransform.position.z.toFixed(3)})`);
+    
+    // Get new camera target after update
+    const newTarget = this.camera.getTarget();
+    console.log(`📹 AFTER: Camera target at (${newTarget.x.toFixed(3)}, ${newTarget.y.toFixed(3)}, ${newTarget.z.toFixed(3)})`);
+    console.log(`📹 Master transform at (${masterTransform.position.x.toFixed(3)}, ${masterTransform.position.y.toFixed(3)}, ${masterTransform.position.z.toFixed(3)})`);
   }
 
   /**
