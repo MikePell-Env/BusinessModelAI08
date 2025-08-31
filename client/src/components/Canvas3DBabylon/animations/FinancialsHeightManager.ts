@@ -43,7 +43,7 @@ export class FinancialsHeightManager {
   
   // Face-aligned labels system
   private faceLabels: Map<string, Mesh> = new Map();
-  private labelsEnabled: boolean = true;
+  private labelsEnabled: boolean = false; // DISABLED until coordinates are verified
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -66,8 +66,25 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        // Create face-aligned label for this mesh
-        this.createFaceAlignedLabel(mesh);
+        // DISABLED: Create face-aligned label for this mesh
+        // this.createFaceAlignedLabel(mesh);
+        
+        // LOG ACTUAL MESH COORDINATES for label positioning
+        setTimeout(() => {
+          mesh.refreshBoundingInfo();
+          const bounds = mesh.getBoundingInfo();
+          const center = bounds.boundingBox.center;
+          const min = bounds.boundingBox.minimum;
+          const max = bounds.boundingBox.maximum;
+          console.log(`🎯 ACTUAL ${mesh.name} coordinates:`, {
+            position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
+            center: { x: center.x, y: center.y, z: center.z },
+            bounds: { 
+              min: { x: min.x, y: min.y, z: min.z },
+              max: { x: max.x, y: max.y, z: max.z }
+            }
+          });
+        }, 100);
         
       }
     });
