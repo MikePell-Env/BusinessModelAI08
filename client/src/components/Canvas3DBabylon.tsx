@@ -3324,6 +3324,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     };
   }, [canvas, template, saveCamera3DState]);
 
+  // Clear hover states when switching templates to prevent Business Model flattening bug
+  useEffect(() => {
+    // Clear interaction states when template changes
+    if (interactionManagerRef.current) {
+      console.log(`🧹 Clearing hover state for template switch: ${template.name}`);
+      interactionManagerRef.current.clearHover();
+    }
+    
+    // Also clear any selection states in BMC system
+    if (cleanBMCRef.current) {
+      cleanBMCRef.current.clearSelection();
+    }
+  }, [template.name]);
+
   // Camera is always perspective - no switching needed
 
   // Animations always run - no view mode switching
