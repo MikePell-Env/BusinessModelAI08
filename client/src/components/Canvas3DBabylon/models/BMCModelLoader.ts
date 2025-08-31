@@ -284,8 +284,8 @@ export class BMCModelLoader {
       }
       
       const rootMesh = result.meshes[0];
-      // SCIENTIFIC FIX: Revenue Streams needs POSITIVE X to appear RIGHT
-      rootMesh.position = new Vector3(10.1, 0.1, -10.5);
+      // POSITION WILL BE SET BY Canvas3DBabylon.tsx using MODEL_POSITIONS constants
+      rootMesh.position = new Vector3(0, 0, 0);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(8.0, 8, 8); // Match Cost Structure exact size
       
@@ -339,8 +339,8 @@ export class BMCModelLoader {
       });
       
       const rootMesh = result.meshes[0];
-      // SCIENTIFIC FIX: Cost Structure needs NEGATIVE X to appear LEFT  
-      rootMesh.position = new Vector3(-0.221, 0.1, -10.5);
+      // POSITION WILL BE SET BY Canvas3DBabylon.tsx using MODEL_POSITIONS constants
+      rootMesh.position = new Vector3(0, 0, 0);
       rootMesh.rotation = Vector3.Zero();
       rootMesh.scaling = new Vector3(8.0, 8, 8);
       
