@@ -6,37 +6,25 @@ export interface EnvisionerSection {
   displayName?: string; // For UI display if different from name
 }
 
-/**
- * Legacy Envisioner Template interface
- * Maintained for backward compatibility with existing Canvas3DBabylon component
- */
 export interface EnvisionerTemplate {
   name: string;
-  displayName?: string;
-  description?: string;
   sections: EnvisionerSection[];
+  // Legacy interface - maintained for backward compatibility
+  // New templates should use the 4DVL Template system
   
   // Configuration for specific sections that need special handling
-  revenueStreamsEnabled?: boolean;
-  costStructureEnabled?: boolean;
+  revenueStreamsEnabled: boolean;
+  costStructureEnabled: boolean;
   
   // Ground plane and border settings
-  showGroundPlane?: boolean;
-  showBorderGeometry?: boolean;
-  
-  // Camera presets
-  cameraPresets?: {
-    default: 'TOP' | 'FRONT' | 'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT';
-    available: Array<'TOP' | 'FRONT' | 'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT'>;
-  };
+  showGroundPlane: boolean;
+  showBorderGeometry: boolean;
 }
 
 export const createEnvisionerTemplate = (
   name: string,
   sections: EnvisionerSection[],
   options: {
-    displayName?: string;
-    description?: string;
     revenueStreamsEnabled?: boolean;
     costStructureEnabled?: boolean;
     showGroundPlane?: boolean;
@@ -45,8 +33,6 @@ export const createEnvisionerTemplate = (
 ): EnvisionerTemplate => {
   return {
     name,
-    displayName: options.displayName || name,
-    description: options.description || `${name} template`,
     sections,
     revenueStreamsEnabled: options.revenueStreamsEnabled ?? false,
     costStructureEnabled: options.costStructureEnabled ?? false,

@@ -39,14 +39,12 @@ import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
-import { MaterialPool } from './Canvas3DBabylon/materials/MaterialPool';
-import { MemoryManager } from './Canvas3DBabylon/utils/MemoryManager';
 import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
-import { EnvisionerTemplate } from '@/lib/templates/EnvisionerTemplate';
-import { BusinessModelTemplate } from '@/lib/templates/BusinessModelTemplate';
+import { EnvisionerTemplate } from '../lib/templates/EnvisionerTemplate';
+import { BusinessModelTemplate } from '../lib/templates/BusinessModelTemplate';
 
 import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 import { MODEL_POSITIONS, CAMERA_SETTINGS, MATERIAL_COLORS, TRANSFORM_SETTINGS, SCENE_DIMENSIONS, CAMERA_PRESETS } from './Canvas3DBabylon/constants/BMCConstants';
@@ -54,10 +52,10 @@ import { mapSectionNameToBMCComponent, mapBMCComponentToSectionName, enhanceLabe
 
 // UNIFIED SYSTEM: Replace competing managers with unified architecture
 import { SceneSetupAdapter } from './Canvas3DBabylon/adapters/SceneSetupAdapter';
-import { EnvisionerUnifiedManager } from './Canvas3DBabylon/core/EnvisionerUnifiedManager';
+import { EnvisionerPersistence } from './Canvas3DBabylon/core/EnvisionerPersistence';
+import { EnvisionerFoundation } from './Canvas3DBabylon/core/EnvisionerFoundation';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
-import { AssetManager } from './Canvas3DBabylon/managers/AssetManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -223,7 +221,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   const sceneRef = useRef<Scene | null>(null);
   const engineRef = useRef<Engine | null>(null);
   const cameraRef = useRef<ArcRotateCamera | null>(null);
-
+  
   // Store master transform reference for camera targeting
   const masterTransformRef = useRef<TransformNode | null>(null);
   // Removed orthographic camera - only perspective camera needed
@@ -232,7 +230,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
-  const assetManagerRef = useRef<AssetManager | null>(null);
   const [showBulletText, setShowBulletText] = useState(false);
 
   // Camera preset state - initialize with FRONT for Financials, TOP for others
@@ -243,43 +240,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   // Track if camera is actually in a preset position (for button highlighting)
   const [isInPresetPosition, setIsInPresetPosition] = useState(true);
 
-  // Track scene initialization separately from template state
-  const [isSceneInitialized, setIsSceneInitialized] = useState(false);
-  const [currentTemplate, setCurrentTemplate] = useState<string | null>(null);
+  // Camera preset switching only for initial template load (not during transitions)
+  // Preserve camera state during template transitions for steady ground plane
+  const [hasInitializedTemplate, setHasInitializedTemplate] = useState<string | null>(null);
 
   // Track if this specific template should auto-animate (first time only)
   const shouldAutoAnimateRef = useRef(false);
 
-  // Template switching with proper timing
-  useEffect(() => {
-    if (unifiedManagerRef.current && currentTemplate && currentTemplate !== template.name) {
-      console.log(`🔄 Unified template switch: ${currentTemplate} -> ${template.name}`);
-
-      // Add delay to ensure all meshes are loaded
-      setTimeout(() => {
-        if (unifiedManagerRef.current) {
-          unifiedManagerRef.current.switchTemplate(template.name).then(() => {
-            console.log(`✅ Unified template switch completed to ${template.name}`);
-            setCurrentTemplate(template.name);
-            
-            // Force another refresh after state update
-            setTimeout(() => {
-              if (unifiedManagerRef.current) {
-                unifiedManagerRef.current.refreshTemplateVisibility();
-              }
-            }, 200);
-          }).catch((error) => {
-            console.error(`❌ Unified template switch failed:`, error);
-          });
-        }
-      }, 500);
-    }
-  }, [template.name, currentTemplate]);
-
   useEffect(() => {
     // Only set initial preset for first-time template loading, not during transitions
     // Preserve camera position when switching between templates that have been initialized
-    if (currentTemplate !== template.name) {
+    if (hasInitializedTemplate !== template.name) {
       // Save current camera position before switching (if camera exists)
       if (cameraRef.current) {
         saveCamera3DState(
@@ -291,7 +262,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
 
       // Check if this template has been initialized before
-      const isFirstTimeForThisTemplate = !currentTemplate || currentTemplate !== template.name;
+      const isFirstTimeForThisTemplate = !hasInitializedTemplate;
       const currentState = getCamera3DState();
 
       if (!isFirstTimeForThisTemplate && currentState && (currentState.alpha !== 0 || currentState.beta !== 0 || currentState.radius !== 0)) {
@@ -322,11 +293,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         shouldAutoAnimateRef.current = true; // Enable auto-animation for first instantiation
         console.log(`🎬 First instantiation: Setting default preset ${newPreset} for ${template.name}`);
       }
-      if (!currentTemplate) {
-        setCurrentTemplate(template.name);
-      }
+      setHasInitializedTemplate(template.name);
     }
-  }, [template.name, currentTemplate]);
+  }, [template.name, hasInitializedTemplate]);
 
 
   // Camera transition state
@@ -339,11 +308,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     setCurrentCameraPreset(preset);
     setIsInPresetPosition(true); // Camera will be in preset position after animation
     setIsTransitioningCamera(true);
-
-    // Update unified manager with new camera preset
-    if (unifiedManagerRef.current) {
-      unifiedManagerRef.current.updateCameraPreset(preset);
-    }
 
     if (!cameraRef.current || !sceneRef.current) {
       setIsTransitioningCamera(false);
@@ -428,7 +392,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
 
   const unifiedSceneRef = useRef<SceneSetupAdapter | null>(null);
-  const unifiedManagerRef = useRef<EnvisionerUnifiedManager | null>(null);
   const {
     saveCamera3DState,
     getCamera3DState,
@@ -511,6 +474,298 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   // REMOVED: Old restoration logic - now handled by applyBMCVisualState
 
+  // Helper function to improve label texture quality - moved to utilities file
+
+  // Helper function to get section content from canvas data
+  const getSectionContent = (sectionName: string): string => {
+    const sectionMap: { [key: string]: string } = {
+      "Value Propositions": "valuePropositions",
+      "Key Partners": "keyPartners",
+      "Key Activities": "keyActivities",
+      "Key Resources": "keyResources",
+      "Customer Relationships": "customerRelationships",
+      "CustomerChannels": "channels",
+      "Customer Segments": "customerSegments",
+      "Cost Structure": "costStructure",
+      "Revenue Streams": "revenueStreams"
+    };
+
+    const sectionKey = sectionMap[sectionName];
+    if (!sectionKey || !canvas[sectionKey as keyof typeof canvas]) {
+      return `No content available for ${sectionName}`;
+    }
+
+    const section = canvas[sectionKey as keyof typeof canvas] as CanvasElement;
+    if (!section.content || section.content.length === 0) {
+      return `No bullet points available for ${sectionName}`;
+    }
+
+    // Format content as bullet points with smaller text
+    return section.content.map(item => `• ${item}`).join('\n');
+  };
+
+  // Create content label plane showing bullet point content on top of BMC objects
+  const createContentLabel = (sectionName: string, mesh: AbstractMesh, scene: Scene): Mesh | null => {
+    // Creating content label
+
+    if (!canvas) {
+      // No canvas data available
+      return null;
+    }
+
+    // Get content for the section
+    const contentText = getSectionContent(sectionName);
+    if (!contentText || contentText.includes('No content available') || contentText.includes('No bullet points')) {
+      // No content available
+      return null;
+    }
+
+    debugLog.verbose('content', `Content for ${sectionName}: ${contentText.substring(0, 50)}...`);
+
+    // Get mesh bounds for positioning
+    const boundingInfo = mesh.getBoundingInfo();
+    const center = boundingInfo.boundingBox.center;
+    const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+
+    // Create dynamic texture for content text
+    const textureSize = 1024; // Higher resolution for small text
+    const dynamicTexture = new DynamicTexture(`contentLabel_${sectionName}`, textureSize, scene, false);
+    const context = dynamicTexture.getContext();
+
+    // Clear background - keep transparent
+    context.clearRect(0, 0, textureSize, textureSize);
+
+    // Set text properties - white text for visibility
+    context.fillStyle = '#ffffff'; // White text
+    context.font = 'bold 28px Arial'; // Small but readable font
+    (context as any).textAlign = 'left';
+    (context as any).textBaseline = 'top';
+
+    // Draw text with word wrapping
+    const padding = 20;
+    const maxWidth = textureSize - (padding * 2);
+    const lineHeight = 32; // Line spacing
+    const lines = contentText.split('\n');
+    let y = padding;
+
+    lines.forEach(line => {
+      if (line.trim() === '') {
+        y += lineHeight / 2; // Add space for empty lines
+        return;
+      }
+
+      // Simple word wrapping for each bullet point
+      const words = line.split(' ');
+      let currentLine = '';
+
+      words.forEach(word => {
+        const testLine = currentLine + word + ' ';
+        const metrics = context.measureText(testLine);
+
+        if (metrics.width > maxWidth && currentLine !== '') {
+          context.fillText(currentLine.trim(), padding, y);
+          y += lineHeight;
+          currentLine = word + ' ';
+        } else {
+          currentLine = testLine;
+        }
+      });
+
+      if (currentLine.trim() !== '') {
+        context.fillText(currentLine.trim(), padding, y);
+        y += lineHeight;
+      }
+    });
+
+    dynamicTexture.update();
+
+    // Create label plane - smaller than title labels
+    const labelWidth = size.x * 0.8; // Smaller than the mesh
+    const labelHeight = size.z * 0.6; // Smaller height
+
+    const labelPlane = MeshBuilder.CreatePlane(`contentLabel_${sectionName}`, {
+      width: labelWidth,
+      height: labelHeight
+    }, scene);
+
+    // Position on top of mesh, offset from title label
+    labelPlane.position.x = center.x;
+    labelPlane.position.y = center.y + size.y * 0.51; // Slightly above the mesh top
+    labelPlane.position.z = center.z;
+
+    // Rotate to be flat on top
+    labelPlane.rotation.x = Math.PI / 2;
+
+    // Create material with content texture - fully transparent background
+    const labelMaterial = new StandardMaterial(`contentLabelMat_${sectionName}`, scene);
+    labelMaterial.diffuseTexture = dynamicTexture;
+    labelMaterial.useAlphaFromDiffuseTexture = true;
+    labelMaterial.disableLighting = true; // Disable lighting to ensure white text shows properly
+    labelMaterial.backFaceCulling = false;
+    labelMaterial.alpha = 1.0; // Full opacity for the material itself (transparency comes from texture)
+
+    labelPlane.material = labelMaterial;
+    labelPlane.isPickable = false;
+    labelPlane.parent = mesh;
+
+    return labelPlane;
+  };
+
+  // Create bullet text plane for BMC section content
+  const createBulletTextPlane = (sectionName: string, mesh: AbstractMesh, scene: Scene) => {
+
+    if (!canvas || !showBulletText) {
+      return null;
+    }
+
+    // Get content for the section
+    let content: string[] = [];
+    switch (sectionName) {
+      case 'Value Propositions':
+        content = canvas.valuePropositions?.content || [];
+        console.log(`📋 Value Propositions content:`, content);
+        break;
+      // Add other sections later
+      default:
+        return null;
+    }
+
+    if (content.length === 0) {
+      // No content available
+      return null;
+    }
+
+    // Format content as bullet points
+    const bulletText = content.map(item => `• ${item}`).join('\n');
+    console.log(`📝 Creating bullet text for ${sectionName}:`, bulletText);
+
+    // Create dynamic texture for text
+    const textureSize = 512;
+    const dynamicTexture = new DynamicTexture(`bulletText_${sectionName}`, textureSize, scene, false);
+    const context = dynamicTexture.getContext();
+
+    // Clear with transparent background
+    context.clearRect(0, 0, textureSize, textureSize);
+
+    // Set text properties - small readable font
+    context.fillStyle = '#2d3748'; // Dark grey text
+    context.font = '20px Arial'; // Small font size
+    (context as any).textAlign = 'left';
+    (context as any).textBaseline = 'top';
+
+    // Draw text with word wrapping
+    const maxWidth = textureSize - 40; // Leave margin
+    const lineHeight = 24;
+    const lines = bulletText.split('\n');
+    let y = 20;
+
+    lines.forEach(line => {
+      // Simple word wrapping
+      const words = line.split(' ');
+      let currentLine = '';
+
+      words.forEach(word => {
+        const testLine = currentLine + word + ' ';
+        const metrics = context.measureText(testLine);
+
+        if (metrics.width > maxWidth && currentLine !== '') {
+          context.fillText(currentLine.trim(), 20, y);
+          y += lineHeight;
+          currentLine = word + ' ';
+        } else {
+          currentLine = testLine;
+        }
+      });
+
+      if (currentLine.trim() !== '') {
+        context.fillText(currentLine.trim(), 20, y);
+        y += lineHeight;
+      }
+    });
+
+    dynamicTexture.update();
+
+    // Create text plane
+    const textPlane = MeshBuilder.CreatePlane(`bulletTextPlane_${sectionName}`, {
+      size: 2.0,
+      sideOrientation: 2
+    }, scene);
+
+    // Position text plane on top of the mesh, slightly elevated
+    textPlane.position = mesh.position.clone();
+    textPlane.position.y = mesh.position.y + (mesh.scaling.y / 2) + 0.1; // Higher elevation
+    textPlane.rotation.x = Math.PI / 2; // Lay flat on top
+    console.log(`📍 Text plane positioned at:`, textPlane.position);
+    console.log(`📍 Mesh position:`, mesh.position);
+    console.log(`📍 Mesh scaling:`, mesh.scaling);
+
+    // Create material - make it very visible
+    const textMaterial = new StandardMaterial(`bulletTextMat_${sectionName}`, scene);
+    textMaterial.diffuseTexture = dynamicTexture;
+    textMaterial.emissiveTexture = dynamicTexture;
+    textMaterial.emissiveColor = MATERIAL_COLORS.BRIGHT_WHITE; // Bright white for visibility
+    textMaterial.useAlphaFromDiffuseTexture = true;
+    textMaterial.disableLighting = true;
+    textMaterial.backFaceCulling = false;
+    textMaterial.alpha = 1.0; // Ensure full opacity
+
+    textPlane.material = textMaterial;
+    textPlane.isPickable = false;
+    textPlane.parent = mesh;
+    textPlane.setEnabled(true); // Ensure it's enabled
+    textPlane.isVisible = true; // Ensure it's visible
+
+    console.log(`📊 Text plane details:`, {
+      name: textPlane.name,
+      position: textPlane.position,
+      isVisible: textPlane.isVisible,
+      isEnabled: textPlane.isEnabled(),
+      parent: textPlane.parent?.name,
+      materialAlpha: textMaterial.alpha
+    });
+    return textPlane;
+  };
+
+  // Toggle bullet text display
+  const toggleBulletText = () => {
+    const newState = !showBulletText;
+    setShowBulletText(newState);
+
+    if (newState) {
+      // Create bullet text for existing meshes
+      const scene = sceneRef.current;
+      if (scene) {
+        // Find Value Propositions mesh directly from scene
+        const valuePropMesh = scene.meshes.find(m => (m as any).bmcSectionName === 'Value Propositions');
+        // Looking for Value Propositions mesh
+        if (!valuePropMesh) {
+        }
+        if (valuePropMesh) {
+          const textPlane = createBulletTextPlane('Value Propositions', valuePropMesh, scene);
+          if (textPlane) {
+            bulletTextPlanesRef.current.set('Value Propositions', textPlane);
+          }
+        }
+      }
+    } else {
+      // Remove all bullet text planes
+      bulletTextPlanesRef.current.forEach((plane, name) => {
+        plane.dispose();
+      });
+      bulletTextPlanesRef.current.clear();
+    }
+  };
+
+  // Expose toggle function for manual testing
+  useEffect(() => {
+    (window as any).toggleBulletText = toggleBulletText;
+    return () => {
+      delete (window as any).toggleBulletText;
+    };
+  }, [showBulletText]);
+
+  // REMOVED: Old restoration function - CleanBMCSystem handles this automatically
+
   // REMOVED: Old restoration useEffect - CleanBMCSystem handles state automatically
 
   // GUI state removed since labels are no longer used
@@ -519,32 +774,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
-
-    // CRITICAL: Scene created ONCE per session
-    if (sceneRef.current && engineRef.current && isSceneInitialized) {
-      // Scene already exists - template switching handled by unified manager
-      return;
-    }
-
-    // DISABLED LEGACY TEMPLATE SWITCHING: Let unified manager handle all template switches
-    // Keeping this commented for easy revert if needed
-    /*
-
+    
+    // CRITICAL: Prevent scene recreation if scene already exists (template switching)
+    if (sceneRef.current && engineRef.current && hasInitializedTemplate) {
+      console.log(`🔄 Template switch to ${template.name} - preserving existing scene`);
+      
       // Clear existing template content but keep scene infrastructure
       const scene = sceneRef.current;
-      const existingMeshes = scene.meshes.filter(mesh =>
-        mesh.name !== "__root__" &&
+      const existingMeshes = scene.meshes.filter(mesh => 
+        mesh.name !== "__root__" && 
         !mesh.name.includes("ground") &&
         !mesh.name.includes("rail") &&
         !mesh.name.includes("label") &&
         mesh !== masterTransformRef.current
       );
-
+      
       existingMeshes.forEach(mesh => {
         console.log(`🗑️ Removing existing template mesh: ${mesh.name}`);
         mesh.dispose();
       });
-
+      
       // Reload template content only
       const modelLoader = new BMCModelLoader(scene);
       modelLoader.loadTemplateModel(template.name).then(async (model) => {
@@ -552,24 +801,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           const rootMesh = model.rootMesh;
           rootMeshRef.current = rootMesh;
           rootMesh.parent = masterTransformRef.current;
-
+          
           // Initialize Financials systems if needed
           if (template.name.toLowerCase() === 'financials') {
             const financialsHeightManager = new FinancialsHeightManager(scene);
             const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
-
+            
             (scene as any).financialsHeightManager = financialsHeightManager;
             (scene as any).financialsDataAdapter = financialsDataAdapter;
-
+            
             financialsHeightManager.registerFinancialMeshes(model.meshes);
-
+            
             const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
             const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
-
+            
             (window as any).financialsHeightManager = financialsHeightManager;
             (window as any).financialsDataAdapter = financialsDataAdapter;
             (window as any).financialsDemo = financialsDemo;
-
+            
             const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
             setTimeout(async () => {
               if (financialsDataAdapter) {
@@ -578,14 +827,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               }
             }, 100);
           }
-
+          
           console.log(`✅ Template ${template.name} content reloaded (scene preserved)`);
         }
       });
-
+      
       return; // Exit early - don't recreate scene
     }
-    */
 
     // Check if Babylon.js is properly loaded
 
@@ -613,7 +861,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // DIAGNOSTIC: Detect WebGL context loss (canvas disappearing)
     canvasElement.addEventListener('webglcontextlost', (e) => {
-      console.error('🚨🚨🚨 WEBGL CONTEXT LOST! Canvas disappeared!');
+      console.error('🚨🚨🚨 WebGL CONTEXT LOST! Canvas disappeared!');
       console.error('This happens after too many material operations');
       e.preventDefault();
     });
@@ -646,15 +894,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     engineRef.current = engine;
     sceneRef.current = scene;
 
-    // Initialize AssetManager for tracking assets
-    if (scene && !assetManagerRef.current) {
-      assetManagerRef.current = new AssetManager(scene);
-      console.log('📦 Asset Manager initialized');
-    }
-
     // Preserve camera state when switching between templates for seamless transitions
     // Only clear state on very first app initialization, not during template switches
-    if (!isSceneInitialized) {
+    if (!hasInitializedTemplate) {
       // First time ever - clear any stale state
       const currentState = getCamera3DState();
       if (currentState) {
@@ -677,7 +919,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let cameraRadius = currentPreset.radius;
 
     // Only restore saved state if we had a previous template initialized and have valid saved state
-    const hadPreviousTemplate = currentTemplate && currentTemplate !== template.name;
+    const hadPreviousTemplate = hasInitializedTemplate && hasInitializedTemplate !== template.name;
     if (savedState && hadPreviousTemplate &&
       (savedState.alpha !== 0 || savedState.beta !== 0 || savedState.radius !== 0)) {
       cameraAlpha = savedState.alpha;
@@ -685,7 +927,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       cameraRadius = savedState.radius as 60 | 55; // Type assertion for radius
       console.log(`🔄 Restoring saved camera: α=${cameraAlpha.toFixed(2)}, β=${cameraBeta.toFixed(2)}, r=${cameraRadius.toFixed(2)}`);
     } else {
-      console.log(`🎬 Using preset camera for ${currentTemplate ? 'template switch' : 'initial'} instantiation: ${currentCameraPreset}`);
+      console.log(`🎬 Using preset camera for ${hasInitializedTemplate ? 'first' : 'initial'} instantiation: ${currentCameraPreset}`);
     }
 
     // Use scene center (0,0,0) for initial camera creation - will be updated after master transform
@@ -720,47 +962,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Lighting is now handled by SceneSetupAdapter
 
-    // UNIFIED ENVISIONER SYSTEM: Replace fragmented managers with single unified system
-    const unifiedManager = new EnvisionerUnifiedManager(scene, perspectiveCamera);
-    unifiedManagerRef.current = unifiedManager;
+    // ENVISIONER PERSISTENCE: Get or create persistent master transform that maintains spatial properties across template switches
+    const envisionerPersistence = EnvisionerPersistence.getInstance();
+    const masterTransform = envisionerPersistence.getOrCreateMasterTransform(scene, template.name, currentCameraPreset);
+    
+    // Store master transform reference for camera targeting
+    masterTransformRef.current = masterTransform;
+    
+    // CRITICAL FIX: Update camera target to master transform position after creation
+    if (cameraRef.current && masterTransform) {
+      cameraRef.current.setTarget(masterTransform.position.clone());
+    }
 
-    // Initialize unified system for current template using proper async pattern
-    unifiedManager.initialize(template.name).then(() => {
-      // Get master transform from unified manager for camera targeting
-      const masterTransform = unifiedManager.getMasterTransform();
-      masterTransformRef.current = masterTransform;
-
-      // CRITICAL FIX: Update camera target to master transform position after initialization
-      if (cameraRef.current && masterTransform) {
-        cameraRef.current.setTarget(masterTransform.position.clone());
-      }
-
-      console.log(`✅ Unified Manager initialized for ${template.name}`);
-      setIsSceneInitialized(true);
-      setCurrentTemplate(template.name);
-
-      // NO TIMING DEPENDENCIES - Template manager will find meshes dynamically
-    }).catch((error) => {
-      console.error(`❌ Failed to initialize unified manager: ${error}`);
-    });
-
-
-
-    // DYNAMIC SCALING: Handle scaling through unified manager
+    // DYNAMIC SCALING: Only update scaling if this is the first initialization
     const canvasForScaling = canvasRef.current;
-    if (canvasForScaling) {
+    const spatialState = envisionerPersistence.getSpatialState();
+    if (canvasForScaling && (!spatialState || !spatialState.isInitialized)) {
       const canvasWidth = canvasForScaling.clientWidth;
       const canvasHeight = canvasForScaling.clientHeight;
       // Scale based on smaller dimension to ensure fit, with padding
       const scaleFactor = (Math.min(canvasWidth, canvasHeight) / 600) * 1.2; // Base reference of 600px, scale up 20%
-      if (masterTransformRef.current) {
-        masterTransformRef.current.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
-      }
+      masterTransform.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+      envisionerPersistence.saveSpatialState(); // Save the scaling changes
     }
 
-    // Get foundation ground from unified manager
-    const foundation = unifiedManager.getFoundation();
-    const foundationGround = foundation?.getComponent('ground');
+
+    // ENVISIONER FOUNDATION: Create the persistent base platform (ground, rails, labels, lighting)
+    const envisionerFoundation = new EnvisionerFoundation(scene, masterTransform);
+    envisionerFoundation.initialize(); // Initialize foundation components
+    
+    // CREATE TEMPLATE-SPECIFIC LABELS: Add template-specific labels to the foundation
+    (async () => {
+      await envisionerFoundation.createTemplateLabels(template.name);
+    })();
+    
+    // Store foundation reference for potential template access
+    const foundationGround = envisionerFoundation.getComponent('ground');
 
     // Rails are now created by the EnvisionerFoundation
 
@@ -844,7 +1081,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
       console.log(`✅ Section data found for ${sectionName}, creating panel...`);
 
-      // Calculate total height based on content
+      // Calculate proper height based on content
       const bulletPoints = (sectionData as CanvasElement).content.map((item: string) => `• ${item}`).join('\n');
       const lineHeight = 18; // More realistic line height for 12px font
       const padding = 80; // Header (40px) + top/bottom padding (40px)
@@ -976,22 +1213,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     };
 
     // TEMPLATE-SPECIFIC LABELS: Apply labels directly to ground plane for each template
-    const templateFoundation = unifiedManager.getFoundation();
-    const groundPlane = templateFoundation?.getComponent('ground');
+    const groundPlane = envisionerFoundation.getComponent('ground');
     if (groundPlane && template.name === 'Business Model') {
       // Business Model Canvas: Apply Internal/External labels to ground plane
-
+      
       // Create composite ground material with Internal label
       const groundMaterial = new StandardMaterial("bmcGroundMaterial", scene);
-
+      
       // Create a composite texture with grid + Internal label
       const compositeTexture = new DynamicTexture("bmcCompositeTexture", { width: 1024, height: 1024 }, scene, false);
       const context = compositeTexture.getContext();
-
+      
       // Fill with powder blue background
       context.fillStyle = "#B8D4E3"; // Powder blue
       context.fillRect(0, 0, 1024, 1024);
-
+      
       // Draw grid lines
       context.strokeStyle = "#ffffff";
       context.lineWidth = 1;
@@ -1005,17 +1241,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         context.lineTo(1024, i);
         context.stroke();
       }
-
+      
       // Add "Internal" label (positioned closer to rail, smaller font, 50% opacity)
       context.fillStyle = "rgba(102, 102, 102, 0.5)";
       context.font = "bold 24px Arial";
       (context as any).textAlign = "center";
       (context as any).textBaseline = "middle";
       context.fillText("Internal", 256, 980); // Much closer to bottom rail
-
+      
       // Add "External" label (positioned closer to rail, smaller font, 50% opacity)
       context.fillText("External", 768, 980); // Much closer to bottom rail
-
+      
       // Add vertical divider with 80% opacity, longer and thinner
       context.strokeStyle = "rgba(102, 102, 102, 0.8)";
       context.lineWidth = 1;
@@ -1023,31 +1259,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       context.moveTo(512, 50); // Start even higher
       context.lineTo(512, 974); // End even lower (longer line)
       context.stroke();
-
+      
       compositeTexture.update();
-
+      
       groundMaterial.diffuseTexture = compositeTexture;
       groundMaterial.specularColor = new Color3(0.0, 0.0, 0.0); // No specular reflection
       groundMaterial.specularPower = 1; // Minimal specular power
       groundMaterial.alpha = 1.0;
       groundMaterial.backFaceCulling = false;
-
+      
       groundPlane.material = groundMaterial;
-
+      
     } else if (groundPlane && template.name === 'Financials') {
       // Financials: Apply Revenue/Expenses labels to ground plane
-
+      
       // Create composite ground material with Revenue/Expenses labels
       const groundMaterial = new StandardMaterial("financialsGroundMaterial", scene);
-
+      
       // Create a composite texture with grid + Revenue/Expenses labels
       const compositeTexture = new DynamicTexture("financialsCompositeTexture", { width: 1024, height: 1024 }, scene, false);
       const context = compositeTexture.getContext();
-
+      
       // Fill with powder blue background
       context.fillStyle = "#B8D4E3"; // Powder blue
       context.fillRect(0, 0, 1024, 1024);
-
+      
       // Draw grid lines
       context.strokeStyle = "#ffffff";
       context.lineWidth = 1;
@@ -1061,17 +1297,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         context.lineTo(1024, i);
         context.stroke();
       }
-
+      
       // Add "Revenue" label (positioned on left from viewer's angle, closer to rail, smaller font, 50% opacity)
       context.fillStyle = "rgba(102, 102, 102, 0.5)";
       context.font = "bold 24px Arial";
       (context as any).textAlign = "center";
       (context as any).textBaseline = "middle";
       context.fillText("Revenue", 256, 980); // Left from viewer's perspective, much closer to rail
-
-      // Add "Expenses" label (positioned on right from viewer's angle, closer to rail, smaller font, 50% opacity)
+      
+      // Add "Expenses" label (positioned on right from viewer's angle, closer to rail, smaller font, 50% opacity)  
       context.fillText("Expenses", 768, 980); // Right from viewer's perspective, much closer to rail
-
+      
       // Add vertical divider with 80% opacity, longer and thinner
       context.strokeStyle = "rgba(102, 102, 102, 0.8)";
       context.lineWidth = 1;
@@ -1079,15 +1315,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       context.moveTo(512, 50); // Start even higher
       context.lineTo(512, 974); // End even lower (longer line)
       context.stroke();
-
+      
       compositeTexture.update();
-
+      
       groundMaterial.diffuseTexture = compositeTexture;
       groundMaterial.specularColor = new Color3(0.0, 0.0, 0.0); // No specular reflection
       groundMaterial.specularPower = 1; // Minimal specular power
       groundMaterial.alpha = 1.0;
       groundMaterial.backFaceCulling = false;
-
+      
       groundPlane.material = groundMaterial;
     }
 
@@ -1278,9 +1514,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Initialize model loader (view transitions integrated into CanvasManager)
     const modelLoader = new BMCModelLoader(scene);
 
-    // Initialize Babylon.js best practice systems
-    const materialPool = MaterialPool.getInstance(scene);
-    const memoryManager = new MemoryManager();
+    // REMOVED: MaterialManager initialization - using direct property modification instead
 
     // Setup unified interaction manager with callbacks
     interactionManagerRef.current = new UnifiedInteractionManager(scene, {
@@ -1365,53 +1599,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
-    // Get foundation from unified manager for ground plane access
-    const envisionerFoundation = unifiedManager.getFoundation();
-
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then(async (model) => {
       if (model.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
-        console.log(`🔍 GLB DEBUG: Loaded ${model.meshes.length} meshes for ${template.name}:`);
-        model.meshes.forEach(mesh => {
-          console.log(`  - GLB: ${mesh.name} (visible: ${mesh.isVisible})`);
-        });
-
-        // FIXED: Force immediate template visibility after mesh loading
-        console.log(`🔍 GLB LOADED: Setting template to ${template.name}`);
-        setCurrentTemplate(template.name);
-        
-        // Force show the correct template immediately
-        if (unifiedManagerRef.current) {
-          setTimeout(() => {
-            // Direct template manager call to ensure visibility
-            const templateManager = (unifiedManagerRef.current as any).templateManager;
-            if (templateManager) {
-              console.log(`🔄 FORCE SHOW: ${template.name}`);
-              templateManager.showTemplate(template.name);
-              
-              // Double check - force visibility on all matching meshes
-              const scene = sceneRef.current;
-              if (scene && template.name.toLowerCase() === 'financials') {
-                console.log(`💰 FINANCIALS FIX: Force showing Financial meshes`);
-                scene.meshes.forEach(mesh => {
-                  if (mesh.name === 'Revenue' || mesh.name === 'Expenses' || 
-                      mesh.name === 'RevenuePL' || mesh.name === 'ExpensesPL') {
-                    mesh.isVisible = true;
-                    mesh.isPickable = true;
-                    console.log(`💰 FORCED VISIBLE: ${mesh.name}`);
-                  }
-                });
-              }
-              
-              // Debug: Log all meshes and their visibility
-              console.log('🔍 FORCED VISIBILITY DEBUG: All scene meshes:');
-              sceneRef.current?.meshes.forEach(mesh => {
-                console.log(`  - ${mesh.name} (visible: ${mesh.isVisible}, pickable: ${mesh.isPickable})`);
-              });
-            }
-          }, 100);
-        }
 
         const rootMesh = model.rootMesh;
         rootMeshRef.current = rootMesh;
@@ -1489,7 +1680,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
         // Keep model at normal rotation for all views
         rootMesh.rotation = Vector3.Zero();
-        rootMesh.parent = masterTransformRef.current; // Parent to master transform for 180° rotation
+        rootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
 
         // Position logging removed for better performance
 
@@ -1537,15 +1728,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
             // TransformNode created for coordinate control
 
-            // Use material pool to prevent memory leaks (Babylon.js best practice)
-            const materialConfig = {
-              type: 'standard' as const,
-              diffuseColor: baseColor
-            };
-            const sectionMaterial = materialPool.getMaterial(`bmcSection_${sectionName}`, materialConfig) as any;
+            // Create StandardMaterial with PBR-compatible properties for hover behavior
+            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene) as any;
 
-            // Track for proper disposal
-            memoryManager.track(sectionMaterial);
+            // Enhanced material with better polish and depth
+            sectionMaterial.diffuseColor = baseColor;
 
             // Reduce lighting for Loss and Profit shapes to prevent blown-out look
             if (template.name.toLowerCase() === 'financials' && (mesh.name === 'RevenuePL' || mesh.name === 'ExpensesPL')) {
@@ -1564,12 +1751,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Apply material to mesh - CRITICAL for Financial objects to have colors!
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
-
-            // Track assets for proper disposal
-            if (assetManagerRef.current) {
-              assetManagerRef.current.registerMesh(mesh);
-              assetManagerRef.current.registerMaterial(sectionMaterial);
-            }
 
             // Store original color and material for hover/click effects
             (mesh as any).originalColor = baseColor.clone();
@@ -2237,11 +2418,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 // Start animation only if not Financials template
                 if (template.name.toLowerCase() !== 'financials') {
                   animateTracer();
-                  // Path points calculated for Business Model template
+                  // Blue tracer animation created for Customer Segments
                 } else {
                   // Blue tracer animation disabled for Financials template
                 }
-                // Blue tracer animation created for Customer Segments
+                // Path points calculated for Business Model template
               };
 
               // Create the blue tracer after a short delay to ensure mesh is ready
@@ -2439,7 +2620,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Prevent Y-scaling (stretching) by overriding the scaling inheritance
               labelPlane.scalingDeterminant = 1.0; // Force uniform scaling
 
-              // Set initial scaling - will be updated by FinancialsHeightManager when vertices change
+              // Set initial scaling - will be updated by FinancialsHeightManager
               labelPlane.scaling.x = 1.0;
               labelPlane.scaling.y = 1.0;
               labelPlane.scaling.z = 1.0;
@@ -2543,7 +2724,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           revenueRootMesh.position = MODEL_POSITIONS.REVENUE_STREAMS.clone(); // Adjusted to align left edges
           revenueRootMesh.rotation = Vector3.Zero();
           revenueRootMesh.scaling = new Vector3(7.7, 7.7, 8); // Y-scaling matches X-scaling to match Customer Segments height
-          revenueRootMesh.parent = masterTransformRef.current; // Parent to master transform for 180° rotation
+          revenueRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
 
 
           // Apply basic material and label to Revenue Streams mesh
@@ -2560,12 +2741,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               sectionMaterial.specularPower = 64; // Tighter specular for cleaner reflections
               sectionMaterial.ambientColor = baseColor.scale(0.4); // Add subtle ambient for depth
               mesh.material = sectionMaterial;
-
-              // Track assets for proper disposal
-              if (assetManagerRef.current) {
-                assetManagerRef.current.registerMesh(mesh);
-                assetManagerRef.current.registerMaterial(sectionMaterial);
-              }
 
               // Store section name for interactions and original properties
               (mesh as any).bmcSectionName = "Revenue Streams";
@@ -2697,7 +2872,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           costRootMesh.position = MODEL_POSITIONS.COST_STRUCTURE.clone(); // Shifted farther left
           costRootMesh.rotation = Vector3.Zero();
           costRootMesh.scaling = new Vector3(8.0, 8.0, 8); // Y-scaling matches X-scaling to match Customer Segments height
-          costRootMesh.parent = masterTransformRef.current; // Parent to master transform for 180° rotation
+          costRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
 
 
           // Apply basic material and label to Cost Structure mesh
@@ -2714,12 +2889,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               sectionMaterial.specularPower = 64; // Tighter specular for cleaner reflections
               sectionMaterial.ambientColor = baseColor.scale(0.4); // Add subtle ambient for depth
               mesh.material = sectionMaterial;
-
-              // Track assets for proper disposal
-              if (assetManagerRef.current) {
-                assetManagerRef.current.registerMesh(mesh);
-                assetManagerRef.current.registerMaterial(sectionMaterial);
-              }
 
               // Store section name for interactions and original properties
               (mesh as any).bmcSectionName = "Cost Structure";
@@ -3028,19 +3197,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
     }, 1000);
 
-    // AUTO-SWITCH: Business Model only - automatically switch from TOP -> PERSPECTIVE_RIGHT
-    // Financials should NEVER auto-animate
-    const shouldAutoSwitch = template.name.toLowerCase() !== 'financials' &&
-                            currentCameraPreset === 'TOP' &&
-                            shouldAutoAnimateRef.current;
-
-    if (shouldAutoSwitch) {
-      console.log(`🎬 First-time instantiation: Will auto-animate Business Model after 2 seconds`);
-    } else if (!shouldAutoSwitch && shouldAutoAnimateRef.current) {
-      console.log(`🔄 No auto-animation for ${template.name}`);
+    // AUTO-SWITCH: After 3 seconds, automatically switch on VERY FIRST instantiation only
+    // Business Model (TOP) -> PERSPECTIVE_RIGHT, Financials (FRONT) -> FRONT
+    // This should NEVER happen when switching between templates - only on first-ever load
+    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && shouldAutoAnimateRef.current) {
+      console.log(`🎬 First-time instantiation: Will auto-animate ${template.name} after 2 seconds`);
+    } else if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && !shouldAutoAnimateRef.current) {
+      console.log(`🔄 Template switch: Skipping auto-animation for ${template.name} (preserving camera position)`);
     }
 
-    if (shouldAutoSwitch) {
+    if ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && shouldAutoAnimateRef.current) {
       // Flag to track if user has manually moved camera - EASY TO REVERT: just remove this flag and the condition below
       let userHasMovedCamera = false;
 
@@ -3079,10 +3245,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       setTimeout(() => {
         // Check if user moved camera before auto-switching
         if (!userHasMovedCamera) {
-          console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds for Business Model");
-          // Force transition to false to ensure switchCameraPreset works
-          setIsTransitioningCamera(false);
-          setTimeout(() => switchCameraPreset('PERSPECTIVE_RIGHT'), 100);
+          // Auto-switch logic: Business Model goes to PERSPECTIVE_RIGHT, Financials stays manual
+          if (template.name.toLowerCase() === 'financials') {
+            console.log("🎬 Auto-switch disabled for Financials - manual preset selection only");
+          } else {
+            console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds for Business Model");
+            // Force transition to false to ensure switchCameraPreset works
+            setIsTransitioningCamera(false);
+            setTimeout(() => switchCameraPreset('PERSPECTIVE_RIGHT'), 100);
+          }
         } else {
           console.log("🎬 Auto-switch cancelled - user moved camera manually");
         }
@@ -3144,12 +3315,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
       // Clean up unified systems and managers
       try {
-        // Safely dispose unified manager
-        if (unifiedManagerRef.current) {
-          console.log("🛡️ Safely disposing unified manager");
-          unifiedManagerRef.current.dispose();
-          unifiedManagerRef.current = null;
-        }
         // Safely dispose interaction manager
         if (interactionManagerRef.current) {
           console.log("🛡️ Safely disposing interaction manager to prevent crashes");
@@ -3162,39 +3327,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }
           animationManagerRef.current = null;
         }
-        // Safely dispose asset manager
-        if (assetManagerRef.current) {
-          console.log("🛡️ Safely disposing asset manager");
-          assetManagerRef.current.disposeAll();
-          assetManagerRef.current = null;
-        }
       } catch (e) {
         console.warn('Error cleaning up unified systems and managers:', e);
       }
 
-      // Properly dispose of Babylon.js resources using SceneSetupAdapter and memory manager
+      // Properly dispose of Babylon.js resources using SceneSetupAdapter
       try {
-        // Clean up tracked resources first
-        if (memoryManager) {
-          memoryManager.disposeAll();
-        }
-
         if (unifiedSceneRef.current) {
           unifiedSceneRef.current.dispose();
         }
-
-        // Dispose material pool
-        if (MaterialPool.getInstance && scene) {
-          MaterialPool.getInstance(scene).disposeAll();
-        }
-
         sceneRef.current = null;
         engineRef.current = null;
       } catch (e) {
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, saveCamera3DState]); // CRITICAL: Only canvas and saveCamera3DState - no template dependency
+  }, [canvas, template, saveCamera3DState]);
 
   // Camera is always perspective - no switching needed
 
@@ -3312,13 +3460,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 expenses: 800   // $8M default (80% on slider)
               };
             }
-
+            
             // Initialize default values when component mounts for Financials template
             if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
               setTimeout(() => {
                 (window as any).financialsDataAdapter.updateFromBusinessData({
                   totalRevenue: 1000,  // $10M default (99% Revenue, 1% RevenuePL)
-                  totalExpenses: 800,  // $8M default
+                  totalExpenses: 800,  // $8M default  
                   netProfit: 200,      // $2M profit (20% ExpensesPL)
                   netLoss: 0           // No loss (0% RevenuePL)
                 });
@@ -3348,26 +3496,26 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   // ISOLATED REVENUE UPDATE: Percentage-based height distribution
                   if ((window as any).financialsHeightManager) {
                     const heightManager = (window as any).financialsHeightManager;
-
+                    
                     // PERCENTAGE SYSTEM: Revenue Group has fixed total height, split by percentage
                     const HEIGHT_SCALE = 500.0;
                     const FIXED_TOTAL_HEIGHT = 1000 / HEIGHT_SCALE; // Always 2.0 units total
-
+                    
                     // Calculate percentages: Revenue slider value determines the split
                     const revenuePercentage = revenue / 1000; // 0.0 to 1.0
                     const lossPercentage = 1.0 - revenuePercentage; // Remaining percentage
-
+                    
                     // Apply percentage distribution
                     const revenueHeight = FIXED_TOTAL_HEIGHT * revenuePercentage;
                     const revenuePLHeight = FIXED_TOTAL_HEIGHT * lossPercentage;
-
+                    
                     console.log('💚 Revenue Group Update:', {
                       revenuePercent: (revenuePercentage * 100).toFixed(1) + '%',
                       lossPercent: (lossPercentage * 100).toFixed(1) + '%',
                       revenueHeight: revenueHeight.toFixed(3),
                       revenuePLHeight: revenuePLHeight.toFixed(3)
                     });
-
+                    
                     heightManager.setObjectHeight('Revenue', revenueHeight, 'bottom');
                     heightManager.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
                   }
@@ -3402,25 +3550,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   // ISOLATED EXPENSES UPDATE: Only update Expenses objects, no cross-contamination
                   if ((window as any).financialsHeightManager) {
                     const heightManager = (window as any).financialsHeightManager;
-
+                    
                     // Get current revenue value for profit calculation
                     const currentRevenue = (window as any).financialSliderState.revenue;
-
+                    
                     // Calculate profit for ExpensesPL object
                     const profit = Math.max(0, currentRevenue - expenses);
-
+                    
                     // Direct height updates
                     const HEIGHT_SCALE = 500.0;
                     const expensesHeight = expenses / HEIGHT_SCALE;
                     const expensesPLHeight = profit / HEIGHT_SCALE;
-
+                    
                     console.log('🔴 Expenses Group Update:', {
                       expenses: expenses,
                       profit: profit,
                       expensesHeight: expensesHeight.toFixed(3),
                       expensesPLHeight: expensesPLHeight.toFixed(3)
                     });
-
+                    
                     heightManager.setObjectHeight('Expenses', expensesHeight, 'bottom');
                     heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
                   }

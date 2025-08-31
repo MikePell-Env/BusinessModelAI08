@@ -118,20 +118,13 @@ export class Envisioner {
     // Create the master transform node with spatial properties from EnvisionerObject
     this.masterTransform = new TransformNode("envisionerMasterTransform", this.scene);
     
-    // CRITICAL: ALWAYS force lock position during creation to prevent any initialization drift
-    this.masterTransform.position.x = 0; // Always centered horizontally 
-    this.masterTransform.position.y = 2; // Consistent vertical position (elevated from ground)
-    this.masterTransform.position.z = 0; // Always centered in depth
-    
-    // Apply other spatial properties
+    // Apply persistent spatial properties
     const spatial = this.envisionerObject.spatial;
+    this.masterTransform.position = spatial.position.clone();
     this.masterTransform.rotationQuaternion = spatial.rotation.clone();
     this.masterTransform.scaling = spatial.scale.clone();
     
-    // Update spatial data to match locked position
-    this.envisionerObject.spatial.position = new Vector3(0, 2, 0);
-    
-    console.log(`🏗️ Envisioner master transform created at LOCKED position: (0, 2, 0)`);
+    console.log(`🏗️ Envisioner master transform created at position: (${spatial.position.x}, ${spatial.position.y}, ${spatial.position.z})`);
   }
 
   /**
@@ -151,12 +144,10 @@ export class Envisioner {
   public updateSpatialProperties(position?: Vector3, rotation?: any, scale?: Vector3): void {
     if (!this.masterTransform) return;
 
-    // CRITICAL: NEVER allow position updates - always lock to center
-    // This prevents any drift from external position modifications during template switches
-    this.masterTransform.position.x = 0; // Always centered horizontally 
-    this.masterTransform.position.y = 2; // Consistent vertical position
-    this.masterTransform.position.z = 0; // Always centered in depth
-    this.envisionerObject.spatial.position = new Vector3(0, 2, 0); // Keep spatial data consistent
+    if (position) {
+      this.envisionerObject.spatial.position = position.clone();
+      this.masterTransform.position = position.clone();
+    }
     
     if (rotation) {
       this.envisionerObject.spatial.rotation = rotation.clone();
