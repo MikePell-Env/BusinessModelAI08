@@ -87,6 +87,22 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
     }
   }, [loadCanvas, setError, pendingPowerPointFile, setPendingPowerPointFile, canvas]);
 
+  // One-time test to capture camera target data
+  useEffect(() => {
+    if (!is3D) return;
+    const testOnce = () => {
+      setTimeout(() => {
+        console.log('🔥 TESTING: Switch to Financials...');
+        switchToFinancials();
+        setTimeout(() => {
+          console.log('🔥 TESTING: Switch back to Business Model...');
+          switchToBusinessModel();
+        }, 2000);
+      }, 4000);
+    };
+    testOnce();
+  }, [is3D]); // Only depend on is3D, will only run once
+
 
 
 
