@@ -45,8 +45,8 @@ import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { BMCModelLoader } from './Canvas3DBabylon/models/BMCModelLoader';
-import { EnvisionerTemplate } from '../lib/templates/EnvisionerTemplate';
-import { BusinessModelTemplate } from '../lib/templates/BusinessModelTemplate';
+import { EnvisionerTemplate } from '@/lib/templates/EnvisionerTemplate';
+import { BusinessModelTemplate } from '@/lib/templates/BusinessModelTemplate';
 
 import { UnifiedInteractionManager } from '@/lib/core/UnifiedInteractionManager';
 import { MODEL_POSITIONS, CAMERA_SETTINGS, MATERIAL_COLORS, TRANSFORM_SETTINGS, SCENE_DIMENSIONS, CAMERA_PRESETS } from './Canvas3DBabylon/constants/BMCConstants';
@@ -1337,6 +1337,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     let financialsHeightManager: FinancialsHeightManager | null = null;
     let financialsDataAdapter: FinancialsDataAdapter | null = null;
 
+    // Get foundation from unified manager for ground plane access
+    const envisionerFoundation = unifiedManager.getFoundation();
+
     // Load template-specific model (Business Model = 9 sections, Financials = single cylinder)
     modelLoader.loadTemplateModel(template.name).then(async (model) => {
       if (model.meshes.length > 0) {
@@ -1418,7 +1421,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
         // Keep model at normal rotation for all views
         rootMesh.rotation = Vector3.Zero();
-        rootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
+        rootMesh.parent = masterTransformRef.current; // Parent to master transform for 180° rotation
 
         // Position logging removed for better performance
 
@@ -2468,7 +2471,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           revenueRootMesh.position = MODEL_POSITIONS.REVENUE_STREAMS.clone(); // Adjusted to align left edges
           revenueRootMesh.rotation = Vector3.Zero();
           revenueRootMesh.scaling = new Vector3(7.7, 7.7, 8); // Y-scaling matches X-scaling to match Customer Segments height
-          revenueRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
+          revenueRootMesh.parent = masterTransformRef.current; // Parent to master transform for 180° rotation
 
 
           // Apply basic material and label to Revenue Streams mesh
@@ -2622,7 +2625,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           costRootMesh.position = MODEL_POSITIONS.COST_STRUCTURE.clone(); // Shifted farther left
           costRootMesh.rotation = Vector3.Zero();
           costRootMesh.scaling = new Vector3(8.0, 8.0, 8); // Y-scaling matches X-scaling to match Customer Segments height
-          costRootMesh.parent = masterTransform; // Parent to master transform for 180° rotation
+          costRootMesh.parent = masterTransformRef.current; // Parent to master transform for 180° rotation
 
 
           // Apply basic material and label to Cost Structure mesh
