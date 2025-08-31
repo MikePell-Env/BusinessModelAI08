@@ -9,8 +9,8 @@ import { Vector3, Color3 } from '@babylonjs/core';
 
 // Model Positions
 export const MODEL_POSITIONS = {
-  REVENUE_STREAMS: new Vector3(10.1, 0.1, -10.5),    // Right side for revenue
-  COST_STRUCTURE: new Vector3(-0.221, 0.1, -10.5),   // Left side for costs  
+  REVENUE_STREAMS: new Vector3(-0.221, 0.1, -10.5),
+  COST_STRUCTURE: new Vector3(-10.1, 0.1, -10.5),
   BMC_ORIGIN: new Vector3(0, 0, 0),
 } as const;
 
