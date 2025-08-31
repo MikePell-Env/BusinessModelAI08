@@ -87,6 +87,7 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
     }
   }, [loadCanvas, setError, pendingPowerPointFile, setPendingPowerPointFile, canvas]);
 
+
   const handleToggleView = () => {
     toggleView();
   };
