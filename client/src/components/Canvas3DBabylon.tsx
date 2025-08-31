@@ -774,6 +774,66 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
+    
+    // CRITICAL: Prevent scene recreation if scene already exists (template switching)
+    if (sceneRef.current && engineRef.current && hasInitializedTemplate) {
+      console.log(`🔄 Template switch to ${template.name} - preserving existing scene`);
+      
+      // Clear existing template content but keep scene infrastructure
+      const scene = sceneRef.current;
+      const existingMeshes = scene.meshes.filter(mesh => 
+        mesh.name !== "__root__" && 
+        !mesh.name.includes("ground") &&
+        !mesh.name.includes("rail") &&
+        !mesh.name.includes("label") &&
+        mesh !== masterTransformRef.current
+      );
+      
+      existingMeshes.forEach(mesh => {
+        console.log(`🗑️ Removing existing template mesh: ${mesh.name}`);
+        mesh.dispose();
+      });
+      
+      // Reload template content only
+      const modelLoader = new BMCModelLoader(scene);
+      modelLoader.loadTemplateModel(template.name).then(async (model) => {
+        if (model.meshes.length > 0) {
+          const rootMesh = model.rootMesh;
+          rootMeshRef.current = rootMesh;
+          rootMesh.parent = masterTransformRef.current;
+          
+          // Initialize Financials systems if needed
+          if (template.name.toLowerCase() === 'financials') {
+            const financialsHeightManager = new FinancialsHeightManager(scene);
+            const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
+            
+            (scene as any).financialsHeightManager = financialsHeightManager;
+            (scene as any).financialsDataAdapter = financialsDataAdapter;
+            
+            financialsHeightManager.registerFinancialMeshes(model.meshes);
+            
+            const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
+            const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
+            
+            (window as any).financialsHeightManager = financialsHeightManager;
+            (window as any).financialsDataAdapter = financialsDataAdapter;
+            (window as any).financialsDemo = financialsDemo;
+            
+            const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
+            setTimeout(async () => {
+              if (financialsDataAdapter) {
+                await financialsDataAdapter.updateFromBusinessData(initialData);
+                console.log('💰 Financials reinitialized after template switch');
+              }
+            }, 100);
+          }
+          
+          console.log(`✅ Template ${template.name} content reloaded (scene preserved)`);
+        }
+      });
+      
+      return; // Exit early - don't recreate scene
+    }
 
     // Check if Babylon.js is properly loaded
 
