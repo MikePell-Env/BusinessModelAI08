@@ -829,29 +829,16 @@ export class FinancialsHeightManager {
         newVertices[i] = minY + (scaledPosition * originalHeight);
         modifiedVertices++;
       } else {
-        // Top-anchored: Keep top vertices fixed, scale lower vertices
-        // When heightFactor increases, object should grow DOWNWARD
-        const relativeY = originalY - minY;  // Distance from bottom (0 to originalHeight)
-        const normalizedPosition = relativeY / originalHeight; // 0.0 (bottom) to 1.0 (top)
-        
-        // For top-anchored: heightFactor 1.0 = full height, 0.5 = half height, etc.
-        // We want to show heightFactor portion starting from the TOP
-        const targetHeight = originalHeight * heightFactor;
-        const cutoffFromBottom = originalHeight - targetHeight; // How much to cut from bottom
-        
-        if (relativeY >= cutoffFromBottom) {
-          // This vertex is in the visible portion (above cutoff) - scale it proportionally
-          const adjustedRelativeY = relativeY - cutoffFromBottom;
-          const scaleFactor = targetHeight > 0 ? (adjustedRelativeY / targetHeight) : 0;
-          newVertices[i] = minY + cutoffFromBottom + (scaleFactor * targetHeight);
-        } else {
-          // This vertex is below the cutoff - move it to the cutoff line
-          newVertices[i] = minY + cutoffFromBottom;
-        }
+        // Top-anchored: scale Y from the top (maxY stays fixed, minY moves up)
+        // Simple approach: just like bottom-anchored but in reverse
+        const relativeY = maxY - originalY;  // Distance from top
+        const normalizedPosition = relativeY / originalHeight; // 0.0 (top) to 1.0 (bottom)
+        const scaledPosition = normalizedPosition * heightFactor; // Scale by factor
+        newVertices[i] = maxY - (scaledPosition * originalHeight);
         
         // Debug specific vertices for ExpensesPL
         if (mesh.name === 'ExpensesPL' && modifiedVertices < 5) {
-          console.log(`🔧 ExpensesPL VERTEX ${modifiedVertices}: originalY=${originalY.toFixed(3)} → newY=${newVertices[i].toFixed(3)}, relativeY=${relativeY.toFixed(3)}, normalized=${normalizedPosition.toFixed(3)}, cutoff=${cutoffFromBottom.toFixed(3)}, targetHeight=${targetHeight.toFixed(3)}`);
+          console.log(`🔧 ExpensesPL VERTEX ${modifiedVertices}: originalY=${originalY.toFixed(3)} → newY=${newVertices[i].toFixed(3)}, relativeY=${relativeY.toFixed(3)}, normalized=${normalizedPosition.toFixed(3)}, heightFactor=${heightFactor.toFixed(3)}`);
         }
         
         modifiedVertices++;
