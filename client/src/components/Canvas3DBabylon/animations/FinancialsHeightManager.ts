@@ -11,9 +11,11 @@ import {
   Vector3,
   Animation,
   CubicEase,
-  EasingFunction
+  EasingFunction,
+  MeshBuilder,
+  StandardMaterial,
+  Texture
 } from '@babylonjs/core';
-import * as GUI from '@babylonjs/gui';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
 export interface FinancialData {
@@ -39,21 +41,12 @@ export class FinancialsHeightManager {
   private maxVisualizationHeight: number = 5.0;
   private previousData: FinancialData | null = null;
   
-  // GUI labels system using proper Babylon.js approach
-  private guiTexture: GUI.AdvancedDynamicTexture | null = null;
-  private textLabels: Map<string, GUI.TextBlock> = new Map();
+  // Face texture labels system using PNG files
+  private faceLabels: Map<string, Mesh> = new Map();
   private labelsEnabled: boolean = true;
 
   constructor(scene: Scene) {
     this.scene = scene;
-    this.initializeGUI();
-  }
-
-  /**
-   * Initialize fullscreen GUI texture for labels (proper Babylon.js approach)
-   */
-  private initializeGUI(): void {
-    this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("FinancialsUI");
   }
 
 
@@ -73,9 +66,9 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        // Create GUI text label using proper Babylon.js approach
+        // Create face texture label using PNG files
         if (this.labelsEnabled) {
-          this.createTextLabel(mesh);
+          this.createFaceTextureLabel(mesh);
         }
         
       }
@@ -95,10 +88,15 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Refresh all financial object labels with correct aspect ratios
+   * Refresh all financial object labels with correct positioning
    */
   public refreshAllLabels(): void {
-    // Labels automatically track via linkWithMesh - no manual refresh needed
+    this.faceLabels.forEach((label, meshName) => {
+      const mesh = this.financialMeshes.get(meshName);
+      if (mesh) {
+        this.positionLabelOnFrontFace(label, mesh);
+      }
+    });
   }
 
   /**
@@ -582,40 +580,89 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Create GUI text label using proper Babylon.js method
+   * Create face texture label using PNG files applied to front face
    */
-  private createTextLabel(mesh: Mesh): void {
-    if (!this.guiTexture) return;
-    
+  private createFaceTextureLabel(mesh: Mesh): void {
     const meshName = mesh.name;
+    const texturePath = this.getLabelTexturePath(meshName);
+    if (!texturePath) return;
     
-    // Create TextBlock using proper Babylon.js GUI
-    const textBlock = new GUI.TextBlock();
-    
-    // Set display names
-    const displayNames: Record<string, string> = {
-      'Revenue': 'Revenue $10M',
-      'Expenses': 'Expenses $8M', 
-      'ExpensesPL': 'Profit $2M',
-      'RevenuePL': 'Loss $0M'
+    try {
+      // Get mesh bounding info to size label appropriately
+      mesh.refreshBoundingInfo();
+      const bounds = mesh.getBoundingInfo();
+      const size = bounds.boundingBox.maximum.subtract(bounds.boundingBox.minimum);
+      
+      // Create label plane sized to fit on front face
+      const labelPlane = MeshBuilder.CreatePlane(`${meshName}_FaceLabel`, {
+        width: size.x * 0.8,  // 80% of mesh width
+        height: size.y * 0.3, // 30% of mesh height for text area
+        sideOrientation: Mesh.FRONTSIDE
+      }, this.scene);
+      
+      // Create material with PNG texture
+      const material = new StandardMaterial(`${meshName}_FaceLabelMat`, this.scene);
+      const texture = new Texture(texturePath, this.scene);
+      
+      // Configure texture for crisp rendering
+      texture.updateSamplingMode(Texture.LINEAR_LINEAR);
+      texture.wrapU = Texture.CLAMP_ADDRESSMODE;
+      texture.wrapV = Texture.CLAMP_ADDRESSMODE;
+      texture.anisotropicFilteringLevel = 4;
+      
+      material.diffuseTexture = texture;
+      material.useAlphaFromDiffuseTexture = true;
+      material.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
+      material.backFaceCulling = false;
+      
+      labelPlane.material = material;
+      
+      // Position on front face of mesh
+      this.positionLabelOnFrontFace(labelPlane, mesh);
+      
+      // Store label reference
+      this.faceLabels.set(meshName, labelPlane);
+      
+      debugLog.info('financials', `Face texture label created for ${meshName}`);
+    } catch (error) {
+      debugLog.warn('financials', `Failed to create face texture label for ${meshName}:`, error);
+    }
+  }
+
+  /**
+   * Get PNG texture path for financial mesh labels
+   */
+  private getLabelTexturePath(meshName: string): string | null {
+    const labelMap: Record<string, string> = {
+      'Revenue': '/textures/Label_Revenue.png',
+      'Expenses': '/textures/Label_Expenses.png', 
+      'ExpensesPL': '/textures/Label_Profit.png',
+      'RevenuePL': '/textures/Label_Loss.png'
     };
+    return labelMap[meshName] || null;
+  }
+
+  /**
+   * Position label on the front face center of the mesh
+   */
+  private positionLabelOnFrontFace(labelPlane: Mesh, mesh: Mesh): void {
+    // Get mesh bounds for positioning
+    mesh.refreshBoundingInfo();
+    const bounds = mesh.getBoundingInfo();
+    const center = bounds.boundingBox.center;
+    const max = bounds.boundingBox.maximum;
     
-    textBlock.text = displayNames[meshName] || meshName;
-    textBlock.color = "white";
-    textBlock.fontSize = 18;
-    textBlock.fontFamily = "Arial";
+    // Position label on front face center
+    labelPlane.position.x = center.x;
+    labelPlane.position.y = center.y;
+    labelPlane.position.z = max.z + 0.01; // Just in front of face
     
-    // Add to GUI texture (must be at root level)
-    this.guiTexture.addControl(textBlock);
+    // Face forward (no rotation needed)
+    labelPlane.rotation.x = 0;
+    labelPlane.rotation.y = 0;  
+    labelPlane.rotation.z = 0;
     
-    // Link to mesh - this is the key method that makes it work!
-    textBlock.linkWithMesh(mesh);
-    textBlock.linkOffsetY = -30; // Position above mesh
-    
-    // Store reference
-    this.textLabels.set(meshName, textBlock);
-    
-    debugLog.info('financials', `GUI text label created for ${meshName}`);
+    debugLog.verbose('financials', `${mesh.name} face label positioned at front face center`);
   }
 
   /**
@@ -631,7 +678,10 @@ export class FinancialsHeightManager {
    * Update label position when mesh height changes
    */
   private updateFaceAlignedLabel(mesh: Mesh): void {
-    // Labels automatically track via linkWithMesh - no manual update needed
+    const label = this.faceLabels.get(mesh.name);
+    if (label) {
+      this.positionLabelOnFrontFace(label, mesh);
+    }
   }
   
   /**
@@ -639,8 +689,8 @@ export class FinancialsHeightManager {
    */
   public setLabelsEnabled(enabled: boolean): void {
     this.labelsEnabled = enabled;
-    this.textLabels.forEach(label => {
-      label.isVisible = enabled;
+    this.faceLabels.forEach(label => {
+      label.setEnabled(enabled);
     });
   }
 
@@ -651,19 +701,14 @@ export class FinancialsHeightManager {
     // Stop any ongoing animations
     this.scene.stopAllAnimations();
     
-    // Dispose GUI labels
-    this.textLabels.forEach(label => {
-      if (this.guiTexture) {
-        this.guiTexture.removeControl(label);
+    // Dispose face texture labels
+    this.faceLabels.forEach(label => {
+      if (label.material) {
+        label.material.dispose();
       }
       label.dispose();
     });
-    this.textLabels.clear();
-    
-    // Dispose GUI texture
-    if (this.guiTexture) {
-      this.guiTexture.dispose();
-    }
+    this.faceLabels.clear();
     
     // Clear maps but keep references intact for safety
     this.financialMeshes.clear();
