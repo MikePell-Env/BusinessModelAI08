@@ -3504,6 +3504,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                       revenue: revenue,
                       expenses: currentExpenses
                     }, false); // Immediate update for slider interaction
+                    
+                    // Save state automatically for persistence across template switches
+                    controller.saveFinancialState();
                   }
 
                   // Update the display values
@@ -3547,6 +3550,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                       revenue: currentRevenue,
                       expenses: expenses
                     }, false); // Immediate update for slider interaction
+                    
+                    // Save state automatically for persistence across template switches
+                    controller.saveFinancialState();
                   }
 
                   // Update the display values
