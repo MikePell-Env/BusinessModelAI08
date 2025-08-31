@@ -51,16 +51,26 @@ export class FinancialsDataAdapter {
 
   constructor(heightManager: FinancialsHeightManager) {
     this.heightManager = heightManager;
-    
-    // CRITICAL: Ensure FinancialsController exists and is accessible
-    // This maintains the vertex manipulation functionality for sliders
-    if (!(window as any).financialsController) {
-      const { FinancialsController } = require('../controllers/FinancialsController');
-      (window as any).financialsController = new FinancialsController(heightManager);
-      console.log('🎮 FinancialsController created and made globally accessible');
-    }
-    
     console.log('📊 FinancialsDataAdapter initialized with proper architecture');
+  }
+  
+  /**
+   * Initialize FinancialsController when needed
+   * This ensures proper timing and prevents initialization issues
+   */
+  private ensureControllerExists(): boolean {
+    if (!(window as any).financialsController) {
+      try {
+        const { FinancialsController } = require('../controllers/FinancialsController');
+        (window as any).financialsController = new FinancialsController(this.heightManager);
+        console.log('🎮 FinancialsController created and made globally accessible');
+        return true;
+      } catch (error) {
+        console.error('❌ Failed to create FinancialsController:', error);
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -115,17 +125,17 @@ export class FinancialsDataAdapter {
     try {
       console.log('📈 FinancialsDataAdapter: Processing business data update:', businessData);
 
-      // IMPORTANT: Use FinancialsController instead of direct HeightManager
-      // This preserves the vertex manipulation logic for sliders
-      const controller = (window as any).financialsController;
-      if (controller) {
+      // Ensure controller exists before attempting to use it
+      if (this.ensureControllerExists()) {
+        const controller = (window as any).financialsController;
         // Use controller's updateFinancialSystem which maintains vertex manipulation
         controller.updateFinancialSystem({
           revenue: businessData.totalRevenue,
           expenses: businessData.totalExpenses
         }, animated);
       } else {
-        // Fallback to direct height manager if controller not available
+        // Fallback to direct height manager if controller creation failed
+        console.log('⚠️ Using direct height manager as controller initialization failed');
         const financialData = this.transformBusinessData(businessData);
         
         if (animated) {
@@ -356,11 +366,11 @@ export class FinancialsDataAdapter {
     try {
       console.log('🔄 FinancialsDataAdapter: Attempting graceful fallback');
 
-      // First try: Use controller with safe values
-      const controller = (window as any).financialsController;
-      if (controller) {
-        const safeRevenue = Math.max(1, businessData.totalRevenue || 100);
-        const safeExpenses = Math.max(1, businessData.totalExpenses || 80);
+      // First try: Ensure controller exists and use it with safe values
+      if (this.ensureControllerExists()) {
+        const controller = (window as any).financialsController;
+        const safeRevenue = Math.max(1, businessData.totalRevenue || 1000);
+        const safeExpenses = Math.max(1, businessData.totalExpenses || 800);
         
         controller.updateFinancialSystem({
           revenue: safeRevenue,
@@ -373,10 +383,10 @@ export class FinancialsDataAdapter {
 
       // Second try: Direct height manager with minimal data
       const fallbackData: FinancialData = {
-        revenue: Math.max(1, businessData.totalRevenue || 100),
-        expenses: Math.max(1, businessData.totalExpenses || 80),
-        profit: Math.max(0, (businessData.totalRevenue || 100) - (businessData.totalExpenses || 80)),
-        loss: Math.max(0, (businessData.totalExpenses || 80) - (businessData.totalRevenue || 100))
+        revenue: Math.max(1, businessData.totalRevenue || 1000),
+        expenses: Math.max(1, businessData.totalExpenses || 800),
+        profit: Math.max(0, (businessData.totalRevenue || 1000) - (businessData.totalExpenses || 800)),
+        loss: Math.max(0, (businessData.totalExpenses || 800) - (businessData.totalRevenue || 1000))
       };
 
       this.heightManager.setImmediateHeights(fallbackData);

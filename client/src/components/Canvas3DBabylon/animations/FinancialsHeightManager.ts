@@ -647,7 +647,11 @@ export class FinancialsHeightManager {
     
     // Update normals using correct Babylon.js API
     try {
-      geometry.createNormals(true);
+      if (typeof geometry.computeVertexNormals === 'function') {
+        geometry.computeVertexNormals();
+      } else if (typeof (geometry as any).createNormals === 'function') {
+        (geometry as any).createNormals(true);
+      }
     } catch (error) {
       console.warn('🟡 Could not update normals, continuing without normal recalculation');
     }
