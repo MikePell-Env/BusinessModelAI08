@@ -43,7 +43,10 @@ export class TemplateManager {
       'CustomerSegments',
       'CostStructure',
       'RevenueStreams',
-      'Section_'
+      'Section_',
+      'Internal',   // Foundation labels
+      'External',
+      'Divider'
     ]);
 
     // Financials template patterns
@@ -93,8 +96,19 @@ export class TemplateManager {
       if (mesh.name === '__root__' || 
           mesh.name.includes('ground') || 
           mesh.name.includes('rail') ||
-          mesh.name.includes('label') ||
           mesh.name === 'masterTransform') {
+        return false;
+      }
+      
+      // Foundation labels should be template-specific
+      if (mesh.name.includes('label') || mesh.name.includes('Label')) {
+        // BMC foundation labels belong to business-model template
+        if (mesh.name.includes('Internal') || 
+            mesh.name.includes('External') || 
+            mesh.name.includes('Divider')) {
+          return templateName === 'business-model';
+        }
+        // Other labels are infrastructure (skip)
         return false;
       }
       
