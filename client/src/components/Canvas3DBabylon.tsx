@@ -3436,8 +3436,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Store current slider values in window object for isolation
             if (!((window as any).financialSliderState)) {
               (window as any).financialSliderState = {
-                revenue: 700,   // $7M default (66.67% on slider)
-                expenses: 700   // $7M default (66.67% on slider)
+                revenue: 1000,  // $10M default (100% on slider)
+                expenses: 800   // $8M default (80% on slider)
               };
             }
             
@@ -3445,8 +3445,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
               setTimeout(() => {
                 (window as any).financialsDataAdapter.updateFromBusinessData({
-                  totalRevenue: 700,   // $7M default
-                  totalExpenses: 700,  // $7M default  
+                  totalRevenue: 1000,  // $10M default (99% Revenue, 1% RevenuePL)
+                  totalExpenses: 800,  // $8M default  
                   netProfit: 200,      // $2M profit (20% ExpensesPL)
                   netLoss: 0           // No loss (0% RevenuePL)
                 });
@@ -3455,12 +3455,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }}>
             <div>
               <label className="block text-xs mb-1">Revenue Total</label>
-              <div className="revenue-display text-xs text-green-400 mb-1">$7M</div>
+              <div className="revenue-display text-xs text-green-400 mb-1">$10M</div>
               <input
                 type="range"
                 min="100"
                 max="1000"
-                defaultValue="700"
+                defaultValue="1000"
                 id="revenue-slider"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
@@ -3513,12 +3513,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             </div>
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
-              <div className="expenses-display text-xs text-red-400 mb-1">$7M</div>
+              <div className="expenses-display text-xs text-red-400 mb-1">$8M</div>
               <input
                 type="range"
                 min="100"
                 max="1000"
-                defaultValue="700"
+                defaultValue="800"
                 id="expenses-slider"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => {
