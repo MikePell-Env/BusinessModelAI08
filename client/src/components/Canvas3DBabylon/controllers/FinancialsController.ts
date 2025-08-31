@@ -118,8 +118,13 @@ export class FinancialsController {
     const expensesGroupTotal = expensesHeight + expensesPLHeight;
     
     console.log('🔧 FinancialsController: Height calculation details:', {
+      revenue, expenses,
       maxValue,
+      profit: profit.toFixed(1),
+      loss: loss.toFixed(1),
       groupHeight: groupHeight.toFixed(3),
+      expensesPLHeight: expensesPLHeight.toFixed(3),
+      expensesPLPercent: expensesPLPercent.toFixed(1),
       revenueGroupTotal: revenueGroupTotal.toFixed(3),
       expensesGroupTotal: expensesGroupTotal.toFixed(3),
       heightDifference: Math.abs(revenueGroupTotal - expensesGroupTotal).toFixed(3)
