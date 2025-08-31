@@ -169,14 +169,30 @@ export class EnvisionerUnifiedManager {
     const { MeshBuilder, StandardMaterial, Color3 } = await import('@babylonjs/core');
     const masterTransform = this.persistence.getMasterTransform()!;
 
-    // CRITICAL: Position financial objects to align with BMC content layout
-    // BMC has Revenue Streams at X=-0.221, Cost Structure at X=-10.1
-    // Adjust financial positions to match this left-weighted distribution
+    // Use standardized layout system for consistent positioning across templates
+    const { getContentPosition } = await import('./EnvisionerLayoutSystem');
+    
     const financialObjects = [
-      { name: 'Revenue', pos: [-5, 0, 2], color: [0.2, 0.8, 0.3] },     // Left side to match BMC weight
-      { name: 'Loss', pos: [-5, 0, -2], color: [1.0, 0.8, 0.0] },       // Keep with Revenue
-      { name: 'Expenses', pos: [-1, 0, 2], color: [0.8, 0.2, 0.2] },    // Closer to center like Revenue Streams
-      { name: 'Profit', pos: [-1, 0, -2], color: [0.1, 0.1, 0.1] }      // Keep with Expenses
+      { 
+        name: 'Revenue', 
+        pos: getContentPosition('financials', 'revenue').asArray(), 
+        color: [0.2, 0.8, 0.3] 
+      },
+      { 
+        name: 'Loss', 
+        pos: getContentPosition('financials', 'revenue_pl').asArray(), 
+        color: [1.0, 0.8, 0.0] 
+      },
+      { 
+        name: 'Expenses', 
+        pos: getContentPosition('financials', 'expenses').asArray(), 
+        color: [0.8, 0.2, 0.2] 
+      },
+      { 
+        name: 'Profit', 
+        pos: getContentPosition('financials', 'expenses_pl').asArray(), 
+        color: [0.1, 0.1, 0.1] 
+      }
     ];
 
     financialObjects.forEach(obj => {
