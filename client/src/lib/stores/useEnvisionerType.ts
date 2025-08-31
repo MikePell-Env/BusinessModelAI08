@@ -49,7 +49,7 @@ export const useEnvisionerType = create<EnvisionerTypeState>((set, get) => {
     });
   };
 
-  // Anti-flash transition - completely immediate content switch with no delays
+  // Anti-flash transition with brief overlay to prevent white flash
   const smoothTransition = async (targetType: EnvisionerType) => {
     const currentState = get();
     
@@ -60,14 +60,19 @@ export const useEnvisionerType = create<EnvisionerTypeState>((set, get) => {
 
     console.log(`🎬 Switching to ${targetType}...`);
     
-    // Switch content completely immediately - no delays or intermediate states
-    set({
-      currentType: targetType,
-      currentTemplate: TEMPLATES[targetType],
-      isTransitioning: false,
-      transitionProgress: 1
-    });
-    console.log(`✅ Switched to ${targetType} (instant)`);
+    // Brief transition state to show overlay
+    set({ isTransitioning: true });
+    
+    // Short delay to show overlay and prevent white flash
+    setTimeout(() => {
+      set({
+        currentType: targetType,
+        currentTemplate: TEMPLATES[targetType],
+        isTransitioning: false,
+        transitionProgress: 1
+      });
+      console.log(`✅ Switched to ${targetType}`);
+    }, 150); // Brief overlay duration
   };
 
   return {

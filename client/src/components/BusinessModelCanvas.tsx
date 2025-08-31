@@ -267,6 +267,20 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
         ) : (
           <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
         )}
+        
+        {/* Template Transition Overlay - Prevents white flash */}
+        {isTemplateTransitioning && (
+          <div 
+            className="absolute inset-0 z-50 flex items-center justify-center"
+            style={{ backgroundColor: '#e9ecef' }} // Match scene background exactly
+          >
+            <div className="bg-black/20 px-4 py-2 rounded-lg">
+              <div className="text-sm text-gray-700 font-medium">
+                Switching to {currentType === 'business-model' ? 'Business Model' : 'Financials'}...
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* AI Chat Component */}
