@@ -53,12 +53,8 @@ export class EnvisionerPersistence {
         this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
       }
       
-      // Adjust Y position based on template
-      if (templateName.toLowerCase() === 'financials') {
-        this.masterTransform.position.y = 0.5; // Lower position for Financials
-      } else {
-        this.masterTransform.position.y = 2; // Original position for Business Model
-      }
+      // Keep Y position consistent across all templates - no shifting
+      // this.masterTransform.position.y remains unchanged to prevent template switching shifts
       
       return this.masterTransform;
     }
@@ -110,12 +106,8 @@ export class EnvisionerPersistence {
       this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
     }
     
-    // Set position based on template
-    if (templateName.toLowerCase() === 'financials') {
-      this.masterTransform.position.y = 0.5; // Lower position for Financials
-    } else {
-      this.masterTransform.position.y = 2; // Original position for Business Model
-    }
+    // Set consistent Y position for all templates - no shifting
+    this.masterTransform.position.y = 2; // Consistent position for all templates
 
     // Apply dynamic scaling based on canvas size
     const canvas = document.querySelector('canvas');
