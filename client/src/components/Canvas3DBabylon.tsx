@@ -299,14 +299,77 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   // Template content switching without scene recreation
   useEffect(() => {
-    if (!sceneRef.current || !masterTransformRef.current) return;
+    if (!sceneRef.current || !masterTransformRef.current || !hasInitializedTemplate) return;
     
     console.log(`🔄 Template content switch to: ${template.name} (preserving scene)`);
     
-    // Template-specific content updates will be handled by the existing 
-    // scene creation logic, but scene/camera/master transform stay intact
+    const scene = sceneRef.current;
+    const masterTransform = masterTransformRef.current;
     
-  }, [template.name]);
+    // Clear existing template-specific content but preserve scene/camera/master transform
+    const existingMeshes = scene.meshes.filter(mesh => 
+      mesh.name !== "__root__" && 
+      mesh !== masterTransform &&
+      !mesh.name.includes("ground") &&
+      !mesh.name.includes("rail") &&
+      !mesh.name.includes("label")
+    );
+    
+    existingMeshes.forEach(mesh => {
+      console.log(`🗑️ Removing existing mesh: ${mesh.name}`);
+      mesh.dispose();
+    });
+    
+    // Load new template content
+    const modelLoader = new BMCModelLoader(scene);
+    modelLoader.loadTemplateModel(template.name).then(async (model) => {
+      if (model.meshes.length > 0) {
+        console.log(`✅ Template ${template.name} loaded with ${model.meshes.length} meshes (scene preserved)`);
+        
+        const rootMesh = model.rootMesh;
+        rootMeshRef.current = rootMesh;
+        rootMesh.parent = masterTransform;
+        
+        // Initialize template-specific systems
+        if (template.name.toLowerCase() === 'financials') {
+          const financialsHeightManager = new FinancialsHeightManager(scene);
+          const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
+          
+          (scene as any).financialsHeightManager = financialsHeightManager;
+          (scene as any).financialsDataAdapter = financialsDataAdapter;
+          
+          financialsHeightManager.registerFinancialMeshes(model.meshes);
+          
+          const { FinancialsDemo } = await import('./Canvas3DBabylon/demos/FinancialsDemo');
+          const financialsDemo = new FinancialsDemo(financialsHeightManager, financialsDataAdapter);
+          
+          (window as any).financialsHeightManager = financialsHeightManager;
+          (window as any).financialsDataAdapter = financialsDataAdapter;
+          (window as any).financialsDemo = financialsDemo;
+          
+          // Initialize with default financial data
+          const initialData = {
+            totalRevenue: 1000,
+            totalExpenses: 800,
+            netProfit: 200,
+            netLoss: 0
+          };
+          
+          setTimeout(async () => {
+            if (financialsDataAdapter && financialsHeightManager) {
+              await financialsDataAdapter.updateFinancialData(initialData);
+              console.log('💰 Financials template initialized with default data');
+            }
+          }, 100);
+        }
+        
+        console.log(`✅ Template switch to ${template.name} completed successfully`);
+      }
+    }).catch(error => {
+      console.error(`❌ Failed to load template ${template.name}:`, error);
+    });
+    
+  }, [template.name, hasInitializedTemplate]);
 
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
