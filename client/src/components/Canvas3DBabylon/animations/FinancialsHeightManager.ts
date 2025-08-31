@@ -98,9 +98,7 @@ export class FinancialsHeightManager {
    * Refresh all financial object labels with correct aspect ratios
    */
   public refreshAllLabels(): void {
-    this.financialMeshes.forEach((mesh, name) => {
-      this.updateLabelPosition(mesh);
-    });
+    // Labels automatically track via linkWithMesh - no manual refresh needed
   }
 
   /**
@@ -628,65 +626,21 @@ export class FinancialsHeightManager {
     // This is the beauty of the proper Babylon.js GUI approach
   }
   
-  /**
-   * Position label directly on the front face of financial objects
-   */
-  private positionLabelOnFinancialObject(labelPlane: Mesh, meshName: string): void {
-    // Get the actual mesh to position label on its front face
-    const mesh = this.scene.getMeshByName(meshName);
-    if (!mesh) return;
-    
-    // Refresh bounding info to get current size
-    mesh.refreshBoundingInfo();
-    const bounds = mesh.getBoundingInfo();
-    const center = bounds.boundingBox.center;
-    const max = bounds.boundingBox.maximum;
-    
-    // Position label directly on the FRONT FACE of each object
-    // The front face is at the max Z position of the bounding box
-    labelPlane.position.x = center.x;
-    labelPlane.position.y = center.y;
-    labelPlane.position.z = max.z + 0.01; // Just slightly in front of the face
-    
-    // Face forward toward camera
-    labelPlane.rotation.x = 0;
-    labelPlane.rotation.y = 0;
-    labelPlane.rotation.z = 0;
-    
-    debugLog.verbose('financials', `${meshName} label on front face at: (${labelPlane.position.x}, ${labelPlane.position.y}, ${labelPlane.position.z})`);
-  }
 
   /**
    * Update label position when mesh height changes
    */
   private updateFaceAlignedLabel(mesh: Mesh): void {
-    const label = this.faceLabels.get(mesh.name);
-    if (!label || !this.labelsEnabled) return;
-    
-    // Simply reposition the label on the front face with updated bounds
-    this.positionLabelOnFinancialObject(label, mesh.name);
+    // Labels automatically track via linkWithMesh - no manual update needed
   }
   
   /**
-   * Get texture path for mesh label
-   */
-  private getLabelTexturePath(meshName: string): string | null {
-    const labelMap: Record<string, string> = {
-      'Revenue': '/textures/Label_Revenue.png',
-      'Expenses': '/textures/Label_Expenses.png', 
-      'ExpensesPL': '/textures/Label_Profit.png',
-      'RevenuePL': '/textures/Label_Loss.png'
-    };
-    return labelMap[meshName] || null;
-  }
-  
-  /**
-   * Enable or disable face-aligned labels
+   * Enable or disable labels
    */
   public setLabelsEnabled(enabled: boolean): void {
     this.labelsEnabled = enabled;
-    this.faceLabels.forEach(label => {
-      label.setEnabled(enabled);
+    this.textLabels.forEach(label => {
+      label.isVisible = enabled;
     });
   }
 
@@ -697,14 +651,19 @@ export class FinancialsHeightManager {
     // Stop any ongoing animations
     this.scene.stopAllAnimations();
     
-    // Dispose face-aligned labels
-    this.faceLabels.forEach(label => {
-      if (label.material) {
-        label.material.dispose();
+    // Dispose GUI labels
+    this.textLabels.forEach(label => {
+      if (this.guiTexture) {
+        this.guiTexture.removeControl(label);
       }
       label.dispose();
     });
-    this.faceLabels.clear();
+    this.textLabels.clear();
+    
+    // Dispose GUI texture
+    if (this.guiTexture) {
+      this.guiTexture.dispose();
+    }
     
     // Clear maps but keep references intact for safety
     this.financialMeshes.clear();
