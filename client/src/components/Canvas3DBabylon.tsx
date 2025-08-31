@@ -3444,13 +3444,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Initialize default values when component mounts for Financials template
             if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
               setTimeout(() => {
+                // Use actual slider positions for initialization
+                const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
+                const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+                const actualRevenue = revenueSlider ? parseInt(revenueSlider.value) : 700;
+                const actualExpenses = expensesSlider ? parseInt(expensesSlider.value) : 800;
+                const actualProfit = Math.max(0, actualRevenue - actualExpenses);
+                
                 (window as any).financialsDataAdapter.updateFromBusinessData({
-                  totalRevenue: 1000,  // $10M default (99% Revenue, 1% RevenuePL)
-                  totalExpenses: 800,  // $8M default  
-                  netProfit: 200,      // $2M profit (20% ExpensesPL)
-                  netLoss: 0           // No loss (0% RevenuePL)
+                  totalRevenue: actualRevenue,     // Use actual slider position
+                  totalExpenses: actualExpenses,   // Use actual slider position  
+                  netProfit: actualProfit,         // Calculate from actual positions
+                  netLoss: 0                       // No loss when expenses <= revenue
                 });
-              }, 100);
+              }, 200); // Increased timeout to ensure sliders are ready
             }
           }}>
             <div>
