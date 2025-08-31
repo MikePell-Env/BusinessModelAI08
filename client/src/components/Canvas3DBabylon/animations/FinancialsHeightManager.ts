@@ -589,14 +589,21 @@ export class FinancialsHeightManager {
   private createLabelAnchor(mesh: Mesh): void {
     const anchor = new TransformNode(`${mesh.name}_anchor`, this.scene);
     
-    // Position anchor at mesh world position without moving mesh
-    const worldPos = mesh.getAbsolutePosition();
-    anchor.position.copyFrom(worldPos);
+    // Get mesh bounding info to position anchor at top center
+    mesh.refreshBoundingInfo();
+    const bounds = mesh.getBoundingInfo();
+    const center = bounds.boundingBox.center;
+    const max = bounds.boundingBox.maximum;
+    
+    // Position anchor at the top center of the mesh (above ground)
+    anchor.position.x = center.x;
+    anchor.position.y = Math.max(max.y + 0.5, 1.0); // Ensure above ground plane
+    anchor.position.z = center.z;
     
     // Store anchor reference
     this.labelAnchors.set(mesh.name, anchor);
     
-    debugLog.info('financials', `Label anchor created for ${mesh.name} at ${worldPos}`);
+    debugLog.info('financials', `Label anchor created for ${mesh.name} at (${anchor.position.x}, ${anchor.position.y}, ${anchor.position.z})`);
   }
 
   /**
@@ -606,16 +613,23 @@ export class FinancialsHeightManager {
     // Update anchor position to track mesh changes
     const anchor = this.labelAnchors.get(mesh.name);
     if (anchor) {
-      const worldPos = mesh.getAbsolutePosition();
-      anchor.position.copyFrom(worldPos);
+      // Get updated mesh bounds after vertex manipulation
+      mesh.refreshBoundingInfo();
+      const bounds = mesh.getBoundingInfo();
+      const center = bounds.boundingBox.center;
+      const max = bounds.boundingBox.maximum;
+      
+      // Keep anchor at top center of mesh
+      anchor.position.x = center.x;
+      anchor.position.y = Math.max(max.y + 0.5, 1.0); // Always above ground
+      anchor.position.z = center.z;
     }
     
     // Update label position if it exists
     const label = this.faceLabels.get(mesh.name);
     if (label && anchor) {
-      // Position label in front of the anchor
+      // Position label at anchor position (already above mesh)
       label.position.copyFrom(anchor.position);
-      label.position.z += 0.5; // Move in front
     }
   }
 
@@ -646,14 +660,14 @@ export class FinancialsHeightManager {
         'RevenuePL': '#FFD700'     // Gold (Loss)
       };
       
-      material.diffuseColor = this.hexToColor3(colors[meshName] || '#FFFFFF');
-      material.emissiveColor = material.diffuseColor.scale(0.3);
+      const colorHex = (colors as any)[meshName] || '#FFFFFF';
+      material.diffuseColor = this.hexToColor3(colorHex);
+      material.emissiveColor = material.diffuseColor;
       
       labelPlane.material = material;
       
-      // Position using anchor (in front of mesh)
+      // Position using anchor (already positioned above mesh)
       labelPlane.position.copyFrom(anchor.position);
-      labelPlane.position.z += 0.5; // Move in front
       
       // Store label
       this.faceLabels.set(meshName, labelPlane);
@@ -671,7 +685,7 @@ export class FinancialsHeightManager {
     const r = parseInt(hex.slice(1, 3), 16) / 255;
     const g = parseInt(hex.slice(3, 5), 16) / 255;
     const b = parseInt(hex.slice(5, 7), 16) / 255;
-    return { r, g, b };
+    return new Vector3(r, g, b);
   }
   
   /**
