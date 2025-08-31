@@ -51,7 +51,7 @@ export interface FinancialSystemState {
 export class FinancialsController {
   private heightManager: FinancialsHeightManager;
   private currentState: FinancialSystemState | null = null;
-  private readonly HEIGHT_SCALE = 500.0;
+  private readonly HEIGHT_SCALE = 125.0; // Fixed: was 4x too tall
   
   // FINANCIAL STATE PERSISTENCE
   private persistedFinancialData: FinancialInputData = {

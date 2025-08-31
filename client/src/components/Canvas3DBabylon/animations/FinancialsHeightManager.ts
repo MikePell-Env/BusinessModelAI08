@@ -177,53 +177,26 @@ export class FinancialsHeightManager {
     const revenue = Math.max(Math.min(data.revenue, 1000), 100);
     const expenses = Math.max(Math.min(data.expenses, 1000), 100);
     
-    // Calculate profit/loss based on actual slider values
-    const profit = Math.max(0, revenue - expenses);
-    const loss = Math.max(0, expenses - revenue);
-    
-    const HEIGHT_SCALE = 500.0;
-    
-    // FINANCIAL RULE #1: EQUAL GROUP HEIGHTS - Both groups ALWAYS have identical total height
-    // Revenue Group = Revenue + RevenuePL 
-    // Expenses Group = Expenses + ExpensesPL
-    // Group Heights MUST be equal: Revenue + RevenuePL = Expenses + ExpensesPL
-    
-    let revenueHeight, revenuePLHeight, expensesHeight, expensesPLHeight;
-    
-    if (revenue >= expenses) {
-      // PROFIT SCENARIO: Revenue >= Expenses
-      // Revenue Group: Revenue only (RevenuePL = 0)
-      // Expenses Group: Expenses + ExpensesPL (profit)
-      // Both groups equal to Revenue value
-      
-      const groupHeight = revenue / HEIGHT_SCALE;  // Equal height for both groups
-      
-      revenueHeight = groupHeight;                         // Revenue = full group height
-      revenuePLHeight = 0;                                // RevenuePL = 0 (no loss)
-      expensesHeight = (expenses / revenue) * groupHeight; // Expenses portion
-      expensesPLHeight = (profit / revenue) * groupHeight; // Profit portion
-      
-      console.log(`🎯 PROFIT SCENARIO: Both groups = ${groupHeight.toFixed(3)} height`);
-      console.log(`   Revenue Group: Revenue=${revenueHeight.toFixed(3)} + RevenuePL=${revenuePLHeight.toFixed(3)} = ${(revenueHeight + revenuePLHeight).toFixed(3)}`);
-      console.log(`   Expenses Group: Expenses=${expensesHeight.toFixed(3)} + ExpensesPL=${expensesPLHeight.toFixed(3)} = ${(expensesHeight + expensesPLHeight).toFixed(3)}`);
-      
-    } else {
-      // LOSS SCENARIO: Expenses > Revenue  
-      // Revenue Group: Revenue + RevenuePL (loss)
-      // Expenses Group: Expenses only (ExpensesPL = 0)
-      // Both groups equal to Expenses value
-      
-      const groupHeight = expenses / HEIGHT_SCALE;  // Equal height for both groups
-      
-      revenueHeight = (revenue / expenses) * groupHeight;  // Revenue portion
-      revenuePLHeight = (loss / expenses) * groupHeight;   // Loss portion
-      expensesHeight = groupHeight;                        // Expenses = full group height
-      expensesPLHeight = 0;                               // ExpensesPL = 0 (no profit)
-      
-      console.log(`🎯 LOSS SCENARIO: Both groups = ${groupHeight.toFixed(3)} height`);
-      console.log(`   Revenue Group: Revenue=${revenueHeight.toFixed(3)} + RevenuePL=${revenuePLHeight.toFixed(3)} = ${(revenueHeight + revenuePLHeight).toFixed(3)}`);
-      console.log(`   Expenses Group: Expenses=${expensesHeight.toFixed(3)} + ExpensesPL=${expensesPLHeight.toFixed(3)} = ${(expensesHeight + expensesPLHeight).toFixed(3)}`);
+    // CENTRALIZED: Use FinancialsController for ALL calculations
+    // Import the global FinancialsController instance
+    const controller = (window as any).financialsController;
+    if (!controller) {
+      console.error('❌ FinancialsController not found on window object');
+      return;
     }
+    
+    // Let FinancialsController handle all calculations and rule enforcement
+    const state = controller.updateFinancialSystem({ revenue, expenses }, false);
+    
+    // Use the calculated values from controller
+    const revenueHeight = state.revenueHeight;
+    const revenuePLHeight = state.revenuePLHeight;
+    const expensesHeight = state.expensesHeight;
+    const expensesPLHeight = state.expensesPLHeight;
+    const profit = state.profit;
+    const loss = state.loss;
+    
+    console.log(`🎯 SIMPLIFIED: Using FinancialsController for all calculations`);
     
     // SELECTIVE UPDATES: Only animate objects whose values actually changed
     const animations: Promise<void>[] = [];
@@ -502,53 +475,26 @@ export class FinancialsHeightManager {
     const revenue = Math.max(data.revenue, 0.1);
     const expenses = Math.max(data.expenses, 0.1);
     
-    // Calculate profit/loss for display
-    const profit = Math.max(0, revenue - expenses);
-    const loss = Math.max(0, expenses - revenue);
-    
-    const HEIGHT_SCALE = 500.0;
-    
-    // FINANCIAL RULE #1: EQUAL GROUP HEIGHTS - Both groups ALWAYS have identical total height
-    // Revenue Group = Revenue + RevenuePL 
-    // Expenses Group = Expenses + ExpensesPL
-    // Group Heights MUST be equal: Revenue + RevenuePL = Expenses + ExpensesPL
-    
-    let revenueHeight, revenuePLHeight, expensesHeight, expensesPLHeight;
-    
-    if (revenue >= expenses) {
-      // PROFIT SCENARIO: Revenue >= Expenses
-      // Revenue Group: Revenue only (RevenuePL = 0)
-      // Expenses Group: Expenses + ExpensesPL (profit)
-      // Both groups equal to Revenue value
-      
-      const groupHeight = revenue / HEIGHT_SCALE;  // Equal height for both groups
-      
-      revenueHeight = groupHeight;                         // Revenue = full group height
-      revenuePLHeight = 0;                                // RevenuePL = 0 (no loss)
-      expensesHeight = (expenses / revenue) * groupHeight; // Expenses portion
-      expensesPLHeight = (profit / revenue) * groupHeight; // Profit portion
-      
-      console.log(`🎯 IMMEDIATE PROFIT: Both groups = ${groupHeight.toFixed(3)} height`);
-      console.log(`   Revenue Group: Revenue=${revenueHeight.toFixed(3)} + RevenuePL=${revenuePLHeight.toFixed(3)} = ${(revenueHeight + revenuePLHeight).toFixed(3)}`);
-      console.log(`   Expenses Group: Expenses=${expensesHeight.toFixed(3)} + ExpensesPL=${expensesPLHeight.toFixed(3)} = ${(expensesHeight + expensesPLHeight).toFixed(3)}`);
-      
-    } else {
-      // LOSS SCENARIO: Expenses > Revenue  
-      // Revenue Group: Revenue + RevenuePL (loss)
-      // Expenses Group: Expenses only (ExpensesPL = 0)
-      // Both groups equal to Expenses value
-      
-      const groupHeight = expenses / HEIGHT_SCALE;  // Equal height for both groups
-      
-      revenueHeight = (revenue / expenses) * groupHeight;  // Revenue portion
-      revenuePLHeight = (loss / expenses) * groupHeight;   // Loss portion
-      expensesHeight = groupHeight;                        // Expenses = full group height
-      expensesPLHeight = 0;                               // ExpensesPL = 0 (no profit)
-      
-      console.log(`🎯 IMMEDIATE LOSS: Both groups = ${groupHeight.toFixed(3)} height`);
-      console.log(`   Revenue Group: Revenue=${revenueHeight.toFixed(3)} + RevenuePL=${revenuePLHeight.toFixed(3)} = ${(revenueHeight + revenuePLHeight).toFixed(3)}`);
-      console.log(`   Expenses Group: Expenses=${expensesHeight.toFixed(3)} + ExpensesPL=${expensesPLHeight.toFixed(3)} = ${(expensesHeight + expensesPLHeight).toFixed(3)}`);
+    // CENTRALIZED: Use FinancialsController for ALL calculations  
+    // Import the global FinancialsController instance
+    const controller = (window as any).financialsController;
+    if (!controller) {
+      console.error('❌ FinancialsController not found on window object');
+      return;
     }
+    
+    // Let FinancialsController handle all calculations and rule enforcement
+    const state = controller.updateFinancialSystem({ revenue, expenses }, false);
+    
+    // Use the calculated values from controller
+    const revenueHeight = state.revenueHeight;
+    const revenuePLHeight = state.revenuePLHeight;
+    const expensesHeight = state.expensesHeight;
+    const expensesPLHeight = state.expensesPLHeight;
+    const profit = state.profit;
+    const loss = state.loss;
+    
+    console.log(`🎯 IMMEDIATE: Using FinancialsController for all calculations`);
     
     console.log('💰 IMMEDIATE HEIGHT CALCULATIONS:', {
       revenue: revenue, expenses: expenses, profit: profit, loss: loss,
