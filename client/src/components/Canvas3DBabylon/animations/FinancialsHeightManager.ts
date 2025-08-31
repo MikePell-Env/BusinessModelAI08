@@ -579,13 +579,6 @@ export class FinancialsHeightManager {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
 
-    // Verify original vertices are still intact
-    const currentOriginals = this.originalVertices.get(mesh.name);
-    if (currentOriginals && Math.abs(currentOriginals[1] - originalVertices[1]) > 0.001) {
-      console.error(`🚨 Original vertices corrupted for ${mesh.name}! Recapturing...`);
-      this.captureOriginalVertices(mesh);
-    }
-
     console.log(`🔧 Vertex manipulation completed: ${mesh.name} height ${heightFactor}x (${anchorType}-anchored)`);
     debugLog.verbose('financials', `Vertex manipulation: ${mesh.name} height ${heightFactor}x (${anchorType}-anchored)`);
   }
