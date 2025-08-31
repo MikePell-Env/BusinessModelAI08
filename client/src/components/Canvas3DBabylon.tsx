@@ -726,6 +726,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       console.log(`✅ Unified Manager initialized for ${template.name}`);
       setIsSceneInitialized(true);
       setCurrentTemplate(template.name);
+      
+      // NO TIMING DEPENDENCIES - Template manager will find meshes dynamically
     }).catch((error) => {
       console.error(`❌ Failed to initialize unified manager: ${error}`);
     });
@@ -1358,6 +1360,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     modelLoader.loadTemplateModel(template.name).then(async (model) => {
       if (model.meshes.length > 0) {
         console.log(`✅ BMC model loaded with ${model.meshes.length} meshes`);
+        
+        // Refresh template visibility now that meshes are loaded
+        if (unifiedManagerRef.current) {
+          unifiedManagerRef.current.refreshTemplateVisibility();
+        }
 
         const rootMesh = model.rootMesh;
         rootMeshRef.current = rootMesh;

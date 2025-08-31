@@ -49,9 +49,7 @@ export class EnvisionerUnifiedManager {
     // Step 3: Create foundation labels for this template
     await this.foundation.createTemplateLabels(templateName);
 
-    // Step 4: Register templates with manager
-    this.templateManager.registerTemplate('business-model');
-    this.templateManager.registerTemplate('financials');
+    // Step 4: Template manager uses dynamic filtering - no registration needed
 
     // Step 5: Initialize core Envisioner if not exists
     if (!this.coreEnvisioner) {
@@ -74,10 +72,7 @@ export class EnvisionerUnifiedManager {
       await this.coreEnvisioner.initialize();
     }
 
-    // Step 6: Load ALL templates on first init (but only show the current one)
-    await this.loadAllTemplates();
-
-    // Step 7: Show only the current template
+    // Step 6: Show the current template (will dynamically find meshes)
     this.templateManager.showTemplate(templateName);
     this.currentTemplateName = templateName;
     
@@ -183,8 +178,7 @@ export class EnvisionerUnifiedManager {
           }
         });
         
-        // Register financial meshes with template manager
-        this.templateManager.addMeshesToTemplate('financials', financialMeshes);
+        // Template manager will find these dynamically by name patterns
       }
 
       debugLog.info('unified', '✅ Financials 4DVL content loaded');
@@ -230,59 +224,16 @@ export class EnvisionerUnifiedManager {
       box.material = material;
     });
     
-    // Register fallback meshes with template manager
-    const fallbackMeshes = this.scene.meshes.filter(mesh => 
-      mesh.name.includes('_fallback')
-    );
-    this.templateManager.addMeshesToTemplate('financials', fallbackMeshes);
+    // Template manager will find fallback meshes dynamically by name patterns
   }
 
   /**
-   * Load Business Model template content
+   * Business Model content handled by main component
    */
   private async loadBusinessModelContent(): Promise<void> {
-    debugLog.info('unified', '🏢 Loading Business Model content...');
-
-    // Business Model meshes will be registered by the BMC system
-    // We need to wait for them to load and then register them
-    await new Promise<void>((resolve) => {
-      // Use a polling approach to detect when BMC meshes are created
-      let attempts = 0;
-      const maxAttempts = 20; // 2 seconds max wait
-      
-      const checkForBMCMeshes = () => {
-        const bmcMeshes = this.scene.meshes.filter(mesh => 
-          mesh.name.includes('BMC_') || 
-          mesh.name.includes('KeyPartners') ||
-          mesh.name.includes('KeyActivities') ||
-          mesh.name.includes('KeyResources') ||
-          mesh.name.includes('ValuePropositions') ||
-          mesh.name.includes('CustomerRelationships') ||
-          mesh.name.includes('CustomerChannels') ||
-          mesh.name.includes('CustomerSegments') ||
-          mesh.name.includes('CostStructure') ||
-          mesh.name.includes('RevenueStreams')
-        );
-        
-        if (bmcMeshes.length > 0) {
-          this.templateManager.addMeshesToTemplate('business-model', bmcMeshes);
-          debugLog.info('unified', `Registered ${bmcMeshes.length} BMC meshes`);
-          resolve();
-        } else if (attempts < maxAttempts) {
-          attempts++;
-          setTimeout(checkForBMCMeshes, 100); // Check again in 100ms
-        } else {
-          // Timeout - BMC meshes not found, resolve anyway
-          debugLog.warn('unified', 'BMC meshes not found after 2 seconds');
-          resolve();
-        }
-      };
-      
-      // Start checking after a short delay to allow BMC system to initialize
-      setTimeout(checkForBMCMeshes, 100);
-    });
-
-    debugLog.info('unified', '✅ Business Model content loaded');
+    debugLog.info('unified', '🏢 Business Model handled by BMCModelLoader');
+    // BMCModelLoader in main component creates meshes
+    // Template manager finds them dynamically
   }
 
   /**
@@ -321,6 +272,16 @@ export class EnvisionerUnifiedManager {
    */
   public getFoundation(): EnvisionerFoundation | null {
     return this.foundation;
+  }
+  
+  /**
+   * Refresh template visibility - useful after async mesh loading
+   */
+  public refreshTemplateVisibility(): void {
+    if (this.currentTemplateName) {
+      this.templateManager.refreshCurrentTemplate();
+      debugLog.info('unified', `Refreshed visibility for ${this.currentTemplateName}`);
+    }
   }
 
   /**
