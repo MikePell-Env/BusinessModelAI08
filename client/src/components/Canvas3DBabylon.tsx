@@ -3478,8 +3478,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               <div className="revenue-display text-xs text-green-400 mb-1">$10M</div>
               <input
                 type="range"
-                min="100"
-                max="1000"
+                min="0"
+                max="1500"
                 defaultValue="1000"
                 id="revenue-slider"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
@@ -3493,31 +3493,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     newValue: `$${(revenue * 10 / 1000).toFixed(0)}M`
                   });
 
-                  // ISOLATED REVENUE UPDATE: Percentage-based height distribution
+                  // EQUAL GROUP HEIGHT UPDATE: Use the new FinancialsHeightManager system
                   if ((window as any).financialsHeightManager) {
                     const heightManager = (window as any).financialsHeightManager;
+                    const currentExpenses = (window as any).financialSliderState.expenses;
                     
-                    // PERCENTAGE SYSTEM: Revenue Group has fixed total height, split by percentage
-                    const HEIGHT_SCALE = 500.0;
-                    const FIXED_TOTAL_HEIGHT = 1000 / HEIGHT_SCALE; // Always 2.0 units total
+                    // Use the equal group height system
+                    const financialData = {
+                      revenue: revenue,
+                      expenses: currentExpenses,
+                      profit: Math.max(0, revenue - currentExpenses),
+                      loss: Math.max(0, currentExpenses - revenue)
+                    };
                     
-                    // Calculate percentages: Revenue slider value determines the split
-                    const revenuePercentage = revenue / 1000; // 0.0 to 1.0
-                    const lossPercentage = 1.0 - revenuePercentage; // Remaining percentage
-                    
-                    // Apply percentage distribution
-                    const revenueHeight = FIXED_TOTAL_HEIGHT * revenuePercentage;
-                    const revenuePLHeight = FIXED_TOTAL_HEIGHT * lossPercentage;
-                    
-                    console.log('💚 Revenue Group Update:', {
-                      revenuePercent: (revenuePercentage * 100).toFixed(1) + '%',
-                      lossPercent: (lossPercentage * 100).toFixed(1) + '%',
-                      revenueHeight: revenueHeight.toFixed(3),
-                      revenuePLHeight: revenuePLHeight.toFixed(3)
-                    });
-                    
-                    heightManager.setObjectHeight('Revenue', revenueHeight, 'bottom');
-                    heightManager.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
+                    heightManager.updateHeightsFromData(financialData, 0); // Immediate update
                   }
 
                   // Update the display values
@@ -3525,15 +3514,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   if (revenueDisplay) revenueDisplay.textContent = `$${(revenue * 10 / 1000).toFixed(0)}M`;
                 }}
               />
-              <span className="text-xs text-gray-300">$1M - $10M</span>
+              <span className="text-xs text-gray-300">$0M - $15M</span>
             </div>
             <div>
               <label className="block text-xs mb-1">Expenses Total</label>
               <div className="expenses-display text-xs text-red-400 mb-1">$8M</div>
               <input
                 type="range"
-                min="100"
-                max="1000"
+                min="0"
+                max="1200"
                 defaultValue="800"
                 id="expenses-slider"
                 className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
@@ -3547,30 +3536,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     newValue: `$${(expenses * 10 / 1000).toFixed(0)}M`
                   });
 
-                  // ISOLATED EXPENSES UPDATE: Only update Expenses objects, no cross-contamination
+                  // EQUAL GROUP HEIGHT UPDATE: Use the new FinancialsHeightManager system
                   if ((window as any).financialsHeightManager) {
                     const heightManager = (window as any).financialsHeightManager;
-                    
-                    // Get current revenue value for profit calculation
                     const currentRevenue = (window as any).financialSliderState.revenue;
                     
-                    // Calculate profit for ExpensesPL object
-                    const profit = Math.max(0, currentRevenue - expenses);
-                    
-                    // Direct height updates
-                    const HEIGHT_SCALE = 500.0;
-                    const expensesHeight = expenses / HEIGHT_SCALE;
-                    const expensesPLHeight = profit / HEIGHT_SCALE;
-                    
-                    console.log('🔴 Expenses Group Update:', {
+                    // Use the equal group height system
+                    const financialData = {
+                      revenue: currentRevenue,
                       expenses: expenses,
-                      profit: profit,
-                      expensesHeight: expensesHeight.toFixed(3),
-                      expensesPLHeight: expensesPLHeight.toFixed(3)
-                    });
+                      profit: Math.max(0, currentRevenue - expenses),
+                      loss: Math.max(0, expenses - currentRevenue)
+                    };
                     
-                    heightManager.setObjectHeight('Expenses', expensesHeight, 'bottom');
-                    heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
+                    heightManager.updateHeightsFromData(financialData, 0); // Immediate update
                   }
 
                   // Update the display values
@@ -3578,7 +3557,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   if (expensesDisplay) expensesDisplay.textContent = `$${(expenses * 10 / 1000).toFixed(0)}M`;
                 }}
               />
-              <span className="text-xs text-gray-300">$1M - $10M</span>
+              <span className="text-xs text-gray-300">$0M - $12M</span>
             </div>
           </div>
           <div className="flex gap-2 justify-center">
