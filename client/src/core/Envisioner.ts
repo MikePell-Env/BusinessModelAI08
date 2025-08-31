@@ -118,13 +118,20 @@ export class Envisioner {
     // Create the master transform node with spatial properties from EnvisionerObject
     this.masterTransform = new TransformNode("envisionerMasterTransform", this.scene);
     
-    // Apply persistent spatial properties
+    // CRITICAL: ALWAYS force lock position during creation to prevent any initialization drift
+    this.masterTransform.position.x = 0; // Always centered horizontally 
+    this.masterTransform.position.y = 2; // Consistent vertical position (elevated from ground)
+    this.masterTransform.position.z = 0; // Always centered in depth
+    
+    // Apply other spatial properties
     const spatial = this.envisionerObject.spatial;
-    this.masterTransform.position = spatial.position.clone();
     this.masterTransform.rotationQuaternion = spatial.rotation.clone();
     this.masterTransform.scaling = spatial.scale.clone();
     
-    console.log(`🏗️ Envisioner master transform created at position: (${spatial.position.x}, ${spatial.position.y}, ${spatial.position.z})`);
+    // Update spatial data to match locked position
+    this.envisionerObject.spatial.position = new Vector3(0, 2, 0);
+    
+    console.log(`🏗️ Envisioner master transform created at LOCKED position: (0, 2, 0)`);
   }
 
   /**
