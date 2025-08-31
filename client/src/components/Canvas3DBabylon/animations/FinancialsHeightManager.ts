@@ -11,7 +11,10 @@ import {
   Vector3,
   Animation,
   CubicEase,
-  EasingFunction
+  EasingFunction,
+  MeshBuilder,
+  StandardMaterial,
+  Texture
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
@@ -37,6 +40,10 @@ export class FinancialsHeightManager {
   private baseHeight: number = 1.0;
   private maxVisualizationHeight: number = 5.0;
   private previousData: FinancialData | null = null;
+  
+  // Face-aligned labels system
+  private faceLabels: Map<string, Mesh> = new Map();
+  private labelsEnabled: boolean = true;
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -58,6 +65,9 @@ export class FinancialsHeightManager {
         
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
+        
+        // Create face-aligned label for this mesh
+        this.createFaceAlignedLabel(mesh);
         
       }
     });
@@ -532,6 +542,9 @@ export class FinancialsHeightManager {
     // Store the VISUAL stretch factor for label correction (not the heightFactor)
     this.currentHeightFactors.set(mesh.name, visualStretchFactor);
     
+    // Update face label position after height change
+    this.updateFaceAlignedLabel(mesh);
+    
     // Modify vertices based on anchor type - CONSTRAINED to original bounds
     for (let i = 1; i < newVertices.length; i += 3) {
       const originalY = originalVertices[i];
@@ -574,5 +587,112 @@ export class FinancialsHeightManager {
       financialsLabelManager.updateLabelPosition(mesh.name);
       debugLog.verbose('financials', `Label position updated for ${mesh.name}`);
     }
+  }
+
+  /**
+   * Create face-aligned label for financial mesh
+   */
+  private createFaceAlignedLabel(mesh: Mesh): void {
+    if (!this.labelsEnabled) return;
+    
+    const meshName = mesh.name;
+    const labelTexturePath = this.getLabelTexturePath(meshName);
+    if (!labelTexturePath) return;
+    
+    try {
+      // Create label plane with fixed size
+      const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
+        size: 1.5, // Fixed size - never scales with geometry
+        sideOrientation: Mesh.FRONTSIDE
+      }, this.scene);
+      
+      // Create material with PNG texture
+      const material = new StandardMaterial(`${meshName}LabelMat`, this.scene);
+      material.diffuseTexture = new Texture(labelTexturePath, this.scene);
+      material.hasAlpha = true;
+      material.useAlphaFromDiffuseTexture = true;
+      material.backFaceCulling = false;
+      
+      labelPlane.material = material;
+      
+      // Set face-aligned orientation (no billboard)
+      labelPlane.rotation.x = 0;
+      labelPlane.rotation.y = 0; 
+      labelPlane.rotation.z = 0;
+      
+      // Store and position the label
+      this.faceLabels.set(meshName, labelPlane);
+      this.updateFaceAlignedLabel(mesh);
+      
+      debugLog.info('financials', `Face-aligned label created for ${meshName}`);
+    } catch (error) {
+      debugLog.warn('financials', `Failed to create label for ${meshName}:`, error);
+    }
+  }
+  
+  /**
+   * Update face-aligned label position based on mesh bounds
+   */
+  private updateFaceAlignedLabel(mesh: Mesh): void {
+    const label = this.faceLabels.get(mesh.name);
+    if (!label || !this.labelsEnabled) return;
+    
+    // Calculate front face center
+    const bounds = mesh.getBoundingInfo();
+    const center = bounds.boundingBox.center;
+    
+    // Position at front face center with small offset
+    label.position.x = center.x;
+    label.position.y = center.y;
+    label.position.z = bounds.boundingBox.maximum.z + 0.02;
+  }
+  
+  /**
+   * Get texture path for mesh label
+   */
+  private getLabelTexturePath(meshName: string): string | null {
+    const labelMap: Record<string, string> = {
+      'Revenue': '/textures/Label_Revenue.png',
+      'Expenses': '/textures/Label_Expenses.png', 
+      'ExpensesPL': '/textures/Label_Profit.png',
+      'RevenuePL': '/textures/Label_Loss.png'
+    };
+    return labelMap[meshName] || null;
+  }
+  
+  /**
+   * Enable or disable face-aligned labels
+   */
+  public setLabelsEnabled(enabled: boolean): void {
+    this.labelsEnabled = enabled;
+    this.faceLabels.forEach(label => {
+      label.setEnabled(enabled);
+    });
+  }
+
+  /**
+   * Clean up resources and animations
+   */
+  public dispose(): void {
+    this.stopAllAnimations();
+    
+    // Dispose face-aligned labels
+    this.faceLabels.forEach(label => {
+      if (label.material) {
+        label.material.dispose();
+      }
+      label.dispose();
+    });
+    this.faceLabels.clear();
+    
+    // Clear maps but keep references intact for safety
+    this.financialMeshes.clear();
+    this.originalPositions.clear();
+    this.originalVertices.clear();
+    this.currentHeightFactors.clear();
+    
+    this.previousData = null;
+    
+    debugLog.info('financials', 'FinancialsHeightManager disposed');
   }
 }
