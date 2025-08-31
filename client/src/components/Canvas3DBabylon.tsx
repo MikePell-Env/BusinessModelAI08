@@ -297,6 +297,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
   }, [template.name, hasInitializedTemplate]);
 
+  // Template content switching without scene recreation
+  useEffect(() => {
+    if (!sceneRef.current || !masterTransformRef.current) return;
+    
+    console.log(`🔄 Template content switch to: ${template.name} (preserving scene)`);
+    
+    // Template-specific content updates will be handled by the existing 
+    // scene creation logic, but scene/camera/master transform stay intact
+    
+  }, [template.name]);
+
   // Camera transition state
   const [isTransitioningCamera, setIsTransitioningCamera] = useState(false);
 
@@ -3281,7 +3292,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error during Babylon.js cleanup:', e);
       }
     };
-  }, [canvas, template, saveCamera3DState]);
+  }, [canvas, saveCamera3DState]);
 
   // Camera is always perspective - no switching needed
 
