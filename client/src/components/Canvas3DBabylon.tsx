@@ -39,6 +39,8 @@ import '@babylonjs/loaders/glTF';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { BMCComponentName, BMC_COMPONENTS } from '@/types/bmcState';
+import { MaterialPool } from './Canvas3DBabylon/materials/MaterialPool';
+import { MemoryManager } from './Canvas3DBabylon/utils/MemoryManager';
 import { CleanBMCSystem } from '@/lib/cleanBMCSystem';
 import { BabylonAnimationManager } from '@/lib/babylon/BabylonAnimationManager';
 import { debugLog } from '@/lib/debug/DebugLogger';
@@ -1248,7 +1250,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Initialize model loader (view transitions integrated into CanvasManager)
     const modelLoader = new BMCModelLoader(scene);
 
-    // REMOVED: MaterialManager initialization - using direct property modification instead
+    // Initialize Babylon.js best practice systems
+    const materialPool = MaterialPool.getInstance(scene);
+    const memoryManager = new MemoryManager();
 
     // Setup unified interaction manager with callbacks
     interactionManagerRef.current = new UnifiedInteractionManager(scene, {
@@ -1462,11 +1466,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
             // TransformNode created for coordinate control
 
-            // Create StandardMaterial with PBR-compatible properties for hover behavior
-            const sectionMaterial = new StandardMaterial(`bmcSection_${index}`, scene) as any;
-
-            // Enhanced material with better polish and depth
-            sectionMaterial.diffuseColor = baseColor;
+            // Use material pool to prevent memory leaks (Babylon.js best practice)
+            const sectionMaterial = materialPool.getMaterial(`bmcSection_${sectionName}`, baseColor) as any;
+            
+            // Track for proper disposal
+            memoryManager.track(sectionMaterial);
 
             // Reduce lighting for Loss and Profit shapes to prevent blown-out look
             if (template.name.toLowerCase() === 'financials' && (mesh.name === 'RevenuePL' || mesh.name === 'ExpensesPL')) {
@@ -3095,11 +3099,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.warn('Error cleaning up unified systems and managers:', e);
       }
 
-      // Properly dispose of Babylon.js resources using SceneSetupAdapter
+      // Properly dispose of Babylon.js resources using SceneSetupAdapter and memory manager
       try {
+        // Clean up tracked resources first
+        if (memoryManager) {
+          memoryManager.disposeAll();
+        }
+        
         if (unifiedSceneRef.current) {
           unifiedSceneRef.current.dispose();
         }
+        
+        // Dispose material pool
+        if (MaterialPool.getInstance && scene) {
+          MaterialPool.getInstance(scene).dispose();
+        }
+        
         sceneRef.current = null;
         engineRef.current = null;
       } catch (e) {
