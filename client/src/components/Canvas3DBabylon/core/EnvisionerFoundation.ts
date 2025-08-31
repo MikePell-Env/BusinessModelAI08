@@ -117,6 +117,11 @@ export class EnvisionerFoundation {
       height: this.config.groundPlane.height 
     }, this.scene);
     ground.parent = this.masterTransform;
+    
+    // CRITICAL: Lock master transform position after parenting
+    this.masterTransform.position.x = 0;
+    this.masterTransform.position.y = 2;
+    this.masterTransform.position.z = 0;
 
     // Create dynamic texture for powder blue grid pattern with white lines
     const gridTexture = new DynamicTexture("envisionerGridTexture", { width: 1024, height: 1024 }, this.scene, false);
@@ -196,6 +201,11 @@ export class EnvisionerFoundation {
     northRail.position.z = this.config.groundPlane.height / 2 + this.config.rails.thickness / 2;
     northRail.material = railMaterial;
     northRail.parent = this.masterTransform;
+    
+    // CRITICAL: Lock master transform position after parenting
+    this.masterTransform.position.x = 0;
+    this.masterTransform.position.y = 2;
+    this.masterTransform.position.z = 0;
 
     // South rail (bottom)
     const southRail = MeshBuilder.CreateBox("envisionerSouthRail", {
@@ -206,6 +216,11 @@ export class EnvisionerFoundation {
     southRail.position.z = -(this.config.groundPlane.height / 2 + this.config.rails.thickness / 2);
     southRail.material = railMaterial;
     southRail.parent = this.masterTransform;
+    
+    // CRITICAL: Lock master transform position after parenting
+    this.masterTransform.position.x = 0;
+    this.masterTransform.position.y = 2;
+    this.masterTransform.position.z = 0;
 
     // East rail (right)
     const eastRail = MeshBuilder.CreateBox("envisionerEastRail", {
@@ -216,6 +231,11 @@ export class EnvisionerFoundation {
     eastRail.position.x = this.config.groundPlane.width / 2 + this.config.rails.thickness / 2;
     eastRail.material = railMaterial;
     eastRail.parent = this.masterTransform;
+    
+    // CRITICAL: Lock master transform position after parenting
+    this.masterTransform.position.x = 0;
+    this.masterTransform.position.y = 2;
+    this.masterTransform.position.z = 0;
 
     // West rail (left)
     const westRail = MeshBuilder.CreateBox("envisionerWestRail", {
@@ -226,6 +246,11 @@ export class EnvisionerFoundation {
     westRail.position.x = -(this.config.groundPlane.width / 2 + this.config.rails.thickness / 2);
     westRail.material = railMaterial;
     westRail.parent = this.masterTransform;
+    
+    // CRITICAL: Lock master transform position after parenting
+    this.masterTransform.position.x = 0;
+    this.masterTransform.position.y = 2;
+    this.masterTransform.position.z = 0;
 
     this.foundationComponents.set('rails', { north: northRail, south: southRail, east: eastRail, west: westRail });
     debugLog.verbose('envisioner', '🛤️ Rails created');
@@ -311,6 +336,11 @@ export class EnvisionerFoundation {
     internalLabelPlane.material = internalLabelMaterial;
     internalLabelPlane.isPickable = false;
     internalLabelPlane.parent = this.masterTransform;
+    
+    // CRITICAL: Lock master transform position after parenting
+    this.masterTransform.position.x = 0;
+    this.masterTransform.position.y = 2;
+    this.masterTransform.position.z = 0;
 
     this.foundationComponents.set('internalLabel', internalLabelPlane);
   }
@@ -361,6 +391,11 @@ export class EnvisionerFoundation {
     externalLabelPlane.material = externalLabelMaterial;
     externalLabelPlane.isPickable = false;
     externalLabelPlane.parent = this.masterTransform;
+    
+    // CRITICAL: Lock master transform position after parenting
+    this.masterTransform.position.x = 0;
+    this.masterTransform.position.y = 2;
+    this.masterTransform.position.z = 0;
 
     this.foundationComponents.set('externalLabel', externalLabelPlane);
   }
@@ -417,6 +452,11 @@ export class EnvisionerFoundation {
     verticalDividerPlane.material = verticalDividerMaterial;
     verticalDividerPlane.isPickable = false;
     verticalDividerPlane.parent = this.masterTransform;
+    
+    // CRITICAL: Lock master transform position after parenting
+    this.masterTransform.position.x = 0;
+    this.masterTransform.position.y = 2;
+    this.masterTransform.position.z = 0;
 
     this.foundationComponents.set('verticalDividerLabel', verticalDividerPlane);
   }

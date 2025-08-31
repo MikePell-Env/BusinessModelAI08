@@ -136,7 +136,9 @@ export class EnvisionerPersistence {
 
     this.spatialState = {
       position: new Vector3(0, 2, 0), // Always use fixed position, don't save drift
-      rotation: this.masterTransform.rotation.clone(),
+      rotation: this.masterTransform.rotationQuaternion ? 
+        this.masterTransform.rotationQuaternion.clone() : 
+        Quaternion.FromEulerAngles(this.masterTransform.rotation.x, this.masterTransform.rotation.y, this.masterTransform.rotation.z),
       scale: this.masterTransform.scaling.clone(),
       isInitialized: true
     };
