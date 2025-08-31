@@ -53,8 +53,10 @@ export class EnvisionerPersistence {
         this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
       }
       
-      // Keep Y position consistent across all templates - no shifting
-      // this.masterTransform.position.y remains unchanged to prevent template switching shifts
+      // Keep position absolutely consistent across all templates - no shifting
+      this.masterTransform.position.x = 0; // Always centered horizontally 
+      this.masterTransform.position.y = 2; // Consistent vertical position
+      this.masterTransform.position.z = 0; // Always centered in depth
       
       return this.masterTransform;
     }
@@ -106,8 +108,10 @@ export class EnvisionerPersistence {
       this.masterTransform.rotation.x = Math.PI / 12 + (5 * Math.PI / 180) + (-10 * Math.PI / 180) + (-10 * Math.PI / 180);
     }
     
-    // Set consistent Y position for all templates - no shifting
-    this.masterTransform.position.y = 2; // Consistent position for all templates
+    // Set consistent position for all templates - no shifting
+    this.masterTransform.position.x = 0; // Always centered horizontally 
+    this.masterTransform.position.y = 2; // Consistent vertical position
+    this.masterTransform.position.z = 0; // Always centered in depth
 
     // Apply dynamic scaling based on canvas size
     const canvas = document.querySelector('canvas');
