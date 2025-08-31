@@ -810,6 +810,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             (scene as any).financialsHeightManager = financialsHeightManager;
             (scene as any).financialsDataAdapter = financialsDataAdapter;
             
+            console.warn(`🔧 REGISTERING FINANCIAL MESHES: Found ${model.meshes.length} meshes`);
+            model.meshes.forEach(mesh => {
+              console.warn(`📦 Available mesh: ${mesh.name}`);
+            });
             financialsHeightManager.registerFinancialMeshes(model.meshes);
             
             (window as any).financialsHeightManager = financialsHeightManager;
