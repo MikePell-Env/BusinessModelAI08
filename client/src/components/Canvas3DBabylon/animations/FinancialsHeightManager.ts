@@ -575,38 +575,9 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Create a test cube on ground plane to verify positioning works
-   */
-  private createTestCube(): void {
-    const { MeshBuilder } = require('@babylonjs/core');
-    
-    const testCube = MeshBuilder.CreateBox("TestCube", {
-      width: 2,
-      height: 1,
-      depth: 2
-    }, this.scene);
-    
-    // Position clearly on ground plane
-    testCube.position.x = 0;
-    testCube.position.y = 0.5; // Half the cube height above ground
-    testCube.position.z = 0;
-    
-    // Make it bright red so it's visible
-    const material = new StandardMaterial("TestCubeMaterial", this.scene);
-    material.diffuseColor = new Color3(1, 0, 0); // Bright red
-    material.emissiveColor = new Color3(0.2, 0, 0); // Slight glow
-    testCube.material = material;
-    
-    debugLog.info('financials', `Test cube created at ground center (${testCube.position.x}, ${testCube.position.y}, ${testCube.position.z})`);
-  }
-
-  /**
    * Apply PNG label texture overlay directly to financial object material
    */
   private applyLabelOverlay(mesh: Mesh): void {
-    // Create test cube first to verify positioning
-    this.createTestCube();
-    
     const meshName = mesh.name;
     const texturePath = this.getLabelTexturePath(meshName);
     if (!texturePath) return;
