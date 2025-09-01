@@ -1607,20 +1607,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           
           // Handle Financial object clicks
           if (financialObjects.includes(sectionId)) {
-            console.log(`💰 CLICK: ${sectionId} (current: ${currentSelectedFinancialObject})`);
+            console.log(`💰 CLICK: ${sectionId}`);
+            console.log(`💰 STATE: currentSelectedFinancialObject = "${currentSelectedFinancialObject}"`);
+            console.log(`💰 COMPARISON: "${currentSelectedFinancialObject}" === "${sectionId}" = ${currentSelectedFinancialObject === sectionId}`);
             
             if (currentSelectedFinancialObject === null) {
-              // No selection → Select this object
+              console.log(`💰 CASE: No selection - will select ${sectionId}`);
               selectObject(sectionId);
             } else if (currentSelectedFinancialObject === sectionId) {
-              // Same object clicked → Deselect (restore all)
+              console.log(`💰 CASE: Same object clicked - will deselect ${sectionId}`);
               restoreAll();
             } else {
-              // Different object clicked → Switch selection
+              console.log(`💰 CASE: Different object clicked - will switch from ${currentSelectedFinancialObject} to ${sectionId}`);
               selectObject(sectionId);
             }
           } else if (currentSelectedFinancialObject) {
-            // Clicked non-Financial object → Restore all
+            console.log(`💰 CASE: Non-financial object clicked - will restore all`);
             restoreAll();
           }
         }
