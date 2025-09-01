@@ -2578,17 +2578,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // Position label at center of front face (keep original working logic)
-              labelPlane.position.x = center.x; // Use bounding center X
-              labelPlane.position.y = center.y; // Use bounding center Y  
-              labelPlane.position.z = center.z - size.z * 0.51; // Front face position
-              
-              // Calculate exact front face center based on current label position (which is close)
-              // Use the label position as reference and adjust to get exact front face center
-              const frontFaceCenterX = labelPlane.position.x; // Label X is close to correct position
-              const frontFaceCenterY = labelPlane.position.y; // Label Y is close to correct position
-              const frontFaceCenterZ = center.z - size.z * 0.5; // Exact front face Z (not 0.51 offset)
-              labelPlane.position.z = frontFaceCenterZ - 0.01; // Slightly in front
+              // Fine-tune positioning using the same bounding box logic but with precise adjustments
+              // Base position from bounding box center (the method that got us "close")
+              let adjustedX = center.x;
+              let adjustedY = center.y;
+              let adjustedZ = center.z - size.z * 0.5; // Exact front face
+
+              // Object-specific fine-tuning to center perfectly on front faces
+              if (mesh.name === "Revenue") {
+                // Revenue (green): fine-tune for perfect center
+                adjustedY = center.y + 0.05; // Slight upward adjustment
+              } else if (mesh.name === "Expenses") {
+                // Expenses (red): fine-tune for perfect center
+                adjustedY = center.y + 0.05; // Slight upward adjustment
+              } else if (mesh.name === "ExpensesPL") {
+                // Profit (black): fine-tune for perfect center
+                adjustedY = center.y - 0.05; // Slight downward adjustment
+              } else if (mesh.name === "RevenuePL") {
+                // Loss (gold): fine-tune for perfect center
+                adjustedY = center.y - 0.05; // Slight downward adjustment
+              }
+
+              // Apply the fine-tuned positioning
+              labelPlane.position.x = adjustedX;
+              labelPlane.position.y = adjustedY;
+              labelPlane.position.z = adjustedZ - 0.01; // Slightly in front
 
 
               // Face forward (no rotation needed for front-facing labels)
