@@ -1547,9 +1547,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           const restoreAll = () => {
             financialObjects.forEach(objName => {
               const objMesh = scene.getMeshByName(objName);
-              if (objMesh && objMesh.material) {
-                objMesh.material.alpha = 1.0;
-                objMesh.material.transparencyMode = 0; // OPAQUE
+              if (objMesh) {
+                console.log(`🔧 ${objName}: mesh found, material:`, !!objMesh.material, 'multiMaterial:', !!(objMesh as any).multiMaterial);
+                
+                // Handle regular material
+                if (objMesh.material) {
+                  console.log(`🔧 ${objName}: setting material alpha to 1.0`);
+                  objMesh.material.alpha = 1.0;
+                  objMesh.material.transparencyMode = 0; // OPAQUE
+                }
+                
+                // Handle multi-material (common for complex models)
+                if ((objMesh as any).multiMaterial) {
+                  console.log(`🔧 ${objName}: processing multiMaterial with ${(objMesh as any).multiMaterial.subMaterials.length} submaterials`);
+                  (objMesh as any).multiMaterial.subMaterials.forEach((subMat: any, index: number) => {
+                    if (subMat) {
+                      console.log(`🔧 ${objName}: setting submaterial ${index} alpha to 1.0`);
+                      subMat.alpha = 1.0;
+                      subMat.transparencyMode = 0; // OPAQUE
+                    }
+                  });
+                }
+              } else {
+                console.log(`❌ ${objName}: mesh not found!`);
               }
             });
             setCurrentSelectedFinancialObject(null);
@@ -1560,9 +1580,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           const selectObject = (selectedId: string) => {
             financialObjects.forEach(objName => {
               const objMesh = scene.getMeshByName(objName);
-              if (objMesh && objMesh.material) {
-                objMesh.material.transparencyMode = 3; // ALPHABLEND
-                objMesh.material.alpha = (objName === selectedId) ? 1.0 : 0.2;
+              if (objMesh) {
+                const targetAlpha = (objName === selectedId) ? 1.0 : 0.2;
+                console.log(`🔧 ${objName}: setting alpha to ${targetAlpha}`);
+                
+                // Handle regular material
+                if (objMesh.material) {
+                  objMesh.material.transparencyMode = 3; // ALPHABLEND
+                  objMesh.material.alpha = targetAlpha;
+                }
+                
+                // Handle multi-material
+                if ((objMesh as any).multiMaterial) {
+                  (objMesh as any).multiMaterial.subMaterials.forEach((subMat: any) => {
+                    if (subMat) {
+                      subMat.transparencyMode = 3; // ALPHABLEND
+                      subMat.alpha = targetAlpha;
+                    }
+                  });
+                }
               }
             });
             setCurrentSelectedFinancialObject(selectedId);
