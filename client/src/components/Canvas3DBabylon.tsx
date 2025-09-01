@@ -1710,12 +1710,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         createBillboardPanel(sectionId, worldPosition);
       },
       onHoverEnter: (sectionId: string, mesh: AbstractMesh) => {
-        if (cleanBMCRef.current) {
+        // Skip BMC hover effects for Financial objects - they have their own system
+        const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
+        if (!financialObjects.includes(sectionId) && cleanBMCRef.current) {
           cleanBMCRef.current.onHover(sectionId, true);
         }
       },
       onHoverExit: (sectionId: string, mesh: AbstractMesh) => {
-        if (cleanBMCRef.current) {
+        // Skip BMC hover effects for Financial objects - they have their own system
+        const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
+        if (!financialObjects.includes(sectionId) && cleanBMCRef.current) {
           cleanBMCRef.current.onHover(sectionId, false);
         }
       },
