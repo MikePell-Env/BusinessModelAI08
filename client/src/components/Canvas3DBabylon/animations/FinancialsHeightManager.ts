@@ -590,6 +590,13 @@ export class FinancialsHeightManager {
       return;
     }
     
+    // Get master transform to parent the cube correctly
+    const masterTransform = persistence.getMasterTransform();
+    if (!masterTransform) {
+      debugLog.warn('financials', 'No master transform available for test cube');
+      return;
+    }
+    
     // Create small cube
     this.testCube = MeshBuilder.CreateBox("GroundPlaneTestCube", {
       width: 1,
@@ -597,10 +604,15 @@ export class FinancialsHeightManager {
       depth: 1
     }, this.scene);
     
-    // Position using ground plane reference - place at front edge of ground plane
-    this.testCube.position.x = groundRef.bounds.minX + 2; // Near left edge
-    this.testCube.position.y = groundRef.bounds.centerY + 0.25; // Half cube height above ground
-    this.testCube.position.z = groundRef.bounds.minZ + 2; // Near front edge
+    // CRITICAL: Parent to master transform like financial objects
+    this.testCube.parent = masterTransform;
+    
+    // Position relative to master transform coordinate system
+    // Since master transform is at Y=2, and ground plane is at Y=0 relative to master transform
+    // Financial objects sit at Y=0.1 relative to master transform
+    this.testCube.position.x = 2; // Offset from center
+    this.testCube.position.y = 0.35; // Above ground plane (0.1 base + 0.25 cube height)
+    this.testCube.position.z = 2; // Offset from center
     
     // Make it bright green so it's clearly visible
     const material = new StandardMaterial("GroundPlaneTestCubeMaterial", this.scene);
@@ -610,7 +622,7 @@ export class FinancialsHeightManager {
     
     this.testCube.isPickable = false; // Don't interfere with interactions
     
-    debugLog.info('financials', `Test cube created using ground plane reference at (${this.testCube.position.x.toFixed(2)}, ${this.testCube.position.y.toFixed(2)}, ${this.testCube.position.z.toFixed(2)})`);
+    debugLog.info('financials', `Test cube created parented to master transform at relative position (${this.testCube.position.x.toFixed(2)}, ${this.testCube.position.y.toFixed(2)}, ${this.testCube.position.z.toFixed(2)})`);
   }
 
   /**
