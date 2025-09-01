@@ -776,7 +776,7 @@ export class FinancialsHeightManager {
     const scaling = mesh.scaling;
     const rotation = mesh.rotation;
     
-    debugLog.info('financials', `🔍 ${meshName} TRANSFORMS:
+    console.log(`🔍 ${meshName} TRANSFORMS:
       - Local Position: (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})
       - World Position: (${worldPosition.x.toFixed(2)}, ${worldPosition.y.toFixed(2)}, ${worldPosition.z.toFixed(2)})
       - Scaling: (${scaling.x.toFixed(2)}, ${scaling.y.toFixed(2)}, ${scaling.z.toFixed(2)})
@@ -812,14 +812,13 @@ export class FinancialsHeightManager {
       // CRITICAL: Parent to the financial object itself so it tracks with height changes
       labelPlane.parent = mesh;
       
-      // Position relative to mesh using bounding box info
-      // Convert world bounding center to local mesh coordinates
-      const worldMatrix = mesh.getWorldMatrix();
-      const localCenter = Vector3.TransformCoordinates(center, worldMatrix.invert());
+      // Position directly on the front face using bounding box maximums
+      // The front face is at the maximum Z coordinate of the bounding box
+      const frontZ = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z; // Front face depth
       
-      labelPlane.position.x = 0; // Center horizontally
-      labelPlane.position.y = localCenter.y; // Use actual center height
-      labelPlane.position.z = size.z * 0.6; // Position in front based on actual depth
+      labelPlane.position.x = 0; // Center horizontally on mesh
+      labelPlane.position.y = 0; // Center vertically on mesh 
+      labelPlane.position.z = frontZ / 2 + 0.01; // Position at front face + tiny offset
       
       // Create material using proven BMC method
       const material = new StandardMaterial(`${meshName}LabelMaterial`, this.scene);
@@ -841,7 +840,7 @@ export class FinancialsHeightManager {
       
       this.labelPlanes.set(meshName, labelPlane);
       
-      debugLog.info('financials', `Label plane created for ${meshName} using actual bounds - positioned at local (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
+      console.log(`📍 Label plane created for ${meshName} using actual bounds - positioned at local (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
     } catch (error) {
       debugLog.warn('financials', `Failed to create label for ${meshName}:`, error);
     }
