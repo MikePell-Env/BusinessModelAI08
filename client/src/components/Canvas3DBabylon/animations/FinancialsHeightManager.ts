@@ -94,7 +94,7 @@ export class FinancialsHeightManager {
     this.faceLabels.forEach((label, meshName) => {
       const mesh = this.financialMeshes.get(meshName);
       if (mesh) {
-        this.positionLabelOnFrontFace(label, mesh);
+        this.updateLabelPosition(label, mesh);
       }
     });
   }
@@ -580,7 +580,7 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Create face texture label using PNG files applied to front face
+   * Create floating label using exact BMC system approach (WORKING IMPLEMENTATION)
    */
   private createFaceTextureLabel(mesh: Mesh): void {
     const meshName = mesh.name;
@@ -588,44 +588,60 @@ export class FinancialsHeightManager {
     if (!texturePath) return;
     
     try {
-      // Get mesh bounding info to size label appropriately
-      mesh.refreshBoundingInfo();
-      const bounds = mesh.getBoundingInfo();
-      const size = bounds.boundingBox.maximum.subtract(bounds.boundingBox.minimum);
+      // Get mesh bounds for positioning (EXACT BMC approach)
+      const boundingInfo = mesh.getBoundingInfo();
+      const center = boundingInfo.boundingBox.center;
+      const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
       
-      // Create label plane sized to fit on front face
-      const labelPlane = MeshBuilder.CreatePlane(`${meshName}_FaceLabel`, {
-        width: size.x * 0.8,  // 80% of mesh width
-        height: size.y * 0.3, // 30% of mesh height for text area
-        sideOrientation: Mesh.FRONTSIDE
+      // Calculate label size based on mesh width (BMC approach)
+      const labelWidth = size.x * 0.51; // Same as BMC financial labels
+      const labelHeight = labelWidth * 0.35; // Proper aspect ratio
+      
+      // Create label plane (EXACT BMC approach)
+      const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
+        width: labelWidth,
+        height: labelHeight
       }, this.scene);
       
-      // Create material with PNG texture
-      const material = new StandardMaterial(`${meshName}_FaceLabelMat`, this.scene);
-      const texture = new Texture(texturePath, this.scene);
+      // Position on top face like BMC labels (EXACT BMC approach)
+      labelPlane.position.x = center.x; // Center horizontally
+      labelPlane.position.y = center.y + size.y * 0.6; // Position on top face (BMC approach)
+      labelPlane.position.z = center.z; // Center vertically
       
-      // Configure texture for crisp rendering
-      texture.updateSamplingMode(Texture.LINEAR_LINEAR);
-      texture.wrapU = Texture.CLAMP_ADDRESSMODE;
-      texture.wrapV = Texture.CLAMP_ADDRESSMODE;
-      texture.anisotropicFilteringLevel = 4;
+      // Rotate to be flat on top (EXACT BMC approach)
+      labelPlane.rotation.x = Math.PI / 2;
       
-      material.diffuseTexture = texture;
-      material.useAlphaFromDiffuseTexture = true;
-      material.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
-      material.backFaceCulling = false;
+      // Create material with texture (EXACT BMC approach)
+      const labelMaterial = new StandardMaterial(`${meshName}LabelMat`, this.scene);
+      const labelTexture = new Texture(texturePath, this.scene);
+      labelTexture.hasAlpha = true;
       
-      labelPlane.material = material;
+      // Use BMC enhanceLabelTexture approach
+      labelTexture.updateSamplingMode(Texture.LINEAR_LINEAR);
+      labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
+      labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
+      labelTexture.anisotropicFilteringLevel = 4;
       
-      // Position on front face of mesh
-      this.positionLabelOnFrontFace(labelPlane, mesh);
+      // EXACT BMC material setup
+      labelMaterial.diffuseTexture = labelTexture;
+      labelMaterial.emissiveTexture = labelTexture;
+      labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // BMC approach
+      labelMaterial.useAlphaFromDiffuseTexture = true;
+      labelMaterial.disableLighting = true; // BMC approach
+      labelMaterial.backFaceCulling = false;
+      
+      labelPlane.material = labelMaterial;
+      
+      // Parent to mesh (EXACT BMC approach)
+      labelPlane.parent = mesh;
+      labelPlane.isPickable = false;
       
       // Store label reference
       this.faceLabels.set(meshName, labelPlane);
       
-      debugLog.info('financials', `Face texture label created for ${meshName}`);
+      debugLog.info('financials', `BMC-style floating label created for ${meshName} at (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
     } catch (error) {
-      debugLog.warn('financials', `Failed to create face texture label for ${meshName}:`, error);
+      debugLog.warn('financials', `Failed to create BMC-style label for ${meshName}:`, error);
     }
   }
 
@@ -643,26 +659,20 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Position label on the front face center of the mesh
+   * Update label position when mesh height changes (BMC approach)
    */
-  private positionLabelOnFrontFace(labelPlane: Mesh, mesh: Mesh): void {
-    // Get mesh bounds for positioning
-    mesh.refreshBoundingInfo();
-    const bounds = mesh.getBoundingInfo();
-    const center = bounds.boundingBox.center;
-    const max = bounds.boundingBox.maximum;
+  private updateLabelPosition(labelPlane: Mesh, mesh: Mesh): void {
+    // Get mesh bounds for positioning (BMC approach)
+    const boundingInfo = mesh.getBoundingInfo();
+    const center = boundingInfo.boundingBox.center;
+    const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
     
-    // Position label on front face center - BUT ensure it's well above ground plane
-    labelPlane.position.x = center.x;
-    labelPlane.position.y = Math.max(center.y, 1.0); // Force minimum Y=1.0 to stay above ground
-    labelPlane.position.z = max.z + 0.1; // Further in front to ensure visibility
+    // Update position on top face (BMC approach - since label is parented to mesh, use relative positioning)
+    labelPlane.position.x = 0; // Relative to parent mesh center
+    labelPlane.position.y = size.y * 0.6; // Above mesh top
+    labelPlane.position.z = 0; // Relative to parent mesh center
     
-    // Face forward (no rotation needed)
-    labelPlane.rotation.x = 0;
-    labelPlane.rotation.y = 0;  
-    labelPlane.rotation.z = 0;
-    
-    debugLog.info('financials', `${mesh.name} face label positioned at (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
+    debugLog.verbose('financials', `${mesh.name} label position updated to relative (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
   }
 
   /**
@@ -680,7 +690,7 @@ export class FinancialsHeightManager {
   private updateFaceAlignedLabel(mesh: Mesh): void {
     const label = this.faceLabels.get(mesh.name);
     if (label) {
-      this.positionLabelOnFrontFace(label, mesh);
+      this.updateLabelPosition(label, mesh);
     }
   }
   
