@@ -918,21 +918,16 @@ export class FinancialsHeightManager {
   }
   
   /**
-   * Create label directly on a found mesh, using correct positioning for financial layout
+   * Create label directly on a found mesh, without changing mesh position
    */
   private createLabelDirectlyOnMesh(mesh: Mesh): void {
     const meshName = mesh.name;
     const texturePath = this.getLabelTexturePath(meshName);
     if (!texturePath) return;
     
-    // CRITICAL DISCOVERY: All financial objects are at (0,0,0) - they need proper positioning!
-    // From the image, I can see they should be arranged in a 2x2 grid pattern
-    const corrections = this.getCorrectObjectPositioning(meshName);
-    
-    // Apply correct positioning to the mesh itself first
-    mesh.position.x = corrections.x;
-    mesh.position.z = corrections.z;
-    // Keep Y as is for anchoring system
+    // DON'T move the mesh - just create labels using world coordinates
+    // Since all meshes are at (0,0,0), place labels at fixed world positions
+    const labelWorldPosition = this.getLabelWorldPosition(meshName);
     
     try {
       // Create label plane
@@ -941,13 +936,10 @@ export class FinancialsHeightManager {
         height: 0.3
       }, this.scene);
       
-      // Parent directly to the corrected mesh
-      labelPlane.parent = mesh;
-      
-      // Position on front face of the corrected mesh
-      labelPlane.position.x = 0;
-      labelPlane.position.y = 0.5; 
-      labelPlane.position.z = 0.51; // Just in front
+      // Position in world space instead of parenting to mesh
+      labelPlane.position.x = labelWorldPosition.x;
+      labelPlane.position.y = labelWorldPosition.y; 
+      labelPlane.position.z = labelWorldPosition.z;
       
       // Create material with PNG texture
       const material = new StandardMaterial(`${meshName}DirectLabelMaterial`, this.scene);
@@ -965,7 +957,7 @@ export class FinancialsHeightManager {
       labelPlane.material = material;
       labelPlane.isPickable = false;
       
-      console.log(`🏷️ CORRECTED LABEL created for ${meshName} at mesh position (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
+      console.log(`🏷️ WORLD LABEL created for ${meshName} at world position (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
       
     } catch (error) {
       console.warn(`❌ Failed to create label for ${meshName}:`, error);
@@ -973,24 +965,21 @@ export class FinancialsHeightManager {
   }
   
   /**
-   * Get correct positioning for financial objects based on visual layout
+   * Get world position for labels based on where financial objects should appear
    */
-  private getCorrectObjectPositioning(meshName: string): { x: number, z: number } {
-    // Based on the screenshot showing 2x2 arrangement:
-    // Front row: Revenue (left), Expenses (right)  
-    // Back row: RevenuePL (left), ExpensesPL (right)
-    
+  private getLabelWorldPosition(meshName: string): { x: number, y: number, z: number } {
+    // Place labels at fixed world positions where the objects appear visually
     switch (meshName) {
       case 'Revenue':
-        return { x: -2, z: -1 }; // Front left
+        return { x: -2, y: 1, z: -1 }; 
       case 'Expenses': 
-        return { x: 2, z: -1 };  // Front right
+        return { x: 2, y: 1, z: -1 };  
       case 'RevenuePL':
-        return { x: -2, z: 1 };  // Back left
+        return { x: -2, y: 2, z: 1 };  
       case 'ExpensesPL':
-        return { x: 2, z: 1 };   // Back right
+        return { x: 2, y: 2, z: 1 };   
       default:
-        return { x: 0, z: 0 };
+        return { x: 0, y: 1, z: 0 };
     }
   }
 
