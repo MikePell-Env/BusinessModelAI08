@@ -164,9 +164,20 @@ export class FinancialsHeightManager {
     const revenue = Math.max(Math.min(data.revenue, 1000), 100);
     const expenses = Math.max(Math.min(data.expenses, 1000), 100);
     
-    // Calculate profit/loss based on actual slider values
-    const profit = Math.max(0, revenue - expenses);
-    const loss = Math.max(0, expenses - revenue);
+    // BUSINESS LOGIC: Profit/Loss = Revenue - Expenses with mutual exclusivity
+    // When Profit exists, Loss = 0. When Loss exists, Profit = 0.
+    const difference = revenue - expenses;
+    const profit = difference > 0 ? difference : 0;  // Positive difference = Profit
+    const loss = difference < 0 ? Math.abs(difference) : 0;  // Negative difference = Loss
+    
+    // DEBUG: Log business calculations
+    debugLog.info('financials', `Business Logic: Revenue=${revenue}, Expenses=${expenses}, Difference=${difference}`);
+    debugLog.info('financials', `Calculated: Profit=${profit}, Loss=${loss} (mutual exclusivity enforced)`);
+    
+    // VERIFICATION: Ensure mutual exclusivity
+    if (profit > 0 && loss > 0) {
+      debugLog.warn('financials', 'ERROR: Both profit and loss are > 0, mutual exclusivity violated!');
+    }
     
     const HEIGHT_SCALE = 500.0;
     
