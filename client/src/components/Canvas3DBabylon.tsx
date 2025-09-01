@@ -2574,10 +2574,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // Position on top face like working Revenue Streams/Cost Structure labels
-              labelPlane.position.x = center.x; // Center horizontally
-              labelPlane.position.y = center.y + size.y * 0.6; // Position on top face
-              labelPlane.position.z = center.z; // Center vertically (Z-axis)
+              // FIXED: Use world coordinates for proper Financial label positioning
+              // Get world transformation matrix to convert local mesh coordinates to world space
+              const worldMatrix = mesh.getWorldMatrix();
+              const worldCenter = Vector3.TransformCoordinates(center, worldMatrix);
+              const worldSize = Vector3.TransformNormal(size, worldMatrix);
+              
+              // Position using world coordinates to ensure labels appear correctly in scene
+              labelPlane.position.x = worldCenter.x; // World X position
+              labelPlane.position.y = worldCenter.y + Math.abs(worldSize.y) * 0.6; // World Y position (above mesh)
+              labelPlane.position.z = worldCenter.z; // World Z position
 
               // Rotate to be flat on top (like other working labels in the system)
               labelPlane.rotation.x = Math.PI / 2; // Flat on top face
