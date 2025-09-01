@@ -313,7 +313,7 @@ export class EnvisionerFoundation {
     const labelText = parts.slice(1).join(' '); // e.g., "Revenue"
     
     // Set text properties
-    textContext.fillStyle = "#2D3748"; // Dark gray
+    textContext.fillStyle = "#00663D"; // Match Revenue object green color
     (textContext as any).textAlign = "center";
     (textContext as any).textBaseline = "middle";
     
@@ -386,7 +386,7 @@ export class EnvisionerFoundation {
     const labelText = parts.slice(1).join(' '); // e.g., "Expenses"
     
     // Set text properties
-    textContext.fillStyle = "#DC2626"; // Red color for expenses
+    textContext.fillStyle = "#661414"; // Match Expenses object deep red color
     (textContext as any).textAlign = "center";
     (textContext as any).textBaseline = "middle";
     
