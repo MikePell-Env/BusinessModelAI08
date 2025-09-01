@@ -54,7 +54,8 @@ export class FinancialsHeightManager {
   constructor(scene: Scene) {
     this.scene = scene;
     
-    // Labels are now created directly during model loading
+    this.createGroundPlaneTestCube();
+    this.createTestLabelPlane();
   }
 
 
