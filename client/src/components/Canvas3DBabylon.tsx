@@ -1719,15 +1719,24 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // FINANCIALS TEMPLATE: Reset all Financial objects to 100% opacity on background click
         if (template?.name === 'Financials' && currentSelectedFinancialObject) {
           const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
+          console.log(`💰 BACKGROUND CLICK: Deselecting all Financial objects`);
+          
           financialObjects.forEach(objName => {
             const objMesh = scene.getMeshByName(objName);
-            if (objMesh && objMesh.material) {
-              objMesh.material.alpha = 1.0;
-              objMesh.material.transparencyMode = 0; // OPAQUE
+            if (objMesh) {
+              const allMaterials = [];
+              if (objMesh.material) allMaterials.push(objMesh.material);
+              if ((objMesh as any).multiMaterial?.subMaterials) {
+                allMaterials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
+              }
+              allMaterials.forEach((material: any) => {
+                material.alpha = 1.0;
+              });
+              console.log(`✅ ${objName}: restored to alpha 1.0 (background click)`);
             }
           });
           setCurrentSelectedFinancialObject(null);
-          console.log(`💰 Background click: Restored all Financial objects to 100% opacity`);
+          console.log(`💰 BACKGROUND RESTORE: All Financial objects at 100% opacity`);
         }
         
         if (currentBillboardPanel) {
