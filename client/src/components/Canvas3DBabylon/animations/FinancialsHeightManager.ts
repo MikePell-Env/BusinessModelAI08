@@ -510,13 +510,28 @@ export class FinancialsHeightManager {
       adjustedLocalY = localY - 0.05;
     }
 
+    // Additional positioning adjustment for small objects (< 20% height)
+    const meshHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
+    const heightPercentage = (meshHeight / 2.0) * 100; // 2.0 is max height
+    
+    if (heightPercentage < 20) {
+      const labelHeight = labelPlane.getBoundingInfo().boundingBox.maximum.y - labelPlane.getBoundingInfo().boundingBox.minimum.y;
+      
+      if (mesh.name === "ExpensesPL" || mesh.name === "RevenuePL") {
+        // Profit or Loss: move UP by label height
+        adjustedLocalY += labelHeight;
+      } else if (mesh.name === "Revenue" || mesh.name === "Expenses") {
+        // Revenue or Expenses: move DOWN by label height  
+        adjustedLocalY -= labelHeight;
+      }
+    }
+
     // Update label position
     labelPlane.position.x = localX;
     labelPlane.position.y = adjustedLocalY;
     labelPlane.position.z = localZ - 0.01;
 
     // Simple 1% visibility threshold - hide labels when objects get too small
-    const meshHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
     const shouldBeVisible = meshHeight > 0.02; // 1% threshold (2.0 * 0.01 = 0.02)
     labelPlane.setEnabled(shouldBeVisible);
 
