@@ -515,11 +515,12 @@ export class FinancialsHeightManager {
     labelPlane.position.y = adjustedLocalY;
     labelPlane.position.z = localZ - 0.01;
 
-    // Update label visibility based on 5% threshold
-    const shouldBeVisible = this.checkLabelVisibility(mesh.name);
+    // Simple 5% visibility threshold - hide labels when objects get too small
+    const meshHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
+    const shouldBeVisible = meshHeight > 0.1; // Roughly 5% threshold (2.0 * 0.05 = 0.1)
     labelPlane.setEnabled(shouldBeVisible);
 
-    debugLog.verbose('financials', `Updated ${mesh.name} label position after vertex manipulation, visible: ${shouldBeVisible}`);
+    debugLog.verbose('financials', `Updated ${mesh.name} label position after vertex manipulation`);
   }
 
 
@@ -527,40 +528,6 @@ export class FinancialsHeightManager {
     return ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(name);
   }
 
-  /**
-   * Check if Financial label should be visible based on 5% threshold
-   */
-  private checkLabelVisibility(meshName: string): boolean {
-    // Get current slider values to determine visibility
-    const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
-    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
-    
-    const revenuePercent = revenueSlider ? parseInt(revenueSlider.value) : 100;
-    const expensesPercent = expensesSlider ? parseInt(expensesSlider.value) : 80;
-    
-    // Calculate profit/loss percentages
-    const totalRevenue = 1000; // Always $10M
-    const totalExpenses = expensesPercent * 10; // Convert % to value
-    const profit = Math.max(0, totalRevenue - totalExpenses);
-    const loss = Math.max(0, totalExpenses - totalRevenue);
-    
-    const profitPercent = (profit / totalRevenue) * 100;
-    const lossPercent = (loss / totalRevenue) * 100;
-    
-    // Apply 5% visibility threshold
-    switch (meshName) {
-      case 'Revenue':
-        return revenuePercent > 5; // Show if revenue > 5%
-      case 'Expenses':
-        return expensesPercent > 5; // Show if expenses > 5%
-      case 'ExpensesPL': // Profit
-        return profitPercent > 5; // Show if profit > 5%
-      case 'RevenuePL': // Loss
-        return lossPercent > 5; // Show if loss > 5%
-      default:
-        return true;
-    }
-  }
 
   /**
    * Manipulate mesh height using direct vertex modification instead of scaling
