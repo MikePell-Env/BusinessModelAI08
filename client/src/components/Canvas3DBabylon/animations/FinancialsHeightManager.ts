@@ -12,9 +12,9 @@ import {
   Animation,
   CubicEase,
   EasingFunction,
-  MeshBuilder,
   StandardMaterial,
-  Texture
+  Texture,
+  Color3
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 
@@ -41,8 +41,8 @@ export class FinancialsHeightManager {
   private maxVisualizationHeight: number = 5.0;
   private previousData: FinancialData | null = null;
   
-  // Face texture labels system using PNG files
-  private faceLabels: Map<string, Mesh> = new Map();
+  // Material overlay system for PNG labels
+  private originalMaterials: Map<string, StandardMaterial> = new Map();
   private labelsEnabled: boolean = true;
 
   constructor(scene: Scene) {
@@ -66,9 +66,9 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        // Create face texture label using PNG files
+        // Apply PNG label texture overlay to material
         if (this.labelsEnabled) {
-          this.createFaceTextureLabel(mesh);
+          this.applyLabelOverlay(mesh);
         }
         
       }
@@ -88,13 +88,12 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Refresh all financial object labels with correct positioning
+   * Refresh all financial object labels by reapplying overlays
    */
   public refreshAllLabels(): void {
-    this.faceLabels.forEach((label, meshName) => {
-      const mesh = this.financialMeshes.get(meshName);
-      if (mesh) {
-        this.updateLabelPosition(label, mesh);
+    this.financialMeshes.forEach((mesh, meshName) => {
+      if (this.labelsEnabled) {
+        this.applyLabelOverlay(mesh);
       }
     });
   }
@@ -580,68 +579,39 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Create floating label using exact BMC system approach (WORKING IMPLEMENTATION)
+   * Apply PNG label texture overlay directly to financial object material
    */
-  private createFaceTextureLabel(mesh: Mesh): void {
+  private applyLabelOverlay(mesh: Mesh): void {
     const meshName = mesh.name;
     const texturePath = this.getLabelTexturePath(meshName);
     if (!texturePath) return;
     
     try {
-      // Get mesh bounds for positioning (EXACT BMC approach)
-      const boundingInfo = mesh.getBoundingInfo();
-      const center = boundingInfo.boundingBox.center;
-      const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+      const material = mesh.material as StandardMaterial;
+      if (!material) return;
       
-      // Calculate label size based on mesh width (BMC approach)
-      const labelWidth = size.x * 0.51; // Same as BMC financial labels
-      const labelHeight = labelWidth * 0.35; // Proper aspect ratio
+      // Store original material if not already stored
+      if (!this.originalMaterials.has(meshName)) {
+        const originalMaterial = material.clone(`${meshName}_Original`);
+        this.originalMaterials.set(meshName, originalMaterial);
+      }
       
-      // Create label plane (EXACT BMC approach)
-      const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
-        width: labelWidth,
-        height: labelHeight
-      }, this.scene);
-      
-      // Position on top face like BMC labels (EXACT BMC approach)
-      labelPlane.position.x = center.x; // Center horizontally
-      labelPlane.position.y = center.y + size.y * 0.6; // Position on top face (BMC approach)
-      labelPlane.position.z = center.z; // Center vertically
-      
-      // Rotate to be flat on top (EXACT BMC approach)
-      labelPlane.rotation.x = Math.PI / 2;
-      
-      // Create material with texture (EXACT BMC approach)
-      const labelMaterial = new StandardMaterial(`${meshName}LabelMat`, this.scene);
+      // Create label texture
       const labelTexture = new Texture(texturePath, this.scene);
       labelTexture.hasAlpha = true;
-      
-      // Use BMC enhanceLabelTexture approach
       labelTexture.updateSamplingMode(Texture.LINEAR_LINEAR);
       labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
       labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
       labelTexture.anisotropicFilteringLevel = 4;
       
-      // EXACT BMC material setup
-      labelMaterial.diffuseTexture = labelTexture;
-      labelMaterial.emissiveTexture = labelTexture;
-      labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // BMC approach
-      labelMaterial.useAlphaFromDiffuseTexture = true;
-      labelMaterial.disableLighting = true; // BMC approach
-      labelMaterial.backFaceCulling = false;
+      // Apply label as emissive overlay (visible over base color)
+      material.emissiveTexture = labelTexture;
+      material.emissiveColor = new Color3(0.8, 0.8, 0.8); // Bright enough to be visible
+      material.useAlphaFromDiffuseTexture = true;
       
-      labelPlane.material = labelMaterial;
-      
-      // Parent to mesh (EXACT BMC approach)
-      labelPlane.parent = mesh;
-      labelPlane.isPickable = false;
-      
-      // Store label reference
-      this.faceLabels.set(meshName, labelPlane);
-      
-      debugLog.info('financials', `BMC-style floating label created for ${meshName} at (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
+      debugLog.info('financials', `Label texture overlay applied to ${meshName} material`);
     } catch (error) {
-      debugLog.warn('financials', `Failed to create BMC-style label for ${meshName}:`, error);
+      debugLog.warn('financials', `Failed to apply label overlay to ${meshName}:`, error);
     }
   }
 
@@ -658,50 +628,25 @@ export class FinancialsHeightManager {
     return labelMap[meshName] || null;
   }
 
-  /**
-   * Update label position when mesh height changes (BMC approach)
-   */
-  private updateLabelPosition(labelPlane: Mesh, mesh: Mesh): void {
-    // Get mesh bounds for positioning (BMC approach)
-    const boundingInfo = mesh.getBoundingInfo();
-    const center = boundingInfo.boundingBox.center;
-    const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
-    
-    // Update position on top face (BMC approach - since label is parented to mesh, use relative positioning)
-    labelPlane.position.x = 0; // Relative to parent mesh center
-    labelPlane.position.y = size.y * 0.6; // Above mesh top
-    labelPlane.position.z = 0; // Relative to parent mesh center
-    
-    debugLog.verbose('financials', `${mesh.name} label position updated to relative (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
-  }
-
-  /**
-   * Update label text values (called when financial data changes)
-   */
-  private updateLabelPosition(mesh: Mesh): void {
-    // Labels automatically track mesh position via linkWithMesh - no manual update needed!
-    // This is the beauty of the proper Babylon.js GUI approach
-  }
-  
-
-  /**
-   * Update label position when mesh height changes
-   */
-  private updateFaceAlignedLabel(mesh: Mesh): void {
-    const label = this.faceLabels.get(mesh.name);
-    if (label) {
-      this.updateLabelPosition(label, mesh);
-    }
-  }
   
   /**
-   * Enable or disable labels
+   * Enable or disable labels by restoring/applying overlays
    */
   public setLabelsEnabled(enabled: boolean): void {
     this.labelsEnabled = enabled;
-    this.faceLabels.forEach(label => {
-      label.setEnabled(enabled);
-    });
+    
+    if (enabled) {
+      // Reapply all label overlays
+      this.refreshAllLabels();
+    } else {
+      // Restore original materials
+      this.originalMaterials.forEach((originalMaterial, meshName) => {
+        const mesh = this.financialMeshes.get(meshName);
+        if (mesh) {
+          mesh.material = originalMaterial;
+        }
+      });
+    }
   }
 
   /**
@@ -711,14 +656,15 @@ export class FinancialsHeightManager {
     // Stop any ongoing animations
     this.scene.stopAllAnimations();
     
-    // Dispose face texture labels
-    this.faceLabels.forEach(label => {
-      if (label.material) {
-        label.material.dispose();
+    // Restore original materials
+    this.originalMaterials.forEach((originalMaterial, meshName) => {
+      const mesh = this.financialMeshes.get(meshName);
+      if (mesh) {
+        mesh.material = originalMaterial;
       }
-      label.dispose();
+      originalMaterial.dispose();
     });
-    this.faceLabels.clear();
+    this.originalMaterials.clear();
     
     // Clear maps but keep references intact for safety
     this.financialMeshes.clear();
