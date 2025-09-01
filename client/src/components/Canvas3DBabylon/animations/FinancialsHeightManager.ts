@@ -47,10 +47,12 @@ export class FinancialsHeightManager {
   private originalMaterials: Map<string, StandardMaterial> = new Map();
   private labelsEnabled: boolean = true;
   private testCube: Mesh | null = null;
+  private labelPlanes: Map<string, Mesh> = new Map();
 
   constructor(scene: Scene) {
     this.scene = scene;
     this.createGroundPlaneTestCube();
+    this.createFinancialLabels();
   }
 
 
@@ -626,7 +628,81 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Apply PNG label texture overlay directly to financial object material
+   * Create PNG label planes positioned in front of financial objects
+   */
+  private createFinancialLabels(): void {
+    const persistence = EnvisionerPersistence.getInstance();
+    const masterTransform = persistence.getMasterTransform();
+    
+    if (!masterTransform) {
+      debugLog.warn('financials', 'No master transform available for labels');
+      return;
+    }
+
+    // Label configuration with positions based on coordinate system knowledge
+    const labelConfigs = [
+      {
+        name: 'Revenue',
+        texturePath: '/textures/Label_Revenue.png',
+        position: { x: -3, y: 1.0, z: -5.5 }, // Left front, mid-height on Revenue object
+      },
+      {
+        name: 'Expenses', 
+        texturePath: '/textures/Label_Expenses.png',
+        position: { x: 3, y: 1.0, z: -5.5 }, // Right front, mid-height on Expenses object
+      },
+      {
+        name: 'Profit',
+        texturePath: '/textures/Label_Profit.png', 
+        position: { x: 3, y: 2.5, z: -5.5 }, // Right front, upper section on ExpensesPL object
+      },
+      {
+        name: 'Loss',
+        texturePath: '/textures/Label_Loss.png',
+        position: { x: -3, y: 2.5, z: -5.5 }, // Left front, upper section on RevenuePL object
+      }
+    ];
+
+    labelConfigs.forEach(config => {
+      try {
+        // Create label plane
+        const labelPlane = MeshBuilder.CreatePlane(`${config.name}Label`, {
+          width: 1.5,
+          height: 0.4
+        }, this.scene);
+
+        // CRITICAL: Parent to master transform using coordinate system knowledge
+        labelPlane.parent = masterTransform;
+        
+        // Position using verified coordinate system
+        labelPlane.position.x = config.position.x;
+        labelPlane.position.y = config.position.y;
+        labelPlane.position.z = config.position.z;
+
+        // Create material with PNG texture
+        const material = new StandardMaterial(`${config.name}LabelMaterial`, this.scene);
+        const texture = new Texture(config.texturePath, this.scene);
+        texture.hasAlpha = true;
+        texture.updateSamplingMode(Texture.LINEAR_LINEAR);
+        
+        material.diffuseTexture = texture;
+        material.useAlphaFromDiffuseTexture = true;
+        material.backFaceCulling = false; // Visible from both sides
+        
+        labelPlane.material = material;
+        labelPlane.isPickable = false; // Don't interfere with interactions
+        
+        this.labelPlanes.set(config.name, labelPlane);
+        
+        debugLog.info('financials', `${config.name} label plane created at (${config.position.x}, ${config.position.y}, ${config.position.z})`);
+      } catch (error) {
+        debugLog.warn('financials', `Failed to create ${config.name} label:`, error);
+      }
+    });
+  }
+
+  /**
+   * Apply PNG label texture overlay directly to financial object material (DEPRECATED)
    */
   private applyLabelOverlay(mesh: Mesh): void {
     const meshName = mesh.name;
@@ -721,6 +797,15 @@ export class FinancialsHeightManager {
       this.testCube.dispose();
       this.testCube = null;
     }
+    
+    // Dispose label planes
+    this.labelPlanes.forEach((labelPlane, name) => {
+      if (labelPlane.material) {
+        labelPlane.material.dispose();
+      }
+      labelPlane.dispose();
+    });
+    this.labelPlanes.clear();
     
     // Restore original materials
     this.originalMaterials.forEach((originalMaterial, meshName) => {
