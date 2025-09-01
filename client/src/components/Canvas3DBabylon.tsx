@@ -2578,31 +2578,29 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // Fine-tune positioning using the same bounding box logic but with precise adjustments
-              // Base position from bounding box center (the method that got us "close")
-              let adjustedX = center.x;
-              let adjustedY = center.y;
-              let adjustedZ = center.z - size.z * 0.5; // Exact front face
+              // FIXED: Parent to mesh first, then use LOCAL coordinates
+              labelPlane.parent = mesh;
+              
+              // Convert to LOCAL coordinates so labels track with vertex manipulation
+              // When vertices change, the mesh center changes, and local coordinates auto-track
+              
+              // Calculate local position relative to mesh position
+              const localX = center.x - mesh.position.x;
+              const localY = center.y - mesh.position.y;
+              const localZ = (center.z - size.z * 0.5) - mesh.position.z;
 
-              // Object-specific fine-tuning to center perfectly on front faces
-              if (mesh.name === "Revenue") {
-                // Revenue (green): fine-tune for perfect center
-                adjustedY = center.y + 0.05; // Slight upward adjustment
-              } else if (mesh.name === "Expenses") {
-                // Expenses (red): fine-tune for perfect center
-                adjustedY = center.y + 0.05; // Slight upward adjustment
-              } else if (mesh.name === "ExpensesPL") {
-                // Profit (black): fine-tune for perfect center
-                adjustedY = center.y - 0.05; // Slight downward adjustment
-              } else if (mesh.name === "RevenuePL") {
-                // Loss (gold): fine-tune for perfect center
-                adjustedY = center.y - 0.05; // Slight downward adjustment
+              // Object-specific fine-tuning in local space
+              let adjustedLocalY = localY;
+              if (mesh.name === "Revenue" || mesh.name === "Expenses") {
+                adjustedLocalY = localY + 0.05; // Slight upward adjustment
+              } else if (mesh.name === "ExpensesPL" || mesh.name === "RevenuePL") {
+                adjustedLocalY = localY - 0.05; // Slight downward adjustment
               }
 
-              // Apply the fine-tuned positioning
-              labelPlane.position.x = adjustedX;
-              labelPlane.position.y = adjustedY;
-              labelPlane.position.z = adjustedZ - 0.01; // Slightly in front
+              // Apply LOCAL positioning - this will automatically track with mesh changes
+              labelPlane.position.x = localX;
+              labelPlane.position.y = adjustedLocalY;
+              labelPlane.position.z = localZ - 0.01; // Slightly in front
 
 
               // Face forward (no rotation needed for front-facing labels)
@@ -2624,8 +2622,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Apply material to label
               labelPlane.material = labelMaterial;
               
-              // FIXED: Parent to mesh like working BMC labels (this is the key!)
-              labelPlane.parent = mesh;
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
               console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
