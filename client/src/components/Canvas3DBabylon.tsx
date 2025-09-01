@@ -1721,6 +1721,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
             // Enhanced material with better polish and depth
             sectionMaterial.diffuseColor = baseColor;
+            sectionMaterial.backFaceCulling = false; // Fix: Allow visibility from underneath
 
             // Reduce lighting for Loss and Profit shapes to prevent blown-out look
             if (template.name.toLowerCase() === 'financials' && (mesh.name === 'RevenuePL' || mesh.name === 'ExpensesPL')) {
