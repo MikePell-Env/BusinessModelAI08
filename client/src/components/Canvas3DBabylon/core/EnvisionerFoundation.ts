@@ -155,7 +155,7 @@ export class EnvisionerFoundation {
     groundMaterial.specularColor = MATERIAL_COLORS.GROUND_SPECULAR;
     groundMaterial.specularPower = 64;
     groundMaterial.alpha = 0.5;
-    groundMaterial.backFaceCulling = false;
+    groundMaterial.backFaceCulling = true; // Only render top face, hide underside
     ground.material = groundMaterial;
 
     ground.isPickable = false; // Foundation components are not interactive
