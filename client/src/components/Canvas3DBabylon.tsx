@@ -2615,6 +2615,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelPlane.position.y = frontFaceCenterY;
               labelPlane.position.z = frontFaceCenterZ - 0.01; // Slightly in front
 
+              // DEBUG: Draw yellow line from front face center to show understanding
+              const linePoints = [
+                new Vector3(frontFaceCenterX, frontFaceCenterY, frontFaceCenterZ),
+                new Vector3(frontFaceCenterX - 2, frontFaceCenterY, frontFaceCenterZ) // Extend line outward
+              ];
+              const yellowLine = MeshBuilder.CreateLines(`${mesh.name}_debug_line`, {
+                points: linePoints,
+                colors: [new Color4(1, 1, 0, 1), new Color4(1, 1, 0, 1)] // Bright yellow
+              }, scene);
+
               // Face forward (no rotation needed for front-facing labels)
               labelPlane.rotation.x = 0; // Face forward instead of flat on top
 
