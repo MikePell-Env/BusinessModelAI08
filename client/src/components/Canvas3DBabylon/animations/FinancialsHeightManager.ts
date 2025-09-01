@@ -74,9 +74,9 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
-        // Apply PNG label texture overlay to material
+        // Create label plane attached to this financial object
         if (this.labelsEnabled) {
-          this.applyLabelOverlay(mesh);
+          this.createLabelForFinancialObject(mesh);
         }
         
       }
@@ -650,10 +650,10 @@ export class FinancialsHeightManager {
     // CRITICAL: Parent to master transform exactly like green cube
     this.testLabelPlane.parent = masterTransform;
     
-    // Position using EXACT same coordinates as successful green cube
-    this.testLabelPlane.position.x = 1; // Near green cube but offset
-    this.testLabelPlane.position.y = 0.35; // Same height as green cube
-    this.testLabelPlane.position.z = -6; // Same Z as green cube
+    // Position on the front face of the green cube
+    this.testLabelPlane.position.x = 2; // Same X as green cube center
+    this.testLabelPlane.position.y = 0.35; // Same height as green cube center
+    this.testLabelPlane.position.z = -6.5; // Slightly in front of green cube front face
     
     // Create material using exact BMC method with PNG texture
     const material = new StandardMaterial("TestLabelMaterial", this.scene);
@@ -758,41 +758,52 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Apply PNG label texture directly to financial object geometry face
+   * Create label plane attached to financial object so it tracks with height changes
    */
-  private applyLabelOverlay(mesh: Mesh): void {
+  private createLabelForFinancialObject(mesh: Mesh): void {
     const meshName = mesh.name;
     const texturePath = this.getLabelTexturePath(meshName);
     if (!texturePath) return;
     
     try {
-      const material = mesh.material as StandardMaterial;
-      if (!material) return;
+      // Create label plane
+      const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
+        width: 1.0,
+        height: 0.4
+      }, this.scene);
       
-      // Store original material properties if not already stored
-      if (!this.originalMaterials.has(meshName)) {
-        const originalMaterial = material.clone(`${meshName}_Original`);
-        this.originalMaterials.set(meshName, originalMaterial);
-      }
+      // CRITICAL: Parent to the financial object itself so it tracks with height changes
+      labelPlane.parent = mesh;
       
-      // Create PNG label texture and apply using BMC enhancement
-      const labelTexture = new Texture(texturePath, this.scene);
-      labelTexture.hasAlpha = true;
-      enhanceLabelTexture(labelTexture); // Use BMC enhancement function
+      // Position on the front face of the financial object
+      // These positions are relative to the mesh, so they move with height changes
+      labelPlane.position.x = 0; // Centered on mesh
+      labelPlane.position.y = 0.5; // Middle height of mesh
+      labelPlane.position.z = 1.1; // Just in front of mesh front face
       
-      // Apply PNG texture directly to the object's face material
-      // This replaces the solid color with the PNG label on the geometry itself
-      material.diffuseTexture = labelTexture;
-      material.emissiveTexture = labelTexture; // Also set as emissive for visibility
-      material.emissiveColor = new Color3(0.3, 0.3, 0.3); // Subtle glow
+      // Create material using proven BMC method
+      const material = new StandardMaterial(`${meshName}LabelMaterial`, this.scene);
+      const texture = new Texture(texturePath, this.scene);
+      texture.hasAlpha = true;
+      enhanceLabelTexture(texture);
+      
+      // Apply BMC material settings exactly like test label
+      material.diffuseTexture = texture;
+      material.emissiveTexture = texture;
+      material.emissiveColor = new Color3(1.0, 1.0, 1.0);
+      material.alpha = 0.9;
       material.useAlphaFromDiffuseTexture = true;
-      
-      // Keep material properties for proper blending
+      material.disableLighting = true;
       material.backFaceCulling = false;
       
-      debugLog.info('financials', `PNG label texture applied directly to ${meshName} geometry face`);
+      labelPlane.material = material;
+      labelPlane.isPickable = false;
+      
+      this.labelPlanes.set(meshName, labelPlane);
+      
+      debugLog.info('financials', `Label plane created for ${meshName} and parented to mesh for height tracking`);
     } catch (error) {
-      debugLog.warn('financials', `Failed to apply PNG label to ${meshName} geometry:`, error);
+      debugLog.warn('financials', `Failed to create label for ${meshName}:`, error);
     }
   }
 
