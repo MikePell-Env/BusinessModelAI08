@@ -17,6 +17,7 @@ import {
   Color3
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
+import { EnvisionerPersistence } from '../core/EnvisionerPersistence';
 
 export interface FinancialData {
   revenue: number;
@@ -581,6 +582,16 @@ export class FinancialsHeightManager {
     const meshName = mesh.name;
     const texturePath = this.getLabelTexturePath(meshName);
     if (!texturePath) return;
+    
+    // Get ground plane reference for proper positioning context
+    const persistence = EnvisionerPersistence.getInstance();
+    const groundRef = persistence.getGroundPlaneReference();
+    
+    if (groundRef) {
+      debugLog.info('financials', `Ground plane reference available: center Y=${groundRef.position.y}, bounds=${groundRef.bounds.minX} to ${groundRef.bounds.maxX}`);
+    } else {
+      debugLog.warn('financials', 'No ground plane reference available yet');
+    }
     
     try {
       const material = mesh.material as StandardMaterial;

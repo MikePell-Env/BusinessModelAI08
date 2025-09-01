@@ -13,6 +13,17 @@ export interface EnvisionerSpatialState {
   rotation: Quaternion;
   scale: Vector3;
   isInitialized: boolean;
+  groundPlaneReference?: {
+    position: Vector3;
+    size: { width: number, height: number };
+    bounds: {
+      minX: number;
+      maxX: number;
+      minZ: number;
+      maxZ: number;
+      centerY: number;
+    };
+  };
 }
 
 /**
@@ -194,6 +205,45 @@ export class EnvisionerPersistence {
     }
 
     this.saveSpatialState();
+  }
+
+  /**
+   * Set ground plane reference coordinates for all templates to use
+   */
+  public setGroundPlaneReference(position: Vector3, width: number, height: number): void {
+    if (!this.spatialState) {
+      this.spatialState = {
+        position: new Vector3(0, 2, 0),
+        rotation: new Quaternion(),
+        scale: Vector3.One(),
+        isInitialized: true
+      };
+    }
+    
+    // Calculate ground plane bounds for easy object positioning
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+    
+    this.spatialState.groundPlaneReference = {
+      position: position.clone(),
+      size: { width, height },
+      bounds: {
+        minX: position.x - halfWidth,
+        maxX: position.x + halfWidth,
+        minZ: position.z - halfHeight,
+        maxZ: position.z + halfHeight,
+        centerY: position.y
+      }
+    };
+    
+    debugLog.info('envisioner', `Ground plane reference saved: center(${position.x}, ${position.y}, ${position.z}), size(${width}x${height})`);
+  }
+
+  /**
+   * Get ground plane reference for object positioning in templates
+   */
+  public getGroundPlaneReference() {
+    return this.spatialState?.groundPlaneReference || null;
   }
 
   /**
