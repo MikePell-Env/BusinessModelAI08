@@ -55,7 +55,7 @@ export class FinancialsHeightManager {
     this.scene = scene;
     
     // this.createGroundPlaneTestCube(); // Hidden but code preserved
-    this.createTestLabelPlane();
+    // this.createTestLabelPlane(); // Hidden but code preserved
   }
 
 
