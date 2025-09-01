@@ -191,25 +191,21 @@ export class FinancialsHeightManager {
     
     // Revenue object updates (when Revenue slider moves)
     if (revenueChanged) {
-      console.log('🟢 REVENUE UPDATE: Revenue changed:', this.previousData.revenue, '→', revenue);
       animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
     }
     
     // RevenuePL (Loss) object updates (when loss amount changes due to revenue OR expenses)
     if (lossChanged) {
-      console.log('🟡 LOSS UPDATE: Loss changed:', this.previousData.loss, '→', loss);
       animations.push(this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration));
     }
     
     // Expenses object updates (when Expenses slider moves)
     if (expensesChanged) {
-      console.log('🔴 EXPENSES UPDATE: Expenses changed:', this.previousData.expenses, '→', expenses);
       animations.push(this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration));
     }
     
     // ExpensesPL (Profit) object updates (when profit amount changes due to revenue OR expenses)
     if (profitChanged) {
-      console.log('⚫ PROFIT UPDATE: Profit changed:', this.previousData.profit, '→', profit);
       animations.push(this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration));
     }
     
@@ -422,32 +418,23 @@ export class FinancialsHeightManager {
     const expensesHeight = expenses / HEIGHT_SCALE;
     const expensesPLHeight = profit / HEIGHT_SCALE;
     
-    console.log('💰 IMMEDIATE HEIGHT CALCULATIONS:', {
-      revenue: revenue, expenses: expenses, profit: profit, loss: loss,
-      revenueHeight: revenueHeight.toFixed(3), revenuePLHeight: revenuePLHeight.toFixed(3),
-      expensesHeight: expensesHeight.toFixed(3), expensesPLHeight: expensesPLHeight.toFixed(3)
-    });
 
     // FORCE INITIAL SETUP: Always set heights on first call (initialization)
     const isInitialization = this.previousData.revenue === 1000 && this.previousData.expenses === 800;
     
     if (this.previousData.revenue !== revenue || isInitialization) {
-      console.log('🟢 IMMEDIATE: Revenue changed:', this.previousData.revenue, '→', revenue, 'Height:', revenueHeight.toFixed(3));
       this.setObjectHeight('Revenue', revenueHeight, 'bottom');
     }
     
     if (this.previousData.loss !== loss || isInitialization) {
-      console.log('🟡 IMMEDIATE: Loss changed:', this.previousData.loss, '→', loss, 'Height:', revenuePLHeight.toFixed(3));
       this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
     }
     
     if (this.previousData.expenses !== expenses || isInitialization) {
-      console.log('🔴 IMMEDIATE: Expenses changed:', this.previousData.expenses, '→', expenses, 'Height:', expensesHeight.toFixed(3));
       this.setObjectHeight('Expenses', expensesHeight, 'bottom');
     }
     
     if (this.previousData.profit !== profit || isInitialization) {
-      console.log('⚫ IMMEDIATE: Profit changed:', this.previousData.profit, '→', profit, 'Height:', expensesPLHeight.toFixed(3));
       this.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
     }
     
