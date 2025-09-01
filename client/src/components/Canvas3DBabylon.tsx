@@ -1739,36 +1739,32 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           cleanBMCRef.current.clearSelection();
         }
         
-        // FINANCIALS TEMPLATE: Reset all Financial objects to 100% opacity on background click
+        // FINANCIALS TEMPLATE: Always restore all Financial objects on any background click
         if (template?.name === 'Financials') {
           const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
+          console.log(`💰 BACKGROUND CLICK: Restoring all Financial objects in Financials template`);
           
-          if (currentSelectedFinancialObject) {
-            console.log(`💰 BACKGROUND CLICK: Deselecting Financial object "${currentSelectedFinancialObject}"`);
-            
-            financialObjects.forEach(objName => {
-              const objMesh = scene.getMeshByName(objName);
-              if (objMesh) {
-                const allMaterials = [];
-                if (objMesh.material) allMaterials.push(objMesh.material);
-                if ((objMesh as any).multiMaterial?.subMaterials) {
-                  allMaterials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
-                }
-                allMaterials.forEach((material: any) => {
-                  material.alpha = 1.0;
-                });
-                console.log(`✅ ${objName}: restored to alpha 1.0 (background click)`);
-              } else {
-                console.log(`❌ ${objName}: mesh not found (background click)`);
+          // Always restore all objects regardless of selection state
+          financialObjects.forEach(objName => {
+            const objMesh = scene.getMeshByName(objName);
+            if (objMesh) {
+              const allMaterials = [];
+              if (objMesh.material) allMaterials.push(objMesh.material);
+              if ((objMesh as any).multiMaterial?.subMaterials) {
+                allMaterials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
               }
-            });
-            setCurrentSelectedFinancialObject(null);
-            console.log(`💰 BACKGROUND RESTORE: All Financial objects at 100% opacity`);
-          } else {
-            console.log(`💰 BACKGROUND CLICK: No Financial object selected, nothing to restore`);
-          }
-        } else {
-          console.log(`🎯 BACKGROUND CLICK: Not in Financials template, skipping Financial restore`);
+              allMaterials.forEach((material: any) => {
+                material.alpha = 1.0;
+              });
+              console.log(`✅ ${objName}: restored to alpha 1.0 (background click)`);
+            } else {
+              console.log(`❌ ${objName}: mesh not found (background click)`);
+            }
+          });
+          
+          // Always clear selection
+          setCurrentSelectedFinancialObject(null);
+          console.log(`💰 BACKGROUND RESTORE: All Financial objects at 100% opacity, selection cleared`);
         }
         
         if (currentBillboardPanel) {
