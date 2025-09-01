@@ -416,10 +416,10 @@ export class EnvisionerFoundation {
       await this.createVerticalDividerLabel();
       debugLog.verbose('envisioner', '🏷️ BMC foundation labels created');
     } else if (templateName.toLowerCase() === 'financials') {
-      // Initialize ground labels for Financials template
-      this.updateGroundRevenueLabel('$10M Revenue');
-      this.updateGroundExpensesLabel('$8M Expenses');
-      debugLog.verbose('envisioner', '🏷️ Financials ground labels initialized');
+      // Ground labels hidden for Financials template
+      // this.updateGroundRevenueLabel('$10M Revenue');
+      // this.updateGroundExpensesLabel('$8M Expenses');
+      debugLog.verbose('envisioner', '🏷️ Financials ground labels hidden');
     }
   }
 
