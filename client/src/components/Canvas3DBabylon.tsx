@@ -3483,10 +3483,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   netLoss: 0           // No loss (0% RevenuePL)
                 });
                 
-                // Initialize ground revenue label for Financials template with longer delay
+                // Initialize ground labels for Financials template with longer delay
                 setTimeout(() => {
                   if ((window as any).envisionerFoundation) {
                     (window as any).envisionerFoundation.updateGroundRevenueLabel('$10M Revenue');
+                    (window as any).envisionerFoundation.updateGroundExpensesLabel('$8M Expenses');
                   }
                 }, 100); // Additional delay to ensure foundation is ready
               }, 200); // Increased timeout to ensure sliders are ready
@@ -3600,6 +3601,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     
                     heightManager.setObjectHeight('Expenses', expensesHeight, 'bottom');
                     heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
+                  }
+
+                  // Update ground plane expenses label with actual expenses amount
+                  const actualExpensesAmount = (expensesPercent / 10).toFixed(0); // Convert percentage to actual amount
+                  const expensesText = `$${actualExpensesAmount}M Expenses`;
+                  if ((window as any).envisionerFoundation) {
+                    (window as any).envisionerFoundation.updateGroundExpensesLabel(expensesText);
                   }
 
                   // Update ground plane revenue label when expenses change  

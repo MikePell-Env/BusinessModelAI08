@@ -245,7 +245,7 @@ export class EnvisionerFoundation {
    * Clear all template-specific labels
    */
   public clearTemplateLabels(): void {
-    const labelNames = ['internalLabel', 'externalLabel', 'revenueLabel', 'expensesLabel', 'verticalDividerLabel', 'groundRevenueLabel', 'groundRevenueTexture'];
+    const labelNames = ['internalLabel', 'externalLabel', 'revenueLabel', 'expensesLabel', 'verticalDividerLabel', 'groundRevenueLabel', 'groundRevenueTexture', 'groundExpensesLabel', 'groundExpensesTexture'];
     
     labelNames.forEach(labelName => {
       const component = this.foundationComponents.get(labelName);
@@ -331,6 +331,79 @@ export class EnvisionerFoundation {
   }
 
   /**
+   * Create or update dynamic expenses text label on ground plane
+   */
+  public updateGroundExpensesLabel(expensesAmountText: string): void {
+    // Get existing label components
+    const existingLabel = this.foundationComponents.get('groundExpensesLabel');
+    const existingTexture = this.foundationComponents.get('groundExpensesTexture');
+    
+    let textTexture: DynamicTexture;
+    let textPlane: any;
+
+    // Reuse existing texture and plane if they exist, otherwise create new ones
+    if (existingTexture && existingLabel) {
+      textTexture = existingTexture;
+      textPlane = existingLabel;
+    } else {
+      // Create dynamic texture for expenses text with transparent background (4x bigger)
+      textTexture = new DynamicTexture("groundExpensesText", { width: 1024, height: 256 }, this.scene, true);
+      
+      // Create ground plane text mesh (4x bigger)
+      textPlane = MeshBuilder.CreatePlane("groundExpensesLabel", { width: 16, height: 4 }, this.scene);
+      
+      // Position on ground plane (slightly above ground to avoid z-fighting)
+      textPlane.position.y = 0.01;  
+      textPlane.position.x = 3;     // On expenses side (opposite of revenue)
+      textPlane.position.z = -4;    // Front area, closer to camera
+      textPlane.rotation.x = Math.PI / 2; // Rotate to lay flat on ground (right-side up)
+      textPlane.parent = this.masterTransform;
+
+      // Apply text material with alpha blending
+      const textMaterial = new StandardMaterial("groundExpensesMaterial", this.scene);
+      textMaterial.diffuseTexture = textTexture;
+      textMaterial.opacityTexture = textTexture;
+      textMaterial.backFaceCulling = false;
+      textMaterial.useAlphaFromDiffuseTexture = true;
+      textPlane.material = textMaterial;
+
+      textPlane.isPickable = false;
+      
+      // Store both texture and plane references
+      this.foundationComponents.set('groundExpensesLabel', textPlane);
+      this.foundationComponents.set('groundExpensesTexture', textTexture);
+    }
+
+    // Update only the texture content (no flashing)
+    const textContext = textTexture.getContext();
+    
+    // Clear canvas to transparent background
+    textContext.clearRect(0, 0, 1024, 256);
+    
+    // Split the text into amount and "Expenses" parts
+    const parts = expensesAmountText.split(' ');
+    const amountText = parts[0]; // e.g., "$8M"
+    const labelText = parts.slice(1).join(' '); // e.g., "Expenses"
+    
+    // Set text properties
+    textContext.fillStyle = "#DC2626"; // Red color for expenses
+    (textContext as any).textAlign = "center";
+    (textContext as any).textBaseline = "middle";
+    
+    // Draw the amount in large font
+    textContext.font = "bold 96px Arial";
+    textContext.fillText(amountText, 512, 100); // Slightly higher position
+    
+    // Draw "Expenses" in smaller font (3x smaller = 32px)
+    textContext.font = "bold 32px Arial";
+    textContext.fillText(labelText, 512, 170); // Lower position
+    
+    textTexture.update();
+    
+    debugLog.verbose('envisioner', `💳 Ground expenses label updated: ${expensesAmountText}`);
+  }
+
+  /**
    * Create template-specific foundation labels
    */
   public async createTemplateLabels(templateName: string): Promise<void> {
@@ -343,8 +416,10 @@ export class EnvisionerFoundation {
       await this.createVerticalDividerLabel();
       debugLog.verbose('envisioner', '🏷️ BMC foundation labels created');
     } else if (templateName.toLowerCase() === 'financials') {
-      // No separate labels for Financials - the ground texture already has Revenue/Expenses built in
-      debugLog.verbose('envisioner', '🏷️ Financials uses ground texture labels (no separate planes)');
+      // Initialize ground labels for Financials template
+      this.updateGroundRevenueLabel('$10M Revenue');
+      this.updateGroundExpensesLabel('$8M Expenses');
+      debugLog.verbose('envisioner', '🏷️ Financials ground labels initialized');
     }
   }
 
