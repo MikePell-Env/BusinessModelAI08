@@ -1598,23 +1598,66 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           
           // Handle Financial object clicks
           if (financialObjects.includes(sectionId)) {
-            console.log(`💰 CLICK: ${sectionId}`);
-            console.log(`💰 STATE: currentSelectedFinancialObject = "${currentSelectedFinancialObject}"`);
-            console.log(`💰 COMPARISON: "${currentSelectedFinancialObject}" === "${sectionId}" = ${currentSelectedFinancialObject === sectionId}`);
+            console.log(`💰 CLICK: ${sectionId}, current: ${currentSelectedFinancialObject}`);
             
-            if (currentSelectedFinancialObject === null) {
-              console.log(`💰 CASE: No selection - will select ${sectionId}`);
-              selectObject(sectionId);
-            } else if (currentSelectedFinancialObject === sectionId) {
-              console.log(`💰 CASE: Same object clicked - will deselect ${sectionId}`);
-              restoreAll();
+            if (currentSelectedFinancialObject === sectionId) {
+              // Same object clicked - DESELECT and restore all to 100%
+              console.log(`💰 DESELECTING: ${sectionId}`);
+              financialObjects.forEach(objName => {
+                const objMesh = scene.getMeshByName(objName);
+                if (objMesh) {
+                  const allMaterials = [];
+                  if (objMesh.material) allMaterials.push(objMesh.material);
+                  if ((objMesh as any).multiMaterial?.subMaterials) {
+                    allMaterials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
+                  }
+                  allMaterials.forEach((material: any) => {
+                    material.alpha = 1.0;
+                  });
+                  console.log(`✅ ${objName}: restored to alpha 1.0`);
+                }
+              });
+              setCurrentSelectedFinancialObject(null);
+              console.log(`💰 ALL RESTORED: No selection, all at 100%`);
             } else {
-              console.log(`💰 CASE: Different object clicked - will switch from ${currentSelectedFinancialObject} to ${sectionId}`);
-              selectObject(sectionId);
+              // Different object clicked or first selection - SELECT this object
+              console.log(`💰 SELECTING: ${sectionId}`);
+              financialObjects.forEach(objName => {
+                const objMesh = scene.getMeshByName(objName);
+                if (objMesh) {
+                  const targetAlpha = (objName === sectionId) ? 1.0 : 0.2;
+                  const allMaterials = [];
+                  if (objMesh.material) allMaterials.push(objMesh.material);
+                  if ((objMesh as any).multiMaterial?.subMaterials) {
+                    allMaterials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
+                  }
+                  allMaterials.forEach((material: any) => {
+                    material.alpha = targetAlpha;
+                  });
+                  console.log(`✅ ${objName}: alpha ${targetAlpha}`);
+                }
+              });
+              setCurrentSelectedFinancialObject(sectionId);
+              console.log(`💰 SELECTED: ${sectionId} at 100%, others at 20%`);
             }
           } else if (currentSelectedFinancialObject) {
-            console.log(`💰 CASE: Non-financial object clicked - will restore all`);
-            restoreAll();
+            // Non-financial object clicked - restore all
+            console.log(`💰 NON-FINANCIAL CLICKED: restoring all`);
+            financialObjects.forEach(objName => {
+              const objMesh = scene.getMeshByName(objName);
+              if (objMesh) {
+                const allMaterials = [];
+                if (objMesh.material) allMaterials.push(objMesh.material);
+                if ((objMesh as any).multiMaterial?.subMaterials) {
+                  allMaterials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
+                }
+                allMaterials.forEach((material: any) => {
+                  material.alpha = 1.0;
+                });
+              }
+            });
+            setCurrentSelectedFinancialObject(null);
+            console.log(`💰 ALL RESTORED: No selection, all at 100%`);
           }
         }
 
