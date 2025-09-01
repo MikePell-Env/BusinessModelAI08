@@ -267,11 +267,11 @@ export class EnvisionerFoundation {
       this.foundationComponents.delete('groundRevenueLabel');
     }
 
-    // Create dynamic texture for revenue text with transparency
-    const textTexture = new DynamicTexture("groundRevenueText", { width: 512, height: 128 }, this.scene, false);
+    // Create dynamic texture for revenue text with transparent background
+    const textTexture = new DynamicTexture("groundRevenueText", { width: 512, height: 128 }, this.scene, true);
     const textContext = textTexture.getContext();
 
-    // Clear entire canvas to transparent
+    // Clear canvas to transparent background
     textContext.clearRect(0, 0, 512, 128);
     
     // Set text properties
@@ -280,7 +280,7 @@ export class EnvisionerFoundation {
     (textContext as any).textAlign = "center";
     (textContext as any).textBaseline = "middle";
     
-    // Draw the revenue text (no background)
+    // Draw the revenue text
     textContext.fillText(revenueAmountText, 256, 64);
     textTexture.update();
 
@@ -294,13 +294,12 @@ export class EnvisionerFoundation {
     textPlane.rotation.x = Math.PI / 2; // Rotate to lay flat on ground (right-side up)
     textPlane.parent = this.masterTransform;
 
-    // Apply text material with full transparency
+    // Apply text material with alpha blending
     const textMaterial = new StandardMaterial("groundRevenueMaterial", this.scene);
     textMaterial.diffuseTexture = textTexture;
+    textMaterial.opacityTexture = textTexture;
     textMaterial.backFaceCulling = false;
     textMaterial.useAlphaFromDiffuseTexture = true;
-    textMaterial.transparencyMode = 1; // Alpha test mode - only show pixels above alpha threshold
-    textMaterial.alphaCutOff = 0.1; // Cut off pixels below 10% alpha
     textPlane.material = textMaterial;
 
     textPlane.isPickable = false;
