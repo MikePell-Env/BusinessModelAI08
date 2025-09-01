@@ -1546,64 +1546,54 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (template?.name === 'Financials') {
           const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
           
-          // Simple helper to set all objects to full opacity
+          // Simple helper to set all objects to full opacity - ONLY change alpha
           const restoreAll = () => {
             financialObjects.forEach(objName => {
               const objMesh = scene.getMeshByName(objName);
               if (objMesh) {
-                // Force visibility back to normal
-                objMesh.visibility = 1.0;
-                
-                // Handle all possible material configurations
+                // Collect all materials
                 const allMaterials = [];
                 if (objMesh.material) allMaterials.push(objMesh.material);
                 if ((objMesh as any).multiMaterial?.subMaterials) {
                   allMaterials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
                 }
                 
+                // ONLY change alpha, nothing else
                 allMaterials.forEach((material: any) => {
-                  // Force fully opaque
                   material.alpha = 1.0;
-                  material.transparencyMode = 0; // OPAQUE
-                  
-                  // Disable all transparency settings
-                  if (material.hasAlpha !== undefined) material.hasAlpha = false;
-                  if (material.useAlphaFromDiffuseTexture !== undefined) material.useAlphaFromDiffuseTexture = false;
-                  if (material.separateCullingPass !== undefined) material.separateCullingPass = false;
                 });
                 
-                console.log(`✅ ${objName}: restored to full opacity`);
+                console.log(`✅ ${objName}: alpha set to 1.0`);
               }
             });
             setCurrentSelectedFinancialObject(null);
-            console.log(`💰 RESTORED: All objects to 100% opacity`);
+            console.log(`💰 RESTORED: All objects alpha to 1.0`);
           };
           
-          // Simple helper to select one object (fade others)
+          // Simple helper to select one object (fade others) - ONLY change alpha
           const selectObject = (selectedId: string) => {
             financialObjects.forEach(objName => {
               const objMesh = scene.getMeshByName(objName);
               if (objMesh) {
                 const targetAlpha = (objName === selectedId) ? 1.0 : 0.2;
                 
-                // Handle all possible material configurations
+                // Collect all materials
                 const allMaterials = [];
                 if (objMesh.material) allMaterials.push(objMesh.material);
                 if ((objMesh as any).multiMaterial?.subMaterials) {
                   allMaterials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
                 }
                 
+                // ONLY change alpha, nothing else
                 allMaterials.forEach((material: any) => {
-                  material.transparencyMode = 3; // ALPHABLEND
                   material.alpha = targetAlpha;
-                  if (material.hasAlpha !== undefined) material.hasAlpha = true;
                 });
                 
-                console.log(`✅ ${objName}: set to ${targetAlpha * 100}% opacity`);
+                console.log(`✅ ${objName}: alpha set to ${targetAlpha}`);
               }
             });
             setCurrentSelectedFinancialObject(selectedId);
-            console.log(`💰 SELECTED: ${selectedId}, others faded to 20%`);
+            console.log(`💰 SELECTED: ${selectedId}, others faded`);
           };
           
           // Handle Financial object clicks
