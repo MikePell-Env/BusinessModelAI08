@@ -1301,15 +1301,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         context.stroke();
       }
       
-      // Add "Revenue" label (positioned on left from viewer's angle, closer to rail, smaller font, 50% opacity)
-      context.fillStyle = "rgba(102, 102, 102, 0.5)";
-      context.font = "bold 24px Arial";
-      (context as any).textAlign = "center";
-      (context as any).textBaseline = "middle";
-      context.fillText("Revenue", 256, 980); // Left from viewer's perspective, much closer to rail
-      
-      // Add "Expenses" label (positioned on right from viewer's angle, closer to rail, smaller font, 50% opacity)  
-      context.fillText("Expenses", 768, 980); // Right from viewer's perspective, much closer to rail
+      // Revenue and Expenses labels hidden for Financials template
+      // context.fillStyle = "rgba(102, 102, 102, 0.5)";
+      // context.font = "bold 24px Arial";
+      // (context as any).textAlign = "center";
+      // (context as any).textBaseline = "middle";
+      // context.fillText("Revenue", 256, 980); // Left from viewer's perspective, much closer to rail
+      // 
+      // // Add "Expenses" label (positioned on right from viewer's angle, closer to rail, smaller font, 50% opacity)  
+      // context.fillText("Expenses", 768, 980); // Right from viewer's perspective, much closer to rail
       
       // Add vertical divider with 80% opacity, longer and thinner
       context.strokeStyle = "rgba(102, 102, 102, 0.8)";
@@ -3483,13 +3483,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   netLoss: 0           // No loss (0% RevenuePL)
                 });
                 
-                // Initialize ground labels for Financials template with longer delay
-                setTimeout(() => {
-                  if ((window as any).envisionerFoundation) {
-                    (window as any).envisionerFoundation.updateGroundRevenueLabel('$10M Revenue');
-                    (window as any).envisionerFoundation.updateGroundExpensesLabel('$8M Expenses');
-                  }
-                }, 100); // Additional delay to ensure foundation is ready
+                // Ground labels hidden for Financials template
+                // setTimeout(() => {
+                //   if ((window as any).envisionerFoundation) {
+                //     (window as any).envisionerFoundation.updateGroundRevenueLabel('$10M Revenue');
+                //     (window as any).envisionerFoundation.updateGroundExpensesLabel('$8M Expenses');
+                //   }
+                // }, 100); // Additional delay to ensure foundation is ready
               }, 200); // Increased timeout to ensure sliders are ready
             }
           }}>
@@ -3509,12 +3509,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   (window as any).financialSliderState.revenue = revenuePercent;
 
 
-                  // Update ground plane revenue label with actual revenue amount
-                  const actualRevenueAmount = (revenuePercent / 10).toFixed(0); // Convert percentage to actual amount
-                  const revenueText = `$${actualRevenueAmount}M Revenue`;
-                  if ((window as any).envisionerFoundation) {
-                    (window as any).envisionerFoundation.updateGroundRevenueLabel(revenueText);
-                  }
+                  // Ground plane revenue label hidden
+                  // const actualRevenueAmount = (revenuePercent / 10).toFixed(0); // Convert percentage to actual amount
+                  // const revenueText = `$${actualRevenueAmount}M Revenue`;
+                  // if ((window as any).envisionerFoundation) {
+                  //   (window as any).envisionerFoundation.updateGroundRevenueLabel(revenueText);
+                  // }
 
                   // ISOLATED REVENUE UPDATE: Percentage-based height distribution
                   if ((window as any).financialsHeightManager) {
@@ -3603,21 +3603,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
                   }
 
-                  // Update ground plane expenses label with actual expenses amount
-                  const actualExpensesAmount = (expensesPercent / 10).toFixed(0); // Convert percentage to actual amount
-                  const expensesText = `$${actualExpensesAmount}M Expenses`;
-                  if ((window as any).envisionerFoundation) {
-                    (window as any).envisionerFoundation.updateGroundExpensesLabel(expensesText);
-                  }
+                  // Ground plane expenses and revenue labels hidden
+                  // const actualExpensesAmount = (expensesPercent / 10).toFixed(0); // Convert percentage to actual amount
+                  // const expensesText = `$${actualExpensesAmount}M Expenses`;
+                  // if ((window as any).envisionerFoundation) {
+                  //   (window as any).envisionerFoundation.updateGroundExpensesLabel(expensesText);
+                  // }
 
-                  // Update ground plane revenue label when expenses change  
-                  // Get current revenue percentage from state
-                  const currentRevenuePercent = (window as any).financialSliderState?.revenue || 100;
-                  const actualRevenueAmount = (currentRevenuePercent / 10).toFixed(0);
-                  const revenueText = `$${actualRevenueAmount}M Revenue`;
-                  if ((window as any).envisionerFoundation) {
-                    (window as any).envisionerFoundation.updateGroundRevenueLabel(revenueText);
-                  }
+                  // // Update ground plane revenue label when expenses change  
+                  // // Get current revenue percentage from state
+                  // const currentRevenuePercent = (window as any).financialSliderState?.revenue || 100;
+                  // const actualRevenueAmount = (currentRevenuePercent / 10).toFixed(0);
+                  // const revenueText = `$${actualRevenueAmount}M Revenue`;
+                  // if ((window as any).envisionerFoundation) {
+                  //   (window as any).envisionerFoundation.updateGroundRevenueLabel(revenueText);
+                  // }
 
                   // Update the display values
                   const expensesDisplay = document.querySelector('.expenses-display');
