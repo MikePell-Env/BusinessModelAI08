@@ -612,7 +612,7 @@ export class FinancialsHeightManager {
     // Financial objects sit at Y=0.1 relative to master transform
     this.testCube.position.x = 2; // Offset from center
     this.testCube.position.y = 0.35; // Above ground plane (0.1 base + 0.25 cube height)
-    this.testCube.position.z = 2; // Offset from center
+    this.testCube.position.z = -8; // Move forward towards front rail for visibility
     
     // Make it bright green so it's clearly visible
     const material = new StandardMaterial("GroundPlaneTestCubeMaterial", this.scene);
