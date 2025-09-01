@@ -1539,121 +1539,66 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           return; // Exit early since we've handled both selection and panel refresh
         }
 
-        // FINANCIALS TEMPLATE: Handle opacity fade behavior for Financial objects
+        // FINANCIALS TEMPLATE: Simple opacity behavior
         if (template?.name === 'Financials') {
           const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
           
-          // If clicking ANY object (Financial or not), reset opacity if something was selected
-          if (currentSelectedFinancialObject && !financialObjects.includes(sectionId)) {
-            // Clicked on non-Financial object, restore all Financial objects to 100% opacity
+          // Helper function to restore all Financial objects to 100% opacity
+          const restoreAllOpacity = () => {
             financialObjects.forEach(objName => {
               const objMesh = scene.getMeshByName(objName);
-              if (objMesh) {
-                // Handle both single materials and multi-materials
-                const materials = objMesh.material ? [objMesh.material] : [];
-                if ((objMesh as any).multiMaterial) {
-                  materials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
-                }
-                
-                materials.forEach((material: any) => {
-                  if (material) {
-                    material.alpha = 1.0;
-                    
-                    // Set to OPAQUE mode for full restoration
-                    if (material.getClassName().includes('PBR')) {
-                      material.transparencyMode = 0; // OPAQUE mode
-                      material.useAlphaFromDiffuseTexture = false;
-                    } else {
-                      material.transparencyMode = 0; // OPAQUE mode
-                    }
-                    
-                    console.log(`🔍 DEBUG: ${objName} restored to 100% opacity (non-Financial clicked)`);
-                  }
-                });
+              if (objMesh && objMesh.material) {
+                objMesh.material.alpha = 1.0;
+                objMesh.material.transparencyMode = 0; // OPAQUE
               }
             });
             setCurrentSelectedFinancialObject(null);
-            console.log(`💰 Non-Financial object clicked: Restored all Financial objects to 100% opacity`);
-          } else if (financialObjects.includes(sectionId)) {
+            console.log(`💰 All Financial objects restored to 100% opacity`);
+          };
+          
+          // If clicking a Financial object
+          if (financialObjects.includes(sectionId)) {
             console.log(`💰 Financial object clicked: ${sectionId}`);
             
-            // Check if clicking the same object again (toggle off)
-            const isToggleOff = currentSelectedFinancialObject === sectionId;
-            
-            if (isToggleOff) {
-              // Restore all objects to 100% opacity
-              financialObjects.forEach(objName => {
-                const objMesh = scene.getMeshByName(objName);
-                if (objMesh) {
-                  // Handle both single materials and multi-materials
-                  const materials = objMesh.material ? [objMesh.material] : [];
-                  if ((objMesh as any).multiMaterial) {
-                    materials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
-                  }
-                  
-                  materials.forEach((material: any) => {
-                    if (material) {
-                      console.log(`🔍 DEBUG: ${objName} material type:`, material.getClassName());
-                      console.log(`🔍 DEBUG: ${objName} current alpha:`, material.alpha);
-                      
-                      material.alpha = 1.0;
-                      
-                      // Handle different material types
-                      if (material.getClassName().includes('PBR')) {
-                        material.transparencyMode = 0; // OPAQUE mode for restoration
-                        material.useAlphaFromDiffuseTexture = false;
-                      } else {
-                        // Standard material
-                        material.transparencyMode = 0; // OPAQUE mode for restoration
-                      }
-                      
-                      console.log(`🔍 DEBUG: ${objName} alpha after reset:`, material.alpha, 'transparencyMode:', material.transparencyMode);
+            // If something is already selected OR clicking same object, restore all to 100%
+            if (currentSelectedFinancialObject) {
+              restoreAllOpacity();
+              
+              // If clicking a different object (not same), apply new selection
+              if (currentSelectedFinancialObject !== sectionId) {
+                financialObjects.forEach(objName => {
+                  const objMesh = scene.getMeshByName(objName);
+                  if (objMesh && objMesh.material) {
+                    objMesh.material.transparencyMode = 3; // ALPHABLEND
+                    if (objName === sectionId) {
+                      objMesh.material.alpha = 1.0; // Keep selected at 100%
+                    } else {
+                      objMesh.material.alpha = 0.2; // Fade others to 20%
                     }
-                  });
-                } else {
-                  console.log(`🔍 DEBUG: ${objName} mesh not found`);
-                }
-              });
-              setCurrentSelectedFinancialObject(null);
-              console.log(`💰 Same object clicked: Restored all Financial objects to 100% opacity`);
+                  }
+                });
+                setCurrentSelectedFinancialObject(sectionId);
+                console.log(`💰 New selection: ${sectionId}, others faded to 20%`);
+              }
             } else {
-              // Different Financial object clicked, or first selection
-              // First restore all to 100%, then apply new selection
+              // Nothing selected, make first selection
               financialObjects.forEach(objName => {
                 const objMesh = scene.getMeshByName(objName);
-                if (objMesh) {
-                  // Handle both single materials and multi-materials
-                  const materials = objMesh.material ? [objMesh.material] : [];
-                  if ((objMesh as any).multiMaterial) {
-                    materials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
+                if (objMesh && objMesh.material) {
+                  objMesh.material.transparencyMode = 3; // ALPHABLEND
+                  if (objName === sectionId) {
+                    objMesh.material.alpha = 1.0; // Keep selected at 100%
+                  } else {
+                    objMesh.material.alpha = 0.2; // Fade others to 20%
                   }
-                  
-                  materials.forEach((material: any) => {
-                    if (material) {
-                      // Set transparency mode for alpha blending
-                      if (material.getClassName().includes('PBR')) {
-                        material.transparencyMode = 3; // ALPHABLEND mode
-                        material.useAlphaFromDiffuseTexture = false;
-                      } else {
-                        material.transparencyMode = 3; // ALPHABLEND mode
-                      }
-                      
-                      if (objName === sectionId) {
-                        material.alpha = 1.0; // Keep selected at 100%
-                        console.log(`🔍 DEBUG: ${objName} set to 100% opacity`);
-                      } else {
-                        material.alpha = 0.2; // Fade others to 20%
-                        console.log(`🔍 DEBUG: ${objName} set to 20% opacity`);
-                      }
-                    }
-                  });
-                } else {
-                  console.log(`🔍 DEBUG: ${objName} mesh not found`);
                 }
               });
               setCurrentSelectedFinancialObject(sectionId);
-              console.log(`💰 New Financial object selected: ${sectionId}, others faded to 20%`);
+              console.log(`💰 First selection: ${sectionId}, others faded to 20%`);
             }
+          } else if (currentSelectedFinancialObject) {
+            // Clicked non-Financial object while something was selected, restore all
+            restoreAllOpacity();
           }
         }
 
@@ -1717,28 +1662,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
           financialObjects.forEach(objName => {
             const objMesh = scene.getMeshByName(objName);
-            if (objMesh) {
-              // Handle both single materials and multi-materials
-              const materials = objMesh.material ? [objMesh.material] : [];
-              if ((objMesh as any).multiMaterial) {
-                materials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
-              }
-              
-              materials.forEach((material: any) => {
-                if (material) {
-                  material.alpha = 1.0;
-                  
-                  // Set to OPAQUE mode for full restoration
-                  if (material.getClassName().includes('PBR')) {
-                    material.transparencyMode = 0; // OPAQUE mode
-                    material.useAlphaFromDiffuseTexture = false;
-                  } else {
-                    material.transparencyMode = 0; // OPAQUE mode
-                  }
-                  
-                  console.log(`🔍 DEBUG: ${objName} restored to 100% opacity (background click)`);
-                }
-              });
+            if (objMesh && objMesh.material) {
+              objMesh.material.alpha = 1.0;
+              objMesh.material.transparencyMode = 0; // OPAQUE
             }
           });
           setCurrentSelectedFinancialObject(null);
