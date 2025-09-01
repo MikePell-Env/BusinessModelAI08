@@ -1526,6 +1526,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     interactionManagerRef.current = new UnifiedInteractionManager(scene, {
       onSingleClick: (sectionId: string, mesh: AbstractMesh) => {
         // Single click detected
+        console.log(`🎯 CLICK HANDLER TRIGGERED: sectionId="${sectionId}", template="${template?.name}"`);
+        console.log(`🎯 MESH INFO: name="${mesh.name}", id="${mesh.id}"`);
+        console.log(`🎯 CURRENT FINANCIAL SELECTION: "${currentSelectedFinancialObject}"`)
 
         // NEW LOGIC: If panel is open, refresh panel content instead of just selecting
         if (currentBillboardPanel) {
@@ -1610,6 +1613,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             console.log(`💰 CLICK: ${sectionId}`);
             console.log(`💰 STATE: currentSelectedFinancialObject = "${currentSelectedFinancialObject}"`);
             console.log(`💰 COMPARISON: "${currentSelectedFinancialObject}" === "${sectionId}" = ${currentSelectedFinancialObject === sectionId}`);
+            
+            // TEMPORARY: Visual feedback to confirm clicks are working
+            document.title = `Clicked: ${sectionId} (was: ${currentSelectedFinancialObject})`;
             
             if (currentSelectedFinancialObject === null) {
               console.log(`💰 CASE: No selection - will select ${sectionId}`);
