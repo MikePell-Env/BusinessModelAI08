@@ -289,9 +289,9 @@ export class EnvisionerFoundation {
     
     // Position on ground plane (slightly above ground to avoid z-fighting)
     textPlane.position.y = 0.01;  
-    textPlane.position.x = -6;    // Left side of ground plane
-    textPlane.position.z = 5;     // Front area
-    textPlane.rotation.x = -Math.PI / 2; // Rotate to lay flat on ground
+    textPlane.position.x = -3;    // In front of green shapes
+    textPlane.position.z = -4;    // Front area, closer to camera
+    textPlane.rotation.x = Math.PI / 2; // Rotate to lay flat on ground (right-side up)
     textPlane.parent = this.masterTransform;
 
     // Apply text material
