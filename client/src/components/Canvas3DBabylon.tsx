@@ -2489,6 +2489,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.log(`   - template.name.toLowerCase() === 'financials': ${template.name.toLowerCase() === 'financials'}`);
         console.log(`   - template.name.toLowerCase().includes('financial'): ${template.name.toLowerCase().includes('financial')}`);
 
+        console.log(`🔎 TEMPLATE CHECK - Raw template.name: "${template.name}"`);
+        console.log(`🔎 TEMPLATE CHECK - Lowercase: "${template.name.toLowerCase()}"`);
+        console.log(`🔎 TEMPLATE CHECK - Available model meshes:`, model.meshes.map(m => m.name));
+        
         if (template.name.toLowerCase() === 'financials' || template.name.toLowerCase().includes('financial')) {
           console.log(`✅ MATCH! Financial template detected! Creating TransformNodes and Financial labels...`);
 
@@ -2574,14 +2578,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // FIXED: Use mesh center position directly (not distorted bounding box)
-              // Financial objects maintain fixed positions, only vertices change for height
-              // So mesh.position gives us the true object center we want to label
+              // DEBUG: Make labels highly visible and positioned simply for troubleshooting
+              // Use mesh position directly (the most reliable coordinate)
+              labelPlane.position.x = mesh.position.x; // Direct mesh position X
+              labelPlane.position.y = mesh.position.y; // Direct mesh position Y
+              labelPlane.position.z = mesh.position.z - 1.0; // 1 unit in front of mesh
               
-              // Position label at the mesh center (which IS the front face center)
-              labelPlane.position.x = center.x; // Use original center calculation
-              labelPlane.position.y = center.y; // Use original center calculation  
-              labelPlane.position.z = center.z - size.z * 0.51; // Front face (like before)
+              console.log(`🎯 ${mesh.name} LABEL POSITIONING:`);
+              console.log(`   Mesh Position: (${mesh.position.x.toFixed(3)}, ${mesh.position.y.toFixed(3)}, ${mesh.position.z.toFixed(3)})`);
+              console.log(`   Label Position: (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+              console.log(`   Bounding Center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
+              console.log(`   Size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
+              
+              // Make labels HUGE and bright for debugging
+              labelPlane.scaling.x = 3.0; // 3x bigger
+              labelPlane.scaling.y = 3.0; // 3x bigger
 
               // Face forward (no rotation needed for front-facing labels)
               labelPlane.rotation.x = 0; // Face forward instead of flat on top
@@ -2594,7 +2605,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
               labelMaterial.diffuseTexture = labelTexture;
               labelMaterial.emissiveTexture = labelTexture;
-              labelMaterial.emissiveColor = new Color3(0.4, 0.4, 0.4); // Reduced emissive to prevent blown out look
+              labelMaterial.emissiveColor = new Color3(2.0, 2.0, 2.0); // SUPER BRIGHT for debugging
               labelMaterial.useAlphaFromDiffuseTexture = true;
               labelMaterial.disableLighting = true; // Ensure consistent brightness
               labelMaterial.backFaceCulling = false;
