@@ -53,11 +53,8 @@ export class FinancialsHeightManager {
 
   constructor(scene: Scene) {
     this.scene = scene;
-    this.createGroundPlaneTestCube();
-    this.createTestLabelPlane();
     
-    // Find and attach labels to financial meshes
-    setTimeout(() => this.findAndAttachToActualMeshes(), 2000);
+    // Labels are now created directly during model loading
   }
 
 
@@ -848,87 +845,6 @@ export class FinancialsHeightManager {
   }
   
   
-  /**
-   * Find the actual financial meshes in the scene and attach labels directly to them
-   */
-  private findAndAttachToActualMeshes(): void {
-    // Look for meshes with financial names
-    const financialNames = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
-    
-    this.scene.meshes.forEach(mesh => {
-      if (mesh instanceof Mesh && financialNames.includes(mesh.name)) {
-        // Create label directly on this found mesh
-        this.createLabelDirectlyOnMesh(mesh);
-      }
-    });
-  }
-  
-  
-  /**
-   * Create label directly on a found mesh, without changing mesh position
-   */
-  private createLabelDirectlyOnMesh(mesh: Mesh): void {
-    const meshName = mesh.name;
-    const texturePath = this.getLabelTexturePath(meshName);
-    if (!texturePath) return;
-    
-    // DON'T move the mesh - just create labels using world coordinates
-    // Since all meshes are at (0,0,0), place labels at fixed world positions
-    const labelWorldPosition = this.getLabelWorldPosition(meshName);
-    
-    try {
-      // Create label plane
-      const labelPlane = MeshBuilder.CreatePlane(`${meshName}DirectLabel`, {
-        width: 1.0,
-        height: 0.3
-      }, this.scene);
-      
-      // Position in world space instead of parenting to mesh
-      labelPlane.position.x = labelWorldPosition.x;
-      labelPlane.position.y = labelWorldPosition.y; 
-      labelPlane.position.z = labelWorldPosition.z;
-      
-      // Create material with PNG texture
-      const material = new StandardMaterial(`${meshName}DirectLabelMaterial`, this.scene);
-      const texture = new Texture(texturePath, this.scene);
-      texture.hasAlpha = true;
-      
-      material.diffuseTexture = texture;
-      material.emissiveTexture = texture;
-      material.emissiveColor = new Color3(1.0, 1.0, 1.0);
-      material.alpha = 0.9;
-      material.useAlphaFromDiffuseTexture = true;
-      material.disableLighting = true;
-      material.backFaceCulling = false;
-      
-      labelPlane.material = material;
-      labelPlane.isPickable = false;
-      
-      
-    } catch (error) {
-      console.warn(`❌ Failed to create label for ${meshName}:`, error);
-    }
-  }
-  
-  /**
-   * Get world position for labels using coordinates similar to working test cube
-   */
-  private getLabelWorldPosition(meshName: string): { x: number, y: number, z: number } {
-    // Test cube works at (2, 0.35, -6), test label at (2, 0.35, -6.5)
-    // Use similar coordinate system with negative Z values
-    switch (meshName) {
-      case 'Revenue':
-        return { x: -2, y: 0.5, z: -4 }; 
-      case 'Expenses': 
-        return { x: 2, y: 0.5, z: -4 };  
-      case 'RevenuePL':
-        return { x: -2, y: 1.5, z: -4 }; 
-      case 'ExpensesPL':
-        return { x: 2, y: 1.5, z: -4 };  
-      default:
-        return { x: 0, y: 0.5, z: -4 };
-    }
-  }
 
   /**
    * Get PNG texture path for financial mesh labels
