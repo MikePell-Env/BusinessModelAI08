@@ -126,8 +126,6 @@ export class BMCModelLoader {
         // Apply 40% total width reduction (20% + 20% more), but keep outer edges fixed to center line
         mesh.scaling.x = 0.64; // 40% total reduction in width (0.8 * 0.8)
         
-        // Create PNG label immediately after mesh is positioned
-        this.createFinancialLabel(mesh);
         
         // Group-specific positioning to maintain outer edge alignment
         if (mesh.name === "Revenue" || mesh.name === "RevenuePL") {
@@ -246,68 +244,6 @@ export class BMCModelLoader {
     }
   }
 
-  /**
-   * Create PNG label for financial mesh immediately when positioned
-   */
-  private createFinancialLabel(mesh: AbstractMesh): void {
-    if (!(mesh instanceof Mesh)) return;
-    
-    const meshName = mesh.name;
-    const texturePath = this.getFinancialLabelTexture(meshName);
-    if (!texturePath) return;
-    
-    try {
-      // Create label plane
-      const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
-        width: 1.0,
-        height: 0.3
-      }, this.scene);
-      
-      // Parent to the mesh so it tracks with height changes
-      labelPlane.parent = mesh;
-      
-      // Position on front face
-      labelPlane.position.x = 0;
-      labelPlane.position.y = 0.5; 
-      labelPlane.position.z = 0.51; // Just in front
-      
-      // Create material with PNG texture
-      const material = new StandardMaterial(`${meshName}LabelMaterial`, this.scene);
-      const texture = new Texture(texturePath, this.scene);
-      texture.hasAlpha = true;
-      
-      // Apply proven material settings from BMC labels
-      material.diffuseTexture = texture;
-      material.emissiveTexture = texture;
-      material.emissiveColor = new Color3(1.0, 1.0, 1.0);
-      material.alpha = 0.9;
-      material.useAlphaFromDiffuseTexture = true;
-      material.disableLighting = true;
-      material.backFaceCulling = false;
-      
-      labelPlane.material = material;
-      labelPlane.isPickable = false;
-      
-      console.log(`✅ Financial label created for ${meshName} during model load`);
-      
-    } catch (error) {
-      console.warn(`Failed to create financial label for ${meshName}:`, error);
-    }
-  }
-  
-  /**
-   * Get PNG texture path for financial mesh labels
-   */
-  private getFinancialLabelTexture(meshName: string): string | null {
-    const texturePaths: Record<string, string> = {
-      'Revenue': '/textures/Label_Revenue.png',
-      'Expenses': '/textures/Label_Expenses.png',
-      'RevenuePL': '/textures/Label_Profit.png',
-      'ExpensesPL': '/textures/Label_Loss.png'
-    };
-    
-    return texturePaths[meshName] || null;
-  }
 
   /**
    * Load template-specific model based on template type
