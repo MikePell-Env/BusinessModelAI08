@@ -1542,7 +1542,19 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // FINANCIALS TEMPLATE: Handle opacity fade behavior for Financial objects
         if (template?.name === 'Financials') {
           const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
-          if (financialObjects.includes(sectionId)) {
+          
+          // If clicking ANY object (Financial or not), reset opacity if something was selected
+          if (currentSelectedFinancialObject && !financialObjects.includes(sectionId)) {
+            // Clicked on non-Financial object, restore all Financial objects to 100% opacity
+            financialObjects.forEach(objName => {
+              const objMesh = scene.getMeshByName(objName);
+              if (objMesh && objMesh.material) {
+                objMesh.material.alpha = 1.0;
+              }
+            });
+            setCurrentSelectedFinancialObject(null);
+            console.log(`💰 Non-Financial object clicked: Restored all Financial objects to 100% opacity`);
+          } else if (financialObjects.includes(sectionId)) {
             console.log(`💰 Financial object clicked: ${sectionId}`);
             
             // Check if clicking the same object again (toggle off)
@@ -1557,9 +1569,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 }
               });
               setCurrentSelectedFinancialObject(null);
-              console.log(`💰 Restored all Financial objects to 100% opacity`);
+              console.log(`💰 Same object clicked: Restored all Financial objects to 100% opacity`);
             } else {
-              // Fade other objects to 20% opacity
+              // Different Financial object clicked, or first selection
+              // First restore all to 100%, then apply new selection
               financialObjects.forEach(objName => {
                 const objMesh = scene.getMeshByName(objName);
                 if (objMesh && objMesh.material) {
@@ -1571,7 +1584,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 }
               });
               setCurrentSelectedFinancialObject(sectionId);
-              console.log(`💰 Faded other Financial objects to 20%, ${sectionId} remains at 100%`);
+              console.log(`💰 New Financial object selected: ${sectionId}, others faded to 20%`);
             }
           }
         }
