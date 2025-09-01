@@ -10,6 +10,21 @@ import copilotRoutes from "./routes/copilot";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Mount Microsoft Copilot routes
   app.use('/api/copilot', copilotRoutes);
+  
+  // Debug endpoint to capture financial mesh debug info
+  app.post("/api/debug-log", async (req, res) => {
+    try {
+      const { content, timestamp } = req.body;
+      const fs = await import('fs');
+      const path = await import('path');
+      const debugLogPath = path.join(process.cwd(), 'debug-log.txt');
+      const logEntry = `[${timestamp}]\n${content}\n---\n`;
+      fs.appendFileSync(debugLogPath, logEntry);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to write debug log' });
+    }
+  });
   // AI Chat endpoint (Microsoft Copilot with OpenAI fallback)
   app.post("/api/ai/chat", async (req, res) => {
     try {
