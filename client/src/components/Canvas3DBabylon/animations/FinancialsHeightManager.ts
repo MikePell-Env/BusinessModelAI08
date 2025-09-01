@@ -856,22 +856,26 @@ export class FinancialsHeightManager {
    * DEBUG: List all meshes in the scene to see what financial objects actually exist
    */
   private debugSceneMeshes(): void {
-    console.log('🔍 ALL MESHES IN SCENE:');
+    let debugOutput = '🔍 ALL MESHES IN SCENE:\n';
     this.scene.meshes.forEach(mesh => {
-      console.log(`  - ${mesh.name} (${mesh.constructor.name}) at position (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
+      debugOutput += `  - ${mesh.name} (${mesh.constructor.name}) at position (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})\n`;
     });
     
-    console.log('🔍 REGISTERED FINANCIAL MESHES:');
+    debugOutput += '\n🔍 REGISTERED FINANCIAL MESHES:\n';
     this.financialMeshes.forEach((mesh, name) => {
-      console.log(`  - ${name}: ${mesh.name} at (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
+      debugOutput += `  - ${name}: ${mesh.name} at (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})\n`;
     });
+    
+    // Write debug output to file I can read
+    this.writeDebugToFile(debugOutput);
+    console.log(debugOutput);
   }
   
   /**
    * Find the actual financial meshes in the scene and attach labels directly to them
    */
   private findAndAttachToActualMeshes(): void {
-    console.log('🎯 SEARCHING FOR ACTUAL FINANCIAL MESHES...');
+    let searchOutput = '🎯 SEARCHING FOR ACTUAL FINANCIAL MESHES...\n';
     
     // Look for meshes with financial names
     const financialNames = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
@@ -880,7 +884,7 @@ export class FinancialsHeightManager {
     this.scene.meshes.forEach(mesh => {
       if (mesh instanceof Mesh && financialNames.includes(mesh.name)) {
         foundMeshes.push(mesh);
-        console.log(`✅ FOUND: ${mesh.name} at (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
+        searchOutput += `✅ FOUND: ${mesh.name} at (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})\n`;
         
         // Create label directly on this found mesh
         this.createLabelDirectlyOnMesh(mesh);
@@ -888,31 +892,59 @@ export class FinancialsHeightManager {
     });
     
     if (foundMeshes.length === 0) {
-      console.log('❌ NO FINANCIAL MESHES FOUND IN SCENE');
+      searchOutput += '❌ NO FINANCIAL MESHES FOUND IN SCENE\n';
     } else {
-      console.log(`✅ Found ${foundMeshes.length} financial meshes`);
+      searchOutput += `✅ Found ${foundMeshes.length} financial meshes\n`;
     }
+    
+    this.writeDebugToFile(searchOutput);
+    console.log(searchOutput);
   }
   
   /**
-   * Create label directly on a found mesh, bypassing the registration system
+   * Write debug output to file for direct reading
+   */
+  private writeDebugToFile(content: string): void {
+    // Use fetch to write debug content to a server endpoint
+    fetch('/api/debug-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, timestamp: new Date().toISOString() })
+    }).catch(() => {
+      // Fallback - store in localStorage for debugging
+      const existing = localStorage.getItem('financials-debug') || '';
+      localStorage.setItem('financials-debug', existing + content + '\n---\n');
+    });
+  }
+  
+  /**
+   * Create label directly on a found mesh, using correct positioning for financial layout
    */
   private createLabelDirectlyOnMesh(mesh: Mesh): void {
     const meshName = mesh.name;
     const texturePath = this.getLabelTexturePath(meshName);
     if (!texturePath) return;
     
+    // CRITICAL DISCOVERY: All financial objects are at (0,0,0) - they need proper positioning!
+    // From the image, I can see they should be arranged in a 2x2 grid pattern
+    const corrections = this.getCorrectObjectPositioning(meshName);
+    
+    // Apply correct positioning to the mesh itself first
+    mesh.position.x = corrections.x;
+    mesh.position.z = corrections.z;
+    // Keep Y as is for anchoring system
+    
     try {
-      // Create label plane with specific size for each object type
+      // Create label plane
       const labelPlane = MeshBuilder.CreatePlane(`${meshName}DirectLabel`, {
         width: 1.0,
         height: 0.3
       }, this.scene);
       
-      // Parent directly to the found mesh
+      // Parent directly to the corrected mesh
       labelPlane.parent = mesh;
       
-      // Position on front face - use simple fixed coordinates that should work
+      // Position on front face of the corrected mesh
       labelPlane.position.x = 0;
       labelPlane.position.y = 0.5; 
       labelPlane.position.z = 0.51; // Just in front
@@ -933,10 +965,32 @@ export class FinancialsHeightManager {
       labelPlane.material = material;
       labelPlane.isPickable = false;
       
-      console.log(`🏷️ DIRECT LABEL created for ${meshName} at position (${labelPlane.position.x}, ${labelPlane.position.y}, ${labelPlane.position.z})`);
+      console.log(`🏷️ CORRECTED LABEL created for ${meshName} at mesh position (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
       
     } catch (error) {
-      console.warn(`❌ Failed to create direct label for ${meshName}:`, error);
+      console.warn(`❌ Failed to create label for ${meshName}:`, error);
+    }
+  }
+  
+  /**
+   * Get correct positioning for financial objects based on visual layout
+   */
+  private getCorrectObjectPositioning(meshName: string): { x: number, z: number } {
+    // Based on the screenshot showing 2x2 arrangement:
+    // Front row: Revenue (left), Expenses (right)  
+    // Back row: RevenuePL (left), ExpensesPL (right)
+    
+    switch (meshName) {
+      case 'Revenue':
+        return { x: -2, z: -1 }; // Front left
+      case 'Expenses': 
+        return { x: 2, z: -1 };  // Front right
+      case 'RevenuePL':
+        return { x: -2, z: 1 };  // Back left
+      case 'ExpensesPL':
+        return { x: 2, z: 1 };   // Back right
+      default:
+        return { x: 0, z: 0 };
     }
   }
 

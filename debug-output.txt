@@ -1,0 +1,4 @@
+Financials Debug Output - Created at startup
+=========================================
+
+This file will be updated with debug information about the financial meshes in the scene.
