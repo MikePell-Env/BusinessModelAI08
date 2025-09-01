@@ -1744,6 +1744,36 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             (mesh as any).originalColor = baseColor.clone();
             (mesh as any).originalMaterial = sectionMaterial;
 
+            // Create hover material for Financial objects brightening effect
+            if (template.name.toLowerCase() === 'financials') {
+              const hoverMaterial = new StandardMaterial(`bmcSection_${index}_hover`, scene) as any;
+              
+              // Brighten the color for hover (increase RGB values by 40%)
+              const brightenedColor = new Color3(
+                Math.min(1.0, baseColor.r * 1.4),
+                Math.min(1.0, baseColor.g * 1.4), 
+                Math.min(1.0, baseColor.b * 1.4)
+              );
+              
+              hoverMaterial.diffuseColor = brightenedColor;
+              hoverMaterial.baseColor = brightenedColor;
+              
+              // Copy other properties from original material
+              if (mesh.name === 'RevenuePL' || mesh.name === 'ExpensesPL') {
+                hoverMaterial.specularColor = new Color3(0.05, 0.05, 0.05);
+                hoverMaterial.specularPower = 32;
+                hoverMaterial.ambientColor = brightenedColor.scale(0.15);
+              } else {
+                hoverMaterial.specularColor = new Color3(0.2, 0.2, 0.2);
+                hoverMaterial.specularPower = 64;
+                hoverMaterial.ambientColor = brightenedColor.scale(0.4);
+              }
+              
+              // Store hover material for later use
+              (mesh as any).hoverMaterial = hoverMaterial;
+              
+              console.log(`🎨 Created hover material for ${mesh.name} with brightened color:`, brightenedColor);
+            }
 
             // Skip label creation during mesh setup - will be done after all transformations are complete
 
@@ -2470,6 +2500,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Setup mesh for UnifiedInteractionManager
             mesh.isPickable = true;
 
+            // Add hover behavior for Financial objects
+            if (template.name.toLowerCase() === 'financials') {
+              // Create ActionManager if it doesn't exist
+              if (!mesh.actionManager) {
+                mesh.actionManager = new ActionManager(scene);
+              }
+
+              // Hover enter - brighten the object
+              mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+                const hoverMaterial = (mesh as any).hoverMaterial;
+                if (hoverMaterial && mesh.material !== hoverMaterial) {
+                  mesh.material = hoverMaterial;
+                  console.log(`✨ ${mesh.name} hover enter - brightened`);
+                }
+              }));
+
+              // Hover exit - return to normal material  
+              mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+                const originalMaterial = (mesh as any).originalMaterial;
+                if (originalMaterial && mesh.material !== originalMaterial) {
+                  mesh.material = originalMaterial;
+                  console.log(`🔄 ${mesh.name} hover exit - normal`);
+                }
+              }));
+
+              console.log(`🎯 ${mesh.name}: Hover behavior configured`);
+            }
+
             // REMOVED: Old click select function - replaced by unified BMC system
 
             // REMOVED: Old click unselect function - replaced by unified BMC system
@@ -2755,6 +2813,55 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               mesh.isPickable = true;
               console.log(`🎯 Revenue Streams: Mesh configured for UnifiedInteractionManager`);
 
+              // Add hover behavior for Revenue Streams in Financial template
+              if (template.name.toLowerCase() === 'financials') {
+                // Create ActionManager if it doesn't exist
+                if (!mesh.actionManager) {
+                  mesh.actionManager = new ActionManager(scene);
+                }
+
+                // Create hover material on the spot since Revenue Streams might not have one
+                const originalMaterial = mesh.material as StandardMaterial;
+                if (originalMaterial && !(mesh as any).hoverMaterial) {
+                  const hoverMaterial = new StandardMaterial(`revenue_streams_hover`, scene);
+                  const originalColor = originalMaterial.diffuseColor || new Color3(0.3, 0.9, 0.3);
+                  
+                  // Brighten the color for hover
+                  const brightenedColor = new Color3(
+                    Math.min(1.0, originalColor.r * 1.4),
+                    Math.min(1.0, originalColor.g * 1.4), 
+                    Math.min(1.0, originalColor.b * 1.4)
+                  );
+                  
+                  hoverMaterial.diffuseColor = brightenedColor;
+                  hoverMaterial.specularColor = originalMaterial.specularColor || new Color3(0.2, 0.2, 0.2);
+                  hoverMaterial.specularPower = originalMaterial.specularPower || 64;
+                  
+                  (mesh as any).hoverMaterial = hoverMaterial;
+                  (mesh as any).originalMaterial = originalMaterial;
+                }
+
+                // Hover enter - brighten the object
+                mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+                  const hoverMaterial = (mesh as any).hoverMaterial;
+                  if (hoverMaterial && mesh.material !== hoverMaterial) {
+                    mesh.material = hoverMaterial;
+                    console.log(`✨ Revenue Streams hover enter - brightened`);
+                  }
+                }));
+
+                // Hover exit - return to normal material  
+                mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+                  const originalMaterial = (mesh as any).originalMaterial;
+                  if (originalMaterial && mesh.material !== originalMaterial) {
+                    mesh.material = originalMaterial;
+                    console.log(`🔄 Revenue Streams hover exit - normal`);
+                  }
+                }));
+
+                console.log(`🎯 Revenue Streams: Hover behavior configured`);
+              }
+
               // REMOVED: Single click handler - now handled by manual double-click detection
 
               // All click and double-click handling managed by UnifiedInteractionManager
@@ -2902,6 +3009,55 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Setup mesh for UnifiedInteractionManager
               mesh.isPickable = true;
               console.log(`🎯 Cost Structure: Mesh configured for UnifiedInteractionManager`);
+
+              // Add hover behavior for Cost Structure in Financial template
+              if (template.name.toLowerCase() === 'financials') {
+                // Create ActionManager if it doesn't exist
+                if (!mesh.actionManager) {
+                  mesh.actionManager = new ActionManager(scene);
+                }
+
+                // Create hover material on the spot since Cost Structure might not have one
+                const originalMaterial = mesh.material as StandardMaterial;
+                if (originalMaterial && !(mesh as any).hoverMaterial) {
+                  const hoverMaterial = new StandardMaterial(`cost_structure_hover`, scene);
+                  const originalColor = originalMaterial.diffuseColor || new Color3(0.9, 0.3, 0.3);
+                  
+                  // Brighten the color for hover
+                  const brightenedColor = new Color3(
+                    Math.min(1.0, originalColor.r * 1.4),
+                    Math.min(1.0, originalColor.g * 1.4), 
+                    Math.min(1.0, originalColor.b * 1.4)
+                  );
+                  
+                  hoverMaterial.diffuseColor = brightenedColor;
+                  hoverMaterial.specularColor = originalMaterial.specularColor || new Color3(0.2, 0.2, 0.2);
+                  hoverMaterial.specularPower = originalMaterial.specularPower || 64;
+                  
+                  (mesh as any).hoverMaterial = hoverMaterial;
+                  (mesh as any).originalMaterial = originalMaterial;
+                }
+
+                // Hover enter - brighten the object
+                mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+                  const hoverMaterial = (mesh as any).hoverMaterial;
+                  if (hoverMaterial && mesh.material !== hoverMaterial) {
+                    mesh.material = hoverMaterial;
+                    console.log(`✨ Cost Structure hover enter - brightened`);
+                  }
+                }));
+
+                // Hover exit - return to normal material  
+                mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+                  const originalMaterial = (mesh as any).originalMaterial;
+                  if (originalMaterial && mesh.material !== originalMaterial) {
+                    mesh.material = originalMaterial;
+                    console.log(`🔄 Cost Structure hover exit - normal`);
+                  }
+                }));
+
+                console.log(`🎯 Cost Structure: Hover behavior configured`);
+              }
 
               // REMOVED: Single click handler - now handled by manual double-click detection
 
