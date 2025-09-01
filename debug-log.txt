@@ -76,3 +76,42 @@ Debug log for financial meshes - waiting for data...[2025-09-01T05:35:52.100Z]
 ✅ Found 4 financial meshes
 
 ---
+[2025-09-01T05:37:41.137Z]
+🔍 ALL MESHES IN SCENE:
+  - envisionerGround (_GroundMesh) at position (0.00, 0.00, 0.00)
+  - envisionerNorthRail (_Mesh) at position (0.00, 0.00, 7.08)
+  - envisionerSouthRail (_Mesh) at position (0.00, 0.00, -7.08)
+  - envisionerEastRail (_Mesh) at position (10.07, 0.00, 0.00)
+  - envisionerWestRail (_Mesh) at position (-10.07, 0.00, 0.00)
+  - __root__ (_Mesh) at position (0.00, 0.10, 1.50)
+  - Revenue (_Mesh) at position (0.00, 0.00, 0.00)
+  - Expenses (_Mesh) at position (0.00, 0.00, 0.00)
+  - RevenuePL (_Mesh) at position (0.00, -0.02, 0.00)
+  - ExpensesPL (_Mesh) at position (0.00, -0.02, 0.00)
+  - GroundPlaneTestCube (_Mesh) at position (2.00, 0.35, -6.00)
+  - TestLabelPlane (_Mesh) at position (2.00, 0.35, -6.50)
+  - RevenueLabel (_Mesh) at position (0.00, 0.00, 0.21)
+  - ExpensesLabel (_Mesh) at position (0.00, 0.00, 0.21)
+  - RevenuePLLabel (_Mesh) at position (0.00, 0.00, 0.21)
+  - ExpensesPLLabel (_Mesh) at position (0.00, 0.00, 0.21)
+  - RevenueLabel (_Mesh) at position (-0.56, 0.44, -0.00)
+  - ExpensesLabel (_Mesh) at position (0.57, 0.44, -0.00)
+  - RevenuePLLabel (_Mesh) at position (-0.56, 0.87, -0.00)
+  - ExpensesPLLabel (_Mesh) at position (0.57, 0.88, -0.00)
+
+🔍 REGISTERED FINANCIAL MESHES:
+  - Revenue: Revenue at (0.00, 0.00, 0.00)
+  - Expenses: Expenses at (0.00, 0.00, 0.00)
+  - RevenuePL: RevenuePL at (0.00, -0.02, 0.00)
+  - ExpensesPL: ExpensesPL at (0.00, -0.02, 0.00)
+
+---
+[2025-09-01T05:37:42.143Z]
+🎯 SEARCHING FOR ACTUAL FINANCIAL MESHES...
+✅ FOUND: Revenue at (0.00, 0.00, 0.00)
+✅ FOUND: Expenses at (0.00, 0.00, 0.00)
+✅ FOUND: RevenuePL at (0.00, -0.02, 0.00)
+✅ FOUND: ExpensesPL at (0.00, -0.02, 0.00)
+✅ Found 4 financial meshes
+
+---
