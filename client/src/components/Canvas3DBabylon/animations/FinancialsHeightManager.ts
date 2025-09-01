@@ -58,6 +58,7 @@ export class FinancialsHeightManager {
     
     // DEBUG: List all meshes in scene to see what's actually there
     setTimeout(() => this.debugSceneMeshes(), 2000);
+    setTimeout(() => this.findAndAttachToActualMeshes(), 3000);
   }
 
 
@@ -864,6 +865,79 @@ export class FinancialsHeightManager {
     this.financialMeshes.forEach((mesh, name) => {
       console.log(`  - ${name}: ${mesh.name} at (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
     });
+  }
+  
+  /**
+   * Find the actual financial meshes in the scene and attach labels directly to them
+   */
+  private findAndAttachToActualMeshes(): void {
+    console.log('🎯 SEARCHING FOR ACTUAL FINANCIAL MESHES...');
+    
+    // Look for meshes with financial names
+    const financialNames = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
+    const foundMeshes: Mesh[] = [];
+    
+    this.scene.meshes.forEach(mesh => {
+      if (mesh instanceof Mesh && financialNames.includes(mesh.name)) {
+        foundMeshes.push(mesh);
+        console.log(`✅ FOUND: ${mesh.name} at (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
+        
+        // Create label directly on this found mesh
+        this.createLabelDirectlyOnMesh(mesh);
+      }
+    });
+    
+    if (foundMeshes.length === 0) {
+      console.log('❌ NO FINANCIAL MESHES FOUND IN SCENE');
+    } else {
+      console.log(`✅ Found ${foundMeshes.length} financial meshes`);
+    }
+  }
+  
+  /**
+   * Create label directly on a found mesh, bypassing the registration system
+   */
+  private createLabelDirectlyOnMesh(mesh: Mesh): void {
+    const meshName = mesh.name;
+    const texturePath = this.getLabelTexturePath(meshName);
+    if (!texturePath) return;
+    
+    try {
+      // Create label plane with specific size for each object type
+      const labelPlane = MeshBuilder.CreatePlane(`${meshName}DirectLabel`, {
+        width: 1.0,
+        height: 0.3
+      }, this.scene);
+      
+      // Parent directly to the found mesh
+      labelPlane.parent = mesh;
+      
+      // Position on front face - use simple fixed coordinates that should work
+      labelPlane.position.x = 0;
+      labelPlane.position.y = 0.5; 
+      labelPlane.position.z = 0.51; // Just in front
+      
+      // Create material with PNG texture
+      const material = new StandardMaterial(`${meshName}DirectLabelMaterial`, this.scene);
+      const texture = new Texture(texturePath, this.scene);
+      texture.hasAlpha = true;
+      
+      material.diffuseTexture = texture;
+      material.emissiveTexture = texture;
+      material.emissiveColor = new Color3(1.0, 1.0, 1.0);
+      material.alpha = 0.9;
+      material.useAlphaFromDiffuseTexture = true;
+      material.disableLighting = true;
+      material.backFaceCulling = false;
+      
+      labelPlane.material = material;
+      labelPlane.isPickable = false;
+      
+      console.log(`🏷️ DIRECT LABEL created for ${meshName} at position (${labelPlane.position.x}, ${labelPlane.position.y}, ${labelPlane.position.z})`);
+      
+    } catch (error) {
+      console.warn(`❌ Failed to create direct label for ${meshName}:`, error);
+    }
   }
 
   /**
