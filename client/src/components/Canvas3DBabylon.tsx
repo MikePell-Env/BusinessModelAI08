@@ -1717,33 +1717,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         }
       },
       onHoverExit: (sectionId: string, mesh: AbstractMesh) => {
+        // Skip BMC hover effects for Financial objects - they have their own system
         const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
-        
-        if (financialObjects.includes(sectionId)) {
-          // For Financial objects: preserve selection state on hover exit
-          // If this object is selected, keep it opaque; if not selected, keep current state
-          if (currentSelectedFinancialObject === sectionId) {
-            // Selected object - ensure it stays opaque
-            const objMesh = scene.getMeshByName(sectionId);
-            if (objMesh) {
-              const allMaterials = [];
-              if (objMesh.material) allMaterials.push(objMesh.material);
-              if ((objMesh as any).multiMaterial?.subMaterials) {
-                allMaterials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
-              }
-              allMaterials.forEach((material: any) => {
-                material.alpha = 1.0; // Keep selected object opaque
-              });
-              
-              // Keep label opaque too
-              const labelMesh = scene.getMeshByName(`${sectionId}Label`);
-              if (labelMesh && labelMesh.material) {
-                labelMesh.material.alpha = 1.0;
-              }
-            }
-          }
-          // If not selected, don't change anything (preserve current alpha state)
-        } else if (cleanBMCRef.current) {
+        if (!financialObjects.includes(sectionId) && cleanBMCRef.current) {
           cleanBMCRef.current.onHover(sectionId, false);
         }
       },
