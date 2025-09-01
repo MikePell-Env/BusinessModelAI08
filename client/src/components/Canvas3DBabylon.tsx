@@ -476,6 +476,39 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   // Helper function to improve label texture quality - moved to utilities file
 
+  // Check if Financial label should be visible based on 5% threshold
+  const checkLabelVisibility = (meshName: string): boolean => {
+    // Get current slider values to determine visibility
+    const revenueSlider = document.getElementById('revenue-slider') as HTMLInputElement;
+    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+    
+    const revenuePercent = revenueSlider ? parseInt(revenueSlider.value) : 100;
+    const expensesPercent = expensesSlider ? parseInt(expensesSlider.value) : 80;
+    
+    // Calculate profit/loss percentages
+    const totalRevenue = 1000; // Always $10M
+    const totalExpenses = expensesPercent * 10; // Convert % to value
+    const profit = Math.max(0, totalRevenue - totalExpenses);
+    const loss = Math.max(0, totalExpenses - totalRevenue);
+    
+    const profitPercent = (profit / totalRevenue) * 100;
+    const lossPercent = (loss / totalRevenue) * 100;
+    
+    // Apply 5% visibility threshold
+    switch (meshName) {
+      case 'Revenue':
+        return revenuePercent > 5; // Show if revenue > 5%
+      case 'Expenses':
+        return expensesPercent > 5; // Show if expenses > 5%
+      case 'ExpensesPL': // Profit
+        return profitPercent > 5; // Show if profit > 5%
+      case 'RevenuePL': // Loss
+        return lossPercent > 5; // Show if loss > 5%
+      default:
+        return true;
+    }
+  };
+
   // Helper function to get section content from canvas data
   const getSectionContent = (sectionName: string): string => {
     const sectionMap: { [key: string]: string } = {
@@ -2602,6 +2635,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelPlane.position.y = adjustedLocalY;
               labelPlane.position.z = localZ - 0.01; // Slightly in front
 
+              // Check initial visibility based on 5% threshold
+              const shouldBeVisible = this.checkLabelVisibility(mesh.name);
+              labelPlane.setEnabled(shouldBeVisible);
 
               // Face forward (no rotation needed for front-facing labels)
               labelPlane.rotation.x = 0; // Face forward instead of flat on top
@@ -2624,7 +2660,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
-              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)}), visible: ${shouldBeVisible}`);
             }
           });
         }
