@@ -652,17 +652,17 @@ export class FinancialsHeightManager {
     const center = bounds.boundingBox.center;
     const max = bounds.boundingBox.maximum;
     
-    // Position label on front face center
+    // Position label on front face center - BUT ensure it's well above ground plane
     labelPlane.position.x = center.x;
-    labelPlane.position.y = center.y;
-    labelPlane.position.z = max.z + 0.01; // Just in front of face
+    labelPlane.position.y = Math.max(center.y, 1.0); // Force minimum Y=1.0 to stay above ground
+    labelPlane.position.z = max.z + 0.1; // Further in front to ensure visibility
     
     // Face forward (no rotation needed)
     labelPlane.rotation.x = 0;
     labelPlane.rotation.y = 0;  
     labelPlane.rotation.z = 0;
     
-    debugLog.verbose('financials', `${mesh.name} face label positioned at front face center`);
+    debugLog.info('financials', `${mesh.name} face label positioned at (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
   }
 
   /**
