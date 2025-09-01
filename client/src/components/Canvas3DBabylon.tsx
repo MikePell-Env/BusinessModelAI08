@@ -3451,39 +3451,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         <div className="absolute right-8 z-20 bg-black/90 text-white p-4 rounded-lg shadow-lg" style={{ top: '95px' }}>
           <div className="text-xs font-semibold mb-3 text-center">Real-Time Financial Controls</div>
           
-          {/* Time Machine Slider */}
-          <div className="mb-4">
-            <label className="block text-xs mb-1">Time Machine</label>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs text-gray-400">Q1</span>
-              <input
-                type="range"
-                min="1"
-                max="12"
-                defaultValue="6"
-                id="time-machine-slider"
-                className="flex-1 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                onChange={(e) => {
-                  const quarter = Math.ceil(parseInt(e.target.value) / 3);
-                  const month = parseInt(e.target.value);
-                  const timeDisplay = document.querySelector('.time-display');
-                  if (timeDisplay) {
-                    timeDisplay.textContent = `Q${quarter} Month ${((month - 1) % 3) + 1}`;
-                  }
-                  
-                  // Apply time-based financial adjustments
-                  if ((window as any).financialsDataAdapter) {
-                    const seasonalMultiplier = 0.8 + (Math.sin((month - 1) * Math.PI / 6) * 0.2); // 0.6 to 1.0 seasonal variation
-                    const timeDisplay = document.querySelector('.time-display');
-                    console.log(`⏰ Time Machine: Month ${month}, Q${quarter}, Seasonal: ${(seasonalMultiplier * 100).toFixed(0)}%`);
-                  }
-                }}
-              />
-              <span className="text-xs text-gray-400">Q4</span>
-            </div>
-            <div className="time-display text-xs text-blue-400 text-center">Q2 Month 2</div>
-          </div>
-
           <div className="grid grid-cols-2 gap-3 mb-3" ref={(el) => {
             // Store current slider values in window object for isolation
             if (!((window as any).financialSliderState)) {
@@ -3640,6 +3607,70 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 <span>$10M</span>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Time Machine Slider - Show for Financials template */}
+      {template.name.toLowerCase() === 'financials' && (
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-8 py-4">
+          <div className="relative" style={{ width: '600px' }}>
+            {/* Time Machine Header */}
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-medium text-gray-800">Time Machine</h3>
+            </div>
+            
+            {/* Slider track */}
+            <div className="h-1 bg-gray-400 rounded-full mb-4 relative">
+              {/* Vertical thumb for current position */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <div className="w-4 h-8 bg-blue-600 rounded-sm shadow-md"></div>
+              </div>
+            </div>
+            
+            {/* Time labels */}
+            <div className="flex justify-between text-sm text-gray-600 font-medium">
+              <span>Q1</span>
+              <span className="bg-gray-200 px-3 py-1 rounded-md shadow-sm">Q2 Month 2</span>
+              <span>Q4</span>
+            </div>
+            
+            {/* Interactive slider */}
+            <input
+              type="range"
+              min="1"
+              max="12"
+              defaultValue="5"
+              className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={(e) => {
+                const month = parseInt(e.target.value);
+                const quarter = Math.ceil(month / 3);
+                const monthInQuarter = ((month - 1) % 3) + 1;
+                
+                // Update display
+                const display = document.querySelector('.time-display');
+                if (display) {
+                  display.textContent = `Q${quarter} Month ${monthInQuarter}`;
+                }
+                
+                // Update slider position
+                const percentage = (month - 1) / 11 * 100;
+                const thumb = document.querySelector('.time-thumb');
+                if (thumb) {
+                  (thumb as HTMLElement).style.left = `${percentage}%`;
+                }
+                
+                console.log(`⏰ Time Machine: ${display?.textContent}`);
+              }}
+            />
+            
+            {/* Dynamic thumb */}
+            <div className="time-thumb absolute top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-200" style={{ left: '41.67%' }}>
+              <div className="w-4 h-8 bg-blue-600 rounded-sm shadow-md"></div>
+            </div>
+            
+            {/* Current time display */}
+            <div className="time-display text-center mt-2 text-sm text-blue-600 font-medium">Q2 Month 2</div>
           </div>
         </div>
       )}
