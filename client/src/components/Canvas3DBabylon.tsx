@@ -1548,8 +1548,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Clicked on non-Financial object, restore all Financial objects to 100% opacity
             financialObjects.forEach(objName => {
               const objMesh = scene.getMeshByName(objName);
-              if (objMesh && objMesh.material) {
-                objMesh.material.alpha = 1.0;
+              if (objMesh) {
+                // Handle both single materials and multi-materials
+                const materials = objMesh.material ? [objMesh.material] : [];
+                if ((objMesh as any).multiMaterial) {
+                  materials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
+                }
+                
+                materials.forEach((material: any) => {
+                  if (material) {
+                    material.alpha = 1.0;
+                    
+                    // Set to OPAQUE mode for full restoration
+                    if (material.getClassName().includes('PBR')) {
+                      material.transparencyMode = 0; // OPAQUE mode
+                      material.useAlphaFromDiffuseTexture = false;
+                    } else {
+                      material.transparencyMode = 0; // OPAQUE mode
+                    }
+                    
+                    console.log(`🔍 DEBUG: ${objName} restored to 100% opacity (non-Financial clicked)`);
+                  }
+                });
               }
             });
             setCurrentSelectedFinancialObject(null);
@@ -1564,8 +1584,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Restore all objects to 100% opacity
               financialObjects.forEach(objName => {
                 const objMesh = scene.getMeshByName(objName);
-                if (objMesh && objMesh.material) {
-                  objMesh.material.alpha = 1.0;
+                if (objMesh) {
+                  // Handle both single materials and multi-materials
+                  const materials = objMesh.material ? [objMesh.material] : [];
+                  if ((objMesh as any).multiMaterial) {
+                    materials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
+                  }
+                  
+                  materials.forEach((material: any) => {
+                    if (material) {
+                      console.log(`🔍 DEBUG: ${objName} material type:`, material.getClassName());
+                      console.log(`🔍 DEBUG: ${objName} current alpha:`, material.alpha);
+                      
+                      material.alpha = 1.0;
+                      
+                      // Handle different material types
+                      if (material.getClassName().includes('PBR')) {
+                        material.transparencyMode = 0; // OPAQUE mode for restoration
+                        material.useAlphaFromDiffuseTexture = false;
+                      } else {
+                        // Standard material
+                        material.transparencyMode = 0; // OPAQUE mode for restoration
+                      }
+                      
+                      console.log(`🔍 DEBUG: ${objName} alpha after reset:`, material.alpha, 'transparencyMode:', material.transparencyMode);
+                    }
+                  });
+                } else {
+                  console.log(`🔍 DEBUG: ${objName} mesh not found`);
                 }
               });
               setCurrentSelectedFinancialObject(null);
@@ -1575,12 +1621,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // First restore all to 100%, then apply new selection
               financialObjects.forEach(objName => {
                 const objMesh = scene.getMeshByName(objName);
-                if (objMesh && objMesh.material) {
-                  if (objName === sectionId) {
-                    objMesh.material.alpha = 1.0; // Keep selected at 100%
-                  } else {
-                    objMesh.material.alpha = 0.2; // Fade others to 20%
+                if (objMesh) {
+                  // Handle both single materials and multi-materials
+                  const materials = objMesh.material ? [objMesh.material] : [];
+                  if ((objMesh as any).multiMaterial) {
+                    materials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
                   }
+                  
+                  materials.forEach((material: any) => {
+                    if (material) {
+                      // Set transparency mode for alpha blending
+                      if (material.getClassName().includes('PBR')) {
+                        material.transparencyMode = 3; // ALPHABLEND mode
+                        material.useAlphaFromDiffuseTexture = false;
+                      } else {
+                        material.transparencyMode = 3; // ALPHABLEND mode
+                      }
+                      
+                      if (objName === sectionId) {
+                        material.alpha = 1.0; // Keep selected at 100%
+                        console.log(`🔍 DEBUG: ${objName} set to 100% opacity`);
+                      } else {
+                        material.alpha = 0.2; // Fade others to 20%
+                        console.log(`🔍 DEBUG: ${objName} set to 20% opacity`);
+                      }
+                    }
+                  });
+                } else {
+                  console.log(`🔍 DEBUG: ${objName} mesh not found`);
                 }
               });
               setCurrentSelectedFinancialObject(sectionId);
@@ -1649,8 +1717,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
           financialObjects.forEach(objName => {
             const objMesh = scene.getMeshByName(objName);
-            if (objMesh && objMesh.material) {
-              objMesh.material.alpha = 1.0;
+            if (objMesh) {
+              // Handle both single materials and multi-materials
+              const materials = objMesh.material ? [objMesh.material] : [];
+              if ((objMesh as any).multiMaterial) {
+                materials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
+              }
+              
+              materials.forEach((material: any) => {
+                if (material) {
+                  material.alpha = 1.0;
+                  
+                  // Set to OPAQUE mode for full restoration
+                  if (material.getClassName().includes('PBR')) {
+                    material.transparencyMode = 0; // OPAQUE mode
+                    material.useAlphaFromDiffuseTexture = false;
+                  } else {
+                    material.transparencyMode = 0; // OPAQUE mode
+                  }
+                  
+                  console.log(`🔍 DEBUG: ${objName} restored to 100% opacity (background click)`);
+                }
+              });
             }
           });
           setCurrentSelectedFinancialObject(null);
