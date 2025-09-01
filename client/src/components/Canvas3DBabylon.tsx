@@ -231,6 +231,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
   const [showBulletText, setShowBulletText] = useState(false);
+  
+  // Track currently selected Financial object for opacity behavior
+  const [currentSelectedFinancialObject, setCurrentSelectedFinancialObject] = useState<string | null>(null);
 
   // Camera preset state - initialize with FRONT for Financials, TOP for others
   const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT'>(
@@ -1536,6 +1539,43 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           return; // Exit early since we've handled both selection and panel refresh
         }
 
+        // FINANCIALS TEMPLATE: Handle opacity fade behavior for Financial objects
+        if (template?.name === 'Financials') {
+          const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
+          if (financialObjects.includes(sectionId)) {
+            console.log(`💰 Financial object clicked: ${sectionId}`);
+            
+            // Check if clicking the same object again (toggle off)
+            const isToggleOff = currentSelectedFinancialObject === sectionId;
+            
+            if (isToggleOff) {
+              // Restore all objects to 100% opacity
+              financialObjects.forEach(objName => {
+                const objMesh = scene.getMeshByName(objName);
+                if (objMesh && objMesh.material) {
+                  objMesh.material.alpha = 1.0;
+                }
+              });
+              setCurrentSelectedFinancialObject(null);
+              console.log(`💰 Restored all Financial objects to 100% opacity`);
+            } else {
+              // Fade other objects to 20% opacity
+              financialObjects.forEach(objName => {
+                const objMesh = scene.getMeshByName(objName);
+                if (objMesh && objMesh.material) {
+                  if (objName === sectionId) {
+                    objMesh.material.alpha = 1.0; // Keep selected at 100%
+                  } else {
+                    objMesh.material.alpha = 0.2; // Fade others to 20%
+                  }
+                }
+              });
+              setCurrentSelectedFinancialObject(sectionId);
+              console.log(`💰 Faded other Financial objects to 20%, ${sectionId} remains at 100%`);
+            }
+          }
+        }
+
         // Revenue Streams interaction handling
         if (sectionId === "Revenue Streams") {
           console.log("🎯 Revenue Streams click detected");
@@ -1590,6 +1630,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (cleanBMCRef.current) {
           cleanBMCRef.current.clearSelection();
         }
+        
+        // FINANCIALS TEMPLATE: Reset all Financial objects to 100% opacity on background click
+        if (template?.name === 'Financials' && currentSelectedFinancialObject) {
+          const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
+          financialObjects.forEach(objName => {
+            const objMesh = scene.getMeshByName(objName);
+            if (objMesh && objMesh.material) {
+              objMesh.material.alpha = 1.0;
+            }
+          });
+          setCurrentSelectedFinancialObject(null);
+          console.log(`💰 Background click: Restored all Financial objects to 100% opacity`);
+        }
+        
         if (currentBillboardPanel) {
           advancedTexture.removeControl(currentBillboardPanel);
           currentBillboardPanel = null;
