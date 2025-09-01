@@ -2574,10 +2574,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // FIXED: Position labels on front face of boxes (like traditional box labels)
-              labelPlane.position.x = center.x; // Center horizontally
-              labelPlane.position.y = center.y; // Center vertically on front face
-              labelPlane.position.z = center.z - size.z * 0.51; // Position on front face (slightly in front)
+              // Calculate exact center of the front face for perfect positioning
+              // Use existing boundingInfo from above
+              const min = boundingInfo.boundingBox.minimum;
+              const max = boundingInfo.boundingBox.maximum;
+              
+              // Perfect centering: middle of the actual front face dimensions
+              const exactCenterX = (min.x + max.x) / 2;
+              const exactCenterY = (min.y + max.y) / 2; // True center between bottom and top
+              const frontFaceZ = min.z - 0.01; // Just in front of the front face
+              
+              console.log(`📍 ${mesh.name} Perfect Centering:`);
+              console.log(`   Min: (${min.x.toFixed(3)}, ${min.y.toFixed(3)}, ${min.z.toFixed(3)})`);
+              console.log(`   Max: (${max.x.toFixed(3)}, ${max.y.toFixed(3)}, ${max.z.toFixed(3)})`);
+              console.log(`   Exact Center: (${exactCenterX.toFixed(3)}, ${exactCenterY.toFixed(3)}, ${frontFaceZ.toFixed(3)})`);
+              
+              // Position label at exact center of front face
+              labelPlane.position.x = exactCenterX; // Perfect horizontal center
+              labelPlane.position.y = exactCenterY; // Perfect vertical center of front face
+              labelPlane.position.z = frontFaceZ; // Front face position
 
               // Face forward (no rotation needed for front-facing labels)
               labelPlane.rotation.x = 0; // Face forward instead of flat on top
