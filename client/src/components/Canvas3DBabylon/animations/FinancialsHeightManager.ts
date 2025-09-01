@@ -515,14 +515,12 @@ export class FinancialsHeightManager {
     const heightPercentage = (meshHeight / 2.0) * 100; // 2.0 is max height
     
     if (heightPercentage < 20) {
-      const labelHeight = labelPlane.getBoundingInfo().boundingBox.maximum.y - labelPlane.getBoundingInfo().boundingBox.minimum.y;
-      
       if (mesh.name === "ExpensesPL" || mesh.name === "RevenuePL") {
-        // Profit or Loss: move UP by label height
-        adjustedLocalY += labelHeight;
+        // Profit or Loss: move UP slightly
+        adjustedLocalY += 0.03;
       } else if (mesh.name === "Revenue" || mesh.name === "Expenses") {
-        // Revenue or Expenses: move DOWN by label height  
-        adjustedLocalY -= labelHeight;
+        // Revenue or Expenses: move DOWN slightly  
+        adjustedLocalY -= 0.03;
       }
     }
 
