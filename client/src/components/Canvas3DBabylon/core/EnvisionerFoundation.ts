@@ -306,14 +306,24 @@ export class EnvisionerFoundation {
     // Clear canvas to transparent background
     textContext.clearRect(0, 0, 1024, 256);
     
-    // Set text properties (larger for 4x bigger texture)
-    textContext.font = "bold 96px Arial";
+    // Split the text into amount and "Revenue" parts
+    const parts = revenueAmountText.split(' ');
+    const amountText = parts[0]; // e.g., "$10M"
+    const labelText = parts.slice(1).join(' '); // e.g., "Revenue"
+    
+    // Set text properties
     textContext.fillStyle = "#2D3748"; // Dark gray
     (textContext as any).textAlign = "center";
     (textContext as any).textBaseline = "middle";
     
-    // Draw the revenue text
-    textContext.fillText(revenueAmountText, 512, 128);
+    // Draw the amount in large font
+    textContext.font = "bold 96px Arial";
+    textContext.fillText(amountText, 512, 100); // Slightly higher position
+    
+    // Draw "Revenue" in smaller font (3x smaller = 32px)
+    textContext.font = "bold 32px Arial";
+    textContext.fillText(labelText, 512, 170); // Lower position
+    
     textTexture.update();
     
     debugLog.verbose('envisioner', `💰 Ground revenue label updated: ${revenueAmountText}`);
