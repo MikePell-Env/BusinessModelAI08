@@ -21,8 +21,7 @@ import {
   Vector3,
   HemisphericLight,
   DirectionalLight,
-  FresnelParameters,
-  Texture
+  FresnelParameters
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { MATERIAL_COLORS } from '../constants/BMCConstants';
@@ -192,11 +191,10 @@ export class EnvisionerFoundation {
     railMaterial.reflectionFresnelParameters.leftColor = Color3.White();
     railMaterial.reflectionFresnelParameters.rightColor = new Color3(0.3, 0.3, 0.3);
     
-    // Create colorful environment map for shiny reflections
-    railMaterial.reflectionTexture = this.createColorfulEnvironmentMap();
+    // Add subtle environmental reflection without performance hit
+    railMaterial.reflectionTexture = this.scene.environmentTexture;
     if (railMaterial.reflectionTexture) {
-      railMaterial.reflectionTexture.level = 0.6; // Increased reflection level for colorful effect
-      railMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
+      railMaterial.reflectionTexture.level = 0.3; // Subtle reflection level
     }
 
     // North rail (top)
@@ -241,46 +239,6 @@ export class EnvisionerFoundation {
 
     this.foundationComponents.set('rails', { north: northRail, south: southRail, east: eastRail, west: westRail });
     debugLog.verbose('envisioner', '🛤️ Rails created');
-  }
-
-  /**
-   * Create a colorful environment map for reflective rail materials
-   * Uses simple DynamicTexture for performance without external files
-   */
-  private createColorfulEnvironmentMap(): DynamicTexture {
-    // Create a small dynamic texture for performance
-    const size = 256;
-    const environmentTexture = new DynamicTexture("colorfulEnvironmentMap", { width: size, height: size }, this.scene, true);
-    
-    // Create a colorful gradient background
-    const context = environmentTexture.getContext();
-    
-    // Create radial gradient with multiple colors
-    const gradient = context.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
-    gradient.addColorStop(0, 'rgb(255, 220, 150)'); // Warm yellow center
-    gradient.addColorStop(0.3, 'rgb(150, 200, 255)'); // Sky blue
-    gradient.addColorStop(0.6, 'rgb(255, 180, 150)'); // Orange
-    gradient.addColorStop(0.8, 'rgb(180, 255, 180)'); // Light green
-    gradient.addColorStop(1, 'rgb(200, 150, 255)'); // Purple edges
-    
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, size, size);
-    
-    // Add some sparkle effects for extra reflectivity
-    for (let i = 0; i < 20; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const sparkleGradient = context.createRadialGradient(x, y, 0, x, y, 8);
-      sparkleGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-      sparkleGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      context.fillStyle = sparkleGradient;
-      context.fillRect(x - 8, y - 8, 16, 16);
-    }
-    
-    environmentTexture.update();
-    
-    debugLog.verbose('envisioner', '🌈 Colorful environment map created for rail reflections');
-    return environmentTexture;
   }
 
   /**
