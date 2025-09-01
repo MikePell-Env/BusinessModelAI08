@@ -294,12 +294,13 @@ export class EnvisionerFoundation {
     textPlane.rotation.x = Math.PI / 2; // Rotate to lay flat on ground (right-side up)
     textPlane.parent = this.masterTransform;
 
-    // Apply text material
+    // Apply text material with transparent background
     const textMaterial = new StandardMaterial("groundRevenueMaterial", this.scene);
     textMaterial.diffuseTexture = textTexture;
     textMaterial.emissiveTexture = textTexture;
     textMaterial.backFaceCulling = false;
-    textMaterial.alpha = 0.9;
+    textMaterial.useAlphaFromDiffuseTexture = true;
+    textMaterial.transparencyMode = 2; // Alpha blend mode
     textPlane.material = textMaterial;
 
     textPlane.isPickable = false;
