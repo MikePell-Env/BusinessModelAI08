@@ -1301,15 +1301,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         context.stroke();
       }
       
-      // Add "Revenue" label (positioned on left from viewer's angle, closer to rail, smaller font, 50% opacity)
-      context.fillStyle = "rgba(102, 102, 102, 0.5)";
-      context.font = "bold 24px Arial";
-      (context as any).textAlign = "center";
-      (context as any).textBaseline = "middle";
-      context.fillText("Revenue", 256, 980); // Left from viewer's perspective, much closer to rail
-      
-      // Add "Expenses" label (positioned on right from viewer's angle, closer to rail, smaller font, 50% opacity)  
-      context.fillText("Expenses", 768, 980); // Right from viewer's perspective, much closer to rail
+      // Static Revenue and Expenses labels hidden from ground plane texture
+      // context.fillStyle = "rgba(102, 102, 102, 0.5)";
+      // context.font = "bold 24px Arial";
+      // (context as any).textAlign = "center";
+      // (context as any).textBaseline = "middle";
+      // context.fillText("Revenue", 256, 980); // Left from viewer's perspective, much closer to rail
+      // 
+      // // Add "Expenses" label (positioned on right from viewer's angle, closer to rail, smaller font, 50% opacity)  
+      // context.fillText("Expenses", 768, 980); // Right from viewer's perspective, much closer to rail
       
       // Add vertical divider with 80% opacity, longer and thinner
       context.strokeStyle = "rgba(102, 102, 102, 0.8)";
