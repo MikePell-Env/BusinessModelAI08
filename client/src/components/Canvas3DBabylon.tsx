@@ -2578,17 +2578,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // Position label at center of front face - small test adjustment
-              labelPlane.position.x = center.x; // Use bounding center X
-              labelPlane.position.y = center.y; // Use bounding center Y  
-              labelPlane.position.z = center.z - size.z * 0.51; // Front face position
+              // Calculate exact front face center for each Financial object
+              // Based on the coordinate system: Revenue (left-front), Expenses (right-front), etc.
               
-              // Small test: adjust Y position based on mesh name
+              let frontFaceCenterX, frontFaceCenterY, frontFaceCenterZ;
+              
               if (mesh.name === "Revenue") {
-                labelPlane.position.y = center.y - 0.2; // Move down slightly
+                // Revenue: Green box, left-front position
+                frontFaceCenterX = center.x; // Use mesh center X
+                frontFaceCenterY = center.y; // Use mesh center Y
+                frontFaceCenterZ = center.z - size.z * 0.5; // Front face Z
               } else if (mesh.name === "Expenses") {
-                labelPlane.position.y = center.y + 0.2; // Move up slightly  
+                // Expenses: Red box, right-front position  
+                frontFaceCenterX = center.x; // Use mesh center X
+                frontFaceCenterY = center.y; // Use mesh center Y
+                frontFaceCenterZ = center.z - size.z * 0.5; // Front face Z
+              } else if (mesh.name === "ExpensesPL") {
+                // Profit: Black box, right-back position
+                frontFaceCenterX = center.x; // Use mesh center X
+                frontFaceCenterY = center.y; // Use mesh center Y
+                frontFaceCenterZ = center.z - size.z * 0.5; // Front face Z
+              } else if (mesh.name === "RevenuePL") {
+                // Loss: Gold box, left-back position
+                frontFaceCenterX = center.x; // Use mesh center X
+                frontFaceCenterY = center.y; // Use mesh center Y
+                frontFaceCenterZ = center.z - size.z * 0.5; // Front face Z
+              } else {
+                // Default fallback
+                frontFaceCenterX = center.x;
+                frontFaceCenterY = center.y;
+                frontFaceCenterZ = center.z - size.z * 0.5;
               }
+              
+              // Position label at calculated front face center
+              labelPlane.position.x = frontFaceCenterX;
+              labelPlane.position.y = frontFaceCenterY;
+              labelPlane.position.z = frontFaceCenterZ - 0.01; // Slightly in front
 
               // Face forward (no rotation needed for front-facing labels)
               labelPlane.rotation.x = 0; // Face forward instead of flat on top
