@@ -3506,8 +3506,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   (window as any).financialSliderState.revenue = revenuePercent;
 
 
-                  // Update ground plane revenue label
-                  const revenueText = `$10M Revenue`; // Always $10M for revenue slider
+                  // Update ground plane revenue label with actual revenue amount
+                  const actualRevenueAmount = (revenuePercent / 10).toFixed(0); // Convert percentage to actual amount
+                  const revenueText = `$${actualRevenueAmount}M Revenue`;
                   if ((window as any).envisionerFoundation) {
                     (window as any).envisionerFoundation.updateGroundRevenueLabel(revenueText);
                   }
@@ -3599,8 +3600,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
                   }
 
-                  // Update ground plane revenue label when expenses change
-                  const revenueText = `$10M Revenue`; // Always $10M for revenue
+                  // Update ground plane revenue label when expenses change  
+                  // Get current revenue percentage from state
+                  const currentRevenuePercent = (window as any).financialSliderState?.revenue || 100;
+                  const actualRevenueAmount = (currentRevenuePercent / 10).toFixed(0);
+                  const revenueText = `$${actualRevenueAmount}M Revenue`;
                   if ((window as any).envisionerFoundation) {
                     (window as any).envisionerFoundation.updateGroundRevenueLabel(revenueText);
                   }
