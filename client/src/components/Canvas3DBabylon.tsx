@@ -1528,7 +1528,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // Single click detected
         console.log(`🎯 CLICK HANDLER TRIGGERED: sectionId="${sectionId}", template="${template?.name}"`);
         console.log(`🎯 MESH INFO: name="${mesh.name}", id="${mesh.id}"`);
-        console.log(`🎯 CURRENT FINANCIAL SELECTION: "${currentSelectedFinancialObject}"`)
+        console.log(`🎯 CURRENT FINANCIAL SELECTION: "${currentSelectedFinancialObject}"`);
+        
+        // SPECIAL DEBUG for Revenue object
+        if (sectionId === 'Revenue') {
+          console.log(`🔍 REVENUE DEBUG: Click detected on Revenue object`);
+          const revenueMesh = scene.getMeshByName('Revenue');
+          if (revenueMesh) {
+            console.log(`🔍 REVENUE DEBUG: Mesh found, material:`, !!revenueMesh.material, 'multiMaterial:', !!(revenueMesh as any).multiMaterial);
+            if (revenueMesh.material) {
+              console.log(`🔍 REVENUE DEBUG: Current material alpha:`, revenueMesh.material.alpha);
+              console.log(`🔍 REVENUE DEBUG: Material type:`, revenueMesh.material.getClassName());
+            }
+            if ((revenueMesh as any).multiMaterial) {
+              console.log(`🔍 REVENUE DEBUG: MultiMaterial with ${(revenueMesh as any).multiMaterial.subMaterials.length} submaterials`);
+              (revenueMesh as any).multiMaterial.subMaterials.forEach((subMat: any, i: number) => {
+                if (subMat) {
+                  console.log(`🔍 REVENUE DEBUG: SubMaterial ${i} alpha:`, subMat.alpha, 'type:', subMat.getClassName());
+                }
+              });
+            }
+          } else {
+            console.log(`🔍 REVENUE DEBUG: No mesh found with name 'Revenue'!`);
+          }
+        }
 
         // NEW LOGIC: If panel is open, refresh panel content instead of just selecting
         if (currentBillboardPanel) {
