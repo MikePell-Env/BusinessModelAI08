@@ -26,6 +26,7 @@ import {
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { MATERIAL_COLORS } from '../constants/BMCConstants';
 import { enhanceLabelTexture } from '../utils/BMCUtilities';
+import { EnvisionerPersistence } from './EnvisionerPersistence';
 
 export interface EnvisionerFoundationConfig {
   groundPlane: {
@@ -160,7 +161,15 @@ export class EnvisionerFoundation {
     ground.isPickable = false; // Foundation components are not interactive
     this.foundationComponents.set('ground', ground);
     
-    debugLog.verbose('envisioner', '🌍 Ground plane created');
+    // Save ground plane reference to EnvisionerPersistence for all templates to use
+    const persistence = EnvisionerPersistence.getInstance();
+    persistence.setGroundPlaneReference(
+      ground.position, 
+      this.config.groundPlane.width,
+      this.config.groundPlane.height
+    );
+    
+    debugLog.verbose('envisioner', '🌍 Ground plane created and reference saved to persistence');
   }
 
   /**
