@@ -3446,11 +3446,45 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         )}
       </div>
 
-      {/* Financials Real-Time Controls - Only show for Financials template */}
+      {/* Financials Real-Time Controls - Upper right corner under camera presets */}
       {template.name.toLowerCase() === 'financials' && (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 bg-black/90 text-white p-6 rounded-lg shadow-lg">
-          <div className="text-sm font-semibold mb-4 text-center">Real-Time Financial Controls</div>
-          <div className="grid grid-cols-2 gap-4 mb-4" ref={(el) => {
+        <div className="absolute right-8 z-20 bg-black/90 text-white p-4 rounded-lg shadow-lg" style={{ top: '95px' }}>
+          <div className="text-xs font-semibold mb-3 text-center">Real-Time Financial Controls</div>
+          
+          {/* Time Machine Slider */}
+          <div className="mb-4">
+            <label className="block text-xs mb-1">Time Machine</label>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs text-gray-400">Q1</span>
+              <input
+                type="range"
+                min="1"
+                max="12"
+                defaultValue="6"
+                id="time-machine-slider"
+                className="flex-1 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                onChange={(e) => {
+                  const quarter = Math.ceil(parseInt(e.target.value) / 3);
+                  const month = parseInt(e.target.value);
+                  const timeDisplay = document.querySelector('.time-display');
+                  if (timeDisplay) {
+                    timeDisplay.textContent = `Q${quarter} Month ${((month - 1) % 3) + 1}`;
+                  }
+                  
+                  // Apply time-based financial adjustments
+                  if ((window as any).financialsDataAdapter) {
+                    const seasonalMultiplier = 0.8 + (Math.sin((month - 1) * Math.PI / 6) * 0.2); // 0.6 to 1.0 seasonal variation
+                    const timeDisplay = document.querySelector('.time-display');
+                    console.log(`⏰ Time Machine: Month ${month}, Q${quarter}, Seasonal: ${(seasonalMultiplier * 100).toFixed(0)}%`);
+                  }
+                }}
+              />
+              <span className="text-xs text-gray-400">Q4</span>
+            </div>
+            <div className="time-display text-xs text-blue-400 text-center">Q2 Month 2</div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-3" ref={(el) => {
             // Store current slider values in window object for isolation
             if (!((window as any).financialSliderState)) {
               (window as any).financialSliderState = {
