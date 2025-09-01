@@ -49,10 +49,12 @@ export class FinancialsHeightManager {
   private labelsEnabled: boolean = true;
   private testCube: Mesh | null = null;
   private labelPlanes: Map<string, Mesh> = new Map();
+  private testLabelPlane: Mesh | null = null;
 
   constructor(scene: Scene) {
     this.scene = scene;
     this.createGroundPlaneTestCube();
+    this.createTestLabelPlane();
   }
 
 
@@ -628,6 +630,53 @@ export class FinancialsHeightManager {
   }
 
   /**
+   * EXPERIMENT: Create a test label plane using exact same method as successful green cube
+   */
+  private createTestLabelPlane(): void {
+    const persistence = EnvisionerPersistence.getInstance();
+    const masterTransform = persistence.getMasterTransform();
+    
+    if (!masterTransform) {
+      debugLog.warn('financials', 'No master transform available for test label');
+      return;
+    }
+    
+    // Create plane using exact BMC method but positioned like the successful green cube
+    this.testLabelPlane = MeshBuilder.CreatePlane("TestLabelPlane", {
+      width: 1.0,
+      height: 0.5
+    }, this.scene);
+    
+    // CRITICAL: Parent to master transform exactly like green cube
+    this.testLabelPlane.parent = masterTransform;
+    
+    // Position using EXACT same coordinates as successful green cube
+    this.testLabelPlane.position.x = 1; // Near green cube but offset
+    this.testLabelPlane.position.y = 0.35; // Same height as green cube
+    this.testLabelPlane.position.z = -6; // Same Z as green cube
+    
+    // Create material using exact BMC method with PNG texture
+    const material = new StandardMaterial("TestLabelMaterial", this.scene);
+    const texture = new Texture("/textures/Label_Revenue.png", this.scene);
+    texture.hasAlpha = true;
+    enhanceLabelTexture(texture); // Use BMC enhancement
+    
+    // Apply BMC material settings exactly
+    material.diffuseTexture = texture;
+    material.emissiveTexture = texture;
+    material.emissiveColor = new Color3(1.0, 1.0, 1.0);
+    material.alpha = 0.9;
+    material.useAlphaFromDiffuseTexture = true;
+    material.disableLighting = true;
+    material.backFaceCulling = false;
+    
+    this.testLabelPlane.material = material;
+    this.testLabelPlane.isPickable = false;
+    
+    debugLog.info('financials', `Test label plane created at same position as successful green cube: (${this.testLabelPlane.position.x}, ${this.testLabelPlane.position.y}, ${this.testLabelPlane.position.z})`);
+  }
+
+  /**
    * Create PNG label planes using BMC method - positioned close to financial objects
    */
   private createFinancialLabels(): void {
@@ -795,6 +844,15 @@ export class FinancialsHeightManager {
       }
       this.testCube.dispose();
       this.testCube = null;
+    }
+    
+    // Dispose test label plane
+    if (this.testLabelPlane) {
+      if (this.testLabelPlane.material) {
+        this.testLabelPlane.material.dispose();
+      }
+      this.testLabelPlane.dispose();
+      this.testLabelPlane = null;
     }
     
     // Label planes disposed in separate method - they're not needed for direct geometry application
