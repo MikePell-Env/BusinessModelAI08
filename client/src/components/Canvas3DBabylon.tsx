@@ -1547,9 +1547,38 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           const restoreAllOpacity = () => {
             financialObjects.forEach(objName => {
               const objMesh = scene.getMeshByName(objName);
-              if (objMesh && objMesh.material) {
-                objMesh.material.alpha = 1.0;
-                objMesh.material.transparencyMode = 0; // OPAQUE
+              if (objMesh) {
+                // Handle different material types
+                if (objMesh.material) {
+                  console.log(`🔧 RESTORE: ${objName} - setting alpha to 1.0`);
+                  objMesh.material.alpha = 1.0;
+                  
+                  // Try different approaches to ensure full opacity
+                  if ((objMesh.material as any).transparencyMode !== undefined) {
+                    (objMesh.material as any).transparencyMode = 0; // OPAQUE
+                  }
+                  if ((objMesh.material as any).hasAlpha !== undefined) {
+                    (objMesh.material as any).hasAlpha = false;
+                  }
+                  if ((objMesh.material as any).useAlphaFromDiffuseTexture !== undefined) {
+                    (objMesh.material as any).useAlphaFromDiffuseTexture = false;
+                  }
+                }
+                
+                // Also check for multiMaterial
+                if ((objMesh as any).multiMaterial) {
+                  (objMesh as any).multiMaterial.subMaterials.forEach((subMat: any) => {
+                    if (subMat) {
+                      console.log(`🔧 RESTORE: ${objName} submaterial - setting alpha to 1.0`);
+                      subMat.alpha = 1.0;
+                      if (subMat.transparencyMode !== undefined) {
+                        subMat.transparencyMode = 0; // OPAQUE
+                      }
+                    }
+                  });
+                }
+              } else {
+                console.log(`⚠️ RESTORE: ${objName} mesh not found`);
               }
             });
             setCurrentSelectedFinancialObject(null);
