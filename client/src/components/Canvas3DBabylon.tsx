@@ -2584,9 +2584,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               const exactCenterY = (min.y + max.y) / 2; // True center between bottom and top
               const frontFaceZ = min.z - 0.01; // Just in front of the front face
               
-              console.log(`📍 ${mesh.name} Perfect Centering:`);
+              console.log(`🎯 ${mesh.name} CURRENT LAYOUT DEBUG:`);
+              console.log(`   Mesh Position: (${mesh.position.x.toFixed(3)}, ${mesh.position.y.toFixed(3)}, ${mesh.position.z.toFixed(3)})`);
+              console.log(`   Mesh Scale: (${mesh.scaling.x.toFixed(3)}, ${mesh.scaling.y.toFixed(3)}, ${mesh.scaling.z.toFixed(3)})`);
               console.log(`   Min: (${min.x.toFixed(3)}, ${min.y.toFixed(3)}, ${min.z.toFixed(3)})`);
               console.log(`   Max: (${max.x.toFixed(3)}, ${max.y.toFixed(3)}, ${max.z.toFixed(3)})`);
+              console.log(`   Size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
+              console.log(`   Bounding Center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
               console.log(`   Exact Center: (${exactCenterX.toFixed(3)}, ${exactCenterY.toFixed(3)}, ${frontFaceZ.toFixed(3)})`);
               
               // Position label at exact center of front face
