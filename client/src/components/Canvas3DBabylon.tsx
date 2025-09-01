@@ -2574,29 +2574,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // Calculate exact center of the front face for perfect positioning
-              // Use existing boundingInfo from above
-              const min = boundingInfo.boundingBox.minimum;
-              const max = boundingInfo.boundingBox.maximum;
+              // FIXED: Use mesh center position directly (not distorted bounding box)
+              // Financial objects maintain fixed positions, only vertices change for height
+              // So mesh.position gives us the true object center we want to label
               
-              // Perfect centering: middle of the actual front face dimensions
-              const exactCenterX = (min.x + max.x) / 2;
-              const exactCenterY = (min.y + max.y) / 2; // True center between bottom and top
-              const frontFaceZ = min.z - 0.01; // Just in front of the front face
-              
-              console.log(`🎯 ${mesh.name} CURRENT LAYOUT DEBUG:`);
-              console.log(`   Mesh Position: (${mesh.position.x.toFixed(3)}, ${mesh.position.y.toFixed(3)}, ${mesh.position.z.toFixed(3)})`);
-              console.log(`   Mesh Scale: (${mesh.scaling.x.toFixed(3)}, ${mesh.scaling.y.toFixed(3)}, ${mesh.scaling.z.toFixed(3)})`);
-              console.log(`   Min: (${min.x.toFixed(3)}, ${min.y.toFixed(3)}, ${min.z.toFixed(3)})`);
-              console.log(`   Max: (${max.x.toFixed(3)}, ${max.y.toFixed(3)}, ${max.z.toFixed(3)})`);
-              console.log(`   Size: (${size.x.toFixed(3)}, ${size.y.toFixed(3)}, ${size.z.toFixed(3)})`);
-              console.log(`   Bounding Center: (${center.x.toFixed(3)}, ${center.y.toFixed(3)}, ${center.z.toFixed(3)})`);
-              console.log(`   Exact Center: (${exactCenterX.toFixed(3)}, ${exactCenterY.toFixed(3)}, ${frontFaceZ.toFixed(3)})`);
-              
-              // Position label at exact center of front face
-              labelPlane.position.x = exactCenterX; // Perfect horizontal center
-              labelPlane.position.y = exactCenterY; // Perfect vertical center of front face
-              labelPlane.position.z = frontFaceZ; // Front face position
+              // Position label at the mesh center (which IS the front face center)
+              labelPlane.position.x = center.x; // Use original center calculation
+              labelPlane.position.y = center.y; // Use original center calculation  
+              labelPlane.position.z = center.z - size.z * 0.51; // Front face (like before)
 
               // Face forward (no rotation needed for front-facing labels)
               labelPlane.rotation.x = 0; // Face forward instead of flat on top
