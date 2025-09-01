@@ -155,7 +155,7 @@ export class EnvisionerFoundation {
     groundMaterial.specularColor = MATERIAL_COLORS.GROUND_SPECULAR;
     groundMaterial.specularPower = 64;
     groundMaterial.alpha = 0.5;
-    groundMaterial.backFaceCulling = true; // Only render top face, hide underside
+    groundMaterial.backFaceCulling = false; // Render both sides for underside visibility
     ground.material = groundMaterial;
 
     ground.isPickable = false; // Foundation components are not interactive
@@ -180,6 +180,7 @@ export class EnvisionerFoundation {
 
     const railMaterial = new StandardMaterial("envisionerRailMaterial", this.scene);
     railMaterial.diffuseColor = Color3.FromHexString(this.config.rails.color);
+    railMaterial.backFaceCulling = false; // Visible from underneath
     
     // Make rails reflective like shiny metal with environmental lighting
     railMaterial.specularColor = new Color3(0.9, 0.9, 0.9); // Bright specular highlights
