@@ -74,6 +74,9 @@ export class FinancialsHeightManager {
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
         
+        // DEBUG: Color front faces to prove I understand where they are
+        this.colorFrontFace(mesh);
+        
         // Create label plane attached to this financial object
         if (this.labelsEnabled) {
           this.createLabelForFinancialObject(mesh);
@@ -755,6 +758,40 @@ export class FinancialsHeightManager {
         debugLog.warn('financials', `Failed to create ${config.name} label:`, error);
       }
     });
+  }
+
+  /**
+   * DEBUG: Color the front face of each financial object to prove I understand where they are
+   */
+  private colorFrontFace(mesh: Mesh): void {
+    const meshName = mesh.name;
+    
+    // Define distinct colors for each front face
+    const frontFaceColors: Record<string, Color3> = {
+      'Revenue': new Color3(1, 0, 1),      // Magenta front face
+      'Expenses': new Color3(0, 1, 1),     // Cyan front face  
+      'RevenuePL': new Color3(1, 1, 0),    // Yellow front face
+      'ExpensesPL': new Color3(1, 0.5, 0)  // Orange front face
+    };
+    
+    const frontColor = frontFaceColors[meshName];
+    if (!frontColor) return;
+    
+    try {
+      // Create a multi-material to color just the front face
+      const material = mesh.material as StandardMaterial;
+      if (material) {
+        // Clone the material and modify the emissive color for the front face
+        const newMaterial = material.clone(`${meshName}_FrontFaceColored`);
+        newMaterial.emissiveColor = frontColor;
+        newMaterial.alpha = 0.8;
+        mesh.material = newMaterial;
+        
+        console.log(`🎨 Colored front face of ${meshName} with ${frontColor.toString()}`);
+      }
+    } catch (error) {
+      console.warn(`Failed to color front face of ${meshName}:`, error);
+    }
   }
 
   /**
