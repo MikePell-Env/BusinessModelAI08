@@ -244,7 +244,7 @@ export class EnvisionerFoundation {
    * Clear all template-specific labels
    */
   public clearTemplateLabels(): void {
-    const labelNames = ['internalLabel', 'externalLabel', 'revenueLabel', 'expensesLabel', 'verticalDividerLabel', 'groundRevenueLabel'];
+    const labelNames = ['internalLabel', 'externalLabel', 'revenueLabel', 'expensesLabel', 'verticalDividerLabel', 'groundRevenueLabel', 'groundRevenueTexture'];
     
     labelNames.forEach(labelName => {
       const component = this.foundationComponents.get(labelName);
@@ -260,50 +260,61 @@ export class EnvisionerFoundation {
    * Create or update dynamic revenue text label on ground plane
    */
   public updateGroundRevenueLabel(revenueAmountText: string): void {
-    // Remove existing label if it exists
+    // Get existing label components
     const existingLabel = this.foundationComponents.get('groundRevenueLabel');
-    if (existingLabel && typeof existingLabel.dispose === 'function') {
-      existingLabel.dispose();
-      this.foundationComponents.delete('groundRevenueLabel');
+    const existingTexture = this.foundationComponents.get('groundRevenueTexture');
+    
+    let textTexture: DynamicTexture;
+    let textPlane: any;
+
+    // Reuse existing texture and plane if they exist, otherwise create new ones
+    if (existingTexture && existingLabel) {
+      textTexture = existingTexture;
+      textPlane = existingLabel;
+    } else {
+      // Create dynamic texture for revenue text with transparent background (4x bigger)
+      textTexture = new DynamicTexture("groundRevenueText", { width: 1024, height: 256 }, this.scene, true);
+      
+      // Create ground plane text mesh (4x bigger)
+      textPlane = MeshBuilder.CreatePlane("groundRevenueLabel", { width: 16, height: 4 }, this.scene);
+      
+      // Position on ground plane (slightly above ground to avoid z-fighting)
+      textPlane.position.y = 0.01;  
+      textPlane.position.x = -3;    // In front of green shapes
+      textPlane.position.z = -4;    // Front area, closer to camera
+      textPlane.rotation.x = Math.PI / 2; // Rotate to lay flat on ground (right-side up)
+      textPlane.parent = this.masterTransform;
+
+      // Apply text material with alpha blending
+      const textMaterial = new StandardMaterial("groundRevenueMaterial", this.scene);
+      textMaterial.diffuseTexture = textTexture;
+      textMaterial.opacityTexture = textTexture;
+      textMaterial.backFaceCulling = false;
+      textMaterial.useAlphaFromDiffuseTexture = true;
+      textPlane.material = textMaterial;
+
+      textPlane.isPickable = false;
+      
+      // Store both texture and plane references
+      this.foundationComponents.set('groundRevenueLabel', textPlane);
+      this.foundationComponents.set('groundRevenueTexture', textTexture);
     }
 
-    // Create dynamic texture for revenue text with transparent background
-    const textTexture = new DynamicTexture("groundRevenueText", { width: 512, height: 128 }, this.scene, true);
+    // Update only the texture content (no flashing)
     const textContext = textTexture.getContext();
-
-    // Clear canvas to transparent background
-    textContext.clearRect(0, 0, 512, 128);
     
-    // Set text properties
-    textContext.font = "bold 48px Arial";
+    // Clear canvas to transparent background
+    textContext.clearRect(0, 0, 1024, 256);
+    
+    // Set text properties (larger for 4x bigger texture)
+    textContext.font = "bold 96px Arial";
     textContext.fillStyle = "#2D3748"; // Dark gray
     (textContext as any).textAlign = "center";
     (textContext as any).textBaseline = "middle";
     
     // Draw the revenue text
-    textContext.fillText(revenueAmountText, 256, 64);
+    textContext.fillText(revenueAmountText, 512, 128);
     textTexture.update();
-
-    // Create ground plane text mesh
-    const textPlane = MeshBuilder.CreatePlane("groundRevenueLabel", { width: 4, height: 1 }, this.scene);
-    
-    // Position on ground plane (slightly above ground to avoid z-fighting)
-    textPlane.position.y = 0.01;  
-    textPlane.position.x = -3;    // In front of green shapes
-    textPlane.position.z = -4;    // Front area, closer to camera
-    textPlane.rotation.x = Math.PI / 2; // Rotate to lay flat on ground (right-side up)
-    textPlane.parent = this.masterTransform;
-
-    // Apply text material with alpha blending
-    const textMaterial = new StandardMaterial("groundRevenueMaterial", this.scene);
-    textMaterial.diffuseTexture = textTexture;
-    textMaterial.opacityTexture = textTexture;
-    textMaterial.backFaceCulling = false;
-    textMaterial.useAlphaFromDiffuseTexture = true;
-    textPlane.material = textMaterial;
-
-    textPlane.isPickable = false;
-    this.foundationComponents.set('groundRevenueLabel', textPlane);
     
     debugLog.verbose('envisioner', `💰 Ground revenue label updated: ${revenueAmountText}`);
   }
