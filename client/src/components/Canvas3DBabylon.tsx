@@ -2685,23 +2685,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 }
               }));
 
-              // Hover exit - return to normal material (BUT preserve selection state)
+              // Hover exit - return to normal material  
               mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-                // Only change material if this object is NOT currently selected
-                const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
-                const isFinancialObject = financialObjects.includes(mesh.name);
-                const isSelected = currentSelectedFinancialObject === mesh.name;
-                
-                if (!isFinancialObject || !isSelected) {
-                  // Safe to change material for non-financial objects or non-selected financial objects
-                  const originalMaterial = (mesh as any).originalMaterial;
-                  if (originalMaterial && mesh.material !== originalMaterial) {
-                    mesh.material = originalMaterial;
-                    console.log(`🔄 ${mesh.name} hover exit - normal`);
-                  }
-                } else {
-                  // Selected Financial object - don't change material, preserve selection state
-                  console.log(`🔒 ${mesh.name} hover exit - preserving selection state`);
+                const originalMaterial = (mesh as any).originalMaterial;
+                if (originalMaterial && mesh.material !== originalMaterial) {
+                  mesh.material = originalMaterial;
+                  console.log(`🔄 ${mesh.name} hover exit - normal`);
                 }
               }));
 
