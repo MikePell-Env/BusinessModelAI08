@@ -2615,15 +2615,46 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelPlane.position.y = frontFaceCenterY;
               labelPlane.position.z = frontFaceCenterZ - 0.01; // Slightly in front
 
-              // DEBUG: Draw yellow line from front face center to show understanding
-              const linePoints = [
-                new Vector3(frontFaceCenterX, frontFaceCenterY, frontFaceCenterZ),
-                new Vector3(frontFaceCenterX - 2, frontFaceCenterY, frontFaceCenterZ) // Extend line outward
-              ];
-              const yellowLine = MeshBuilder.CreateLines(`${mesh.name}_debug_line`, {
-                points: linePoints,
-                colors: [new Color4(1, 1, 0, 1), new Color4(1, 1, 0, 1)] // Bright yellow
+              // DEBUG: Draw yellow debug lines to show front face center point  
+              console.log(`🟡 Creating debug lines for ${mesh.name} at front face center:`, {
+                x: frontFaceCenterX, 
+                y: frontFaceCenterY, 
+                z: frontFaceCenterZ
+              });
+              
+              // Create a bright yellow sphere at the front face center point
+              const debugSphere = MeshBuilder.CreateSphere(`${mesh.name}_center_point`, {
+                diameter: 0.2
               }, scene);
+              debugSphere.position.x = frontFaceCenterX;
+              debugSphere.position.y = frontFaceCenterY;
+              debugSphere.position.z = frontFaceCenterZ;
+              
+              const debugSphereMat = new StandardMaterial(`${mesh.name}_center_mat`, scene);
+              debugSphereMat.emissiveColor = new Color3(1, 1, 0); // Bright yellow
+              debugSphere.material = debugSphereMat;
+              
+              // Create yellow lines extending from the center point
+              const linePoints1 = [
+                new Vector3(frontFaceCenterX, frontFaceCenterY, frontFaceCenterZ),
+                new Vector3(frontFaceCenterX - 2, frontFaceCenterY, frontFaceCenterZ) // Left line
+              ];
+              const linePoints2 = [
+                new Vector3(frontFaceCenterX, frontFaceCenterY, frontFaceCenterZ),
+                new Vector3(frontFaceCenterX, frontFaceCenterY + 1, frontFaceCenterZ) // Up line
+              ];
+              
+              const yellowLine1 = MeshBuilder.CreateLines(`${mesh.name}_debug_line1`, {
+                points: linePoints1
+              }, scene);
+              yellowLine1.color = new Color3(1, 1, 0);
+              
+              const yellowLine2 = MeshBuilder.CreateLines(`${mesh.name}_debug_line2`, {
+                points: linePoints2
+              }, scene);
+              yellowLine2.color = new Color3(1, 1, 0);
+              
+              console.log(`🟡 Debug elements created for ${mesh.name}`);
 
               // Face forward (no rotation needed for front-facing labels)
               labelPlane.rotation.x = 0; // Face forward instead of flat on top
