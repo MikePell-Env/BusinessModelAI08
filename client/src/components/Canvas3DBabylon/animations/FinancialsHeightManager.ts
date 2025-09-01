@@ -52,7 +52,6 @@ export class FinancialsHeightManager {
   constructor(scene: Scene) {
     this.scene = scene;
     this.createGroundPlaneTestCube();
-    this.createFinancialLabels();
   }
 
 
@@ -702,22 +701,12 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Apply PNG label texture overlay directly to financial object material (DEPRECATED)
+   * Apply PNG label texture directly to financial object material face
    */
   private applyLabelOverlay(mesh: Mesh): void {
     const meshName = mesh.name;
     const texturePath = this.getLabelTexturePath(meshName);
     if (!texturePath) return;
-    
-    // Get ground plane reference for proper positioning context
-    const persistence = EnvisionerPersistence.getInstance();
-    const groundRef = persistence.getGroundPlaneReference();
-    
-    if (groundRef) {
-      debugLog.info('financials', `Ground plane reference available: center Y=${groundRef.position.y}, bounds=${groundRef.bounds.minX} to ${groundRef.bounds.maxX}`);
-    } else {
-      debugLog.warn('financials', 'No ground plane reference available yet');
-    }
     
     try {
       const material = mesh.material as StandardMaterial;
@@ -729,7 +718,7 @@ export class FinancialsHeightManager {
         this.originalMaterials.set(meshName, originalMaterial);
       }
       
-      // Create label texture
+      // Create label texture with proper settings for face application
       const labelTexture = new Texture(texturePath, this.scene);
       labelTexture.hasAlpha = true;
       labelTexture.updateSamplingMode(Texture.LINEAR_LINEAR);
@@ -737,14 +726,16 @@ export class FinancialsHeightManager {
       labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
       labelTexture.anisotropicFilteringLevel = 4;
       
-      // Apply label as emissive overlay (visible over base color)
-      material.emissiveTexture = labelTexture;
-      material.emissiveColor = new Color3(0.8, 0.8, 0.8); // Bright enough to be visible
+      // Apply directly to diffuse texture to replace face appearance
+      material.diffuseTexture = labelTexture;
       material.useAlphaFromDiffuseTexture = true;
       
-      debugLog.info('financials', `Label texture overlay applied to ${meshName} material`);
+      // Keep some base color for visibility
+      material.diffuseColor = new Color3(1, 1, 1); // White base to show texture clearly
+      
+      debugLog.info('financials', `Label texture applied directly to ${meshName} face`);
     } catch (error) {
-      debugLog.warn('financials', `Failed to apply label overlay to ${meshName}:`, error);
+      debugLog.warn('financials', `Failed to apply label to ${meshName} face:`, error);
     }
   }
 
