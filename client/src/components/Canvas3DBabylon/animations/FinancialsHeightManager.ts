@@ -19,6 +19,7 @@ import {
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { EnvisionerPersistence } from '../core/EnvisionerPersistence';
+import { enhanceLabelTexture } from '../utils/BMCUtilities';
 
 export interface FinancialData {
   revenue: number;
@@ -52,6 +53,7 @@ export class FinancialsHeightManager {
   constructor(scene: Scene) {
     this.scene = scene;
     this.createGroundPlaneTestCube();
+    this.createFinancialLabels();
   }
 
 
@@ -627,7 +629,7 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Create PNG label planes positioned in front of financial objects
+   * Create PNG label planes using BMC method - positioned close to financial objects
    */
   private createFinancialLabels(): void {
     const persistence = EnvisionerPersistence.getInstance();
@@ -638,62 +640,69 @@ export class FinancialsHeightManager {
       return;
     }
 
-    // Label configuration with positions based on coordinate system knowledge
+    // Label configuration using BMC positioning method
     const labelConfigs = [
       {
         name: 'Revenue',
         texturePath: '/textures/Label_Revenue.png',
-        position: { x: -3, y: 1.0, z: -5.5 }, // Left front, mid-height on Revenue object
+        position: { x: -3, y: 1.2, z: -3.8 }, // Close to Revenue object front face
+        size: { width: 1.5, height: 0.6 }
       },
       {
         name: 'Expenses', 
         texturePath: '/textures/Label_Expenses.png',
-        position: { x: 3, y: 1.0, z: -5.5 }, // Right front, mid-height on Expenses object
+        position: { x: 3, y: 1.2, z: -3.8 }, // Close to Expenses object front face
+        size: { width: 1.5, height: 0.6 }
       },
       {
         name: 'Profit',
         texturePath: '/textures/Label_Profit.png', 
-        position: { x: 3, y: 2.5, z: -5.5 }, // Right front, upper section on ExpensesPL object
+        position: { x: 3, y: 2.8, z: -3.8 }, // Close to ExpensesPL object front face
+        size: { width: 1.2, height: 0.4 }
       },
       {
         name: 'Loss',
         texturePath: '/textures/Label_Loss.png',
-        position: { x: -3, y: 2.5, z: -5.5 }, // Left front, upper section on RevenuePL object
+        position: { x: -3, y: 2.8, z: -3.8 }, // Close to RevenuePL object front face
+        size: { width: 1.0, height: 0.4 }
       }
     ];
 
     labelConfigs.forEach(config => {
       try {
-        // Create label plane
-        const labelPlane = MeshBuilder.CreatePlane(`${config.name}Label`, {
-          width: 1.5,
-          height: 0.4
+        // Create label plane using BMC method
+        const labelPlane = MeshBuilder.CreatePlane(`${config.name}FinancialLabel`, {
+          width: config.size.width,
+          height: config.size.height
         }, this.scene);
 
-        // CRITICAL: Parent to master transform using coordinate system knowledge
-        labelPlane.parent = masterTransform;
-        
-        // Position using verified coordinate system
+        // Position close to object front face
         labelPlane.position.x = config.position.x;
         labelPlane.position.y = config.position.y;
         labelPlane.position.z = config.position.z;
 
-        // Create material with PNG texture
-        const material = new StandardMaterial(`${config.name}LabelMaterial`, this.scene);
+        // Create material using exact BMC method
+        const material = new StandardMaterial(`${config.name}FinancialLabelMaterial`, this.scene);
         const texture = new Texture(config.texturePath, this.scene);
         texture.hasAlpha = true;
-        texture.updateSamplingMode(Texture.LINEAR_LINEAR);
+        enhanceLabelTexture(texture); // Use BMC enhancement function
         
+        // Apply BMC material settings
         material.diffuseTexture = texture;
+        material.emissiveTexture = texture;
+        material.emissiveColor = new Color3(1.0, 1.0, 1.0);
+        material.alpha = 0.9; // More opaque than BMC ground labels
         material.useAlphaFromDiffuseTexture = true;
-        material.backFaceCulling = false; // Visible from both sides
+        material.disableLighting = true;
+        material.backFaceCulling = false;
         
         labelPlane.material = material;
-        labelPlane.isPickable = false; // Don't interfere with interactions
+        labelPlane.isPickable = false;
+        labelPlane.parent = masterTransform; // Parent to master transform like BMC
         
         this.labelPlanes.set(config.name, labelPlane);
         
-        debugLog.info('financials', `${config.name} label plane created at (${config.position.x}, ${config.position.y}, ${config.position.z})`);
+        debugLog.info('financials', `${config.name} label created using BMC method at (${config.position.x}, ${config.position.y}, ${config.position.z})`);
       } catch (error) {
         debugLog.warn('financials', `Failed to create ${config.name} label:`, error);
       }
