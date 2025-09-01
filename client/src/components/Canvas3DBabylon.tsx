@@ -2578,37 +2578,21 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // Calculate exact front face center for each Financial object
-              // Based on the coordinate system: Revenue (left-front), Expenses (right-front), etc.
+              // Use the actual mesh position (which includes master transform offset)
+              // to calculate front face center in world coordinates
+              const worldPosition = mesh.absolutePosition || mesh.getAbsolutePosition();
               
-              let frontFaceCenterX, frontFaceCenterY, frontFaceCenterZ;
+              console.log(`🎯 ${mesh.name} WORLD POSITION:`, {
+                x: worldPosition.x, 
+                y: worldPosition.y, 
+                z: worldPosition.z
+              });
               
-              if (mesh.name === "Revenue") {
-                // Revenue: Green box, left-front position
-                frontFaceCenterX = center.x; // Use mesh center X
-                frontFaceCenterY = center.y; // Use mesh center Y
-                frontFaceCenterZ = center.z - size.z * 0.5; // Front face Z
-              } else if (mesh.name === "Expenses") {
-                // Expenses: Red box, right-front position  
-                frontFaceCenterX = center.x; // Use mesh center X
-                frontFaceCenterY = center.y; // Use mesh center Y
-                frontFaceCenterZ = center.z - size.z * 0.5; // Front face Z
-              } else if (mesh.name === "ExpensesPL") {
-                // Profit: Black box, right-back position
-                frontFaceCenterX = center.x; // Use mesh center X
-                frontFaceCenterY = center.y; // Use mesh center Y
-                frontFaceCenterZ = center.z - size.z * 0.5; // Front face Z
-              } else if (mesh.name === "RevenuePL") {
-                // Loss: Gold box, left-back position
-                frontFaceCenterX = center.x; // Use mesh center X
-                frontFaceCenterY = center.y; // Use mesh center Y
-                frontFaceCenterZ = center.z - size.z * 0.5; // Front face Z
-              } else {
-                // Default fallback
-                frontFaceCenterX = center.x;
-                frontFaceCenterY = center.y;
-                frontFaceCenterZ = center.z - size.z * 0.5;
-              }
+              // Calculate front face center using actual mesh world position
+              // The mesh position already includes the master transform Y=2 offset
+              const frontFaceCenterX = worldPosition.x; // Use world position X
+              const frontFaceCenterY = worldPosition.y; // Use world position Y (includes master transform)
+              const frontFaceCenterZ = worldPosition.z + (size.z * 0.5); // Front face Z (+ because facing camera)
               
               // Position label at calculated front face center
               labelPlane.position.x = frontFaceCenterX;
