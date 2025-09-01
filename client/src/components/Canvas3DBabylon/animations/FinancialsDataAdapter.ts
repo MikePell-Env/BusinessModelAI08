@@ -49,14 +49,14 @@ export class FinancialsDataAdapter {
 
   /**
    * Transform business data into visualization format
-   * Ensures Revenue slider controls Revenue group and Expenses slider controls Expenses group
+   * BUSINESS LOGIC CENTRALIZED: Only pass revenue/expenses, let FinancialsHeightManager calculate profit/loss
    */
   private transformBusinessData(data: FinancialBusinessData): FinancialData {
     return {
       revenue: Math.max(0.5, data.totalRevenue),
       expenses: Math.max(0.5, data.totalExpenses),
-      profit: Math.max(0, data.netProfit),
-      loss: Math.max(0, data.netLoss)
+      profit: 0, // Calculated in FinancialsHeightManager from revenue - expenses
+      loss: 0   // Calculated in FinancialsHeightManager from revenue - expenses
     };
   }
 
