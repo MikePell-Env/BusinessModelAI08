@@ -991,6 +991,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     const envisionerFoundation = new EnvisionerFoundation(scene, masterTransform);
     envisionerFoundation.initialize(); // Initialize foundation components
     
+    // Store foundation reference in window object for slider access
+    (window as any).envisionerFoundation = envisionerFoundation;
+    
     // CREATE TEMPLATE-SPECIFIC LABELS: Add template-specific labels to the foundation
     (async () => {
       await envisionerFoundation.createTemplateLabels(template.name);
@@ -3479,6 +3482,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   netProfit: 200,      // $2M profit (20% ExpensesPL)
                   netLoss: 0           // No loss (0% RevenuePL)
                 });
+                
+                // Initialize ground revenue label for Financials template
+                if ((window as any).envisionerFoundation) {
+                  (window as any).envisionerFoundation.updateGroundRevenueLabel('$10M Revenue');
+                }
               }, 200); // Increased timeout to ensure sliders are ready
             }
           }}>
@@ -3497,6 +3505,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   // Update isolated state
                   (window as any).financialSliderState.revenue = revenuePercent;
 
+
+                  // Update ground plane revenue label
+                  const revenueText = `$10M Revenue`; // Always $10M for revenue slider
+                  if ((window as any).envisionerFoundation) {
+                    (window as any).envisionerFoundation.updateGroundRevenueLabel(revenueText);
+                  }
 
                   // ISOLATED REVENUE UPDATE: Percentage-based height distribution
                   if ((window as any).financialsHeightManager) {
@@ -3537,9 +3551,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   }
 
                   // Update the display values - show actual revenue amount based on slider
-                  const revenueAmount = (revenuePercent / 10).toFixed(0); // Convert percentage to dollar amount
+                  const revenueDisplayAmount = (revenuePercent / 10).toFixed(0); // Convert percentage to dollar amount
                   const revenueDisplay = document.querySelector('.revenue-display');
-                  if (revenueDisplay) revenueDisplay.textContent = `$${revenueAmount}M`;
+                  if (revenueDisplay) revenueDisplay.textContent = `$${revenueDisplayAmount}M`;
                 }}
               />
               <div className="flex justify-between text-xs text-gray-300 mt-1 relative">
@@ -3583,6 +3597,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     
                     heightManager.setObjectHeight('Expenses', expensesHeight, 'bottom');
                     heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
+                  }
+
+                  // Update ground plane revenue label when expenses change
+                  const revenueText = `$10M Revenue`; // Always $10M for revenue
+                  if ((window as any).envisionerFoundation) {
+                    (window as any).envisionerFoundation.updateGroundRevenueLabel(revenueText);
                   }
 
                   // Update the display values
