@@ -53,7 +53,6 @@ export class FinancialsHeightManager {
   constructor(scene: Scene) {
     this.scene = scene;
     this.createGroundPlaneTestCube();
-    this.createFinancialLabels();
   }
 
 
@@ -710,7 +709,7 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Apply PNG label texture directly to financial object material face
+   * Apply PNG label texture directly to financial object geometry face
    */
   private applyLabelOverlay(mesh: Mesh): void {
     const meshName = mesh.name;
@@ -721,30 +720,30 @@ export class FinancialsHeightManager {
       const material = mesh.material as StandardMaterial;
       if (!material) return;
       
-      // Store original material if not already stored
+      // Store original material properties if not already stored
       if (!this.originalMaterials.has(meshName)) {
         const originalMaterial = material.clone(`${meshName}_Original`);
         this.originalMaterials.set(meshName, originalMaterial);
       }
       
-      // Create label texture with proper settings for face application
+      // Create PNG label texture and apply using BMC enhancement
       const labelTexture = new Texture(texturePath, this.scene);
       labelTexture.hasAlpha = true;
-      labelTexture.updateSamplingMode(Texture.LINEAR_LINEAR);
-      labelTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
-      labelTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
-      labelTexture.anisotropicFilteringLevel = 4;
+      enhanceLabelTexture(labelTexture); // Use BMC enhancement function
       
-      // Apply directly to diffuse texture to replace face appearance
+      // Apply PNG texture directly to the object's face material
+      // This replaces the solid color with the PNG label on the geometry itself
       material.diffuseTexture = labelTexture;
+      material.emissiveTexture = labelTexture; // Also set as emissive for visibility
+      material.emissiveColor = new Color3(0.3, 0.3, 0.3); // Subtle glow
       material.useAlphaFromDiffuseTexture = true;
       
-      // Keep some base color for visibility
-      material.diffuseColor = new Color3(1, 1, 1); // White base to show texture clearly
+      // Keep material properties for proper blending
+      material.backFaceCulling = false;
       
-      debugLog.info('financials', `Label texture applied directly to ${meshName} face`);
+      debugLog.info('financials', `PNG label texture applied directly to ${meshName} geometry face`);
     } catch (error) {
-      debugLog.warn('financials', `Failed to apply label to ${meshName} face:`, error);
+      debugLog.warn('financials', `Failed to apply PNG label to ${meshName} geometry:`, error);
     }
   }
 
@@ -798,14 +797,7 @@ export class FinancialsHeightManager {
       this.testCube = null;
     }
     
-    // Dispose label planes
-    this.labelPlanes.forEach((labelPlane, name) => {
-      if (labelPlane.material) {
-        labelPlane.material.dispose();
-      }
-      labelPlane.dispose();
-    });
-    this.labelPlanes.clear();
+    // Label planes disposed in separate method - they're not needed for direct geometry application
     
     // Restore original materials
     this.originalMaterials.forEach((originalMaterial, meshName) => {
