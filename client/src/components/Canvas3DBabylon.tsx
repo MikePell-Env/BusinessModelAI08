@@ -2578,10 +2578,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // Position label at center of front face
+              // Position label at center of front face - small test adjustment
               labelPlane.position.x = center.x; // Use bounding center X
               labelPlane.position.y = center.y; // Use bounding center Y  
               labelPlane.position.z = center.z - size.z * 0.51; // Front face position
+              
+              // Small test: adjust Y position based on mesh name
+              if (mesh.name === "Revenue") {
+                labelPlane.position.y = center.y - 0.2; // Move down slightly
+              } else if (mesh.name === "Expenses") {
+                labelPlane.position.y = center.y + 0.2; // Move up slightly  
+              }
 
               // Face forward (no rotation needed for front-facing labels)
               labelPlane.rotation.x = 0; // Face forward instead of flat on top
