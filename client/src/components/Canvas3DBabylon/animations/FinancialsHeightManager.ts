@@ -14,7 +14,8 @@ import {
   EasingFunction,
   StandardMaterial,
   Texture,
-  Color3
+  Color3,
+  MeshBuilder
 } from '@babylonjs/core';
 import { debugLog } from '@/lib/debug/DebugLogger';
 import { EnvisionerPersistence } from '../core/EnvisionerPersistence';
@@ -45,9 +46,11 @@ export class FinancialsHeightManager {
   // Material overlay system for PNG labels
   private originalMaterials: Map<string, StandardMaterial> = new Map();
   private labelsEnabled: boolean = true;
+  private testCube: Mesh | null = null;
 
   constructor(scene: Scene) {
     this.scene = scene;
+    this.createGroundPlaneTestCube();
   }
 
 
@@ -576,6 +579,41 @@ export class FinancialsHeightManager {
   }
 
   /**
+   * Create a small test cube using ground plane reference from EnvisionerPersistence
+   */
+  private createGroundPlaneTestCube(): void {
+    const persistence = EnvisionerPersistence.getInstance();
+    const groundRef = persistence.getGroundPlaneReference();
+    
+    if (!groundRef) {
+      debugLog.warn('financials', 'No ground plane reference available for test cube');
+      return;
+    }
+    
+    // Create small cube
+    this.testCube = MeshBuilder.CreateBox("GroundPlaneTestCube", {
+      width: 1,
+      height: 0.5,
+      depth: 1
+    }, this.scene);
+    
+    // Position using ground plane reference - place at front edge of ground plane
+    this.testCube.position.x = groundRef.bounds.minX + 2; // Near left edge
+    this.testCube.position.y = groundRef.bounds.centerY + 0.25; // Half cube height above ground
+    this.testCube.position.z = groundRef.bounds.minZ + 2; // Near front edge
+    
+    // Make it bright green so it's clearly visible
+    const material = new StandardMaterial("GroundPlaneTestCubeMaterial", this.scene);
+    material.diffuseColor = new Color3(0, 1, 0); // Bright green
+    material.emissiveColor = new Color3(0, 0.3, 0); // Slight green glow
+    this.testCube.material = material;
+    
+    this.testCube.isPickable = false; // Don't interfere with interactions
+    
+    debugLog.info('financials', `Test cube created using ground plane reference at (${this.testCube.position.x.toFixed(2)}, ${this.testCube.position.y.toFixed(2)}, ${this.testCube.position.z.toFixed(2)})`);
+  }
+
+  /**
    * Apply PNG label texture overlay directly to financial object material
    */
   private applyLabelOverlay(mesh: Mesh): void {
@@ -662,6 +700,15 @@ export class FinancialsHeightManager {
   public dispose(): void {
     // Stop any ongoing animations
     this.scene.stopAllAnimations();
+    
+    // Dispose test cube
+    if (this.testCube) {
+      if (this.testCube.material) {
+        this.testCube.material.dispose();
+      }
+      this.testCube.dispose();
+      this.testCube = null;
+    }
     
     // Restore original materials
     this.originalMaterials.forEach((originalMaterial, meshName) => {
