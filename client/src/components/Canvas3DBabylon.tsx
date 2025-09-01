@@ -2578,25 +2578,16 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // Use the actual mesh position (which includes master transform offset)
-              // to calculate front face center in world coordinates
-              const worldPosition = mesh.absolutePosition || mesh.getAbsolutePosition();
+              // Position label at center of front face (keep original working logic)
+              labelPlane.position.x = center.x; // Use bounding center X
+              labelPlane.position.y = center.y; // Use bounding center Y  
+              labelPlane.position.z = center.z - size.z * 0.51; // Front face position
               
-              console.log(`🎯 ${mesh.name} WORLD POSITION:`, {
-                x: worldPosition.x, 
-                y: worldPosition.y, 
-                z: worldPosition.z
-              });
-              
-              // Calculate front face center using actual mesh world position
-              // The mesh position already includes the master transform Y=2 offset
-              const frontFaceCenterX = worldPosition.x; // Use world position X
-              const frontFaceCenterY = worldPosition.y; // Use world position Y (includes master transform)
-              const frontFaceCenterZ = worldPosition.z + (size.z * 0.5); // Front face Z (+ because facing camera)
-              
-              // Position label at calculated front face center
-              labelPlane.position.x = frontFaceCenterX;
-              labelPlane.position.y = frontFaceCenterY;
+              // Calculate exact front face center based on current label position (which is close)
+              // Use the label position as reference and adjust to get exact front face center
+              const frontFaceCenterX = labelPlane.position.x; // Label X is close to correct position
+              const frontFaceCenterY = labelPlane.position.y; // Label Y is close to correct position
+              const frontFaceCenterZ = center.z - size.z * 0.5; // Exact front face Z (not 0.51 offset)
               labelPlane.position.z = frontFaceCenterZ - 0.01; // Slightly in front
 
               // DEBUG: Draw yellow debug lines to show front face center point  
