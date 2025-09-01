@@ -1717,38 +1717,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         }
       },
       onHoverExit: (sectionId: string, mesh: AbstractMesh) => {
+        // Skip BMC hover effects for Financial objects - they have their own system
         const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
-        
-        if (financialObjects.includes(sectionId)) {
-          // DEBUG: Log hover exit for Financial objects
-          console.log(`🐛 HOVER EXIT: ${sectionId}, currently selected: ${currentSelectedFinancialObject}`);
-          
-          // Check current alpha before any changes
-          const objMesh = scene.getMeshByName(sectionId);
-          if (objMesh && objMesh.material) {
-            console.log(`🐛 ALPHA BEFORE: ${sectionId} alpha = ${objMesh.material.alpha}`);
-          }
-          
-          // If this is a selected Financial object, explicitly preserve its opaque state
-          if (currentSelectedFinancialObject === sectionId) {
-            console.log(`🐛 FIXING SELECTED OBJECT: ${sectionId} - ensuring alpha stays 1.0`);
-            if (objMesh) {
-              const allMaterials = [];
-              if (objMesh.material) allMaterials.push(objMesh.material);
-              if ((objMesh as any).multiMaterial?.subMaterials) {
-                allMaterials.push(...(objMesh as any).multiMaterial.subMaterials.filter((m: any) => m));
-              }
-              allMaterials.forEach((material: any) => {
-                material.alpha = 1.0;
-              });
-              
-              const labelMesh = scene.getMeshByName(`${sectionId}Label`);
-              if (labelMesh && labelMesh.material) {
-                labelMesh.material.alpha = 1.0;
-              }
-            }
-          }
-        } else if (cleanBMCRef.current) {
+        if (!financialObjects.includes(sectionId) && cleanBMCRef.current) {
           cleanBMCRef.current.onHover(sectionId, false);
         }
       },
@@ -2714,12 +2685,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 }
               }));
 
-              // Hover exit - return to normal material  
+              // Hover exit - return to normal material (BUT preserve selection state)
               mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-                const originalMaterial = (mesh as any).originalMaterial;
-                if (originalMaterial && mesh.material !== originalMaterial) {
-                  mesh.material = originalMaterial;
-                  console.log(`🔄 ${mesh.name} hover exit - normal`);
+                // Only change material if this object is NOT currently selected
+                const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
+                const isFinancialObject = financialObjects.includes(mesh.name);
+                const isSelected = currentSelectedFinancialObject === mesh.name;
+                
+                if (!isFinancialObject || !isSelected) {
+                  // Safe to change material for non-financial objects or non-selected financial objects
+                  const originalMaterial = (mesh as any).originalMaterial;
+                  if (originalMaterial && mesh.material !== originalMaterial) {
+                    mesh.material = originalMaterial;
+                    console.log(`🔄 ${mesh.name} hover exit - normal`);
+                  }
+                } else {
+                  // Selected Financial object - don't change material, preserve selection state
+                  console.log(`🔒 ${mesh.name} hover exit - preserving selection state`);
                 }
               }));
 
