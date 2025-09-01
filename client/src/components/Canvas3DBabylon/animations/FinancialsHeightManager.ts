@@ -494,6 +494,43 @@ export class FinancialsHeightManager {
     return heights;
   }
 
+  /**
+   * Update label position after vertex manipulation changes bounding box
+   */
+  private updateLabelPosition(mesh: Mesh): void {
+    // Find the label plane for this mesh
+    const labelPlane = this.scene.meshes.find(m => 
+      m.name === `${mesh.name}Label` && m.parent === mesh
+    ) as Mesh;
+    
+    if (!labelPlane) return;
+
+    // Recalculate position based on NEW bounding box after vertex manipulation
+    const boundingInfo = mesh.getBoundingInfo();
+    const center = boundingInfo.boundingBox.center;
+    const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+
+    // Calculate new local position relative to mesh position
+    const localX = center.x - mesh.position.x;
+    const localY = center.y - mesh.position.y;
+    const localZ = (center.z - size.z * 0.5) - mesh.position.z;
+
+    // Apply fine-tuning adjustments
+    let adjustedLocalY = localY;
+    if (mesh.name === "Revenue" || mesh.name === "Expenses") {
+      adjustedLocalY = localY + 0.05;
+    } else if (mesh.name === "ExpensesPL" || mesh.name === "RevenuePL") {
+      adjustedLocalY = localY - 0.05;
+    }
+
+    // Update label position
+    labelPlane.position.x = localX;
+    labelPlane.position.y = adjustedLocalY;
+    labelPlane.position.z = localZ - 0.01;
+
+    debugLog.verbose('financials', `Updated ${mesh.name} label position after vertex manipulation`);
+  }
+
 
   private isFinancialMesh(name: string): boolean {
     return ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(name);
@@ -572,6 +609,9 @@ export class FinancialsHeightManager {
     geometry.setVerticesData('position', newVertices);
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
+
+    // Update label position after vertex manipulation
+    this.updateLabelPosition(mesh);
 
     debugLog.verbose('financials', `Vertex manipulation: ${mesh.name} height ${heightFactor}x (${anchorType}-anchored)`);
   }
