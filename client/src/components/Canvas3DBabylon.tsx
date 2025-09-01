@@ -2574,16 +2574,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // FIXED: Use world coordinates for proper Financial label positioning
-              // Get world transformation matrix to convert local mesh coordinates to world space
-              const worldMatrix = mesh.getWorldMatrix();
-              const worldCenter = Vector3.TransformCoordinates(center, worldMatrix);
-              const worldSize = Vector3.TransformNormal(size, worldMatrix);
-              
-              // Position using world coordinates to ensure labels appear correctly in scene
-              labelPlane.position.x = worldCenter.x; // World X position
-              labelPlane.position.y = worldCenter.y + Math.abs(worldSize.y) * 0.6; // World Y position (above mesh)
-              labelPlane.position.z = worldCenter.z; // World Z position
+              // FIXED: Copy exact BMC label positioning pattern (use local coordinates + parenting)
+              labelPlane.position.x = center.x; // Local X position relative to mesh
+              labelPlane.position.y = center.y + size.y * 0.6; // Local Y position (above mesh)
+              labelPlane.position.z = center.z; // Local Z position relative to mesh
 
               // Rotate to be flat on top (like other working labels in the system)
               labelPlane.rotation.x = Math.PI / 2; // Flat on top face
@@ -2603,21 +2597,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
               // Apply material to label
               labelPlane.material = labelMaterial;
-
-              // NO PARENTING - Keep labels completely independent to avoid any scaling inheritance
-              // Labels will be positioned manually to track mesh centers
-
-              // Prevent Y-scaling (stretching) by overriding the scaling inheritance
-              labelPlane.scalingDeterminant = 1.0; // Force uniform scaling
-
-              // Set initial scaling - will be updated by FinancialsHeightManager
-              labelPlane.scaling.x = 1.0;
-              labelPlane.scaling.y = 1.0;
-              labelPlane.scaling.z = 1.0;
-
-              // Labels will be updated by FinancialsHeightManager when vertices change
-              // No observer needed - direct updates prevent recursion
-
+              
+              // FIXED: Parent to mesh like working BMC labels (this is the key!)
+              labelPlane.parent = mesh;
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
               console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
