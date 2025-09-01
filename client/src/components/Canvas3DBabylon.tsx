@@ -3497,10 +3497,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   // Update isolated state
                   (window as any).financialSliderState.revenue = revenuePercent;
 
-                  console.log('💚 Revenue slider moved:', {
-                    revenuePercent: revenuePercent + '%',
-                    newValue: `${revenuePercent}% Revenue, ${100-revenuePercent}% Loss`
-                  });
 
                   // ISOLATED REVENUE UPDATE: Percentage-based height distribution
                   if ((window as any).financialsHeightManager) {
@@ -3518,12 +3514,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     const revenueHeight = FIXED_TOTAL_HEIGHT * revenuePercentage;
                     const revenuePLHeight = FIXED_TOTAL_HEIGHT * lossPercentage;
                     
-                    console.log('💚 Revenue Group Update:', {
-                      revenuePercent: (revenuePercentage * 100).toFixed(1) + '%',
-                      lossPercent: (lossPercentage * 100).toFixed(1) + '%',
-                      revenueHeight: revenueHeight.toFixed(3),
-                      revenuePLHeight: revenuePLHeight.toFixed(3)
-                    });
                     
                     heightManager.setObjectHeight('Revenue', revenueHeight, 'bottom');
                     heightManager.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
@@ -3573,10 +3563,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   // Update isolated state
                   (window as any).financialSliderState.expenses = expensesPercent;
 
-                  console.log('🔴 Expenses slider moved:', {
-                    expensesPercent: expensesPercent + '%',
-                    newValue: `$${(expensesPercent/10).toFixed(0)}M`
-                  });
 
                   // ISOLATED EXPENSES UPDATE: Only update Expenses objects, no cross-contamination
                   if ((window as any).financialsHeightManager) {
@@ -3594,13 +3580,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     const expensesHeight = expensesValue / HEIGHT_SCALE;
                     const expensesPLHeight = profit / HEIGHT_SCALE;
                     
-                    console.log('🔴 Expenses Group Update:', {
-                      expensesPercent: expensesPercent + '%',
-                      expensesValue: '$' + (expensesValue/100).toFixed(0) + 'M',
-                      profit: '$' + (profit/100).toFixed(0) + 'M',
-                      expensesHeight: expensesHeight.toFixed(3),
-                      expensesPLHeight: expensesPLHeight.toFixed(3)
-                    });
                     
                     heightManager.setObjectHeight('Expenses', expensesHeight, 'bottom');
                     heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
