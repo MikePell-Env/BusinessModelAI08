@@ -758,28 +758,68 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Create label plane attached to financial object so it tracks with height changes
+   * DEBUG: Examine actual financial object transforms and bounds
+   */
+  private debugFinancialObjectTransforms(mesh: Mesh): void {
+    const meshName = mesh.name;
+    
+    // Get absolute position in world space
+    const worldMatrix = mesh.getWorldMatrix();
+    const worldPosition = Vector3.TransformCoordinates(Vector3.Zero(), worldMatrix);
+    
+    // Get bounding box
+    const boundingInfo = mesh.getBoundingInfo();
+    const boundingBox = boundingInfo.boundingBox;
+    
+    // Get mesh transforms
+    const position = mesh.position;
+    const scaling = mesh.scaling;
+    const rotation = mesh.rotation;
+    
+    debugLog.info('financials', `🔍 ${meshName} TRANSFORMS:
+      - Local Position: (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})
+      - World Position: (${worldPosition.x.toFixed(2)}, ${worldPosition.y.toFixed(2)}, ${worldPosition.z.toFixed(2)})
+      - Scaling: (${scaling.x.toFixed(2)}, ${scaling.y.toFixed(2)}, ${scaling.z.toFixed(2)})
+      - Rotation: (${rotation.x.toFixed(2)}, ${rotation.y.toFixed(2)}, ${rotation.z.toFixed(2)})
+      - Bounding Min: (${boundingBox.minimumWorld.x.toFixed(2)}, ${boundingBox.minimumWorld.y.toFixed(2)}, ${boundingBox.minimumWorld.z.toFixed(2)})
+      - Bounding Max: (${boundingBox.maximumWorld.x.toFixed(2)}, ${boundingBox.maximumWorld.y.toFixed(2)}, ${boundingBox.maximumWorld.z.toFixed(2)})`);
+  }
+
+  /**
+   * Create label plane attached to financial object using ACTUAL object bounds
    */
   private createLabelForFinancialObject(mesh: Mesh): void {
     const meshName = mesh.name;
     const texturePath = this.getLabelTexturePath(meshName);
     if (!texturePath) return;
     
+    // DEBUG: Examine actual transforms first
+    this.debugFinancialObjectTransforms(mesh);
+    
     try {
+      // Get actual bounding box for precise positioning
+      const boundingInfo = mesh.getBoundingInfo();
+      const boundingBox = boundingInfo.boundingBox;
+      const center = boundingBox.centerWorld;
+      const size = boundingBox.maximumWorld.subtract(boundingBox.minimumWorld);
+      
       // Create label plane
       const labelPlane = MeshBuilder.CreatePlane(`${meshName}Label`, {
-        width: 1.0,
+        width: Math.min(size.x * 0.8, 1.5), // Scale with object width but cap at 1.5
         height: 0.4
       }, this.scene);
       
       // CRITICAL: Parent to the financial object itself so it tracks with height changes
       labelPlane.parent = mesh;
       
-      // Position on the front face of the financial object
-      // These positions are relative to the mesh, so they move with height changes
-      labelPlane.position.x = 0; // Centered on mesh
-      labelPlane.position.y = 0.5; // Middle height of mesh
-      labelPlane.position.z = 1.1; // Just in front of mesh front face
+      // Position relative to mesh using bounding box info
+      // Convert world bounding center to local mesh coordinates
+      const worldMatrix = mesh.getWorldMatrix();
+      const localCenter = Vector3.TransformCoordinates(center, worldMatrix.invert());
+      
+      labelPlane.position.x = 0; // Center horizontally
+      labelPlane.position.y = localCenter.y; // Use actual center height
+      labelPlane.position.z = size.z * 0.6; // Position in front based on actual depth
       
       // Create material using proven BMC method
       const material = new StandardMaterial(`${meshName}LabelMaterial`, this.scene);
@@ -801,7 +841,7 @@ export class FinancialsHeightManager {
       
       this.labelPlanes.set(meshName, labelPlane);
       
-      debugLog.info('financials', `Label plane created for ${meshName} and parented to mesh for height tracking`);
+      debugLog.info('financials', `Label plane created for ${meshName} using actual bounds - positioned at local (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
     } catch (error) {
       debugLog.warn('financials', `Failed to create label for ${meshName}:`, error);
     }
