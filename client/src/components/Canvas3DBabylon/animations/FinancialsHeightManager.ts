@@ -321,8 +321,7 @@ export class FinancialsHeightManager {
         // Apply vertex manipulation directly (immediate, no animation for now)
         this.setMeshHeightByVertices(mesh, heightFactor, anchorType);
         
-        // Update label position after vertex changes
-        this.updateLabelPosition(mesh);
+        // Label is part of material - no separate update needed
         
         // DO NOT MOVE THE MESH - vertex manipulation keeps mesh in fixed position
         // mesh.position.y stays exactly where it was set during model loading
@@ -384,8 +383,7 @@ export class FinancialsHeightManager {
         () => {
           debugLog.verbose('financials', `${objectName} height animation completed`);
           
-          // Update label position at end of animation
-          this.updateLabelPosition(mesh);
+          // Label is part of material - no separate update needed
           
           resolve();
         }
@@ -478,8 +476,7 @@ export class FinancialsHeightManager {
     mesh.position.y = originalPos.y; 
     mesh.position.z = originalPos.z;
 
-    // Update label position
-    this.updateLabelPosition(mesh);
+    // Label is part of material - no separate update needed
     
     debugLog.verbose('financials', `Set height for ${objectName}: ${height} (${anchorType}-anchored) using constrained vertex manipulation`);
   }
@@ -546,8 +543,7 @@ export class FinancialsHeightManager {
     // Store the VISUAL stretch factor for label correction (not the heightFactor)
     this.currentHeightFactors.set(mesh.name, visualStretchFactor);
     
-    // Update face label position after height change
-    this.updateFaceAlignedLabel(mesh);
+    // Label is part of material - no separate update needed
     
     // Modify vertices based on anchor type - CONSTRAINED to original bounds
     for (let i = 1; i < newVertices.length; i += 3) {
