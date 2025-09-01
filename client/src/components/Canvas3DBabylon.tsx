@@ -2574,13 +2574,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 height: labelHeight
               }, scene);
 
-              // FIXED: Copy exact BMC label positioning pattern (use local coordinates + parenting)
-              labelPlane.position.x = center.x; // Local X position relative to mesh
-              labelPlane.position.y = center.y + size.y * 0.6; // Local Y position (above mesh)
-              labelPlane.position.z = center.z; // Local Z position relative to mesh
+              // FIXED: Position labels on front face of boxes (like traditional box labels)
+              labelPlane.position.x = center.x; // Center horizontally
+              labelPlane.position.y = center.y; // Center vertically on front face
+              labelPlane.position.z = center.z - size.z * 0.51; // Position on front face (slightly in front)
 
-              // Rotate to be flat on top (like other working labels in the system)
-              labelPlane.rotation.x = Math.PI / 2; // Flat on top face
+              // Face forward (no rotation needed for front-facing labels)
+              labelPlane.rotation.x = 0; // Face forward instead of flat on top
 
               // Create material with texture
               const labelMaterial = new StandardMaterial(`${mesh.name}LabelMat`, scene);
