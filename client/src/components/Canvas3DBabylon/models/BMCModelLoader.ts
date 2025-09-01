@@ -214,6 +214,13 @@ export class BMCModelLoader {
           
           console.log(`🔧 ExpensesPL: ready for profit-based height adjustments`);
         }
+        
+        // Set backface culling to false for underside visibility
+        if (mesh.material && mesh instanceof Mesh) {
+          const material = mesh.material as StandardMaterial;
+          material.backFaceCulling = false;
+          debugLog.verbose('model', `Set backFaceCulling=false for ${mesh.name} (underside visibility)`);
+        }
       });
       
       const model: LoadedModel = {
