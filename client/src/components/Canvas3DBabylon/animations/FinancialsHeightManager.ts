@@ -515,9 +515,9 @@ export class FinancialsHeightManager {
     labelPlane.position.y = adjustedLocalY;
     labelPlane.position.z = localZ - 0.01;
 
-    // Simple 2% visibility threshold - hide labels when objects get too small
+    // Simple 1% visibility threshold - hide labels when objects get too small
     const meshHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
-    const shouldBeVisible = meshHeight > 0.04; // 2% threshold (2.0 * 0.02 = 0.04)
+    const shouldBeVisible = meshHeight > 0.02; // 1% threshold (2.0 * 0.01 = 0.02)
     labelPlane.setEnabled(shouldBeVisible);
 
     debugLog.verbose('financials', `Updated ${mesh.name} label position after vertex manipulation`);
