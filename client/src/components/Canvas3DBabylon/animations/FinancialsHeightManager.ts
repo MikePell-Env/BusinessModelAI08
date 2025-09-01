@@ -56,9 +56,8 @@ export class FinancialsHeightManager {
     this.createGroundPlaneTestCube();
     this.createTestLabelPlane();
     
-    // DEBUG: List all meshes in scene to see what's actually there
-    setTimeout(() => this.debugSceneMeshes(), 2000);
-    setTimeout(() => this.findAndAttachToActualMeshes(), 3000);
+    // Find and attach labels to financial meshes
+    setTimeout(() => this.findAndAttachToActualMeshes(), 2000);
   }
 
 
@@ -101,14 +100,10 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Refresh all financial object labels by reapplying overlays
+   * Refresh all financial object labels 
    */
   public refreshAllLabels(): void {
-    this.financialMeshes.forEach((mesh, meshName) => {
-      if (this.labelsEnabled) {
-        this.applyLabelOverlay(mesh);
-      }
-    });
+    // Labels are now created independently via scene mesh detection
   }
 
   /**
@@ -852,70 +847,22 @@ export class FinancialsHeightManager {
     }
   }
   
-  /**
-   * DEBUG: List all meshes in the scene to see what financial objects actually exist
-   */
-  private debugSceneMeshes(): void {
-    let debugOutput = '🔍 ALL MESHES IN SCENE:\n';
-    this.scene.meshes.forEach(mesh => {
-      debugOutput += `  - ${mesh.name} (${mesh.constructor.name}) at position (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})\n`;
-    });
-    
-    debugOutput += '\n🔍 REGISTERED FINANCIAL MESHES:\n';
-    this.financialMeshes.forEach((mesh, name) => {
-      debugOutput += `  - ${name}: ${mesh.name} at (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})\n`;
-    });
-    
-    // Write debug output to file I can read
-    this.writeDebugToFile(debugOutput);
-    console.log(debugOutput);
-  }
   
   /**
    * Find the actual financial meshes in the scene and attach labels directly to them
    */
   private findAndAttachToActualMeshes(): void {
-    let searchOutput = '🎯 SEARCHING FOR ACTUAL FINANCIAL MESHES...\n';
-    
     // Look for meshes with financial names
     const financialNames = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
-    const foundMeshes: Mesh[] = [];
     
     this.scene.meshes.forEach(mesh => {
       if (mesh instanceof Mesh && financialNames.includes(mesh.name)) {
-        foundMeshes.push(mesh);
-        searchOutput += `✅ FOUND: ${mesh.name} at (${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})\n`;
-        
         // Create label directly on this found mesh
         this.createLabelDirectlyOnMesh(mesh);
       }
     });
-    
-    if (foundMeshes.length === 0) {
-      searchOutput += '❌ NO FINANCIAL MESHES FOUND IN SCENE\n';
-    } else {
-      searchOutput += `✅ Found ${foundMeshes.length} financial meshes\n`;
-    }
-    
-    this.writeDebugToFile(searchOutput);
-    console.log(searchOutput);
   }
   
-  /**
-   * Write debug output to file for direct reading
-   */
-  private writeDebugToFile(content: string): void {
-    // Use fetch to write debug content to a server endpoint
-    fetch('/api/debug-log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, timestamp: new Date().toISOString() })
-    }).catch(() => {
-      // Fallback - store in localStorage for debugging
-      const existing = localStorage.getItem('financials-debug') || '';
-      localStorage.setItem('financials-debug', existing + content + '\n---\n');
-    });
-  }
   
   /**
    * Create label directly on a found mesh, without changing mesh position
@@ -957,7 +904,6 @@ export class FinancialsHeightManager {
       labelPlane.material = material;
       labelPlane.isPickable = false;
       
-      console.log(`🏷️ WORLD LABEL created for ${meshName} at world position (${labelPlane.position.x.toFixed(2)}, ${labelPlane.position.y.toFixed(2)}, ${labelPlane.position.z.toFixed(2)})`);
       
     } catch (error) {
       console.warn(`❌ Failed to create label for ${meshName}:`, error);
@@ -965,21 +911,22 @@ export class FinancialsHeightManager {
   }
   
   /**
-   * Get world position for labels based on where financial objects should appear
+   * Get world position for labels using coordinates similar to working test cube
    */
   private getLabelWorldPosition(meshName: string): { x: number, y: number, z: number } {
-    // Place labels at fixed world positions where the objects appear visually
+    // Test cube works at (2, 0.35, -6), test label at (2, 0.35, -6.5)
+    // Use similar coordinate system with negative Z values
     switch (meshName) {
       case 'Revenue':
-        return { x: -2, y: 1, z: -1 }; 
+        return { x: -2, y: 0.5, z: -4 }; 
       case 'Expenses': 
-        return { x: 2, y: 1, z: -1 };  
+        return { x: 2, y: 0.5, z: -4 };  
       case 'RevenuePL':
-        return { x: -2, y: 2, z: 1 };  
+        return { x: -2, y: 1.5, z: -4 }; 
       case 'ExpensesPL':
-        return { x: 2, y: 2, z: 1 };   
+        return { x: 2, y: 1.5, z: -4 };  
       default:
-        return { x: 0, y: 1, z: 0 };
+        return { x: 0, y: 0.5, z: -4 };
     }
   }
 
