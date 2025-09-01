@@ -1526,29 +1526,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     interactionManagerRef.current = new UnifiedInteractionManager(scene, {
       onSingleClick: (sectionId: string, mesh: AbstractMesh) => {
         // Single click detected
-        console.log(`🎯 CLICK HANDLER TRIGGERED: sectionId="${sectionId}", template="${template?.name}"`);
-        console.log(`🎯 MESH INFO: name="${mesh.name}", id="${mesh.id}"`);
-        console.log(`🎯 CURRENT FINANCIAL SELECTION: "${currentSelectedFinancialObject}"`);
-        
-        // DEBUG: Check if this might be Revenue with different name
-        if (mesh.name.toLowerCase().includes('revenue') || sectionId.toLowerCase().includes('revenue')) {
-          console.log(`🔍 REVENUE-LIKE OBJECT: sectionId="${sectionId}", mesh.name="${mesh.name}"`);
-          console.log(`🔍 REVENUE-LIKE OBJECT: This might be the Revenue object with a different name`);
-        }
-        
-        // List all meshes in scene to find Revenue
-        if (sectionId === 'Revenue' || mesh.name.includes('Revenue')) {
-          console.log(`🔍 ALL FINANCIAL MESHES in scene:`);
-          const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
-          financialObjects.forEach(objName => {
-            const foundMesh = scene.getMeshByName(objName);
-            console.log(`🔍   ${objName}: ${foundMesh ? 'FOUND' : 'NOT FOUND'}`);
-            if (foundMesh) {
-              console.log(`🔍     - mesh.name: "${foundMesh.name}"`);
-              console.log(`🔍     - mesh.id: "${foundMesh.id}"`);
-            }
-          });
-        }
 
         // NEW LOGIC: If panel is open, refresh panel content instead of just selecting
         if (currentBillboardPanel) {
@@ -1618,14 +1595,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           
           // Handle Financial object clicks
           if (financialObjects.includes(sectionId)) {
-            console.log(`💰 CLICK: ${sectionId}, current: ${currentSelectedFinancialObject}`);
-            
             if (currentSelectedFinancialObject === sectionId) {
               // Same object clicked - DESELECT and restore all to 100%
-              console.log(`💰 DESELECTING: ${sectionId}`);
               financialObjects.forEach(objName => {
                 const objMesh = scene.getMeshByName(objName);
                 if (objMesh) {
+                  // Restore mesh opacity
                   const allMaterials = [];
                   if (objMesh.material) allMaterials.push(objMesh.material);
                   if ((objMesh as any).multiMaterial?.subMaterials) {
@@ -1634,18 +1609,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   allMaterials.forEach((material: any) => {
                     material.alpha = 1.0;
                   });
-                  console.log(`✅ ${objName}: restored to alpha 1.0`);
+                  
+                  // Restore label opacity
+                  const labelMesh = scene.getMeshByName(`${objName}Label`);
+                  if (labelMesh && labelMesh.material) {
+                    labelMesh.material.alpha = 1.0;
+                  }
                 }
               });
               setCurrentSelectedFinancialObject(null);
-              console.log(`💰 ALL RESTORED: No selection, all at 100%`);
             } else {
               // Different object clicked or first selection - SELECT this object
-              console.log(`💰 SELECTING: ${sectionId}`);
               financialObjects.forEach(objName => {
                 const objMesh = scene.getMeshByName(objName);
                 if (objMesh) {
                   const targetAlpha = (objName === sectionId) ? 1.0 : 0.2;
+                  
+                  // Set mesh opacity
                   const allMaterials = [];
                   if (objMesh.material) allMaterials.push(objMesh.material);
                   if ((objMesh as any).multiMaterial?.subMaterials) {
@@ -1654,18 +1634,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   allMaterials.forEach((material: any) => {
                     material.alpha = targetAlpha;
                   });
-                  console.log(`✅ ${objName}: alpha ${targetAlpha}`);
+                  
+                  // Set label opacity to match
+                  const labelMesh = scene.getMeshByName(`${objName}Label`);
+                  if (labelMesh && labelMesh.material) {
+                    labelMesh.material.alpha = targetAlpha;
+                  }
                 }
               });
               setCurrentSelectedFinancialObject(sectionId);
-              console.log(`💰 SELECTED: ${sectionId} at 100%, others at 20%`);
             }
           } else if (currentSelectedFinancialObject) {
             // Non-financial object clicked - restore all
-            console.log(`💰 NON-FINANCIAL CLICKED: restoring all`);
             financialObjects.forEach(objName => {
               const objMesh = scene.getMeshByName(objName);
               if (objMesh) {
+                // Restore mesh opacity
                 const allMaterials = [];
                 if (objMesh.material) allMaterials.push(objMesh.material);
                 if ((objMesh as any).multiMaterial?.subMaterials) {
@@ -1674,10 +1658,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 allMaterials.forEach((material: any) => {
                   material.alpha = 1.0;
                 });
+                
+                // Restore label opacity
+                const labelMesh = scene.getMeshByName(`${objName}Label`);
+                if (labelMesh && labelMesh.material) {
+                  labelMesh.material.alpha = 1.0;
+                }
               }
             });
             setCurrentSelectedFinancialObject(null);
-            console.log(`💰 ALL RESTORED: No selection, all at 100%`);
           }
         }
 
@@ -1732,9 +1721,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       },
       onBackgroundClick: () => {
         // Background click - clearing selection
-        console.log(`🎯 BACKGROUND CLICK: Detected in template ${template?.name}`);
-        console.log(`🎯 BACKGROUND CLICK: currentSelectedFinancialObject = "${currentSelectedFinancialObject}"`);
-        
         if (cleanBMCRef.current) {
           cleanBMCRef.current.clearSelection();
         }
@@ -1742,12 +1728,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         // FINANCIALS TEMPLATE: Always restore all Financial objects on any background click
         if (template?.name === 'Financials') {
           const financialObjects = ['Revenue', 'Expenses', 'RevenuePL', 'ExpensesPL'];
-          console.log(`💰 BACKGROUND CLICK: Restoring all Financial objects in Financials template`);
-          
           // Always restore all objects regardless of selection state
           financialObjects.forEach(objName => {
             const objMesh = scene.getMeshByName(objName);
             if (objMesh) {
+              // Restore mesh opacity
               const allMaterials = [];
               if (objMesh.material) allMaterials.push(objMesh.material);
               if ((objMesh as any).multiMaterial?.subMaterials) {
@@ -1756,15 +1741,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               allMaterials.forEach((material: any) => {
                 material.alpha = 1.0;
               });
-              console.log(`✅ ${objName}: restored to alpha 1.0 (background click)`);
-            } else {
-              console.log(`❌ ${objName}: mesh not found (background click)`);
+              
+              // Restore label opacity
+              const labelMesh = scene.getMeshByName(`${objName}Label`);
+              if (labelMesh && labelMesh.material) {
+                labelMesh.material.alpha = 1.0;
+              }
             }
           });
           
           // Always clear selection
           setCurrentSelectedFinancialObject(null);
-          console.log(`💰 BACKGROUND RESTORE: All Financial objects at 100% opacity, selection cleared`);
         }
         
         if (currentBillboardPanel) {
@@ -1773,7 +1760,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           billboardPanelRef.current = null;
         }
         
-        console.log(`🎯 BACKGROUND CLICK: Handler completed`);
       }
     });
 
