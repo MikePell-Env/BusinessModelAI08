@@ -108,8 +108,8 @@ export const AIChat: React.FC = () => {
         console.log('webkitSpeechRecognition found');
         const recognition = new (window as any).webkitSpeechRecognition();
         
-        recognition.continuous = false;
-        recognition.interimResults = false;
+        recognition.continuous = true;  // Keep listening continuously
+        recognition.interimResults = true; // Show interim results
         recognition.lang = 'en-US';
         
         recognition.onstart = () => {
@@ -118,10 +118,30 @@ export const AIChat: React.FC = () => {
         };
         
         recognition.onresult = (event: any) => {
-          console.log('🎤 Got result');
-          const transcript = event.results[0][0].transcript;
-          setInputValue(transcript);
-          handleSendMessage(transcript);
+          let finalTranscript = '';
+          let interimTranscript = '';
+          
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript;
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+          
+          // Show interim results
+          if (interimTranscript) {
+            setInterimTranscript(interimTranscript);
+          }
+          
+          // Handle final result
+          if (finalTranscript) {
+            setInputValue(finalTranscript);
+            setInterimTranscript('');
+            recognition.stop(); // Stop after getting final result
+            handleSendMessage(finalTranscript);
+          }
         };
         
         recognition.onerror = (event: any) => {
@@ -140,8 +160,8 @@ export const AIChat: React.FC = () => {
         console.log('SpeechRecognition found');
         const recognition = new (window as any).SpeechRecognition();
         
-        recognition.continuous = false;
-        recognition.interimResults = false;
+        recognition.continuous = true;  // Keep listening continuously
+        recognition.interimResults = true; // Show interim results
         recognition.lang = 'en-US';
         
         recognition.onstart = () => {
@@ -150,10 +170,30 @@ export const AIChat: React.FC = () => {
         };
         
         recognition.onresult = (event: any) => {
-          console.log('🎤 Got result');
-          const transcript = event.results[0][0].transcript;
-          setInputValue(transcript);
-          handleSendMessage(transcript);
+          let finalTranscript = '';
+          let interimTranscript = '';
+          
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript;
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+          
+          // Show interim results
+          if (interimTranscript) {
+            setInterimTranscript(interimTranscript);
+          }
+          
+          // Handle final result
+          if (finalTranscript) {
+            setInputValue(finalTranscript);
+            setInterimTranscript('');
+            recognition.stop(); // Stop after getting final result
+            handleSendMessage(finalTranscript);
+          }
         };
         
         recognition.onerror = (event: any) => {
@@ -192,11 +232,7 @@ export const AIChat: React.FC = () => {
   }, [isProcessing]);
 
   const handleVoiceInput = () => {
-    // Test if button click works at all
-    alert('Voice button clicked! Recognition available: ' + !!recognition);
-    
     if (!recognition) {
-      alert('No speech recognition available in this browser');
       return;
     }
     
@@ -208,7 +244,7 @@ export const AIChat: React.FC = () => {
     try {
       recognition.start();
     } catch (error) {
-      alert('Failed to start voice recognition: ' + error.message);
+      console.error('Failed to start voice recognition:', error);
       setIsListening(false);
     }
   };
