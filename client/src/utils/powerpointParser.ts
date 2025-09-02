@@ -45,8 +45,30 @@ export class PowerPointParser {
       const slides = await this.extractSlideContents(zip);
       
       // Show immediate debugging of detected slides
-      alert(`SLIDE DETECTION DEBUG:\n\nFound ${slides.length} slides:\n${slides.map((s, i) => `${i+1}. Title: "${s.title}" (${s.content.length} chars)`).join('\n')}\n\nLooking for slides containing: "financial", "income", "statement"`);
-      console.log('🔍 ALL DETECTED SLIDES:', slides);
+      console.log('🔍 ===== SLIDE DETECTION DEBUG =====');
+      console.log(`🔍 Found ${slides.length} slides total`);
+      slides.forEach((slide, i) => {
+        console.log(`🔍 Slide ${i+1}: Title="${slide.title}" Content=${slide.content.length}chars`);
+        console.log(`🔍 Slide ${i+1} content preview:`, slide.content.substring(0, 100));
+      });
+      console.log('🔍 Looking for slides containing: "financial", "income", "statement"');
+      console.log('🔍 ================================');
+      
+      // Also create a simple notification in the UI
+      try {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed; top: 10px; left: 10px; 
+          background: blue; color: white; padding: 10px; 
+          border-radius: 5px; z-index: 10000; font-size: 12px;
+          max-width: 400px;
+        `;
+        notification.innerHTML = `DEBUG: Found ${slides.length} slides. Check console for details.`;
+        document.body.appendChild(notification);
+        setTimeout(() => document.body.removeChild(notification), 5000);
+      } catch (e) {
+        console.log('🔍 Could not show UI notification:', e);
+      }
       
       // Look for Financials slide and extract Income Statement data
       // First try to extract from embedded Excel files, then fall back to text parsing
@@ -355,8 +377,12 @@ export class PowerPointParser {
     console.log('📊 Full slide content:', JSON.stringify(financialsSlide.content));
     
     try {
-      // Create an immediate alert for debugging
-      alert(`📊 DEBUG: Found slide "${financialsSlide.title}" with ${financialsSlide.content.length} characters. Content: ${financialsSlide.content.substring(0, 200)}...`);
+      // Log financial slide debugging info
+      console.log('📊 ===== FINANCIAL SLIDE ANALYSIS =====');
+      console.log('📊 Selected slide title:', financialsSlide.title);
+      console.log('📊 Selected slide content length:', financialsSlide.content.length);
+      console.log('📊 Selected slide content:', financialsSlide.content);
+      console.log('📊 =====================================');
       
       // Simple test: look for basic patterns in the slide content
       console.log('📊 DEBUGGING - Basic pattern tests:');
