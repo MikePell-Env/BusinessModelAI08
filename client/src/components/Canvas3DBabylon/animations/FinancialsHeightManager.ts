@@ -43,7 +43,7 @@ export class FinancialsHeightManager {
   private baseHeight: number = 2.0;
   private maxVisualizationHeight: number = 5.0;
   private previousData: FinancialData | null = null;
-  
+
   // Material overlay system for PNG labels
   private originalMaterials: Map<string, StandardMaterial> = new Map();
   private labelsEnabled: boolean = true;
@@ -53,7 +53,7 @@ export class FinancialsHeightManager {
 
   constructor(scene: Scene) {
     this.scene = scene;
-    
+
     // this.createGroundPlaneTestCube(); // Hidden but code preserved
     // this.createTestLabelPlane(); // Hidden but code preserved
   }
@@ -68,18 +68,18 @@ export class FinancialsHeightManager {
       if (mesh instanceof Mesh && this.isFinancialMesh(mesh.name)) {
         this.financialMeshes.set(mesh.name, mesh);
         this.originalPositions.set(mesh.name, mesh.position.clone());
-        
+
         // Store original vertex positions for direct manipulation
         this.captureOriginalVertices(mesh);
-        
+
         // Initialize height factor to 1.0 for proper label scaling
         this.currentHeightFactors.set(mesh.name, 1.0);
-        
-        
-        
+
+
+
       }
     });
-    
+
     // Heights will be set when PowerPoint data loads 
     // No early default initialization to prevent PowerPoint override conflicts
   }
@@ -102,7 +102,7 @@ export class FinancialsHeightManager {
     if (vertexData) {
       // Store a copy of the original vertex positions
       this.originalVertices.set(mesh.name, new Float32Array(vertexData));
-      
+
       // DEBUG: Check original vertex Y bounds from GLB
       let minY = Number.MAX_VALUE;
       let maxY = Number.MIN_VALUE;
@@ -122,45 +122,45 @@ export class FinancialsHeightManager {
    */
   private calculateProportionalHeights(data: FinancialData) {
     console.log(`🔥 HEIGHT CALC INPUT:`, data);
-    
+
     // RULE: PowerPoint values need to be scaled to 2.0 unit max height
     // Revenue=1000 ($10M) → 2.0 units, Expenses=800 ($8M) → 1.6 units
     const MAX_VALUE = 1000; // $10M is max height (2.0 units)
     const MAX_HEIGHT = 2.0;
-    
+
     // Direct scaling from PowerPoint values
     const revenueHeight = Math.min((data.revenue / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
     const expensesHeight = Math.min((data.expenses / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
-    
+
     // Profit/Loss calculations (only one shows at a time)
     let profitHeight = 0.0;
     let lossHeight = 0.0;
-    
+
     if (data.profit > 0) {
       profitHeight = Math.min((data.profit / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
     }
-    
+
     if (data.loss > 0) {
       lossHeight = Math.min((data.loss / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
     }
-    
+
     const result = {
       revenue: revenueHeight,      // Direct scaling
       revenuePL: lossHeight,       // Only shows when loss > 0
       expenses: expensesHeight,    // Direct scaling
       expensesPL: profitHeight     // Only shows when profit > 0  
     };
-    
+
     console.log(`🔥 HEIGHT CALC RESULT:`, result);
     console.log(`🔥 Expected for 2026 (1000/800/200/0): Rev=2.0, RevPL=0.0, Exp=1.6, ExpPL=0.4`);
-    
+
     // VALIDATION: Check if we got expected 2026 values
     if (data.revenue === 1000 && data.expenses === 800 && data.profit === 200) {
       console.log(`✅ CORRECT 2026 HEIGHT CALCULATION: Revenue=2.0, Expenses=1.6, Profit=0.4`);
     } else {
       console.log(`❌ UNEXPECTED VALUES IN HEIGHT CALC:`, data);
     }
-    
+
     return result;
   }
 
@@ -178,70 +178,70 @@ export class FinancialsHeightManager {
     if (!this.previousData) {
       this.previousData = { revenue: 1000, expenses: 800, profit: 200, loss: 0 };
     }
-    
+
     // FIXED: Use exact PowerPoint data without capping (same as setImmediateHeights)
     const revenue = data.revenue;  // Direct from PowerPoint: 1000 = $10M
     const expenses = data.expenses; // Direct from PowerPoint: 800 = $8M
-    
+
     // BUSINESS LOGIC: Profit/Loss = Revenue - Expenses with mutual exclusivity
     // When Profit exists, Loss = 0. When Loss exists, Profit = 0.
     const difference = revenue - expenses;
     const profit = difference > 0 ? difference : 0;  // Positive difference = Profit
     const loss = difference < 0 ? Math.abs(difference) : 0;  // Negative difference = Loss
-    
+
     // DEBUG: Log business calculations
     debugLog.info('financials', `Business Logic: Revenue=${revenue}, Expenses=${expenses}, Difference=${difference}`);
     debugLog.info('financials', `Calculated: Profit=${profit}, Loss=${loss} (mutual exclusivity enforced)`);
-    
+
     // VERIFICATION: Ensure mutual exclusivity
     if (profit > 0 && loss > 0) {
       debugLog.warn('financials', 'ERROR: Both profit and loss are > 0, mutual exclusivity violated!');
     }
-    
+
     const HEIGHT_SCALE = 500.0;
-    
+
     // Calculate heights EXACTLY like Expenses Group logic
     // Revenue Group: Revenue object = slider value, RevenuePL object = loss amount
-    // SAME PATTERN as Expenses Group: Expenses object = slider value, ExpensesPL object = profit amount
+    // SAME PATTERN as Expenses Group: Expenses object = slider value, ExpensesPL = profit
     const revenueHeight = revenue / HEIGHT_SCALE;  // Revenue object: direct slider value
     const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
-    
+
     // Expenses Group: Expenses = actual value, ExpensesPL = profit
     const expensesHeight = expenses / HEIGHT_SCALE;
     const expensesPLHeight = profit / HEIGHT_SCALE;
-    
+
     // SELECTIVE UPDATES: Only animate objects whose values actually changed
     const animations: Promise<void>[] = [];
-    
+
     // TRACK INDIVIDUAL CHANGES: Each object updates based on its specific value changes
     const revenueChanged = this.previousData.revenue !== revenue;
     const expensesChanged = this.previousData.expenses !== expenses;
     const profitChanged = this.previousData.profit !== profit;
     const lossChanged = this.previousData.loss !== loss;
-    
+
     // Revenue object updates (when Revenue slider moves)
     if (revenueChanged) {
       animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
     }
-    
+
     // RevenuePL (Loss) object updates (when loss amount changes due to revenue OR expenses)
     if (lossChanged) {
       animations.push(this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration));
     }
-    
+
     // Expenses object updates (when Expenses slider moves)
     if (expensesChanged) {
       animations.push(this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration));
     }
-    
+
     // ExpensesPL (Profit) object updates (when profit amount changes due to revenue OR expenses)
     if (profitChanged) {
       animations.push(this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration));
     }
-    
+
     // Update previous data for next comparison
     this.previousData = { revenue, expenses, profit, loss };
-    
+
     debugLog.info('financials', `💰 INDIVIDUAL UPDATES - Revenue: $${(revenue/100).toFixed(1)}M, Expenses: $${(expenses/100).toFixed(1)}M`);
     debugLog.info('financials', `📊 P&L Results - Profit: $${(profit/100).toFixed(1)}M, Loss: $${(loss/100).toFixed(1)}M`);
     debugLog.info('financials', `📏 Heights - Revenue: ${revenueHeight.toFixed(3)}, RevenuePL: ${revenuePLHeight.toFixed(3)}, Expenses: ${expensesHeight.toFixed(3)}, ExpensesPL: ${expensesPLHeight.toFixed(3)}`);
@@ -297,7 +297,7 @@ export class FinancialsHeightManager {
       // - Bottom-anchored: position = originalY (stays at ground)
       // - Top-anchored: position = originalY + totalGroupHeight - targetHeight
       // ========================================================================
-      
+
       // Calculate target position based on anchor and height change
       let targetPosition = startPosition;
       if (anchorType === 'top') {
@@ -310,9 +310,9 @@ export class FinancialsHeightManager {
             const expensesBottomY = 0; // Expenses is bottom-anchored at ground level
             const expensesHeight = this.currentHeightFactors.get('Expenses') || 1.6; // Use tracked height, not scaling
             const expensesPLHalfHeight = targetHeight / 2;
-            
+
             targetPosition = expensesBottomY + expensesHeight + expensesPLHalfHeight;
-            
+
             console.log(`🔧 ExpensesPL positioning: bottom=${expensesBottomY}, expensesHeight=${expensesHeight}, halfHeight=${expensesPLHalfHeight} → pos=${targetPosition}`);
           } else {
             targetPosition = 0 + (targetHeight / 2);
@@ -325,9 +325,9 @@ export class FinancialsHeightManager {
             const revenueBottomY = 0; // Revenue is bottom-anchored at ground level
             const revenueHeight = this.currentHeightFactors.get('Revenue') || 2.0; // Use tracked height, not scaling
             const revenuePLHalfHeight = targetHeight / 2;
-            
+
             targetPosition = revenueBottomY + revenueHeight + revenuePLHalfHeight;
-            
+
             console.log(`🔧 RevenuePL positioning: bottom=${revenueBottomY}, revenueHeight=${revenueHeight}, halfHeight=${revenuePLHalfHeight} → pos=${targetPosition}`);
           } else {
             targetPosition = 0 + (targetHeight / 2);
@@ -344,18 +344,18 @@ export class FinancialsHeightManager {
 
       // VERTEX MANIPULATION ONLY: All financial objects use vertex manipulation, no scaling
       debugLog.info('financials', `🔧 VERTEX: Animating ${objectName} height via vertex manipulation to ${targetHeight}`);
-      
+
       // Apply vertex manipulation directly (immediate, no animation for now)
       this.setMeshHeightByVertices(mesh, targetHeight, anchorType);
-      
+
       // Store the height for positioning calculations
       this.currentHeightFactors.set(objectName, targetHeight);
-      
+
       // DO NOT MOVE THE MESH - vertex manipulation keeps mesh in fixed position
       // mesh.position.y stays exactly where it was set during model loading
-      
+
       debugLog.info('financials', `🔧 VERTEX: ${objectName} height set to ${targetHeight} units - mesh position FIXED`);
-      
+
       // Resolve immediately since vertex manipulation is instant
       resolve();
     });
@@ -369,19 +369,19 @@ export class FinancialsHeightManager {
     console.log(`🔥 SETIMMEDIATEHEIGHTS CALLED - PowerPoint data path`);
     console.log(`🔥 Input data:`, data);
     console.log(`🔥 Revenue = ${data.revenue}, Expenses = ${data.expenses}, Profit = ${data.profit}, Loss = ${data.loss}`);
-    
+
     // FIXED: Use proportional heights for equal group totals
     const heights = this.calculateProportionalHeights(data);
-    
+
     console.log(`🔥 PROPORTIONAL HEIGHTS: Revenue=${heights.revenue}, RevenuePL=${heights.revenuePL}, Expenses=${heights.expenses}, ExpensesPL=${heights.expensesPL}`);
     console.log(`🔥 GROUP TOTALS: Revenue Group = ${heights.revenue + heights.revenuePL}, Expenses Group = ${heights.expenses + heights.expensesPL}`);
-    
+
     // Apply proportional heights immediately using vertex manipulation
     this.setObjectHeight('Revenue', heights.revenue, 'bottom');
     this.setObjectHeight('RevenuePL', heights.revenuePL, 'top');  
     this.setObjectHeight('Expenses', heights.expenses, 'bottom');
     this.setObjectHeight('ExpensesPL', heights.expensesPL, 'top');
-    
+
     console.log(`✅ SETIMMEDIATEHEIGHTS COMPLETE: Equal group heights with proper proportions`);
   }
 
@@ -428,7 +428,7 @@ export class FinancialsHeightManager {
     mesh.position.z = originalPos.z;
 
     // Label is part of material - no separate update needed
-    
+
     debugLog.verbose('financials', `Set height for ${objectName}: ${height} (${anchorType}-anchored) using constrained vertex manipulation`);
   }
 
@@ -451,7 +451,7 @@ export class FinancialsHeightManager {
     const labelPlane = this.scene.meshes.find(m => 
       m.name === `${mesh.name}Label` && m.parent === mesh
     ) as Mesh;
-    
+
     if (!labelPlane) return;
 
     // Recalculate position based on NEW bounding box after vertex manipulation
@@ -475,7 +475,7 @@ export class FinancialsHeightManager {
     // Additional positioning adjustment for small objects (< 20% height)
     const meshHeight = boundingInfo.boundingBox.maximum.y - boundingInfo.boundingBox.minimum.y;
     const heightPercentage = (meshHeight / 2.0) * 100; // 2.0 is max height
-    
+
     if (heightPercentage < 20) {
       if (mesh.name === "ExpensesPL" || mesh.name === "RevenuePL") {
         // Profit or Loss: move UP slightly
@@ -543,7 +543,7 @@ export class FinancialsHeightManager {
     // Find the Y bounds of the original mesh
     let minY = Number.MAX_VALUE;
     let maxY = Number.MIN_VALUE;
-    
+
     for (let i = 1; i < originalVertices.length; i += 3) {
       const y = originalVertices[i];
       minY = Math.min(minY, y);
@@ -551,20 +551,20 @@ export class FinancialsHeightManager {
     }
 
     const originalHeight = maxY - minY;
-    
+
     // NORMALIZE TO STANDARD 1.0 UNIT BASELINE: Regardless of GLB original height
     // Force all meshes to work from same baseline, then scale to exact target
     const STANDARD_BASELINE_HEIGHT = 1.0; // Normalize all meshes to 1.0 unit baseline
     const normalizeRatio = STANDARD_BASELINE_HEIGHT / originalHeight;
     const targetRatio = boundedHeight / STANDARD_BASELINE_HEIGHT;
     const finalScaleRatio = normalizeRatio * targetRatio;
-    
+
     console.log(`🔧 ${mesh.name}: GLB=${originalHeight.toFixed(3)} → Normalize=${STANDARD_BASELINE_HEIGHT} → Target=${boundedHeight.toFixed(3)} (ratio=${finalScaleRatio.toFixed(3)})`);
-    
+
     // Modify vertices based on anchor type - NORMALIZED then SCALED
     for (let i = 1; i < newVertices.length; i += 3) {
       const originalY = originalVertices[i];
-      
+
       if (anchorType === 'bottom') {
         // Bottom-anchored: scale Y from the bottom (minY stays fixed)
         const relativeY = originalY - minY;
@@ -595,44 +595,44 @@ export class FinancialsHeightManager {
   private createGroundPlaneTestCube(): void {
     const persistence = EnvisionerPersistence.getInstance();
     const groundRef = persistence.getGroundPlaneReference();
-    
+
     if (!groundRef) {
       debugLog.warn('financials', 'No ground plane reference available for test cube');
       return;
     }
-    
+
     // Get master transform to parent the cube correctly
     const masterTransform = persistence.getMasterTransform();
     if (!masterTransform) {
       debugLog.warn('financials', 'No master transform available for test cube');
       return;
     }
-    
+
     // Create small cube
     this.testCube = MeshBuilder.CreateBox("GroundPlaneTestCube", {
       width: 1,
       height: 0.5,
       depth: 1
     }, this.scene);
-    
+
     // CRITICAL: Parent to master transform like financial objects
     this.testCube.parent = masterTransform;
-    
+
     // Position relative to master transform coordinate system
     // Since master transform is at Y=2, and ground plane is at Y=0 relative to master transform
     // Financial objects sit at Y=0.1 relative to master transform
     this.testCube.position.x = 2; // Offset from center
     this.testCube.position.y = 0.35; // Above ground plane (0.1 base + 0.25 cube height)
     this.testCube.position.z = -6; // Move back 2 units from -8 to -6
-    
+
     // Make it bright green so it's clearly visible
     const material = new StandardMaterial("GroundPlaneTestCubeMaterial", this.scene);
     material.diffuseColor = new Color3(0, 1, 0); // Bright green
     material.emissiveColor = new Color3(0, 0.3, 0); // Slight green glow
     this.testCube.material = material;
-    
+
     this.testCube.isPickable = false; // Don't interfere with interactions
-    
+
     debugLog.info('financials', `Test cube created parented to master transform at relative position (${this.testCube.position.x.toFixed(2)}, ${this.testCube.position.y.toFixed(2)}, ${this.testCube.position.z.toFixed(2)})`);
   }
 
@@ -642,32 +642,32 @@ export class FinancialsHeightManager {
   private createTestLabelPlane(): void {
     const persistence = EnvisionerPersistence.getInstance();
     const masterTransform = persistence.getMasterTransform();
-    
+
     if (!masterTransform) {
       debugLog.warn('financials', 'No master transform available for test label');
       return;
     }
-    
+
     // Create plane using exact BMC method but positioned like the successful green cube
     this.testLabelPlane = MeshBuilder.CreatePlane("TestLabelPlane", {
       width: 1.0,
       height: 0.5
     }, this.scene);
-    
+
     // CRITICAL: Parent to master transform exactly like green cube
     this.testLabelPlane.parent = masterTransform;
-    
+
     // Position on the front face of the green cube
     this.testLabelPlane.position.x = 2; // Same X as green cube center
     this.testLabelPlane.position.y = 0.35; // Same height as green cube center
     this.testLabelPlane.position.z = -6.5; // Slightly in front of green cube front face
-    
+
     // Create material using exact BMC method with PNG texture
     const material = new StandardMaterial("TestLabelMaterial", this.scene);
     const texture = new Texture("/textures/Label_Revenue.png", this.scene);
     texture.hasAlpha = true;
     enhanceLabelTexture(texture); // Use BMC enhancement
-    
+
     // Apply BMC material settings exactly
     material.diffuseTexture = texture;
     material.emissiveTexture = texture;
@@ -676,18 +676,18 @@ export class FinancialsHeightManager {
     material.useAlphaFromDiffuseTexture = true;
     material.disableLighting = true;
     material.backFaceCulling = false;
-    
+
     this.testLabelPlane.material = material;
     this.testLabelPlane.isPickable = false;
-    
+
     debugLog.info('financials', `Test label plane created at same position as successful green cube: (${this.testLabelPlane.position.x}, ${this.testLabelPlane.position.y}, ${this.testLabelPlane.position.z})`);
   }
 
 
 
 
-  
-  
+
+
 
   /**
    * Get PNG texture path for financial mesh labels
@@ -702,13 +702,13 @@ export class FinancialsHeightManager {
     return labelMap[meshName] || null;
   }
 
-  
+
   /**
    * Enable or disable labels by restoring/applying overlays
    */
   public setLabelsEnabled(enabled: boolean): void {
     this.labelsEnabled = enabled;
-    
+
     if (enabled) {
       // Reapply all label overlays
       this.refreshAllLabels();
@@ -729,7 +729,7 @@ export class FinancialsHeightManager {
   public dispose(): void {
     // Stop any ongoing animations
     this.scene.stopAllAnimations();
-    
+
     // Dispose test cube
     if (this.testCube) {
       if (this.testCube.material) {
@@ -738,7 +738,7 @@ export class FinancialsHeightManager {
       this.testCube.dispose();
       this.testCube = null;
     }
-    
+
     // Dispose test label plane
     if (this.testLabelPlane) {
       if (this.testLabelPlane.material) {
@@ -747,9 +747,9 @@ export class FinancialsHeightManager {
       this.testLabelPlane.dispose();
       this.testLabelPlane = null;
     }
-    
+
     // Label planes disposed in separate method - they're not needed for direct geometry application
-    
+
     // Restore original materials
     this.originalMaterials.forEach((originalMaterial, meshName) => {
       const mesh = this.financialMeshes.get(meshName);
@@ -759,15 +759,15 @@ export class FinancialsHeightManager {
       originalMaterial.dispose();
     });
     this.originalMaterials.clear();
-    
+
     // Clear maps but keep references intact for safety
     this.financialMeshes.clear();
     this.originalPositions.clear();
     this.originalVertices.clear();
     this.currentHeightFactors.clear();
-    
+
     this.previousData = null;
-    
+
     debugLog.info('financials', 'FinancialsHeightManager disposed');
   }
 }
