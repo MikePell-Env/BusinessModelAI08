@@ -73,14 +73,18 @@ export class FinancialsDataAdapter {
    */
   public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
     this.incomeStatementData = incomeStatement;
-    console.log(`📊 Income Statement data loaded: ${incomeStatement.years.length} years`);
-    console.log(`📊 DEBUG: currentYearIndex = ${incomeStatement.currentYearIndex}`);
-    console.log(`📊 DEBUG: Available years:`, incomeStatement.years.map(y => `${y.year}: $${y.revenue}M revenue`));
+    console.log(`📊 ADAPTER: Loading ${incomeStatement.years.length} years of financial data`);
+    console.log(`📊 ADAPTER: Using currentYearIndex = ${incomeStatement.currentYearIndex}`);
+    console.log(`📊 ADAPTER: Years:`, incomeStatement.years.map(y => `${y.year}: $${y.revenue}M revenue`));
     
-    // Set visualization to current year data
+    // REFACTORED: Trust the incoming currentYearIndex - no overrides
+    // Server is authoritative for year selection
     if (incomeStatement.years.length > 0) {
-      const currentYear = incomeStatement.years[incomeStatement.currentYearIndex] || incomeStatement.years[0];
-      console.log(`📊 DEBUG: Selected year ${currentYear.year} with revenue $${currentYear.revenue}M, expenses $${currentYear.expenses}M`);
+      const selectedIndex = incomeStatement.currentYearIndex;
+      const currentYear = incomeStatement.years[selectedIndex];
+      
+      console.log(`📊 ADAPTER: Displaying year ${currentYear.year} (index ${selectedIndex})`);
+      console.log(`📊 ADAPTER: Revenue=${currentYear.revenue}, Expenses=${currentYear.expenses}`);
       
       const businessData: FinancialBusinessData = {
         totalRevenue: currentYear.revenue,
@@ -90,7 +94,6 @@ export class FinancialsDataAdapter {
         incomeStatement: incomeStatement
       };
       
-      console.log(`📊 DEBUG: Calling updateFromBusinessData with totalRevenue=${businessData.totalRevenue}, totalExpenses=${businessData.totalExpenses}`);
       this.updateFromBusinessData(businessData, false);
     }
   }
