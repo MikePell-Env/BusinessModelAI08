@@ -40,7 +40,7 @@ export class FinancialsHeightManager {
   private originalPositions: Map<string, Vector3> = new Map();
   private originalVertices: Map<string, Float32Array> = new Map();
   private currentHeightFactors: Map<string, number> = new Map();
-  private baseHeight: number = 1.0;
+  private baseHeight: number = 2.0;
   private maxVisualizationHeight: number = 5.0;
   private previousData: FinancialData | null = null;
   
@@ -119,7 +119,7 @@ export class FinancialsHeightManager {
    * Maintains visual balance: both sides always have equal total height
    */
   private calculateProportionalHeights(data: FinancialData): GroupHeights {
-    const baseHeight = 2.0; // Base visualization height
+    const baseHeight = 2.0; // Base visualization height (matches this.baseHeight)
     
     // Ensure minimum values for visualization
     const revenue = Math.max(data.revenue, 0.1);
