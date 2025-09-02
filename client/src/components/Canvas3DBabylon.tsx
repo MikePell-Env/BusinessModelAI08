@@ -823,12 +823,37 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             (window as any).financialsHeightManager = financialsHeightManager;
             (window as any).financialsDataAdapter = financialsDataAdapter;
             
-            const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
-            setTimeout(async () => {
-              if (financialsDataAdapter) {
-                await financialsDataAdapter.updateFromBusinessData(initialData);
-              }
-            }, 100);
+            // Make Income Statement methods globally accessible for time slider UI
+            (window as any).switchToYear = (yearIndex: number, animated = true) => {
+              return financialsDataAdapter.switchToYear(yearIndex, animated);
+            };
+            (window as any).getAvailableYears = () => {
+              return financialsDataAdapter.getAvailableYears();
+            };
+            (window as any).getCurrentYearIndex = () => {
+              return financialsDataAdapter.getCurrentYearIndex();
+            };
+            (window as any).hasIncomeStatementData = () => {
+              return financialsDataAdapter.hasIncomeStatementData();
+            };
+            
+            // Check if canvas has Income Statement data from PowerPoint import
+            const canvasIncomeData = (canvas as any)?.incomeStatementData;
+            if (canvasIncomeData) {
+              console.log('📊 Found Income Statement data from PowerPoint import!');
+              setTimeout(() => {
+                if (financialsDataAdapter) {
+                  financialsDataAdapter.loadIncomeStatementData(canvasIncomeData);
+                }
+              }, 100);
+            } else {
+              const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
+              setTimeout(async () => {
+                if (financialsDataAdapter) {
+                  await financialsDataAdapter.updateFromBusinessData(initialData);
+                }
+              }, 100);
+            }
           }
           
           console.log(`✅ Template ${template.name} content reloaded (scene preserved)`);
@@ -1813,11 +1838,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             netLoss: 0           // Loss → RevenuePL height
           };
 
-          // Apply initial data immediately to prevent 50/50 flash
+          // Check for Income Statement data and apply initial data
           setTimeout(async () => {
             try {
               if (financialsDataAdapter && financialsHeightManager) {
-                await financialsDataAdapter.updateFromBusinessData(initialData, false);
+                const canvasIncomeData = (canvas as any)?.incomeStatementData;
+                if (canvasIncomeData) {
+                  console.log('📊 Loading Income Statement data from PowerPoint in secondary initialization');
+                  financialsDataAdapter.loadIncomeStatementData(canvasIncomeData);
+                } else {
+                  await financialsDataAdapter.updateFromBusinessData(initialData, false);
+                }
               }
             } catch (error) {
               // Silent error handling for initialization
@@ -3798,15 +3829,23 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               };
             }
             
-            // Initialize default values when component mounts for Financials template
+            // Initialize Financials template data
             if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
               setTimeout(() => {
-                (window as any).financialsDataAdapter.updateFromBusinessData({
-                  totalRevenue: 1000,  // $10M default (99% Revenue, 1% RevenuePL)
-                  totalExpenses: 800,  // $8M default  
-                  netProfit: 200,      // $2M profit (20% ExpensesPL)
-                  netLoss: 0           // No loss (0% RevenuePL)
-                });
+                const dataAdapter = (window as any).financialsDataAdapter;
+                const canvasIncomeData = (canvas as any)?.incomeStatementData;
+                
+                if (canvasIncomeData) {
+                  console.log('📊 Loading Income Statement data from PowerPoint in UI initialization');
+                  dataAdapter.loadIncomeStatementData(canvasIncomeData);
+                } else {
+                  dataAdapter.updateFromBusinessData({
+                    totalRevenue: 1000,  // $10M default (99% Revenue, 1% RevenuePL)
+                    totalExpenses: 800,  // $8M default  
+                    netProfit: 200,      // $2M profit (20% ExpensesPL)
+                    netLoss: 0           // No loss (0% RevenuePL)
+                  });
+                }
                 
                 // Initialize ground labels for Financials template with longer delay
                 setTimeout(() => {

@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
+import { IncomeStatementData, YearlyFinancialData } from '@/components/Canvas3DBabylon/animations/FinancialsDataAdapter';
 // Removed overviewAnalyzer import for immediate extraction
 
 interface PowerPointCanvasMapping {
@@ -12,6 +13,12 @@ interface PowerPointCanvasMapping {
   customerSegments: string[];
   costStructure: string[];
   revenueStreams: string[];
+}
+
+interface SlideContent {
+  index: number;
+  title: string;
+  content: string;
 }
 
 export class PowerPointParser {
@@ -34,11 +41,25 @@ export class PowerPointParser {
       const arrayBuffer = await file.arrayBuffer();
       const zip = await JSZip.loadAsync(arrayBuffer);
       
-      // Extract text content from PowerPoint slides
-      const slideTexts = await this.extractSlideTexts(zip);
+      // Extract slide content with titles and text
+      const slides = await this.extractSlideContents(zip);
+      
+      // Look for Financials slide and extract Income Statement data
+      const incomeStatementData = this.extractFinancialsData(slides);
+      
+      // Extract text content for BMC parsing (maintain compatibility)
+      const slideTexts = slides.map(slide => slide.content);
       
       // Parse the extracted text into canvas format
-      return await this.parseTextToCanvas(slideTexts, file.name);
+      const canvas = await this.parseTextToCanvas(slideTexts, file.name);
+      
+      // Attach Income Statement data to canvas if found
+      if (incomeStatementData) {
+        (canvas as any).incomeStatementData = incomeStatementData;
+        console.log(`📊 Found Financials slide with ${incomeStatementData.years.length} years of data`);
+      }
+      
+      return canvas;
       
     } catch (error) {
       console.error('PowerPoint parsing failed:', error);
@@ -70,6 +91,38 @@ export class PowerPointParser {
     }
 
     return slideTexts;
+  }
+
+  private async extractSlideContents(zip: JSZip): Promise<SlideContent[]> {
+    const slides: SlideContent[] = [];
+    
+    try {
+      // Get all slide files (slide1.xml, slide2.xml, etc.)
+      const slideFiles = Object.keys(zip.files)
+        .filter(filename => filename.match(/ppt\/slides\/slide\d+\.xml$/))
+        .sort();
+
+      for (let i = 0; i < slideFiles.length; i++) {
+        const filename = slideFiles[i];
+        const slideFile = zip.files[filename];
+        if (slideFile) {
+          const xmlContent = await slideFile.async('text');
+          const slideText = this.extractTextFromSlideXML(xmlContent);
+          if (slideText.trim()) {
+            const title = this.extractSlideTitle(slideText);
+            slides.push({
+              index: i + 1,
+              title: title,
+              content: slideText
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error extracting slide contents:', error);
+    }
+
+    return slides;
   }
 
   private extractTextFromSlideXML(xmlContent: string): string {
@@ -171,6 +224,143 @@ export class PowerPointParser {
     console.log('✅ Instant overview extraction complete:', canvas.overviewData);
     
     return canvas;
+  }
+
+  /**
+   * Extract slide title from slide content
+   */
+  private extractSlideTitle(slideContent: string): string {
+    // Look for the first line as title, or first significant text
+    const lines = slideContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    if (lines.length > 0) {
+      return lines[0];
+    }
+    return '';
+  }
+
+  /**
+   * Extract Income Statement data from Financials slide
+   */
+  private extractFinancialsData(slides: SlideContent[]): IncomeStatementData | null {
+    // Look for slide with "Financials" in title
+    const financialsSlide = slides.find(slide => 
+      slide.title.toLowerCase().includes('financial') || 
+      slide.title.toLowerCase().includes('income') ||
+      slide.title.toLowerCase().includes('statement')
+    );
+
+    if (!financialsSlide) {
+      console.log('📊 No Financials slide found');
+      return null;
+    }
+
+    console.log(`📊 Found Financials slide: "${financialsSlide.title}"`);
+    
+    try {
+      const years = this.parseIncomeStatementFromText(financialsSlide.content);
+      if (years.length === 0) {
+        console.warn('📊 No financial data found in Financials slide');
+        return null;
+      }
+
+      return {
+        years: years,
+        currentYearIndex: years.length - 1 // Default to most recent year
+      };
+    } catch (error) {
+      console.error('📊 Error parsing financial data:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Parse Income Statement data from slide text
+   */
+  private parseIncomeStatementFromText(text: string): YearlyFinancialData[] {
+    const years: YearlyFinancialData[] = [];
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    // Look for year patterns (2020, 2021, 2022, etc.)
+    const yearPattern = /\b(20\d{2})\b/g;
+    const dollarPattern = /\$(\d+(?:\.\d+)?)\s*([MmBbKk]?)/g;
+    
+    let currentYear: number | null = null;
+    let revenue: number | null = null;
+    let expenses: number | null = null;
+    let profit: number | null = null;
+    let loss: number | null = null;
+
+    for (const line of lines) {
+      // Check for year
+      const yearMatch = line.match(/\b(20\d{2})\b/);
+      if (yearMatch) {
+        // If we have a complete previous year, save it
+        if (currentYear !== null && revenue !== null) {
+          years.push({
+            year: currentYear,
+            revenue: revenue,
+            expenses: expenses || 0,
+            profit: profit || Math.max(0, revenue - (expenses || 0)),
+            loss: loss || Math.max(0, (expenses || 0) - revenue)
+          });
+        }
+        
+        // Start new year
+        currentYear = parseInt(yearMatch[1]);
+        revenue = null;
+        expenses = null;
+        profit = null;
+        loss = null;
+        continue;
+      }
+
+      // Parse financial values
+      const lowerLine = line.toLowerCase();
+      const dollarMatches = Array.from(line.matchAll(dollarPattern));
+      
+      for (const match of dollarMatches) {
+        const value = this.parseFinancialValue(match[1], match[2]);
+        
+        if (lowerLine.includes('revenue') || lowerLine.includes('sales') || lowerLine.includes('income')) {
+          revenue = value;
+        } else if (lowerLine.includes('expense') || lowerLine.includes('cost') || lowerLine.includes('operating')) {
+          expenses = value;
+        } else if (lowerLine.includes('profit') && !lowerLine.includes('loss')) {
+          profit = value;
+        } else if (lowerLine.includes('loss') && !lowerLine.includes('profit')) {
+          loss = value;
+        }
+      }
+    }
+
+    // Add final year if complete
+    if (currentYear !== null && revenue !== null) {
+      years.push({
+        year: currentYear,
+        revenue: revenue,
+        expenses: expenses || 0,
+        profit: profit || Math.max(0, revenue - (expenses || 0)),
+        loss: loss || Math.max(0, (expenses || 0) - revenue)
+      });
+    }
+
+    console.log(`📊 Parsed ${years.length} years of financial data:`, years);
+    return years;
+  }
+
+  /**
+   * Parse financial value with suffix (M, B, K)
+   */
+  private parseFinancialValue(valueStr: string, suffix: string): number {
+    const value = parseFloat(valueStr);
+    const upperSuffix = suffix.toUpperCase();
+    
+    switch (upperSuffix) {
+      case 'B': return value * 1000; // Billions to millions
+      case 'M': return value;        // Already in millions
+      case 'K': return value / 1000; // Thousands to millions
+      default: return value / 1000000; // Assume dollars, convert to millions
+    }
   }
 
   private parseSingleSlideContent(content: string, canvasData: PowerPointCanvasMapping): void {

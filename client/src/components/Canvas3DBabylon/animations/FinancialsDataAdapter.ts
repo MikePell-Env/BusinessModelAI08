@@ -12,6 +12,7 @@ export interface FinancialBusinessData {
   netProfit: number;
   netLoss: number;
   quarters?: QuarterlyData[];
+  incomeStatement?: IncomeStatementData;
 }
 
 export interface QuarterlyData {
@@ -22,8 +23,22 @@ export interface QuarterlyData {
   loss: number;
 }
 
+export interface IncomeStatementData {
+  years: YearlyFinancialData[];
+  currentYearIndex: number;
+}
+
+export interface YearlyFinancialData {
+  year: number;
+  revenue: number;
+  expenses: number;
+  profit: number;
+  loss: number;
+}
+
 export class FinancialsDataAdapter {
   private heightManager: FinancialsHeightManager;
+  private incomeStatementData: IncomeStatementData | null = null;
 
   constructor(heightManager: FinancialsHeightManager) {
     this.heightManager = heightManager;
@@ -38,6 +53,12 @@ export class FinancialsDataAdapter {
     businessData: FinancialBusinessData,
     animated: boolean = true
   ): Promise<void> {
+    // Store Income Statement data if provided
+    if (businessData.incomeStatement) {
+      this.incomeStatementData = businessData.incomeStatement;
+      console.log(`📊 Income Statement loaded: ${businessData.incomeStatement.years.length} years of data`);
+    }
+
     const financialData = this.transformBusinessData(businessData);
     
     if (animated) {
@@ -45,6 +66,74 @@ export class FinancialsDataAdapter {
     } else {
       this.heightManager.setImmediateHeights(financialData);
     }
+  }
+
+  /**
+   * Load Income Statement data from PowerPoint parsing
+   */
+  public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
+    this.incomeStatementData = incomeStatement;
+    console.log(`📊 Income Statement data loaded: ${incomeStatement.years.length} years`);
+    
+    // Set visualization to current year data
+    if (incomeStatement.years.length > 0) {
+      const currentYear = incomeStatement.years[incomeStatement.currentYearIndex] || incomeStatement.years[0];
+      const businessData: FinancialBusinessData = {
+        totalRevenue: currentYear.revenue,
+        totalExpenses: currentYear.expenses,
+        netProfit: currentYear.profit,
+        netLoss: currentYear.loss,
+        incomeStatement: incomeStatement
+      };
+      
+      this.updateFromBusinessData(businessData, false);
+    }
+  }
+
+  /**
+   * Switch to a specific year in the Income Statement
+   */
+  public async switchToYear(yearIndex: number, animated: boolean = true): Promise<void> {
+    if (!this.incomeStatementData || yearIndex < 0 || yearIndex >= this.incomeStatementData.years.length) {
+      console.warn(`Invalid year index: ${yearIndex}`);
+      return;
+    }
+
+    this.incomeStatementData.currentYearIndex = yearIndex;
+    const yearData = this.incomeStatementData.years[yearIndex];
+    
+    const businessData: FinancialBusinessData = {
+      totalRevenue: yearData.revenue,
+      totalExpenses: yearData.expenses,
+      netProfit: yearData.profit,
+      netLoss: yearData.loss,
+      incomeStatement: this.incomeStatementData
+    };
+
+    console.log(`📊 Switching to year ${yearData.year}: Revenue $${yearData.revenue}M, Expenses $${yearData.expenses}M`);
+    await this.updateFromBusinessData(businessData, animated);
+  }
+
+  /**
+   * Get available years for time slider
+   */
+  public getAvailableYears(): number[] {
+    if (!this.incomeStatementData) return [];
+    return this.incomeStatementData.years.map(year => year.year);
+  }
+
+  /**
+   * Get current year index
+   */
+  public getCurrentYearIndex(): number {
+    return this.incomeStatementData?.currentYearIndex || 0;
+  }
+
+  /**
+   * Check if Income Statement data is available
+   */
+  public hasIncomeStatementData(): boolean {
+    return this.incomeStatementData !== null && this.incomeStatementData.years.length > 0;
   }
 
   /**
