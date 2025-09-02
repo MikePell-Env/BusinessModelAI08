@@ -492,9 +492,22 @@ export class PowerPointParser {
         return null;
       }
 
+      // CRITICAL DEBUG: Examine year selection before returning
+      console.log(`🚨 EXAMINING YEAR SELECTION:`);
+      console.log(`🚨 All parsed years:`, years.map(y => `${y.year}: Revenue=$${y.revenue}M, Expenses=$${y.expenses}M`));
+      
       // Default to 2026 as "Current" year (Past=2025, Current=2026, Future=2027)
       const currentYearIndex = years.findIndex(year => year.year === 2026);
       const defaultIndex = currentYearIndex >= 0 ? currentYearIndex : Math.floor(years.length / 2);
+      
+      const selectedYear = years[defaultIndex];
+      console.log(`🚨 currentYearIndex for 2026: ${currentYearIndex}`);
+      console.log(`🚨 defaultIndex chosen: ${defaultIndex}`);
+      console.log(`🚨 Selected year: ${selectedYear?.year} with Revenue=$${selectedYear?.revenue}M, Expenses=$${selectedYear?.expenses}M`);
+      
+      if (selectedYear?.revenue !== 10 || selectedYear?.expenses !== 8) {
+        console.log(`🚨 ERROR: Selected year has wrong values! Expected Revenue=10, Expenses=8 for 2026 Current`);
+      }
       
       return {
         years: years,
