@@ -492,9 +492,13 @@ export class PowerPointParser {
         return null;
       }
 
+      // Default to 2026 as "Current" year (Past=2025, Current=2026, Future=2027)
+      const currentYearIndex = years.findIndex(year => year.year === 2026);
+      const defaultIndex = currentYearIndex >= 0 ? currentYearIndex : Math.floor(years.length / 2);
+      
       return {
         years: years,
-        currentYearIndex: years.length - 1 // Default to most recent year
+        currentYearIndex: defaultIndex // Default to 2026 (Current year)
       };
     } catch (error) {
       console.error('📊 Error parsing financial data:', error);

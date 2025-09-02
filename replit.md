@@ -4,6 +4,12 @@
 The 4D Time Machine is a comprehensive platform for business visualization and analysis. It integrates the **Envisioner** foundational platform with the **4D Visual Language (4DVL)** dynamic visualization system. The application showcases various business use cases through self-contained, connected templates that process Microsoft Office document data and display it in specialized 3D visualizations. Its purpose is to provide a powerful tool for strategic analysis, financial forecasting, and "what-if" scenario planning, aiming to transform how businesses interact with their data.
 
 ## Recent Changes
+**September 2, 2025 - PowerPoint Time Navigation Fixed**
+- **CRITICAL FIX**: Initial height calculation was allowing PowerPoint revenue values > 2.0 units
+- **HEIGHT ENFORCEMENT**: Added caps at 1000 ($10M max) in FinancialsDataAdapter to enforce 2.0 unit limit
+- **TIME NAVIGATION**: Fixed default year selection to show 2026 (Current) instead of 2027 (Future)
+- **YEAR MAPPING**: From PowerPoint Financials slide: 2025=Past, 2026=Current ($10M/$8M/$2M), 2027=Future ($26.6M)
+
 **August 30, 2025 - Financial Visualization System Completed**
 - **PERFECTED**: Complete financial visualization system with vertex manipulation
 - **Revenue Group**: Fixed at $10M, completely locked (no animations, no vertex manipulation)
