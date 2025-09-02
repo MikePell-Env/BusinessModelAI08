@@ -86,9 +86,33 @@ export class PowerPointParser {
         console.log('🔍 Could not show UI notification:', e);
       }
       
-      // Look for Financials slide and extract Income Statement data
-      // First try to extract from embedded Excel files, then fall back to text parsing
-      const incomeStatementData = await this.extractFinancialsData(zip, slides);
+      // NEW: Try server-side API parsing first  
+      let incomeStatementData = null;
+      try {
+        console.log('📊 Attempting server-side PowerPoint parsing...');
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/api/powerpoint/parse-upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.incomeStatementData) {
+            console.log('✅ Server-side parsing successful!');
+            incomeStatementData = result.incomeStatementData;
+          }
+        }
+      } catch (serverError) {
+        console.log('⚠️ Server-side parsing failed, falling back to client-side');
+      }
+      
+      // Fallback to client-side parsing if server failed
+      if (!incomeStatementData) {
+        incomeStatementData = await this.extractFinancialsData(zip, slides);
+      }
       
       // Extract text content for BMC parsing (maintain compatibility)
       const slideTexts = slides.map(slide => slide.content);
