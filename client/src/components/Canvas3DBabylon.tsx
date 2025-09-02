@@ -1913,19 +1913,87 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           (window as any).financialsHeightManager = financialsHeightManager;
           (window as any).financialsDataAdapter = financialsDataAdapter;
 
-          // Initialize with corrected financial data
-          // Revenue slider default: 1000 → Revenue object height
-          // Expenses slider default: 800 → Expenses object height
-          // Profit: 200 → ExpensesPL object height
-          // Loss: 0 → RevenuePL object height
-          const initialData: FinancialBusinessData = {
-            totalRevenue: 1000,  // Revenue slider value → Revenue height
-            totalExpenses: 800,  // Expenses slider value → Expenses height
-            netProfit: 200,      // Profit → ExpensesPL height
-            netLoss: 0           // Loss → RevenuePL height
-          };
-
-          // REMOVED: Secondary initialization - prevents conflicts with primary path
+          // ADDED: Check for PowerPoint data first (same logic as template switching)
+          const canvasIncomeData = (canvas as any)?.incomeStatementData;
+          console.log('🚨 INITIAL LOAD CHECK: template.name =', template.name);
+          console.log('🚨 INITIAL LOAD CHECK: canvasIncomeData exists =', !!canvasIncomeData);
+          console.log('🚨 INITIAL LOAD CHECK: financialsDataAdapter exists =', !!financialsDataAdapter);
+          
+          // VERIFY DEFAULT YEAR DATA: Read and validate initial values
+          if (canvasIncomeData) {
+            console.log('📊 POWERPOINT DATA VERIFICATION (INITIAL LOAD):');
+            console.log('📊   Available years:', canvasIncomeData.years?.length || 0);
+            console.log('📊   Current year index:', canvasIncomeData.currentYearIndex);
+            console.log('📊   Years data:', canvasIncomeData.years?.map((y: any) => 
+              `${y.year}: Rev=$${y.revenue}M, Exp=$${y.expenses}M, Prof=$${y.profit}M, Loss=$${y.loss}M`
+            ));
+            
+            const defaultYear = canvasIncomeData.years?.[canvasIncomeData.currentYearIndex];
+            if (defaultYear) {
+              console.log('💰 DEFAULT YEAR SELECTED FOR INITIAL RENDER:');
+              console.log(`💰   Year: ${defaultYear.year}`);
+              console.log(`💰   Revenue: $${defaultYear.revenue}M (should be $10M for 2026)`);
+              console.log(`💰   Expenses: $${defaultYear.expenses}M (should be $8M for 2026)`);
+              console.log(`💰   Profit: $${defaultYear.profit}M (should be $2M for 2026)`);
+              console.log(`💰   Loss: $${defaultYear.loss}M (should be $0M for 2026)`);
+              
+              // VALIDATION: Check if values match expected 2026 data
+              const is2026Expected = defaultYear.year === 2026 && 
+                                   defaultYear.revenue === 10 && 
+                                   defaultYear.expenses === 8 && 
+                                   defaultYear.profit === 2 && 
+                                   defaultYear.loss === 0;
+                                   
+              if (is2026Expected) {
+                console.log('✅ VALIDATION PASSED: Default year data matches expected 2026 values');
+              } else {
+                console.log('❌ VALIDATION FAILED: Default year data does NOT match expected 2026 values');
+                console.log('❌   Expected: 2026, $10M Rev, $8M Exp, $2M Prof, $0M Loss');
+                console.log(`❌   Actual: ${defaultYear.year}, $${defaultYear.revenue}M Rev, $${defaultYear.expenses}M Exp, $${defaultYear.profit}M Prof, $${defaultYear.loss}M Loss`);
+              }
+            } else {
+              console.log('❌ ERROR: No default year found at currentYearIndex:', canvasIncomeData.currentYearIndex);
+            }
+          } else {
+            console.log('📊 NO POWERPOINT DATA: Will use fallback values');
+            console.log('💰 FALLBACK VALUES FOR INITIAL RENDER:');
+            console.log('💰   Revenue: $10M (1000 units)');
+            console.log('💰   Expenses: $8M (800 units)');  
+            console.log('💰   Profit: $2M (200 units)');
+            console.log('💰   Loss: $0M (0 units)');
+          }
+          
+          // PRIORITY: PowerPoint data > fallback data (same logic as template switching)
+          if (canvasIncomeData) {
+            console.log('🚨 FOUND POWERPOINT DATA (INITIAL LOAD): Income Statement data from PowerPoint import!');
+            console.log('🚨 FOUND POWERPOINT DATA: Available years:', canvasIncomeData.years?.map((y: any) => `${y.year}: $${y.revenue}M`));
+            console.log('🚨 FOUND POWERPOINT DATA: currentYearIndex =', canvasIncomeData.currentYearIndex);
+            console.log('🚨 FOUND POWERPOINT DATA: Selected year will be:', canvasIncomeData.years?.[canvasIncomeData.currentYearIndex]?.year);
+            
+            // IMMEDIATE: Load PowerPoint data with no delay to prevent race conditions
+            if (financialsDataAdapter) {
+              console.log('🚨 IMMEDIATE (INITIAL LOAD): Loading PowerPoint data with correct 2026 currentYearIndex');
+              financialsDataAdapter.loadIncomeStatementData(canvasIncomeData);
+            }
+          } else {
+            console.log('🚨 NO POWERPOINT DATA (INITIAL LOAD): Using fallback 2026 financial data');
+            // Initialize with corrected financial data as fallback
+            // Revenue slider default: 1000 → Revenue object height
+            // Expenses slider default: 800 → Expenses object height
+            // Profit: 200 → ExpensesPL object height
+            // Loss: 0 → RevenuePL object height
+            const fallback2026Data: FinancialBusinessData = {
+              totalRevenue: 1000,  // Revenue slider value → Revenue height
+              totalExpenses: 800,  // Expenses slider value → Expenses height
+              netProfit: 200,      // Profit → ExpensesPL height
+              netLoss: 0           // Loss → RevenuePL height
+            };
+            
+            if (financialsDataAdapter) {
+              console.log('🚨 IMMEDIATE (INITIAL LOAD): Loading fallback 2026 data with immediate heights');
+              financialsDataAdapter.updateFromBusinessData(fallback2026Data, false);
+            }
+          }
 
         }
 
