@@ -146,6 +146,30 @@ export const AIChat: React.FC = () => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
         setInterimTranscript('');
+        
+        // Provide user-friendly error messages
+        let errorMessage = 'Voice recognition error. ';
+        switch (event.error) {
+          case 'not-allowed':
+            errorMessage += 'Microphone access denied. Please allow microphone permissions and try again.';
+            break;
+          case 'no-speech':
+            errorMessage += 'No speech detected. Please try speaking again.';
+            break;
+          case 'network':
+            errorMessage += 'Network error. Please check your connection.';
+            break;
+          case 'aborted':
+            errorMessage += 'Speech recognition was stopped.';
+            break;
+          default:
+            errorMessage += `Error: ${event.error}. Please try again.`;
+        }
+        
+        // Show error to user
+        setTimeout(() => {
+          alert(errorMessage);
+        }, 100);
       };
       
       recognitionInstance.onend = () => {
@@ -175,7 +199,7 @@ export const AIChat: React.FC = () => {
     }
   }, [isProcessing]);
 
-  const handleVoiceInput = () => {
+  const handleVoiceInput = async () => {
     if (!recognition) {
       alert('Voice recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
       return;
@@ -183,8 +207,30 @@ export const AIChat: React.FC = () => {
     
     if (isListening) {
       recognition.stop();
-    } else {
-      recognition.start();
+      return;
+    }
+    
+    // Check for HTTPS requirement
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      alert('Voice recognition requires HTTPS. Please use a secure connection.');
+      return;
+    }
+    
+    // Request microphone permissions explicitly
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop()); // Stop the stream, we just needed permission
+      
+      // Start recognition after permission is granted
+      try {
+        recognition.start();
+      } catch (error) {
+        console.error('Failed to start recognition:', error);
+        alert('Failed to start voice recognition. Please try again.');
+      }
+    } catch (error) {
+      console.error('Microphone permission denied:', error);
+      alert('Microphone access is required for voice input. Please allow microphone permissions in your browser.');
     }
   };
 
