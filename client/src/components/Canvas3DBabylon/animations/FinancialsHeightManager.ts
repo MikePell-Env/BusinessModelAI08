@@ -82,6 +82,20 @@ export class FinancialsHeightManager {
     
     // Heights will be set when PowerPoint data loads or sliders are used
     // No early default initialization to prevent incorrect tall geometry
+    
+    // Apply correct PowerPoint-based defaults after short delay for mesh stability
+    if (this.financialMeshes.size === 4) {
+      setTimeout(() => {
+        // Use PowerPoint 2026 values: Revenue $10M, Expenses $8M 
+        this.setImmediateHeights({
+          revenue: 1000,  // $10M → 2.0 units height 
+          expenses: 800,  // $8M → 1.6 units height
+          profit: 200,    // $2M → 0.4 units height
+          loss: 0         // $0M → 0.0 units height
+        });
+        console.log(`🚀 INITIALIZED: Applied PowerPoint-based heights after mesh registration`);
+      }, 100);
+    }
   }
 
   /**
