@@ -73,33 +73,18 @@ export class FinancialsDataAdapter {
    */
   public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
     this.incomeStatementData = incomeStatement;
-    console.log(`📊 Income Statement data loaded: ${incomeStatement.years.length} years`);
-    console.log(`📊 DEBUG: currentYearIndex = ${incomeStatement.currentYearIndex}`);
-    console.log(`📊 DEBUG: Available years:`, incomeStatement.years.map(y => `${y.year}: $${y.revenue}M revenue`));
+    console.log(`📊 ADAPTER: Loading ${incomeStatement.years.length} years of financial data`);
+    console.log(`📊 ADAPTER: Using currentYearIndex = ${incomeStatement.currentYearIndex}`);
+    console.log(`📊 ADAPTER: Years:`, incomeStatement.years.map(y => `${y.year}: $${y.revenue}M revenue`));
     
-    // Set visualization to current year data
+    // REFACTORED: Trust the incoming currentYearIndex - no overrides
+    // Server is authoritative for year selection
     if (incomeStatement.years.length > 0) {
-      // Ensure we're using the correct index for 2026
-      let selectedIndex = incomeStatement.currentYearIndex;
-      if (selectedIndex < 0 || selectedIndex >= incomeStatement.years.length) {
-        console.log(`📊 WARNING: Invalid currentYearIndex ${selectedIndex}, searching for 2026...`);
-        selectedIndex = incomeStatement.years.findIndex(y => y.year === 2026);
-        if (selectedIndex === -1) {
-          console.log(`📊 WARNING: 2026 not found, using index 0`);
-          selectedIndex = 0;
-        }
-      }
-      
+      const selectedIndex = incomeStatement.currentYearIndex;
       const currentYear = incomeStatement.years[selectedIndex];
-      console.log(`📊 DEBUG: Selected year ${currentYear.year} with revenue $${currentYear.revenue}M, expenses $${currentYear.expenses}M`);
       
-      // Verify we're getting 2026 data (should be Revenue=10, Expenses=8)
-      if (currentYear.year !== 2026) {
-        console.log(`🚨 ERROR: Expected 2026 but got year ${currentYear.year}!`);
-      }
-      if (currentYear.revenue === 26) {
-        console.log(`🚨 ERROR: Getting 2027 data ($26M revenue) instead of 2026 data ($10M revenue)!`);
-      }
+      console.log(`📊 ADAPTER: Displaying year ${currentYear.year} (index ${selectedIndex})`);
+      console.log(`📊 ADAPTER: Revenue=${currentYear.revenue}, Expenses=${currentYear.expenses}`);
       
       const businessData: FinancialBusinessData = {
         totalRevenue: currentYear.revenue,
@@ -109,7 +94,6 @@ export class FinancialsDataAdapter {
         incomeStatement: incomeStatement
       };
       
-      console.log(`📊 DEBUG: Calling updateFromBusinessData with totalRevenue=${businessData.totalRevenue}, totalExpenses=${businessData.totalExpenses}`);
       this.updateFromBusinessData(businessData, false);
     }
   }
