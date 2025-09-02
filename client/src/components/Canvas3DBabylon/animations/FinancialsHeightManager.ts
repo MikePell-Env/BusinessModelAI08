@@ -86,31 +86,21 @@ export class FinancialsHeightManager {
     // Apply correct slider-logic defaults after short delay for mesh stability
     if (this.financialMeshes.size === 4) {
       setTimeout(() => {
-        // EXACT SLIDER REPLICATION: Match slider calculations exactly
-        const HEIGHT_SCALE = 500.0;
+        // RESTORE ORIGINAL PERFECT SYSTEM: Use calculateProportionalHeights
+        const perfectHeights = this.calculateProportionalHeights({
+          revenue: 1000, // $10M
+          expenses: 800, // $8M
+          profit: 200,   // $2M
+          loss: 0        // $0M
+        });
         
-        // Revenue Group: Use slider percentage system (100% revenue = 2.0 units total)
-        const FIXED_TOTAL_HEIGHT = 1000 / HEIGHT_SCALE; // 2.0 units total
-        const revenuePercentage = 100 / 100; // 100% = full revenue, 0% loss
-        const revenueHeight = FIXED_TOTAL_HEIGHT * revenuePercentage; // 2.0 * 1.0 = 2.0
-        const revenuePLHeight = FIXED_TOTAL_HEIGHT * (1.0 - revenuePercentage); // 2.0 * 0.0 = 0.0
+        // Apply the ORIGINAL proportional heights that maintained perfect balance
+        this.setObjectHeight('Revenue', perfectHeights.revenue, 'bottom');
+        this.setObjectHeight('RevenuePL', perfectHeights.revenuePL, 'top');  
+        this.setObjectHeight('Expenses', perfectHeights.expenses, 'bottom');
+        this.setObjectHeight('ExpensesPL', perfectHeights.expensesPL, 'top');
         
-        // Expenses Group: Use direct slider calculation (80% = $8M expenses)
-        const expensesPercent = 80; // Default 80% = $8M 
-        const expensesValue = expensesPercent * 10; // 80 * 10 = 800 = $8M
-        const totalRevenue = 1000; // Always $10M
-        const profit = Math.max(0, totalRevenue - expensesValue); // 1000 - 800 = 200 = $2M
-        
-        const expensesHeight = expensesValue / HEIGHT_SCALE; // 800 / 500 = 1.6
-        const expensesPLHeight = profit / HEIGHT_SCALE; // 200 / 500 = 0.4
-        
-        // Apply exact slider heights
-        this.setObjectHeight('Revenue', revenueHeight, 'bottom'); // 2.0 units
-        this.setObjectHeight('RevenuePL', revenuePLHeight, 'top'); // 0.0 units  
-        this.setObjectHeight('Expenses', expensesHeight, 'bottom'); // 1.6 units
-        this.setObjectHeight('ExpensesPL', expensesPLHeight, 'top'); // 0.4 units
-        
-        console.log(`🚀 SLIDER-EXACT INIT: Revenue=${revenueHeight}, Expenses=${expensesHeight}, Profit=${expensesPLHeight}, Loss=${revenuePLHeight}`);
+        console.log(`🚀 PERFECT SYSTEM RESTORED: Revenue=${perfectHeights.revenue.toFixed(3)}, Expenses=${perfectHeights.expenses.toFixed(3)}, Profit=${perfectHeights.expensesPL.toFixed(3)}, Loss=${perfectHeights.revenuePL.toFixed(3)}`);
       }, 100);
     }
   }
@@ -150,35 +140,52 @@ export class FinancialsHeightManager {
   /**
    * Calculate balanced heights based on income statement logic
    * Maintains visual balance: both sides always have equal total height
+   * Returns individual object heights that maintain the 2.0 unit equal total height rule
    */
-  private calculateProportionalHeights(data: FinancialData): GroupHeights {
-    const baseHeight = 2.0; // Base visualization height (matches this.baseHeight)
+  private calculateProportionalHeights(data: FinancialData) {
+    const baseHeight = 2.0; // Base visualization height - both sides must total this
     
     // Ensure minimum values for visualization
     const revenue = Math.max(data.revenue, 0.1);
     const expenses = Math.max(data.expenses, 0.1);
     
     // Calculate profit/loss
-    const profit = revenue - expenses;
-    const loss = expenses - revenue;
+    const profit = Math.max(0, revenue - expenses);
+    const loss = Math.max(0, expenses - revenue);
     
-    let revenueTotal: number, expensesTotal: number;
+    // CORE PRINCIPLE: Both sides always total exactly 2.0 units
+    // Left side = Revenue + RevenuePL = 2.0 units
+    // Right side = Expenses + ExpensesPL = 2.0 units
     
     if (profit >= 0) {
-      // PROFIT SCENARIO: Revenue side is 100%, Expenses side scales to match
-      revenueTotal = baseHeight;
-      expensesTotal = baseHeight; // Both sides equal height for balance
+      // PROFIT SCENARIO: Revenue >= Expenses
+      // Left side: Revenue takes full height (2.0), no loss
+      // Right side: Expenses + Profit stacked to total 2.0
+      const expensesRatio = expenses / revenue; // How much of revenue is expenses
+      const expensesHeight = baseHeight * expensesRatio; // Expenses proportional height
+      const profitHeight = baseHeight - expensesHeight; // Profit fills remaining space
+      
+      return {
+        revenue: baseHeight,     // 2.0 units (full left side)
+        revenuePL: 0.0,         // 0.0 units (no loss)
+        expenses: expensesHeight, // Proportional to revenue
+        expensesPL: profitHeight  // Fills remaining to make right side = 2.0
+      };
     } else {
-      // LOSS SCENARIO: Expenses side is 100%, Revenue side scales to match  
-      expensesTotal = baseHeight;
-      revenueTotal = baseHeight; // Both sides equal height for balance
+      // LOSS SCENARIO: Expenses > Revenue  
+      // Right side: Expenses takes full height (2.0), no profit
+      // Left side: Revenue + Loss stacked to total 2.0
+      const revenueRatio = revenue / expenses; // How much of expenses is revenue
+      const revenueHeight = baseHeight * revenueRatio; // Revenue proportional height
+      const lossHeight = baseHeight - revenueHeight; // Loss fills remaining space
+      
+      return {
+        revenue: revenueHeight,  // Proportional to expenses
+        revenuePL: lossHeight,   // Fills remaining to make left side = 2.0
+        expenses: baseHeight,    // 2.0 units (full right side)
+        expensesPL: 0.0         // 0.0 units (no profit)
+      };
     }
-    
-    return {
-      revenueTotal,
-      expensesTotal,
-      maxHeight: baseHeight
-    };
   }
 
   /**
