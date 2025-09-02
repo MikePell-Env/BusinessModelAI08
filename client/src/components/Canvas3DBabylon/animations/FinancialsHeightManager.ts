@@ -469,7 +469,9 @@ export class FinancialsHeightManager {
     if (!originalPos) return;
 
     // Use vertex manipulation but keep mesh position FIXED at original position
-    this.setMeshHeightByVertices(mesh, height, anchorType);
+    // Convert height to height factor (relative to base height)
+    const heightFactor = height / this.baseHeight;
+    this.setMeshHeightByVertices(mesh, heightFactor, anchorType);
 
     // CRITICAL: Keep mesh position at original loaded position - no movement
     mesh.position.x = originalPos.x;
