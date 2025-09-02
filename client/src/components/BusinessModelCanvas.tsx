@@ -64,10 +64,24 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           // This is exactly what PowerPointImporter does when clicked
           const canvas = await powerpointParser.parseFile(pendingPowerPointFile);
           loadCanvas(canvas, true); // Same as PowerPointImporter
+          
+          // Check if Income Statement data was loaded successfully
+          const incomeStatementData = (canvas as any).incomeStatementData;
+          const fileName = pendingPowerPointFile.name;
+          
+          if (incomeStatementData && incomeStatementData.years && incomeStatementData.years.length > 0) {
+            // Success: Income Statement data loaded
+            const yearsList = incomeStatementData.years.map((y: any) => y.year).join(', ');
+            alert(`✅ INCOME STATEMENT DATA LOADED SUCCESSFULLY!\n\nFile: ${fileName}\nYears detected: ${yearsList}\nTotal years: ${incomeStatementData.years.length}\n\nYou can now switch to the Financials template to view and interact with this data.`);
+          } else {
+            // No Income Statement data found
+            alert(`❌ NO INCOME STATEMENT DATA FOUND\n\nFile: ${fileName}\n\nThe PowerPoint was imported successfully, but no Income Statement data was detected. Make sure you have a slide titled "Financials", "Income Statement", or "Financial Statement" with yearly revenue and expense data.`);
+          }
+          
           setPendingPowerPointFile(null); // Clear the pending file
         } catch (error) {
           console.error('PowerPoint processing error:', error);
-          alert('Failed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');
+          alert('❌ POWERPOINT IMPORT FAILED\n\nFailed to process PowerPoint file. Please ensure it follows the Business Model Canvas format.');
           setPendingPowerPointFile(null); // Clear the pending file even on error
           
           // Load sample canvas as fallback
