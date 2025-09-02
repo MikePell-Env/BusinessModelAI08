@@ -75,7 +75,12 @@ export class FinancialsDataAdapter {
     this.incomeStatementData = incomeStatement;
     console.log(`🚨 LOAD POWERPOINT DATA: ${incomeStatement.years.length} years available`);
     console.log(`🚨 LOAD POWERPOINT DATA: Server currentYearIndex = ${incomeStatement.currentYearIndex}`);
-    console.log(`🚨 LOAD POWERPOINT DATA: All years:`, incomeStatement.years.map(y => `${y.year}: Rev=$${y.revenue}M, Exp=$${y.expenses}M`));
+    console.log(`🚨 LOAD POWERPOINT DATA: All years:`, incomeStatement.years.map(y => `${y.year}: Rev=${y.revenue}, Exp=${y.expenses}`));
+    
+    // DEBUG: Check exact current year data
+    const currentYear = incomeStatement.years[incomeStatement.currentYearIndex];
+    console.log(`🚨 CURRENT YEAR DATA: ${currentYear.year} - Revenue=${currentYear.revenue}, Expenses=${currentYear.expenses}, Profit=${currentYear.profit}`);
+    console.log(`🚨 EXPECTED FOR 2026: Revenue=1000 ($10M), Expenses=800 ($8M), Heights should be 2.0 vs 1.6`);
     
     // FORCE 2026 CURRENT YEAR: Override any incorrect index to ensure 2026 initial state
     if (incomeStatement.years.length > 0) {
