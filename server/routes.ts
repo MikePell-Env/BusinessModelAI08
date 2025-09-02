@@ -277,13 +277,14 @@ Revenue Streams
       const upload = multer({ storage: multer.memoryStorage() });
       
       // Handle the upload first
-      upload.single('file')(req, res, async (err) => {
+      upload.single('file')(req as any, res as any, async (err: any) => {
         if (err) {
           console.error('File upload error:', err);
           return res.status(400).json({ error: 'File upload failed' });
         }
         
-        if (!req.file) {
+        const reqWithFile = req as any;
+        if (!reqWithFile.file) {
           return res.status(400).json({ error: 'No file uploaded' });
         }
 

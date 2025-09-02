@@ -98,15 +98,21 @@ export class PowerPointParser {
           body: formData
         });
         
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.incomeStatementData) {
-            console.log('✅ Server-side parsing successful!');
-            incomeStatementData = result.incomeStatementData;
-          }
+        console.log('📊 Server response status:', response.status);
+        const result = await response.json();
+        console.log('📊 Server response data:', result);
+        
+        if (response.ok && result.success && result.incomeStatementData) {
+          console.log('✅ Server-side parsing successful!', result.incomeStatementData);
+          incomeStatementData = result.incomeStatementData;
+          
+          // Show immediate success notification
+          this.showFinancialDataNotification(incomeStatementData);
+        } else {
+          console.log('⚠️ Server response not successful:', result);
         }
       } catch (serverError) {
-        console.log('⚠️ Server-side parsing failed, falling back to client-side');
+        console.log('⚠️ Server-side parsing failed:', serverError);
       }
       
       // Fallback to client-side parsing if server failed

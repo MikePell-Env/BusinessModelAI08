@@ -86,7 +86,7 @@ export class PowerPointImporter {
       
     } catch (error) {
       console.error('PowerPoint import failed:', error);
-      throw new Error(`Failed to import PowerPoint: ${error.message}`);
+      throw new Error(`Failed to import PowerPoint: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -100,7 +100,7 @@ export class PowerPointImporter {
       throw new Error('File upload processing not implemented yet. Use Microsoft Graph API import instead.');
     } catch (error) {
       console.error('PowerPoint file processing failed:', error);
-      throw new Error(`Failed to process PowerPoint file: ${error.message}`);
+      throw new Error(`Failed to process PowerPoint file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -146,7 +146,7 @@ export class PowerPointImporter {
       throw new Error('Microsoft Graph PowerPoint parsing not fully implemented. Please use the structured format guide below.');
       
     } catch (error) {
-      throw new Error(`Failed to extract slides: ${error.message}`);
+      throw new Error(`Failed to extract slides: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
