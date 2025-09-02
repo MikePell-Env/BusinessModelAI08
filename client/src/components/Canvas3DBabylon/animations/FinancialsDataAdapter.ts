@@ -186,8 +186,8 @@ export class FinancialsDataAdapter {
     return {
       revenue: revenue,   // Use exact PowerPoint values 
       expenses: expenses, // Use exact PowerPoint values
-      profit: 0, // Calculated in FinancialsHeightManager from revenue - expenses
-      loss: 0   // Calculated in FinancialsHeightManager from revenue - expenses
+      profit: data.netProfit,   // Use actual PowerPoint profit data
+      loss: data.netLoss        // Use actual PowerPoint loss data
     };
   }
 
