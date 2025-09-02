@@ -3763,12 +3763,34 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Load income statement data when switching to Financials template
     if (template.name === 'Financials' && canvas && (canvas as any).incomeStatementData) {
       console.log('📊 Loading income statement data for Financials template');
-      setTimeout(() => {
+      console.log('📊 Canvas incomeStatementData:', (canvas as any).incomeStatementData);
+      
+      // Try multiple times with different delays to ensure adapter is ready
+      const tryLoadData = (attempt = 1) => {
+        console.log(`📊 Attempt ${attempt} to load financial data`);
+        console.log(`📊 Scene exists:`, !!sceneRef.current);
+        console.log(`📊 financialsDataAdapter exists:`, !!(sceneRef.current && (sceneRef.current as any).financialsDataAdapter));
+        console.log(`📊 financialsHeightManager exists:`, !!(sceneRef.current && (sceneRef.current as any).financialsHeightManager));
+        
         if (sceneRef.current && (sceneRef.current as any).financialsDataAdapter) {
-          console.log('📊 Calling loadIncomeStatementData with:', (canvas as any).incomeStatementData);
+          console.log('📊 Found financialsDataAdapter, calling loadIncomeStatementData');
           (sceneRef.current as any).financialsDataAdapter.loadIncomeStatementData((canvas as any).incomeStatementData);
+        } else {
+          console.log(`📊 Attempt ${attempt}: financialsDataAdapter not ready yet`);
+          
+          // Check if we have the global helpers available
+          if ((window as any).loadFinancialData) {
+            console.log('📊 Using global helper to load financial data');
+            (window as any).loadFinancialData((canvas as any).incomeStatementData);
+          } else if (attempt < 10) {
+            setTimeout(() => tryLoadData(attempt + 1), 800);
+          } else {
+            console.error('📊 Failed to find financialsDataAdapter after 10 attempts');
+          }
         }
-      }, 1000); // Give time for controller to initialize
+      };
+      
+      setTimeout(() => tryLoadData(), 500);
     }
   }, [template.name, canvas]);
 
