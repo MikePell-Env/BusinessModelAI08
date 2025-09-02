@@ -157,25 +157,29 @@ export class FinancialsDataAdapter {
    * BUSINESS LOGIC CENTRALIZED: Only pass revenue/expenses, let FinancialsHeightManager calculate profit/loss
    */
   private transformBusinessData(data: FinancialBusinessData): FinancialData {
-    console.log(`🚨 TRANSFORM INPUT: Raw data.totalRevenue=${data.totalRevenue} (if 26.6, this is 2027 Future year!)`);
-    console.log(`🚨 TRANSFORM INPUT: Raw data.totalExpenses=${data.totalExpenses}`);
-    console.log(`🚨 TRANSFORM INPUT: Raw data.netProfit=${data.netProfit}`);
-    console.log(`🚨 TRANSFORM INPUT: Raw data.netLoss=${data.netLoss}`);
+    console.log(`🚨 TRANSFORM INPUT: Raw data.totalRevenue=${data.totalRevenue} (should be 1000 for 2026)`);
+    console.log(`🚨 TRANSFORM INPUT: Raw data.totalExpenses=${data.totalExpenses} (should be 800 for 2026)`);
+    console.log(`🚨 TRANSFORM INPUT: Raw data.netProfit=${data.netProfit} (should be 200 for 2026)`);
+    console.log(`🚨 TRANSFORM INPUT: Raw data.netLoss=${data.netLoss} (should be 0 for 2026)`);
     
-    const cappedRevenue = Math.max(0.5, Math.min(data.totalRevenue, 1000));
-    const cappedExpenses = Math.max(0.5, Math.min(data.totalExpenses, 1000));
+    // FIXED: Don't cap the values when they're already in correct scale
+    // Server sends: 1000 = $10M, 800 = $8M (already scaled correctly)
+    const revenue = data.totalRevenue;  // Keep exact value from PowerPoint
+    const expenses = data.totalExpenses;  // Keep exact value from PowerPoint
     
-    console.log(`🚨 TRANSFORM OUTPUT: Capped revenue=${cappedRevenue} → Height=${cappedRevenue/500.0} units`);
-    console.log(`🚨 TRANSFORM OUTPUT: Capped expenses=${cappedExpenses} → Height=${cappedExpenses/500.0} units`);
+    console.log(`🚨 TRANSFORM OUTPUT: Revenue=${revenue} → Height=${revenue/500.0} units`);
+    console.log(`🚨 TRANSFORM OUTPUT: Expenses=${expenses} → Height=${expenses/500.0} units`);
+    console.log(`🚨 EXPECTED HEIGHTS: Revenue=2.0 units (tallest), Expenses=1.6 units (shorter)`);
     
-    // HEIGHT VERIFICATION: If revenue shows 2.0+ units but should be $10M, this proves wrong year
-    if (cappedRevenue >= 1000 && data.totalRevenue > 15) {
-      console.log(`❌ WRONG YEAR DETECTED: Revenue ${data.totalRevenue} suggests 2027 Future year instead of 2026 Current!`);
+    if (revenue === 1000 && expenses === 800) {
+      console.log(`✅ CORRECT 2026 DATA: Revenue=$10M, Expenses=$8M detected`);
+    } else {
+      console.log(`❌ UNEXPECTED DATA: Revenue=${revenue}, Expenses=${expenses} (not 2026 values)`);
     }
     
     return {
-      revenue: cappedRevenue, // Cap at 1000 ($10M max height)
-      expenses: cappedExpenses, // Cap at 1000 ($10M max height)
+      revenue: revenue,   // Use exact PowerPoint values 
+      expenses: expenses, // Use exact PowerPoint values
       profit: 0, // Calculated in FinancialsHeightManager from revenue - expenses
       loss: 0   // Calculated in FinancialsHeightManager from revenue - expenses
     };
