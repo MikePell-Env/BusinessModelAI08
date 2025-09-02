@@ -559,7 +559,10 @@ export class FinancialsHeightManager {
     const targetRatio = boundedHeight / STANDARD_BASELINE_HEIGHT;
     const finalScaleRatio = normalizeRatio * targetRatio;
 
-    console.log(`🔧 ${mesh.name}: GLB=${originalHeight.toFixed(3)} → Normalize=${STANDARD_BASELINE_HEIGHT} → Target=${boundedHeight.toFixed(3)} (ratio=${finalScaleRatio.toFixed(3)})`);
+    // Reduced logging to prevent browser crash from excessive console output
+    if (Math.random() < 0.1) { // Only log 10% of the time
+      console.log(`🔧 ${mesh.name}: GLB=${originalHeight.toFixed(3)} → Normalize=${STANDARD_BASELINE_HEIGHT} → Target=${boundedHeight.toFixed(3)} (ratio=${finalScaleRatio.toFixed(3)})`);
+    }
 
     // Modify vertices based on anchor type - NORMALIZED then SCALED
     for (let i = 1; i < newVertices.length; i += 3) {

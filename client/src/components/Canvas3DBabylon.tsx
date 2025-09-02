@@ -3970,12 +3970,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     const profit = Math.max(0, totalRevenueValue - currentExpensesValue);
                     const expensesPLHeight = profit / HEIGHT_SCALE;
                     
-                    console.log('💚 Revenue changed - updating ExpensesPL:', {
-                      revenuePercent: revenuePercent + '%',
-                      expensesValue: '$' + (currentExpensesValue/100).toFixed(0) + 'M',
-                      profit: '$' + (profit/100).toFixed(0) + 'M',
-                      expensesPLHeight: expensesPLHeight.toFixed(3)
-                    });
+                    // Reduced logging to prevent browser crash from excessive console output
+                    if (Math.random() < 0.05) { // Only log 5% of the time
+                      console.log('💚 Revenue changed - updating ExpensesPL:', {
+                        revenuePercent: revenuePercent + '%',
+                        expensesValue: '$' + (currentExpensesValue/100).toFixed(0) + 'M',
+                        profit: '$' + (profit/100).toFixed(0) + 'M',
+                        expensesPLHeight: expensesPLHeight.toFixed(3)
+                      });
+                    }
                     
                     heightManager.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
                   }
