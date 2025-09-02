@@ -871,20 +871,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // CONSOLIDATED: Single initialization path for financial data
             // Priority: PowerPoint data > fallback data
             const canvasIncomeData = (canvas as any)?.incomeStatementData;
+            console.log('🚨 INITIALIZATION CHECK: template.name =', template.name);
+            console.log('🚨 INITIALIZATION CHECK: canvasIncomeData exists =', !!canvasIncomeData);
+            console.log('🚨 INITIALIZATION CHECK: financialsDataAdapter exists =', !!financialsDataAdapter);
+            
             if (canvasIncomeData) {
-              console.log('📊 CONSOLIDATED: Found Income Statement data from PowerPoint import!');
-              console.log(`📊 CONSOLIDATED: Loading year ${canvasIncomeData.years[canvasIncomeData.currentYearIndex]?.year} as default`);
+              console.log('🚨 FOUND POWERPOINT DATA: Income Statement data from PowerPoint import!');
+              console.log('🚨 FOUND POWERPOINT DATA: Available years:', canvasIncomeData.years?.map((y: any) => `${y.year}: $${y.revenue}M`));
+              console.log('🚨 FOUND POWERPOINT DATA: currentYearIndex =', canvasIncomeData.currentYearIndex);
+              console.log('🚨 FOUND POWERPOINT DATA: Selected year will be:', canvasIncomeData.years?.[canvasIncomeData.currentYearIndex]?.year);
               
               setTimeout(() => {
                 if (financialsDataAdapter) {
+                  console.log('🚨 CALLING loadIncomeStatementData with PowerPoint data');
                   financialsDataAdapter.loadIncomeStatementData(canvasIncomeData);
                 }
               }, 100);
             } else {
-              console.log('📊 CONSOLIDATED: Using fallback financial data');
+              console.log('🚨 NO POWERPOINT DATA: Using fallback financial data');
               const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
               setTimeout(async () => {
                 if (financialsDataAdapter) {
+                  console.log('🚨 CALLING updateFromBusinessData with fallback data');
                   await financialsDataAdapter.updateFromBusinessData(initialData);
                 }
               }, 100);
