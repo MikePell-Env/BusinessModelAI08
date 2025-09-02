@@ -937,8 +937,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               console.log('🚨 NO POWERPOINT DATA: Using fallback 2026 financial data');
               const fallback2026Data = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
               if (financialsDataAdapter) {
-                console.log('🚨 IMMEDIATE: Loading fallback 2026 data');
-                financialsDataAdapter.updateFromBusinessData(fallback2026Data);
+                console.log('🚨 IMMEDIATE: Loading fallback 2026 data with immediate heights');
+                financialsDataAdapter.updateFromBusinessData(fallback2026Data, false);
               }
             }
           }
