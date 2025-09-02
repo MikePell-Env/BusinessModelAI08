@@ -161,24 +161,7 @@ export class FinancialsHeightManager {
       console.log(`❌ UNEXPECTED VALUES IN HEIGHT CALC:`, data);
     }
     
-    return result;nue
-        expensesPL: profitHeight  // Fills remaining to make right side = 2.0
-      };
-    } else {
-      // LOSS SCENARIO: Expenses > Revenue  
-      // Right side: Expenses takes full height (2.0), no profit
-      // Left side: Revenue + Loss stacked to total 2.0
-      const revenueRatio = revenue / expenses; // How much of expenses is revenue
-      const revenueHeight = baseHeight * revenueRatio; // Revenue proportional height
-      const lossHeight = baseHeight - revenueHeight; // Loss fills remaining space
-      
-      return {
-        revenue: revenueHeight,  // Proportional to expenses
-        revenuePL: lossHeight,   // Fills remaining to make left side = 2.0
-        expenses: baseHeight,    // 2.0 units (full right side)
-        expensesPL: 0.0         // 0.0 units (no profit)
-      };
-    }
+    return result;
   }
 
   /**
