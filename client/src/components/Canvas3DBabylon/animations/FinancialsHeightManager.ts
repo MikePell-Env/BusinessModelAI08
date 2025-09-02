@@ -324,18 +324,18 @@ export class FinancialsHeightManager {
         // Use vertex manipulation instead of scaling for Expenses group
         debugLog.info('financials', `🔧 VERTEX: Animating ${objectName} height via vertex manipulation to ${targetHeight}`);
         
-        // Convert target height to height factor (relative to base height)
-        const heightFactor = targetHeight / this.baseHeight;
+        // Pass target height directly (absolute units, not relative factor)
+        const targetHeightAbsolute = targetHeight;
         
         // Apply vertex manipulation directly (immediate, no animation for now)
-        this.setMeshHeightByVertices(mesh, heightFactor, anchorType);
+        this.setMeshHeightByVertices(mesh, targetHeightAbsolute, anchorType);
         
         // Label is part of material - no separate update needed
         
         // DO NOT MOVE THE MESH - vertex manipulation keeps mesh in fixed position
         // mesh.position.y stays exactly where it was set during model loading
         
-        debugLog.info('financials', `🔧 VERTEX: ${objectName} height set to factor ${heightFactor} (target: ${targetHeight}) - mesh position FIXED`);
+        debugLog.info('financials', `🔧 VERTEX: ${objectName} height set to ${targetHeightAbsolute} units (target: ${targetHeight}) - mesh position FIXED`);
         
         // Resolve immediately since vertex manipulation is instant
         resolve();
@@ -469,9 +469,8 @@ export class FinancialsHeightManager {
     if (!originalPos) return;
 
     // Use vertex manipulation but keep mesh position FIXED at original position
-    // Convert height to height factor (relative to base height)
-    const heightFactor = height / this.baseHeight;
-    this.setMeshHeightByVertices(mesh, heightFactor, anchorType);
+    // Pass height directly as absolute target height (no conversion needed)
+    this.setMeshHeightByVertices(mesh, height, anchorType);
 
     // CRITICAL: Keep mesh position at original loaded position - no movement
     mesh.position.x = originalPos.x;
@@ -560,7 +559,7 @@ export class FinancialsHeightManager {
    */
   private setMeshHeightByVertices(
     mesh: Mesh,
-    heightFactor: number,
+    targetHeight: number,
     anchorType: 'top' | 'bottom'
   ): void {
     const originalVertices = this.originalVertices.get(mesh.name);
@@ -572,8 +571,8 @@ export class FinancialsHeightManager {
     const geometry = mesh.geometry;
     if (!geometry) return;
 
-    // Store the height factor for label scaling
-    this.currentHeightFactors.set(mesh.name, heightFactor);
+    // Store the target height for label scaling
+    this.currentHeightFactors.set(mesh.name, targetHeight);
 
     // Create a copy of original vertices to modify
     const newVertices = new Float32Array(originalVertices);
@@ -590,37 +589,37 @@ export class FinancialsHeightManager {
 
     const originalHeight = maxY - minY;
     
-    // CONSTRAIN SCALING: heightFactor represents percentage of original height to show
-    // heightFactor 1.0 = full original height, 0.5 = half height, etc.
-    // This keeps all scaling WITHIN the original geometry bounds
+    // ABSOLUTE HEIGHT SCALING: Scale to exact target height regardless of original mesh size
+    // targetHeight is the ABSOLUTE target height (e.g., 2.0 units for $10M revenue)
+    // We need to scale the original mesh to fit this exact height
     
-    // Calculate the VISUAL scaling factor for labels (inverse of compression)
-    // If heightFactor = 0.5 (half height), visual stretch = 2.0 (double stretch)
-    const visualStretchFactor = 1.0 / heightFactor;
+    const targetAbsoluteHeight = targetHeight; // Direct target height in units
+    const scaleRatio = targetAbsoluteHeight / originalHeight; // Scale to exact target height
     
-    // Store the VISUAL stretch factor for label correction (not the heightFactor)
+    // Calculate the VISUAL scaling factor for labels 
+    const visualStretchFactor = originalHeight / targetAbsoluteHeight;
+    
+    // Store the VISUAL stretch factor for label correction
     this.currentHeightFactors.set(mesh.name, visualStretchFactor);
     
     // Label is part of material - no separate update needed
     
-    // Modify vertices based on anchor type - CONSTRAINED to original bounds
+    // Modify vertices based on anchor type - ABSOLUTE height scaling
     for (let i = 1; i < newVertices.length; i += 3) {
       const originalY = originalVertices[i];
       
       if (anchorType === 'bottom') {
         // Bottom-anchored: scale Y from the bottom (minY stays fixed)
-        // Only show heightFactor percentage of the original height
+        // Scale to exact target height
         const relativeY = originalY - minY;
-        const normalizedPosition = relativeY / originalHeight; // 0.0 to 1.0
-        const scaledPosition = normalizedPosition * heightFactor; // Scale by factor
-        newVertices[i] = minY + (scaledPosition * originalHeight);
+        const scaledY = relativeY * scaleRatio;
+        newVertices[i] = minY + scaledY;
       } else {
         // Top-anchored: scale Y from the top (maxY stays fixed) 
-        // Only show heightFactor percentage of the original height
+        // Scale to exact target height  
         const relativeY = maxY - originalY;
-        const normalizedPosition = relativeY / originalHeight; // 0.0 to 1.0
-        const scaledPosition = normalizedPosition * heightFactor; // Scale by factor
-        newVertices[i] = maxY - (scaledPosition * originalHeight);
+        const scaledY = relativeY * scaleRatio;
+        newVertices[i] = maxY - scaledY;
       }
     }
 
@@ -632,7 +631,7 @@ export class FinancialsHeightManager {
     // Update label position after vertex manipulation
     this.updateLabelPosition(mesh);
 
-    debugLog.verbose('financials', `Vertex manipulation: ${mesh.name} height ${heightFactor}x (${anchorType}-anchored)`);
+    debugLog.verbose('financials', `Vertex manipulation: ${mesh.name} height ${targetHeight} units (${anchorType}-anchored)`);
   }
 
   /**
