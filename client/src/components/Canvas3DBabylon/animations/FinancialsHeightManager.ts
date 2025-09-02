@@ -291,7 +291,7 @@ export class FinancialsHeightManager {
     }
 
     return new Promise((resolve) => {
-      const startHeight = mesh.scaling.y;
+      const startHeight = this.currentHeightFactors.get(objectName) || 1.0;
       const startPosition = mesh.position.y;
       const originalPos = this.originalPositions.get(objectName);
 
@@ -322,28 +322,32 @@ export class FinancialsHeightManager {
       if (anchorType === 'top') {
         // TOP-ANCHORED OBJECTS: Stack on top of their base objects
         if (objectName === 'ExpensesPL') {
-          // CALIBRATED POSITIONING: Use the 0.3 factor that was working well
+          // FIXED: Position ExpensesPL (Profit) properly on top of Expenses block
           const expensesMesh = this.financialMeshes.get('Expenses');
           if (expensesMesh) {
-            const expensesOriginalPos = this.originalPositions.get('Expenses');
-            if (expensesOriginalPos) {
-              // Use the calibrated 0.3 positioning factor
-              const positioningFactor = 0.3;
-              targetPosition = 0 + (expensesMesh.scaling.y * positioningFactor);
-            } else {
-              targetPosition = 0 + (targetHeight / 2);
-            }
+            // Position ExpensesPL at: Expenses bottom + Expenses height + (ExpensesPL height / 2)
+            const expensesBottomY = 0; // Expenses is bottom-anchored at ground level
+            const expensesHeight = this.currentHeightFactors.get('Expenses') || 1.6; // Use tracked height, not scaling
+            const expensesPLHalfHeight = targetHeight / 2;
+            
+            targetPosition = expensesBottomY + expensesHeight + expensesPLHalfHeight;
+            
+            console.log(`🔧 ExpensesPL positioning: bottom=${expensesBottomY}, expensesHeight=${expensesHeight}, halfHeight=${expensesPLHalfHeight} → pos=${targetPosition}`);
           } else {
             targetPosition = 0 + (targetHeight / 2);
           }
         } else if (objectName === 'RevenuePL') {
-          // RevenuePL stacks on top of Revenue
+          // FIXED: Position RevenuePL (Loss) properly on top of Revenue block  
           const revenueMesh = this.financialMeshes.get('Revenue');
           if (revenueMesh) {
-            const revenueHeight = revenueMesh.scaling.y;
-            const revenuePosition = revenueMesh.position.y;
-            // Position RevenuePL on top of Revenue with proper offset
-            targetPosition = revenuePosition + (revenueHeight / 2) + (targetHeight / 2);
+            // Position RevenuePL at: Revenue bottom + Revenue height + (RevenuePL height / 2)
+            const revenueBottomY = 0; // Revenue is bottom-anchored at ground level
+            const revenueHeight = this.currentHeightFactors.get('Revenue') || 2.0; // Use tracked height, not scaling
+            const revenuePLHalfHeight = targetHeight / 2;
+            
+            targetPosition = revenueBottomY + revenueHeight + revenuePLHalfHeight;
+            
+            console.log(`🔧 RevenuePL positioning: bottom=${revenueBottomY}, revenueHeight=${revenueHeight}, halfHeight=${revenuePLHalfHeight} → pos=${targetPosition}`);
           } else {
             targetPosition = 0 + (targetHeight / 2);
           }
@@ -357,84 +361,22 @@ export class FinancialsHeightManager {
         targetPosition = 0;
       }
 
-      // STEP 3: Use vertex manipulation for Expenses and ExpensesPL, scaling for others
-      if (objectName === 'Expenses' || objectName === 'ExpensesPL') {
-        // Use vertex manipulation instead of scaling for Expenses group
-        debugLog.info('financials', `🔧 VERTEX: Animating ${objectName} height via vertex manipulation to ${targetHeight}`);
-        
-        // Pass target height directly (absolute units, not relative factor)
-        const targetHeightAbsolute = targetHeight;
-        
-        // Apply vertex manipulation directly (immediate, no animation for now)
-        this.setMeshHeightByVertices(mesh, targetHeightAbsolute, anchorType);
-        
-        // Label is part of material - no separate update needed
-        
-        // DO NOT MOVE THE MESH - vertex manipulation keeps mesh in fixed position
-        // mesh.position.y stays exactly where it was set during model loading
-        
-        debugLog.info('financials', `🔧 VERTEX: ${objectName} height set to ${targetHeightAbsolute} units (target: ${targetHeight}) - mesh position FIXED`);
-        
-        // Resolve immediately since vertex manipulation is instant
-        resolve();
-        return;
-      }
-
-      // Use traditional scaling animation for non-Expenses objects
-      const heightAnimation = new Animation(
-        `${objectName}_height`,
-        'scaling.y',
-        60,
-        Animation.ANIMATIONTYPE_FLOAT,
-        Animation.ANIMATIONLOOPMODE_CONSTANT
-      );
-
-      // Create position animation
-      const positionAnimation = new Animation(
-        `${objectName}_position`,
-        'position.y',
-        60,
-        Animation.ANIMATIONTYPE_FLOAT,
-        Animation.ANIMATIONLOOPMODE_CONSTANT
-      );
-
-      // Set up easing
-      const easingFunction = new CubicEase();
-      easingFunction.setEasingMode(EasingFunction.EASINGMODE_EASEINOUT);
-
-      // Height animation keys
-      const heightKeys = [
-        { frame: 0, value: startHeight },
-        { frame: 60, value: targetHeight }
-      ];
-      heightAnimation.setKeys(heightKeys);
-      heightAnimation.setEasingFunction(easingFunction);
-
-      // Position animation keys
-      const positionKeys = [
-        { frame: 0, value: startPosition },
-        { frame: 60, value: targetPosition }
-      ];
-      positionAnimation.setKeys(positionKeys);
-      positionAnimation.setEasingFunction(easingFunction);
-
-      // Apply animations
-      mesh.animations = [heightAnimation, positionAnimation];
-
-      this.scene.beginAnimation(
-        mesh,
-        0,
-        60,
-        false,
-        60 / (duration / 1000),
-        () => {
-          debugLog.verbose('financials', `${objectName} height animation completed`);
-          
-          // Label is part of material - no separate update needed
-          
-          resolve();
-        }
-      );
+      // VERTEX MANIPULATION ONLY: All financial objects use vertex manipulation, no scaling
+      debugLog.info('financials', `🔧 VERTEX: Animating ${objectName} height via vertex manipulation to ${targetHeight}`);
+      
+      // Apply vertex manipulation directly (immediate, no animation for now)
+      this.setMeshHeightByVertices(mesh, targetHeight, anchorType);
+      
+      // Store the height for positioning calculations
+      this.currentHeightFactors.set(objectName, targetHeight);
+      
+      // DO NOT MOVE THE MESH - vertex manipulation keeps mesh in fixed position
+      // mesh.position.y stays exactly where it was set during model loading
+      
+      debugLog.info('financials', `🔧 VERTEX: ${objectName} height set to ${targetHeight} units - mesh position FIXED`);
+      
+      // Resolve immediately since vertex manipulation is instant
+      resolve();
     });
   }
 
@@ -500,12 +442,19 @@ export class FinancialsHeightManager {
 
     // Apply positioning logic for top-anchored objects (same as animateObjectHeight)
     let targetPositionY = originalPos.y;
-    if (anchorType === 'top' && objectName === 'ExpensesPL') {
-      // EXACT SAME LOGIC as animateObjectHeight: Use the 0.3 positioning factor
-      const expensesMesh = this.financialMeshes.get('Expenses');
-      if (expensesMesh) {
-        const positioningFactor = 0.3;
-        targetPositionY = 0 + (expensesMesh.scaling.y * positioningFactor);
+    if (anchorType === 'top') {
+      if (objectName === 'ExpensesPL') {
+        // Position ExpensesPL on top of Expenses block
+        const expensesBottomY = 0;
+        const expensesHeight = this.currentHeightFactors.get('Expenses') || 1.6;
+        const expensesPLHalfHeight = height / 2;
+        targetPositionY = expensesBottomY + expensesHeight + expensesPLHalfHeight;
+      } else if (objectName === 'RevenuePL') {
+        // Position RevenuePL on top of Revenue block
+        const revenueBottomY = 0;
+        const revenueHeight = this.currentHeightFactors.get('Revenue') || 2.0;
+        const revenuePLHalfHeight = height / 2;
+        targetPositionY = revenueBottomY + revenueHeight + revenuePLHalfHeight;
       }
     }
 
@@ -524,8 +473,8 @@ export class FinancialsHeightManager {
    */
   public getCurrentHeights(): Record<string, number> {
     const heights: Record<string, number> = {};
-    this.financialMeshes.forEach((mesh, name) => {
-      heights[name] = mesh.scaling.y;
+    this.currentHeightFactors.forEach((height, name) => {
+      heights[name] = height;
     });
     return heights;
   }

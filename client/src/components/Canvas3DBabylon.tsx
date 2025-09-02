@@ -810,6 +810,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           console.log('🚨 TEMPLATE SWITCHING BLOCK: template.name =', template.name, 'isFinancials =', template.name.toLowerCase() === 'financials');
           if (template.name.toLowerCase() === 'financials') {
             console.log('🚨 ENTERING FINANCIALS TEMPLATE SWITCHING INITIALIZATION');
+            console.log('🚨 TEMPLATE SWITCH: Canvas data check:', !!(canvas as any)?.incomeStatementData);
             const financialsHeightManager = new FinancialsHeightManager(scene);
             const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
             
@@ -870,30 +871,79 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               console.log('🧪 Test notification created - check top-right corner');
             };
             
-            // HARDCODED: Always use 2026 data for initial render (as requested)
-            // PowerPoint code preserved but overridden with 2026 values
-            console.log('🔒 HARDCODED: Using fixed 2026 values for Financials template');
-            const hardcoded2026Data = { 
-              totalRevenue: 1000,    // $10M (2026 Present year)
-              totalExpenses: 800,    // $8M (2026 Present year) 
-              netProfit: 200,        // $2M (2026 Present year)
-              netLoss: 0 
-            };
+            // RESTORED: Use PowerPoint data with proper 2026 default
+            // Priority: PowerPoint data > fallback data
+            const canvasIncomeData = (canvas as any)?.incomeStatementData;
+            console.log('🚨 INITIALIZATION CHECK: template.name =', template.name);
+            console.log('🚨 INITIALIZATION CHECK: canvasIncomeData exists =', !!canvasIncomeData);
+            console.log('🚨 INITIALIZATION CHECK: financialsDataAdapter exists =', !!financialsDataAdapter);
             
-            setTimeout(async () => {
-              if (financialsDataAdapter) {
-                console.log('🔒 HARDCODED: Loading 2026 data - Revenue=$10M, Expenses=$8M');
-                await financialsDataAdapter.updateFromBusinessData(hardcoded2026Data);
+            // VERIFY DEFAULT YEAR DATA: Read and validate initial values
+            if (canvasIncomeData) {
+              console.log('📊 POWERPOINT DATA VERIFICATION:');
+              console.log('📊   Available years:', canvasIncomeData.years?.length || 0);
+              console.log('📊   Current year index:', canvasIncomeData.currentYearIndex);
+              console.log('📊   Years data:', canvasIncomeData.years?.map((y: any) => 
+                `${y.year}: Rev=$${y.revenue}M, Exp=$${y.expenses}M, Prof=$${y.profit}M, Loss=$${y.loss}M`
+              ));
+              
+              const defaultYear = canvasIncomeData.years?.[canvasIncomeData.currentYearIndex];
+              if (defaultYear) {
+                console.log('💰 DEFAULT YEAR SELECTED FOR INITIAL RENDER:');
+                console.log(`💰   Year: ${defaultYear.year}`);
+                console.log(`💰   Revenue: $${defaultYear.revenue}M (should be $10M for 2026)`);
+                console.log(`💰   Expenses: $${defaultYear.expenses}M (should be $8M for 2026)`);
+                console.log(`💰   Profit: $${defaultYear.profit}M (should be $2M for 2026)`);
+                console.log(`💰   Loss: $${defaultYear.loss}M (should be $0M for 2026)`);
                 
-                // PowerPoint integration preserved - load PowerPoint data if available
-                const canvasIncomeData = (canvas as any)?.incomeStatementData;
-                if (canvasIncomeData) {
-                  console.log('📊 PowerPoint data available - keeping for slider functionality');
-                  // Store PowerPoint data for time slider but don't override initial display
-                  financialsDataAdapter.incomeStatementData = canvasIncomeData;
+                // VALIDATION: Check if values match expected 2026 data
+                const is2026Expected = defaultYear.year === 2026 && 
+                                     defaultYear.revenue === 10 && 
+                                     defaultYear.expenses === 8 && 
+                                     defaultYear.profit === 2 && 
+                                     defaultYear.loss === 0;
+                                     
+                if (is2026Expected) {
+                  console.log('✅ VALIDATION PASSED: Default year data matches expected 2026 values');
+                } else {
+                  console.log('❌ VALIDATION FAILED: Default year data does NOT match expected 2026 values');
+                  console.log('❌   Expected: 2026, $10M Rev, $8M Exp, $2M Prof, $0M Loss');
+                  console.log(`❌   Actual: ${defaultYear.year}, $${defaultYear.revenue}M Rev, $${defaultYear.expenses}M Exp, $${defaultYear.profit}M Prof, $${defaultYear.loss}M Loss`);
                 }
+              } else {
+                console.log('❌ ERROR: No default year found at currentYearIndex:', canvasIncomeData.currentYearIndex);
               }
-            }, 100);
+            } else {
+              console.log('📊 NO POWERPOINT DATA: Will use fallback values');
+              console.log('💰 FALLBACK VALUES FOR INITIAL RENDER:');
+              console.log('💰   Revenue: $10M (1000 units)');
+              console.log('💰   Expenses: $8M (800 units)');  
+              console.log('💰   Profit: $2M (200 units)');
+              console.log('💰   Loss: $0M (0 units)');
+            }
+            
+            if (canvasIncomeData) {
+              console.log('🚨 FOUND POWERPOINT DATA: Income Statement data from PowerPoint import!');
+              console.log('🚨 FOUND POWERPOINT DATA: Available years:', canvasIncomeData.years?.map((y: any) => `${y.year}: $${y.revenue}M`));
+              console.log('🚨 FOUND POWERPOINT DATA: currentYearIndex =', canvasIncomeData.currentYearIndex);
+              console.log('🚨 FOUND POWERPOINT DATA: Selected year will be:', canvasIncomeData.years?.[canvasIncomeData.currentYearIndex]?.year);
+              
+              setTimeout(() => {
+                if (financialsDataAdapter) {
+                  console.log('🚨 CALLING loadIncomeStatementData with PowerPoint data');
+                  financialsDataAdapter.loadIncomeStatementData(canvasIncomeData);
+                }
+              }, 100);
+            } else {
+              console.log('🚨 NO POWERPOINT DATA: Using fallback financial data');
+              const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
+              setTimeout(async () => {
+                if (financialsDataAdapter) {
+                  console.log('🚨 CALLING updateFromBusinessData with fallback data');
+                  await financialsDataAdapter.updateFromBusinessData(initialData);
+                }
+              }, 100);
+            }
           }
           
           console.log(`✅ Template ${template.name} content reloaded (scene preserved)`);
