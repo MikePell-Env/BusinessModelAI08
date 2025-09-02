@@ -297,10 +297,12 @@ Revenue Streams
           //                     2027: Revenue $26.6M, Expenses $9.2M, Profit/Loss $17.4M
           
           const incomeStatementData = {
-            years: [2025, 2026, 2027],
-            revenue: [1000000, 10000000, 26600000],
-            expenses: [2500000, 8000000, 9200000], 
-            profit: [-1500000, 2000000, 17400000],
+            years: [
+              { year: 2025, revenue: 1000000, expenses: 2500000, profit: -1500000, loss: 1500000 },
+              { year: 2026, revenue: 10000000, expenses: 8000000, profit: 2000000, loss: 0 },
+              { year: 2027, revenue: 26600000, expenses: 9200000, profit: 17400000, loss: 0 }
+            ],
+            currentYearIndex: 1, // Default to 2026 as "present"
             source: "Microsoft Graph Enhanced Parsing"
           };
           
