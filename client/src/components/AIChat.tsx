@@ -97,89 +97,82 @@ export const AIChat: React.FC = () => {
     }
   };
 
-  // Initialize Speech Recognition with robust error handling
+  // Simple Speech Recognition initialization
   useEffect(() => {
-    let recognitionInstance: any = null;
-    
-    const initializeRecognition = () => {
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        try {
-          const SpeechRecognitionConstructor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-          recognitionInstance = new SpeechRecognitionConstructor();
-          
-          // More conservative settings to prevent failures
-          recognitionInstance.continuous = false;
-          recognitionInstance.interimResults = false; // Simplified to reduce errors
-          recognitionInstance.lang = 'en-US';
-          recognitionInstance.maxAlternatives = 1;
-          
-          recognitionInstance.onstart = () => {
-            console.log('Voice recognition started');
-            setIsListening(true);
-            setInterimTranscript('Listening...');
-          };
-          
-          recognitionInstance.onresult = (event: any) => {
-            console.log('Voice recognition result received');
-            
-            if (event.results && event.results.length > 0) {
-              const transcript = event.results[0][0].transcript;
-              console.log('Transcript:', transcript);
-              
-              setInputValue(transcript);
-              setIsListening(false);
-              setInterimTranscript('');
-              
-              // Auto-submit the voice input
-              setTimeout(() => {
-                if (transcript.trim()) {
-                  handleSendMessage(transcript);
-                }
-              }, 300);
-            }
-          };
-          
-          recognitionInstance.onerror = (event: any) => {
-            console.error('Speech recognition error:', event.error);
-            setIsListening(false);
-            setInterimTranscript('');
-            
-            // Only show errors for serious issues, ignore minor ones
-            if (event.error === 'not-allowed') {
-              setTimeout(() => {
-                alert('Microphone access denied. Please allow microphone permissions.');
-              }, 100);
-            }
-            // Silently handle other errors to prevent user interruption
-          };
-          
-          recognitionInstance.onend = () => {
-            console.log('Voice recognition ended');
-            setIsListening(false);
-            setInterimTranscript('');
-          };
-          
-          setRecognition(recognitionInstance);
-          console.log('Speech recognition initialized successfully');
-        } catch (error) {
-          console.error('Failed to initialize speech recognition:', error);
-        }
+    // Only initialize if we haven't already
+    if (!recognition && typeof window !== 'undefined') {
+      console.log('Checking for speech recognition support...');
+      
+      // Check for speech recognition support
+      if ('webkitSpeechRecognition' in window) {
+        console.log('webkitSpeechRecognition found');
+        const recognition = new (window as any).webkitSpeechRecognition();
+        
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        
+        recognition.onstart = () => {
+          console.log('🎤 Started listening');
+          setIsListening(true);
+        };
+        
+        recognition.onresult = (event: any) => {
+          console.log('🎤 Got result');
+          const transcript = event.results[0][0].transcript;
+          setInputValue(transcript);
+          handleSendMessage(transcript);
+        };
+        
+        recognition.onerror = (event: any) => {
+          console.log('🎤 Error:', event.error);
+          setIsListening(false);
+        };
+        
+        recognition.onend = () => {
+          console.log('🎤 Ended');
+          setIsListening(false);
+        };
+        
+        setRecognition(recognition);
+        console.log('✅ Speech recognition ready');
+      } else if ('SpeechRecognition' in window) {
+        console.log('SpeechRecognition found');
+        const recognition = new (window as any).SpeechRecognition();
+        
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        
+        recognition.onstart = () => {
+          console.log('🎤 Started listening');
+          setIsListening(true);
+        };
+        
+        recognition.onresult = (event: any) => {
+          console.log('🎤 Got result');
+          const transcript = event.results[0][0].transcript;
+          setInputValue(transcript);
+          handleSendMessage(transcript);
+        };
+        
+        recognition.onerror = (event: any) => {
+          console.log('🎤 Error:', event.error);
+          setIsListening(false);
+        };
+        
+        recognition.onend = () => {
+          console.log('🎤 Ended');
+          setIsListening(false);
+        };
+        
+        setRecognition(recognition);
+        console.log('✅ Speech recognition ready');
+      } else {
+        console.log('❌ No speech recognition support');
       }
-    };
-
-    initializeRecognition();
-    
-    // Cleanup
-    return () => {
-      if (recognitionInstance) {
-        try {
-          recognitionInstance.stop();
-        } catch (error) {
-          // Ignore cleanup errors
-        }
-      }
-    };
-  }, []);
+    }
+  }, [recognition]);
 
   // Animated typing indicator effect
   useEffect(() => {
@@ -199,53 +192,25 @@ export const AIChat: React.FC = () => {
   }, [isProcessing]);
 
   const handleVoiceInput = () => {
+    console.log('🎤 Voice button clicked');
+    
     if (!recognition) {
-      console.warn('Voice recognition not available');
+      console.log('❌ No recognition instance');
       return;
     }
     
     if (isListening) {
-      try {
-        recognition.stop();
-      } catch (error) {
-        console.error('Error stopping recognition:', error);
-        setIsListening(false);
-      }
+      console.log('🛑 Stopping recognition');
+      recognition.stop();
       return;
     }
     
-    // Prevent multiple rapid starts
-    if (recognition.readyState && recognition.readyState !== 'inactive') {
-      console.log('Recognition already active, skipping start');
-      return;
-    }
-    
+    console.log('▶️ Starting recognition');
     try {
-      // Add a small delay to ensure previous session is fully ended
-      setTimeout(() => {
-        try {
-          recognition.start();
-          console.log('Voice recognition start requested');
-        } catch (error) {
-          console.error('Failed to start recognition:', error);
-          setIsListening(false);
-          setInterimTranscript('');
-          
-          // Retry once after a longer delay
-          setTimeout(() => {
-            try {
-              recognition.start();
-              console.log('Voice recognition retry successful');
-            } catch (retryError) {
-              console.error('Voice recognition retry failed:', retryError);
-            }
-          }, 1000);
-        }
-      }, 100);
+      recognition.start();
     } catch (error) {
-      console.error('Voice input error:', error);
+      console.error('❌ Start failed:', error);
       setIsListening(false);
-      setInterimTranscript('');
     }
   };
 
