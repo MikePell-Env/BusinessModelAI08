@@ -45,7 +45,8 @@ export class PowerPointParser {
       const slides = await this.extractSlideContents(zip);
       
       // Look for Financials slide and extract Income Statement data
-      const incomeStatementData = this.extractFinancialsData(slides);
+      // First try to extract from embedded Excel files, then fall back to text parsing
+      const incomeStatementData = await this.extractFinancialsData(zip, slides);
       
       // Extract text content for BMC parsing (maintain compatibility)
       const slideTexts = slides.map(slide => slide.content);
@@ -242,9 +243,9 @@ export class PowerPointParser {
   }
 
   /**
-   * Extract Income Statement data from Financials slide
+   * Extract Income Statement data from Financials slide or embedded Excel
    */
-  private extractFinancialsData(slides: SlideContent[]): IncomeStatementData | null {
+  private async extractFinancialsData(zip: JSZip, slides: SlideContent[]): Promise<IncomeStatementData | null> {
     // Look for slide with "Financials" in title
     const financialsSlide = slides.find(slide => 
       slide.title.toLowerCase().includes('financial') || 
@@ -262,7 +263,15 @@ export class PowerPointParser {
     console.log('📊 Slide content:', financialsSlide.content);
     
     try {
-      const years = this.parseIncomeStatementFromText(financialsSlide.content);
+      // First, try to extract from embedded Excel files
+      let years = await this.extractFromEmbeddedExcel(zip, financialsSlide.index);
+      
+      // If no embedded Excel data found, fall back to text parsing
+      if (years.length === 0) {
+        console.log('📊 No embedded Excel found, trying text parsing...');
+        years = this.parseIncomeStatementFromText(financialsSlide.content);
+      }
+      
       console.log('📊 Parsed years:', years);
       if (years.length === 0) {
         console.warn('📊 No financial data found in Financials slide');
@@ -368,6 +377,167 @@ export class PowerPointParser {
     }
 
     console.log(`📊 Parsed ${years.length} years of financial data:`, years);
+    return years;
+  }
+
+  /**
+   * Extract financial data from embedded Excel files
+   */
+  private async extractFromEmbeddedExcel(zip: JSZip, slideIndex: number): Promise<YearlyFinancialData[]> {
+    try {
+      console.log(`📊 Looking for embedded Excel in slide ${slideIndex}...`);
+      
+      // Look for embedded Excel files in the PowerPoint structure
+      const embeddedFiles = Object.keys(zip.files)
+        .filter(filename => filename.includes('embeddings/') && (filename.endsWith('.xlsx') || filename.endsWith('.xls')))
+        .sort();
+      
+      console.log('📊 Found embedded files:', embeddedFiles);
+      
+      if (embeddedFiles.length === 0) {
+        // Also check for embedded objects in ppt/media/ or other locations
+        const mediaFiles = Object.keys(zip.files)
+          .filter(filename => filename.includes('media/') && (filename.includes('xl') || filename.includes('excel')))
+          .sort();
+        
+        console.log('📊 Found media files with Excel:', mediaFiles);
+        
+        if (mediaFiles.length === 0) {
+          return [];
+        }
+        embeddedFiles.push(...mediaFiles);
+      }
+      
+      // Try to parse the first Excel file found
+      for (const excelFile of embeddedFiles) {
+        console.log(`📊 Trying to parse embedded Excel: ${excelFile}`);
+        
+        const file = zip.files[excelFile];
+        if (file) {
+          try {
+            // For now, try to extract as text and look for financial patterns
+            const content = await file.async('text');
+            console.log('📊 Excel file content (first 500 chars):', content.substring(0, 500));
+            
+            // Look for financial data patterns in the raw Excel content
+            const years = this.parseFinancialDataFromExcelText(content);
+            if (years.length > 0) {
+              console.log(`📊 Successfully extracted ${years.length} years from embedded Excel`);
+              return years;
+            }
+          } catch (error) {
+            console.log(`📊 Could not parse ${excelFile} as text, trying binary...`);
+            
+            // Try to extract some basic patterns from binary content
+            try {
+              const binaryContent = await file.async('uint8array');
+              const textContent = new TextDecoder('utf-8', { fatal: false }).decode(binaryContent);
+              const years = this.parseFinancialDataFromExcelText(textContent);
+              if (years.length > 0) {
+                console.log(`📊 Successfully extracted ${years.length} years from binary Excel`);
+                return years;
+              }
+            } catch (binaryError) {
+              console.log(`📊 Could not parse ${excelFile} as binary either`);
+            }
+          }
+        }
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('📊 Error extracting from embedded Excel:', error);
+      return [];
+    }
+  }
+  
+  /**
+   * Parse financial data from Excel file content
+   */
+  private parseFinancialDataFromExcelText(content: string): YearlyFinancialData[] {
+    console.log('📊 Parsing Excel content for financial data...');
+    
+    // Excel files often contain the actual data in readable format even in binary
+    // Look for year patterns and financial values
+    const lines = content.split(/[\n\r\t\0]+/).filter(line => line.trim().length > 0);
+    const years: YearlyFinancialData[] = [];
+    
+    // Enhanced patterns for Excel data
+    const yearPattern = /\b(20\d{2})\b/;
+    const dollarPattern = /(?:\$|USD|usd)?\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)\s*([MmBbKkTt]?)/;
+    const numberPattern = /\b(\d+(?:,\d{3})*(?:\.\d{1,2})?)\b/;
+    
+    let currentYear: number | null = null;
+    let revenue: number | null = null;
+    let expenses: number | null = null;
+    
+    for (const line of lines) {
+      if (line.length < 3) continue; // Skip very short lines
+      
+      console.log('📊 Excel line:', line);
+      
+      // Check for year
+      const yearMatch = line.match(yearPattern);
+      if (yearMatch) {
+        // Save previous year if complete
+        if (currentYear !== null && revenue !== null) {
+          years.push({
+            year: currentYear,
+            revenue: revenue,
+            expenses: expenses || 0,
+            profit: Math.max(0, revenue - (expenses || 0)),
+            loss: Math.max(0, (expenses || 0) - revenue)
+          });
+        }
+        
+        currentYear = parseInt(yearMatch[1]);
+        revenue = null;
+        expenses = null;
+        console.log('📊 Excel found year:', currentYear);
+        continue;
+      }
+      
+      // Look for financial values with context
+      const lowerLine = line.toLowerCase();
+      const dollarMatches = Array.from(line.matchAll(new RegExp(dollarPattern.source, 'g')));
+      
+      // If no dollar matches, try pure numbers
+      if (dollarMatches.length === 0) {
+        const numberMatches = Array.from(line.matchAll(new RegExp(numberPattern.source, 'g')));
+        if (numberMatches.length > 0) {
+          // Convert number matches to dollar-like format for parsing
+          numberMatches.forEach(match => {
+            dollarMatches.push([match[0], match[1], ''] as RegExpMatchArray);
+          });
+        }
+      }
+      
+      for (const match of dollarMatches) {
+        const value = this.parseFinancialValue(match[1].replace(/,/g, ''), match[2] || '');
+        console.log(`📊 Excel parsed value: ${match[1]}${match[2]} = ${value}M`);
+        
+        if (lowerLine.includes('revenue') || lowerLine.includes('sales') || lowerLine.includes('income') || lowerLine.includes('total revenue')) {
+          revenue = value;
+          console.log('📊 Excel set revenue:', revenue);
+        } else if (lowerLine.includes('expense') || lowerLine.includes('cost') || lowerLine.includes('operating') || lowerLine.includes('total cost')) {
+          expenses = value;
+          console.log('📊 Excel set expenses:', expenses);
+        }
+      }
+    }
+    
+    // Add final year
+    if (currentYear !== null && revenue !== null) {
+      years.push({
+        year: currentYear,
+        revenue: revenue,
+        expenses: expenses || 0,
+        profit: Math.max(0, revenue - (expenses || 0)),
+        loss: Math.max(0, (expenses || 0) - revenue)
+      });
+    }
+    
+    console.log(`📊 Excel parsing result: ${years.length} years found`);
     return years;
   }
 
