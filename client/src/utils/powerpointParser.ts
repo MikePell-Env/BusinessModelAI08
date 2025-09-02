@@ -260,9 +260,17 @@ export class PowerPointParser {
     }
 
     console.log(`📊 Found Financials slide: "${financialsSlide.title}"`);
-    console.log('📊 Slide content:', financialsSlide.content);
+    console.log('📊 Slide content length:', financialsSlide.content.length);
+    console.log('📊 Full slide content:', JSON.stringify(financialsSlide.content));
     
     try {
+      // Simple test: look for basic patterns in the slide content
+      console.log('📊 DEBUGGING - Basic pattern tests:');
+      console.log('📊 Contains "2025":', financialsSlide.content.includes('2025'));
+      console.log('📊 Contains "Revenue":', financialsSlide.content.toLowerCase().includes('revenue'));
+      console.log('📊 Contains "$":', financialsSlide.content.includes('$'));
+      console.log('📊 Contains "1,000,000":', financialsSlide.content.includes('1,000,000'));
+      
       // First, try to extract from embedded Excel files
       let years = await this.extractFromEmbeddedExcel(zip, financialsSlide.index);
       
@@ -370,7 +378,7 @@ export class PowerPointParser {
         // Try without dollar signs
         const numberMatches = Array.from(line.matchAll(numberPattern));
         numberMatches.forEach(match => {
-          financialMatches.push([match[0], match[1], ''] as RegExpMatchArray);
+          financialMatches.push([match[0], match[1], '']);
         });
       }
       
@@ -655,7 +663,7 @@ export class PowerPointParser {
         if (numberMatches.length > 0) {
           // Convert number matches to dollar-like format for parsing
           numberMatches.forEach(match => {
-            dollarMatches.push([match[0], match[1], ''] as RegExpMatchArray);
+            dollarMatches.push([match[0], match[1], '']);
           });
         }
       }
