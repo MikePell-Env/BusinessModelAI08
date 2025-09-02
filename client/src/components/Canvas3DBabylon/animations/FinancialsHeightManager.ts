@@ -80,17 +80,8 @@ export class FinancialsHeightManager {
       }
     });
     
-    // Apply correct default heights as soon as meshes are registered
-    if (this.financialMeshes.size === 4) {
-      setTimeout(() => {
-        this.setImmediateHeights({
-          revenue: 1000,
-          expenses: 800,
-          profit: 200,
-          loss: 0
-        });
-      }, 10);
-    }
+    // Heights will be set when PowerPoint data loads or sliders are used
+    // No early default initialization to prevent incorrect tall geometry
   }
 
   /**
@@ -428,6 +419,11 @@ export class FinancialsHeightManager {
     // Expenses Group: Expenses = actual value, ExpensesPL = profit
     const expensesHeight = expenses / HEIGHT_SCALE;
     const expensesPLHeight = profit / HEIGHT_SCALE;
+    
+    console.log(`🔧 INITIALIZATION HEIGHT DEBUG:`);
+    console.log(`🔧 Input: Revenue=${revenue}, Expenses=${expenses}, Profit=${profit}, Loss=${loss}`);
+    console.log(`🔧 Heights: Revenue=${revenueHeight} units, Expenses=${expensesHeight} units`);
+    console.log(`🔧 Heights: ExpensesPL=${expensesPLHeight} units, RevenuePL=${revenuePLHeight} units`);
     
 
     // FORCE INITIAL SETUP: Always set heights on first call (initialization)
