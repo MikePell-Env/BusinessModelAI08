@@ -205,12 +205,10 @@ export class BMCModelLoader {
             }
           }
           
-          // CRITICAL FIX: Position ExpensesPL ABOVE Expenses for proper stacking
-          // Expenses is at Y=0 with height ~1.6, so ExpensesPL should start above it
-          // Use Y=1.8 to position it above the typical Expenses height (1.6 units)
-          mesh.position.y = 1.8;
+          // Keep original position since we're manipulating vertices directly
+          mesh.position.y = -0.02;
           
-          console.log(`🔧 ExpensesPL: positioned at Y=${mesh.position.y} for stacking ABOVE Expenses`);
+          console.log(`🔧 ExpensesPL: ready for profit-based height adjustments`);
         }
         
         // Set backface culling to false for underside visibility

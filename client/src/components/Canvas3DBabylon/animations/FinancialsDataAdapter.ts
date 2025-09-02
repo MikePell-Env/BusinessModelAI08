@@ -142,8 +142,8 @@ export class FinancialsDataAdapter {
    */
   private transformBusinessData(data: FinancialBusinessData): FinancialData {
     return {
-      revenue: Math.max(0.5, data.totalRevenue),
-      expenses: Math.max(0.5, data.totalExpenses),
+      revenue: Math.max(0.5, Math.min(data.totalRevenue, 1000)), // Cap at 1000 ($10M max height)
+      expenses: Math.max(0.5, Math.min(data.totalExpenses, 1000)), // Cap at 1000 ($10M max height)
       profit: 0, // Calculated in FinancialsHeightManager from revenue - expenses
       loss: 0   // Calculated in FinancialsHeightManager from revenue - expenses
     };
