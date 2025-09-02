@@ -116,6 +116,17 @@ export class FinancialsHeightManager {
     if (vertexData) {
       // Store a copy of the original vertex positions
       this.originalVertices.set(mesh.name, new Float32Array(vertexData));
+      
+      // DEBUG: Check original vertex Y bounds from GLB
+      let minY = Number.MAX_VALUE;
+      let maxY = Number.MIN_VALUE;
+      for (let i = 1; i < vertexData.length; i += 3) {
+        const y = vertexData[i];
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+      }
+      const originalHeight = maxY - minY;
+      console.log(`🔧 GLB VERTEX DEBUG: ${mesh.name} original height = ${originalHeight.toFixed(3)} units (minY: ${minY.toFixed(3)}, maxY: ${maxY.toFixed(3)})`);
     }
   }
 
