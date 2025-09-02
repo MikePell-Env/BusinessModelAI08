@@ -141,10 +141,8 @@ export class BMCModelLoader {
         // Top-anchored: RevenuePL, ExpensesPL (fixed top surface, adjust position based on height)
         
         if (mesh.name === "Revenue") {
-          // DOCUMENTED POSITIONING: Height=1.0, Bottom-anchored at Y=0.0
-          const revenueHeight = 1.0; // Documented value
-          
-          mesh.scaling.y = revenueHeight;
+          // DOCUMENTED POSITIONING: Bottom-anchored at Y=0.0
+          // Height will be set by FinancialsHeightManager - DO NOT scale here
           mesh.position.y = 0; // Bottom-anchored: force to ground plane
           
         } else if (mesh.name === "Expenses") {
@@ -175,15 +173,13 @@ export class BMCModelLoader {
           mesh.position.y = 0; // Bottom-anchored: force to ground plane
           
         } else if (mesh.name === "RevenuePL") {
-          // DOCUMENTED POSITIONING: Height=1.0, Top-anchored at Y=-0.02
-          const revenuePLHeight = 1.0; // Documented value
-          
-          mesh.scaling.y = revenuePLHeight;
+          // DOCUMENTED POSITIONING: Top-anchored at Y=-0.02
+          // Height will be set by FinancialsHeightManager - DO NOT scale here
           
           // TOP-ANCHORED POSITIONING: Use documented position
           mesh.position.y = -0.02;
           
-          console.log(`🔧 ANCHORED: RevenuePL at ${mesh.position.y} (top-anchored, height: ${revenuePLHeight})`);
+          console.log(`🔧 ANCHORED: RevenuePL at ${mesh.position.y} (top-anchored, height will be set by HeightManager)`);
           
         } else if (mesh.name === "ExpensesPL") {
           // VERTEX MANIPULATION for top-anchored ExpensesPL 
