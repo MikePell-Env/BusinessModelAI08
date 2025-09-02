@@ -74,33 +74,32 @@ export class FinancialsDataAdapter {
   public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
     this.incomeStatementData = incomeStatement;
     console.log(`🚨 LOAD POWERPOINT DATA: ${incomeStatement.years.length} years available`);
-    console.log(`🚨 LOAD POWERPOINT DATA: currentYearIndex = ${incomeStatement.currentYearIndex}`);
+    console.log(`🚨 LOAD POWERPOINT DATA: Server currentYearIndex = ${incomeStatement.currentYearIndex}`);
     console.log(`🚨 LOAD POWERPOINT DATA: All years:`, incomeStatement.years.map(y => `${y.year}: Rev=$${y.revenue}M, Exp=$${y.expenses}M`));
     
-    // CRITICAL: Verify which year is being selected
+    // FORCE 2026 CURRENT YEAR: Override any incorrect index to ensure 2026 initial state
     if (incomeStatement.years.length > 0) {
-      const selectedIndex = incomeStatement.currentYearIndex;
-      const currentYear = incomeStatement.years[selectedIndex];
-      
-      console.log(`🚨 SELECTED YEAR FOR RENDER: ${currentYear.year} at index ${selectedIndex}`);
-      console.log(`🚨 SELECTED YEAR VALUES: Revenue=$${currentYear.revenue}M, Expenses=$${currentYear.expenses}M, Profit=$${currentYear.profit}M, Loss=$${currentYear.loss}M`);
-      
-      // VALIDATION: Check if this matches expected 2026 values
-      if (currentYear.year === 2026 && currentYear.revenue === 10) {
-        console.log(`✅ CORRECT YEAR: Using 2026 with $10M revenue as expected`);
-      } else if (currentYear.year === 2027 && currentYear.revenue > 20) {
-        console.log(`❌ WRONG YEAR: Using 2027 Future year ($${currentYear.revenue}M) instead of 2026 Current ($10M)!`);
-        console.log(`❌ FIX NEEDED: currentYearIndex should be 1 (2026) not ${selectedIndex} (${currentYear.year})`);
-      } else {
-        console.log(`⚠️ UNEXPECTED YEAR: Year ${currentYear.year} with $${currentYear.revenue}M revenue`);
+      // Find 2026 year specifically, don't trust the server index
+      let correctedIndex = incomeStatement.years.findIndex(y => y.year === 2026);
+      if (correctedIndex === -1) {
+        console.log('❌ ERROR: No 2026 year found in data!');
+        correctedIndex = 1; // Fallback to index 1
       }
+      
+      const currentYear = incomeStatement.years[correctedIndex];
+      
+      console.log(`🔧 FORCE 2026: Overriding index ${incomeStatement.currentYearIndex} → ${correctedIndex} for year ${currentYear.year}`);
+      console.log(`🚨 FORCED 2026 VALUES: Revenue=$${currentYear.revenue}M, Expenses=$${currentYear.expenses}M, Profit=$${currentYear.profit}M, Loss=$${currentYear.loss}M`);
+      
+      // Update the stored index to the corrected one
+      this.incomeStatementData.currentYearIndex = correctedIndex;
       
       const businessData: FinancialBusinessData = {
         totalRevenue: currentYear.revenue,
         totalExpenses: currentYear.expenses,
         netProfit: currentYear.profit,
         netLoss: currentYear.loss,
-        incomeStatement: incomeStatement
+        incomeStatement: this.incomeStatementData
       };
       
       this.updateFromBusinessData(businessData, false);

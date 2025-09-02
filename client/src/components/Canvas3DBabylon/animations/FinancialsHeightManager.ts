@@ -80,27 +80,8 @@ export class FinancialsHeightManager {
       }
     });
     
-    // Heights will be set when PowerPoint data loads or sliders are used
-    // No early default initialization to prevent incorrect tall geometry
-    
-    // Apply correct slider-logic defaults after short delay for mesh stability
-    if (this.financialMeshes.size === 4) {
-      setTimeout(() => {
-        // Apply exact slider heights
-        const HEIGHT_SCALE = 500.0;
-        const revenueHeight = 1000 / HEIGHT_SCALE; // 2.0 units
-        const expensesHeight = 800 / HEIGHT_SCALE;  // 1.6 units
-        const profitHeight = 200 / HEIGHT_SCALE;    // 0.4 units
-        const lossHeight = 0 / HEIGHT_SCALE;        // 0.0 units
-        
-        this.setObjectHeight('Revenue', revenueHeight, 'bottom');
-        this.setObjectHeight('RevenuePL', lossHeight, 'top');  
-        this.setObjectHeight('Expenses', expensesHeight, 'bottom');
-        this.setObjectHeight('ExpensesPL', profitHeight, 'top');
-        
-        console.log(`🚀 INIT: Revenue=${revenueHeight}, Expenses=${expensesHeight}, Profit=${profitHeight}, Loss=${lossHeight}`);
-      }, 100);
-    }
+    // Heights will be set when PowerPoint data loads 
+    // No early default initialization to prevent PowerPoint override conflicts
   }
 
   /**

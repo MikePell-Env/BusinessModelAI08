@@ -928,21 +928,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               console.log('🚨 FOUND POWERPOINT DATA: currentYearIndex =', canvasIncomeData.currentYearIndex);
               console.log('🚨 FOUND POWERPOINT DATA: Selected year will be:', canvasIncomeData.years?.[canvasIncomeData.currentYearIndex]?.year);
               
-              setTimeout(() => {
-                if (financialsDataAdapter) {
-                  console.log('🚨 CALLING loadIncomeStatementData with PowerPoint data');
-                  financialsDataAdapter.loadIncomeStatementData(canvasIncomeData);
-                }
-              }, 100);
+              // IMMEDIATE: Load PowerPoint data with no delay to prevent race conditions
+              if (financialsDataAdapter) {
+                console.log('🚨 IMMEDIATE: Loading PowerPoint data with correct 2026 currentYearIndex');
+                financialsDataAdapter.loadIncomeStatementData(canvasIncomeData);
+              }
             } else {
-              console.log('🚨 NO POWERPOINT DATA: Using fallback financial data');
-              const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
-              setTimeout(async () => {
-                if (financialsDataAdapter) {
-                  console.log('🚨 CALLING updateFromBusinessData with fallback data');
-                  await financialsDataAdapter.updateFromBusinessData(initialData);
-                }
-              }, 100);
+              console.log('🚨 NO POWERPOINT DATA: Using fallback 2026 financial data');
+              const fallback2026Data = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
+              if (financialsDataAdapter) {
+                console.log('🚨 IMMEDIATE: Loading fallback 2026 data');
+                financialsDataAdapter.updateFromBusinessData(fallback2026Data);
+              }
             }
           }
           
