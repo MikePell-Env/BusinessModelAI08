@@ -97,89 +97,88 @@ export const AIChat: React.FC = () => {
     }
   };
 
-  // Initialize Speech Recognition
+  // Initialize Speech Recognition with robust error handling
   useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognitionConstructor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      const recognitionInstance = new SpeechRecognitionConstructor();
-      
-      recognitionInstance.continuous = false;
-      recognitionInstance.interimResults = true;
-      recognitionInstance.lang = 'en-US';
-      
-      recognitionInstance.onstart = () => {
-        setIsListening(true);
-      };
-      
-      recognitionInstance.onresult = (event: any) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
-        
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-        
-        // Show interim results in real-time
-        setInterimTranscript(interimTranscript);
-        
-        // Handle final result
-        if (finalTranscript) {
-          setInputValue(finalTranscript);
-          setIsListening(false);
-          setInterimTranscript('');
-          
-          // Auto-submit the voice input after a brief delay
-          setTimeout(() => {
-            if (finalTranscript.trim()) {
-              handleSendMessage(finalTranscript);
-            }
-          }, 500);
-        }
-      };
-      
-      recognitionInstance.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-        setInterimTranscript('');
-        
-        // Provide user-friendly error messages
-        let errorMessage = 'Voice recognition error. ';
-        switch (event.error) {
-          case 'not-allowed':
-            errorMessage += 'Microphone access denied. Please allow microphone permissions and try again.';
-            break;
-          case 'no-speech':
-            errorMessage += 'No speech detected. Please try speaking again.';
-            break;
-          case 'network':
-            errorMessage += 'Network error. Please check your connection.';
-            break;
-          case 'aborted':
-            errorMessage += 'Speech recognition was stopped.';
-            break;
-          default:
-            errorMessage += `Error: ${event.error}. Please try again.`;
-        }
-        
-        // Show error to user
-        setTimeout(() => {
-          alert(errorMessage);
-        }, 100);
-      };
-      
-      recognitionInstance.onend = () => {
-        setIsListening(false);
-        setInterimTranscript('');
-      };
-      
-      setRecognition(recognitionInstance);
-    }
+    let recognitionInstance: any = null;
     
+    const initializeRecognition = () => {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        try {
+          const SpeechRecognitionConstructor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+          recognitionInstance = new SpeechRecognitionConstructor();
+          
+          // More conservative settings to prevent failures
+          recognitionInstance.continuous = false;
+          recognitionInstance.interimResults = false; // Simplified to reduce errors
+          recognitionInstance.lang = 'en-US';
+          recognitionInstance.maxAlternatives = 1;
+          
+          recognitionInstance.onstart = () => {
+            console.log('Voice recognition started');
+            setIsListening(true);
+            setInterimTranscript('Listening...');
+          };
+          
+          recognitionInstance.onresult = (event: any) => {
+            console.log('Voice recognition result received');
+            
+            if (event.results && event.results.length > 0) {
+              const transcript = event.results[0][0].transcript;
+              console.log('Transcript:', transcript);
+              
+              setInputValue(transcript);
+              setIsListening(false);
+              setInterimTranscript('');
+              
+              // Auto-submit the voice input
+              setTimeout(() => {
+                if (transcript.trim()) {
+                  handleSendMessage(transcript);
+                }
+              }, 300);
+            }
+          };
+          
+          recognitionInstance.onerror = (event: any) => {
+            console.error('Speech recognition error:', event.error);
+            setIsListening(false);
+            setInterimTranscript('');
+            
+            // Only show errors for serious issues, ignore minor ones
+            if (event.error === 'not-allowed') {
+              setTimeout(() => {
+                alert('Microphone access denied. Please allow microphone permissions.');
+              }, 100);
+            }
+            // Silently handle other errors to prevent user interruption
+          };
+          
+          recognitionInstance.onend = () => {
+            console.log('Voice recognition ended');
+            setIsListening(false);
+            setInterimTranscript('');
+          };
+          
+          setRecognition(recognitionInstance);
+          console.log('Speech recognition initialized successfully');
+        } catch (error) {
+          console.error('Failed to initialize speech recognition:', error);
+        }
+      }
+    };
+
+    initializeRecognition();
+    
+    // Cleanup
+    return () => {
+      if (recognitionInstance) {
+        try {
+          recognitionInstance.stop();
+        } catch (error) {
+          // Ignore cleanup errors
+        }
+      }
+    };
   }, []);
 
   // Animated typing indicator effect
@@ -199,38 +198,54 @@ export const AIChat: React.FC = () => {
     }
   }, [isProcessing]);
 
-  const handleVoiceInput = async () => {
+  const handleVoiceInput = () => {
     if (!recognition) {
-      alert('Voice recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+      console.warn('Voice recognition not available');
       return;
     }
     
     if (isListening) {
-      recognition.stop();
-      return;
-    }
-    
-    // Check for HTTPS requirement
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-      alert('Voice recognition requires HTTPS. Please use a secure connection.');
-      return;
-    }
-    
-    // Request microphone permissions explicitly
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop()); // Stop the stream, we just needed permission
-      
-      // Start recognition after permission is granted
       try {
-        recognition.start();
+        recognition.stop();
       } catch (error) {
-        console.error('Failed to start recognition:', error);
-        alert('Failed to start voice recognition. Please try again.');
+        console.error('Error stopping recognition:', error);
+        setIsListening(false);
       }
+      return;
+    }
+    
+    // Prevent multiple rapid starts
+    if (recognition.readyState && recognition.readyState !== 'inactive') {
+      console.log('Recognition already active, skipping start');
+      return;
+    }
+    
+    try {
+      // Add a small delay to ensure previous session is fully ended
+      setTimeout(() => {
+        try {
+          recognition.start();
+          console.log('Voice recognition start requested');
+        } catch (error) {
+          console.error('Failed to start recognition:', error);
+          setIsListening(false);
+          setInterimTranscript('');
+          
+          // Retry once after a longer delay
+          setTimeout(() => {
+            try {
+              recognition.start();
+              console.log('Voice recognition retry successful');
+            } catch (retryError) {
+              console.error('Voice recognition retry failed:', retryError);
+            }
+          }, 1000);
+        }
+      }, 100);
     } catch (error) {
-      console.error('Microphone permission denied:', error);
-      alert('Microphone access is required for voice input. Please allow microphone permissions in your browser.');
+      console.error('Voice input error:', error);
+      setIsListening(false);
+      setInterimTranscript('');
     }
   };
 
