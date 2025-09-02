@@ -3759,7 +3759,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     if (cleanBMCRef.current) {
       cleanBMCRef.current.clearSelection();
     }
-  }, [template.name]);
+
+    // Load income statement data when switching to Financials template
+    if (template.name === 'Financials' && canvas && (canvas as any).incomeStatementData) {
+      console.log('📊 Loading income statement data for Financials template');
+      setTimeout(() => {
+        if (controllerRef.current && 'loadIncomeStatementData' in controllerRef.current) {
+          console.log('📊 Calling loadIncomeStatementData with:', (canvas as any).incomeStatementData);
+          (controllerRef.current as any).loadIncomeStatementData((canvas as any).incomeStatementData);
+        }
+      }, 1000); // Give time for controller to initialize
+    }
+  }, [template.name, canvas]);
 
   // Camera is always perspective - no switching needed
 
