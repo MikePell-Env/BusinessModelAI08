@@ -58,18 +58,30 @@ export class PowerPointParser {
       console.log('🔍 Looking for slides containing: "financial", "income", "statement", "projections", "funding", "forecast"');
       console.log('🔍 ================================');
       
-      // Also create a simple notification in the UI
+      // Create detailed UI notification showing what we found
       try {
         const notification = document.createElement('div');
         notification.style.cssText = `
-          position: fixed; top: 10px; left: 10px; 
-          background: blue; color: white; padding: 10px; 
-          border-radius: 5px; z-index: 10000; font-size: 12px;
-          max-width: 400px;
+          position: fixed; top: 20px; right: 20px; z-index: 9999;
+          background: #2196F3; color: white; padding: 15px; max-width: 500px;
+          border-radius: 8px; font-family: monospace; font-size: 11px;
+          white-space: pre-line; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+          max-height: 80vh; overflow-y: auto;
         `;
-        notification.innerHTML = `DEBUG: Found ${slides.length} slides. Check console for details.`;
+        
+        let debugText = `SLIDE DETECTION DEBUG:\nFound ${slides.length} slides:\n\n`;
+        slides.forEach((slide, i) => {
+          const hasFinancialData = slide.content.includes('2025') && slide.content.includes('Revenue') && slide.content.includes('$');
+          const hasNumbers = (slide.content.match(/\d+/g) || []).length > 10;
+          debugText += `${i+1}. "${slide.title}" (${slide.content.length} chars)\n`;
+          debugText += `   Financial patterns: ${hasFinancialData}\n`;
+          debugText += `   Has many numbers: ${hasNumbers}\n`;
+          debugText += `   Content start: ${slide.content.substring(0, 100)}...\n\n`;
+        });
+        
+        notification.textContent = debugText;
         document.body.appendChild(notification);
-        setTimeout(() => document.body.removeChild(notification), 5000);
+        setTimeout(() => notification.remove(), 15000);
       } catch (e) {
         console.log('🔍 Could not show UI notification:', e);
       }
