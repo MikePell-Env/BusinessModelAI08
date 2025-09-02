@@ -837,6 +837,37 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               return financialsDataAdapter.hasIncomeStatementData();
             };
             
+            // Debug helpers for PowerPoint data testing
+            (window as any).checkPowerPointData = () => {
+              const canvasData = (canvas as any)?.incomeStatementData;
+              if (canvasData) {
+                console.log('✅ PowerPoint Income Statement Data Found:', canvasData);
+                console.log(`📊 Years available: ${canvasData.years.map((y: any) => y.year).join(', ')}`);
+                console.log(`📊 Current year: ${canvasData.years[canvasData.currentYearIndex]?.year}`);
+                return canvasData;
+              } else {
+                console.log('❌ No PowerPoint Income Statement data found');
+                console.log('💡 Make sure your PowerPoint slide has "Financials" in the title');
+                return null;
+              }
+            };
+            
+            (window as any).testNotification = () => {
+              const testNotification = document.createElement('div');
+              testNotification.innerHTML = `
+                <div style="position: fixed; top: 20px; right: 20px; background: #ef4444; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; font-family: Inter, sans-serif; font-size: 14px;">
+                  🧪 Test Notification - This should appear in top-right corner
+                </div>
+              `;
+              document.body.appendChild(testNotification);
+              setTimeout(() => {
+                if (document.body.contains(testNotification)) {
+                  document.body.removeChild(testNotification);
+                }
+              }, 3000);
+              console.log('🧪 Test notification created - check top-right corner');
+            };
+            
             // Check if canvas has Income Statement data from PowerPoint import
             const canvasIncomeData = (canvas as any)?.incomeStatementData;
             if (canvasIncomeData) {
@@ -847,7 +878,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               notification.innerHTML = `
                 <div style="position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; font-family: Inter, sans-serif; font-size: 14px; max-width: 300px;">
                   <div style="font-weight: 600; margin-bottom: 4px;">📊 PowerPoint Data Loaded!</div>
-                  <div>Found ${canvasIncomeData.years.length} years of financial data (${canvasIncomeData.years.map(y => y.year).join(', ')})</div>
+                  <div>Found ${canvasIncomeData.years.length} years of financial data (${canvasIncomeData.years.map((y: any) => y.year).join(', ')})</div>
                 </div>
               `;
               document.body.appendChild(notification);
@@ -3861,7 +3892,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   const timeIndicator = document.createElement('div');
                   timeIndicator.innerHTML = `
                     <div style="position: fixed; bottom: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 6px; font-family: Inter, sans-serif; font-size: 12px; z-index: 9999;">
-                      Time Navigation: ${canvasIncomeData.years.length} years available (${canvasIncomeData.years.map(y => y.year).join(', ')})
+                      Time Navigation: ${canvasIncomeData.years.length} years available (${canvasIncomeData.years.map((y: any) => y.year).join(', ')})
                     </div>
                   `;
                   document.body.appendChild(timeIndicator);
