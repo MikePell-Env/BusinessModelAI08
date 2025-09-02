@@ -79,8 +79,27 @@ export class FinancialsDataAdapter {
     
     // Set visualization to current year data
     if (incomeStatement.years.length > 0) {
-      const currentYear = incomeStatement.years[incomeStatement.currentYearIndex] || incomeStatement.years[0];
+      // Ensure we're using the correct index for 2026
+      let selectedIndex = incomeStatement.currentYearIndex;
+      if (selectedIndex < 0 || selectedIndex >= incomeStatement.years.length) {
+        console.log(`📊 WARNING: Invalid currentYearIndex ${selectedIndex}, searching for 2026...`);
+        selectedIndex = incomeStatement.years.findIndex(y => y.year === 2026);
+        if (selectedIndex === -1) {
+          console.log(`📊 WARNING: 2026 not found, using index 0`);
+          selectedIndex = 0;
+        }
+      }
+      
+      const currentYear = incomeStatement.years[selectedIndex];
       console.log(`📊 DEBUG: Selected year ${currentYear.year} with revenue $${currentYear.revenue}M, expenses $${currentYear.expenses}M`);
+      
+      // Verify we're getting 2026 data (should be Revenue=10, Expenses=8)
+      if (currentYear.year !== 2026) {
+        console.log(`🚨 ERROR: Expected 2026 but got year ${currentYear.year}!`);
+      }
+      if (currentYear.revenue === 26) {
+        console.log(`🚨 ERROR: Getting 2027 data ($26M revenue) instead of 2026 data ($10M revenue)!`);
+      }
       
       const businessData: FinancialBusinessData = {
         totalRevenue: currentYear.revenue,
