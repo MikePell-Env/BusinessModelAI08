@@ -102,6 +102,7 @@ export class FinancialsDataAdapter {
         incomeStatement: this.incomeStatementData
       };
       
+      // FORCE immediate rendering to prevent any animation delays
       this.updateFromBusinessData(businessData, false);
     }
   }
