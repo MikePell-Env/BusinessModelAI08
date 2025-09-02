@@ -3764,9 +3764,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     if (template.name === 'Financials' && canvas && (canvas as any).incomeStatementData) {
       console.log('📊 Loading income statement data for Financials template');
       setTimeout(() => {
-        if (controllerRef.current && 'loadIncomeStatementData' in controllerRef.current) {
+        if (sceneRef.current && (sceneRef.current as any).financialsDataAdapter) {
           console.log('📊 Calling loadIncomeStatementData with:', (canvas as any).incomeStatementData);
-          (controllerRef.current as any).loadIncomeStatementData((canvas as any).incomeStatementData);
+          (sceneRef.current as any).financialsDataAdapter.loadIncomeStatementData((canvas as any).incomeStatementData);
         }
       }, 1000); // Give time for controller to initialize
     }
