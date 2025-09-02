@@ -74,10 +74,14 @@ export class FinancialsDataAdapter {
   public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
     this.incomeStatementData = incomeStatement;
     console.log(`📊 Income Statement data loaded: ${incomeStatement.years.length} years`);
+    console.log(`📊 DEBUG: currentYearIndex = ${incomeStatement.currentYearIndex}`);
+    console.log(`📊 DEBUG: Available years:`, incomeStatement.years.map(y => `${y.year}: $${y.revenue}M revenue`));
     
     // Set visualization to current year data
     if (incomeStatement.years.length > 0) {
       const currentYear = incomeStatement.years[incomeStatement.currentYearIndex] || incomeStatement.years[0];
+      console.log(`📊 DEBUG: Selected year ${currentYear.year} with revenue $${currentYear.revenue}M, expenses $${currentYear.expenses}M`);
+      
       const businessData: FinancialBusinessData = {
         totalRevenue: currentYear.revenue,
         totalExpenses: currentYear.expenses,
@@ -86,6 +90,7 @@ export class FinancialsDataAdapter {
         incomeStatement: incomeStatement
       };
       
+      console.log(`📊 DEBUG: Calling updateFromBusinessData with totalRevenue=${businessData.totalRevenue}, totalExpenses=${businessData.totalExpenses}`);
       this.updateFromBusinessData(businessData, false);
     }
   }
@@ -141,9 +146,15 @@ export class FinancialsDataAdapter {
    * BUSINESS LOGIC CENTRALIZED: Only pass revenue/expenses, let FinancialsHeightManager calculate profit/loss
    */
   private transformBusinessData(data: FinancialBusinessData): FinancialData {
+    const cappedRevenue = Math.max(0.5, Math.min(data.totalRevenue, 1000));
+    const cappedExpenses = Math.max(0.5, Math.min(data.totalExpenses, 1000));
+    
+    console.log(`📊 DEBUG transformBusinessData: Input revenue=${data.totalRevenue} → Capped=${cappedRevenue}`);
+    console.log(`📊 DEBUG transformBusinessData: Input expenses=${data.totalExpenses} → Capped=${cappedExpenses}`);
+    
     return {
-      revenue: Math.max(0.5, Math.min(data.totalRevenue, 1000)), // Cap at 1000 ($10M max height)
-      expenses: Math.max(0.5, Math.min(data.totalExpenses, 1000)), // Cap at 1000 ($10M max height)
+      revenue: cappedRevenue, // Cap at 1000 ($10M max height)
+      expenses: cappedExpenses, // Cap at 1000 ($10M max height)
       profit: 0, // Calculated in FinancialsHeightManager from revenue - expenses
       loss: 0   // Calculated in FinancialsHeightManager from revenue - expenses
     };
