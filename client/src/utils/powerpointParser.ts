@@ -290,17 +290,174 @@ export class PowerPointParser {
   }
 
   /**
-   * Parse Income Statement data from slide text
+   * Parse Income Statement data from slide text - handles tables, text, and mixed formats
    */
   private parseIncomeStatementFromText(text: string): YearlyFinancialData[] {
+    console.log('📊 Parsing financial text content...');
+    console.log('📊 Raw text:', text);
+    
+    // Try tabular parsing first, then fall back to line-by-line
+    let years = this.parseTabularFinancialData(text);
+    
+    if (years.length === 0) {
+      console.log('📊 No tabular data found, trying line-by-line parsing...');
+      years = this.parseLineByLineFinancialData(text);
+    }
+    
+    console.log(`📊 Final parsing result: ${years.length} years found`);
+    return years;
+  }
+  
+  /**
+   * Parse tabular financial data (like your slide format)
+   */
+  private parseTabularFinancialData(text: string): YearlyFinancialData[] {
+    console.log('📊 Attempting tabular parsing...');
+    
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const years: YearlyFinancialData[] = [];
+    
+    // Enhanced patterns for various formats
+    const yearPattern = /\b(20\d{2})\b/g;
+    const dollarPattern = /[-]?\$?(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)\s*([MmBbKkTt]?)/g;
+    const numberPattern = /[-]?(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)/g;
+    
+    // Find header line with years
+    let headerLine = '';
+    let yearColumns: number[] = [];
+    let detectedYears: number[] = [];
+    
+    for (const line of lines) {
+      const yearMatches = Array.from(line.matchAll(yearPattern));
+      if (yearMatches.length >= 2) { // Multiple years in one line = header
+        headerLine = line;
+        detectedYears = yearMatches.map(match => parseInt(match[1])).sort();
+        console.log('📊 Found header with years:', detectedYears);
+        
+        // Find column positions of years
+        for (const year of detectedYears) {
+          const yearIndex = line.indexOf(year.toString());
+          if (yearIndex >= 0) {
+            yearColumns.push(yearIndex);
+          }
+        }
+        break;
+      }
+    }
+    
+    if (detectedYears.length === 0) {
+      console.log('📊 No tabular header found');
+      return [];
+    }
+    
+    // Initialize year data structures
+    const yearData: { [year: number]: Partial<YearlyFinancialData> } = {};
+    detectedYears.forEach(year => {
+      yearData[year] = { year, revenue: 0, expenses: 0, profit: 0, loss: 0 };
+    });
+    
+    // Parse data rows
+    for (const line of lines) {
+      if (line === headerLine) continue; // Skip header
+      
+      const lowerLine = line.toLowerCase();
+      console.log('📊 Processing data line:', line);
+      
+      // Extract all financial values from the line
+      const financialMatches = Array.from(line.matchAll(dollarPattern));
+      
+      if (financialMatches.length === 0) {
+        // Try without dollar signs
+        const numberMatches = Array.from(line.matchAll(numberPattern));
+        numberMatches.forEach(match => {
+          financialMatches.push([match[0], match[1], ''] as RegExpMatchArray);
+        });
+      }
+      
+      console.log('📊 Found financial values:', financialMatches.map(m => m[0]));
+      
+      // Determine what type of financial data this line represents
+      let dataType = 'unknown';
+      if (lowerLine.includes('revenue') || lowerLine.includes('sales') || lowerLine.includes('income')) {
+        dataType = 'revenue';
+      } else if (lowerLine.includes('expense') || lowerLine.includes('cost') || lowerLine.includes('operating')) {
+        dataType = 'expenses';
+      } else if (lowerLine.includes('profit') || lowerLine.includes('loss')) {
+        dataType = 'profit';
+      }
+      
+      console.log('📊 Data type detected:', dataType);
+      
+      // Map values to years (assume same order as header)
+      for (let i = 0; i < Math.min(financialMatches.length, detectedYears.length); i++) {
+        const year = detectedYears[i];
+        const match = financialMatches[i];
+        const rawValue = match[1].replace(/,/g, ''); // Remove commas
+        const isNegative = match[0].includes('-');
+        let value = this.parseFinancialValue(rawValue, match[2] || '');
+        
+        if (isNegative) {
+          value = -value;
+        }
+        
+        console.log(`📊 Year ${year}, ${dataType}: ${match[0]} = ${value}M`);
+        
+        if (dataType === 'revenue') {
+          yearData[year].revenue = Math.abs(value); // Revenue should be positive
+        } else if (dataType === 'expenses') {
+          yearData[year].expenses = Math.abs(value); // Expenses should be positive
+        } else if (dataType === 'profit') {
+          if (value >= 0) {
+            yearData[year].profit = value;
+            yearData[year].loss = 0;
+          } else {
+            yearData[year].profit = 0;
+            yearData[year].loss = Math.abs(value);
+          }
+        }
+      }
+    }
+    
+    // Convert to final format and calculate missing values
+    for (const year of detectedYears) {
+      const data = yearData[year];
+      
+      // Calculate profit/loss if not explicitly provided
+      if (data.profit === 0 && data.loss === 0 && data.revenue! > 0) {
+        const netIncome = data.revenue! - data.expenses!;
+        if (netIncome >= 0) {
+          data.profit = netIncome;
+        } else {
+          data.loss = Math.abs(netIncome);
+        }
+      }
+      
+      const finalData: YearlyFinancialData = {
+        year: data.year!,
+        revenue: data.revenue!,
+        expenses: data.expenses!,
+        profit: data.profit!,
+        loss: data.loss!
+      };
+      
+      console.log(`📊 Final data for ${year}:`, finalData);
+      years.push(finalData);
+    }
+    
+    return years.sort((a, b) => a.year - b.year);
+  }
+  
+  /**
+   * Fallback line-by-line parsing for non-tabular formats
+   */
+  private parseLineByLineFinancialData(text: string): YearlyFinancialData[] {
     const years: YearlyFinancialData[] = [];
     const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
-    console.log('📊 Parsing financial text lines:', lines);
+    console.log('📊 Line-by-line parsing...');
     
-    // Look for year patterns (2020, 2021, 2022, etc.)
-    const yearPattern = /\b(20\d{2})\b/g;
-    const dollarPattern = /\$(\d+(?:\.\d+)?)\s*([MmBbKk]?)/g;
+    const yearPattern = /\b(20\d{2})\b/;
+    const dollarPattern = /[-]?\$?(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)\s*([MmBbKkTt]?)/g;
     
     let currentYear: number | null = null;
     let revenue: number | null = null;
@@ -312,23 +469,19 @@ export class PowerPointParser {
       console.log('📊 Processing line:', line);
       
       // Check for year
-      const yearMatch = line.match(/\b(20\d{2})\b/);
+      const yearMatch = line.match(yearPattern);
       if (yearMatch) {
-        console.log('📊 Found year:', yearMatch[1]);
-        // If we have a complete previous year, save it
+        // Save previous year if complete
         if (currentYear !== null && revenue !== null) {
-          const yearData = {
+          years.push({
             year: currentYear,
             revenue: revenue,
             expenses: expenses || 0,
             profit: profit || Math.max(0, revenue - (expenses || 0)),
             loss: loss || Math.max(0, (expenses || 0) - revenue)
-          };
-          console.log('📊 Saving year data:', yearData);
-          years.push(yearData);
+          });
         }
         
-        // Start new year
         currentYear = parseInt(yearMatch[1]);
         revenue = null;
         expenses = null;
@@ -341,42 +494,37 @@ export class PowerPointParser {
       const lowerLine = line.toLowerCase();
       const dollarMatches = Array.from(line.matchAll(dollarPattern));
       
-      console.log('📊 Dollar matches in line:', dollarMatches);
-      
       for (const match of dollarMatches) {
-        const value = this.parseFinancialValue(match[1], match[2]);
-        console.log(`📊 Parsed value: $${match[1]}${match[2]} = ${value}M`);
+        const rawValue = match[1].replace(/,/g, '');
+        const isNegative = match[0].includes('-');
+        let value = this.parseFinancialValue(rawValue, match[2] || '');
+        
+        if (isNegative) value = -value;
         
         if (lowerLine.includes('revenue') || lowerLine.includes('sales') || lowerLine.includes('income')) {
-          revenue = value;
-          console.log('📊 Set revenue:', revenue);
+          revenue = Math.abs(value);
         } else if (lowerLine.includes('expense') || lowerLine.includes('cost') || lowerLine.includes('operating')) {
-          expenses = value;
-          console.log('📊 Set expenses:', expenses);
+          expenses = Math.abs(value);
         } else if (lowerLine.includes('profit') && !lowerLine.includes('loss')) {
-          profit = value;
-          console.log('📊 Set profit:', profit);
-        } else if (lowerLine.includes('loss') && !lowerLine.includes('profit')) {
-          loss = value;
-          console.log('📊 Set loss:', loss);
+          profit = value >= 0 ? value : 0;
+          if (value < 0) loss = Math.abs(value);
+        } else if (lowerLine.includes('loss')) {
+          loss = Math.abs(value);
         }
       }
     }
 
-    // Add final year if complete
+    // Add final year
     if (currentYear !== null && revenue !== null) {
-      const finalYearData = {
+      years.push({
         year: currentYear,
         revenue: revenue,
         expenses: expenses || 0,
         profit: profit || Math.max(0, revenue - (expenses || 0)),
         loss: loss || Math.max(0, (expenses || 0) - revenue)
-      };
-      console.log('📊 Saving final year data:', finalYearData);
-      years.push(finalYearData);
+      });
     }
 
-    console.log(`📊 Parsed ${years.length} years of financial data:`, years);
     return years;
   }
 
