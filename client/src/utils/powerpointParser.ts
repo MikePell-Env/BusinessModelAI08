@@ -161,29 +161,61 @@ export class PowerPointParser {
    */
   private extractTitleFromSlideXML(xmlContent: string): string | null {
     try {
-      // Look for PowerPoint title placeholders and large text elements
-      // PowerPoint titles are often in <p:cSld><p:spTree><p:sp> with specific attributes
+      console.log('🔍 Extracting title from XML...');
       
-      // First, try to find elements with title-specific placeholders
-      const titleMatches = xmlContent.match(/<p:ph[^>]*type="title"[^>]*>[\s\S]*?<\/p:ph>/g);
-      if (titleMatches) {
-        for (const match of titleMatches) {
-          const textContent = this.extractTextFromXMLFragment(match);
-          if (textContent.trim()) {
-            console.log('🔍 Found XML title element:', textContent.trim());
+      // Method 1: Look for title placeholders specifically
+      const titlePlaceholders = xmlContent.match(/<p:ph[^>]*type="title"[^>]*>[\s\S]*?<\/p:ph>/g);
+      if (titlePlaceholders) {
+        console.log('🔍 Found title placeholders:', titlePlaceholders.length);
+        for (const placeholder of titlePlaceholders) {
+          const textContent = this.extractTextFromXMLFragment(placeholder);
+          if (textContent.trim() && textContent.length > 2) {
+            console.log('🔍 Extracted from title placeholder:', textContent.trim());
             return textContent.trim();
           }
         }
       }
       
-      // Fallback: look for the first large text element (likely title)
-      const textRuns = xmlContent.match(/<a:t[^>]*>([^<]+)<\/a:t>/g);
-      if (textRuns && textRuns.length > 0) {
-        const firstText = textRuns[0].replace(/<a:t[^>]*>([^<]+)<\/a:t>/, '$1');
-        const decodedText = this.decodeXMLEntities(firstText);
-        if (decodedText.length > 2 && !decodedText.includes('$')) {
-          console.log('🔍 Found first XML text as title:', decodedText);
-          return decodedText;
+      // Method 2: Look for text runs with large font sizes (titles are usually largest)
+      const textRunsWithContext = xmlContent.match(/<a:r[^>]*>[\s\S]*?<\/a:r>/g);
+      if (textRunsWithContext) {
+        console.log('🔍 Found text runs:', textRunsWithContext.length);
+        
+        for (const run of textRunsWithContext) {
+          // Look for font size indicators - titles typically have larger fonts
+          const hasFontSize = run.match(/sz="(\d+)"/);
+          const fontSize = hasFontSize ? parseInt(hasFontSize[1]) : 0;
+          
+          const textContent = this.extractTextFromXMLFragment(run);
+          if (textContent.trim()) {
+            console.log(`🔍 Text run: "${textContent.trim()}" (font size: ${fontSize})`);
+            
+            // If this is a large font size (titles are usually 44+ in PowerPoint units)
+            if (fontSize > 4000 || (!hasFontSize && textContent.length < 20)) {
+              console.log('🔍 Selected as title based on font size/length:', textContent.trim());
+              return textContent.trim();
+            }
+          }
+        }
+      }
+      
+      // Method 3: Look for the shortest meaningful text (titles are usually concise)
+      const allTextRuns = xmlContent.match(/<a:t[^>]*>([^<]+)<\/a:t>/g);
+      if (allTextRuns && allTextRuns.length > 0) {
+        console.log('🔍 All text runs found:', allTextRuns.length);
+        
+        const texts = allTextRuns
+          .map(match => this.decodeXMLEntities(match.replace(/<a:t[^>]*>([^<]+)<\/a:t>/, '$1')))
+          .filter(text => text.trim().length > 2 && text.trim().length < 30) // Titles are usually short
+          .filter(text => !text.includes('$') && !text.includes(',000')) // Not financial data
+          .filter(text => !/\d{4}/.test(text)); // Not years
+        
+        if (texts.length > 0) {
+          const shortestText = texts.reduce((shortest, current) => 
+            current.length < shortest.length ? current : shortest
+          );
+          console.log('🔍 Selected shortest meaningful text as title:', shortestText);
+          return shortestText.trim();
         }
       }
       
