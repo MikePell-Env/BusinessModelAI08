@@ -64,6 +64,22 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           // This is exactly what PowerPointImporter does when clicked
           const canvas = await powerpointParser.parseFile(pendingPowerPointFile);
           loadCanvas(canvas, true); // Same as PowerPointImporter
+          
+          // 🚨 AUTO-SWITCH: Check if PowerPoint contains financial data and auto-switch to Financials template
+          const canvasWithFinancials = canvas as any;
+          if (canvasWithFinancials.incomeStatementData) {
+            console.log('🚨 AUTO-SWITCH: Financial data detected in PowerPoint - switching to Financials template!');
+            console.log('🚨 AUTO-SWITCH: Financial years found:', canvasWithFinancials.incomeStatementData.years?.map((y: any) => `${y.year}: $${y.revenue}M`));
+            console.log('🚨 AUTO-SWITCH: Will use year index:', canvasWithFinancials.incomeStatementData.currentYearIndex);
+            console.log('🚨 AUTO-SWITCH: Selected year will be:', canvasWithFinancials.incomeStatementData.years?.[canvasWithFinancials.incomeStatementData.currentYearIndex]?.year);
+            
+            // Auto-switch to Financials template with a small delay to ensure canvas is loaded
+            setTimeout(() => {
+              console.log('🚨 AUTO-SWITCH: Executing switchToFinancials()');
+              switchToFinancials();
+            }, 500);
+          }
+          
           setPendingPowerPointFile(null); // Clear the pending file
         } catch (error) {
           console.error('PowerPoint processing error:', error);
