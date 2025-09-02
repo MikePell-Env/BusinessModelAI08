@@ -366,21 +366,12 @@ export class FinancialsHeightManager {
    * Uses corrected direct mapping logic
    */
   public setImmediateHeights(data: FinancialData): void {
-    // CRITICAL DEBUG: Capture exact initial values before any processing
-    console.log(`🚨 STOP RENDERING - EXAMINING INITIAL VALUES:`);
-    console.log(`🚨 Raw input data:`, data);
-    console.log(`🚨 data.revenue = ${data.revenue} (should be 1000 for $10M Current year)`);
-    console.log(`🚨 data.expenses = ${data.expenses} (should be 800 for $8M Current year)`);
+    // APPLIED: Use actual PowerPoint data for rendering  
+    console.log(`🚨 APPLYING POWERPOINT DATA:`, data);
+    console.log(`🚨 Revenue = ${data.revenue} (${data.revenue * 10 / 1000}M) → Height=${data.revenue/500.0} units`);
+    console.log(`🚨 Expenses = ${data.expenses} (${data.expenses * 10 / 1000}M) → Height=${data.expenses/500.0} units`);
     
-    // TEMPORARILY HALT RENDERING TO EXAMINE VALUES
-    console.log(`🚨 HALTING RENDERING - Check these values before proceeding`);
-    return; // STOP HERE - Don't render anything yet
-    
-    // ISOLATED SYSTEM: Track previous values to prevent unwanted changes
-    if (!this.previousData) {
-      this.previousData = { revenue: 1000, expenses: 800, profit: 200, loss: 0 };
-    }
-    
+    // Apply PowerPoint data immediately without delays or overrides
     const revenue = Math.max(data.revenue, 0.1);
     const expenses = Math.max(data.expenses, 0.1);
     
@@ -390,16 +381,21 @@ export class FinancialsHeightManager {
     
     const HEIGHT_SCALE = 500.0;
     
-    // Calculate heights EXACTLY like Expenses Group logic
-    // Revenue Group: Revenue object = slider value, RevenuePL object = loss amount
-    // SAME PATTERN as Expenses Group: Expenses object = slider value, ExpensesPL object = profit amount
-    const revenueHeight = revenue / HEIGHT_SCALE;  // Revenue object: direct slider value
-    const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
+    // Calculate heights from actual PowerPoint data
+    const revenueHeight = revenue / HEIGHT_SCALE;    // Revenue object: PowerPoint revenue data
+    const revenuePLHeight = loss / HEIGHT_SCALE;     // RevenuePL object: loss amount (should be 0 for 2026)
+    const expensesHeight = expenses / HEIGHT_SCALE;  // Expenses object: PowerPoint expenses data  
+    const expensesPLHeight = profit / HEIGHT_SCALE;  // ExpensesPL object: profit amount
     
-    // Expenses Group: Expenses = actual value, ExpensesPL = profit
-    const expensesHeight = expenses / HEIGHT_SCALE;
-    const expensesPLHeight = profit / HEIGHT_SCALE;
-    // UNREACHABLE CODE REMOVED - debugging return statement above prevents execution
+    console.log(`🚨 CALCULATED HEIGHTS: Revenue=${revenueHeight}, Expenses=${expensesHeight}, Profit=${expensesPLHeight}, Loss=${revenuePLHeight}`);
+    
+    // Apply heights immediately using vertex manipulation
+    this.setObjectHeight('Revenue', revenueHeight, 'bottom');
+    this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');  
+    this.setObjectHeight('Expenses', expensesHeight, 'bottom');
+    this.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
+    
+    console.log(`✅ POWERPOINT DATA APPLIED: 2026 financial heights set from actual data`);
   }
 
   /**
