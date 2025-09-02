@@ -511,13 +511,24 @@ export class FinancialsHeightManager {
     const originalPos = this.originalPositions.get(objectName);
     if (!originalPos) return;
 
-    // Use vertex manipulation but keep mesh position FIXED at original position
+    // Use vertex manipulation but apply same positioning logic as animateObjectHeight
     // Pass height directly as absolute target height (no conversion needed)
     this.setMeshHeightByVertices(mesh, height, anchorType);
 
-    // CRITICAL: Keep mesh position at original loaded position - no movement
+    // Apply positioning logic for top-anchored objects (same as animateObjectHeight)
+    let targetPositionY = originalPos.y;
+    if (anchorType === 'top' && objectName === 'ExpensesPL') {
+      // EXACT SAME LOGIC as animateObjectHeight: Use the 0.3 positioning factor
+      const expensesMesh = this.financialMeshes.get('Expenses');
+      if (expensesMesh) {
+        const positioningFactor = 0.3;
+        targetPositionY = 0 + (expensesMesh.scaling.y * positioningFactor);
+      }
+    }
+
+    // Keep original X/Z but apply calculated Y position
     mesh.position.x = originalPos.x;
-    mesh.position.y = originalPos.y; 
+    mesh.position.y = targetPositionY; 
     mesh.position.z = originalPos.z;
 
     // Label is part of material - no separate update needed
