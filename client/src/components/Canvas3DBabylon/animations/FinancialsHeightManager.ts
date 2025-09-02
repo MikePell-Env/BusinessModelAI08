@@ -371,34 +371,21 @@ export class FinancialsHeightManager {
   public setImmediateHeights(data: FinancialData): void {
     console.log(`🔥 SETIMMEDIATEHEIGHTS CALLED - PowerPoint data path`);
     console.log(`🔥 Input data:`, data);
-    console.log(`🔥 Revenue = ${data.revenue} (${data.revenue * 10 / 1000}M) → Height=${data.revenue/500.0} units`);
-    console.log(`🔥 Expenses = ${data.expenses} (${data.expenses * 10 / 1000}M) → Height=${data.expenses/500.0} units`);
+    console.log(`🔥 Revenue = ${data.revenue}, Expenses = ${data.expenses}, Profit = ${data.profit}, Loss = ${data.loss}`);
     
-    // Apply PowerPoint data immediately without delays or overrides
-    const revenue = Math.max(data.revenue, 0.1);
-    const expenses = Math.max(data.expenses, 0.1);
+    // FIXED: Use proportional heights for equal group totals
+    const heights = this.calculateProportionalHeights(data);
     
-    // Calculate profit/loss for display
-    const profit = Math.max(0, revenue - expenses);
-    const loss = Math.max(0, expenses - revenue);
+    console.log(`🔥 PROPORTIONAL HEIGHTS: Revenue=${heights.revenue}, RevenuePL=${heights.revenuePL}, Expenses=${heights.expenses}, ExpensesPL=${heights.expensesPL}`);
+    console.log(`🔥 GROUP TOTALS: Revenue Group = ${heights.revenue + heights.revenuePL}, Expenses Group = ${heights.expenses + heights.expensesPL}`);
     
-    const HEIGHT_SCALE = 500.0;
+    // Apply proportional heights immediately using vertex manipulation
+    this.setObjectHeight('Revenue', heights.revenue, 'bottom');
+    this.setObjectHeight('RevenuePL', heights.revenuePL, 'top');  
+    this.setObjectHeight('Expenses', heights.expenses, 'bottom');
+    this.setObjectHeight('ExpensesPL', heights.expensesPL, 'top');
     
-    // Calculate heights from actual PowerPoint data
-    const revenueHeight = revenue / HEIGHT_SCALE;    // Revenue object: PowerPoint revenue data
-    const revenuePLHeight = loss / HEIGHT_SCALE;     // RevenuePL object: loss amount (should be 0 for 2026)
-    const expensesHeight = expenses / HEIGHT_SCALE;  // Expenses object: PowerPoint expenses data  
-    const expensesPLHeight = profit / HEIGHT_SCALE;  // ExpensesPL object: profit amount
-    
-    console.log(`🔥 FINAL HEIGHTS: Revenue=${revenueHeight} (${revenueHeight*500}→$${revenueHeight*5}M), Expenses=${expensesHeight} (${expensesHeight*500}→$${expensesHeight*5}M), Profit=${expensesPLHeight}, Loss=${revenuePLHeight}`);
-    
-    // Apply heights immediately using vertex manipulation
-    this.setObjectHeight('Revenue', revenueHeight, 'bottom');
-    this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');  
-    this.setObjectHeight('Expenses', expensesHeight, 'bottom');
-    this.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
-    
-    console.log(`✅ SETIMMEDIATEHEIGHTS COMPLETE: All objects updated`);
+    console.log(`✅ SETIMMEDIATEHEIGHTS COMPLETE: Equal group heights with proper proportions`);
   }
 
   /**
