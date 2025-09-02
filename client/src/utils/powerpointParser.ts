@@ -247,7 +247,7 @@ export class PowerPointParser {
    */
   private async extractFinancialsData(zip: JSZip, slides: SlideContent[]): Promise<IncomeStatementData | null> {
     // Look for slide with "Financials" in title
-    const financialsSlide = slides.find(slide => 
+    let financialsSlide = slides.find(slide => 
       slide.title.toLowerCase().includes('financial') || 
       slide.title.toLowerCase().includes('income') ||
       slide.title.toLowerCase().includes('statement')
@@ -256,7 +256,24 @@ export class PowerPointParser {
     if (!financialsSlide) {
       console.log('📊 No Financials slide found');
       console.log('📊 Available slides:', slides.map(s => s.title));
-      return null;
+      console.log('📊 Available slides (detailed):', slides.map(s => ({ index: s.index, title: s.title, contentLength: s.content.length })));
+      
+      // Try broader search
+      const alternativeSlide = slides.find(slide => 
+        slide.content.toLowerCase().includes('revenue') || 
+        slide.content.toLowerCase().includes('expense') ||
+        slide.content.toLowerCase().includes('2025') ||
+        slide.content.toLowerCase().includes('profit')
+      );
+      
+      if (alternativeSlide) {
+        console.log('📊 Found alternative financial slide:', alternativeSlide.title);
+        console.log('📊 Alternative slide content:', alternativeSlide.content);
+        // Use this slide instead
+        financialsSlide = alternativeSlide;
+      } else {
+        return null;
+      }
     }
 
     console.log(`📊 Found Financials slide: "${financialsSlide.title}"`);
@@ -264,6 +281,9 @@ export class PowerPointParser {
     console.log('📊 Full slide content:', JSON.stringify(financialsSlide.content));
     
     try {
+      // Create an immediate alert for debugging
+      alert(`📊 DEBUG: Found slide "${financialsSlide.title}" with ${financialsSlide.content.length} characters. Content: ${financialsSlide.content.substring(0, 200)}...`);
+      
       // Simple test: look for basic patterns in the slide content
       console.log('📊 DEBUGGING - Basic pattern tests:');
       console.log('📊 Contains "2025":', financialsSlide.content.includes('2025'));
