@@ -232,8 +232,21 @@ export const AIChat: React.FC = () => {
   }, [isProcessing]);
 
   const handleVoiceInput = () => {
-    // Voice recognition disabled - not compatible with this environment
-    alert('Voice recognition is not available in this environment. Please type your message instead.');
+    if (!recognition) {
+      return;
+    }
+    
+    if (isListening) {
+      recognition.stop();
+      return;
+    }
+    
+    try {
+      recognition.start();
+    } catch (error) {
+      console.error('Failed to start voice recognition:', error);
+      setIsListening(false);
+    }
   };
 
   const handleSendMessage = async (messageToSend?: string) => {
@@ -639,12 +652,19 @@ export const AIChat: React.FC = () => {
                 />
                 <button
                   onClick={handleVoiceInput}
-                  className="absolute right-10 top-1/2 transform -translate-y-1/2 p-1 rounded transition-colors opacity-50 cursor-not-allowed"
+                  className={`absolute right-10 top-1/2 transform -translate-y-1/2 p-1 rounded transition-colors ${
+                    isListening 
+                      ? 'bg-red-100 hover:bg-red-200 text-red-600' 
+                      : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+                  }`}
                   type="button"
-                  title="Voice input not available in this environment"
-                  disabled
+                  title={isListening ? 'Stop listening' : 'Start voice input'}
                 >
-                  <Mic className="h-4 w-4 text-gray-300" />
+                  {isListening ? (
+                    <MicOff className="h-4 w-4 animate-pulse" />
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
                 </button>
                 <button
                   onClick={() => {
