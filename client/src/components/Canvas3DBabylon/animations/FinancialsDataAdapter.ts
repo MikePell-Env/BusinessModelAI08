@@ -70,46 +70,47 @@ export class FinancialsDataAdapter {
 
   /**
    * Load Income Statement data from PowerPoint parsing
+   * SIMPLIFIED: Find 2026 data and set immediately with correct values
    */
   public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
     this.incomeStatementData = incomeStatement;
-    console.log(`🚨 LOAD POWERPOINT DATA: ${incomeStatement.years.length} years available`);
-    console.log(`🚨 LOAD POWERPOINT DATA: Server currentYearIndex = ${incomeStatement.currentYearIndex}`);
-    console.log(`🚨 LOAD POWERPOINT DATA: All years:`, incomeStatement.years.map(y => `${y.year}: Rev=${y.revenue}, Exp=${y.expenses}`));
     
-    // DEBUG: Check exact current year data
-    const currentYear = incomeStatement.years[incomeStatement.currentYearIndex];
-    console.log(`🚨 CURRENT YEAR DATA: ${currentYear.year} - Revenue=${currentYear.revenue}, Expenses=${currentYear.expenses}, Profit=${currentYear.profit}`);
-    console.log(`🚨 EXPECTED FOR 2026: Revenue=1000 ($10M), Expenses=800 ($8M), Heights should be 2.0 vs 1.6`);
+    console.log(`🔥 POWERPOINT DATA LOADED:`, {
+      totalYears: incomeStatement.years.length,
+      serverIndex: incomeStatement.currentYearIndex,
+      allYears: incomeStatement.years.map(y => `${y.year}: $${y.revenue}M/$${y.expenses}M`)
+    });
     
-    // FORCE 2026 CURRENT YEAR: Override any incorrect index to ensure 2026 initial state
-    if (incomeStatement.years.length > 0) {
-      // Find 2026 year specifically, don't trust the server index
-      let correctedIndex = incomeStatement.years.findIndex(y => y.year === 2026);
-      if (correctedIndex === -1) {
-        console.log('❌ ERROR: No 2026 year found in data!');
-        correctedIndex = 1; // Fallback to index 1
-      }
-      
-      const currentYear = incomeStatement.years[correctedIndex];
-      
-      console.log(`🔧 FORCE 2026: Overriding index ${incomeStatement.currentYearIndex} → ${correctedIndex} for year ${currentYear.year}`);
-      console.log(`🚨 FORCED 2026 VALUES: Revenue=$${currentYear.revenue}M, Expenses=$${currentYear.expenses}M, Profit=$${currentYear.profit}M, Loss=$${currentYear.loss}M`);
-      
-      // Update the stored index to the corrected one
-      this.incomeStatementData.currentYearIndex = correctedIndex;
-      
-      const businessData: FinancialBusinessData = {
-        totalRevenue: currentYear.revenue,
-        totalExpenses: currentYear.expenses,
-        netProfit: currentYear.profit,
-        netLoss: currentYear.loss,
-        incomeStatement: this.incomeStatementData
-      };
-      
-      // FORCE immediate rendering to prevent any animation delays
-      this.updateFromBusinessData(businessData, false);
+    // FIND 2026 DATA (should be Revenue=1000, Expenses=800, Profit=200, Loss=0)
+    const year2026Index = incomeStatement.years.findIndex(y => y.year === 2026);
+    
+    if (year2026Index === -1) {
+      console.error('🔥 ERROR: No 2026 year found in PowerPoint data!');
+      return;
     }
+    
+    // FORCE SET 2026 AS CURRENT
+    this.incomeStatementData.currentYearIndex = year2026Index;
+    const year2026 = incomeStatement.years[year2026Index];
+    
+    console.log(`🔥 SETTING 2026 AS CURRENT:`, {
+      year: year2026.year,
+      revenue: year2026.revenue,  // Should be 1000 ($10M)
+      expenses: year2026.expenses, // Should be 800 ($8M)  
+      profit: year2026.profit,    // Should be 200 ($2M)
+      loss: year2026.loss         // Should be 0
+    });
+    
+    // SET INITIAL STATE IMMEDIATELY (no animation)
+    const businessData: FinancialBusinessData = {
+      totalRevenue: year2026.revenue,
+      totalExpenses: year2026.expenses,
+      netProfit: year2026.profit,
+      netLoss: year2026.loss,
+      incomeStatement: this.incomeStatementData
+    };
+    
+    this.updateFromBusinessData(businessData, false); // No animation for initial load
   }
 
   /**
@@ -160,35 +161,29 @@ export class FinancialsDataAdapter {
 
   /**
    * Transform business data into visualization format
-   * BUSINESS LOGIC CENTRALIZED: Only pass revenue/expenses, let FinancialsHeightManager calculate profit/loss
+   * SIMPLIFIED: Direct pass-through of PowerPoint data to height manager
    */
   private transformBusinessData(data: FinancialBusinessData): FinancialData {
-    console.log(`🚨 TRANSFORM INPUT: Raw data.totalRevenue=${data.totalRevenue} (should be 1000 for 2026)`);
-    console.log(`🚨 TRANSFORM INPUT: Raw data.totalExpenses=${data.totalExpenses} (should be 800 for 2026)`);
-    console.log(`🚨 TRANSFORM INPUT: Raw data.netProfit=${data.netProfit} (should be 200 for 2026)`);
-    console.log(`🚨 TRANSFORM INPUT: Raw data.netLoss=${data.netLoss} (should be 0 for 2026)`);
+    console.log(`🔥 SIMPLIFIED TRANSFORM - Input:`, {
+      revenue: data.totalRevenue,
+      expenses: data.totalExpenses, 
+      profit: data.netProfit,
+      loss: data.netLoss
+    });
     
-    // FIXED: Don't cap the values when they're already in correct scale
-    // Server sends: 1000 = $10M, 800 = $8M (already scaled correctly)
-    const revenue = data.totalRevenue;  // Keep exact value from PowerPoint
-    const expenses = data.totalExpenses;  // Keep exact value from PowerPoint
-    
-    console.log(`🚨 TRANSFORM OUTPUT: Revenue=${revenue} → Height=${revenue/500.0} units`);
-    console.log(`🚨 TRANSFORM OUTPUT: Expenses=${expenses} → Height=${expenses/500.0} units`);
-    console.log(`🚨 EXPECTED HEIGHTS: Revenue=2.0 units (tallest), Expenses=1.6 units (shorter)`);
-    
-    if (revenue === 1000 && expenses === 800) {
-      console.log(`✅ CORRECT 2026 DATA: Revenue=$10M, Expenses=$8M detected`);
-    } else {
-      console.log(`❌ UNEXPECTED DATA: Revenue=${revenue}, Expenses=${expenses} (not 2026 values)`);
-    }
-    
-    return {
-      revenue: revenue,   // Use exact PowerPoint values 
-      expenses: expenses, // Use exact PowerPoint values
-      profit: data.netProfit,   // Use actual PowerPoint profit data
-      loss: data.netLoss        // Use actual PowerPoint loss data
+    // RULE: PowerPoint sends exact values that height manager needs
+    // Revenue=1000 ($10M), Expenses=800 ($8M), Profit=200 ($2M), Loss=0
+    const result = {
+      revenue: data.totalRevenue,   // Direct pass-through
+      expenses: data.totalExpenses, // Direct pass-through  
+      profit: data.netProfit,       // Direct pass-through
+      loss: data.netLoss           // Direct pass-through
     };
+    
+    console.log(`🔥 SIMPLIFIED TRANSFORM - Output:`, result);
+    console.log(`🔥 Expected for 2026: Revenue=1000, Expenses=800, Profit=200, Loss=0`);
+    
+    return result;
   }
 
 }

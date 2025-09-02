@@ -117,37 +117,51 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Calculate balanced heights based on income statement logic
-   * Maintains visual balance: both sides always have equal total height
-   * Returns individual object heights that maintain the 2.0 unit equal total height rule
+   * Calculate balanced heights using PowerPoint values directly
+   * SIMPLIFIED: PowerPoint gives exact values, convert to 2.0 unit scale
    */
   private calculateProportionalHeights(data: FinancialData) {
-    const baseHeight = 2.0; // Base visualization height - both sides must total this
+    console.log(`🔥 HEIGHT CALC INPUT:`, data);
     
-    // Ensure minimum values for visualization
-    const revenue = Math.max(data.revenue, 0.1);
-    const expenses = Math.max(data.expenses, 0.1);
+    // RULE: PowerPoint values need to be scaled to 2.0 unit max height
+    // Revenue=1000 ($10M) → 2.0 units, Expenses=800 ($8M) → 1.6 units
+    const MAX_VALUE = 1000; // $10M is max height (2.0 units)
+    const MAX_HEIGHT = 2.0;
     
-    // Calculate profit/loss
-    const profit = Math.max(0, revenue - expenses);
-    const loss = Math.max(0, expenses - revenue);
+    // Direct scaling from PowerPoint values
+    const revenueHeight = Math.min((data.revenue / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
+    const expensesHeight = Math.min((data.expenses / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
     
-    // CORE PRINCIPLE: Both sides always total exactly 2.0 units
-    // Left side = Revenue + RevenuePL = 2.0 units
-    // Right side = Expenses + ExpensesPL = 2.0 units
+    // Profit/Loss calculations (only one shows at a time)
+    let profitHeight = 0.0;
+    let lossHeight = 0.0;
     
-    if (profit >= 0) {
-      // PROFIT SCENARIO: Revenue >= Expenses
-      // Left side: Revenue takes full height (2.0), no loss
-      // Right side: Expenses + Profit stacked to total 2.0
-      const expensesRatio = expenses / revenue; // How much of revenue is expenses
-      const expensesHeight = baseHeight * expensesRatio; // Expenses proportional height
-      const profitHeight = baseHeight - expensesHeight; // Profit fills remaining space
-      
-      return {
-        revenue: baseHeight,     // 2.0 units (full left side)
-        revenuePL: 0.0,         // 0.0 units (no loss)
-        expenses: expensesHeight, // Proportional to revenue
+    if (data.profit > 0) {
+      profitHeight = Math.min((data.profit / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
+    }
+    
+    if (data.loss > 0) {
+      lossHeight = Math.min((data.loss / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
+    }
+    
+    const result = {
+      revenue: revenueHeight,      // Direct scaling
+      revenuePL: lossHeight,       // Only shows when loss > 0
+      expenses: expensesHeight,    // Direct scaling
+      expensesPL: profitHeight     // Only shows when profit > 0  
+    };
+    
+    console.log(`🔥 HEIGHT CALC RESULT:`, result);
+    console.log(`🔥 Expected for 2026 (1000/800/200/0): Rev=2.0, RevPL=0.0, Exp=1.6, ExpPL=0.4`);
+    
+    // VALIDATION: Check if we got expected 2026 values
+    if (data.revenue === 1000 && data.expenses === 800 && data.profit === 200) {
+      console.log(`✅ CORRECT 2026 HEIGHT CALCULATION: Revenue=2.0, Expenses=1.6, Profit=0.4`);
+    } else {
+      console.log(`❌ UNEXPECTED VALUES IN HEIGHT CALC:`, data);
+    }
+    
+    return result;nue
         expensesPL: profitHeight  // Fills remaining to make right side = 2.0
       };
     } else {

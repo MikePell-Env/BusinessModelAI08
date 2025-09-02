@@ -512,31 +512,34 @@ export class PowerPointParser {
       console.log(`🚨 EXAMINING YEAR SELECTION:`);
       console.log(`🚨 All parsed years:`, years.map(y => `${y.year}: Revenue=$${y.revenue}M, Expenses=$${y.expenses}M`));
       
-      // Default to 2026 as "Current" year (Past=2025, Current=2026, Future=2027)
-      let currentYearIndex = years.findIndex(year => year.year === 2026);
+      // SIMPLIFIED: Force consistent data scaling and 2026 selection
+      console.log(`🔥 POWERPOINT PARSER - Raw years:`, years.map(y => `${y.year}: $${y.revenue}M/$${y.expenses}M`));
       
-      // If 2026 is not found, look for the year with expected 2026 values (Revenue=10, Expenses=8)
-      if (currentYearIndex === -1) {
-        console.log(`🚨 WARNING: 2026 not found by year, searching by expected values...`);
-        currentYearIndex = years.findIndex(year => year.revenue === 10 && year.expenses === 8);
-        if (currentYearIndex >= 0) {
-          console.log(`🚨 Found 2026 data at index ${currentYearIndex} (year ${years[currentYearIndex].year})`);
-          // Update the year to 2026 if we found the right data
-          years[currentYearIndex].year = 2026;
-        }
-      }
+      // Ensure all values are in correct scale (multiply by 100 for visualization system)
+      // PowerPoint: $10M → 1000, $8M → 800, $2M → 200
+      years = years.map(year => ({
+        ...year,
+        revenue: year.revenue * 100,   // Scale up for height calculation
+        expenses: year.expenses * 100, // Scale up for height calculation  
+        profit: year.profit * 100,     // Scale up for height calculation
+        loss: year.loss * 100          // Scale up for height calculation
+      }));
       
-      const defaultIndex = currentYearIndex >= 0 ? currentYearIndex : Math.floor(years.length / 2);
+      console.log(`🔥 POWERPOINT PARSER - Scaled years:`, years.map(y => `${y.year}: Rev=${y.revenue}, Exp=${y.expenses}, P=${y.profit}, L=${y.loss}`));
+      
+      // FORCE 2026 as default (Present year)
+      const year2026Index = years.findIndex(year => year.year === 2026);
+      const defaultIndex = year2026Index >= 0 ? year2026Index : 1; // Fallback to index 1
       
       const selectedYear = years[defaultIndex];
-      console.log(`🚨 currentYearIndex for 2026: ${currentYearIndex}`);
-      console.log(`🚨 defaultIndex chosen: ${defaultIndex}`);
-      console.log(`🚨 Selected year: ${selectedYear?.year} with Revenue=$${selectedYear?.revenue}M, Expenses=$${selectedYear?.expenses}M`);
-      
-      if (selectedYear && (selectedYear.revenue !== 10 || selectedYear.expenses !== 8)) {
-        console.log(`🚨 ERROR: Selected year has wrong values! Expected Revenue=10, Expenses=8 for 2026 Current`);
-        console.log(`🚨 Available years for debugging:`, years);
-      }
+      console.log(`🔥 SELECTED DEFAULT YEAR:`, {
+        index: defaultIndex,
+        year: selectedYear?.year,
+        revenue: selectedYear?.revenue,  // Should be 1000
+        expenses: selectedYear?.expenses, // Should be 800
+        profit: selectedYear?.profit,    // Should be 200  
+        loss: selectedYear?.loss         // Should be 0
+      });
       
       return {
         years: years,
