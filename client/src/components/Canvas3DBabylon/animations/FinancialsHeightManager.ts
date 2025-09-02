@@ -443,6 +443,16 @@ export class FinancialsHeightManager {
    * Uses corrected direct mapping logic
    */
   public setImmediateHeights(data: FinancialData): void {
+    // CRITICAL DEBUG: Capture exact initial values before any processing
+    console.log(`🚨 STOP RENDERING - EXAMINING INITIAL VALUES:`);
+    console.log(`🚨 Raw input data:`, data);
+    console.log(`🚨 data.revenue = ${data.revenue} (should be 1000 for $10M Current year)`);
+    console.log(`🚨 data.expenses = ${data.expenses} (should be 800 for $8M Current year)`);
+    
+    // TEMPORARILY HALT RENDERING TO EXAMINE VALUES
+    console.log(`🚨 HALTING RENDERING - Check these values before proceeding`);
+    return; // STOP HERE - Don't render anything yet
+    
     // ISOLATED SYSTEM: Track previous values to prevent unwanted changes
     if (!this.previousData) {
       this.previousData = { revenue: 1000, expenses: 800, profit: 200, loss: 0 };
@@ -466,34 +476,7 @@ export class FinancialsHeightManager {
     // Expenses Group: Expenses = actual value, ExpensesPL = profit
     const expensesHeight = expenses / HEIGHT_SCALE;
     const expensesPLHeight = profit / HEIGHT_SCALE;
-    
-    console.log(`🔧 INITIALIZATION HEIGHT DEBUG:`);
-    console.log(`🔧 Input: Revenue=${revenue}, Expenses=${expenses}, Profit=${profit}, Loss=${loss}`);
-    console.log(`🔧 Heights: Revenue=${revenueHeight} units, Expenses=${expensesHeight} units`);
-    console.log(`🔧 Heights: ExpensesPL=${expensesPLHeight} units, RevenuePL=${revenuePLHeight} units`);
-    
-
-    // FORCE INITIAL SETUP: Always set heights on first call (initialization)
-    const isInitialization = this.previousData.revenue === 1000 && this.previousData.expenses === 800;
-    
-    if (this.previousData.revenue !== revenue || isInitialization) {
-      this.setObjectHeight('Revenue', revenueHeight, 'bottom');
-    }
-    
-    if (this.previousData.loss !== loss || isInitialization) {
-      this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');
-    }
-    
-    if (this.previousData.expenses !== expenses || isInitialization) {
-      this.setObjectHeight('Expenses', expensesHeight, 'bottom');
-    }
-    
-    if (this.previousData.profit !== profit || isInitialization) {
-      this.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
-    }
-    
-    // Update previous data for next comparison
-    this.previousData = { revenue, expenses, profit, loss };
+    // UNREACHABLE CODE REMOVED - debugging return statement above prevents execution
   }
 
   /**
