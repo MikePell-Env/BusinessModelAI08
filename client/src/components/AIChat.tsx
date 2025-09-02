@@ -19,7 +19,6 @@ export const AIChat: React.FC = () => {
     isChatOpen,
     canvas,
     is3D,
-    isOrthographic,
     addChatMessage,
     toggleChat,
     updateCanvas,
