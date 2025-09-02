@@ -49,7 +49,11 @@ export class PowerPointParser {
       console.log(`🔍 Found ${slides.length} slides total`);
       slides.forEach((slide, i) => {
         console.log(`🔍 Slide ${i+1}: Title="${slide.title}" Content=${slide.content.length}chars`);
-        console.log(`🔍 Slide ${i+1} content preview:`, slide.content.substring(0, 100));
+        console.log(`🔍 Slide ${i+1} content preview:`, slide.content.substring(0, 200));
+        
+        // Check if this slide contains financial patterns
+        const hasFinancialData = slide.content.includes('2025') && slide.content.includes('Revenue') && slide.content.includes('$');
+        console.log(`🔍 Slide ${i+1} has financial patterns:`, hasFinancialData);
       });
       console.log('🔍 Looking for slides containing: "financial", "income", "statement", "projections", "funding", "forecast"');
       console.log('🔍 ================================');
@@ -389,21 +393,43 @@ export class PowerPointParser {
       console.log('📊 Available slides:', slides.map(s => s.title));
       console.log('📊 Available slides (detailed):', slides.map(s => ({ index: s.index, title: s.title, contentLength: s.content.length })));
       
-      // Try broader search
-      const alternativeSlide = slides.find(slide => 
-        slide.content.toLowerCase().includes('revenue') || 
-        slide.content.toLowerCase().includes('expense') ||
-        slide.content.toLowerCase().includes('2025') ||
-        slide.content.toLowerCase().includes('profit')
-      );
+      // Try broader search - look for slides with financial data regardless of title
+      console.log('📊 Searching for slides with financial content...');
+      const alternativeSlide = slides.find(slide => {
+        const content = slide.content.toLowerCase();
+        const hasRevenue = content.includes('revenue');
+        const hasExpenses = content.includes('expense');
+        const hasYear = content.includes('2025') || content.includes('2026') || content.includes('2027');
+        const hasDollar = content.includes('$') || content.includes('million');
+        
+        console.log(`📊 Slide "${slide.title}": revenue=${hasRevenue}, expenses=${hasExpenses}, year=${hasYear}, dollar=${hasDollar}`);
+        
+        return hasRevenue && hasYear && hasDollar;
+      });
       
       if (alternativeSlide) {
         console.log('📊 Found alternative financial slide:', alternativeSlide.title);
-        console.log('📊 Alternative slide content:', alternativeSlide.content);
-        // Use this slide instead
+        console.log('📊 Alternative slide content (first 500 chars):', alternativeSlide.content.substring(0, 500));
         financialsSlide = alternativeSlide;
       } else {
-        return null;
+        console.log('📊 No slides found with financial content patterns');
+        
+        // Last resort: try any slide with tabular-looking data
+        const tabularSlide = slides.find(slide => {
+          const content = slide.content;
+          const hasNumbers = (content.match(/\d+/g) || []).length > 10;
+          const hasCommas = (content.match(/,/g) || []).length > 5;
+          console.log(`📊 Slide "${slide.title}": numbers=${hasNumbers}, commas=${hasCommas}`);
+          return hasNumbers && hasCommas;
+        });
+        
+        if (tabularSlide) {
+          console.log('📊 Found tabular slide as last resort:', tabularSlide.title);
+          financialsSlide = tabularSlide;
+        } else {
+          console.log('📊 No financial slides found at all');
+          return null;
+        }
       }
     }
 
