@@ -66,7 +66,7 @@ export class SimpleClickHandler {
     }
     
     const mappedName = this.meshToSectionName.get(mesh) || mesh.name;
-    console.log(`🎯 Registered mesh for interaction: ${mesh.name} -> ${mappedName}`);
+    // Mesh registered - performance: logging disabled
   }
 
   /**
@@ -117,21 +117,21 @@ export class SimpleClickHandler {
    */
   private handlePointerPick(pointerInfo: any): void {
     const pickInfo = pointerInfo.pickInfo;
-    console.log(`🔍 SimpleClickHandler: PointerPick detected - hit: ${pickInfo.hit}, mesh: ${pickInfo.pickedMesh?.name || 'none'}`);
+    // Pointer pick detected - performance: logging disabled
     
     if (pickInfo.hit && pickInfo.pickedMesh) {
       const mesh = pickInfo.pickedMesh;
-      console.log(`🔍 SimpleClickHandler: Mesh picked: ${mesh.name}, registered: ${this.meshRegistry.has(mesh)}`);
+      // Mesh picked - performance: logging disabled
       
       // Only handle registered meshes
       if (this.meshRegistry.has(mesh)) {
         this.handleMeshClick(mesh, pickInfo.pickedPoint);
       } else {
-        console.log(`⚠️ SimpleClickHandler: Mesh ${mesh.name} not in registry`);
+        // Mesh not in registry - performance: logging disabled
       }
     } else {
       // Background click
-      console.log(`🔍 SimpleClickHandler: Background click detected`);
+      // Background click detected - performance: logging disabled
       this.handleBackgroundClick();
     }
   }
@@ -144,7 +144,7 @@ export class SimpleClickHandler {
     const timeSinceLastClick = currentTime - this.lastClickTime;
     const sectionName = this.meshToSectionName.get(mesh) || mesh.name;
     
-    console.log(`🖱️ Click on ${mesh.name} (${sectionName}), time since last: ${timeSinceLastClick}ms`);
+    // Click detected - performance: logging disabled
 
     // CRITICAL DEBUG: Special handling for Cost Structure
     if (sectionName === "Cost Structure") {

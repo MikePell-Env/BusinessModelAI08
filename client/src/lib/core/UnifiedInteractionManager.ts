@@ -140,7 +140,7 @@ export class UnifiedInteractionManager {
       
       if (deltaX > this.dragThreshold || deltaY > this.dragThreshold) {
         this.isDragging = true;
-        console.log(`🖱️ Drag detected: movement (${deltaX}, ${deltaY}) exceeds threshold ${this.dragThreshold}px`);
+        // Drag detected - performance: logging disabled
       }
     }
     
