@@ -44,6 +44,10 @@ export class PowerPointParser {
       // Extract slide content with titles and text
       const slides = await this.extractSlideContents(zip);
       
+      // Show immediate debugging of detected slides
+      alert(`SLIDE DETECTION DEBUG:\n\nFound ${slides.length} slides:\n${slides.map((s, i) => `${i+1}. Title: "${s.title}" (${s.content.length} chars)`).join('\n')}\n\nLooking for slides containing: "financial", "income", "statement"`);
+      console.log('🔍 ALL DETECTED SLIDES:', slides);
+      
       // Look for Financials slide and extract Income Statement data
       // First try to extract from embedded Excel files, then fall back to text parsing
       const incomeStatementData = await this.extractFinancialsData(zip, slides);
@@ -112,8 +116,9 @@ export class PowerPointParser {
         if (slideFile) {
           const xmlContent = await slideFile.async('text');
           const slideText = this.extractTextFromSlideXML(xmlContent);
+          const titleFromXML = this.extractTitleFromSlideXML(xmlContent); // Try to get title from XML structure
           if (slideText.trim()) {
-            const title = this.extractSlideTitle(slideText);
+            const title = titleFromXML || this.extractSlideTitle(slideText);
             slides.push({
               index: i + 1,
               title: title,
@@ -127,6 +132,60 @@ export class PowerPointParser {
     }
 
     return slides;
+  }
+
+  /**
+   * Extract title specifically from PowerPoint XML structure
+   */
+  private extractTitleFromSlideXML(xmlContent: string): string | null {
+    try {
+      // Look for PowerPoint title placeholders and large text elements
+      // PowerPoint titles are often in <p:cSld><p:spTree><p:sp> with specific attributes
+      
+      // First, try to find elements with title-specific placeholders
+      const titleMatches = xmlContent.match(/<p:ph[^>]*type="title"[^>]*>[\s\S]*?<\/p:ph>/g);
+      if (titleMatches) {
+        for (const match of titleMatches) {
+          const textContent = this.extractTextFromXMLFragment(match);
+          if (textContent.trim()) {
+            console.log('🔍 Found XML title element:', textContent.trim());
+            return textContent.trim();
+          }
+        }
+      }
+      
+      // Fallback: look for the first large text element (likely title)
+      const textRuns = xmlContent.match(/<a:t[^>]*>([^<]+)<\/a:t>/g);
+      if (textRuns && textRuns.length > 0) {
+        const firstText = textRuns[0].replace(/<a:t[^>]*>([^<]+)<\/a:t>/, '$1');
+        const decodedText = this.decodeXMLEntities(firstText);
+        if (decodedText.length > 2 && !decodedText.includes('$')) {
+          console.log('🔍 Found first XML text as title:', decodedText);
+          return decodedText;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.log('🔍 Error extracting title from XML:', error);
+      return null;
+    }
+  }
+  
+  /**
+   * Extract text from a specific XML fragment
+   */
+  private extractTextFromXMLFragment(xmlFragment: string): string {
+    const textMatches = xmlFragment.match(/<a:t[^>]*>([^<]*)<\/a:t>/g);
+    if (!textMatches) return '';
+    
+    return textMatches
+      .map(match => {
+        const textContent = match.replace(/<a:t[^>]*>([^<]*)<\/a:t>/, '$1');
+        return this.decodeXMLEntities(textContent);
+      })
+      .filter(text => text.trim().length > 0)
+      .join(' ');
   }
 
   private extractTextFromSlideXML(xmlContent: string): string {
@@ -231,15 +290,30 @@ export class PowerPointParser {
   }
 
   /**
-   * Extract slide title from slide content
+   * Extract slide title from slide content - improved logic
    */
   private extractSlideTitle(slideContent: string): string {
-    // Look for the first line as title, or first significant text
     const lines = slideContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    if (lines.length > 0) {
-      return lines[0];
+    
+    console.log('🔍 Extracting title from slide lines:', lines.slice(0, 5));
+    
+    // Look for title patterns - try multiple approaches
+    for (const line of lines.slice(0, 3)) { // Check first 3 lines
+      // Skip lines that are clearly not titles
+      if (line.length < 3) continue;
+      if (/^\d+$/.test(line)) continue; // Skip pure numbers
+      if (line.includes('$') && line.includes(',')) continue; // Skip financial data lines
+      if (line.toLowerCase().includes('projection')) continue; // Skip subtitle text
+      
+      // This looks like a title
+      console.log('🔍 Found potential title:', line);
+      return line;
     }
-    return '';
+    
+    // Fallback to first line if no good title found
+    const fallbackTitle = lines.length > 0 ? lines[0] : '';
+    console.log('🔍 Using fallback title:', fallbackTitle);
+    return fallbackTitle;
   }
 
   /**
