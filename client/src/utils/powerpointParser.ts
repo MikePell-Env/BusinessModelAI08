@@ -254,15 +254,19 @@ export class PowerPointParser {
 
     if (!financialsSlide) {
       console.log('📊 No Financials slide found');
+      console.log('📊 Available slides:', slides.map(s => s.title));
       return null;
     }
 
     console.log(`📊 Found Financials slide: "${financialsSlide.title}"`);
+    console.log('📊 Slide content:', financialsSlide.content);
     
     try {
       const years = this.parseIncomeStatementFromText(financialsSlide.content);
+      console.log('📊 Parsed years:', years);
       if (years.length === 0) {
         console.warn('📊 No financial data found in Financials slide');
+        console.warn('📊 Full slide content for debugging:', financialsSlide.content);
         return null;
       }
 
@@ -283,6 +287,8 @@ export class PowerPointParser {
     const years: YearlyFinancialData[] = [];
     const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
+    console.log('📊 Parsing financial text lines:', lines);
+    
     // Look for year patterns (2020, 2021, 2022, etc.)
     const yearPattern = /\b(20\d{2})\b/g;
     const dollarPattern = /\$(\d+(?:\.\d+)?)\s*([MmBbKk]?)/g;
@@ -294,18 +300,23 @@ export class PowerPointParser {
     let loss: number | null = null;
 
     for (const line of lines) {
+      console.log('📊 Processing line:', line);
+      
       // Check for year
       const yearMatch = line.match(/\b(20\d{2})\b/);
       if (yearMatch) {
+        console.log('📊 Found year:', yearMatch[1]);
         // If we have a complete previous year, save it
         if (currentYear !== null && revenue !== null) {
-          years.push({
+          const yearData = {
             year: currentYear,
             revenue: revenue,
             expenses: expenses || 0,
             profit: profit || Math.max(0, revenue - (expenses || 0)),
             loss: loss || Math.max(0, (expenses || 0) - revenue)
-          });
+          };
+          console.log('📊 Saving year data:', yearData);
+          years.push(yearData);
         }
         
         // Start new year
@@ -321,30 +332,39 @@ export class PowerPointParser {
       const lowerLine = line.toLowerCase();
       const dollarMatches = Array.from(line.matchAll(dollarPattern));
       
+      console.log('📊 Dollar matches in line:', dollarMatches);
+      
       for (const match of dollarMatches) {
         const value = this.parseFinancialValue(match[1], match[2]);
+        console.log(`📊 Parsed value: $${match[1]}${match[2]} = ${value}M`);
         
         if (lowerLine.includes('revenue') || lowerLine.includes('sales') || lowerLine.includes('income')) {
           revenue = value;
+          console.log('📊 Set revenue:', revenue);
         } else if (lowerLine.includes('expense') || lowerLine.includes('cost') || lowerLine.includes('operating')) {
           expenses = value;
+          console.log('📊 Set expenses:', expenses);
         } else if (lowerLine.includes('profit') && !lowerLine.includes('loss')) {
           profit = value;
+          console.log('📊 Set profit:', profit);
         } else if (lowerLine.includes('loss') && !lowerLine.includes('profit')) {
           loss = value;
+          console.log('📊 Set loss:', loss);
         }
       }
     }
 
     // Add final year if complete
     if (currentYear !== null && revenue !== null) {
-      years.push({
+      const finalYearData = {
         year: currentYear,
         revenue: revenue,
         expenses: expenses || 0,
         profit: profit || Math.max(0, revenue - (expenses || 0)),
         loss: loss || Math.max(0, (expenses || 0) - revenue)
-      });
+      };
+      console.log('📊 Saving final year data:', finalYearData);
+      years.push(finalYearData);
     }
 
     console.log(`📊 Parsed ${years.length} years of financial data:`, years);
