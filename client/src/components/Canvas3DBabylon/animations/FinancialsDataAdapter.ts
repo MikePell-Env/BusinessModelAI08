@@ -73,18 +73,27 @@ export class FinancialsDataAdapter {
    */
   public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
     this.incomeStatementData = incomeStatement;
-    console.log(`📊 ADAPTER: Loading ${incomeStatement.years.length} years of financial data`);
-    console.log(`📊 ADAPTER: Using currentYearIndex = ${incomeStatement.currentYearIndex}`);
-    console.log(`📊 ADAPTER: Years:`, incomeStatement.years.map(y => `${y.year}: $${y.revenue}M revenue`));
+    console.log(`🚨 LOAD POWERPOINT DATA: ${incomeStatement.years.length} years available`);
+    console.log(`🚨 LOAD POWERPOINT DATA: currentYearIndex = ${incomeStatement.currentYearIndex}`);
+    console.log(`🚨 LOAD POWERPOINT DATA: All years:`, incomeStatement.years.map(y => `${y.year}: Rev=$${y.revenue}M, Exp=$${y.expenses}M`));
     
-    // REFACTORED: Trust the incoming currentYearIndex - no overrides
-    // Server is authoritative for year selection
+    // CRITICAL: Verify which year is being selected
     if (incomeStatement.years.length > 0) {
       const selectedIndex = incomeStatement.currentYearIndex;
       const currentYear = incomeStatement.years[selectedIndex];
       
-      console.log(`📊 ADAPTER: Displaying year ${currentYear.year} (index ${selectedIndex})`);
-      console.log(`📊 ADAPTER: Revenue=${currentYear.revenue}, Expenses=${currentYear.expenses}`);
+      console.log(`🚨 SELECTED YEAR FOR RENDER: ${currentYear.year} at index ${selectedIndex}`);
+      console.log(`🚨 SELECTED YEAR VALUES: Revenue=$${currentYear.revenue}M, Expenses=$${currentYear.expenses}M, Profit=$${currentYear.profit}M, Loss=$${currentYear.loss}M`);
+      
+      // VALIDATION: Check if this matches expected 2026 values
+      if (currentYear.year === 2026 && currentYear.revenue === 10) {
+        console.log(`✅ CORRECT YEAR: Using 2026 with $10M revenue as expected`);
+      } else if (currentYear.year === 2027 && currentYear.revenue > 20) {
+        console.log(`❌ WRONG YEAR: Using 2027 Future year ($${currentYear.revenue}M) instead of 2026 Current ($10M)!`);
+        console.log(`❌ FIX NEEDED: currentYearIndex should be 1 (2026) not ${selectedIndex} (${currentYear.year})`);
+      } else {
+        console.log(`⚠️ UNEXPECTED YEAR: Year ${currentYear.year} with $${currentYear.revenue}M revenue`);
+      }
       
       const businessData: FinancialBusinessData = {
         totalRevenue: currentYear.revenue,
@@ -149,11 +158,21 @@ export class FinancialsDataAdapter {
    * BUSINESS LOGIC CENTRALIZED: Only pass revenue/expenses, let FinancialsHeightManager calculate profit/loss
    */
   private transformBusinessData(data: FinancialBusinessData): FinancialData {
+    console.log(`🚨 TRANSFORM INPUT: Raw data.totalRevenue=${data.totalRevenue} (if 26.6, this is 2027 Future year!)`);
+    console.log(`🚨 TRANSFORM INPUT: Raw data.totalExpenses=${data.totalExpenses}`);
+    console.log(`🚨 TRANSFORM INPUT: Raw data.netProfit=${data.netProfit}`);
+    console.log(`🚨 TRANSFORM INPUT: Raw data.netLoss=${data.netLoss}`);
+    
     const cappedRevenue = Math.max(0.5, Math.min(data.totalRevenue, 1000));
     const cappedExpenses = Math.max(0.5, Math.min(data.totalExpenses, 1000));
     
-    console.log(`📊 DEBUG transformBusinessData: Input revenue=${data.totalRevenue} → Capped=${cappedRevenue}`);
-    console.log(`📊 DEBUG transformBusinessData: Input expenses=${data.totalExpenses} → Capped=${cappedExpenses}`);
+    console.log(`🚨 TRANSFORM OUTPUT: Capped revenue=${cappedRevenue} → Height=${cappedRevenue/500.0} units`);
+    console.log(`🚨 TRANSFORM OUTPUT: Capped expenses=${cappedExpenses} → Height=${cappedExpenses/500.0} units`);
+    
+    // HEIGHT VERIFICATION: If revenue shows 2.0+ units but should be $10M, this proves wrong year
+    if (cappedRevenue >= 1000 && data.totalRevenue > 15) {
+      console.log(`❌ WRONG YEAR DETECTED: Revenue ${data.totalRevenue} suggests 2027 Future year instead of 2026 Current!`);
+    }
     
     return {
       revenue: cappedRevenue, // Cap at 1000 ($10M max height)
