@@ -86,21 +86,19 @@ export class FinancialsHeightManager {
     // Apply correct slider-logic defaults after short delay for mesh stability
     if (this.financialMeshes.size === 4) {
       setTimeout(() => {
-        // RESTORE ORIGINAL PERFECT SYSTEM: Use calculateProportionalHeights
-        const perfectHeights = this.calculateProportionalHeights({
-          revenue: 1000, // $10M
-          expenses: 800, // $8M
-          profit: 200,   // $2M
-          loss: 0        // $0M
-        });
+        // Apply exact slider heights
+        const HEIGHT_SCALE = 500.0;
+        const revenueHeight = 1000 / HEIGHT_SCALE; // 2.0 units
+        const expensesHeight = 800 / HEIGHT_SCALE;  // 1.6 units
+        const profitHeight = 200 / HEIGHT_SCALE;    // 0.4 units
+        const lossHeight = 0 / HEIGHT_SCALE;        // 0.0 units
         
-        // Apply the ORIGINAL proportional heights that maintained perfect balance
-        this.setObjectHeight('Revenue', perfectHeights.revenue, 'bottom');
-        this.setObjectHeight('RevenuePL', perfectHeights.revenuePL, 'top');  
-        this.setObjectHeight('Expenses', perfectHeights.expenses, 'bottom');
-        this.setObjectHeight('ExpensesPL', perfectHeights.expensesPL, 'top');
+        this.setObjectHeight('Revenue', revenueHeight, 'bottom');
+        this.setObjectHeight('RevenuePL', lossHeight, 'top');  
+        this.setObjectHeight('Expenses', expensesHeight, 'bottom');
+        this.setObjectHeight('ExpensesPL', profitHeight, 'top');
         
-        console.log(`🚀 PERFECT SYSTEM RESTORED: Revenue=${perfectHeights.revenue.toFixed(3)}, Expenses=${perfectHeights.expenses.toFixed(3)}, Profit=${perfectHeights.expensesPL.toFixed(3)}, Loss=${perfectHeights.revenuePL.toFixed(3)}`);
+        console.log(`🚀 INIT: Revenue=${revenueHeight}, Expenses=${expensesHeight}, Profit=${profitHeight}, Loss=${lossHeight}`);
       }, 100);
     }
   }
