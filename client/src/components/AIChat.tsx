@@ -192,24 +192,23 @@ export const AIChat: React.FC = () => {
   }, [isProcessing]);
 
   const handleVoiceInput = () => {
-    console.log('🎤 Voice button clicked');
+    // Test if button click works at all
+    alert('Voice button clicked! Recognition available: ' + !!recognition);
     
     if (!recognition) {
-      console.log('❌ No recognition instance');
+      alert('No speech recognition available in this browser');
       return;
     }
     
     if (isListening) {
-      console.log('🛑 Stopping recognition');
       recognition.stop();
       return;
     }
     
-    console.log('▶️ Starting recognition');
     try {
       recognition.start();
     } catch (error) {
-      console.error('❌ Start failed:', error);
+      alert('Failed to start voice recognition: ' + error.message);
       setIsListening(false);
     }
   };
