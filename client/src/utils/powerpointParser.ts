@@ -51,7 +51,7 @@ export class PowerPointParser {
         console.log(`🔍 Slide ${i+1}: Title="${slide.title}" Content=${slide.content.length}chars`);
         console.log(`🔍 Slide ${i+1} content preview:`, slide.content.substring(0, 100));
       });
-      console.log('🔍 Looking for slides containing: "financial", "income", "statement"');
+      console.log('🔍 Looking for slides containing: "financial", "income", "statement", "projections", "funding", "forecast"');
       console.log('🔍 ================================');
       
       // Also create a simple notification in the UI
@@ -342,11 +342,14 @@ export class PowerPointParser {
    * Extract Income Statement data from Financials slide or embedded Excel
    */
   private async extractFinancialsData(zip: JSZip, slides: SlideContent[]): Promise<IncomeStatementData | null> {
-    // Look for slide with "Financials" in title
+    // Look for slide with financial data - expanded search terms
     let financialsSlide = slides.find(slide => 
       slide.title.toLowerCase().includes('financial') || 
       slide.title.toLowerCase().includes('income') ||
-      slide.title.toLowerCase().includes('statement')
+      slide.title.toLowerCase().includes('statement') ||
+      slide.title.toLowerCase().includes('projections') ||
+      slide.title.toLowerCase().includes('funding') ||
+      slide.title.toLowerCase().includes('forecast')
     );
 
     if (!financialsSlide) {
