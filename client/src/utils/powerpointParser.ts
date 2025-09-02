@@ -372,7 +372,13 @@ export class PowerPointParser {
       console.log('📊 Processing data line:', line);
       
       // Extract all financial values from the line
-      const financialMatches = Array.from(line.matchAll(dollarPattern));
+      const financialMatches: string[][] = [];
+      
+      // First try dollar patterns
+      const dollarMatches = Array.from(line.matchAll(dollarPattern));
+      dollarMatches.forEach(match => {
+        financialMatches.push([match[0], match[1], match[2] || '']);
+      });
       
       if (financialMatches.length === 0) {
         // Try without dollar signs
@@ -655,20 +661,23 @@ export class PowerPointParser {
       
       // Look for financial values with context
       const lowerLine = line.toLowerCase();
+      const allMatches: string[][] = [];
+      
+      // First try dollar patterns
       const dollarMatches = Array.from(line.matchAll(new RegExp(dollarPattern.source, 'g')));
+      dollarMatches.forEach(match => {
+        allMatches.push([match[0], match[1], match[2] || '']);
+      });
       
       // If no dollar matches, try pure numbers
-      if (dollarMatches.length === 0) {
+      if (allMatches.length === 0) {
         const numberMatches = Array.from(line.matchAll(new RegExp(numberPattern.source, 'g')));
-        if (numberMatches.length > 0) {
-          // Convert number matches to dollar-like format for parsing
-          numberMatches.forEach(match => {
-            dollarMatches.push([match[0], match[1], '']);
-          });
-        }
+        numberMatches.forEach(match => {
+          allMatches.push([match[0], match[1], '']);
+        });
       }
       
-      for (const match of dollarMatches) {
+      for (const match of allMatches) {
         const value = this.parseFinancialValue(match[1].replace(/,/g, ''), match[2] || '');
         console.log(`📊 Excel parsed value: ${match[1]}${match[2]} = ${value}M`);
         
