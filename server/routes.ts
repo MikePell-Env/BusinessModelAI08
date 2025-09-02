@@ -296,13 +296,15 @@ Revenue Streams
           //                     2026: Revenue $10M, Expenses $8M, Profit/Loss $2M  
           //                     2027: Revenue $26.6M, Expenses $9.2M, Profit/Loss $17.4M
           
+          // FIXED: Use scaled values that match FinancialsDataAdapter expectations
+          // Format: 1000 = $10M, 800 = $8M, etc. (not raw dollar amounts)
           const incomeStatementData = {
             years: [
-              { year: 2025, revenue: 1000000, expenses: 2500000, profit: -1500000, loss: 1500000 },
-              { year: 2026, revenue: 10000000, expenses: 8000000, profit: 2000000, loss: 0 },
-              { year: 2027, revenue: 26600000, expenses: 9200000, profit: 17400000, loss: 0 }
+              { year: 2025, revenue: 100, expenses: 250, profit: -150, loss: 150 },   // $1M, $2.5M, -$1.5M 
+              { year: 2026, revenue: 1000, expenses: 800, profit: 200, loss: 0 },    // $10M, $8M, $2M ← CURRENT
+              { year: 2027, revenue: 2660, expenses: 920, profit: 1740, loss: 0 }    // $26.6M, $9.2M, $17.4M
             ],
-            currentYearIndex: 1, // Default to 2026 as "present"
+            currentYearIndex: 1, // Default to 2026 as "present" (CORRECT)
             source: "Microsoft Graph Enhanced Parsing"
           };
           
