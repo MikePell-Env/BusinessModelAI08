@@ -81,8 +81,7 @@ export class PowerPointParser {
           console.log('✅ Server-side parsing successful!', result.incomeStatementData);
           incomeStatementData = result.incomeStatementData;
           
-          // Show immediate success notification
-          this.showFinancialDataNotification(incomeStatementData);
+          // Success notification disabled per user request
         } else {
           console.log('⚠️ Server response not successful:', result);
         }
@@ -106,8 +105,7 @@ export class PowerPointParser {
         (canvas as any).incomeStatementData = incomeStatementData;
         console.log(`📊 Found Financials slide with ${incomeStatementData.years.length} years of data`);
         
-        // Show immediate notification when financial data is parsed
-        this.showFinancialDataNotification(incomeStatementData);
+        // Notification disabled per user request
       }
       
       return canvas;

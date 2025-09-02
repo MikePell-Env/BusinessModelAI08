@@ -873,20 +873,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (canvasIncomeData) {
               console.log('📊 Found Income Statement data from PowerPoint import!');
               
-              // Show success notification
-              const notification = document.createElement('div');
-              notification.innerHTML = `
-                <div style="position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; font-family: Inter, sans-serif; font-size: 14px; max-width: 300px;">
-                  <div style="font-weight: 600; margin-bottom: 4px;">📊 PowerPoint Data Loaded!</div>
-                  <div>Found ${canvasIncomeData.years.length} years of financial data (${canvasIncomeData.years.map((y: any) => y.year).join(', ')})</div>
-                </div>
-              `;
-              document.body.appendChild(notification);
-              
-              // Remove notification after 5 seconds
-              setTimeout(() => {
-                document.body.removeChild(notification);
-              }, 5000);
+              // Success notification disabled per user request
               
               setTimeout(() => {
                 if (financialsDataAdapter) {
@@ -3921,21 +3908,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 if (canvasIncomeData) {
                   console.log('📊 Loading Income Statement data from PowerPoint in UI initialization');
                   
-                  // Show UI indicator for available time navigation
-                  const timeIndicator = document.createElement('div');
-                  timeIndicator.innerHTML = `
-                    <div style="position: fixed; bottom: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 6px; font-family: Inter, sans-serif; font-size: 12px; z-index: 9999;">
-                      Time Navigation: ${canvasIncomeData.years.length} years available (${canvasIncomeData.years.map((y: any) => y.year).join(', ')})
-                    </div>
-                  `;
-                  document.body.appendChild(timeIndicator);
-                  
-                  // Remove time indicator after 8 seconds
-                  setTimeout(() => {
-                    if (document.body.contains(timeIndicator)) {
-                      document.body.removeChild(timeIndicator);
-                    }
-                  }, 8000);
+                  // Time navigation indicator disabled per user request
                   
                   dataAdapter.loadIncomeStatementData(canvasIncomeData);
                 } else {
