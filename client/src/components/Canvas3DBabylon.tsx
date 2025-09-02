@@ -868,12 +868,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               console.log('🧪 Test notification created - check top-right corner');
             };
             
-            // Check if canvas has Income Statement data from PowerPoint import
+            // CONSOLIDATED: Single initialization path for financial data
+            // Priority: PowerPoint data > fallback data
             const canvasIncomeData = (canvas as any)?.incomeStatementData;
             if (canvasIncomeData) {
-              console.log('📊 Found Income Statement data from PowerPoint import!');
-              
-              // Success notification disabled per user request
+              console.log('📊 CONSOLIDATED: Found Income Statement data from PowerPoint import!');
+              console.log(`📊 CONSOLIDATED: Loading year ${canvasIncomeData.years[canvasIncomeData.currentYearIndex]?.year} as default`);
               
               setTimeout(() => {
                 if (financialsDataAdapter) {
@@ -881,6 +881,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 }
               }, 100);
             } else {
+              console.log('📊 CONSOLIDATED: Using fallback financial data');
               const initialData = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
               setTimeout(async () => {
                 if (financialsDataAdapter) {
@@ -1872,25 +1873,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             netLoss: 0           // Loss → RevenuePL height
           };
 
-          // Check for Income Statement data and apply initial data
-          setTimeout(async () => {
-            try {
-              if (financialsDataAdapter && financialsHeightManager) {
-                const canvasIncomeData = (canvas as any)?.incomeStatementData;
-                if (canvasIncomeData) {
-                  console.log('📊 Loading Income Statement data from PowerPoint in secondary initialization');
-                  financialsDataAdapter.loadIncomeStatementData(canvasIncomeData);
-                  
-                  // Add console message for debugging
-                  console.log(`📊 Income Statement Ready: ${canvasIncomeData.years.length} years loaded, currently showing year ${canvasIncomeData.years[canvasIncomeData.currentYearIndex]?.year}`);
-                } else {
-                  await financialsDataAdapter.updateFromBusinessData(initialData, false);
-                }
-              }
-            } catch (error) {
-              // Silent error handling for initialization
-            }
-          }, 50); // Minimal delay to ensure meshes are registered
+          // REMOVED: Secondary initialization - prevents conflicts with primary path
 
         }
 
@@ -3747,38 +3730,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       cleanBMCRef.current.clearSelection();
     }
 
-    // Load income statement data when switching to Financials template
-    if (template.name === 'Financials' && canvas && (canvas as any).incomeStatementData) {
-      console.log('📊 Loading income statement data for Financials template');
-      console.log('📊 Canvas incomeStatementData:', (canvas as any).incomeStatementData);
-      
-      // Try multiple times with different delays to ensure adapter is ready
-      const tryLoadData = (attempt = 1) => {
-        console.log(`📊 Attempt ${attempt} to load financial data`);
-        console.log(`📊 Scene exists:`, !!sceneRef.current);
-        console.log(`📊 financialsDataAdapter exists:`, !!(sceneRef.current && (sceneRef.current as any).financialsDataAdapter));
-        console.log(`📊 financialsHeightManager exists:`, !!(sceneRef.current && (sceneRef.current as any).financialsHeightManager));
-        
-        if (sceneRef.current && (sceneRef.current as any).financialsDataAdapter) {
-          console.log('📊 Found financialsDataAdapter, calling loadIncomeStatementData');
-          (sceneRef.current as any).financialsDataAdapter.loadIncomeStatementData((canvas as any).incomeStatementData);
-        } else {
-          console.log(`📊 Attempt ${attempt}: financialsDataAdapter not ready yet`);
-          
-          // Check if we have the global helpers available
-          if ((window as any).loadFinancialData) {
-            console.log('📊 Using global helper to load financial data');
-            (window as any).loadFinancialData((canvas as any).incomeStatementData);
-          } else if (attempt < 10) {
-            setTimeout(() => tryLoadData(attempt + 1), 800);
-          } else {
-            console.error('📊 Failed to find financialsDataAdapter after 10 attempts');
-          }
-        }
-      };
-      
-      setTimeout(() => tryLoadData(), 500);
-    }
+    // REMOVED: Template switching data load - data already loaded during initialization
   }, [template.name, canvas]);
 
   // Camera is always perspective - no switching needed
@@ -3902,23 +3854,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Initialize Financials template data
             if (el && template.name.toLowerCase() === 'financials' && (window as any).financialsDataAdapter) {
               setTimeout(() => {
-                const dataAdapter = (window as any).financialsDataAdapter;
-                const canvasIncomeData = (canvas as any)?.incomeStatementData;
-                
-                if (canvasIncomeData) {
-                  console.log('📊 Loading Income Statement data from PowerPoint in UI initialization');
-                  
-                  // Time navigation indicator disabled per user request
-                  
-                  dataAdapter.loadIncomeStatementData(canvasIncomeData);
-                } else {
-                  dataAdapter.updateFromBusinessData({
-                    totalRevenue: 1000,  // $10M default (99% Revenue, 1% RevenuePL)
-                    totalExpenses: 800,  // $8M default  
-                    netProfit: 200,      // $2M profit (20% ExpensesPL)
-                    netLoss: 0           // No loss (0% RevenuePL)
-                  });
-                }
+                // REMOVED: UI initialization data load - data already loaded during scene initialization
+                // Data loading now consolidated to single primary path to prevent conflicts
                 
                 // Initialize ground labels for Financials template with longer delay
                 setTimeout(() => {
