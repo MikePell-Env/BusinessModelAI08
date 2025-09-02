@@ -57,6 +57,9 @@ export class PowerPointParser {
       if (incomeStatementData) {
         (canvas as any).incomeStatementData = incomeStatementData;
         console.log(`📊 Found Financials slide with ${incomeStatementData.years.length} years of data`);
+        
+        // Show immediate notification when financial data is parsed
+        this.showFinancialDataNotification(incomeStatementData);
       }
       
       return canvas;
@@ -360,6 +363,34 @@ export class PowerPointParser {
       case 'M': return value;        // Already in millions
       case 'K': return value / 1000; // Thousands to millions
       default: return value / 1000000; // Assume dollars, convert to millions
+    }
+  }
+
+  /**
+   * Show notification immediately when financial data is found
+   */
+  private showFinancialDataNotification(incomeStatementData: IncomeStatementData): void {
+    try {
+      const notification = document.createElement('div');
+      notification.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; font-family: Inter, sans-serif; font-size: 14px; max-width: 300px;">
+          <div style="font-weight: 600; margin-bottom: 4px;">📊 PowerPoint Financial Data Found!</div>
+          <div>Detected ${incomeStatementData.years.length} years: ${incomeStatementData.years.map((y: any) => y.year).join(', ')}</div>
+          <div style="font-size: 12px; margin-top: 4px; opacity: 0.9;">Switch to Financials template to view</div>
+        </div>
+      `;
+      document.body.appendChild(notification);
+      
+      // Remove notification after 6 seconds
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 6000);
+      
+      console.log('📊 Financial data notification displayed');
+    } catch (error) {
+      console.error('Failed to show financial data notification:', error);
     }
   }
 
