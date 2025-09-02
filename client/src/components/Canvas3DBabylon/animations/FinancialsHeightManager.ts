@@ -116,7 +116,56 @@ export class FinancialsHeightManager {
     }
   }
 
-  // DELETED: calculateProportionalHeights() was forcing equal heights instead of using PowerPoint data
+  /**
+   * Calculate balanced heights based on income statement logic
+   * Maintains visual balance: both sides always have equal total height
+   * Returns individual object heights that maintain the 2.0 unit equal total height rule
+   */
+  private calculateProportionalHeights(data: FinancialData) {
+    const baseHeight = 2.0; // Base visualization height - both sides must total this
+    
+    // Ensure minimum values for visualization
+    const revenue = Math.max(data.revenue, 0.1);
+    const expenses = Math.max(data.expenses, 0.1);
+    
+    // Calculate profit/loss
+    const profit = Math.max(0, revenue - expenses);
+    const loss = Math.max(0, expenses - revenue);
+    
+    // CORE PRINCIPLE: Both sides always total exactly 2.0 units
+    // Left side = Revenue + RevenuePL = 2.0 units
+    // Right side = Expenses + ExpensesPL = 2.0 units
+    
+    if (profit >= 0) {
+      // PROFIT SCENARIO: Revenue >= Expenses
+      // Left side: Revenue takes full height (2.0), no loss
+      // Right side: Expenses + Profit stacked to total 2.0
+      const expensesRatio = expenses / revenue; // How much of revenue is expenses
+      const expensesHeight = baseHeight * expensesRatio; // Expenses proportional height
+      const profitHeight = baseHeight - expensesHeight; // Profit fills remaining space
+      
+      return {
+        revenue: baseHeight,     // 2.0 units (full left side)
+        revenuePL: 0.0,         // 0.0 units (no loss)
+        expenses: expensesHeight, // Proportional to revenue
+        expensesPL: profitHeight  // Fills remaining to make right side = 2.0
+      };
+    } else {
+      // LOSS SCENARIO: Expenses > Revenue  
+      // Right side: Expenses takes full height (2.0), no profit
+      // Left side: Revenue + Loss stacked to total 2.0
+      const revenueRatio = revenue / expenses; // How much of expenses is revenue
+      const revenueHeight = baseHeight * revenueRatio; // Revenue proportional height
+      const lossHeight = baseHeight - revenueHeight; // Loss fills remaining space
+      
+      return {
+        revenue: revenueHeight,  // Proportional to expenses
+        revenuePL: lossHeight,   // Fills remaining to make left side = 2.0
+        expenses: baseHeight,    // 2.0 units (full right side)
+        expensesPL: 0.0         // 0.0 units (no profit)
+      };
+    }
+  }
 
   /**
    * Update heights from financial data with corrected slider mapping
