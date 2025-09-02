@@ -2784,7 +2784,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 const hoverMaterial = (mesh as any).hoverMaterial;
                 if (hoverMaterial && mesh.material !== hoverMaterial) {
                   mesh.material = hoverMaterial;
-                  console.log(`✨ ${mesh.name} hover enter - brightened`);
+                  // Hover enter - performance: logging disabled
                 }
               }));
 
@@ -2793,11 +2793,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 const originalMaterial = (mesh as any).originalMaterial;
                 if (originalMaterial && mesh.material !== originalMaterial) {
                   mesh.material = originalMaterial;
-                  console.log(`🔄 ${mesh.name} hover exit - normal`);
+                  // Hover exit - performance: logging disabled
                 }
               }));
 
-              console.log(`🎯 ${mesh.name}: Hover behavior configured`);
+              // Hover behavior configured - performance: logging disabled
             }
 
             // REMOVED: Old click select function - replaced by unified BMC system
@@ -2817,22 +2817,22 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         });
 
         // Create TransformNodes and Financial labels AFTER all mesh transformations are complete
-        console.log(`🔍 DEBUG: Template name is "${template.name}" (type: ${typeof template.name})`);
+        // Template name debug - performance: logging disabled
         console.log(`🔍 DEBUG: Lowercase template name is "${template.name.toLowerCase()}"`);
-        console.log(`🔍 DEBUG: Checking conditions:`);
+        // Debug conditions check - performance: logging disabled
         console.log(`   - template.name.toLowerCase() === 'financials': ${template.name.toLowerCase() === 'financials'}`);
         console.log(`   - template.name.toLowerCase().includes('financial'): ${template.name.toLowerCase().includes('financial')}`);
 
-        console.log(`🔎 TEMPLATE CHECK - Raw template.name: "${template.name}"`);
-        console.log(`🔎 TEMPLATE CHECK - Lowercase: "${template.name.toLowerCase()}"`);
-        console.log(`🔎 TEMPLATE CHECK - Available model meshes:`, model.meshes.map(m => m.name));
+        // Template check - performance: logging disabled
+        // Template lowercase check - performance: logging disabled
+        // Available meshes check - performance: logging disabled
         
         if (template.name.toLowerCase() === 'financials' || template.name.toLowerCase().includes('financial')) {
-          console.log(`✅ MATCH! Financial template detected! Creating TransformNodes and Financial labels...`);
+          // Financial template detected - performance: logging disabled
 
           model.meshes.forEach((mesh) => {
             if (mesh.name !== "__root__") {
-              console.log(`🔧 Creating TransformNode wrapper for Financial object: ${mesh.name}`);
+              // Creating TransformNode wrapper - performance: logging disabled
 
               // Create TransformNode wrapper WITHOUT changing existing transforms
               const transformNode = new TransformNode(`${mesh.name}Transform`, scene);
@@ -2858,9 +2858,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Store TransformNode reference on mesh for future access
               (mesh as any).bmcTransformNode = transformNode;
 
-              console.log(`✅ ${mesh.name} wrapped in TransformNode preserving local transform: pos(${currentPosition.x.toFixed(3)}, ${currentPosition.y.toFixed(3)}, ${currentPosition.z.toFixed(3)}) scale(${currentScaling.x.toFixed(3)}, ${currentScaling.y.toFixed(3)}, ${currentScaling.z.toFixed(3)})`);
+              // TransformNode created - performance: logging disabled
 
-              console.log(`🏷️ Creating front-facing label for Financial object: ${mesh.name}`);
+              // Creating front-facing label - performance: logging disabled
 
               // Get mesh bounds AFTER all scaling is complete
               const boundingInfo = mesh.getBoundingInfo();
@@ -2895,11 +2895,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               if (mesh.name === "Revenue") {
                 // Revenue label needs specific aspect ratio to prevent stretching
                 labelHeight = labelWidth * 0.35; // Proper aspect ratio for Revenue texture
-                console.log(`${mesh.name} Label (FIXED): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth / labelHeight).toFixed(2)}`);
+                // Label dimensions calculated - performance: logging disabled
               } else if (mesh.name === "ExpensesPL") {
                 // ExpensesPL (Profit) label needs tighter aspect ratio
                 labelHeight = labelWidth * 0.3; // Tighter aspect ratio for Profit texture
-                console.log(`${mesh.name} Label (PROFIT FIXED): ${labelWidth.toFixed(3)} x ${labelHeight.toFixed(3)}, Aspect: ${(labelWidth / labelHeight).toFixed(2)}`);
+                // Profit label dimensions calculated - performance: logging disabled
               } else {
                 // Other Financial labels use standard calculation
                 labelHeight = (labelWidth * 0.25) * 1.5;
@@ -2957,7 +2957,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
-              console.log(`✅ ${mesh.name} front-facing label created at position (${labelPlane.position.x.toFixed(3)}, ${labelPlane.position.y.toFixed(3)}, ${labelPlane.position.z.toFixed(3)})`);
+              // Front-facing label created - performance: logging disabled
             }
           });
         }
@@ -3118,7 +3118,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   const hoverMaterial = (mesh as any).hoverMaterial;
                   if (hoverMaterial && mesh.material !== hoverMaterial) {
                     mesh.material = hoverMaterial;
-                    console.log(`✨ Revenue Streams hover enter - brightened`);
+                    // Revenue Streams hover enter - performance: logging disabled
                   }
                 }));
 
@@ -3127,7 +3127,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   const originalMaterial = (mesh as any).originalMaterial;
                   if (originalMaterial && mesh.material !== originalMaterial) {
                     mesh.material = originalMaterial;
-                    console.log(`🔄 Revenue Streams hover exit - normal`);
+                    // Revenue Streams hover exit - performance: logging disabled
                   }
                 }));
 
@@ -3315,7 +3315,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   const hoverMaterial = (mesh as any).hoverMaterial;
                   if (hoverMaterial && mesh.material !== hoverMaterial) {
                     mesh.material = hoverMaterial;
-                    console.log(`✨ Cost Structure hover enter - brightened`);
+                    // Cost Structure hover enter - performance: logging disabled
                   }
                 }));
 
@@ -3324,7 +3324,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   const originalMaterial = (mesh as any).originalMaterial;
                   if (originalMaterial && mesh.material !== originalMaterial) {
                     mesh.material = originalMaterial;
-                    console.log(`🔄 Cost Structure hover exit - normal`);
+                    // Cost Structure hover exit - performance: logging disabled
                   }
                 }));
 
@@ -3672,15 +3672,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         if (!userHasMovedCamera) {
           // Auto-switch logic: Business Model goes to PERSPECTIVE_RIGHT, Financials stays manual
           if (template.name.toLowerCase() === 'financials') {
-            console.log("🎬 Auto-switch disabled for Financials - manual preset selection only");
+            // Auto-switch disabled for Financials - performance: logging disabled
           } else {
-            console.log("🎬 Auto-switching camera from TOP to PERSPECTIVE_RIGHT after 2 seconds for Business Model");
+            // Auto-switching camera for Business Model - performance: logging disabled
             // Force transition to false to ensure switchCameraPreset works
             setIsTransitioningCamera(false);
             setTimeout(() => switchCameraPreset('PERSPECTIVE_RIGHT'), 100);
           }
         } else {
-          console.log("🎬 Auto-switch cancelled - user moved camera manually");
+          // Auto-switch cancelled - performance: logging disabled
         }
       }, 2000); // 2 seconds
     }
