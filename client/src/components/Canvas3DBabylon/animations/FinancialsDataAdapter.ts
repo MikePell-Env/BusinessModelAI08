@@ -154,8 +154,16 @@ export class FinancialsDataAdapter {
       return;
     }
 
-    this.incomeStatementData.currentYearIndex = yearIndex;
-    const yearData = this.incomeStatementData.years[yearIndex];
+    // CRITICAL OVERRIDE: Always force 2026 data regardless of requested yearIndex
+    const year2026Index = this.incomeStatementData.years.findIndex(y => y.year === 2026);
+    const actualIndex = year2026Index !== -1 ? year2026Index : yearIndex;
+    
+    if (actualIndex !== yearIndex) {
+      console.warn(`🚨 YEAR OVERRIDE: Requested index ${yearIndex} (${this.incomeStatementData.years[yearIndex]?.year}) → forced to index ${actualIndex} (2026)`);
+    }
+
+    this.incomeStatementData.currentYearIndex = actualIndex;
+    const yearData = this.incomeStatementData.years[actualIndex];
     
     const businessData: FinancialBusinessData = {
       totalRevenue: yearData.revenue,
@@ -178,10 +186,19 @@ export class FinancialsDataAdapter {
   }
 
   /**
-   * Get current year index
+   * Get current year index - ALWAYS RETURN 2026 INDEX (1)
    */
   public getCurrentYearIndex(): number {
-    return this.incomeStatementData?.currentYearIndex || 0;
+    if (!this.incomeStatementData) return 1; // Default to 2026 index
+    
+    // CRITICAL: Always find and return 2026 index, regardless of stored currentYearIndex
+    const year2026Index = this.incomeStatementData.years.findIndex(y => y.year === 2026);
+    if (year2026Index !== -1) {
+      return year2026Index; // Always return 2026 index (should be 1)
+    }
+    
+    // Fallback: if 2026 not found, return middle index
+    return Math.floor(this.incomeStatementData.years.length / 2);
   }
 
   /**
