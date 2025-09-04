@@ -101,6 +101,13 @@ export class FinancialsDataAdapter {
       loss: year2026.loss         // Should be 0
     });
     
+    // VALIDATION: Double-check that we're not accidentally getting 2027 data
+    if (year2026.revenue === 2660) {
+      console.error(`🚨 CRITICAL ERROR: year2026 contains 2027 data! Revenue=2660 instead of 1000`);
+      console.error(`🚨 This means the currentYearIndex or data is corrupted somewhere`);
+      console.error(`🚨 year2026Index=${year2026Index}, actual year=${year2026.year}`);
+    }
+    
     // SET INITIAL STATE IMMEDIATELY (no animation)
     const businessData: FinancialBusinessData = {
       totalRevenue: year2026.revenue,
@@ -157,6 +164,13 @@ export class FinancialsDataAdapter {
    */
   public hasIncomeStatementData(): boolean {
     return this.incomeStatementData !== null && this.incomeStatementData.years.length > 0;
+  }
+
+  /**
+   * Get the current income statement data for debugging
+   */
+  public getIncomeStatementData(): IncomeStatementData | null {
+    return this.incomeStatementData;
   }
 
   /**

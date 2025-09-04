@@ -122,6 +122,15 @@ export class FinancialsHeightManager {
    */
   private calculateProportionalHeights(data: FinancialData) {
     console.log(`🔥 HEIGHT CALC INPUT:`, data);
+    console.log(`🔥 REVENUE HEIGHT TRACE: Input revenue=${data.revenue}, Expected=1000 for 2026`);
+    if (data.revenue === 2660) {
+      console.error(`🚨 ERROR: Received 2027 revenue data (2660) instead of 2026 data (1000)!`);
+      console.error(`🚨 This explains why visualization shows $26.6M instead of $10M`);
+    } else if (data.revenue === 1000) {
+      console.log(`✅ CORRECT: Received 2026 revenue data (1000) for $10M`);
+    } else {
+      console.warn(`❓ UNEXPECTED: Received revenue=${data.revenue}, not 1000 or 2660`);
+    }
 
     // RULE: PowerPoint values need to be scaled to 2.0 unit max height
     // Revenue=1000 ($10M) → 2.0 units, Expenses=800 ($8M) → 1.6 units
