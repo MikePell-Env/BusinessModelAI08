@@ -114,10 +114,23 @@ export class FinancialsDataAdapter {
     });
     
     // VALIDATION: Double-check that we're not accidentally getting 2027 data
+    console.log(`🔍 DETAILED INSPECTION OF EXTRACTED YEAR:`);
+    console.log(`🔍   year2026Index = ${year2026Index}`);
+    console.log(`🔍   year2026.year = ${year2026.year}`);
+    console.log(`🔍   year2026.revenue = ${year2026.revenue}`);
+    console.log(`🔍   year2026.expenses = ${year2026.expenses}`);
+    
     if (year2026.revenue === 2660) {
       console.error(`🚨 CRITICAL ERROR: year2026 contains 2027 data! Revenue=2660 instead of 1000`);
-      console.error(`🚨 This means the currentYearIndex or data is corrupted somewhere`);
-      console.error(`🚨 year2026Index=${year2026Index}, actual year=${year2026.year}`);
+      console.error(`🚨 This means we found the wrong year or the data is corrupted`);
+      console.error(`🚨 Let's examine ALL years to see what happened:`);
+      this.incomeStatementData.years.forEach((y, i) => {
+        console.error(`🚨   Index ${i}: Year ${y.year}, Revenue ${y.revenue}`);
+      });
+    } else if (year2026.revenue === 1000) {
+      console.log(`✅ VALIDATION PASSED: year2026 contains correct 2026 data (revenue=1000)`);
+    } else {
+      console.warn(`❓ UNEXPECTED: year2026.revenue=${year2026.revenue}, not 1000 or 2660`);
     }
     
     // SET INITIAL STATE IMMEDIATELY (no animation)
