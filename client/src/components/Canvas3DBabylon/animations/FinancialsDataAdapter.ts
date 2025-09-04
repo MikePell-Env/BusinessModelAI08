@@ -73,25 +73,37 @@ export class FinancialsDataAdapter {
    * SIMPLIFIED: Find 2026 data and set immediately with correct values
    */
   public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
-    this.incomeStatementData = incomeStatement;
-    
-    console.log(`🔥 POWERPOINT DATA LOADED:`, {
+    console.log(`🔥 POWERPOINT DATA LOADING START:`, {
       totalYears: incomeStatement.years.length,
       serverIndex: incomeStatement.currentYearIndex,
       allYears: incomeStatement.years.map(y => `${y.year}: $${y.revenue}M/$${y.expenses}M`)
     });
     
+    // CRITICAL FIX: Deep clone the data to prevent reference corruption
+    this.incomeStatementData = {
+      years: incomeStatement.years.map(y => ({ ...y })),
+      currentYearIndex: incomeStatement.currentYearIndex,
+      source: (incomeStatement as any).source || "PowerPoint Import"
+    };
+    
     // FIND 2026 DATA (should be Revenue=1000, Expenses=800, Profit=200, Loss=0)
-    const year2026Index = incomeStatement.years.findIndex(y => y.year === 2026);
+    const year2026Index = this.incomeStatementData.years.findIndex(y => y.year === 2026);
     
     if (year2026Index === -1) {
       console.error('🔥 ERROR: No 2026 year found in PowerPoint data!');
       return;
     }
     
-    // FORCE SET 2026 AS CURRENT
+    console.log(`🔥 FOUND 2026 at index ${year2026Index}, but server said currentYearIndex=${incomeStatement.currentYearIndex}`);
+    
+    // CRITICAL: Always force 2026 as current, regardless of server value
     this.incomeStatementData.currentYearIndex = year2026Index;
-    const year2026 = incomeStatement.years[year2026Index];
+    const year2026 = this.incomeStatementData.years[year2026Index];
+    
+    if (!year2026) {
+      console.error('🔥 ERROR: Failed to get 2026 data after setting index!');
+      return;
+    }
     
     console.log(`🔥 SETTING 2026 AS CURRENT:`, {
       year: year2026.year,
@@ -114,7 +126,7 @@ export class FinancialsDataAdapter {
       totalExpenses: year2026.expenses,
       netProfit: year2026.profit,
       netLoss: year2026.loss,
-      incomeStatement: this.incomeStatementData
+      incomeStatement: this.incomeStatementData!
     };
     
     this.updateFromBusinessData(businessData, false); // No animation for initial load
