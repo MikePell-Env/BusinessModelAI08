@@ -836,6 +836,33 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             (window as any).getCurrentYearIndex = () => {
               return financialsDataAdapter.getCurrentYearIndex();
             };
+            
+            (window as any).debugCurrentData = () => {
+              console.log('🔍 DEBUGGING CURRENT FINANCIAL DATA:');
+              const adapterData = financialsDataAdapter.getIncomeStatementData();
+              if (adapterData) {
+                console.log('📊 Adapter Data:', adapterData);
+                console.log(`📊 Adapter currentYearIndex: ${adapterData.currentYearIndex}`);
+                const currentYear = adapterData.years[adapterData.currentYearIndex];
+                if (currentYear) {
+                  console.log(`📊 Adapter Current Year: ${currentYear.year}`);
+                  console.log(`📊 Adapter Current Revenue: ${currentYear.revenue} (should be 1000 for 2026)`);
+                }
+              }
+              
+              const canvasData = (canvas as any)?.incomeStatementData;
+              if (canvasData) {
+                console.log('🎯 Canvas Data:', canvasData);
+                console.log(`🎯 Canvas currentYearIndex: ${canvasData.currentYearIndex}`);
+                const currentYear = canvasData.years[canvasData.currentYearIndex];
+                if (currentYear) {
+                  console.log(`🎯 Canvas Current Year: ${currentYear.year}`);
+                  console.log(`🎯 Canvas Current Revenue: ${currentYear.revenue} (should be 1000 for 2026)`);
+                }
+              }
+              
+              return { adapterData, canvasData };
+            };
             (window as any).hasIncomeStatementData = () => {
               return financialsDataAdapter.hasIncomeStatementData();
             };
@@ -847,6 +874,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 console.log('✅ PowerPoint Income Statement Data Found:', canvasData);
                 console.log(`📊 Years available: ${canvasData.years.map((y: any) => y.year).join(', ')}`);
                 console.log(`📊 Current year: ${canvasData.years[canvasData.currentYearIndex]?.year}`);
+                console.log(`🔍 DETAILED ANALYSIS:`);
+                console.log(`🔍   currentYearIndex = ${canvasData.currentYearIndex}`);
+                console.log(`🔍   Total years = ${canvasData.years.length}`);
+                canvasData.years.forEach((year: any, index: number) => {
+                  const marker = index === canvasData.currentYearIndex ? ' ← CURRENT' : '';
+                  console.log(`🔍   Index ${index}: Year ${year.year}, Revenue ${year.revenue} ($${year.revenue/100}M)${marker}`);
+                });
+                const currentYear = canvasData.years[canvasData.currentYearIndex];
+                if (currentYear) {
+                  console.log(`🎯 ACTIVE DATA: Year ${currentYear.year}, Revenue ${currentYear.revenue}, Expenses ${currentYear.expenses}`);
+                  console.log(`🎯 HEIGHT CALC: Revenue height would be ${currentYear.revenue / 500.0} units`);
+                }
                 return canvasData;
               } else {
                 console.log('❌ No PowerPoint Income Statement data found');
