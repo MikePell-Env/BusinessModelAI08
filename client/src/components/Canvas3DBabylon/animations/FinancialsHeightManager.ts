@@ -378,6 +378,16 @@ export class FinancialsHeightManager {
     console.log(`🔥 SETIMMEDIATEHEIGHTS CALLED - PowerPoint data path`);
     console.log(`🔥 Input data:`, data);
     console.log(`🔥 Revenue = ${data.revenue}, Expenses = ${data.expenses}, Profit = ${data.profit}, Loss = ${data.loss}`);
+    
+    // CRITICAL DEBUG: Stop everything if we get wrong data
+    if (data.revenue === 2660) {
+      console.error(`🚨🚨🚨 CRITICAL ERROR: Height manager received 2027 data (revenue=2660)!`);
+      console.error(`🚨 This means the problem is BEFORE the height manager - in the data adapter!`);
+      console.error(`🚨 The height manager is innocent - the bug is in data loading/transformation!`);
+      // Still continue to see the visual result, but we know where the problem is
+    } else if (data.revenue === 1000) {
+      console.log(`✅✅✅ SUCCESS: Height manager received correct 2026 data (revenue=1000)!`);
+    }
 
     // FIXED: Use proportional heights for equal group totals
     const heights = this.calculateProportionalHeights(data);
