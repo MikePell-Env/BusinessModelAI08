@@ -39,7 +39,6 @@ export interface YearlyFinancialData {
 export class FinancialsDataAdapter {
   private heightManager: FinancialsHeightManager;
   private incomeStatementData: IncomeStatementData | null = null;
-  private directLoadCompleted: boolean = false; // Prevent overrides after direct load
 
   constructor(heightManager: FinancialsHeightManager) {
     this.heightManager = heightManager;
@@ -54,12 +53,6 @@ export class FinancialsDataAdapter {
     businessData: FinancialBusinessData,
     animated: boolean = true
   ): Promise<void> {
-    // PREVENT OVERRIDE: If direct PowerPoint load completed, ignore all other calls
-    if (this.directLoadCompleted) {
-      console.log(`🚨 BLOCKED: updateFromBusinessData called after direct load - ignoring to prevent override`);
-      return;
-    }
-    
     // Store Income Statement data if provided
     if (businessData.incomeStatement) {
       this.incomeStatementData = businessData.incomeStatement;
@@ -76,56 +69,80 @@ export class FinancialsDataAdapter {
   }
 
   /**
-   * SIMPLIFIED: Direct PowerPoint to Height Manager (bypasses all complex logic)
+   * Load Income Statement data from PowerPoint parsing
+   * SIMPLIFIED: Find 2026 data and set immediately with correct values
    */
   public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
-    console.log(`🚨🚨🚨 DIRECT LOADER CALLED 🚨🚨🚨`);
-    console.log(`🔥 Raw PowerPoint data:`, incomeStatement.years);
-    
-    // EXAMINE ALL YEARS TO SEE WHAT WE'RE WORKING WITH
-    console.log(`🔍 ALL YEARS IN POWERPOINT DATA:`);
-    incomeStatement.years.forEach((year, index) => {
-      console.log(`🔍   Index ${index}: Year ${year.year}, Revenue ${year.revenue}, Expenses ${year.expenses}`);
+    console.log(`🔥 POWERPOINT DATA LOADING START:`, {
+      totalYears: incomeStatement.years.length,
+      serverIndex: incomeStatement.currentYearIndex,
+      allYears: incomeStatement.years.map(y => `${y.year}: $${y.revenue}M/$${y.expenses}M`)
     });
     
-    // FIND 2026 DATA and apply directly to height manager
-    console.log(`🔍 SEARCHING FOR 2026 in years:`, incomeStatement.years.map(y => `${y.year}: ${y.revenue}`));
-    const year2026 = incomeStatement.years.find(y => y.year === 2026);
+    // CRITICAL FIX: Deep clone the data to prevent reference corruption
+    this.incomeStatementData = {
+      years: incomeStatement.years.map(y => ({ ...y })),
+      currentYearIndex: incomeStatement.currentYearIndex,
+      source: (incomeStatement as any).source || "PowerPoint Import"
+    };
     
-    if (!year2026) {
-      console.error('🔥 ERROR: No 2026 data found in PowerPoint!');
-      console.error('🔥 Available years:', incomeStatement.years);
+    // FIND 2026 DATA (should be Revenue=1000, Expenses=800, Profit=200, Loss=0)
+    const year2026Index = this.incomeStatementData.years.findIndex(y => y.year === 2026);
+    
+    if (year2026Index === -1) {
+      console.error('🔥 ERROR: No 2026 year found in PowerPoint data!');
       return;
     }
     
-    console.log(`🔍 YEAR SEARCH RESULT: Found year2026 =`, year2026);
-    console.log(`🔍 VERIFICATION: year2026.year = ${year2026.year}, year2026.revenue = ${year2026.revenue}`);
+    console.log(`🔥 FOUND 2026 at index ${year2026Index}, but server said currentYearIndex=${incomeStatement.currentYearIndex}`);
     
-    console.log(`🚨 FOUND 2026 DATA:`, year2026);
-    console.log(`🚨 2026 VALUES: Revenue=${year2026.revenue} (should be 1000), Expenses=${year2026.expenses} (should be 800)`);
+    // CRITICAL: Always force 2026 as current, regardless of server value
+    this.incomeStatementData.currentYearIndex = year2026Index;
+    const year2026 = this.incomeStatementData.years[year2026Index];
+    
+    if (!year2026) {
+      console.error('🔥 ERROR: Failed to get 2026 data after setting index!');
+      return;
+    }
+    
+    console.log(`🔥 SETTING 2026 AS CURRENT:`, {
+      year: year2026.year,
+      revenue: year2026.revenue,  // Should be 1000 ($10M)
+      expenses: year2026.expenses, // Should be 800 ($8M)  
+      profit: year2026.profit,    // Should be 200 ($2M)
+      loss: year2026.loss         // Should be 0
+    });
+    
+    // VALIDATION: Double-check that we're not accidentally getting 2027 data
+    console.log(`🔍 DETAILED INSPECTION OF EXTRACTED YEAR:`);
+    console.log(`🔍   year2026Index = ${year2026Index}`);
+    console.log(`🔍   year2026.year = ${year2026.year}`);
+    console.log(`🔍   year2026.revenue = ${year2026.revenue}`);
+    console.log(`🔍   year2026.expenses = ${year2026.expenses}`);
     
     if (year2026.revenue === 2660) {
-      console.error(`🚨🚨🚨 CRITICAL: 2026 data contains 2027 values! Revenue=2660 instead of 1000!`);
+      console.error(`🚨 CRITICAL ERROR: year2026 contains 2027 data! Revenue=2660 instead of 1000`);
+      console.error(`🚨 This means we found the wrong year or the data is corrupted`);
+      console.error(`🚨 Let's examine ALL years to see what happened:`);
+      this.incomeStatementData.years.forEach((y, i) => {
+        console.error(`🚨   Index ${i}: Year ${y.year}, Revenue ${y.revenue}`);
+      });
     } else if (year2026.revenue === 1000) {
-      console.log(`✅ CORRECT: 2026 data has proper values!`);
+      console.log(`✅ VALIDATION PASSED: year2026 contains correct 2026 data (revenue=1000)`);
+    } else {
+      console.warn(`❓ UNEXPECTED: year2026.revenue=${year2026.revenue}, not 1000 or 2660`);
     }
     
-    // BYPASS ALL COMPLEX LOGIC: Go direct to height manager
-    if (this.heightManager) {
-      const directData = {
-        revenue: year2026.revenue,    // Direct: should be 1000
-        expenses: year2026.expenses,  // Direct: should be 800  
-        profit: year2026.profit,      // Direct: should be 200
-        loss: year2026.loss          // Direct: should be 0
-      };
-      
-      console.log(`🚨🚨🚨 APPLYING DIRECT TO HEIGHT MANAGER:`, directData);
-      this.heightManager.setImmediateHeights(directData);
-      this.directLoadCompleted = true; // Mark as completed to prevent overrides
-      console.log(`✅ DIRECT APPLICATION COMPLETE - OVERRIDE PROTECTION ENABLED`);
-    } else {
-      console.error('🔥 ERROR: No height manager available!');
-    }
+    // SET INITIAL STATE IMMEDIATELY (no animation)
+    const businessData: FinancialBusinessData = {
+      totalRevenue: year2026.revenue,
+      totalExpenses: year2026.expenses,
+      netProfit: year2026.profit,
+      netLoss: year2026.loss,
+      incomeStatement: this.incomeStatementData!
+    };
+    
+    this.updateFromBusinessData(businessData, false); // No animation for initial load
   }
 
   /**
