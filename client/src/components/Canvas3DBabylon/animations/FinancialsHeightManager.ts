@@ -349,8 +349,15 @@ export class FinancialsHeightManager {
     console.log(`🔥 SETIMMEDIATEHEIGHTS CALLED`);
     console.log(`🔥 Input data:`, data);
     
-    // SIMPLE DIRECT HEIGHTS (no complex scaling)
-    const heights = this.calculateSimpleHeights(data);
+    // TEMPORARY HARDCODED TEST: Force known good values to test vertex manipulation
+    console.log(`🧪 FORCING HARDCODED TEST VALUES: Revenue=2.0, Expenses=1.6, Profit=0.4, Loss=0.0`);
+    const heights = {
+      revenue: 2.0,      // $10M 
+      expenses: 1.6,     // $8M
+      expensesPL: 0.4,   // $2M profit
+      revenuePL: 0.0     // $0M loss
+    };
+    console.log(`🧪 HARDCODED HEIGHTS:`, heights);
 
     console.log(`🔥 PROPORTIONAL HEIGHTS: Revenue=${heights.revenue}, RevenuePL=${heights.revenuePL}, Expenses=${heights.expenses}, ExpensesPL=${heights.expensesPL}`);
     console.log(`🔥 GROUP TOTALS: Revenue Group = ${heights.revenue + heights.revenuePL}, Expenses Group = ${heights.expenses + heights.expensesPL}`);
@@ -383,27 +390,10 @@ export class FinancialsHeightManager {
     // Pass height directly as absolute target height (no conversion needed)
     this.setMeshHeightByVertices(mesh, height, anchorType);
 
-    // Apply positioning logic for top-anchored objects (same as animateObjectHeight)
-    let targetPositionY = originalPos.y;
-    if (anchorType === 'top') {
-      if (objectName === 'ExpensesPL') {
-        // Position ExpensesPL on top of Expenses block
-        const expensesBottomY = 0;
-        const expensesHeight = this.currentHeightFactors.get('Expenses') || 1.6;
-        const expensesPLHalfHeight = height / 2;
-        targetPositionY = expensesBottomY + expensesHeight + expensesPLHalfHeight;
-      } else if (objectName === 'RevenuePL') {
-        // Position RevenuePL on top of Revenue block
-        const revenueBottomY = 0;
-        const revenueHeight = this.currentHeightFactors.get('Revenue') || 2.0;
-        const revenuePLHalfHeight = height / 2;
-        targetPositionY = revenueBottomY + revenueHeight + revenuePLHalfHeight;
-      }
-    }
-
-    // Keep original X/Z but apply calculated Y position
+    // SIMPLIFIED: No complex positioning - let vertex manipulation handle it
+    // Keep mesh at original position, vertex manipulation does the height change
     mesh.position.x = originalPos.x;
-    mesh.position.y = targetPositionY; 
+    mesh.position.y = originalPos.y; 
     mesh.position.z = originalPos.z;
 
     // Label is part of material - no separate update needed
