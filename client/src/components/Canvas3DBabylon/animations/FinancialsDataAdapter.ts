@@ -72,8 +72,14 @@ export class FinancialsDataAdapter {
    * SIMPLIFIED: Direct PowerPoint to Height Manager (bypasses all complex logic)
    */
   public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
-    console.log(`🔥 SIMPLIFIED LOADER - DIRECT TO HEIGHT MANAGER`);
+    console.log(`🚨🚨🚨 DIRECT LOADER CALLED 🚨🚨🚨`);
     console.log(`🔥 Raw PowerPoint data:`, incomeStatement.years);
+    
+    // EXAMINE ALL YEARS TO SEE WHAT WE'RE WORKING WITH
+    console.log(`🔍 ALL YEARS IN POWERPOINT DATA:`);
+    incomeStatement.years.forEach((year, index) => {
+      console.log(`🔍   Index ${index}: Year ${year.year}, Revenue ${year.revenue}, Expenses ${year.expenses}`);
+    });
     
     // FIND 2026 DATA and apply directly to height manager
     const year2026 = incomeStatement.years.find(y => y.year === 2026);
@@ -83,7 +89,14 @@ export class FinancialsDataAdapter {
       return;
     }
     
-    console.log(`🔥 FOUND 2026 DATA:`, year2026);
+    console.log(`🚨 FOUND 2026 DATA:`, year2026);
+    console.log(`🚨 2026 VALUES: Revenue=${year2026.revenue} (should be 1000), Expenses=${year2026.expenses} (should be 800)`);
+    
+    if (year2026.revenue === 2660) {
+      console.error(`🚨🚨🚨 CRITICAL: 2026 data contains 2027 values! Revenue=2660 instead of 1000!`);
+    } else if (year2026.revenue === 1000) {
+      console.log(`✅ CORRECT: 2026 data has proper values!`);
+    }
     
     // BYPASS ALL COMPLEX LOGIC: Go direct to height manager
     if (this.heightManager) {
@@ -94,9 +107,9 @@ export class FinancialsDataAdapter {
         loss: year2026.loss          // Direct: should be 0
       };
       
-      console.log(`🔥 APPLYING DIRECT TO HEIGHT MANAGER (bypassing all adapters):`, directData);
+      console.log(`🚨🚨🚨 APPLYING DIRECT TO HEIGHT MANAGER:`, directData);
       this.heightManager.setImmediateHeights(directData);
-      console.log(`✅ DIRECT APPLICATION COMPLETE - NO INTERMEDIATE PROCESSING`);
+      console.log(`✅ DIRECT APPLICATION COMPLETE`);
     } else {
       console.error('🔥 ERROR: No height manager available!');
     }
