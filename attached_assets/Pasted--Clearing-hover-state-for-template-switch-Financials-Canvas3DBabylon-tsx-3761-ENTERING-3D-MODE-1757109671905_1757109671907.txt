@@ -1,0 +1,83 @@
+🧹 Clearing hover state for template switch: Financials
+Canvas3DBabylon.tsx:3761 🔄 ENTERING 3D MODE: Current selection="null"
+Canvas3DBabylon.tsx:3761 Checking for speech recognition support...
+Canvas3DBabylon.tsx:3761 webkitSpeechRecognition found
+Canvas3DBabylon.tsx:3761 ✅ Speech recognition ready
+Canvas3DBabylon.tsx:3761 🟡 BusinessModelCanvas render: is3D=true, isTransitioning=false
+Canvas3DBabylon.tsx:3761 🟡 Current Envisioner Type: financials, Template: Financials
+Canvas3DBabylon.tsx:3761 🟡 Template sections count: 4
+Canvas3DBabylon.tsx:3761 🟡 Will render: Canvas3DBabylon
+Canvas3DBabylon.tsx:3761 🔧 Expenses: stored original height=0.40076063573360443 for business logic
+Canvas3DBabylon.tsx:3761 🔧 ANCHORED: RevenuePL at -0.02 (top-anchored, height will be set by HeightManager)
+Canvas3DBabylon.tsx:3761 🔧 ExpensesPL: stored original height=0.4007606506347656 for business logic
+Canvas3DBabylon.tsx:3761 🔧 ExpensesPL: ready for profit-based height adjustments
+Canvas3DBabylon.tsx:3761 ✅ BMC model loaded with 5 meshes
+Canvas3DBabylon.tsx:3761 🔧 GLB VERTEX DEBUG: Revenue original height = 0.401 units (minY: 0.002, maxY: 0.403)
+Canvas3DBabylon.tsx:3761 🔧 GLB VERTEX DEBUG: Expenses original height = 0.401 units (minY: 0.002, maxY: 0.403)
+Canvas3DBabylon.tsx:3761 🔧 GLB VERTEX DEBUG: RevenuePL original height = 0.401 units (minY: 0.433, maxY: 0.833)
+Canvas3DBabylon.tsx:3761 🔧 GLB VERTEX DEBUG: ExpensesPL original height = 0.401 units (minY: 0.437, maxY: 0.838)
+Canvas3DBabylon.tsx:3761 🚨 INITIAL LOAD CHECK: template.name = Financials
+Canvas3DBabylon.tsx:3761 🚨 INITIAL LOAD CHECK: canvasIncomeData exists = true
+Canvas3DBabylon.tsx:3761 🚨 INITIAL LOAD CHECK: financialsDataAdapter exists = true
+Canvas3DBabylon.tsx:3761 📊 POWERPOINT DATA VERIFICATION (INITIAL LOAD):
+Canvas3DBabylon.tsx:3761 📊   Available years: 3
+Canvas3DBabylon.tsx:3761 📊   Current year index: 1
+Canvas3DBabylon.tsx:3761 📊   Years data: Array(3)
+Canvas3DBabylon.tsx:3761 💰 DEFAULT YEAR SELECTED FOR INITIAL RENDER:
+Canvas3DBabylon.tsx:3761 💰   Year: 2026
+Canvas3DBabylon.tsx:3761 💰   Revenue: $1000M (should be $10M for 2026)
+Canvas3DBabylon.tsx:3761 💰   Expenses: $800M (should be $8M for 2026)
+Canvas3DBabylon.tsx:3761 💰   Profit: $200M (should be $2M for 2026)
+Canvas3DBabylon.tsx:3761 💰   Loss: $0M (should be $0M for 2026)
+Canvas3DBabylon.tsx:3761 ❌ VALIDATION FAILED: Default year data does NOT match expected 2026 values
+Canvas3DBabylon.tsx:3761 ❌   Expected: 2026, $10M Rev, $8M Exp, $2M Prof, $0M Loss
+Canvas3DBabylon.tsx:3761 ❌   Actual: 2026, $1000M Rev, $800M Exp, $200M Prof, $0M Loss
+Canvas3DBabylon.tsx:3761 🚨 FOUND POWERPOINT DATA (INITIAL LOAD): Income Statement data from PowerPoint import!
+Canvas3DBabylon.tsx:3761 🚨 FOUND POWERPOINT DATA: Available years: Array(3)
+Canvas3DBabylon.tsx:3761 🚨 FOUND POWERPOINT DATA: currentYearIndex = 1
+Canvas3DBabylon.tsx:3761 🚨 FOUND POWERPOINT DATA: Selected year will be: 2026
+Canvas3DBabylon.tsx:3761 🚨 IMMEDIATE (INITIAL LOAD): Loading PowerPoint data with correct 2026 currentYearIndex
+Canvas3DBabylon.tsx:3761 🚨🚨🚨 DIRECT LOADER CALLED 🚨🚨🚨
+Canvas3DBabylon.tsx:3761 🔥 Raw PowerPoint data: Array(3)
+Canvas3DBabylon.tsx:3761 🔍 ALL YEARS IN POWERPOINT DATA:
+Canvas3DBabylon.tsx:3761 🔍   Index 0: Year 2025, Revenue 100, Expenses 250
+Canvas3DBabylon.tsx:3761 🔍   Index 1: Year 2026, Revenue 1000, Expenses 800
+Canvas3DBabylon.tsx:3761 🔍   Index 2: Year 2027, Revenue 2660, Expenses 920
+Canvas3DBabylon.tsx:3761 🔍 SEARCHING FOR 2026 in years: Array(3)
+Canvas3DBabylon.tsx:3761 🔍 YEAR SEARCH RESULT: Found year2026 = Object
+Canvas3DBabylon.tsx:3761 🔍 VERIFICATION: year2026.year = 2026, year2026.revenue = 1000
+Canvas3DBabylon.tsx:3761 🚨 FOUND 2026 DATA: Object
+Canvas3DBabylon.tsx:3761 🚨 2026 VALUES: Revenue=1000 (should be 1000), Expenses=800 (should be 800)
+Canvas3DBabylon.tsx:3761 ✅ CORRECT: 2026 data has proper values!
+Canvas3DBabylon.tsx:3761 🚨🚨🚨 APPLYING DIRECT TO HEIGHT MANAGER: Object
+Canvas3DBabylon.tsx:3761 🚨🚨🚨 SETIMMEDIATEHEIGHTS CALLED 🚨🚨🚨
+Canvas3DBabylon.tsx:3761 🚨 Input data: Object
+Canvas3DBabylon.tsx:3761 🚨 Revenue=1000 (should be 1000 for 2026, NOT 2660 for 2027)
+Canvas3DBabylon.tsx:3761 🔥 CALCULATING SIMPLE HEIGHTS: Object
+Canvas3DBabylon.tsx:3761 🔥 SIMPLE HEIGHTS: Revenue=2, Expenses=1.6, Profit=0.4, Loss=0
+Canvas3DBabylon.tsx:3761 🔥 HEIGHT CALC RESULT: Object
+Canvas3DBabylon.tsx:3761 🔥 Expected for 2026 (1000/800/200/0): Rev=2.0, RevPL=0.0, Exp=1.6, ExpPL=0.4
+Canvas3DBabylon.tsx:3761 🚨 CALCULATED HEIGHTS FROM FORCED DATA: Object
+Canvas3DBabylon.tsx:3761 🔥 PROPORTIONAL HEIGHTS: Revenue=2, RevenuePL=0, Expenses=1.6, ExpensesPL=0.4
+Canvas3DBabylon.tsx:3761 🔥 GROUP TOTALS: Revenue Group = 2, Expenses Group = 2
+Canvas3DBabylon.tsx:3761 🔧 SIMPLE VERTEX: Revenue from 0.401 to 2.000 (ratio=4.991)
+Canvas3DBabylon.tsx:3761 🔧 SIMPLE VERTEX: RevenuePL from 0.401 to 0.000 (ratio=0.000)
+Canvas3DBabylon.tsx:3761 🔧 SIMPLE VERTEX: Expenses from 0.401 to 1.600 (ratio=3.992)
+Canvas3DBabylon.tsx:3761 🔧 SIMPLE VERTEX: ExpensesPL from 0.401 to 0.400 (ratio=0.998)
+Canvas3DBabylon.tsx:3761 ✅ SETIMMEDIATEHEIGHTS COMPLETE: Equal group heights with proper proportions
+Canvas3DBabylon.tsx:3761 ✅ DIRECT APPLICATION COMPLETE - OVERRIDE PROTECTION ENABLED
+Canvas3DBabylon.tsx:3761 💰 Financials: Mapping mesh "Revenue" to section "Revenue" with color (0, 0.4, 0.24)
+Canvas3DBabylon.tsx:3761 🎨 Created hover material for Revenue with brightened color: _Color3
+Canvas3DBabylon.tsx:3761 💰 Financials: Mapping mesh "Expenses" to section "Expenses" with color (0.4, 0.08, 0.08)
+Canvas3DBabylon.tsx:3761 🎨 Created hover material for Expenses with brightened color: _Color3
+Canvas3DBabylon.tsx:3761 💰 Financials: Mapping mesh "RevenuePL" to section "RevenuePL" with color (0.7, 0.45, 0.08)
+Canvas3DBabylon.tsx:3761 🎨 Created hover material for RevenuePL with brightened color: _Color3
+Canvas3DBabylon.tsx:3761 💰 Financials: Mapping mesh "ExpensesPL" to section "ExpensesPL" with color (0.1, 0.1, 0.1)
+Canvas3DBabylon.tsx:3761 🎨 Created hover material for ExpensesPL with brightened color: _Color3
+Canvas3DBabylon.tsx:3761 🔍 DEBUG: Lowercase template name is "financials"
+Canvas3DBabylon.tsx:3761    - template.name.toLowerCase() === 'financials': true
+Canvas3DBabylon.tsx:3761    - template.name.toLowerCase().includes('financial'): true
+Canvas3DBabylon.tsx:3761 Expenses Label: 0.540 x 0.202, Aspect: 2.67
+Canvas3DBabylon.tsx:3761 RevenuePL Label: 0.540 x 0.202, Aspect: 2.67
+Canvas3DBabylon.tsx:3761 🔄 Canvas resized and engine refreshed
+Canvas3DBabylon.tsx:3761 🔄 Initial load: No selection to restore, hover behavior ready
