@@ -39,6 +39,7 @@ export interface YearlyFinancialData {
 export class FinancialsDataAdapter {
   private heightManager: FinancialsHeightManager;
   private incomeStatementData: IncomeStatementData | null = null;
+  private directLoadCompleted: boolean = false; // Prevent overrides after direct load
 
   constructor(heightManager: FinancialsHeightManager) {
     this.heightManager = heightManager;
@@ -53,6 +54,12 @@ export class FinancialsDataAdapter {
     businessData: FinancialBusinessData,
     animated: boolean = true
   ): Promise<void> {
+    // PREVENT OVERRIDE: If direct PowerPoint load completed, ignore all other calls
+    if (this.directLoadCompleted) {
+      console.log(`🚨 BLOCKED: updateFromBusinessData called after direct load - ignoring to prevent override`);
+      return;
+    }
+    
     // Store Income Statement data if provided
     if (businessData.incomeStatement) {
       this.incomeStatementData = businessData.incomeStatement;
@@ -109,7 +116,8 @@ export class FinancialsDataAdapter {
       
       console.log(`🚨🚨🚨 APPLYING DIRECT TO HEIGHT MANAGER:`, directData);
       this.heightManager.setImmediateHeights(directData);
-      console.log(`✅ DIRECT APPLICATION COMPLETE`);
+      this.directLoadCompleted = true; // Mark as completed to prevent overrides
+      console.log(`✅ DIRECT APPLICATION COMPLETE - OVERRIDE PROTECTION ENABLED`);
     } else {
       console.error('🔥 ERROR: No height manager available!');
     }
