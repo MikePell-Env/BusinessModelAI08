@@ -349,15 +349,9 @@ export class FinancialsHeightManager {
     console.log(`🔥 SETIMMEDIATEHEIGHTS CALLED`);
     console.log(`🔥 Input data:`, data);
     
-    // TEMPORARY HARDCODED TEST: Force known good values to test vertex manipulation
-    console.log(`🧪 FORCING HARDCODED TEST VALUES: Revenue=2.0, Expenses=1.6, Profit=0.4, Loss=0.0`);
-    const heights = {
-      revenue: 2.0,      // $10M 
-      expenses: 1.6,     // $8M
-      expensesPL: 0.4,   // $2M profit
-      revenuePL: 0.0     // $0M loss
-    };
-    console.log(`🧪 HARDCODED HEIGHTS:`, heights);
+    // USE REAL DATA: Calculate heights from actual PowerPoint data
+    const heights = this.calculateSimpleHeights(data);
+    console.log(`🔥 REAL HEIGHTS FROM DATA:`, heights);
 
     console.log(`🔥 PROPORTIONAL HEIGHTS: Revenue=${heights.revenue}, RevenuePL=${heights.revenuePL}, Expenses=${heights.expenses}, ExpensesPL=${heights.expensesPL}`);
     console.log(`🔥 GROUP TOTALS: Revenue Group = ${heights.revenue + heights.revenuePL}, Expenses Group = ${heights.expenses + heights.expensesPL}`);
