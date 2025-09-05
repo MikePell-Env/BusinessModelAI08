@@ -807,8 +807,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           rootMesh.parent = masterTransformRef.current;
           
           // Initialize Financials systems if needed
-          console.log('🚨 TEMPLATE SWITCHING BLOCK: template.name =', template.name, 'isFinancials =', template.name.toLowerCase() === 'financials');
+          console.log('🚨🚨🚨 TEMPLATE SWITCHING BLOCK: template.name =', template.name, 'isFinancials =', template.name.toLowerCase() === 'financials');
           if (template.name.toLowerCase() === 'financials') {
+            console.log('🚨🚨🚨 ENTERING FINANCIALS INITIALIZATION - THIS SHOULD APPEAR IN CONSOLE');
             console.log('🚨 ENTERING FINANCIALS TEMPLATE SWITCHING INITIALIZATION');
             console.log('🚨 TEMPLATE SWITCH: Canvas data check:', !!(canvas as any)?.incomeStatementData);
             const financialsHeightManager = new FinancialsHeightManager(scene);
