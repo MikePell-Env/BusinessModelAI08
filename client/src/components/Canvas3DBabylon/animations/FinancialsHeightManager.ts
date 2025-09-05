@@ -350,18 +350,8 @@ export class FinancialsHeightManager {
     console.log(`🚨 Input data:`, data);
     console.log(`🚨 Revenue=${data.revenue} (should be 1000 for 2026, NOT 2660 for 2027)`);
     
-    // FORCE CORRECT 2026 DATA regardless of input
-    const correctedData = {
-      revenue: 1000,   // Always force $10M
-      expenses: 800,   // Always force $8M  
-      profit: 200,     // Always force $2M
-      loss: 0          // Always force $0M
-    };
-    
-    console.log(`🟡 FORCING CORRECT 2026 DATA:`, correctedData);
-    
-    // USE FORCED DATA: Calculate heights from corrected values
-    const heights = this.calculateSimpleHeights(correctedData);
+    // USE ORIGINAL DATA: Calculate heights from actual input data  
+    const heights = this.calculateSimpleHeights(data);
     console.log(`🚨 CALCULATED HEIGHTS FROM FORCED DATA:`, heights);
 
     console.log(`🔥 PROPORTIONAL HEIGHTS: Revenue=${heights.revenue}, RevenuePL=${heights.revenuePL}, Expenses=${heights.expenses}, ExpensesPL=${heights.expensesPL}`);
