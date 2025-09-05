@@ -89,12 +89,17 @@ export class FinancialsDataAdapter {
     });
     
     // FIND 2026 DATA and apply directly to height manager
+    console.log(`🔍 SEARCHING FOR 2026 in years:`, incomeStatement.years.map(y => `${y.year}: ${y.revenue}`));
     const year2026 = incomeStatement.years.find(y => y.year === 2026);
     
     if (!year2026) {
       console.error('🔥 ERROR: No 2026 data found in PowerPoint!');
+      console.error('🔥 Available years:', incomeStatement.years);
       return;
     }
+    
+    console.log(`🔍 YEAR SEARCH RESULT: Found year2026 =`, year2026);
+    console.log(`🔍 VERIFICATION: year2026.year = ${year2026.year}, year2026.revenue = ${year2026.revenue}`);
     
     console.log(`🚨 FOUND 2026 DATA:`, year2026);
     console.log(`🚨 2026 VALUES: Revenue=${year2026.revenue} (should be 1000), Expenses=${year2026.expenses} (should be 800)`);
