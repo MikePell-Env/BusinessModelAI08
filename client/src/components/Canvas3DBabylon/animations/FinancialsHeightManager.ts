@@ -346,12 +346,20 @@ export class FinancialsHeightManager {
    * SIMPLIFIED: Direct height calculation without complex scaling
    */
   public setImmediateHeights(data: FinancialData): void {
-    console.log(`🔥 SETIMMEDIATEHEIGHTS CALLED`);
-    console.log(`🔥 Input data:`, data);
+    console.log(`🚨🚨🚨 SETIMMEDIATEHEIGHTS CALLED 🚨🚨🚨`);
+    console.log(`🚨 Input data:`, data);
+    console.log(`🚨 Revenue=${data.revenue} (should be 1000 for 2026, NOT 2660 for 2027)`);
+    
+    if (data.revenue === 2660) {
+      console.error(`🚨🚨🚨 HEIGHT MANAGER RECEIVED 2027 DATA! Revenue=2660 instead of 1000!`);
+      console.error(`🚨 This means something is still sending wrong data to height manager!`);
+    } else if (data.revenue === 1000) {
+      console.log(`✅ HEIGHT MANAGER RECEIVED CORRECT 2026 DATA!`);
+    }
     
     // USE REAL DATA: Calculate heights from actual PowerPoint data
     const heights = this.calculateSimpleHeights(data);
-    console.log(`🔥 REAL HEIGHTS FROM DATA:`, heights);
+    console.log(`🚨 CALCULATED HEIGHTS:`, heights);
 
     console.log(`🔥 PROPORTIONAL HEIGHTS: Revenue=${heights.revenue}, RevenuePL=${heights.revenuePL}, Expenses=${heights.expenses}, ExpensesPL=${heights.expensesPL}`);
     console.log(`🔥 GROUP TOTALS: Revenue Group = ${heights.revenue + heights.revenuePL}, Expenses Group = ${heights.expenses + heights.expensesPL}`);
