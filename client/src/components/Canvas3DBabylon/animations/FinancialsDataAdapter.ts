@@ -82,6 +82,16 @@ export class FinancialsDataAdapter {
       return;
     }
     
+    // Update ground labels with correct conversion (PowerPoint 1000 = $10M)
+    const revenueDisplay = `$${(currentYear.revenue / 100).toFixed(0)}M`;
+    const expensesDisplay = `$${(currentYear.expenses / 100).toFixed(0)}M`;
+    
+    // Update ground plane labels if EnvisionerFoundation is available
+    if ((window as any).envisionerFoundation) {
+      (window as any).envisionerFoundation.updateGroundRevenueLabel(`${revenueDisplay} Revenue`);
+      (window as any).envisionerFoundation.updateGroundExpensesLabel(`${expensesDisplay} Expenses`);
+    }
+    
     // Apply data immediately (no animation for initial load)
     const businessData: FinancialBusinessData = {
       totalRevenue: currentYear.revenue,
@@ -105,6 +115,16 @@ export class FinancialsDataAdapter {
 
     this.incomeStatementData.currentYearIndex = yearIndex;
     const yearData = this.incomeStatementData.years[yearIndex];
+    
+    // Update ground labels with correct conversion (PowerPoint 1000 = $10M)
+    const revenueDisplay = `$${(yearData.revenue / 100).toFixed(0)}M`;
+    const expensesDisplay = `$${(yearData.expenses / 100).toFixed(0)}M`;
+    
+    // Update ground plane labels if EnvisionerFoundation is available
+    if ((window as any).envisionerFoundation) {
+      (window as any).envisionerFoundation.updateGroundRevenueLabel(`${revenueDisplay} Revenue`);
+      (window as any).envisionerFoundation.updateGroundExpensesLabel(`${expensesDisplay} Expenses`);
+    }
     
     const businessData: FinancialBusinessData = {
       totalRevenue: yearData.revenue,
