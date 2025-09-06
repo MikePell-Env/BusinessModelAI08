@@ -258,17 +258,18 @@ export class FinancialsHeightManager {
       const mesh = this.financialMeshes.get(meshName);
       if (!mesh || !labelPlane) return;
 
-      // Get current mesh bounds
+      // Force bounding box recalculation after vertex manipulation
+      mesh.refreshBoundingInfo();
       const boundingInfo = mesh.getBoundingInfo();
       const center = boundingInfo.boundingBox.center;
       const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
 
-      // Position label in center of front face
+      // Position label in center of front face (FIXED: was back edge, now front)
       labelPlane.position.x = center.x;
       labelPlane.position.y = center.y; // Center vertically on the block
-      labelPlane.position.z = center.z + size.z * 0.5 + 0.01; // Front face + slight offset
+      labelPlane.position.z = center.z - size.z * 0.5 - 0.01; // FRONT face + slight offset forward
 
-      console.log(`🏷️ Updated label position for ${meshName}: y=${center.y.toFixed(3)} (centered on front face)`);
+      console.log(`🏷️ Updated label position for ${meshName}: y=${center.y.toFixed(3)}, z=${labelPlane.position.z.toFixed(3)} (front face)`);
     });
   }
 
