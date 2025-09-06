@@ -69,80 +69,29 @@ export class FinancialsDataAdapter {
   }
 
   /**
-   * Load Income Statement data from PowerPoint parsing
-   * SIMPLIFIED: Find 2026 data and set immediately with correct values
+   * Load Income Statement data - SIMPLIFIED
    */
   public loadIncomeStatementData(incomeStatement: IncomeStatementData): void {
-    console.log(`🔥 POWERPOINT DATA LOADING START:`, {
-      totalYears: incomeStatement.years.length,
-      serverIndex: incomeStatement.currentYearIndex,
-      allYears: incomeStatement.years.map(y => `${y.year}: $${y.revenue}M/$${y.expenses}M`)
-    });
+    this.incomeStatementData = incomeStatement;
+    console.log(`📊 Income Statement loaded: ${incomeStatement.years.length} years`);
     
-    // CRITICAL FIX: Deep clone the data to prevent reference corruption
-    this.incomeStatementData = {
-      years: incomeStatement.years.map(y => ({ ...y })),
-      currentYearIndex: incomeStatement.currentYearIndex,
-      source: (incomeStatement as any).source || "PowerPoint Import"
-    };
-    
-    // FIND 2026 DATA (should be Revenue=1000, Expenses=800, Profit=200, Loss=0)
-    const year2026Index = this.incomeStatementData.years.findIndex(y => y.year === 2026);
-    
-    if (year2026Index === -1) {
-      console.error('🔥 ERROR: No 2026 year found in PowerPoint data!');
+    // Get current year data
+    const currentYear = incomeStatement.years[incomeStatement.currentYearIndex];
+    if (!currentYear) {
+      console.error('No current year data found');
       return;
     }
     
-    console.log(`🔥 FOUND 2026 at index ${year2026Index}, but server said currentYearIndex=${incomeStatement.currentYearIndex}`);
-    
-    // CRITICAL: Always force 2026 as current, regardless of server value
-    this.incomeStatementData.currentYearIndex = year2026Index;
-    const year2026 = this.incomeStatementData.years[year2026Index];
-    
-    if (!year2026) {
-      console.error('🔥 ERROR: Failed to get 2026 data after setting index!');
-      return;
-    }
-    
-    console.log(`🔥 SETTING 2026 AS CURRENT:`, {
-      year: year2026.year,
-      revenue: year2026.revenue,  // Should be 1000 ($10M)
-      expenses: year2026.expenses, // Should be 800 ($8M)  
-      profit: year2026.profit,    // Should be 200 ($2M)
-      loss: year2026.loss         // Should be 0
-    });
-    
-    // VALIDATION: Double-check that we're not accidentally getting 2027 data
-    console.log(`🔍 DETAILED INSPECTION OF EXTRACTED YEAR:`);
-    console.log(`🔍   year2026Index = ${year2026Index}`);
-    console.log(`🔍   year2026.year = ${year2026.year}`);
-    console.log(`🔍   year2026.revenue = ${year2026.revenue}`);
-    console.log(`🔍   year2026.expenses = ${year2026.expenses}`);
-    
-    if (year2026.revenue === 2660) {
-      console.error(`🚨 CRITICAL ERROR: year2026 contains 2027 data! Revenue=2660 instead of 1000`);
-      console.error(`🚨 This means we found the wrong year or the data is corrupted`);
-      console.error(`🚨 Let's examine ALL years to see what happened:`);
-      this.incomeStatementData.years.forEach((y, i) => {
-        console.error(`🚨   Index ${i}: Year ${y.year}, Revenue ${y.revenue}`);
-      });
-    } else if (year2026.revenue === 1000) {
-      console.log(`✅ VALIDATION PASSED: year2026 contains correct 2026 data (revenue=1000)`);
-    } else {
-      console.warn(`❓ UNEXPECTED: year2026.revenue=${year2026.revenue}, not 1000 or 2660`);
-    }
-    
-    // SET INITIAL STATE IMMEDIATELY (no animation)
+    // Apply data immediately (no animation for initial load)
     const businessData: FinancialBusinessData = {
-      totalRevenue: year2026.revenue,
-      totalExpenses: year2026.expenses,
-      netProfit: year2026.profit,
-      netLoss: year2026.loss,
-      incomeStatement: this.incomeStatementData!
+      totalRevenue: currentYear.revenue,
+      totalExpenses: currentYear.expenses,
+      netProfit: currentYear.profit,
+      netLoss: currentYear.loss,
+      incomeStatement: this.incomeStatementData
     };
     
-    this.updateFromBusinessData(businessData, false); // No animation for initial load
+    this.updateFromBusinessData(businessData, false);
   }
 
   /**
@@ -154,16 +103,8 @@ export class FinancialsDataAdapter {
       return;
     }
 
-    // CRITICAL OVERRIDE: Always force 2026 data regardless of requested yearIndex
-    const year2026Index = this.incomeStatementData.years.findIndex(y => y.year === 2026);
-    const actualIndex = year2026Index !== -1 ? year2026Index : yearIndex;
-    
-    if (actualIndex !== yearIndex) {
-      console.warn(`🚨 YEAR OVERRIDE: Requested index ${yearIndex} (${this.incomeStatementData.years[yearIndex]?.year}) → forced to index ${actualIndex} (2026)`);
-    }
-
-    this.incomeStatementData.currentYearIndex = actualIndex;
-    const yearData = this.incomeStatementData.years[actualIndex];
+    this.incomeStatementData.currentYearIndex = yearIndex;
+    const yearData = this.incomeStatementData.years[yearIndex];
     
     const businessData: FinancialBusinessData = {
       totalRevenue: yearData.revenue,
@@ -173,7 +114,7 @@ export class FinancialsDataAdapter {
       incomeStatement: this.incomeStatementData
     };
 
-    console.log(`📊 Switching to year ${yearData.year}: Revenue $${yearData.revenue}M, Expenses $${yearData.expenses}M`);
+    console.log(`📊 Switching to year ${yearData.year}`);
     await this.updateFromBusinessData(businessData, animated);
   }
 
@@ -186,19 +127,11 @@ export class FinancialsDataAdapter {
   }
 
   /**
-   * Get current year index - ALWAYS RETURN 2026 INDEX (1)
+   * Get current year index
    */
   public getCurrentYearIndex(): number {
-    if (!this.incomeStatementData) return 1; // Default to 2026 index
-    
-    // CRITICAL: Always find and return 2026 index, regardless of stored currentYearIndex
-    const year2026Index = this.incomeStatementData.years.findIndex(y => y.year === 2026);
-    if (year2026Index !== -1) {
-      return year2026Index; // Always return 2026 index (should be 1)
-    }
-    
-    // Fallback: if 2026 not found, return middle index
-    return Math.floor(this.incomeStatementData.years.length / 2);
+    if (!this.incomeStatementData) return 0;
+    return this.incomeStatementData.currentYearIndex;
   }
 
   /**
@@ -217,29 +150,14 @@ export class FinancialsDataAdapter {
 
   /**
    * Transform business data into visualization format
-   * SIMPLIFIED: Direct pass-through of PowerPoint data to height manager
    */
   private transformBusinessData(data: FinancialBusinessData): FinancialData {
-    console.log(`🔥 SIMPLIFIED TRANSFORM - Input:`, {
+    return {
       revenue: data.totalRevenue,
-      expenses: data.totalExpenses, 
+      expenses: data.totalExpenses,
       profit: data.netProfit,
       loss: data.netLoss
-    });
-    
-    // RULE: PowerPoint sends exact values that height manager needs
-    // Revenue=1000 ($10M), Expenses=800 ($8M), Profit=200 ($2M), Loss=0
-    const result = {
-      revenue: data.totalRevenue,   // Direct pass-through
-      expenses: data.totalExpenses, // Direct pass-through  
-      profit: data.netProfit,       // Direct pass-through
-      loss: data.netLoss           // Direct pass-through
     };
-    
-    console.log(`🔥 SIMPLIFIED TRANSFORM - Output:`, result);
-    console.log(`🔥 Expected for 2026: Revenue=1000, Expenses=800, Profit=200, Loss=0`);
-    
-    return result;
   }
 
 }
