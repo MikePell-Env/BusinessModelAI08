@@ -27,7 +27,7 @@ export class FinancialsHeightManager {
   private labelPlanes: Map<string, any> = new Map(); // Store label planes for repositioning
   
   // Much smaller height mapping for proper visualization scale
-  private readonly MILLION_TO_HEIGHT = 0.02; // $1M = 0.02 units, $10M = 0.2 units, $50M = 1.0 units
+  private readonly MILLION_TO_HEIGHT = 0.03; // $1M = 0.03 units, $10M = 0.3 units, $50M = 1.5 units (1.5x taller)
   
   // Maximum height limits in 3D units  
   private readonly MAX_HEIGHT = 1.0; // Keep blocks reasonable size
