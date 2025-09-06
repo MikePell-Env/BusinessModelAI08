@@ -2054,11 +2054,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             // Add baseColor property for compatibility with hover behavior
             sectionMaterial.baseColor = baseColor;
 
-            // Enable underside visibility for Financial objects
-            if (template.name.toLowerCase() === 'financials') {
-              sectionMaterial.backFaceCulling = false;
-            }
-
             // Apply material to mesh - CRITICAL for Financial objects to have colors!
             mesh.material = sectionMaterial;
             mesh.receiveShadows = true;
@@ -2091,9 +2086,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 hoverMaterial.specularPower = 64;
                 hoverMaterial.ambientColor = brightenedColor.scale(0.4);
               }
-              
-              // Enable underside visibility for hover materials too
-              hoverMaterial.backFaceCulling = false;
               
               // Store hover material for later use
               (mesh as any).hoverMaterial = hoverMaterial;
