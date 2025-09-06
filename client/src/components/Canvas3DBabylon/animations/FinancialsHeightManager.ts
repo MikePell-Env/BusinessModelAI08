@@ -55,7 +55,7 @@ export class FinancialsHeightManager {
           this.originalVertices.set(mesh.name, posArray);
           
           // Calculate and store original height
-          const originalHeight = this.calculateMeshHeight(positions);
+          const originalHeight = this.calculateMeshHeight(posArray);
           this.currentHeights.set(mesh.name, originalHeight);
           
           // Make mesh updatable for vertex manipulation
