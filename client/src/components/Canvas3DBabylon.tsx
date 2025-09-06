@@ -917,49 +917,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             console.log('🚨 INITIALIZATION CHECK: canvasIncomeData exists =', !!canvasIncomeData);
             console.log('🚨 INITIALIZATION CHECK: financialsDataAdapter exists =', !!financialsDataAdapter);
             
-            // VERIFY DEFAULT YEAR DATA: Read and validate initial values
-            if (canvasIncomeData) {
-              console.log('📊 POWERPOINT DATA VERIFICATION:');
-              console.log('📊   Available years:', canvasIncomeData.years?.length || 0);
-              console.log('📊   Current year index:', canvasIncomeData.currentYearIndex);
-              console.log('📊   Years data:', canvasIncomeData.years?.map((y: any) => 
-                `${y.year}: Rev=$${y.revenue}M, Exp=$${y.expenses}M, Prof=$${y.profit}M, Loss=$${y.loss}M`
-              ));
-              
-              const defaultYear = canvasIncomeData.years?.[canvasIncomeData.currentYearIndex];
-              if (defaultYear) {
-                console.log('💰 DEFAULT YEAR SELECTED FOR INITIAL RENDER:');
-                console.log(`💰   Year: ${defaultYear.year}`);
-                console.log(`💰   Revenue: $${defaultYear.revenue}M (should be $10M for 2026)`);
-                console.log(`💰   Expenses: $${defaultYear.expenses}M (should be $8M for 2026)`);
-                console.log(`💰   Profit: $${defaultYear.profit}M (should be $2M for 2026)`);
-                console.log(`💰   Loss: $${defaultYear.loss}M (should be $0M for 2026)`);
-                
-                // VALIDATION: Check if values match expected 2026 data
-                const is2026Expected = defaultYear.year === 2026 && 
-                                     defaultYear.revenue === 10 && 
-                                     defaultYear.expenses === 8 && 
-                                     defaultYear.profit === 2 && 
-                                     defaultYear.loss === 0;
-                                     
-                if (is2026Expected) {
-                  console.log('✅ VALIDATION PASSED: Default year data matches expected 2026 values');
-                } else {
-                  console.log('❌ VALIDATION FAILED: Default year data does NOT match expected 2026 values');
-                  console.log('❌   Expected: 2026, $10M Rev, $8M Exp, $2M Prof, $0M Loss');
-                  console.log(`❌   Actual: ${defaultYear.year}, $${defaultYear.revenue}M Rev, $${defaultYear.expenses}M Exp, $${defaultYear.profit}M Prof, $${defaultYear.loss}M Loss`);
-                }
-              } else {
-                console.log('❌ ERROR: No default year found at currentYearIndex:', canvasIncomeData.currentYearIndex);
-              }
-            } else {
-              console.log('📊 NO POWERPOINT DATA: Will use fallback values');
-              console.log('💰 FALLBACK VALUES FOR INITIAL RENDER:');
-              console.log('💰   Revenue: $10M (1000 units)');
-              console.log('💰   Expenses: $8M (800 units)');  
-              console.log('💰   Profit: $2M (200 units)');
-              console.log('💰   Loss: $0M (0 units)');
-            }
             
             if (canvasIncomeData) {
               console.log('🚨 FOUND POWERPOINT DATA: Income Statement data from PowerPoint import!');
@@ -1969,49 +1926,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           console.log('🚨 INITIAL LOAD CHECK: canvasIncomeData exists =', !!canvasIncomeData);
           console.log('🚨 INITIAL LOAD CHECK: financialsDataAdapter exists =', !!financialsDataAdapter);
           
-          // VERIFY DEFAULT YEAR DATA: Read and validate initial values
-          if (canvasIncomeData) {
-            console.log('📊 POWERPOINT DATA VERIFICATION (INITIAL LOAD):');
-            console.log('📊   Available years:', canvasIncomeData.years?.length || 0);
-            console.log('📊   Current year index:', canvasIncomeData.currentYearIndex);
-            console.log('📊   Years data:', canvasIncomeData.years?.map((y: any) => 
-              `${y.year}: Rev=$${y.revenue}M, Exp=$${y.expenses}M, Prof=$${y.profit}M, Loss=$${y.loss}M`
-            ));
-            
-            const defaultYear = canvasIncomeData.years?.[canvasIncomeData.currentYearIndex];
-            if (defaultYear) {
-              console.log('💰 DEFAULT YEAR SELECTED FOR INITIAL RENDER:');
-              console.log(`💰   Year: ${defaultYear.year}`);
-              console.log(`💰   Revenue: $${defaultYear.revenue}M (should be $10M for 2026)`);
-              console.log(`💰   Expenses: $${defaultYear.expenses}M (should be $8M for 2026)`);
-              console.log(`💰   Profit: $${defaultYear.profit}M (should be $2M for 2026)`);
-              console.log(`💰   Loss: $${defaultYear.loss}M (should be $0M for 2026)`);
-              
-              // VALIDATION: Check if values match expected 2026 data
-              const is2026Expected = defaultYear.year === 2026 && 
-                                   defaultYear.revenue === 10 && 
-                                   defaultYear.expenses === 8 && 
-                                   defaultYear.profit === 2 && 
-                                   defaultYear.loss === 0;
-                                   
-              if (is2026Expected) {
-                console.log('✅ VALIDATION PASSED: Default year data matches expected 2026 values');
-              } else {
-                console.log('❌ VALIDATION FAILED: Default year data does NOT match expected 2026 values');
-                console.log('❌   Expected: 2026, $10M Rev, $8M Exp, $2M Prof, $0M Loss');
-                console.log(`❌   Actual: ${defaultYear.year}, $${defaultYear.revenue}M Rev, $${defaultYear.expenses}M Exp, $${defaultYear.profit}M Prof, $${defaultYear.loss}M Loss`);
-              }
-            } else {
-              console.log('❌ ERROR: No default year found at currentYearIndex:', canvasIncomeData.currentYearIndex);
-            }
-          } else {
-            console.log('📊 NO POWERPOINT DATA: Will use fallback values');
-            console.log('💰 FALLBACK VALUES FOR INITIAL RENDER:');
-            console.log('💰   Revenue: $10M (1000 units)');
-            console.log('💰   Expenses: $8M (800 units)');  
-            console.log('💰   Profit: $2M (200 units)');
-            console.log('💰   Loss: $0M (0 units)');
-          }
           
           // PRIORITY: PowerPoint data > fallback data (same logic as template switching)
           if (canvasIncomeData) {
