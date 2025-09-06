@@ -25,12 +25,12 @@ export class FinancialsHeightManager {
   private originalVertices: Map<string, Float32Array> = new Map();
   private currentHeights: Map<string, number> = new Map();
   
-  // Simple direct height mapping: $1M = 0.1 height units
-  private readonly MILLION_TO_HEIGHT = 0.1; // $1M = 0.1 units, $10M = 1.0 units, $20M = 2.0 units
+  // Much smaller height mapping for proper visualization scale
+  private readonly MILLION_TO_HEIGHT = 0.02; // $1M = 0.02 units, $10M = 0.2 units, $50M = 1.0 units
   
-  // Maximum height limits in 3D units
-  private readonly MAX_HEIGHT = 3.0; // Allow up to $30M
-  private readonly MIN_HEIGHT = 0.01; // Minimum visible height
+  // Maximum height limits in 3D units  
+  private readonly MAX_HEIGHT = 1.0; // Keep blocks reasonable size
+  private readonly MIN_HEIGHT = 0.005; // Minimum visible height
 
   constructor(scene: Scene) {
     this.scene = scene;

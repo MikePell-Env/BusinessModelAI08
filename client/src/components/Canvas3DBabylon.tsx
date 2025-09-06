@@ -4129,16 +4129,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           {/* Revenue Slider - Locked */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Revenue (Fixed): $10M
+              Revenue: $1M - $30M
             </label>
             <input
               id="revenue-slider"
               type="range"
-              min="1000"
-              max="1000"
+              min="100"
+              max="3000"
               defaultValue="1000"
-              disabled
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-not-allowed opacity-50 slider"
+              className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer slider"
+              onChange={(e) => {
+                const revenueValue = parseInt(e.target.value);
+                const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+                const expensesValue = expensesSlider ? parseInt(expensesSlider.value) : 800;
+                const profit = Math.max(0, revenueValue - expensesValue);
+                const loss = Math.max(0, expensesValue - revenueValue);
+                
+                console.log(`💰 Revenue slider changed: Revenue=$${(revenueValue/100).toFixed(0)}M, Expenses=$${(expensesValue/100).toFixed(0)}M, Profit=$${(profit/100).toFixed(0)}M`);
+                
+                // Update display
+                const revenueDisplay = document.querySelector('.revenue-display');
+                const profitDisplay = document.querySelector('.profit-display');
+                if (revenueDisplay) revenueDisplay.textContent = `$${(revenueValue / 100).toFixed(0)}M`;
+                if (profitDisplay) profitDisplay.textContent = `$${(profit / 100).toFixed(0)}M`;
+                
+                // Update 3D visualization
+                const financialsDataAdapter = (window as any).financialsDataAdapter;
+                if (financialsDataAdapter) {
+                  const businessData = {
+                    totalRevenue: revenueValue,
+                    totalExpenses: expensesValue,
+                    netProfit: profit,
+                    netLoss: loss
+                  };
+                  financialsDataAdapter.updateFromBusinessData(businessData, false);
+                }
+              }}
             />
             <div className="revenue-display text-sm text-gray-600 mt-1">$10M</div>
           </div>
