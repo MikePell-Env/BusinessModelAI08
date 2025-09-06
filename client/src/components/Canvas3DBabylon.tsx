@@ -3947,7 +3947,35 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-8 py-4">
           <div className="relative" style={{ width: '600px' }}>
             {/* Slider track */}
-            <div className="h-1 bg-gray-400 rounded-full mb-4 relative">
+            <div 
+              className="h-1 bg-gray-400 rounded-full mb-4 relative cursor-pointer"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const percentage = clickX / rect.width;
+                
+                let newYear: number;
+                if (percentage < 0.33) {
+                  newYear = 0; // PAST
+                } else if (percentage < 0.67) {
+                  newYear = 1; // PRESENT  
+                } else {
+                  newYear = 2; // FUTURE
+                }
+                
+                console.log(`🕐 Time slider clicked: switching to year ${newYear}`);
+                const financialsDataAdapter = (window as any).financialsDataAdapter;
+                if (financialsDataAdapter) {
+                  financialsDataAdapter.switchToYear(newYear, false);
+                  setSelectedYear(newYear);
+                  if (newYear === 1) {
+                    // Reset the Expenses slider to default $8M for PRESENT
+                    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+                    if (expensesSlider) expensesSlider.value = '800';
+                  }
+                }
+              }}
+            >
               {/* Vertical thumb at selected position */}
               <div 
                 className="absolute top-1/2 transform -translate-y-1/2 transition-all duration-300"
@@ -3955,15 +3983,58 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   left: selectedYear === 0 ? '0%' : selectedYear === 1 ? '50%' : '100%',
                   transform: `translateX(${selectedYear === 0 ? '0' : selectedYear === 1 ? '-50%' : '-100%'}) translateY(-50%)`
                 }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  const startX = e.clientX;
+                  const slider = e.currentTarget.parentElement;
+                  if (!slider) return;
+                  
+                  const handleMouseMove = (moveEvent: MouseEvent) => {
+                    const rect = slider.getBoundingClientRect();
+                    const newX = moveEvent.clientX - rect.left;
+                    const percentage = Math.max(0, Math.min(1, newX / rect.width));
+                    
+                    let newYear: number;
+                    if (percentage < 0.33) {
+                      newYear = 0; // PAST
+                    } else if (percentage < 0.67) {
+                      newYear = 1; // PRESENT
+                    } else {
+                      newYear = 2; // FUTURE
+                    }
+                    
+                    if (newYear !== selectedYear) {
+                      console.log(`🕐 Time slider dragged: switching to year ${newYear}`);
+                      const financialsDataAdapter = (window as any).financialsDataAdapter;
+                      if (financialsDataAdapter) {
+                        financialsDataAdapter.switchToYear(newYear, false);
+                        setSelectedYear(newYear);
+                        if (newYear === 1) {
+                          // Reset the Expenses slider to default $8M for PRESENT
+                          const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+                          if (expensesSlider) expensesSlider.value = '800';
+                        }
+                      }
+                    }
+                  };
+                  
+                  const handleMouseUp = () => {
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                  };
+                  
+                  document.addEventListener('mousemove', handleMouseMove);
+                  document.addEventListener('mouseup', handleMouseUp);
+                }}
               >
-                <div className="w-3 h-6 bg-blue-600 rounded-sm cursor-pointer hover:bg-blue-700 transition-colors shadow-lg border border-blue-400"></div>
+                <div className="w-3 h-6 bg-blue-600 rounded-sm cursor-grab active:cursor-grabbing hover:bg-blue-700 transition-colors shadow-lg border border-blue-400"></div>
               </div>
             </div>
 
-            {/* Labels with years */}
-            <div className="flex justify-between text-xs font-medium text-gray-800 mt-2">
+            {/* Labels with years - Center aligned */}
+            <div className="grid grid-cols-3 gap-4 text-xs font-medium text-gray-800 mt-2">
               <span 
-                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-sm border border-gray-300" 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-sm border border-gray-300 text-center" 
                 onClick={() => {
                   console.log('🕐 PAST (2025) clicked');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
@@ -3982,7 +4053,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 <div className="text-base font-bold">2025</div>
               </span>
               <span 
-                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-md border border-gray-300" 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-md border border-gray-300 text-center" 
                 onClick={() => {
                   console.log('🕐 PRESENT (2026) clicked - Resetting sliders to default');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
@@ -4004,7 +4075,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 <div className="text-base font-bold">2026</div>
               </span>
               <span 
-                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-sm border border-gray-300" 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-sm border border-gray-300 text-center" 
                 onClick={() => {
                   console.log('🕐 FUTURE (2027) clicked');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
