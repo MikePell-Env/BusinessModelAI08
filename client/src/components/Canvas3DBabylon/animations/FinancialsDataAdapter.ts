@@ -66,6 +66,9 @@ export class FinancialsDataAdapter {
     } else {
       this.heightManager.setImmediateHeights(financialData);
     }
+    
+    // Update floor labels with current values
+    this.updateFloorLabels(businessData);
   }
 
   /**
@@ -166,6 +169,22 @@ export class FinancialsDataAdapter {
       profit: data.netProfit,
       loss: data.netLoss
     };
+  }
+
+  /**
+   * Update floor labels with current financial values
+   */
+  private updateFloorLabels(data: FinancialBusinessData): void {
+    const revenueDisplay = `$${(data.totalRevenue / 100).toFixed(0)}M`;
+    const expensesDisplay = `$${(data.totalExpenses / 100).toFixed(0)}M`;
+    
+    // Access EnvisionerFoundation via global window object to update floor labels
+    const envisionerFoundation = (window as any).envisionerFoundation;
+    if (envisionerFoundation) {
+      console.log(`🏷️ Updating floor labels: Revenue=${revenueDisplay}, Expenses=${expensesDisplay}`);
+      envisionerFoundation.updateGroundRevenueLabel(`${revenueDisplay} Revenue`);
+      envisionerFoundation.updateGroundExpensesLabel(`${expensesDisplay} Expenses`);
+    }
   }
 
 }
