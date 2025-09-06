@@ -372,42 +372,26 @@ export class FinancialsHeightManager {
 
   /**
    * Set immediate heights without animation (for initialization)
-   * Uses corrected direct mapping logic
    */
   public setImmediateHeights(data: FinancialData): void {
-    console.log(`🔥 SETIMMEDIATEHEIGHTS CALLED - PowerPoint data path`);
-    console.log(`🔥 Input data:`, data);
-    console.log(`🔥 Revenue = ${data.revenue}, Expenses = ${data.expenses}, Profit = ${data.profit}, Loss = ${data.loss}`);
+    console.log('📊 Setting financial object heights:', data);
+
+    // Convert financial values to heights using documented HEIGHT_SCALE
+    const HEIGHT_SCALE = 500.0;
     
-    // CRITICAL FIX: Force correct 2026 data if we receive 2027 data by mistake
-    let correctedData = { ...data };
-    if (data.revenue === 2660) {
-      console.error(`🚨 RECEIVED 2027 DATA - CORRECTING TO 2026 VALUES!`);
-      console.error(`🚨 Converting: Revenue 2660→1000, Expenses 920→800, Profit 1740→200`);
-      correctedData = {
-        revenue: 1000,   // $10M (2026 value)
-        expenses: 800,   // $8M (2026 value)
-        profit: 200,     // $2M (2026 value)
-        loss: 0          // $0M (2026 value)
-      };
-      console.log(`✅ CORRECTED DATA:`, correctedData);
-    } else if (data.revenue === 1000) {
-      console.log(`✅✅✅ SUCCESS: Height manager received correct 2026 data (revenue=1000)!`);
-    }
+    // Direct conversion: $1M = 0.002 units (100 * 10 / HEIGHT_SCALE)
+    const revenueHeight = Math.min(data.revenue / HEIGHT_SCALE, 2.0); // Max 2.0 units
+    const expensesHeight = Math.max(0.2, Math.min(data.expenses / HEIGHT_SCALE, 2.0)); // 0.2-2.0 units
+    const expensesPLHeight = Math.max(0.0, Math.min(data.profit / HEIGHT_SCALE, 1.8)); // 0.0-1.8 units
+    const revenuePLHeight = 0.0; // Always 0 (no loss)
 
-    // FIXED: Use proportional heights for equal group totals (with corrected data)
-    const heights = this.calculateProportionalHeights(correctedData);
+    // Apply heights using vertex manipulation
+    this.setObjectHeight('Revenue', revenueHeight, 'bottom');
+    this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');  
+    this.setObjectHeight('Expenses', expensesHeight, 'bottom');
+    this.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
 
-    console.log(`🔥 PROPORTIONAL HEIGHTS: Revenue=${heights.revenue}, RevenuePL=${heights.revenuePL}, Expenses=${heights.expenses}, ExpensesPL=${heights.expensesPL}`);
-    console.log(`🔥 GROUP TOTALS: Revenue Group = ${heights.revenue + heights.revenuePL}, Expenses Group = ${heights.expenses + heights.expensesPL}`);
-
-    // Apply proportional heights immediately using vertex manipulation
-    this.setObjectHeight('Revenue', heights.revenue, 'bottom');
-    this.setObjectHeight('RevenuePL', heights.revenuePL, 'top');  
-    this.setObjectHeight('Expenses', heights.expenses, 'bottom');
-    this.setObjectHeight('ExpensesPL', heights.expensesPL, 'top');
-
-    console.log(`✅ SETIMMEDIATEHEIGHTS COMPLETE: Equal group heights with proper proportions`);
+    console.log('✅ Financial heights applied via vertex manipulation');
   }
 
   /**
@@ -530,37 +514,24 @@ export class FinancialsHeightManager {
 
 
   /**
-   * Manipulate mesh height using direct vertex modification instead of scaling
-   * ENFORCES DOCUMENTED BOUNDS: Revenue=2.0 max, Expenses=0.2-2.0, Profit=0.0-1.8, Loss=0.0
+   * Manipulate mesh height using direct vertex modification - SIMPLIFIED
    */
   private setMeshHeightByVertices(
     mesh: Mesh,
     targetHeight: number,
     anchorType: 'top' | 'bottom'
   ): void {
-    // ENFORCE DOCUMENTED BOUNDS per replit.md specifications
-    let boundedHeight = targetHeight;
-    if (mesh.name === 'Revenue') {
-      boundedHeight = Math.min(targetHeight, 2.0); // Max 2.0 units ($10M)
-    } else if (mesh.name === 'Expenses') {
-      boundedHeight = Math.max(0.2, Math.min(targetHeight, 2.0)); // 0.2-2.0 units ($1M-$10M)
-    } else if (mesh.name === 'ExpensesPL') {
-      boundedHeight = Math.max(0.0, Math.min(targetHeight, 1.8)); // 0.0-1.8 units ($0M-$9M profit)
-    } else if (mesh.name === 'RevenuePL') {
-      boundedHeight = 0.0; // Always 0.0 units (no loss in our scenario)
-    }
-
     const originalVertices = this.originalVertices.get(mesh.name);
     if (!originalVertices) {
-      debugLog.warn('financials', `No original vertices found for ${mesh.name}, falling back to scaling`);
+      console.warn(`No original vertices found for ${mesh.name}`);
       return;
     }
 
     const geometry = mesh.geometry;
     if (!geometry) return;
 
-    // Store the target height for label scaling
-    this.currentHeightFactors.set(mesh.name, boundedHeight);
+    // Store the target height
+    this.currentHeightFactors.set(mesh.name, targetHeight);
 
     // Create a copy of original vertices to modify
     const newVertices = new Float32Array(originalVertices);
@@ -576,32 +547,21 @@ export class FinancialsHeightManager {
     }
 
     const originalHeight = maxY - minY;
+    const scaleRatio = targetHeight / originalHeight;
 
-    // NORMALIZE TO STANDARD 1.0 UNIT BASELINE: Regardless of GLB original height
-    // Force all meshes to work from same baseline, then scale to exact target
-    const STANDARD_BASELINE_HEIGHT = 1.0; // Normalize all meshes to 1.0 unit baseline
-    const normalizeRatio = STANDARD_BASELINE_HEIGHT / originalHeight;
-    const targetRatio = boundedHeight / STANDARD_BASELINE_HEIGHT;
-    const finalScaleRatio = normalizeRatio * targetRatio;
-
-    // Reduced logging to prevent browser crash from excessive console output
-    if (Math.random() < 0.1) { // Only log 10% of the time
-      console.log(`🔧 ${mesh.name}: GLB=${originalHeight.toFixed(3)} → Normalize=${STANDARD_BASELINE_HEIGHT} → Target=${boundedHeight.toFixed(3)} (ratio=${finalScaleRatio.toFixed(3)})`);
-    }
-
-    // Modify vertices based on anchor type - NORMALIZED then SCALED
+    // Modify vertices based on anchor type
     for (let i = 1; i < newVertices.length; i += 3) {
       const originalY = originalVertices[i];
 
       if (anchorType === 'bottom') {
         // Bottom-anchored: scale Y from the bottom (minY stays fixed)
         const relativeY = originalY - minY;
-        const scaledY = relativeY * finalScaleRatio;
+        const scaledY = relativeY * scaleRatio;
         newVertices[i] = minY + scaledY;
       } else {
         // Top-anchored: scale Y from the top (maxY stays fixed) 
         const relativeY = maxY - originalY;
-        const scaledY = relativeY * finalScaleRatio;
+        const scaledY = relativeY * scaleRatio;
         newVertices[i] = maxY - scaledY;
       }
     }
@@ -614,7 +574,7 @@ export class FinancialsHeightManager {
     // Update label position after vertex manipulation
     this.updateLabelPosition(mesh);
 
-    debugLog.verbose('financials', `BOUNDED VERTEX: ${mesh.name} ${boundedHeight} units (${anchorType}-anchored) from GLB ${originalHeight.toFixed(3)}`);
+    console.log(`✅ ${mesh.name} height set to ${targetHeight} via vertex manipulation`);
   }
 
   /**
