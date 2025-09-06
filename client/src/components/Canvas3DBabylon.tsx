@@ -3947,9 +3947,42 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
             {/* Labels */}
             <div className="flex justify-between text-xs font-medium text-gray-800 mt-2">
-              <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 PAST clicked')}>PAST</span>
-              <span className="cursor-pointer hover:text-gray-900 transition-colors font-semibold bg-white/10 px-2 py-1 rounded shadow-md" onClick={() => console.log('🕐 PRESENT clicked')}>PRESENT</span>
-              <span className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" onClick={() => console.log('🕐 FUTURE clicked')}>FUTURE</span>
+              <span 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" 
+                onClick={() => {
+                  console.log('🕐 PAST (2025) clicked');
+                  const financialsDataAdapter = (window as any).financialsDataAdapter;
+                  if (financialsDataAdapter) {
+                    financialsDataAdapter.switchToYear(0, true); // Index 0 = 2025 (PAST)
+                  }
+                }}
+              >
+                PAST
+              </span>
+              <span 
+                className="cursor-pointer hover:text-gray-900 transition-colors font-semibold bg-white/10 px-2 py-1 rounded shadow-md" 
+                onClick={() => {
+                  console.log('🕐 PRESENT (2026) clicked');
+                  const financialsDataAdapter = (window as any).financialsDataAdapter;
+                  if (financialsDataAdapter) {
+                    financialsDataAdapter.switchToYear(1, true); // Index 1 = 2026 (PRESENT)
+                  }
+                }}
+              >
+                PRESENT
+              </span>
+              <span 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" 
+                onClick={() => {
+                  console.log('🕐 FUTURE (2027) clicked');
+                  const financialsDataAdapter = (window as any).financialsDataAdapter;
+                  if (financialsDataAdapter) {
+                    financialsDataAdapter.switchToYear(2, true); // Index 2 = 2027 (FUTURE)
+                  }
+                }}
+              >
+                FUTURE
+              </span>
             </div>
           </div>
         </div>
