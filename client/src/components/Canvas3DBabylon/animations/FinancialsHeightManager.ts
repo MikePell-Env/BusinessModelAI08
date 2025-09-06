@@ -90,10 +90,13 @@ export class FinancialsHeightManager {
     });
     
     // Apply vertex manipulation to each object
+    // First, update bottom-anchored objects
     this.applyVertexHeight('Revenue', revenueHeight, 'bottom');
     this.applyVertexHeight('Expenses', expensesHeight, 'bottom');
-    this.applyVertexHeight('ExpensesPL', profitHeight, 'top');
-    this.applyVertexHeight('RevenuePL', lossHeight, 'top');
+    
+    // Then, position top-anchored objects to stack on their base objects
+    this.applyStackedHeight('ExpensesPL', profitHeight, 'Expenses');
+    this.applyStackedHeight('RevenuePL', lossHeight, 'Revenue');
     
     // Update label positions to stay centered on front faces
     this.updateLabelPositions();
@@ -153,6 +156,60 @@ export class FinancialsHeightManager {
     this.currentHeights.set(meshName, targetHeight);
     
     console.log(`✅ ${meshName} height set to ${targetHeight.toFixed(3)} via vertex manipulation`);
+  }
+
+  /**
+   * Apply height to a top-anchored mesh that stacks on top of a base mesh
+   */
+  private applyStackedHeight(meshName: string, targetHeight: number, baseMeshName: string): void {
+    const mesh = this.financialMeshes.get(meshName);
+    const baseMesh = this.financialMeshes.get(baseMeshName);
+    const originalPositions = this.originalVertices.get(meshName);
+    
+    if (!mesh || !baseMesh || !originalPositions) {
+      console.warn(`⚠️ Cannot apply stacked height to ${meshName}: mesh or base mesh not found`);
+      return;
+    }
+    
+    // Get the current top of the base mesh
+    const basePositions = baseMesh.getVerticesData(VertexBuffer.PositionKind);
+    if (!basePositions) return;
+    
+    let baseMaxY = Number.MIN_VALUE;
+    for (let i = 1; i < basePositions.length; i += 3) {
+      baseMaxY = Math.max(baseMaxY, basePositions[i]);
+    }
+    
+    // Get current vertex positions
+    const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
+    if (!positions) return;
+    
+    // Calculate original bounds
+    let minY = Number.MAX_VALUE;
+    let maxY = Number.MIN_VALUE;
+    for (let i = 1; i < originalPositions.length; i += 3) {
+      minY = Math.min(minY, originalPositions[i]);
+      maxY = Math.max(maxY, originalPositions[i]);
+    }
+    const originalHeight = maxY - minY;
+    
+    // Position the mesh to start right on top of the base mesh
+    const newMinY = baseMaxY;
+    
+    // Apply vertex manipulation - scale and position to stack on base
+    for (let i = 1; i < positions.length; i += 3) {
+      const originalY = originalPositions[i];
+      const normalizedY = (originalY - minY) / originalHeight; // 0 to 1 from bottom
+      positions[i] = newMinY + (normalizedY * targetHeight);
+    }
+    
+    // Update the vertex buffer with new positions
+    mesh.updateVerticesData(VertexBuffer.PositionKind, positions);
+    
+    // Store current height for reference
+    this.currentHeights.set(meshName, targetHeight);
+    
+    console.log(`✅ ${meshName} stacked on ${baseMeshName} with height ${targetHeight.toFixed(3)}`);
   }
 
   /**
