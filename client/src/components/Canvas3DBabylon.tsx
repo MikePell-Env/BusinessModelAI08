@@ -4031,8 +4031,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               </div>
             </div>
 
-            {/* Labels with years - Center aligned, uniform half-width */}
-            <div className="flex justify-center gap-8 text-xs font-medium text-gray-800 mt-2">
+            {/* Labels with years - Edge aligned, uniform half-width */}
+            <div className="flex justify-between text-xs font-medium text-gray-800 mt-2">
               <span 
                 className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-2 py-2 rounded shadow-sm border border-gray-300 text-center w-16" 
                 onClick={() => {
