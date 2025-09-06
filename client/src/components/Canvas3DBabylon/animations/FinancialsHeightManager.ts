@@ -25,12 +25,12 @@ export class FinancialsHeightManager {
   private originalVertices: Map<string, Float32Array> = new Map();
   private currentHeights: Map<string, number> = new Map();
   
-  // Height conversion constant from documentation
-  private readonly HEIGHT_SCALE = 500.0;
+  // Simple direct height mapping: $1M = 0.1 height units
+  private readonly MILLION_TO_HEIGHT = 0.1; // $1M = 0.1 units, $10M = 1.0 units, $20M = 2.0 units
   
   // Maximum height limits in 3D units
-  private readonly MAX_HEIGHT = 2.0;
-  private readonly MIN_HEIGHT = 0.2;
+  private readonly MAX_HEIGHT = 3.0; // Allow up to $30M
+  private readonly MIN_HEIGHT = 0.01; // Minimum visible height
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -72,13 +72,21 @@ export class FinancialsHeightManager {
    * This is the MAIN method that applies financial data to 3D visualization
    */
   public setImmediateHeights(data: FinancialData): void {
-    console.log('📊 Setting financial object heights:', data);
+    console.log('📊 Setting financial object heights (raw values):', data);
     
-    // Convert financial values to 3D heights using HEIGHT_SCALE
-    const revenueHeight = Math.min(data.revenue / this.HEIGHT_SCALE, this.MAX_HEIGHT);
-    const expensesHeight = Math.max(this.MIN_HEIGHT, Math.min(data.expenses / this.HEIGHT_SCALE, this.MAX_HEIGHT));
-    const profitHeight = Math.max(0, Math.min(data.profit / this.HEIGHT_SCALE, this.MAX_HEIGHT * 0.9));
-    const lossHeight = 0; // Always 0 in current model
+    // Simple direct conversion: value in units / 100 = millions, then * 0.1 = height
+    // Example: 1000 units = $10M = 1.0 height units
+    const revenueHeight = Math.min((data.revenue / 100) * this.MILLION_TO_HEIGHT, this.MAX_HEIGHT);
+    const expensesHeight = Math.max(this.MIN_HEIGHT, Math.min((data.expenses / 100) * this.MILLION_TO_HEIGHT, this.MAX_HEIGHT));
+    const profitHeight = Math.max(0, Math.min((data.profit / 100) * this.MILLION_TO_HEIGHT, this.MAX_HEIGHT));
+    const lossHeight = Math.max(0, Math.min((data.loss / 100) * this.MILLION_TO_HEIGHT, this.MAX_HEIGHT));
+    
+    console.log('📊 Calculated heights:', {
+      revenue: `${revenueHeight.toFixed(3)} units ($${(data.revenue/100).toFixed(0)}M)`,
+      expenses: `${expensesHeight.toFixed(3)} units ($${(data.expenses/100).toFixed(0)}M)`,
+      profit: `${profitHeight.toFixed(3)} units ($${(data.profit/100).toFixed(0)}M)`,
+      loss: `${lossHeight.toFixed(3)} units ($${(data.loss/100).toFixed(0)}M)`
+    });
     
     // Apply vertex manipulation to each object
     this.applyVertexHeight('Revenue', revenueHeight, 'bottom');
@@ -185,15 +193,16 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Reset to default heights
+   * Reset to 2026 data (PRESENT year)
    */
   public resetToDefaults(): void {
     const defaultData: FinancialData = {
-      revenue: 1000,  // $10M
-      expenses: 800,  // $8M
-      profit: 200,    // $2M
-      loss: 0
+      revenue: 1000,  // $10M for 2026
+      expenses: 800,  // $8M for 2026
+      profit: 200,    // $2M profit for 2026
+      loss: 0         // No loss in 2026
     };
+    console.log('🔄 Resetting to 2026 (PRESENT) defaults');
     this.setImmediateHeights(defaultData);
   }
 }
