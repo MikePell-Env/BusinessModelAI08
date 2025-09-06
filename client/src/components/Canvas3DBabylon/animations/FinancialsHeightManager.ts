@@ -24,6 +24,7 @@ export class FinancialsHeightManager {
   private financialMeshes: Map<string, Mesh> = new Map();
   private originalVertices: Map<string, Float32Array> = new Map();
   private currentHeights: Map<string, number> = new Map();
+  private labelPlanes: Map<string, any> = new Map(); // Store label planes for repositioning
   
   // Much smaller height mapping for proper visualization scale
   private readonly MILLION_TO_HEIGHT = 0.02; // $1M = 0.02 units, $10M = 0.2 units, $50M = 1.0 units
@@ -93,6 +94,9 @@ export class FinancialsHeightManager {
     this.applyVertexHeight('Expenses', expensesHeight, 'bottom');
     this.applyVertexHeight('ExpensesPL', profitHeight, 'top');
     this.applyVertexHeight('RevenuePL', lossHeight, 'top');
+    
+    // Update label positions to stay centered on front faces
+    this.updateLabelPositions();
     
     console.log('✅ Financial heights applied via vertex manipulation');
   }
@@ -179,6 +183,36 @@ export class FinancialsHeightManager {
    */
   private isFinancialMesh(name: string): boolean {
     return ['Revenue', 'RevenuePL', 'Expenses', 'ExpensesPL'].includes(name);
+  }
+
+  /**
+   * Register label planes for dynamic positioning
+   */
+  public registerLabelPlane(meshName: string, labelPlane: any): void {
+    this.labelPlanes.set(meshName, labelPlane);
+    console.log(`🏷️ Registered label plane for ${meshName}`);
+  }
+
+  /**
+   * Update label positions to center on front faces of blocks
+   */
+  private updateLabelPositions(): void {
+    this.labelPlanes.forEach((labelPlane, meshName) => {
+      const mesh = this.financialMeshes.get(meshName);
+      if (!mesh || !labelPlane) return;
+
+      // Get current mesh bounds
+      const boundingInfo = mesh.getBoundingInfo();
+      const center = boundingInfo.boundingBox.center;
+      const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
+
+      // Position label in center of front face
+      labelPlane.position.x = center.x;
+      labelPlane.position.y = center.y; // Center vertically on the block
+      labelPlane.position.z = center.z + size.z * 0.5 + 0.01; // Front face + slight offset
+
+      console.log(`🏷️ Updated label position for ${meshName}: y=${center.y.toFixed(3)} (centered on front face)`);
+    });
   }
 
   /**
