@@ -3004,8 +3004,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
               // Register label with FinancialsHeightManager for dynamic positioning
-              const heightManager = (window as any).financialsHeightManager;
-              if (heightManager) {
+              const heightManager = (scene as any).financialsHeightManager;
+              if (heightManager && heightManager.registerLabelPlane) {
                 heightManager.registerLabelPlane(mesh.name, labelPlane);
               }
 
