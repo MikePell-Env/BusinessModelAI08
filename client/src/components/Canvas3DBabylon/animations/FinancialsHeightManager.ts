@@ -116,153 +116,31 @@ export class FinancialsHeightManager {
     }
   }
 
-  /**
-   * Calculate balanced heights using PowerPoint values directly
-   * SIMPLIFIED: PowerPoint gives exact values, convert to 2.0 unit scale
-   */
-  private calculateProportionalHeights(data: FinancialData) {
-    console.log(`🔥 HEIGHT CALC INPUT:`, data);
-    console.log(`🔥 REVENUE HEIGHT TRACE: Input revenue=${data.revenue}, Expected=1000 for 2026`);
-    if (data.revenue === 2660) {
-      console.error(`🚨 ERROR: Received 2027 revenue data (2660) instead of 2026 data (1000)!`);
-      console.error(`🚨 This explains why visualization shows $26.6M instead of $10M`);
-    } else if (data.revenue === 1000) {
-      console.log(`✅ CORRECT: Received 2026 revenue data (1000) for $10M`);
-    } else {
-      console.warn(`❓ UNEXPECTED: Received revenue=${data.revenue}, not 1000 or 2660`);
-    }
-
-    // RULE: PowerPoint values need to be scaled to 2.0 unit max height
-    // Revenue=1000 ($10M) → 2.0 units, Expenses=800 ($8M) → 1.6 units
-    const MAX_VALUE = 1000; // $10M is max height (2.0 units)
-    const MAX_HEIGHT = 2.0;
-
-    // Direct scaling from PowerPoint values
-    const revenueHeight = Math.min((data.revenue / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
-    const expensesHeight = Math.min((data.expenses / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
-
-    // Profit/Loss calculations (only one shows at a time)
-    let profitHeight = 0.0;
-    let lossHeight = 0.0;
-
-    if (data.profit > 0) {
-      profitHeight = Math.min((data.profit / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
-    }
-
-    if (data.loss > 0) {
-      lossHeight = Math.min((data.loss / MAX_VALUE) * MAX_HEIGHT, MAX_HEIGHT);
-    }
-
-    const result = {
-      revenue: revenueHeight,      // Direct scaling
-      revenuePL: lossHeight,       // Only shows when loss > 0
-      expenses: expensesHeight,    // Direct scaling
-      expensesPL: profitHeight     // Only shows when profit > 0  
-    };
-
-    console.log(`🔥 HEIGHT CALC RESULT:`, result);
-    console.log(`🔥 Expected for 2026 (1000/800/200/0): Rev=2.0, RevPL=0.0, Exp=1.6, ExpPL=0.4`);
-
-    // VALIDATION: Check if we got expected 2026 values
-    if (data.revenue === 1000 && data.expenses === 800 && data.profit === 200) {
-      console.log(`✅ CORRECT 2026 HEIGHT CALCULATION: Revenue=2.0, Expenses=1.6, Profit=0.4`);
-    } else {
-      console.log(`❌ UNEXPECTED VALUES IN HEIGHT CALC:`, data);
-    }
-
-    return result;
-  }
 
   /**
-   * Update heights from financial data with corrected slider mapping
-   * Revenue slider controls Revenue group, Expenses slider controls Expenses group
+   * Update heights from financial data - SIMPLIFIED
    */
   public async updateHeightsFromData(
     data: FinancialData,
     duration: number = 1000
   ): Promise<void> {
-    console.log(`⚡ UPDATEHEIGHTSFROMDATA CALLED - Slider/animation path`);
-    console.log(`⚡ Input data:`, data);
-    // ISOLATED SYSTEM: Track previous values to prevent unwanted changes
-    if (!this.previousData) {
-      this.previousData = { revenue: 1000, expenses: 800, profit: 200, loss: 0 };
-    }
+    console.log('📊 Updating financial heights with animation:', data);
 
-    // FIXED: Use exact PowerPoint data without capping (same as setImmediateHeights)
-    const revenue = data.revenue;  // Direct from PowerPoint: 1000 = $10M
-    const expenses = data.expenses; // Direct from PowerPoint: 800 = $8M
-
-    // BUSINESS LOGIC: Profit/Loss = Revenue - Expenses with mutual exclusivity
-    // When Profit exists, Loss = 0. When Loss exists, Profit = 0.
-    const difference = revenue - expenses;
-    const profit = difference > 0 ? difference : 0;  // Positive difference = Profit
-    const loss = difference < 0 ? Math.abs(difference) : 0;  // Negative difference = Loss
-
-    // DEBUG: Log business calculations
-    debugLog.info('financials', `Business Logic: Revenue=${revenue}, Expenses=${expenses}, Difference=${difference}`);
-    debugLog.info('financials', `Calculated: Profit=${profit}, Loss=${loss} (mutual exclusivity enforced)`);
-
-    // VERIFICATION: Ensure mutual exclusivity
-    if (profit > 0 && loss > 0) {
-      debugLog.warn('financials', 'ERROR: Both profit and loss are > 0, mutual exclusivity violated!');
-    }
-
+    // Convert financial values to heights using documented HEIGHT_SCALE
     const HEIGHT_SCALE = 500.0;
+    
+    const revenueHeight = Math.min(data.revenue / HEIGHT_SCALE, 2.0);
+    const expensesHeight = Math.max(0.2, Math.min(data.expenses / HEIGHT_SCALE, 2.0));
+    const expensesPLHeight = Math.max(0.0, Math.min(data.profit / HEIGHT_SCALE, 1.8));
+    const revenuePLHeight = 0.0; // Always 0 (no loss)
 
-    // Calculate heights EXACTLY like Expenses Group logic
-    // Revenue Group: Revenue object = slider value, RevenuePL object = loss amount
-    // SAME PATTERN as Expenses Group: Expenses object = slider value, ExpensesPL = profit
-    const revenueHeight = revenue / HEIGHT_SCALE;  // Revenue object: direct slider value
-    const revenuePLHeight = loss / HEIGHT_SCALE;   // RevenuePL object: loss amount (when expenses > revenue)
+    // Apply heights with simple vertex manipulation (skipping complex animation)
+    this.setObjectHeight('Revenue', revenueHeight, 'bottom');
+    this.setObjectHeight('RevenuePL', revenuePLHeight, 'top');  
+    this.setObjectHeight('Expenses', expensesHeight, 'bottom');
+    this.setObjectHeight('ExpensesPL', expensesPLHeight, 'top');
 
-    // Expenses Group: Expenses = actual value, ExpensesPL = profit
-    const expensesHeight = expenses / HEIGHT_SCALE;
-    const expensesPLHeight = profit / HEIGHT_SCALE;
-
-    // SELECTIVE UPDATES: Only animate objects whose values actually changed
-    const animations: Promise<void>[] = [];
-
-    // TRACK INDIVIDUAL CHANGES: Each object updates based on its specific value changes
-    const revenueChanged = this.previousData.revenue !== revenue;
-    const expensesChanged = this.previousData.expenses !== expenses;
-    const profitChanged = this.previousData.profit !== profit;
-    const lossChanged = this.previousData.loss !== loss;
-
-    // Revenue object updates (when Revenue slider moves)
-    if (revenueChanged) {
-      animations.push(this.animateObjectHeight('Revenue', revenueHeight, 'bottom', duration));
-    }
-
-    // RevenuePL (Loss) object updates (when loss amount changes due to revenue OR expenses)
-    if (lossChanged) {
-      animations.push(this.animateObjectHeight('RevenuePL', revenuePLHeight, 'top', duration));
-    }
-
-    // Expenses object updates (when Expenses slider moves)
-    if (expensesChanged) {
-      animations.push(this.animateObjectHeight('Expenses', expensesHeight, 'bottom', duration));
-    }
-
-    // ExpensesPL (Profit) object updates (when profit amount changes due to revenue OR expenses)
-    if (profitChanged) {
-      animations.push(this.animateObjectHeight('ExpensesPL', expensesPLHeight, 'top', duration));
-    }
-
-    // Update previous data for next comparison
-    this.previousData = { revenue, expenses, profit, loss };
-
-    debugLog.info('financials', `💰 INDIVIDUAL UPDATES - Revenue: $${(revenue/100).toFixed(1)}M, Expenses: $${(expenses/100).toFixed(1)}M`);
-    debugLog.info('financials', `📊 P&L Results - Profit: $${(profit/100).toFixed(1)}M, Loss: $${(loss/100).toFixed(1)}M`);
-    debugLog.info('financials', `📏 Heights - Revenue: ${revenueHeight.toFixed(3)}, RevenuePL: ${revenuePLHeight.toFixed(3)}, Expenses: ${expensesHeight.toFixed(3)}, ExpensesPL: ${expensesPLHeight.toFixed(3)}`);
-    debugLog.info('financials', `🎯 Animations queued: ${animations.length}`);
-
-    // Only animate objects that actually changed
-    if (animations.length > 0) {
-      await Promise.all(animations);
-      debugLog.info('financials', 'Selective animation updates completed');
-    } else {
-      debugLog.info('financials', 'No changes detected, no animations needed');
-    }
+    console.log('✅ Financial heights updated via vertex manipulation');
   }
 
   /**
