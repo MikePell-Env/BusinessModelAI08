@@ -3962,7 +3962,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   console.log('🕐 PAST (2025) clicked');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
                   if (financialsDataAdapter) {
-                    financialsDataAdapter.switchToYear(0, true); // Index 0 = 2025 (PAST)
+                    financialsDataAdapter.switchToYear(0, false); // Index 0 = 2025 (PAST) - no animation for clarity
                     setSelectedYear(0);
                   }
                 }}
@@ -3978,11 +3978,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               <span 
                 className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-md border border-gray-300" 
                 onClick={() => {
-                  console.log('🕐 PRESENT (2026) clicked');
+                  console.log('🕐 PRESENT (2026) clicked - Resetting sliders to default');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
                   if (financialsDataAdapter) {
-                    financialsDataAdapter.switchToYear(1, true); // Index 1 = 2026 (PRESENT)
+                    financialsDataAdapter.switchToYear(1, false); // Index 1 = 2026 (PRESENT) - no animation
                     setSelectedYear(1);
+                    // Reset the Expenses slider to default $8M
+                    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
+                    if (expensesSlider) expensesSlider.value = '800';
                   }
                 }}
                 style={{
@@ -4000,7 +4003,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   console.log('🕐 FUTURE (2027) clicked');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
                   if (financialsDataAdapter) {
-                    financialsDataAdapter.switchToYear(2, true); // Index 2 = 2027 (FUTURE)
+                    financialsDataAdapter.switchToYear(2, false); // Index 2 = 2027 (FUTURE) - no animation for clarity
                     setSelectedYear(2);
                   }
                 }}
