@@ -4031,10 +4031,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               </div>
             </div>
 
-            {/* Labels with years - Center aligned */}
-            <div className="grid grid-cols-3 gap-4 text-xs font-medium text-gray-800 mt-2">
+            {/* Labels with years - Center aligned, uniform half-width */}
+            <div className="flex justify-center gap-8 text-xs font-medium text-gray-800 mt-2">
               <span 
-                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-sm border border-gray-300 text-center" 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-2 py-2 rounded shadow-sm border border-gray-300 text-center w-16" 
                 onClick={() => {
                   console.log('🕐 PAST (2025) clicked');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
@@ -4053,7 +4053,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 <div className="text-base font-bold">2025</div>
               </span>
               <span 
-                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-md border border-gray-300 text-center" 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-2 py-2 rounded shadow-md border border-gray-300 text-center w-16" 
                 onClick={() => {
                   console.log('🕐 PRESENT (2026) clicked - Resetting sliders to default');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
@@ -4075,7 +4075,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 <div className="text-base font-bold">2026</div>
               </span>
               <span 
-                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-sm border border-gray-300 text-center" 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-2 py-2 rounded shadow-sm border border-gray-300 text-center w-16" 
                 onClick={() => {
                   console.log('🕐 FUTURE (2027) clicked');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
