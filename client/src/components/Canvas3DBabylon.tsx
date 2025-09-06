@@ -4120,7 +4120,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
       {/* Financial Sliders UI - Only shown for Financials template */}
       {template.name === 'Financials' && (
-        <div className="absolute top-20 left-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 min-w-[280px]">
+        <div className="absolute top-24 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 min-w-[280px] z-50">
           <h3 className="text-lg font-semibold mb-4 text-gray-800">Financial Controls</h3>
           
           {/* Revenue Slider - Locked */}
