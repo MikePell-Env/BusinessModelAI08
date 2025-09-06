@@ -301,11 +301,16 @@ export class FinancialsHeightManager {
         const expensesPLHalfHeight = height / 2;
         targetPositionY = expensesBottomY + expensesHeight + expensesPLHalfHeight;
       } else if (objectName === 'RevenuePL') {
-        // Position RevenuePL on top of Revenue block
-        const revenueBottomY = 0;
-        const revenueHeight = this.currentHeightFactors.get('Revenue') || 2.0;
-        const revenuePLHalfHeight = height / 2;
-        targetPositionY = revenueBottomY + revenueHeight + revenuePLHalfHeight;
+        // Position RevenuePL based on height - if height is 0 (no loss), stay at ground level
+        if (height <= 0.01) {
+          targetPositionY = 0; // Ground level for no loss
+        } else {
+          // Position RevenuePL on top of Revenue block if there is actual loss
+          const revenueBottomY = 0;
+          const revenueHeight = this.currentHeightFactors.get('Revenue') || 2.0;
+          const revenuePLHalfHeight = height / 2;
+          targetPositionY = revenueBottomY + revenueHeight + revenuePLHalfHeight;
+        }
       }
     }
 
