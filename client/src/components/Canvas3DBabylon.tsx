@@ -234,6 +234,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   
   // Track currently selected Financial object for opacity behavior
   const [currentSelectedFinancialObject, setCurrentSelectedFinancialObject] = useState<string | null>(null);
+  
+  // Track selected year for time slider (default to 1 = 2026 = PRESENT)
+  const [selectedYear, setSelectedYear] = useState<number>(1);
 
   // Camera preset state - initialize with FRONT for Financials, TOP for others
   const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT'>(
