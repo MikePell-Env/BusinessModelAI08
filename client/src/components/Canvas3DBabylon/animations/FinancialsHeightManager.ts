@@ -193,8 +193,8 @@ export class FinancialsHeightManager {
     }
     const originalHeight = maxY - minY;
     
-    // Position the mesh to start slightly above the base mesh (0.01 gap)
-    const newMinY = baseMaxY + 0.01;
+    // Position the mesh to start above the base mesh (0.05 gap for clear visual separation)
+    const newMinY = baseMaxY + 0.05;
     
     // Apply vertex manipulation - scale and position to stack on base
     for (let i = 1; i < positions.length; i += 3) {
