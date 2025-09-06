@@ -4055,6 +4055,77 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         </div>
       </div>
 
+      {/* Financial Sliders UI - Only shown for Financials template */}
+      {template.name === 'Financials' && (
+        <div className="absolute top-20 left-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 min-w-[280px]">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Financial Controls</h3>
+          
+          {/* Revenue Slider - Locked */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Revenue (Fixed): $10M
+            </label>
+            <input
+              id="revenue-slider"
+              type="range"
+              min="1000"
+              max="1000"
+              defaultValue="1000"
+              disabled
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-not-allowed opacity-50 slider"
+            />
+            <div className="revenue-display text-sm text-gray-600 mt-1">$10M</div>
+          </div>
+          
+          {/* Expenses Slider - Interactive */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Expenses: $1M - $10M
+            </label>
+            <input
+              id="expenses-slider"
+              type="range"
+              min="100"
+              max="1000"
+              defaultValue="800"
+              className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer slider"
+              onChange={(e) => {
+                const expensesValue = parseInt(e.target.value);
+                const revenueValue = 1000; // Fixed
+                const profit = Math.max(0, revenueValue - expensesValue);
+                
+                // Update display
+                const expensesDisplay = document.querySelector('.expenses-display');
+                const profitDisplay = document.querySelector('.profit-display');
+                if (expensesDisplay) expensesDisplay.textContent = `$${(expensesValue / 100).toFixed(0)}M`;
+                if (profitDisplay) profitDisplay.textContent = `$${(profit / 100).toFixed(0)}M`;
+                
+                // Update 3D visualization via FinancialsDataAdapter
+                const financialsDataAdapter = (window as any).financialsDataAdapter;
+                if (financialsDataAdapter) {
+                  const businessData = {
+                    totalRevenue: revenueValue,
+                    totalExpenses: expensesValue,
+                    netProfit: profit,
+                    netLoss: 0
+                  };
+                  financialsDataAdapter.updateFromBusinessData(businessData, true);
+                }
+              }}
+            />
+            <div className="expenses-display text-sm text-gray-600 mt-1">$8M</div>
+          </div>
+          
+          {/* Profit Display - Calculated */}
+          <div className="mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Profit (Calculated)
+            </label>
+            <div className="profit-display text-lg font-semibold text-green-600">$2M</div>
+          </div>
+        </div>
+      )}
+
       <canvas
         ref={canvasRef}
         className="w-full h-full"
