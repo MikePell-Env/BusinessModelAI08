@@ -3003,6 +3003,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               
               labelPlane.isPickable = false; // Don't interfere with mesh interaction
 
+              // Register label with FinancialsHeightManager for dynamic positioning
+              if (financialsHeightManager) {
+                financialsHeightManager.registerLabelPlane(mesh.name, labelPlane);
+              }
+
               // Front-facing label created - performance: logging disabled
             }
           });
