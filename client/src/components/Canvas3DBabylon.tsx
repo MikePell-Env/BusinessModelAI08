@@ -971,6 +971,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               if (financialsDataAdapter) {
                 console.log('🚨 IMMEDIATE: Loading PowerPoint data with correct 2026 currentYearIndex');
                 financialsDataAdapter.loadIncomeStatementData(canvasIncomeData);
+                
+                // Update ground labels with correct values (PowerPoint 1000 = $10M)
+                const currentYear = canvasIncomeData.years[canvasIncomeData.currentYearIndex];
+                if (currentYear && envisionerFoundation) {
+                  const revenueDisplay = `$${(currentYear.revenue / 100).toFixed(0)}M`;
+                  const expensesDisplay = `$${(currentYear.expenses / 100).toFixed(0)}M`;
+                  setTimeout(() => {
+                    envisionerFoundation.updateGroundRevenueLabel(`${revenueDisplay} Revenue`);
+                    envisionerFoundation.updateGroundExpensesLabel(`${expensesDisplay} Expenses`);
+                  }, 100);
+                }
               }
             } else {
               console.log('🚨 NO POWERPOINT DATA: Using fallback 2026 financial data');
@@ -2013,6 +2024,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             if (financialsDataAdapter) {
               console.log('🚨 IMMEDIATE (INITIAL LOAD): Loading PowerPoint data with correct 2026 currentYearIndex');
               financialsDataAdapter.loadIncomeStatementData(canvasIncomeData);
+              
+              // Update ground labels with correct values (PowerPoint 1000 = $10M)
+              const currentYear = canvasIncomeData.years[canvasIncomeData.currentYearIndex];
+              if (currentYear && envisionerFoundation) {
+                const revenueDisplay = `$${(currentYear.revenue / 100).toFixed(0)}M`;
+                const expensesDisplay = `$${(currentYear.expenses / 100).toFixed(0)}M`;
+                setTimeout(() => {
+                  envisionerFoundation.updateGroundRevenueLabel(`${revenueDisplay} Revenue`);
+                  envisionerFoundation.updateGroundExpensesLabel(`${expensesDisplay} Expenses`);
+                }, 100);
+              }
             }
           } else {
             console.log('🚨 NO POWERPOINT DATA (INITIAL LOAD): Using fallback 2026 financial data');
