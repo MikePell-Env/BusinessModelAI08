@@ -4154,8 +4154,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer slider"
               onChange={(e) => {
                 const expensesValue = parseInt(e.target.value);
-                const revenueValue = 1000; // Fixed
+                const revenueValue = 1000; // Fixed at $10M
                 const profit = Math.max(0, revenueValue - expensesValue);
+                const loss = Math.max(0, expensesValue - revenueValue);
+                
+                console.log(`💰 Slider changed: Expenses=$${(expensesValue/100).toFixed(0)}M, Profit=$${(profit/100).toFixed(0)}M`);
                 
                 // Update display
                 const expensesDisplay = document.querySelector('.expenses-display');
@@ -4170,9 +4173,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     totalRevenue: revenueValue,
                     totalExpenses: expensesValue,
                     netProfit: profit,
-                    netLoss: 0
+                    netLoss: loss
                   };
-                  financialsDataAdapter.updateFromBusinessData(businessData, true);
+                  financialsDataAdapter.updateFromBusinessData(businessData, false); // No animation for slider
                 }
               }}
             />
