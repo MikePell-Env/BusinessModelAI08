@@ -3933,8 +3933,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       </div>
 
 
-      {/* Time Slider HUD - Show for all templates */}
-      {true && (
+      {/* Time Slider HUD - Show for Financials template */}
+      {(template.name === 'Financials' || template.name.toLowerCase() === 'financials') && (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-8 py-4">
           <div className="relative" style={{ width: '600px' }}>
             {/* Slider track */}
@@ -3945,10 +3945,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               </div>
             </div>
 
-            {/* Labels */}
+            {/* Labels with years */}
             <div className="flex justify-between text-xs font-medium text-gray-800 mt-2">
               <span 
-                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-sm border border-gray-300" 
                 onClick={() => {
                   console.log('🕐 PAST (2025) clicked');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
@@ -3956,11 +3956,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     financialsDataAdapter.switchToYear(0, true); // Index 0 = 2025 (PAST)
                   }
                 }}
+                style={{
+                  backgroundColor: 0 === ((window as any).financialsDataAdapter?.getCurrentYearIndex?.() ?? 1) ? '#3B82F6' : 'rgba(255, 255, 255, 0.9)',
+                  color: 0 === ((window as any).financialsDataAdapter?.getCurrentYearIndex?.() ?? 1) ? 'white' : '#1F2937',
+                  fontWeight: 0 === ((window as any).financialsDataAdapter?.getCurrentYearIndex?.() ?? 1) ? 'bold' : 'normal'
+                }}
               >
-                PAST
+                <div>PAST</div>
+                <div className="text-base font-bold">2025</div>
               </span>
               <span 
-                className="cursor-pointer hover:text-gray-900 transition-colors font-semibold bg-white/10 px-2 py-1 rounded shadow-md" 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-md border border-gray-300" 
                 onClick={() => {
                   console.log('🕐 PRESENT (2026) clicked');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
@@ -3968,11 +3974,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     financialsDataAdapter.switchToYear(1, true); // Index 1 = 2026 (PRESENT)
                   }
                 }}
+                style={{
+                  backgroundColor: 1 === ((window as any).financialsDataAdapter?.getCurrentYearIndex?.() ?? 1) ? '#3B82F6' : 'rgba(255, 255, 255, 0.9)',
+                  color: 1 === ((window as any).financialsDataAdapter?.getCurrentYearIndex?.() ?? 1) ? 'white' : '#1F2937',
+                  fontWeight: 1 === ((window as any).financialsDataAdapter?.getCurrentYearIndex?.() ?? 1) ? 'bold' : 'normal'
+                }}
               >
-                PRESENT
+                <div>PRESENT</div>
+                <div className="text-base font-bold">2026</div>
               </span>
               <span 
-                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/10 px-2 py-1 rounded shadow-sm" 
+                className="cursor-pointer hover:text-gray-900 transition-colors bg-white/90 px-3 py-2 rounded shadow-sm border border-gray-300" 
                 onClick={() => {
                   console.log('🕐 FUTURE (2027) clicked');
                   const financialsDataAdapter = (window as any).financialsDataAdapter;
@@ -3980,8 +3992,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                     financialsDataAdapter.switchToYear(2, true); // Index 2 = 2027 (FUTURE)
                   }
                 }}
+                style={{
+                  backgroundColor: 2 === ((window as any).financialsDataAdapter?.getCurrentYearIndex?.() ?? 1) ? '#3B82F6' : 'rgba(255, 255, 255, 0.9)',
+                  color: 2 === ((window as any).financialsDataAdapter?.getCurrentYearIndex?.() ?? 1) ? 'white' : '#1F2937',
+                  fontWeight: 2 === ((window as any).financialsDataAdapter?.getCurrentYearIndex?.() ?? 1) ? 'bold' : 'normal'
+                }}
               >
-                FUTURE
+                <div>FUTURE</div>
+                <div className="text-base font-bold">2027</div>
               </span>
             </div>
           </div>
@@ -4089,7 +4107,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       </div>
 
       {/* Financial Sliders UI - Only shown for Financials template */}
-      {template.name === 'Financials' && (
+      {(template.name === 'Financials' || template.name.toLowerCase() === 'financials') && (
         <div className="absolute top-20 left-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 min-w-[280px]">
           <h3 className="text-lg font-semibold mb-4 text-gray-800">Financial Controls</h3>
           
