@@ -4002,7 +4002,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 className="absolute top-1/2 transform -translate-y-1/2 transition-all duration-300"
                 style={{ 
                   left: selectedYear === 0 ? '0%' : selectedYear === 1 ? '50%' : '100%',
-                  transform: `translateX(${selectedYear === 0 ? '0' : selectedYear === 1 ? '-50%' : '-100%'}) translateY(-50%)`
+                  transform: `translateX(${selectedYear === 0 ? '0' : selectedYear === 1 ? '-50%' : '-100%'}) translateY(-50%)`,
+                  cursor: 'default'
                 }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
