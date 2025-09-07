@@ -4262,7 +4262,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer slider"
               onChange={(e) => {
                 const expensesValue = parseInt(e.target.value);
-                const revenueValue = 1000; // Fixed at $10M
+                // Get revenue from current time period instead of hardcoded $10M
+                const dataAdapter = (window as any).financialsDataAdapter;
+                const currentYearData = dataAdapter ? dataAdapter.getCurrentYearData() : null;
+                const revenueValue = currentYearData ? currentYearData.revenue : 1000;
                 const profit = Math.max(0, revenueValue - expensesValue);
                 const loss = Math.max(0, expensesValue - revenueValue);
                 
