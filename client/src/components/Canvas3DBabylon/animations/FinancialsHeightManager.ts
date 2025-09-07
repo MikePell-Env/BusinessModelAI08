@@ -26,6 +26,9 @@ export class FinancialsHeightManager {
   private currentHeights: Map<string, number> = new Map();
   private labelPlanes: Map<string, any> = new Map(); // Store label planes for repositioning
   
+  // LABEL VISIBILITY FEATURE - REVERTABLE: Store current financial data for visibility logic
+  private currentFinancialData: FinancialData | null = null;
+  
   // Much smaller height mapping for proper visualization scale
   private readonly MILLION_TO_HEIGHT = 0.03; // $1M = 0.03 units, $10M = 0.3 units, $50M = 1.5 units (1.5x taller)
   
@@ -98,10 +101,15 @@ export class FinancialsHeightManager {
     this.applyStackedHeight('ExpensesPL', profitHeight, 'Expenses');
     this.applyStackedHeight('RevenuePL', lossHeight, 'Revenue');
     
+    // LABEL VISIBILITY FEATURE - REVERTABLE: Store data and update visibility
+    this.currentFinancialData = data;
+    
     // Update label positions to stay centered on front faces
     // Add small delay to ensure vertex buffer updates are complete
     setTimeout(() => {
       this.updateLabelPositions();
+      // LABEL VISIBILITY FEATURE - REVERTABLE: Update label visibility based on $1M threshold
+      this.updateLabelVisibility();
     }, 50);
     
     console.log('✅ Financial heights applied via vertex manipulation');
@@ -273,6 +281,40 @@ export class FinancialsHeightManager {
       labelPlane.position.z = center.z - size.z * 0.5 - 0.01; // FRONT face + slight offset forward
 
       console.log(`🏷️ Updated label position for ${meshName}: y=${center.y.toFixed(3)}, z=${labelPlane.position.z.toFixed(3)} (front face)`);
+    });
+  }
+
+  /**
+   * LABEL VISIBILITY FEATURE - REVERTABLE: Update label visibility based on $1M threshold
+   * Hide labels when values ≤ $1M (≤ 100 raw units), show when > $1M (> 100 raw units)
+   */
+  private updateLabelVisibility(): void {
+    if (!this.currentFinancialData) return;
+    
+    const data = this.currentFinancialData;
+    const THRESHOLD = 100; // $1M threshold in raw units
+    
+    // Map mesh names to their corresponding data values
+    const valueMap: Record<string, number> = {
+      'Revenue': data.revenue,
+      'Expenses': data.expenses,
+      'ExpensesPL': data.profit,  // ExpensesPL shows profit
+      'RevenuePL': data.loss      // RevenuePL shows loss
+    };
+    
+    this.labelPlanes.forEach((labelPlane, meshName) => {
+      if (!labelPlane) return;
+      
+      const value = valueMap[meshName];
+      if (value === undefined) return;
+      
+      // Hide if value ≤ $1M, show if > $1M
+      const shouldShow = value > THRESHOLD;
+      labelPlane.setEnabled(shouldShow);
+      
+      // Log visibility changes for debugging
+      const millionValue = (value / 100).toFixed(0);
+      console.log(`🏷️ VISIBILITY: ${meshName} ($${millionValue}M) - ${shouldShow ? 'SHOWN' : 'HIDDEN'}`);
     });
   }
 
