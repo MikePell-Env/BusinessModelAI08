@@ -4264,7 +4264,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 }
               }}
             />
-            <div className="revenue-display text-sm text-gray-600 mt-1">$10M</div>
+            <div className="revenue-display text-sm text-gray-600 mt-1">${(revenueSliderValue / 100).toFixed(0)}M</div>
           </div>
           
           {/* Expenses Slider - Interactive */}
@@ -4310,7 +4310,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 }
               }}
             />
-            <div className="expenses-display text-sm text-gray-600 mt-1">$8M</div>
+            <div className="expenses-display text-sm text-gray-600 mt-1">${(expensesSliderValue / 100).toFixed(0)}M</div>
           </div>
           
           {/* Profit Display - Calculated */}
@@ -4318,7 +4318,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Profit (Calculated)
             </label>
-            <div className="profit-display text-lg font-semibold text-green-600">$2M</div>
+            <div className="profit-display text-lg font-semibold text-green-600">${(Math.max(0, revenueSliderValue - expensesSliderValue) / 100).toFixed(0)}M</div>
           </div>
         </div>
       )}
