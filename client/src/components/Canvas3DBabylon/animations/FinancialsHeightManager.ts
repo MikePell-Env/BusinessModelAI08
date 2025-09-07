@@ -112,7 +112,7 @@ export class FinancialsHeightManager {
       this.updateLabelVisibility();
     }, 50);
     
-    console.log('✅ Financial heights applied via vertex manipulation');
+    // console.log('✅ Financial heights applied via vertex manipulation');
   }
 
   /**
@@ -166,7 +166,7 @@ export class FinancialsHeightManager {
     // Store current height for reference
     this.currentHeights.set(meshName, targetHeight);
     
-    console.log(`✅ ${meshName} height set to ${targetHeight.toFixed(3)} via vertex manipulation`);
+    // console.log(`✅ ${meshName} height set to ${targetHeight.toFixed(3)} via vertex manipulation`);
   }
 
   /**
@@ -220,7 +220,7 @@ export class FinancialsHeightManager {
     // Store current height for reference
     this.currentHeights.set(meshName, targetHeight);
     
-    console.log(`✅ ${meshName} stacked on ${baseMeshName} with height ${targetHeight.toFixed(3)}`);
+    // console.log(`✅ ${meshName} stacked on ${baseMeshName} with height ${targetHeight.toFixed(3)}`);
   }
 
   /**
