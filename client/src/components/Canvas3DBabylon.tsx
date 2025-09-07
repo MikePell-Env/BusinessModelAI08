@@ -4245,12 +4245,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 
                 console.log(`💰 Revenue slider changed: Revenue=$${(revenueValue/100).toFixed(0)}M, Expenses=$${(expensesValue/100).toFixed(0)}M, Profit=$${(profit/100).toFixed(0)}M`);
                 
-                // Update display
-                const revenueDisplay = document.querySelector('.revenue-display');
-                const profitDisplay = document.querySelector('.profit-display');
-                if (revenueDisplay) revenueDisplay.textContent = `$${(revenueValue / 100).toFixed(0)}M`;
-                if (profitDisplay) profitDisplay.textContent = `$${(profit / 100).toFixed(0)}M`;
-                
                 // Update 3D visualization
                 const financialsDataAdapter = (window as any).financialsDataAdapter;
                 if (financialsDataAdapter) {
@@ -4290,12 +4284,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 const loss = Math.max(0, expensesValue - revenueValue);
                 
                 console.log(`💰 Slider changed: Expenses=$${(expensesValue/100).toFixed(0)}M, Profit=$${(profit/100).toFixed(0)}M`);
-                
-                // Update display
-                const expensesDisplay = document.querySelector('.expenses-display');
-                const profitDisplay = document.querySelector('.profit-display');
-                if (expensesDisplay) expensesDisplay.textContent = `$${(expensesValue / 100).toFixed(0)}M`;
-                if (profitDisplay) profitDisplay.textContent = `$${(profit / 100).toFixed(0)}M`;
                 
                 // Update 3D visualization via FinancialsDataAdapter
                 const financialsDataAdapter = (window as any).financialsDataAdapter;
