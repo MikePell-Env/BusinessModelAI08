@@ -275,6 +275,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   useEffect(() => {
     // Only set initial preset for first-time template loading, not during transitions
     // Preserve camera position when switching between templates that have been initialized
+    console.log(`🔍 Template Switch Debug: hasInitializedTemplate="${hasInitializedTemplate}", template.name="${template.name}"`);
+    
     if (hasInitializedTemplate !== template.name) {
       // Save current camera position before switching (if camera exists)
       if (cameraRef.current) {
@@ -287,8 +289,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
 
       // Save current template state before switching
-      if (template.name === 'Financials') {
-        // Save Financial template state
+      console.log(`🔍 Save Logic Debug: About to save state for previous template. hasInitializedTemplate="${hasInitializedTemplate}"`);
+      
+      if (hasInitializedTemplate === 'Financials') {
+        // Save Financial template state (when leaving Financials)
         saveFinancialsTemplateState(
           revenueSliderValue,
           expensesSliderValue,
@@ -301,8 +305,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           selectedYear,
           currentSelectedFinancialObject
         });
-      } else {
-        // Save Business Model template state  
+      } else if (hasInitializedTemplate === 'Business Model') {
+        // Save Business Model template state (when leaving Business Model)
         const selectedObject = bmcState.getSelectedObject();
         saveBusinessModelTemplateState(selectedObject);
         console.log('💾 Template Switch: Saved Business Model state -', { selectedObject });
