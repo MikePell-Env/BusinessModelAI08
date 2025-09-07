@@ -237,6 +237,25 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   
   // Track selected year for time slider (default to 1 = 2026 = PRESENT)
   const [selectedYear, setSelectedYear] = useState<number>(1);
+  
+  // Financial Controls slider state - controlled components that update with time changes
+  const [revenueSliderValue, setRevenueSliderValue] = useState<number>(1000);
+  const [expensesSliderValue, setExpensesSliderValue] = useState<number>(800);
+
+  // Update slider positions when time period changes
+  useEffect(() => {
+    if (template.name === 'Financials') {
+      const dataAdapter = (window as any).financialsDataAdapter;
+      if (dataAdapter) {
+        const currentYearData = dataAdapter.getCurrentYearData();
+        if (currentYearData) {
+          console.log(`🎚️ TIME CHANGE: Updating sliders for year ${currentYearData.year} - Revenue: $${(currentYearData.revenue/100).toFixed(0)}M, Expenses: $${(currentYearData.expenses/100).toFixed(0)}M`);
+          setRevenueSliderValue(currentYearData.revenue);
+          setExpensesSliderValue(currentYearData.expenses);
+        }
+      }
+    }
+  }, [selectedYear, template.name]); // Trigger when time period or template changes
 
   // Camera preset state - initialize with FRONT for Financials, TOP for others
   const [currentCameraPreset, setCurrentCameraPreset] = useState<'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT'>(
@@ -4215,12 +4234,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               type="range"
               min="100"
               max="3000"
-              defaultValue="1000"
+              value={revenueSliderValue}
               className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer slider"
               onChange={(e) => {
                 const revenueValue = parseInt(e.target.value);
-                const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
-                const expensesValue = expensesSlider ? parseInt(expensesSlider.value) : 800;
+                setRevenueSliderValue(revenueValue);
+                const expensesValue = expensesSliderValue;
                 const profit = Math.max(0, revenueValue - expensesValue);
                 const loss = Math.max(0, expensesValue - revenueValue);
                 
@@ -4258,10 +4277,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               type="range"
               min="100"
               max="1000"
-              defaultValue="800"
+              value={expensesSliderValue}
               className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer slider"
               onChange={(e) => {
                 const expensesValue = parseInt(e.target.value);
+                setExpensesSliderValue(expensesValue);
                 // Get revenue from current time period instead of hardcoded $10M
                 const dataAdapter = (window as any).financialsDataAdapter;
                 const currentYearData = dataAdapter ? dataAdapter.getCurrentYearData() : null;
