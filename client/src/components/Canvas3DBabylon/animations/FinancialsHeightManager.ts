@@ -308,8 +308,8 @@ export class FinancialsHeightManager {
       const value = valueMap[meshName];
       if (value === undefined) return;
       
-      // Hide if value ≤ $1M, show if > $1M
-      const shouldShow = value > THRESHOLD;
+      // Hide if value < $1M, show if >= $1M
+      const shouldShow = value >= THRESHOLD;
       labelPlane.setEnabled(shouldShow);
       
       // Log visibility changes for debugging
