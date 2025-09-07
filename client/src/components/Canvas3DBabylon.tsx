@@ -286,6 +286,28 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         console.log(`💾 Saved camera position: α=${cameraRef.current.alpha.toFixed(2)}, β=${cameraRef.current.beta.toFixed(2)}, r=${cameraRef.current.radius.toFixed(2)}`);
       }
 
+      // Save current template state before switching
+      if (template.name === 'Financials') {
+        // Save Financial template state
+        saveFinancialsTemplateState(
+          revenueSliderValue,
+          expensesSliderValue,
+          selectedYear,
+          currentSelectedFinancialObject
+        );
+        console.log('💾 Template Switch: Saved Financials state -', {
+          revenueSliderValue,
+          expensesSliderValue,
+          selectedYear,
+          currentSelectedFinancialObject
+        });
+      } else {
+        // Save Business Model template state  
+        const selectedObject = bmcState.getSelectedObject();
+        saveBusinessModelTemplateState(selectedObject);
+        console.log('💾 Template Switch: Saved Business Model state -', { selectedObject });
+      }
+
       // Check if this template has been initialized before
       const isFirstTimeForThisTemplate = !hasInitializedTemplate;
       const currentState = getCamera3DState();
@@ -318,6 +340,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         shouldAutoAnimateRef.current = true; // Enable auto-animation for first instantiation
         console.log(`🎬 First instantiation: Setting default preset ${newPreset} for ${template.name}`);
       }
+
+      // Restore template state when switching TO this template
+      if (template.name === 'Financials') {
+        const savedFinancialsState = getFinancialsTemplateState();
+        if (savedFinancialsState) {
+          // Restore Financials template state
+          setRevenueSliderValue(savedFinancialsState.revenueSliderValue);
+          setExpensesSliderValue(savedFinancialsState.expensesSliderValue);
+          setSelectedYear(savedFinancialsState.selectedYear);
+          setCurrentSelectedFinancialObject(savedFinancialsState.currentSelectedFinancialObject);
+          console.log('🔄 Template Switch: Restored Financials state -', savedFinancialsState);
+        }
+      } else {
+        // Restore Business Model template state
+        const savedBusinessModelState = getBusinessModelTemplateState();
+        if (savedBusinessModelState && savedBusinessModelState.selectedObject) {
+          bmcState.selectObject(savedBusinessModelState.selectedObject as BMCComponentName);
+          console.log('🔄 Template Switch: Restored Business Model state -', savedBusinessModelState);
+        }
+      }
+
       setHasInitializedTemplate(template.name);
     }
   }, [template.name, hasInitializedTemplate]);
@@ -420,6 +463,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   const {
     saveCamera3DState,
     getCamera3DState,
+    saveFinancialsTemplateState,
+    getFinancialsTemplateState,
+    saveBusinessModelTemplateState,
+    getBusinessModelTemplateState,
     is3D,
     // REPLACED: Using BMC State Manager for proper selection preservation
     // setSelectedObject,
