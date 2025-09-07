@@ -99,7 +99,10 @@ export class FinancialsHeightManager {
     this.applyStackedHeight('RevenuePL', lossHeight, 'Revenue');
     
     // Update label positions to stay centered on front faces
-    this.updateLabelPositions();
+    // Add small delay to ensure vertex buffer updates are complete
+    setTimeout(() => {
+      this.updateLabelPositions();
+    }, 50);
     
     console.log('✅ Financial heights applied via vertex manipulation');
   }
