@@ -146,6 +146,15 @@ export class FinancialsDataAdapter {
   }
 
   /**
+   * Get current year data for slider calculations
+   */
+  public getCurrentYearData() {
+    if (!this.incomeStatementData) return null;
+    const currentIndex = this.incomeStatementData.currentYearIndex;
+    return this.incomeStatementData.years[currentIndex];
+  }
+
+  /**
    * Check if Income Statement data is available
    */
   public hasIncomeStatementData(): boolean {
