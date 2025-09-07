@@ -275,7 +275,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   useEffect(() => {
     // Only set initial preset for first-time template loading, not during transitions
     // Preserve camera position when switching between templates that have been initialized
-    console.log(`🔍 Template Switch Debug: hasInitializedTemplate="${hasInitializedTemplate}", template.name="${template.name}"`);
+    console.log(`🔍 USEEFFECT TRIGGERED: Template Switch Debug`);
+    console.log(`🔍 hasInitializedTemplate="${hasInitializedTemplate}"`);
+    console.log(`🔍 template.name="${template.name}"`);
     console.log(`🔍 Template object:`, template);
     console.log(`🔍 Condition check: hasInitializedTemplate !== template.name = ${hasInitializedTemplate !== template.name}`);
     
