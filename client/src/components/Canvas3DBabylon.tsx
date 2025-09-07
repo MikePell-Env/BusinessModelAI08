@@ -279,6 +279,10 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     console.log(`🔍 Template object:`, template);
     console.log(`🔍 Condition check: hasInitializedTemplate !== template.name = ${hasInitializedTemplate !== template.name}`);
     
+    // ENHANCED: Always log the current BMC selected object for debugging
+    const currentBMCSelection = bmcState.getSelectedObject();
+    console.log(`🔍 Current BMC Selection: "${currentBMCSelection}"`);
+    
     if (hasInitializedTemplate !== template.name) {
       // Save current camera position before switching (if camera exists)
       if (cameraRef.current) {
