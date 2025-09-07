@@ -18,6 +18,17 @@ interface CanvasState {
     beta: number;
     radius: number;
   } | null;
+  templateStates: {
+    financials?: {
+      revenueSliderValue: number;
+      expensesSliderValue: number;
+      selectedYear: number;
+      currentSelectedFinancialObject: string | null;
+    };
+    businessModel?: {
+      selectedObject: string | null;
+    };
+  };
   selectedObjectName: string | null;
   originalHeights: { [sectionName: string]: number };
   // New BMC State Manager integration
@@ -35,6 +46,10 @@ interface CanvasState {
   setLoading: (loading: boolean) => void;
   saveCamera3DState: (alpha: number, beta: number, radius: number) => void;
   getCamera3DState: () => { alpha: number; beta: number; radius: number; } | null;
+  saveFinancialsTemplateState: (revenueSliderValue: number, expensesSliderValue: number, selectedYear: number, currentSelectedFinancialObject: string | null) => void;
+  getFinancialsTemplateState: () => { revenueSliderValue: number; expensesSliderValue: number; selectedYear: number; currentSelectedFinancialObject: string | null; } | null;
+  saveBusinessModelTemplateState: (selectedObject: string | null) => void;
+  getBusinessModelTemplateState: () => { selectedObject: string | null; } | null;
   setSelectedObject: (objectName: string | null) => void;
   getSelectedObject: () => string | null;
   // New BMC State Manager methods
@@ -61,6 +76,7 @@ export const useCanvas = create<CanvasState>()(
     isChatOpen: false,
     hasImportedFromPowerPoint: false,
     camera3DState: null,
+    templateStates: {},
     selectedObjectName: null,
     originalHeights: {},
     pendingPowerPointFile: null,
@@ -201,6 +217,40 @@ export const useCanvas = create<CanvasState>()(
     getOverviewData: () => {
       const { canvas } = get();
       return canvas?.overviewData;
+    },
+
+    // Template state persistence methods
+    saveFinancialsTemplateState: (revenueSliderValue: number, expensesSliderValue: number, selectedYear: number, currentSelectedFinancialObject: string | null) => {
+      set(state => ({
+        templateStates: {
+          ...state.templateStates,
+          financials: {
+            revenueSliderValue,
+            expensesSliderValue,
+            selectedYear,
+            currentSelectedFinancialObject
+          }
+        }
+      }));
+    },
+
+    getFinancialsTemplateState: () => {
+      return get().templateStates.financials || null;
+    },
+
+    saveBusinessModelTemplateState: (selectedObject: string | null) => {
+      set(state => ({
+        templateStates: {
+          ...state.templateStates,
+          businessModel: {
+            selectedObject
+          }
+        }
+      }));
+    },
+
+    getBusinessModelTemplateState: () => {
+      return get().templateStates.businessModel || null;
     },
   }))
 );
