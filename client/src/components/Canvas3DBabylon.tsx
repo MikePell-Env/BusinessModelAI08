@@ -3950,7 +3950,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           <div className="relative" style={{ width: '600px' }}>
             {/* Slider track */}
             <div 
-              className="h-1 bg-gray-400 rounded-full mb-4 relative cursor-pointer"
+              className="h-1 bg-gray-400 rounded-full mb-4 relative"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
@@ -4029,7 +4029,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                   document.addEventListener('mouseup', handleMouseUp);
                 }}
               >
-                <div className="w-3 h-6 bg-blue-600 rounded-sm cursor-grab active:cursor-grabbing hover:bg-blue-700 transition-colors shadow-lg border border-blue-400"></div>
+                <div className="w-3 h-6 bg-blue-600 rounded-sm hover:bg-blue-700 transition-colors shadow-lg border border-blue-400"></div>
               </div>
             </div>
 
