@@ -33,7 +33,7 @@ export class FinancialsHeightManager {
   private readonly MILLION_TO_HEIGHT = 0.06; // $1M = 0.06 units, $10M = 0.6 units, $50M = 3.0 units (2x taller than before)
   
   // Maximum height limits in 3D units  
-  private readonly MAX_HEIGHT = 1.0; // Keep blocks reasonable size
+  private readonly MAX_HEIGHT = 2.0; // Increased to accommodate 2x taller blocks
   private readonly MIN_HEIGHT = 0.005; // Minimum visible height
 
   constructor(scene: Scene) {
