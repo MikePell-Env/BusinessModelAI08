@@ -4276,10 +4276,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               onChange={(e) => {
                 const expensesValue = parseInt(e.target.value);
                 setExpensesSliderValue(expensesValue);
-                // Get revenue from current time period instead of hardcoded $10M
-                const dataAdapter = (window as any).financialsDataAdapter;
-                const currentYearData = dataAdapter ? dataAdapter.getCurrentYearData() : null;
-                const revenueValue = currentYearData ? currentYearData.revenue : 1000;
+                // Use current Revenue slider value to avoid jumpy behavior
+                const revenueValue = revenueSliderValue;
                 const profit = Math.max(0, revenueValue - expensesValue);
                 const loss = Math.max(0, expensesValue - revenueValue);
                 
