@@ -1,7 +1,8 @@
 
-import { AbstractMesh, Color3, StandardMaterial } from '@babylonjs/core';
+import { AbstractMesh, Color3, StandardMaterial, Scene } from '@babylonjs/core';
 import { BMCStateManagerImpl } from './bmcStateManager';
 import { MaterialManager } from './core/MaterialManager';
+import { BMCVertexManager } from '@/components/Canvas3DBabylon/animations/BMCVertexManager';
 
 interface BMCItem {
   mesh: AbstractMesh;
@@ -19,9 +20,20 @@ export class CleanBMCSystem {
   // REMOVED: isTopView - only using 3D View mode now
   private bmcStateManager: BMCStateManagerImpl | null = null;
   // REMOVED: MaterialManager - using direct property modification instead
+  
+  // EXPERIMENT: Vertex manipulation for Key Resources
+  private vertexManager: BMCVertexManager | null = null;
 
   constructor() {
     // Initialize silently
+  }
+
+  /**
+   * Initialize vertex manager for BMC experiments
+   */
+  public initVertexManager(scene: Scene): void {
+    this.vertexManager = new BMCVertexManager(scene);
+    console.log('🧪 EXPERIMENT: BMCVertexManager initialized for Key Resources 2x height test');
   }
 
   // Set the BMC state manager
@@ -50,6 +62,12 @@ export class CleanBMCSystem {
       baseColor: baseColor.clone()
     });
 
+    // EXPERIMENT: Register with vertex manager for Key Resources experiment
+    if (this.vertexManager && name === 'Key Resources') {
+      this.vertexManager.registerBMCMesh(name, mesh);
+      console.log(`🧪 EXPERIMENT: Registered ${name} for vertex manipulation`);
+    }
+
     // Initialize with proper state
     this.applyState(name, 'normal');
   }
@@ -62,8 +80,18 @@ export class CleanBMCSystem {
       // Toggle selection
       if (this.selectedObject === sectionName) {
         this.selectedObject = null;
+        
+        // EXPERIMENT: Reset vertex manipulation when deselecting
+        if (this.vertexManager) {
+          this.vertexManager.onSectionDeselected();
+        }
       } else {
         this.selectedObject = sectionName;
+        
+        // EXPERIMENT: Apply vertex manipulation for Key Resources
+        if (this.vertexManager) {
+          this.vertexManager.onSectionSelected(sectionName);
+        }
       }
 
       this.updateAllVisuals();
@@ -81,6 +109,12 @@ export class CleanBMCSystem {
   // Clear selection
   clearSelection() {
     this.selectedObject = null;
+    
+    // EXPERIMENT: Reset vertex manipulation when clearing selection
+    if (this.vertexManager) {
+      this.vertexManager.onSectionDeselected();
+    }
+    
     // REMOVED: BMC state manager calls to prevent dual state management conflicts
     // Only CleanBMCSystem manages visual state now
     this.updateAllVisuals();
