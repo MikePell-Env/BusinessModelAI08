@@ -29,6 +29,12 @@ export class FinancialsHeightManager {
   // LABEL VISIBILITY FEATURE - REVERTABLE: Store current financial data for visibility logic
   private currentFinancialData: FinancialData | null = null;
   
+  // PERFORMANCE OPTIMIZATION: Pre-computed vertex indices for fast updates
+  private topVertexIndices: Map<string, number[]> = new Map();
+  private bottomVertexIndices: Map<string, number[]> = new Map();
+  private meshBounds: Map<string, { minY: number; maxY: number; originalHeight: number }> = new Map();
+  private optimizedBuffers: Map<string, Float32Array> = new Map();
+  
   // Much smaller height mapping for proper visualization scale
   private readonly MILLION_TO_HEIGHT = 0.06; // $1M = 0.06 units, $10M = 0.6 units, $50M = 3.0 units (2x taller than before)
   
@@ -54,21 +60,72 @@ export class FinancialsHeightManager {
         // Capture original vertex positions for manipulation
         const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
         if (positions) {
-          // Store a copy of original positions
+          // Store a copy of original positions - KEEP AS Float32Array for performance
           const posArray = positions instanceof Float32Array ? positions : new Float32Array(positions);
           this.originalVertices.set(mesh.name, posArray);
+          
+          // PERFORMANCE OPTIMIZATION: Pre-compute vertex indices and bounds
+          this.precomputeVertexIndices(mesh.name, posArray);
           
           // Calculate and store original height
           const originalHeight = this.calculateMeshHeight(posArray);
           this.currentHeights.set(mesh.name, originalHeight);
           
-          // Make mesh updatable for vertex manipulation
-          mesh.setVerticesData(VertexBuffer.PositionKind, Array.from(positions), true);
+          // Store working buffer as Float32Array (no Array.from conversion)
+          const workingBuffer = new Float32Array(posArray);
+          this.optimizedBuffers.set(mesh.name, workingBuffer);
+          
+          // Make mesh updatable for vertex manipulation - use Float32Array directly
+          mesh.setVerticesData(VertexBuffer.PositionKind, workingBuffer, true);
           
           console.log(`✅ Registered ${mesh.name}: height=${originalHeight.toFixed(3)} units, vertices=${positions.length/3}`);
         }
       }
     });
+  }
+
+  /**
+   * PERFORMANCE OPTIMIZATION: Pre-compute vertex indices for top/bottom vertices
+   * This eliminates the need to scan all vertices on every update
+   */
+  private precomputeVertexIndices(meshName: string, positions: Float32Array): void {
+    // Find min and max Y values first
+    let minY = Number.MAX_VALUE;
+    let maxY = Number.MIN_VALUE;
+    
+    for (let i = 1; i < positions.length; i += 3) {
+      const y = positions[i];
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+    
+    const originalHeight = maxY - minY;
+    
+    // Store bounds for fast access
+    this.meshBounds.set(meshName, { minY, maxY, originalHeight });
+    
+    // Find indices of vertices at top and bottom (with small tolerance for floating point)
+    const topIndices: number[] = [];
+    const bottomIndices: number[] = [];
+    const tolerance = originalHeight * 0.001; // 0.1% tolerance
+    
+    for (let i = 1; i < positions.length; i += 3) {
+      const y = positions[i];
+      const vertexIndex = (i - 1) / 3; // Convert position index to vertex index
+      
+      if (Math.abs(y - maxY) <= tolerance) {
+        topIndices.push(i); // Store position array index (Y coordinate index)
+      }
+      if (Math.abs(y - minY) <= tolerance) {
+        bottomIndices.push(i); // Store position array index (Y coordinate index)
+      }
+    }
+    
+    // Store pre-computed indices
+    this.topVertexIndices.set(meshName, topIndices);
+    this.bottomVertexIndices.set(meshName, bottomIndices);
+    
+    console.log(`🚀 Pre-computed indices for ${meshName}: ${topIndices.length} top, ${bottomIndices.length} bottom vertices (height: ${originalHeight.toFixed(3)})`);
   }
 
   /**
