@@ -32,8 +32,78 @@ export class CleanBMCSystem {
    * Initialize vertex manager for BMC experiments
    */
   public initVertexManager(scene: Scene): void {
+    console.log('🧪 DEBUG: initVertexManager called with scene:', scene ? 'VALID' : 'NULL');
     this.vertexManager = new BMCVertexManager(scene);
     console.log('🧪 EXPERIMENT: BMCVertexManager initialized for Key Resources 2x height test');
+    console.log('🧪 DEBUG: vertexManager created:', this.vertexManager ? 'SUCCESS' : 'FAILED');
+  }
+
+  /**
+   * QUICK TEST: Direct vertex manipulation bypassing the vertex manager
+   */
+  private testVertexManipulation(mesh: AbstractMesh, sectionName: string): void {
+    if (!(mesh as any).isVertexManipulated) {
+      // Apply 2x height using vertex manipulation
+      this.applyVertexHeight(mesh, 2.0);
+      (mesh as any).isVertexManipulated = true;
+      // Using alert to confirm it's working since console.log isn't visible
+      alert(`🧪 VERTEX TEST: Applied 2x height to ${sectionName}`);
+    } else {
+      // Reset to normal height
+      this.applyVertexHeight(mesh, 1.0);
+      (mesh as any).isVertexManipulated = false;
+      alert(`🧪 VERTEX TEST: Reset ${sectionName} to normal height`);
+    }
+  }
+
+  /**
+   * Apply vertex height scaling
+   */
+  private applyVertexHeight(mesh: AbstractMesh, heightMultiplier: number): void {
+    if (!(mesh as any).originalVertices) {
+      // Store original vertices
+      const positions = (mesh as any).getVerticesData('position');
+      if (positions) {
+        (mesh as any).originalVertices = new Float32Array(positions);
+      } else {
+        alert('🧪 ERROR: No vertex data found on mesh');
+        return;
+      }
+    }
+
+    const originalPositions = (mesh as any).originalVertices;
+    if (!originalPositions) return;
+
+    const workingPositions = new Float32Array(originalPositions);
+
+    // Find Y bounds
+    let minY = Number.MAX_VALUE;
+    let maxY = Number.MIN_VALUE;
+
+    for (let i = 1; i < originalPositions.length; i += 3) {
+      const y = originalPositions[i];
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+
+    const originalHeight = maxY - minY;
+
+    // Apply vertex manipulation - stretch upward from base
+    for (let i = 1; i < workingPositions.length; i += 3) {
+      const originalY = originalPositions[i];
+      const normalizedY = (originalY - minY) / originalHeight; // 0 to 1 from bottom
+
+      // Bottom stays fixed, top vertices move up by heightMultiplier
+      workingPositions[i] = minY + (normalizedY * originalHeight * heightMultiplier);
+    }
+
+    // Update mesh with modified vertices
+    try {
+      (mesh as any).updateVerticesData('position', workingPositions);
+      alert(`🧪 SUCCESS: Vertex manipulation applied (${heightMultiplier}x height)`);
+    } catch (error) {
+      alert(`🧪 ERROR: Failed to update vertices: ${error}`);
+    }
   }
 
   // Set the BMC state manager
@@ -76,6 +146,14 @@ export class CleanBMCSystem {
   onSelect(sectionName: string) {
 
     try {
+      
+      // QUICK TEST: Direct vertex manipulation for Key Resources
+      if (sectionName === 'Key Resources') {
+        const item = this.items.get(sectionName);
+        if (item && item.mesh) {
+          this.testVertexManipulation(item.mesh, sectionName);
+        }
+      }
 
       // Toggle selection
       if (this.selectedObject === sectionName) {

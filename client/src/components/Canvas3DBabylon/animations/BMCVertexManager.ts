@@ -20,7 +20,8 @@ export class BMCVertexManager {
   
   constructor(scene: Scene) {
     this.scene = scene;
-    console.log('✅ BMCVertexManager initialized for vertex manipulation experiments');
+    console.log('✅ 🧪 BMCVertexManager initialized for vertex manipulation experiments');
+    console.log('✅ 🧪 Scene object:', scene ? 'VALID' : 'NULL');
   }
 
   /**
