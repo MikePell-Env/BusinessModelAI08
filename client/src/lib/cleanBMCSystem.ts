@@ -147,12 +147,24 @@ export class CleanBMCSystem {
 
     try {
       
+      // DEBUG: Confirm onSelect is being called
+      alert(`🔍 DEBUG: onSelect called with: "${sectionName}"`);
+      
       // QUICK TEST: Direct vertex manipulation for Key Resources
       if (sectionName === 'Key Resources') {
+        alert(`✅ Found Key Resources section`);
         const item = this.items.get(sectionName);
         if (item && item.mesh) {
+          alert(`✅ Found mesh for Key Resources`);
           this.testVertexManipulation(item.mesh, sectionName);
+        } else {
+          alert(`❌ ERROR: No item or mesh found for Key Resources`);
+          // Show what items we DO have registered
+          const registeredItems = Array.from(this.items.keys());
+          alert(`🔍 Registered items: ${registeredItems.join(', ')}`);
         }
+      } else {
+        alert(`ℹ️ Not Key Resources, got: "${sectionName}"`);
       }
 
       // Toggle selection
