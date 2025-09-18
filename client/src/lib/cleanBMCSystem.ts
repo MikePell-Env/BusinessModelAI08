@@ -39,70 +39,41 @@ export class CleanBMCSystem {
   }
 
   /**
-   * QUICK TEST: Direct vertex manipulation bypassing the vertex manager
+   * Improved vertex manipulation test using the robust BMCVertexManager
    */
   private testVertexManipulation(mesh: AbstractMesh, sectionName: string): void {
-    if (!(mesh as any).isVertexManipulated) {
-      // Apply 2x height using vertex manipulation
-      this.applyVertexHeight(mesh, 2.0);
-      (mesh as any).isVertexManipulated = true;
-      // Using alert to confirm it's working since console.log isn't visible
-      alert(`🧪 VERTEX TEST: Applied 2x height to ${sectionName}`);
+    if (this.vertexManager) {
+      // Use the robust vertex manager instead of direct manipulation
+      this.vertexManager.onSectionSelected(sectionName);
+      console.log(`🧪 VERTEX TEST: Using BMCVertexManager for ${sectionName}`);
     } else {
-      // Reset to normal height
-      this.applyVertexHeight(mesh, 1.0);
-      (mesh as any).isVertexManipulated = false;
-      alert(`🧪 VERTEX TEST: Reset ${sectionName} to normal height`);
+      console.warn(`⚠️ BMCVertexManager not available for ${sectionName}`);
+      // Fallback to simple scaling if vertex manager is not available
+      this.applyFallbackScaling(mesh, sectionName);
     }
   }
 
   /**
-   * Apply vertex height scaling
+   * Fallback scaling method when vertex manager is not available
    */
-  private applyVertexHeight(mesh: AbstractMesh, heightMultiplier: number): void {
-    if (!(mesh as any).originalVertices) {
-      // Store original vertices
-      const positions = (mesh as any).getVerticesData('position');
-      if (positions) {
-        (mesh as any).originalVertices = new Float32Array(positions);
-      } else {
-        alert('🧪 ERROR: No vertex data found on mesh');
-        return;
+  private applyFallbackScaling(mesh: AbstractMesh, sectionName: string): void {
+    console.log(`🔄 Applying fallback scaling to ${sectionName}`);
+    
+    if (!(mesh as any).isScaled) {
+      // Store original scaling
+      (mesh as any).originalScaling = mesh.scaling.clone();
+      
+      // Apply 2x height scaling
+      mesh.scaling.y *= 2.0;
+      (mesh as any).isScaled = true;
+      console.log(`🧪 FALLBACK: Applied 2x height to ${sectionName}`);
+    } else {
+      // Reset to original scaling
+      if ((mesh as any).originalScaling) {
+        mesh.scaling.copyFrom((mesh as any).originalScaling);
+        (mesh as any).isScaled = false;
+        console.log(`🧪 FALLBACK: Reset ${sectionName} to normal height`);
       }
-    }
-
-    const originalPositions = (mesh as any).originalVertices;
-    if (!originalPositions) return;
-
-    const workingPositions = new Float32Array(originalPositions);
-
-    // Find Y bounds
-    let minY = Number.MAX_VALUE;
-    let maxY = Number.MIN_VALUE;
-
-    for (let i = 1; i < originalPositions.length; i += 3) {
-      const y = originalPositions[i];
-      minY = Math.min(minY, y);
-      maxY = Math.max(maxY, y);
-    }
-
-    const originalHeight = maxY - minY;
-
-    // Apply vertex manipulation - stretch upward from base
-    for (let i = 1; i < workingPositions.length; i += 3) {
-      const originalY = originalPositions[i];
-      const normalizedY = (originalY - minY) / originalHeight; // 0 to 1 from bottom
-
-      // Bottom stays fixed, top vertices move up by heightMultiplier
-      workingPositions[i] = minY + (normalizedY * originalHeight * heightMultiplier);
-    }
-
-    // Update mesh with modified vertices
-    try {
-      (mesh as any).updateVerticesData('position', workingPositions);
-      alert(`🧪 SUCCESS: Vertex manipulation applied (${heightMultiplier}x height)`);
-    } catch (error) {
-      alert(`🧪 ERROR: Failed to update vertices: ${error}`);
     }
   }
 
@@ -147,24 +118,24 @@ export class CleanBMCSystem {
 
     try {
       
-      // DEBUG: Confirm onSelect is being called
-      alert(`🔍 DEBUG: onSelect called with: "${sectionName}"`);
+      // Enhanced vertex manipulation for Key Resources
+      console.log(`🔍 DEBUG: onSelect called with: "${sectionName}"`);
       
-      // QUICK TEST: Direct vertex manipulation for Key Resources
+      // Apply vertex manipulation for Key Resources using robust system
       if (sectionName === 'Key Resources') {
-        alert(`✅ Found Key Resources section`);
+        console.log(`✅ Found Key Resources section`);
         const item = this.items.get(sectionName);
         if (item && item.mesh) {
-          alert(`✅ Found mesh for Key Resources`);
+          console.log(`✅ Found mesh for Key Resources`);
           this.testVertexManipulation(item.mesh, sectionName);
         } else {
-          alert(`❌ ERROR: No item or mesh found for Key Resources`);
+          console.warn(`❌ ERROR: No item or mesh found for Key Resources`);
           // Show what items we DO have registered
           const registeredItems = Array.from(this.items.keys());
-          alert(`🔍 Registered items: ${registeredItems.join(', ')}`);
+          console.log(`🔍 Registered items: ${registeredItems.join(', ')}`);
         }
       } else {
-        alert(`ℹ️ Not Key Resources, got: "${sectionName}"`);
+        console.log(`ℹ️ Not Key Resources, got: "${sectionName}"`);
       }
 
       // Toggle selection
