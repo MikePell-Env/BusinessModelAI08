@@ -35,6 +35,16 @@ export class FinancialsHeightManager {
   private meshBounds: Map<string, { minY: number; maxY: number; originalHeight: number }> = new Map();
   private optimizedBuffers: Map<string, Float32Array> = new Map();
   
+  // ANIMATION SYSTEM: Smooth vertex transitions
+  private animationState: { 
+    isAnimating: boolean; 
+    fromData: FinancialData | null; 
+    toData: FinancialData | null; 
+    startTime: number; 
+    duration: number;
+    resolve?: () => void;
+  } = { isAnimating: false, fromData: null, toData: null, startTime: 0, duration: 0 };
+  
   // Much smaller height mapping for proper visualization scale
   private readonly MILLION_TO_HEIGHT = 0.06; // $1M = 0.06 units, $10M = 0.6 units, $50M = 3.0 units (2x taller than before)
   
@@ -371,11 +381,100 @@ export class FinancialsHeightManager {
   }
 
   /**
-   * Update from business data with optional animation (simplified)
+   * Update from business data with optional smooth animation
+   * SAFE: Defaults to immediate updates, optional smooth transitions
    */
-  public async updateHeightsFromData(data: FinancialData, animate: boolean = true): Promise<void> {
-    // For now, just apply immediately - animation can be added later if needed
-    this.setImmediateHeights(data);
+  public async updateHeightsFromData(data: FinancialData, animate: boolean = false, duration: number = 800): Promise<void> {
+    // SAFETY: Default to immediate updates (animate = false)
+    if (!animate) {
+      this.setImmediateHeights(data);
+      return;
+    }
+
+    // If already animating, apply immediate update and resolve previous animation
+    if (this.animationState.isAnimating) {
+      this.completeCurrentAnimation();
+    }
+
+    // Set up smooth animation state
+    const fromData = this.currentFinancialData ? { ...this.currentFinancialData } : {
+      revenue: 1000, expenses: 800, profit: 200, loss: 0
+    };
+
+    this.animationState = {
+      isAnimating: true,
+      fromData,
+      toData: { ...data },
+      startTime: performance.now(),
+      duration,
+      resolve: undefined
+    };
+
+    // Return promise that resolves when animation completes
+    return new Promise<void>((resolve) => {
+      this.animationState.resolve = resolve;
+      // Register with existing animation system if available
+      this.startVertexAnimation();
+    });
+  }
+
+  /**
+   * ANIMATION SYSTEM: Start smooth vertex transition using existing RAF loop
+   */
+  private startVertexAnimation(): void {
+    const animate = () => {
+      if (!this.animationState.isAnimating) return;
+
+      const now = performance.now();
+      const elapsed = now - this.animationState.startTime;
+      const progress = Math.min(elapsed / this.animationState.duration, 1);
+      
+      // Smooth easing function (ease-out)
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      
+      // Interpolate between fromData and toData
+      const interpolatedData = this.interpolateFinancialData(
+        this.animationState.fromData!,
+        this.animationState.toData!,
+        easeProgress
+      );
+
+      // Apply interpolated heights immediately (no additional animation)
+      this.setImmediateHeights(interpolatedData);
+
+      if (progress >= 1) {
+        this.completeCurrentAnimation();
+      } else {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+    console.log(`🎬 ANIMATION: Starting smooth vertex transition (${this.animationState.duration}ms)`);
+  }
+
+  /**
+   * Interpolate between two FinancialData states
+   */
+  private interpolateFinancialData(from: FinancialData, to: FinancialData, progress: number): FinancialData {
+    return {
+      revenue: from.revenue + (to.revenue - from.revenue) * progress,
+      expenses: from.expenses + (to.expenses - from.expenses) * progress,
+      profit: from.profit + (to.profit - from.profit) * progress,
+      loss: from.loss + (to.loss - from.loss) * progress,
+    };
+  }
+
+  /**
+   * Complete current animation and clean up state
+   */
+  private completeCurrentAnimation(): void {
+    if (this.animationState.resolve) {
+      this.animationState.resolve();
+    }
+    this.animationState.isAnimating = false;
+    this.animationState.resolve = undefined;
+    console.log(`✅ ANIMATION: Vertex transition completed`);
   }
 
   /**
