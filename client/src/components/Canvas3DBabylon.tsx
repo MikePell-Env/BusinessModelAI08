@@ -1098,8 +1098,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     sceneRef.current = scene;
     
     // EXPERIMENT: Initialize BMC vertex manager for Key Resources 2x height test
+    console.log('🧪 DEBUG: About to initialize vertex manager...');
+    console.log('🧪 DEBUG: cleanBMCRef.current:', cleanBMCRef.current ? 'VALID' : 'NULL');
+    console.log('🧪 DEBUG: scene:', scene ? 'VALID' : 'NULL');
     if (cleanBMCRef.current && scene) {
       cleanBMCRef.current.initVertexManager(scene);
+      console.log('🧪 DEBUG: Vertex manager initialization completed');
+    } else {
+      console.log('🧪 ERROR: Cannot initialize vertex manager - missing cleanBMCRef or scene');
     }
 
     // Preserve camera state when switching between templates for seamless transitions
