@@ -30,8 +30,8 @@ export interface ValueChainStep {
 export class ValueChainAnimator {
   private scene: Scene;
   private isRunning: boolean = false;
-  private stepDuration: number = 2000; // 2 seconds per step
-  private pauseDuration: number = 500; // 0.5 seconds between steps
+  private stepDuration: number = 667; // 0.67 seconds per step (3x faster)
+  private pauseDuration: number = 167; // 0.167 seconds between steps (3x faster)
   private meshMap: Map<BMCComponentName, AbstractMesh> = new Map();
   private originalMaterials: Map<BMCComponentName, any> = new Map();
   private activeAnimatables: any[] = [];
@@ -70,9 +70,10 @@ export class ValueChainAnimator {
   // Animation colors
   private readonly colors = {
     idle: new Color3(0.07, 0.07, 0.07), // Default dark grey
-    active: new Color3(0.2, 0.8, 0.3), // Bright green for active step
-    trail: new Color3(0.1, 0.4, 0.15), // Dim green for trail effect
-    emissive: new Color3(0.3, 1.0, 0.4) // Bright emissive green
+    active: new Color3(0.8, 0.2, 0.8), // Bright magenta for active step
+    trail: new Color3(0.4, 0.1, 0.4), // Dim magenta for trail effect
+    emissive: new Color3(1.0, 0.3, 1.0), // Bright emissive magenta
+    flash: new Color3(1.0, 0.8, 1.0) // Bright flash magenta
   };
 
   constructor(scene: Scene) {
@@ -193,7 +194,7 @@ export class ValueChainAnimator {
         this.resetAllToIdle();
         this.mainLoopTimer = setTimeout(() => {
           this.runSequence(0);
-        }, 1500);
+        }, 500); // 3x faster loop restart
         this.activeTimers.push(this.mainLoopTimer);
       }
       return;
@@ -244,10 +245,12 @@ export class ValueChainAnimator {
     easingFunction.setEasingMode(EasingFunction.EASINGMODE_EASEINOUT);
     pulseAnimation.setEasingFunction(easingFunction);
 
-    // Animation keys for pulsing effect - pulse up and down
-    const totalFrames = 120; // 2 second pulse at 60fps
+    // Animation keys for flash + pulsing effect
+    const totalFrames = 40; // 0.67 second pulse at 60fps (3x faster)
     const keys = [
       { frame: 0, value: new Color3(0, 0, 0) }, // Start dark
+      { frame: 3, value: this.colors.flash }, // Quick flash
+      { frame: 6, value: new Color3(0, 0, 0) }, // Flash off
       { frame: totalFrames * 0.3, value: this.colors.emissive }, // Peak brightness
       { frame: totalFrames * 0.7, value: this.colors.emissive }, // Hold brightness
       { frame: totalFrames, value: this.colors.trail } // Fade to trail
@@ -296,7 +299,7 @@ export class ValueChainAnimator {
       
       if (previousMesh) {
         this.setMeshColor(previousMesh, this.colors.trail);
-        this.setMeshEmissive(previousMesh, new Color3(0.05, 0.15, 0.08));
+        this.setMeshEmissive(previousMesh, new Color3(0.15, 0.05, 0.15));
       }
     }
   }
