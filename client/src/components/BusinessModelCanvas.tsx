@@ -209,18 +209,47 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           {currentType === 'financials' ? 'Front View' : '3D Top'}
         </Button>
 
-        {/* Envisioner Type Buttons */}
-        <Button
-          onClick={switchToBusinessModel}
-          disabled={isTransitioning}
-          className={`border border-gray-300 shadow-md ${
-            currentType === 'business-model' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
-          }`}
-          size="sm"
-        >
-          <Box className="w-4 h-4 mr-2" />
-          Business Model
-        </Button>
+        {/* Business Model Button with Flow Animation Below */}
+        <div className="flex flex-col space-y-1">
+          <Button
+            onClick={switchToBusinessModel}
+            disabled={isTransitioning}
+            className={`border border-gray-300 shadow-md ${
+              currentType === 'business-model' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-800 hover:bg-gray-50'
+            }`}
+            size="sm"
+          >
+            <Box className="w-4 h-4 mr-2" />
+            Business Model
+          </Button>
+          
+          {/* Value Chain Animation Toggle - positioned directly under Business Model button */}
+          {is3D && currentType === 'business-model' && (
+            <Button
+              onClick={handleValueChainToggle}
+              disabled={isTransitioning}
+              className={`border border-gray-300 shadow-md text-xs ${
+                isValueChainAnimationRunning 
+                  ? 'bg-purple-600 text-white hover:bg-purple-700 border-purple-600' 
+                  : 'bg-white text-gray-800 hover:bg-gray-50'
+              }`}
+              size="sm"
+              title="Toggle Value Chain Animation - visualize how money flows through your business model"
+            >
+              {isValueChainAnimationRunning ? (
+                <>
+                  <Pause className="w-3 h-3 mr-1" />
+                  Stop Flow
+                </>
+              ) : (
+                <>
+                  <Zap className="w-3 h-3 mr-1" />
+                  Value Flow
+                </>
+              )}
+            </Button>
+          )}
+        </div>
 
         <Button
           onClick={switchToFinancials}
@@ -233,33 +262,6 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           <Settings className="w-4 h-4 mr-2" />
           Financials
         </Button>
-
-        {/* Value Chain Animation Toggle - only show in 3D Business Model view */}
-        {is3D && currentType === 'business-model' && (
-          <Button
-            onClick={handleValueChainToggle}
-            disabled={isTransitioning}
-            className={`border border-gray-300 shadow-md ${
-              isValueChainAnimationRunning 
-                ? 'bg-green-600 text-white hover:bg-green-700 border-green-600' 
-                : 'bg-white text-gray-800 hover:bg-gray-50'
-            }`}
-            size="sm"
-            title="Toggle Value Chain Animation - visualize how money flows through your business model"
-          >
-            {isValueChainAnimationRunning ? (
-              <>
-                <Pause className="w-4 h-4 mr-2" />
-                Stop Flow
-              </>
-            ) : (
-              <>
-                <Zap className="w-4 h-4 mr-2" />
-                Value Flow
-              </>
-            )}
-          </Button>
-        )}
 
       </div>
       
