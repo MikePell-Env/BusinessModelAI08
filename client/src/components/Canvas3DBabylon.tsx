@@ -1895,18 +1895,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           }
         }
 
-        alert(`🔍 CLICK DEBUG: Clicked section "${sectionId}"`);
-        alert(`🔍 cleanBMCRef.current available: ${!!cleanBMCRef.current}`);
         if (cleanBMCRef.current) {
           try {
             cleanBMCRef.current.onSelect(sectionId);
           } catch (error) {
-            alert(`❌ ERROR in cleanBMCRef.current.onSelect(${sectionId}): ${error}`);
             console.error(`❌ ERROR in cleanBMCRef.current.onSelect(${sectionId}):`, error);
             console.error(`❌ Stack trace:`, error instanceof Error ? error.stack : 'No stack trace available');
           }
         } else {
-          alert(`❌ ERROR: cleanBMCRef.current is null/undefined!`);
           console.error(`❌ cleanBMCRef.current is null/undefined!`);
         }
       },
