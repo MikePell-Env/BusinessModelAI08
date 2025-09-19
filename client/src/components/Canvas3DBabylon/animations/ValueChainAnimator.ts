@@ -70,10 +70,10 @@ export class ValueChainAnimator {
   // Animation colors
   private readonly colors = {
     idle: new Color3(0.07, 0.07, 0.07), // Default dark grey
-    active: new Color3(0.6, 0.2, 0.8), // Bright purple for active step
-    trail: new Color3(0.3, 0.1, 0.4), // Dim purple for trail effect
-    emissive: new Color3(0.8, 0.3, 1.0), // Bright emissive purple
-    flash: new Color3(1.0, 0.6, 1.0) // Bright flash purple
+    active: new Color3(0.5, 0.3, 0.7), // Subtle bright purple for active step
+    trail: new Color3(0.25, 0.15, 0.35), // Dim purple for trail effect
+    emissive: new Color3(0.7, 0.4, 0.9), // Subtle bright emissive purple
+    flash: new Color3(0.9, 0.6, 1.0) // Bright flash purple
   };
 
   constructor(scene: Scene) {
@@ -297,7 +297,7 @@ export class ValueChainAnimator {
       
       if (previousMesh) {
         this.setMeshColor(previousMesh, this.colors.trail);
-        this.setMeshEmissive(previousMesh, new Color3(0.12, 0.05, 0.18));
+        this.setMeshEmissive(previousMesh, new Color3(0.1, 0.06, 0.15));
       }
     }
   }
