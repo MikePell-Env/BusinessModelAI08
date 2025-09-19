@@ -13,7 +13,7 @@ import { MicrosoftRecommendations } from './MicrosoftRecommendations';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import samplePowerPointData from '@/data/samplePowerPointCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
-import { Eye, Box, RotateCcw, RectangleHorizontal, Settings, Home } from 'lucide-react';
+import { Eye, Box, RotateCcw, RectangleHorizontal, Settings, Home, Pause, Zap } from 'lucide-react';
 import { powerpointParser } from '@/utils/powerpointParser';
 
 interface BusinessModelCanvasProps {
@@ -31,6 +31,10 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   onNavigateAbout,
   currentPage = 'home' 
 }) => {
+  // Local state for Value Chain Animation
+  const [isValueChainAnimationRunning, setIsValueChainAnimationRunning] = React.useState(false);
+  const valueChainAnimatorRef = React.useRef<any>(null); // Will hold reference to ValueChainAnimator instance
+  
   // Canvas state
   const {
     canvas,
@@ -46,6 +50,39 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   
   // Envisioner type state  
   const { currentTemplate, currentType, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
+  
+  // Handle Value Chain Animation toggle
+  const handleValueChainToggle = () => {
+    if (valueChainAnimatorRef.current) {
+      const newState = valueChainAnimatorRef.current.toggleAnimation();
+      setIsValueChainAnimationRunning(newState);
+      console.log(`🎬 Value Chain Animation ${newState ? 'started' : 'stopped'}`);
+    } else {
+      console.warn('⚠️ ValueChainAnimator not initialized yet');
+    }
+  };
+  
+  // Handle ValueChainAnimator being ready from Canvas3DBabylon
+  const handleValueChainAnimatorReady = (animator: any) => {
+    valueChainAnimatorRef.current = animator;
+    if (animator) {
+      console.log('✅ ValueChainAnimator ready for use');
+    } else {
+      console.log('🔄 ValueChainAnimator disposed');
+      setIsValueChainAnimationRunning(false);
+    }
+  };
+  
+  // Auto-stop animation when switching away from 3D Business Model view
+  React.useEffect(() => {
+    if ((!is3D || currentType !== 'business-model') && isValueChainAnimationRunning) {
+      if (valueChainAnimatorRef.current) {
+        valueChainAnimatorRef.current.stopAnimation();
+        setIsValueChainAnimationRunning(false);
+        console.log('🔄 Auto-stopped Value Chain Animation due to view change');
+      }
+    }
+  }, [is3D, currentType, isValueChainAnimationRunning]);
   
   console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isTransitioning=${isTransitioning}`);
   console.log(`🟡 Current Envisioner Type: ${currentType}, Template: ${currentTemplate.name}`);
@@ -197,6 +234,33 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
           Financials
         </Button>
 
+        {/* Value Chain Animation Toggle - only show in 3D Business Model view */}
+        {is3D && currentType === 'business-model' && (
+          <Button
+            onClick={handleValueChainToggle}
+            disabled={isTransitioning}
+            className={`border border-gray-300 shadow-md ${
+              isValueChainAnimationRunning 
+                ? 'bg-green-600 text-white hover:bg-green-700 border-green-600' 
+                : 'bg-white text-gray-800 hover:bg-gray-50'
+            }`}
+            size="sm"
+            title="Toggle Value Chain Animation - visualize how money flows through your business model"
+          >
+            {isValueChainAnimationRunning ? (
+              <>
+                <Pause className="w-4 h-4 mr-2" />
+                Stop Flow
+              </>
+            ) : (
+              <>
+                <Zap className="w-4 h-4 mr-2" />
+                Value Flow
+              </>
+            )}
+          </Button>
+        )}
+
       </div>
       
       {/* Main content with minimal padding */}
@@ -246,7 +310,12 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
       {/* Canvas Views */}
       <div className="w-full h-full relative">
         {is3D ? (
-          <Canvas3DBabylon canvas={canvas} isTransitioning={isTransitioning} template={currentTemplate} />
+          <Canvas3DBabylon 
+            canvas={canvas} 
+            isTransitioning={isTransitioning} 
+            template={currentTemplate}
+            onValueChainAnimatorReady={handleValueChainAnimatorReady}
+          />
         ) : (
           <Canvas2D canvas={canvas} isTransitioning={isTransitioning} />
         )}

@@ -56,11 +56,13 @@ import { EnvisionerPersistence } from './Canvas3DBabylon/core/EnvisionerPersiste
 import { EnvisionerFoundation } from './Canvas3DBabylon/core/EnvisionerFoundation';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
+import { ValueChainAnimator } from './Canvas3DBabylon/animations/ValueChainAnimator';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
   isTransitioning?: boolean;
   template?: EnvisionerTemplate; // Template configuration for this Envisioner type
+  onValueChainAnimatorReady?: (animator: ValueChainAnimator | null) => void; // Callback to expose animator to parent
 }
 
 
@@ -213,7 +215,8 @@ class UnifiedBMCTransformSystem {
 export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   canvas,
   isTransitioning,
-  template = BusinessModelTemplate
+  template = BusinessModelTemplate,
+  onValueChainAnimatorReady
 }) => {
   // Component rendering...
 
@@ -230,6 +233,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
+  const valueChainAnimatorRef = useRef<ValueChainAnimator | null>(null);
   const [showBulletText, setShowBulletText] = useState(false);
   
   // Track currently selected Financial object for opacity behavior
@@ -1086,6 +1090,15 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
       if (!engine || !scene) {
         throw new Error('Scene setup failed to initialize engine or scene');
+      }
+      
+      // Initialize ValueChainAnimator after scene is ready
+      valueChainAnimatorRef.current = new ValueChainAnimator(scene);
+      debugLog.info('animator', 'ValueChainAnimator initialized');
+      
+      // Expose animator to parent component
+      if (onValueChainAnimatorReady) {
+        onValueChainAnimatorReady(valueChainAnimatorRef.current);
       }
 
       debugLog.info('scene', 'Babylon.js engine and scene initialized via SceneSetupAdapter');
@@ -2343,6 +2356,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Register with clean system - use fixed height of 1.0 for all BMC sections
               cleanBMCRef.current.registerItem("Customer Relationships", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Customer Relationships", labelPlane, labelMaterial);
+              
+              // Register with Value Chain Animator (Customer Relationships is part of the value chain flow)
+              if (valueChainAnimatorRef.current) {
+                valueChainAnimatorRef.current.registerMesh('CustomerRelationships', mesh);
+              }
 
 
               // const contentLabel = createContentLabel("Customer Relationships", mesh, scene);
@@ -2456,6 +2474,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Register with clean system - use fixed height of 1.0 for all BMC sections
               cleanBMCRef.current.registerItem("Key Activities", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Activities", labelPlane, labelMaterial);
+              
+              // Register with Value Chain Animator (Key Activities is part of the value chain flow)
+              if (valueChainAnimatorRef.current) {
+                valueChainAnimatorRef.current.registerMesh('KeyActivities', mesh);
+              }
 
 
               // const contentLabel = createContentLabel("Key Activities", mesh, scene);
@@ -2511,6 +2534,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Register with clean system - use fixed height of 1.0 for all BMC sections
               cleanBMCRef.current.registerItem("Key Resources", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Key Resources", labelPlane, labelMaterial);
+              
+              // Register with Value Chain Animator (Key Resources is part of the value chain flow)
+              if (valueChainAnimatorRef.current) {
+                valueChainAnimatorRef.current.registerMesh('KeyResources', mesh);
+              }
 
 
               // const contentLabel = createContentLabel("Key Resources", mesh, scene);
@@ -2566,6 +2594,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Register with clean system - use fixed height of 1.0 for all BMC sections
               cleanBMCRef.current.registerItem("Value Propositions", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Value Propositions", labelPlane, labelMaterial);
+              
+              // Register with Value Chain Animator (Value Propositions is part of the value chain flow)
+              if (valueChainAnimatorRef.current) {
+                valueChainAnimatorRef.current.registerMesh('ValueProposition', mesh);
+              }
 
 
               // const contentLabel = createContentLabel("Value Propositions", mesh, scene);
@@ -3329,6 +3362,11 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               // Register with clean system - use fixed height of 1.0 for all BMC sections
               cleanBMCRef.current.registerItem("Revenue Streams", mesh, sectionMaterial, 1.0);
               cleanBMCRef.current.addLabel("Revenue Streams", labelPlane, labelMaterial);
+              
+              // Register with Value Chain Animator (Revenue Streams is part of the value chain flow)
+              if (valueChainAnimatorRef.current) {
+                valueChainAnimatorRef.current.registerMesh('RevenueStreams', mesh);
+              }
 
               // DISABLED: Create content label showing bullet points
               // const contentLabel = createContentLabel("Revenue Streams", mesh, scene);
@@ -3894,6 +3932,14 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             animationManagerRef.current.dispose();
           }
           animationManagerRef.current = null;
+        }
+        if (valueChainAnimatorRef.current) {
+          valueChainAnimatorRef.current.dispose();
+          valueChainAnimatorRef.current = null;
+          // Notify parent that animator is no longer available
+          if (onValueChainAnimatorReady) {
+            onValueChainAnimatorReady(null);
+          }
         }
       } catch (e) {
         console.warn('Error cleaning up unified systems and managers:', e);
