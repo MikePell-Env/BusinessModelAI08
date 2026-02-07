@@ -24,6 +24,7 @@ export type MaterialTheme =
 export class MaterialPresets {
   private scene: Scene;
   private materials: Map<string, StandardMaterial | PBRMetallicRoughnessMaterial> = new Map();
+  private activeIntervals: Set<ReturnType<typeof setInterval>> = new Set();
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -151,10 +152,12 @@ export class MaterialPresets {
         
         if (progress >= 1) {
           clearInterval(animate);
+          this.activeIntervals.delete(animate);
           mesh.material = targetMaterial;
           debugLog.verbose('materials', `Theme transition completed for ${theme}`);
         }
       }, interval);
+      this.activeIntervals.add(animate);
     } else {
       // No existing material, apply directly
       mesh.material = targetMaterial;
@@ -215,5 +218,12 @@ export class MaterialPresets {
         mesh.material.emissiveColor = new Color3(0, 0, 0);
       }
     }
+  }
+
+  public dispose(): void {
+    this.activeIntervals.forEach(id => clearInterval(id));
+    this.activeIntervals.clear();
+    this.materials.forEach(mat => mat.dispose());
+    this.materials.clear();
   }
 }

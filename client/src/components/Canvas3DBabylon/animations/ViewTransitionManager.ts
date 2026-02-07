@@ -28,6 +28,7 @@ interface GeometryAnimationOptions {
 export class ViewTransitionManager {
   private scene: Scene;
   private activeTransitions: Map<string, AnimationGroup> = new Map();
+  private _disposed = false;
   
   constructor(scene: Scene) {
     this.scene = scene;
@@ -78,6 +79,7 @@ export class ViewTransitionManager {
     this.scene.activeCamera = perspCamera;
     
     const animate = () => {
+      if (this._disposed) return;
       const elapsed = performance.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
@@ -130,6 +132,10 @@ export class ViewTransitionManager {
     tempCamera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
     
     const animate = () => {
+      if (this._disposed) {
+        tempCamera.dispose();
+        return;
+      }
       const elapsed = performance.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
@@ -338,6 +344,7 @@ export class ViewTransitionManager {
   }
 
   public dispose(): void {
+    this._disposed = true;
     this.stopAllTransitions();
   }
 }
