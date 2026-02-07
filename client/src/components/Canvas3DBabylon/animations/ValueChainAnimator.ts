@@ -45,8 +45,10 @@ export class ValueChainAnimator {
     active: new Color3(0.5, 0.3, 0.7),
     trail: new Color3(0.25, 0.15, 0.35),
     emissive: new Color3(0.7, 0.4, 0.9),
-    trailEmissive: new Color3(0.1, 0.06, 0.15)
+    trailEmissive: new Color3(0.1, 0.06, 0.15),
+    black: new Color3(0, 0, 0)
   };
+  private readonly _tempEmissive: Color3 = new Color3(0, 0, 0);
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -179,18 +181,17 @@ export class ValueChainAnimator {
     const mesh = this.meshMap.get(step.sectionName);
     if (!mesh) return;
 
-    let emissive: Color3;
     if (t < 0.2) {
       const rampUp = this.smoothstep(t / 0.2);
-      emissive = Color3.Lerp(new Color3(0, 0, 0), this.colors.emissive, rampUp);
+      Color3.LerpToRef(this.colors.black, this.colors.emissive, rampUp, this._tempEmissive);
     } else if (t < 0.4) {
-      emissive = this.colors.emissive;
+      this._tempEmissive.copyFrom(this.colors.emissive);
     } else {
       const fadeOut = this.smoothstep((t - 0.4) / 0.6);
-      emissive = Color3.Lerp(this.colors.emissive, this.colors.trail, fadeOut);
+      Color3.LerpToRef(this.colors.emissive, this.colors.trail, fadeOut, this._tempEmissive);
     }
 
-    this.setMeshEmissive(mesh, emissive);
+    this.setMeshEmissive(mesh, this._tempEmissive);
   }
 
   private finishStep(stepIndex: number): void {
@@ -216,7 +217,7 @@ export class ValueChainAnimator {
   private resetAllToIdle(): void {
     this.meshMap.forEach((mesh) => {
       this.setMeshColor(mesh, this.colors.idle);
-      this.setMeshEmissive(mesh, new Color3(0, 0, 0));
+      this.setMeshEmissive(mesh, this.colors.black);
     });
   }
 

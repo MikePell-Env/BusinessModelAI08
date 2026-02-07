@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BusinessModelCanvas, CanvasElement } from '@/types/canvas';
 import { useCanvas } from '@/lib/stores/useCanvas';
+import { useShallow } from 'zustand/react/shallow';
 
 interface Canvas2DProps {
   canvas: BusinessModelCanvas;
@@ -58,7 +59,13 @@ const CanvasBlock: React.FC<{
 );
 
 export const Canvas2D: React.FC<Canvas2DProps> = ({ canvas, isTransitioning }) => {
-  const { hasImportedFromPowerPoint, getSelectedObject, selectBMCObject } = useCanvas();
+  const { hasImportedFromPowerPoint, getSelectedObject, selectBMCObject } = useCanvas(
+    useShallow(state => ({
+      hasImportedFromPowerPoint: state.hasImportedFromPowerPoint,
+      getSelectedObject: state.getSelectedObject,
+      selectBMCObject: state.selectBMCObject
+    }))
+  );
   
   if (!canvas) return null;
   

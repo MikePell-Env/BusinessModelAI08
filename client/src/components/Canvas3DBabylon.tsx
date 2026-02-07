@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import {
   Engine,
   Scene,
@@ -253,7 +254,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       if (dataAdapter) {
         const currentYearData = dataAdapter.getCurrentYearData();
         if (currentYearData) {
-          console.log(`🎚️ TIME CHANGE: Updating sliders for year ${currentYearData.year} - Revenue: $${(currentYearData.revenue/100).toFixed(0)}M, Expenses: $${(currentYearData.expenses/100).toFixed(0)}M`);
           setRevenueSliderValue(currentYearData.revenue);
           setExpensesSliderValue(currentYearData.expenses);
         }
@@ -279,15 +279,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   useEffect(() => {
     // Only set initial preset for first-time template loading, not during transitions
     // Preserve camera position when switching between templates that have been initialized
-    console.log(`🔍 USEEFFECT TRIGGERED: Template Switch Debug`);
-    console.log(`🔍 hasInitializedTemplate="${hasInitializedTemplate}"`);
-    console.log(`🔍 template.name="${template.name}"`);
-    console.log(`🔍 Template object:`, template);
-    console.log(`🔍 Condition check: hasInitializedTemplate !== template.name = ${hasInitializedTemplate !== template.name}`);
-    
-    // ENHANCED: Always log the current BMC selected object for debugging
     const currentBMCSelection = bmcState.getSelectedObject();
-    console.log(`🔍 Current BMC Selection: "${currentBMCSelection}"`);
     
     if (hasInitializedTemplate !== template.name) {
       // Save current camera position before switching (if camera exists)
@@ -301,8 +293,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       }
 
       // Save current template state before switching
-      console.log(`🔍 Save Logic Debug: About to save state for previous template. hasInitializedTemplate="${hasInitializedTemplate}"`);
-      
       if (hasInitializedTemplate === 'Financials') {
         // Save Financial template state (when leaving Financials)
         saveFinancialsTemplateState(
@@ -484,16 +474,27 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     saveBusinessModelTemplateState,
     getBusinessModelTemplateState,
     is3D,
-    // REPLACED: Using BMC State Manager for proper selection preservation
-    // setSelectedObject,
-    // getSelectedObject,
     setOriginalHeights,
     getOriginalHeights,
-    // New BMC State Manager methods
     selectBMCObject,
     getBMCSelectedObject,
     bmcState
-  } = useCanvas();
+  } = useCanvas(
+    useShallow(state => ({
+      saveCamera3DState: state.saveCamera3DState,
+      getCamera3DState: state.getCamera3DState,
+      saveFinancialsTemplateState: state.saveFinancialsTemplateState,
+      getFinancialsTemplateState: state.getFinancialsTemplateState,
+      saveBusinessModelTemplateState: state.saveBusinessModelTemplateState,
+      getBusinessModelTemplateState: state.getBusinessModelTemplateState,
+      is3D: state.is3D,
+      setOriginalHeights: state.setOriginalHeights,
+      getOriginalHeights: state.getOriginalHeights,
+      selectBMCObject: state.selectBMCObject,
+      getBMCSelectedObject: state.getBMCSelectedObject,
+      bmcState: state.bmcState
+    }))
+  );
 
   debugLog.verbose('camera', `Canvas3DBabylon: perspective-only camera system`);
 
@@ -712,7 +713,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     switch (sectionName) {
       case 'Value Propositions':
         content = canvas.valuePropositions?.content || [];
-        console.log(`📋 Value Propositions content:`, content);
         break;
       // Add other sections later
       default:
@@ -726,7 +726,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
     // Format content as bullet points
     const bulletText = content.map(item => `• ${item}`).join('\n');
-    console.log(`📝 Creating bullet text for ${sectionName}:`, bulletText);
 
     // Create dynamic texture for text
     const textureSize = 512;
@@ -784,10 +783,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     textPlane.position = mesh.position.clone();
     textPlane.position.y = mesh.position.y + (mesh.scaling.y / 2) + 0.1; // Higher elevation
     textPlane.rotation.x = Math.PI / 2; // Lay flat on top
-    console.log(`📍 Text plane positioned at:`, textPlane.position);
-    console.log(`📍 Mesh position:`, mesh.position);
-    console.log(`📍 Mesh scaling:`, mesh.scaling);
-
     // Create material - make it very visible
     const textMaterial = new StandardMaterial(`bulletTextMat_${sectionName}`, scene);
     textMaterial.diffuseTexture = dynamicTexture;
@@ -804,14 +799,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     textPlane.setEnabled(true); // Ensure it's enabled
     textPlane.isVisible = true; // Ensure it's visible
 
-    console.log(`📊 Text plane details:`, {
-      name: textPlane.name,
-      position: textPlane.position,
-      isVisible: textPlane.isVisible,
-      isEnabled: textPlane.isEnabled(),
-      parent: textPlane.parent?.name,
-      materialAlpha: textMaterial.alpha
-    });
     return textPlane;
   };
 
@@ -892,10 +879,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           rootMesh.parent = masterTransformRef.current;
           
           // Initialize Financials systems if needed
-          console.log('🚨 TEMPLATE SWITCHING BLOCK: template.name =', template.name, 'isFinancials =', template.name.toLowerCase() === 'financials');
           if (template.name.toLowerCase() === 'financials') {
-            console.log('🚨 ENTERING FINANCIALS TEMPLATE SWITCHING INITIALIZATION');
-            console.log('🚨 TEMPLATE SWITCH: Canvas data check:', !!(canvas as any)?.incomeStatementData);
             const financialsHeightManager = new FinancialsHeightManager(scene);
             const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
             
@@ -923,29 +907,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             };
             
             (window as any).debugCurrentData = () => {
-              console.log('🔍 DEBUGGING CURRENT FINANCIAL DATA:');
               const adapterData = financialsDataAdapter.getIncomeStatementData();
-              if (adapterData) {
-                console.log('📊 Adapter Data:', adapterData);
-                console.log(`📊 Adapter currentYearIndex: ${adapterData.currentYearIndex}`);
-                const currentYear = adapterData.years[adapterData.currentYearIndex];
-                if (currentYear) {
-                  console.log(`📊 Adapter Current Year: ${currentYear.year}`);
-                  console.log(`📊 Adapter Current Revenue: ${currentYear.revenue} (should be 1000 for 2026)`);
-                }
-              }
-              
               const canvasData = (canvas as any)?.incomeStatementData;
-              if (canvasData) {
-                console.log('🎯 Canvas Data:', canvasData);
-                console.log(`🎯 Canvas currentYearIndex: ${canvasData.currentYearIndex}`);
-                const currentYear = canvasData.years[canvasData.currentYearIndex];
-                if (currentYear) {
-                  console.log(`🎯 Canvas Current Year: ${currentYear.year}`);
-                  console.log(`🎯 Canvas Current Revenue: ${currentYear.revenue} (should be 1000 for 2026)`);
-                }
-              }
-              
               return { adapterData, canvasData };
             };
             (window as any).hasIncomeStatementData = () => {
@@ -959,12 +922,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 console.log('✅ PowerPoint Income Statement Data Found:', canvasData);
                 console.log(`📊 Years available: ${canvasData.years.map((y: any) => y.year).join(', ')}`);
                 console.log(`📊 Current year: ${canvasData.years[canvasData.currentYearIndex]?.year}`);
-                console.log(`🔍 DETAILED ANALYSIS:`);
-                console.log(`🔍   currentYearIndex = ${canvasData.currentYearIndex}`);
-                console.log(`🔍   Total years = ${canvasData.years.length}`);
                 canvasData.years.forEach((year: any, index: number) => {
                   const marker = index === canvasData.currentYearIndex ? ' ← CURRENT' : '';
-                  console.log(`🔍   Index ${index}: Year ${year.year}, Revenue ${year.revenue} ($${year.revenue/100}M)${marker}`);
                 });
                 const currentYear = canvasData.years[canvasData.currentYearIndex];
                 if (currentYear) {
@@ -3702,8 +3661,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             sections.push((mesh as any).bmcSectionName);
           }
         });
-        console.log("📋 Available BMC sections:", sections);
-        console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
         return sections;
       }
       return [];
@@ -3714,16 +3671,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     (window as any).adjustEntireBMC = adjustEntireBMC;
     (window as any).listBMCSections = listBMCSections;
 
-    console.log("📊 Hierarchy: Root Transform → Individual TransformNodes → Meshes");
-
     // SIMPLE: Save original heights when GLB model first loads
     const saveOriginalHeights = () => {
-      console.log("📏 STARTUP: Saving original heights from GLB model...");
 
       // Check if we already have heights stored
       const existingHeights = getOriginalHeights();
       if (Object.keys(existingHeights).length > 0) {
-        console.log("📏 Already have heights stored:", existingHeights);
         return true;
       }
 
@@ -3738,8 +3691,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           if (sectionName && transformNode) {
             const height = transformNode.scaling.y;
             originalHeights[sectionName] = height;
-            console.log(`📏 ORIGINAL: ${sectionName} = ${height}`);
-
             // Initialize BMC object transform state
             const bmcComponent = mapSectionNameToBMCComponent(sectionName);
             if (bmcComponent) {
@@ -3749,14 +3700,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 position: mesh.position.clone(),
                 scaling: mesh.scaling.clone()
               });
-              console.log(`🔧 BMC State: Initialized "${bmcComponent}" with height ${height}`);
             }
           }
         });
 
         // Store in global state
         setOriginalHeights(originalHeights);
-        console.log("📏 SAVED original heights:", originalHeights);
         return true;
       }
 
@@ -3819,7 +3768,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       // Listen for drag events to detect manual camera movement
       const dragListener = () => {
         userHasMovedCamera = true;
-        console.log("🚫 User moved camera - auto-switch will be skipped");
       };
 
       // Add temporary event listener for drag detection (will be cleaned up after timeout)
@@ -3836,7 +3784,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             dragListener();
             // ALSO clear button highlighting when user manually drags camera
             setIsInPresetPosition(false);
-            console.log("📹 User drag detected - clearing preset button highlighting");
           }
         };
 
@@ -4360,8 +4307,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 const profit = Math.max(0, revenueValue - expensesValue);
                 const loss = Math.max(0, expensesValue - revenueValue);
                 
-                console.log(`💰 Revenue slider changed: Revenue=$${(revenueValue/100).toFixed(0)}M, Expenses=$${(expensesValue/100).toFixed(0)}M, Profit=$${(profit/100).toFixed(0)}M`);
-                
                 // Update 3D visualization
                 const financialsDataAdapter = (window as any).financialsDataAdapter;
                 if (financialsDataAdapter) {
@@ -4397,8 +4342,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
                 const revenueValue = revenueSliderValue;
                 const profit = Math.max(0, revenueValue - expensesValue);
                 const loss = Math.max(0, expensesValue - revenueValue);
-                
-                console.log(`💰 Slider changed: Expenses=$${(expensesValue/100).toFixed(0)}M, Profit=$${(profit/100).toFixed(0)}M`);
                 
                 // Update 3D visualization via FinancialsDataAdapter
                 const financialsDataAdapter = (window as any).financialsDataAdapter;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 import { useCanvas } from '@/lib/stores/useCanvas';
+import { useShallow } from 'zustand/react/shallow';
 import { BusinessModelCanvas } from '@/types/canvas';
 import { powerpointParser } from '@/utils/powerpointParser';
 
@@ -14,7 +15,9 @@ export const PowerPointImporter: React.FC<PowerPointImporterProps> = ({
   onImportSuccess, 
   onCancel 
 }) => {
-  const { loadCanvas } = useCanvas();
+  const { loadCanvas } = useCanvas(
+    useShallow(state => ({ loadCanvas: state.loadCanvas }))
+  );
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);

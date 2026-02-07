@@ -5,6 +5,7 @@ import { PowerPointImporter } from './PowerPointImporter';
 import { AIChat } from './AIChat';
 import { Header } from './Header';
 import { useCanvas } from '@/lib/stores/useCanvas';
+import { useShallow } from 'zustand/react/shallow';
 import sampleCanvasData from '@/data/sampleCanvas.json';
 import { BusinessModelCanvas as CanvasType } from '@/types/canvas';
 import { powerpointParser } from '@/utils/powerpointParser';
@@ -21,7 +22,9 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ onNavigateHome, onNavi
   const [showCanvas, setShowCanvas] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { loadCanvas } = useCanvas();
+  const { loadCanvas } = useCanvas(
+    useShallow(state => ({ loadCanvas: state.loadCanvas }))
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Listen for Envisioner activation events
