@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import {
   Engine,
@@ -57,6 +57,9 @@ import { EnvisionerPersistence } from './Canvas3DBabylon/core/EnvisionerPersiste
 import { EnvisionerFoundation } from './Canvas3DBabylon/core/EnvisionerFoundation';
 import { FinancialsHeightManager } from './Canvas3DBabylon/animations/FinancialsHeightManager';
 import { FinancialsDataAdapter, FinancialBusinessData } from './Canvas3DBabylon/animations/FinancialsDataAdapter';
+import { VoiceCommandOverlay } from './VoiceCommandOverlay';
+import { useEnvisionerType } from '@/lib/stores/useEnvisionerType';
+import type { VoiceCommandCallbacks } from '@/lib/voice/useVoiceCommands';
 import { ValueChainAnimator } from './Canvas3DBabylon/animations/ValueChainAnimator';
 
 interface Canvas3DBabylonProps {
@@ -4014,6 +4017,49 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     };
   }, [is3D, saveCamera3DState]);
 
+  const { switchToBusinessModel, switchToFinancials } = useEnvisionerType();
+
+  const voiceCallbacks: VoiceCommandCallbacks = useMemo(() => ({
+    onCameraPreset: (preset: 'PERSPECTIVE_LEFT' | 'PERSPECTIVE_RIGHT' | 'TOP' | 'FRONT') => {
+      if (preset === 'TOP' && template.name.toLowerCase() === 'financials') {
+        switchCameraPreset('FRONT');
+      } else if (preset === 'FRONT' && template.name.toLowerCase() !== 'financials') {
+        switchCameraPreset('TOP');
+      } else {
+        switchCameraPreset(preset);
+      }
+    },
+    onZoomIn: () => {
+      if (cameraRef.current) {
+        cameraRef.current.radius = Math.max(cameraRef.current.radius - 5, 5);
+      }
+    },
+    onZoomOut: () => {
+      if (cameraRef.current) {
+        cameraRef.current.radius = Math.min(cameraRef.current.radius + 5, 60);
+      }
+    },
+    onCameraReset: () => {
+      const preset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
+      switchCameraPreset(preset);
+    },
+    onTemplateSwitch: (tmpl: 'business-model' | 'financials') => {
+      if (tmpl === 'business-model') switchToBusinessModel();
+      else if (tmpl === 'financials') switchToFinancials();
+    },
+    onSelectSection: (sectionName: string) => {
+      selectBMCObject(sectionName as any);
+      if (cleanBMCRef.current) {
+        cleanBMCRef.current.onSelect(sectionName);
+      }
+    },
+    onDeselect: () => {
+      selectBMCObject(null);
+      if (cleanBMCRef.current) {
+        cleanBMCRef.current.clearSelection();
+      }
+    },
+  }), [template.name, switchToBusinessModel, switchToFinancials, selectBMCObject, switchCameraPreset]);
 
   return (
     <div className="w-full h-full relative">
@@ -4431,6 +4477,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           position: 'relative'
         }}
       />
+      <VoiceCommandOverlay callbacks={voiceCallbacks} />
     </div>
   );
 };
