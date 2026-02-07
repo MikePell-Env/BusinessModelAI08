@@ -4,6 +4,21 @@
 The 4D Time Machine is a comprehensive platform for business visualization and analysis. It integrates the **Envisioner** foundational platform with the **4D Visual Language (4DVL)** dynamic visualization system. The application showcases various business use cases through self-contained, connected templates that process Microsoft Office document data and display it in specialized 3D visualizations. Its purpose is to provide a powerful tool for strategic analysis, financial forecasting, and "what-if" scenario planning, aiming to transform how businesses interact with their data.
 
 ## Recent Changes
+**February 7, 2026 - Voice Command Control System**
+- **NEW FEATURE**: Voice command control for navigating 3D scenes and interacting with data elements
+- **VoiceCommandEngine**: Regex-based natural language parser supporting camera navigation, template switching, section selection, zoom, and deselection
+- **useVoiceCommands hook**: Manages Web Speech API lifecycle with auto-restart, interim transcript display, and proper cleanup
+- **VoiceCommandOverlay**: Floating UI with mic button, animated listening indicator, recognized command feedback, and help panel
+- **Integration**: Wired into Canvas3DBabylon using existing APIs (switchCameraPreset, cleanBMCRef, useEnvisionerType)
+- **Key files**: `client/src/lib/voice/VoiceCommandEngine.ts`, `client/src/lib/voice/useVoiceCommands.ts`, `client/src/components/VoiceCommandOverlay.tsx`
+
+**February 7, 2026 - Memory Leak Prevention**
+- **Template switch disposal**: Now disposes materials and textures (not just meshes) during template switching, using getBindedMeshes() exclusivity check to avoid disposing shared resources
+- **RAF cancellation**: Added _disposed flags to ViewTransitionManager and FinancialsHeightManager to stop requestAnimationFrame loops on dispose
+- **Interval tracking**: AnimationEffects and MaterialPresets now track setInterval handles and clear them on dispose
+- **Financials lifecycle**: FinancialsHeightManager.dispose() added with comprehensive Map cleanup; disposed before re-creation on template switch
+- **Window globals cleanup**: All window.* debug globals (financialsHeightManager, switchToYear, etc.) deleted on unmount
+
 **September 2, 2025 - PowerPoint Time Navigation Fixed**
 - **CRITICAL FIX**: Initial height calculation was allowing PowerPoint revenue values > 2.0 units
 - **HEIGHT ENFORCEMENT**: Added caps at 1000 ($10M max) in FinancialsDataAdapter to enforce 2.0 unit limit
