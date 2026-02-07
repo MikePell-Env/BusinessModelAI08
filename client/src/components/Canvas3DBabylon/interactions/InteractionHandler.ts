@@ -156,11 +156,7 @@ export class InteractionHandler {
     const lastClickTime = this.clickTimers.get(sectionName) || 0;
     const timeDifference = currentTime - lastClickTime;
 
-    console.log(`🖱️ Click on ${sectionName}, time diff: ${timeDifference}ms`);
-
     if (timeDifference < this.doubleClickThreshold && timeDifference > 50) {
-      // Double-click detected
-      console.log(`🖱️🖱️ Double-click on ${sectionName}`);
       
       if (this.callbacks.onDoubleClick) {
         const position = mesh.getAbsolutePosition();
@@ -178,8 +174,6 @@ export class InteractionHandler {
         
         // Only process if this was the last click
         if (latestClickTime === currentTime) {
-          console.log(`🖱️ Single click processed for ${sectionName}`);
-          
           if (this.cleanBMC) {
             this.cleanBMC.onSelect(sectionName);
           }
@@ -196,8 +190,6 @@ export class InteractionHandler {
    * Handle hover enter
    */
   private handleHoverEnter(sectionName: string): void {
-    console.log(`🖱️ Hover enter: ${sectionName}`);
-    
     if (this.cleanBMC) {
       this.cleanBMC.onHover(sectionName, true);
     }
@@ -211,8 +203,6 @@ export class InteractionHandler {
    * Handle hover exit
    */
   private handleHoverExit(sectionName: string): void {
-    console.log(`🖱️ Hover exit: ${sectionName}`);
-    
     if (this.cleanBMC) {
       this.cleanBMC.onHover(sectionName, false);
     }
