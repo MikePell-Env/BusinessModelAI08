@@ -20,6 +20,7 @@ import { debugLog } from '@/lib/debug/DebugLogger';
 export class AnimationEffects {
   private scene: Scene;
   private activeAnimations: Map<string, AnimationGroup> = new Map();
+  private activeIntervals: Set<ReturnType<typeof setInterval>> = new Set();
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -242,6 +243,7 @@ export class AnimationEffects {
       
       if (elapsed >= duration) {
         clearInterval(shake);
+        this.activeIntervals.delete(shake);
         camera.position = originalPosition;
         return;
       }
@@ -254,6 +256,7 @@ export class AnimationEffects {
 
       camera.position = originalPosition.add(new Vector3(offsetX, offsetY, offsetZ));
     }, interval);
+    this.activeIntervals.add(shake);
   }
 
   /**
@@ -347,5 +350,12 @@ export class AnimationEffects {
 
     await Promise.all(promises);
     debugLog.info('animation', 'Entrance animation completed');
+  }
+
+  public dispose(): void {
+    this.activeAnimations.forEach(group => group.stop());
+    this.activeAnimations.clear();
+    this.activeIntervals.forEach(id => clearInterval(id));
+    this.activeIntervals.clear();
   }
 }

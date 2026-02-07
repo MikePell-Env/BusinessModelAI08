@@ -865,8 +865,31 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         mesh !== masterTransformRef.current
       );
       
+      const meshIdsBeingRemoved = new Set(existingMeshes.map(m => m.uniqueId));
+      const disposedMaterials = new Set<number>();
+      const disposedTextures = new Set<number>();
       existingMeshes.forEach(mesh => {
-        console.log(`🗑️ Removing existing template mesh: ${mesh.name}`);
+        if (mesh.material) {
+          const mat = mesh.material;
+          if (!disposedMaterials.has(mat.uniqueId)) {
+            const boundMeshes = mat.getBindedMeshes();
+            const isExclusive = boundMeshes.length > 0 && boundMeshes.every(m => meshIdsBeingRemoved.has(m.uniqueId));
+            if (isExclusive) {
+              disposedMaterials.add(mat.uniqueId);
+              const texProps = ['diffuseTexture', 'emissiveTexture', 'bumpTexture', 'ambientTexture'] as const;
+              for (const prop of texProps) {
+                if (prop in mat && (mat as any)[prop]) {
+                  const tex = (mat as any)[prop];
+                  if (tex.uniqueId != null && !disposedTextures.has(tex.uniqueId)) {
+                    disposedTextures.add(tex.uniqueId);
+                    tex.dispose();
+                  }
+                }
+              }
+              mat.dispose();
+            }
+          }
+        }
         mesh.dispose();
       });
       
@@ -880,6 +903,9 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
           
           // Initialize Financials systems if needed
           if (template.name.toLowerCase() === 'financials') {
+            if ((scene as any).financialsHeightManager) {
+              (scene as any).financialsHeightManager.dispose();
+            }
             const financialsHeightManager = new FinancialsHeightManager(scene);
             const financialsDataAdapter = new FinancialsDataAdapter(financialsHeightManager);
             
@@ -3891,6 +3917,30 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       } catch (e) {
         console.warn('Error cleaning up unified systems and managers:', e);
       }
+
+      // Dispose financials managers if they exist
+      try {
+        if (sceneRef.current) {
+          const scene = sceneRef.current as any;
+          if (scene.financialsHeightManager) {
+            scene.financialsHeightManager.dispose();
+            scene.financialsHeightManager = null;
+          }
+          scene.financialsDataAdapter = null;
+        }
+      } catch (e) {
+        console.warn('Error disposing financials managers:', e);
+      }
+
+      // Clean up window globals
+      delete (window as any).financialsHeightManager;
+      delete (window as any).financialsDataAdapter;
+      delete (window as any).switchToYear;
+      delete (window as any).getAvailableYears;
+      delete (window as any).getCurrentYearIndex;
+      delete (window as any).debugCurrentData;
+      delete (window as any).hasIncomeStatementData;
+      delete (window as any).checkPowerPointData;
 
       // Properly dispose of Babylon.js resources using SceneSetupAdapter
       try {

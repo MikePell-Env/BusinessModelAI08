@@ -45,6 +45,8 @@ export class FinancialsHeightManager {
     resolve?: () => void;
   } = { isAnimating: false, fromData: null, toData: null, startTime: 0, duration: 0 };
   
+  private _disposed = false;
+  
   // Much smaller height mapping for proper visualization scale
   private readonly MILLION_TO_HEIGHT = 0.06; // $1M = 0.06 units, $10M = 0.6 units, $50M = 3.0 units (2x taller than before)
   
@@ -442,6 +444,7 @@ export class FinancialsHeightManager {
       // Apply interpolated heights immediately (no additional animation)
       this.setImmediateHeights(interpolatedData);
 
+      if (this._disposed) return;
       if (progress >= 1) {
         this.completeCurrentAnimation();
       } else {
@@ -587,5 +590,21 @@ export class FinancialsHeightManager {
     };
     console.log('🔄 Resetting to 2026 (PRESENT) defaults');
     this.setImmediateHeights(defaultData);
+  }
+
+  public dispose(): void {
+    this._disposed = true;
+    if (this.animationState.isAnimating && this.animationState.resolve) {
+      this.animationState.resolve();
+    }
+    this.animationState.isAnimating = false;
+    this.financialMeshes.clear();
+    this.originalVertices.clear();
+    this.currentHeights.clear();
+    this.labelPlanes.clear();
+    this.topVertexIndices.clear();
+    this.bottomVertexIndices.clear();
+    this.meshBounds.clear();
+    this.optimizedBuffers.clear();
   }
 }
