@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCanvas } from '@/lib/stores/useCanvas';
 import { useEnvisionerType } from '@/lib/stores/useEnvisionerType';
+import { useShallow } from 'zustand/react/shallow';
 import { Canvas2D } from './Canvas2D';
 import { Canvas3DBabylon } from './Canvas3DBabylon';
 import { AIChat } from './AIChat';
@@ -35,7 +36,6 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
   const [isValueChainAnimationRunning, setIsValueChainAnimationRunning] = React.useState(false);
   const valueChainAnimatorRef = React.useRef<any>(null); // Will hold reference to ValueChainAnimator instance
   
-  // Canvas state
   const {
     canvas,
     is3D,
@@ -46,10 +46,28 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
     setError,
     pendingPowerPointFile,
     setPendingPowerPointFile
-  } = useCanvas();
+  } = useCanvas(
+    useShallow(state => ({
+      canvas: state.canvas,
+      is3D: state.is3D,
+      isTransitioning: state.isTransitioning,
+      error: state.error,
+      loadCanvas: state.loadCanvas,
+      toggleView: state.toggleView,
+      setError: state.setError,
+      pendingPowerPointFile: state.pendingPowerPointFile,
+      setPendingPowerPointFile: state.setPendingPowerPointFile,
+    }))
+  );
   
-  // Envisioner type state  
-  const { currentTemplate, currentType, switchToBusinessModel, switchToFinancials } = useEnvisionerType();
+  const { currentTemplate, currentType, switchToBusinessModel, switchToFinancials } = useEnvisionerType(
+    useShallow(state => ({
+      currentTemplate: state.currentTemplate,
+      currentType: state.currentType,
+      switchToBusinessModel: state.switchToBusinessModel,
+      switchToFinancials: state.switchToFinancials,
+    }))
+  );
   
   // Handle Value Chain Animation toggle
   const handleValueChainToggle = () => {
@@ -84,10 +102,6 @@ export const BusinessModelCanvas: React.FC<BusinessModelCanvasProps> = ({
     }
   }, [is3D, currentType, isValueChainAnimationRunning]);
   
-  console.log(`🟡 BusinessModelCanvas render: is3D=${is3D}, isTransitioning=${isTransitioning}`);
-  console.log(`🟡 Current Envisioner Type: ${currentType}, Template: ${currentTemplate.name}`);
-  console.log(`🟡 Template sections count: ${currentTemplate.sections.length}`);
-  console.log(`🟡 Will render: ${is3D ? 'Canvas3DBabylon' : 'Canvas2D'}`);
   
 
 

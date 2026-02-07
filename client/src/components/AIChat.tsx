@@ -9,8 +9,8 @@ import { Send, X, Minimize2, Plus, Mic, MicOff, Volume2, VolumeX } from 'lucide-
 import { AIServiceIndicator } from './AIServiceIndicator';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useShallow } from 'zustand/react/shallow';
 
-// Debug configuration - set to true to show service indicators
 const DEBUG_SHOW_SERVICE_INFO = false;
 
 export const AIChat: React.FC = () => {
@@ -26,7 +26,21 @@ export const AIChat: React.FC = () => {
     setError,
     toggleView,
     switchBMCView
-  } = useCanvas();
+  } = useCanvas(
+    useShallow(state => ({
+      chatMessages: state.chatMessages,
+      isChatOpen: state.isChatOpen,
+      canvas: state.canvas,
+      is3D: state.is3D,
+      addChatMessage: state.addChatMessage,
+      toggleChat: state.toggleChat,
+      updateCanvas: state.updateCanvas,
+      setLoading: state.setLoading,
+      setError: state.setError,
+      toggleView: state.toggleView,
+      switchBMCView: state.switchBMCView,
+    }))
+  );
   
   const [inputValue, setInputValue] = useState('');
   const [isMinimized, setIsMinimized] = useState(false);

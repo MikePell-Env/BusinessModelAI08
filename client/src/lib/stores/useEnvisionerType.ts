@@ -26,8 +26,6 @@ export const useEnvisionerType = create<EnvisionerTypeState>((set) => ({
   currentTemplate: BusinessModelTemplate,
 
   switchToBusinessModel: () => {
-    console.log('🔄 SWITCHING TO BUSINESS MODEL');
-    console.log('🔄 Template will be:', TEMPLATES['business-model']);
     set({
       currentType: 'business-model',
       currentTemplate: TEMPLATES['business-model'],
@@ -35,8 +33,6 @@ export const useEnvisionerType = create<EnvisionerTypeState>((set) => ({
   },
 
   switchToFinancials: () => {
-    console.log('🔄 SWITCHING TO FINANCIALS');
-    console.log('🔄 Template will be:', TEMPLATES['financials']);
     set({
       currentType: 'financials',
       currentTemplate: TEMPLATES['financials'],
