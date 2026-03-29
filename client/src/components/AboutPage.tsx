@@ -36,7 +36,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
               className="h-auto w-full"
             />
           </div>
-          <div className="mt-8">
+          <div className="mt-8 text-center">
             <p className="text-xl text-gray-900 font-medium italic">
               "AI is a Time Machine for business."
             </p>
