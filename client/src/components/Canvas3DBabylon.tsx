@@ -61,6 +61,7 @@ import { VoiceCommandOverlay } from './VoiceCommandOverlay';
 import { useEnvisionerType } from '@/lib/stores/useEnvisionerType';
 import type { VoiceCommandCallbacks } from '@/lib/voice/useVoiceCommands';
 import { ValueChainAnimator } from './Canvas3DBabylon/animations/ValueChainAnimator';
+import { useTimerManager } from '@/lib/hooks/useTimerManager';
 
 interface Canvas3DBabylonProps {
   canvas: BusinessModelCanvas;
@@ -223,6 +224,8 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   onValueChainAnimatorReady
 }) => {
   // Component rendering...
+
+  const { safeSetTimeout } = useTimerManager();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
