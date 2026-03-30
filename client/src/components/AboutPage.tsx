@@ -40,6 +40,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             <p className="text-xl text-gray-900 font-medium italic">
               "AI is a Time Machine for business."
             </p>
+            <br />
           </div>
           <div>
             <h2 className="text-lg font-bold text-gray-900 mb-4">ABOUT THE COMPANY</h2>
