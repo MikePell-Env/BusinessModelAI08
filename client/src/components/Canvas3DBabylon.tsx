@@ -833,7 +833,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // without reverting code. Full dispose on unmount prevents leaks.
     if (PHASE3_ENABLED) {
       try {
-        phase3EffectsRef.current = new Phase3VisualEffects(scene, perspectiveCamera);
+        phase3EffectsRef.current = new Phase3VisualEffects(scene);
       } catch (err) {
         console.warn('[Phase3] Could not initialise effects:', err);
       }
