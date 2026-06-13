@@ -155,7 +155,7 @@ export class EnvisionerFoundation {
     groundMaterial.specularColor = MATERIAL_COLORS.GROUND_SPECULAR;
     groundMaterial.specularPower = 64;
     groundMaterial.alpha = 0.5;
-    groundMaterial.backFaceCulling = true; // Camera never goes below ground — single-side saves draw calls
+    groundMaterial.backFaceCulling = false; // User can rotate under the floor — both sides must render
     ground.material = groundMaterial;
 
     ground.isPickable = false; // Foundation components are not interactive
@@ -683,11 +683,18 @@ export class EnvisionerFoundation {
    * Setup the lighting system
    */
   private async setupLighting(): Promise<void> {
-    // Lighting is handled by CanvasManager (3 lights: hemispheric + directional + rim).
-    // Creating extra lights here was causing 5-light over-brightening that washed out
-    // colours and made bloom/glow effects invisible. Removed — no foundationComponents
-    // entry needed; the scene dispose path cleans up CanvasManager lights automatically.
-    debugLog.verbose('envisioner', '💡 Lighting delegated to CanvasManager');
+    // Ambient lighting
+    const ambientLight = new HemisphericLight("envisionerAmbientLight", Vector3.Up(), this.scene);
+    ambientLight.diffuse = this.config.lighting.ambient.color;
+    ambientLight.intensity = this.config.lighting.ambient.intensity;
+
+    // Directional lighting
+    const directionalLight = new DirectionalLight("envisionerDirectionalLight", this.config.lighting.directional.direction, this.scene);
+    directionalLight.diffuse = this.config.lighting.directional.color;
+    directionalLight.intensity = this.config.lighting.directional.intensity;
+
+    this.foundationComponents.set('lights', { ambient: ambientLight, directional: directionalLight });
+    debugLog.verbose('envisioner', '💡 Lighting system setup');
   }
 
   /**

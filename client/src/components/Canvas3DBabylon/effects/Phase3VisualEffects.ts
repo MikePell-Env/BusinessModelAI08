@@ -1,16 +1,15 @@
 /**
  * Phase 3 Visual Quality Effects
  *
- * Three non-destructive post-processing layers:
- *   1. GlowLayer              — halo on emissive label surfaces
- *   2. DefaultRenderingPipeline — bloom on lit surfaces + FXAA anti-aliasing
- *   3. Sharpening             — crispens edges of 3D blocks (most visible change)
+ * Conservative post-processing — does NOT touch lighting or colours:
+ *   1. GlowLayer  — halo on emissive label surfaces (safe, additive only)
+ *   2. FXAA       — anti-aliasing (safe, no colour change)
+ *   3. Sharpening — crisper edges on 3D blocks (safe, edge-only)
  *
- * Fully disposable: call dispose() to remove every effect cleanly.
- * No geometry, no materials, no mesh changes — pure visual overlay.
+ * Bloom and image-processing intentionally omitted — they conflict with the
+ * scene's StandardMaterial / LDR setup and cause tone-mapping darkening.
  *
- * To disable everything instantly without reverting code:
- *   Set PHASE3_ENABLED = false in Phase3Config.ts
+ * To disable everything instantly: set PHASE3_ENABLED = false in Phase3Config.ts
  */
 
 import { Scene, Camera, GlowLayer, DefaultRenderingPipeline } from '@babylonjs/core';
@@ -22,47 +21,38 @@ export class Phase3VisualEffects {
   constructor(scene: Scene, camera: Camera) {
     try {
       // ── 1. Glow Layer ──────────────────────────────────────────────────────
-      // Labels already have emissiveColor = (0.7, 0.7, 0.7) so they light up.
-      // Intensity raised now that 2 redundant scene lights have been removed.
+      // Labels have emissiveColor = (0.7, 0.7, 0.7) so they get a soft halo.
+      // Purely additive — cannot darken anything.
       this.glowLayer = new GlowLayer('phase3Glow', scene, {
         mainTextureFixedSize: 512,
-        blurKernelSize: 48,
+        blurKernelSize: 32,
       });
-      this.glowLayer.intensity = 0.6;
+      this.glowLayer.intensity = 0.5;
 
-      // ── 2. Rendering Pipeline ──────────────────────────────────────────────
-      // hdr: false keeps LDR pipeline — StandardMaterial colours unaffected.
+      // ── 2. Pipeline: FXAA + Sharpening only ───────────────────────────────
+      // hdr: false = LDR pipeline, imageProcessingEnabled = false = NO tone
+      // mapping. Only FXAA and sharpening are switched on.
       this.pipeline = new DefaultRenderingPipeline('phase3Pipeline', false, scene, [camera]);
 
-      // FXAA — smooth jagged edges without MSAA overhead
+      // Disable image processing entirely — default tone mapping darkens LDR scenes
+      this.pipeline.imageProcessingEnabled = false;
+
+      // Disable bloom — safe default; can re-enable once scene is PBR-based
+      this.pipeline.bloomEnabled = false;
+
+      // FXAA — smooth jagged edges, zero visual downside
       this.pipeline.fxaaEnabled = true;
 
-      // Sharpening — most immediately visible quality improvement.
-      // Makes the edges of 3D blocks look crisp rather than soft.
+      // Sharpening — makes 3D block edges look crisp
       this.pipeline.sharpenEnabled = true;
       if (this.pipeline.sharpen) {
-        this.pipeline.sharpen.edgeAmount = 0.4;  // 0 = off, 1 = very sharp
-        this.pipeline.sharpen.colorAmount = 0;   // 0 = only sharpen edges, not colours
+        this.pipeline.sharpen.edgeAmount = 0.3;
+        this.pipeline.sharpen.colorAmount = 0;
       }
 
-      // Bloom — lower threshold so lit coloured surfaces actually bloom.
-      // With 3 lights (not 5), surfaces are no longer washed out, so this
-      // threshold of 0.45 catches specular highlights without blooming the background.
-      this.pipeline.bloomEnabled = true;
-      this.pipeline.bloomWeight = 0.3;
-      this.pipeline.bloomThreshold = 0.45;
-      this.pipeline.bloomScale = 0.5;
-      this.pipeline.bloomKernel = 48;
-
-      // Subtle contrast boost via image processing — makes colours pop slightly.
-      this.pipeline.imageProcessingEnabled = true;
-      this.pipeline.imageProcessing.contrast = 1.08;
-      this.pipeline.imageProcessing.exposure = 1.0;   // no brightness change
-
-      console.log('[Phase3] Visual effects active: glow + sharpening + bloom + FXAA');
+      console.log('[Phase3] Visual effects active: glow + FXAA + sharpening');
 
     } catch (err) {
-      // Never crash the app over a visual enhancement
       console.warn('[Phase3] Failed to initialise visual effects:', err);
       this.dispose();
     }
