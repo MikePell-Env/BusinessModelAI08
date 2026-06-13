@@ -155,7 +155,7 @@ export class EnvisionerFoundation {
     groundMaterial.specularColor = MATERIAL_COLORS.GROUND_SPECULAR;
     groundMaterial.specularPower = 64;
     groundMaterial.alpha = 0.5;
-    groundMaterial.backFaceCulling = false; // Render both sides for underside visibility
+    groundMaterial.backFaceCulling = true; // Camera never goes below ground — single-side saves draw calls
     ground.material = groundMaterial;
 
     ground.isPickable = false; // Foundation components are not interactive
@@ -180,7 +180,7 @@ export class EnvisionerFoundation {
 
     const railMaterial = new StandardMaterial("envisionerRailMaterial", this.scene);
     railMaterial.diffuseColor = Color3.FromHexString(this.config.rails.color);
-    railMaterial.backFaceCulling = false; // Visible from underneath
+    railMaterial.backFaceCulling = true; // Camera stays above rails — single-side saves draw calls
     
     // Make rails reflective like shiny metal with environmental lighting
     railMaterial.specularColor = new Color3(0.9, 0.9, 0.9); // Bright specular highlights
@@ -683,18 +683,11 @@ export class EnvisionerFoundation {
    * Setup the lighting system
    */
   private async setupLighting(): Promise<void> {
-    // Ambient lighting
-    const ambientLight = new HemisphericLight("envisionerAmbientLight", Vector3.Up(), this.scene);
-    ambientLight.diffuse = this.config.lighting.ambient.color;
-    ambientLight.intensity = this.config.lighting.ambient.intensity;
-
-    // Directional lighting
-    const directionalLight = new DirectionalLight("envisionerDirectionalLight", this.config.lighting.directional.direction, this.scene);
-    directionalLight.diffuse = this.config.lighting.directional.color;
-    directionalLight.intensity = this.config.lighting.directional.intensity;
-
-    this.foundationComponents.set('lights', { ambient: ambientLight, directional: directionalLight });
-    debugLog.verbose('envisioner', '💡 Lighting system setup');
+    // Lighting is handled by CanvasManager (3 lights: hemispheric + directional + rim).
+    // Creating extra lights here was causing 5-light over-brightening that washed out
+    // colours and made bloom/glow effects invisible. Removed — no foundationComponents
+    // entry needed; the scene dispose path cleans up CanvasManager lights automatically.
+    debugLog.verbose('envisioner', '💡 Lighting delegated to CanvasManager');
   }
 
   /**
