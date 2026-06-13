@@ -693,22 +693,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       return;
     }
 
-    // Check WebGL support first with proper error handling
+    // Check WebGL support without pre-acquiring the context.
+    // Previously this called canvas.getContext('webgl2') directly which locked the
+    // canvas to alpha:false before Babylon.js initialised — breaking post-processing
+    // pipelines that need alpha in their render targets. Babylon.js handles WebGL
+    // context creation and capability detection itself.
     const canvasElement = canvasRef.current;
-    try {
-      const gl = canvasElement.getContext('webgl2', { antialias: true, alpha: false }) ||
-                 canvasElement.getContext('webgl', { antialias: true, alpha: false }) ||
-                 canvasElement.getContext('experimental-webgl', { antialias: true, alpha: false });
-      if (!gl) {
-        console.error('WebGL is not supported in this browser');
-        return;
-      }
-      console.log('✅ WebGL context initialized successfully');
-      debugLog.info('webgl', 'WebGL context available');
-    } catch (error) {
-      console.error('❌ WebGL initialization failed:', error);
+    if (!window.WebGLRenderingContext && !(window as any).WebGL2RenderingContext) {
+      console.error('WebGL is not supported in this browser');
       return;
     }
+    debugLog.info('webgl', 'WebGL context will be created by Babylon.js');
 
     // DIAGNOSTIC: Detect WebGL context loss (canvas disappearing)
     canvasElement.addEventListener('webglcontextlost', (e) => {

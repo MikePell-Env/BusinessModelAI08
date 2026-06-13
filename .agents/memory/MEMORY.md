@@ -1,0 +1,1 @@
+- [WebGL context pre-emption](webgl-context-preemption.md) — canvas.getContext(webgl2, {alpha:false}) before Babylon locks backbuffer, breaks DefaultRenderingPipeline (black screen).
