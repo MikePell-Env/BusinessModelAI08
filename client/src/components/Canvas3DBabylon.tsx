@@ -92,7 +92,8 @@ import { type Canvas3DBabylonProps } from './Canvas3DBabylon/types/Canvas3DBabyl
 import { UnifiedBMCTransformSystem, type BMCObjectDescriptor } from './Canvas3DBabylon/transforms/UnifiedBMCTransformSystem';
 import { getSectionContent, createContentLabel } from './Canvas3DBabylon/utils/ContentLabelUtils';
 import { createBulletTextPlane } from './Canvas3DBabylon/utils/BulletTextUtils';
-
+import { PHASE3_ENABLED } from './Canvas3DBabylon/effects/Phase3Config';
+import { Phase3VisualEffects } from './Canvas3DBabylon/effects/Phase3VisualEffects';
 
 // Standard grid positions moved to constants file
 
@@ -120,6 +121,7 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
   const interactionManagerRef = useRef<UnifiedInteractionManager | null>(null);
   const bulletTextPlanesRef = useRef<Map<string, Mesh>>(new Map());
   const valueChainAnimatorRef = useRef<ValueChainAnimator | null>(null);
+  const phase3EffectsRef = useRef<Phase3VisualEffects | null>(null);
   const [showBulletText, setShowBulletText] = useState(false);
   
   // Track currently selected Financial object for opacity behavior
@@ -830,6 +832,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     // Simple BMC manager doesn't need scene setup
 
     // Lighting is now handled by SceneSetupAdapter
+
+    // ── Phase 3 Visual Effects ──────────────────────────────────────────────
+    // Glow layer + bloom + FXAA. Wrapped in flag so it can be toggled off
+    // without reverting code. Full dispose on unmount prevents leaks.
+    if (PHASE3_ENABLED) {
+      try {
+        phase3EffectsRef.current = new Phase3VisualEffects(scene, perspectiveCamera);
+      } catch (err) {
+        console.warn('[Phase3] Could not initialise effects:', err);
+      }
+    }
 
     // ENVISIONER PERSISTENCE: Get or create persistent master transform that maintains spatial properties across template switches
     const envisionerPersistence = EnvisionerPersistence.getInstance();
@@ -3598,6 +3611,12 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       delete (window as any).debugCurrentData;
       delete (window as any).hasIncomeStatementData;
       delete (window as any).checkPowerPointData;
+
+      // Dispose Phase 3 effects before scene teardown
+      if (phase3EffectsRef.current) {
+        phase3EffectsRef.current.dispose();
+        phase3EffectsRef.current = null;
+      }
 
       // Properly dispose of Babylon.js resources using SceneSetupAdapter
       try {
