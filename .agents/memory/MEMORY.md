@@ -1,1 +1,2 @@
-- [WebGL context pre-emption](webgl-context-preemption.md) — canvas.getContext(webgl2, {alpha:false}) before Babylon locks backbuffer, breaks DefaultRenderingPipeline (black screen).
+- [WebGL context pre-emption](webgl-context-preemption.md) — canvas.getContext(webgl2,{alpha:false}) before Babylon locks backbuffer, breaks DefaultRenderingPipeline (black screen).
+- [Babylon.js v9 upgrade](babylon-v9-upgrade.md) — 8→9 upgrade had zero breaks; DefaultRenderingPipeline banned; GlowLayer safe; all 3 packages must stay version-synced.
