@@ -96,9 +96,20 @@ export async function saveCredentials(apiKey: string, endpoint: string): Promise
 }
 
 /**
- * Load Azure OpenAI credentials from encrypted local storage
+ * Load Azure OpenAI credentials.
+ * Priority: environment variables (Replit Secrets / Azure Key Vault) → local encrypted file.
  */
 export async function loadCredentials(): Promise<AzureCredentials | null> {
+  // Prefer env vars — these come from Replit Secrets or Azure Key Vault in production
+  if (process.env.AZURE_OPENAI_API_KEY && process.env.AZURE_OPENAI_ENDPOINT) {
+    console.log('Azure credentials loaded from environment variables');
+    return {
+      apiKey: process.env.AZURE_OPENAI_API_KEY,
+      endpoint: process.env.AZURE_OPENAI_ENDPOINT,
+      configuredAt: new Date().toISOString(),
+    };
+  }
+
   try {
     if (!existsSync(CREDENTIALS_FILE)) {
       return null;

@@ -15,11 +15,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/debug-log", async (req, res) => {
     try {
       const { content, timestamp } = req.body;
-      const fs = await import('fs');
+      const fs = await import('fs/promises');
       const path = await import('path');
       const debugLogPath = path.join(process.cwd(), 'debug-log.txt');
       const logEntry = `[${timestamp}]\n${content}\n---\n`;
-      fs.appendFileSync(debugLogPath, logEntry);
+      await fs.appendFile(debugLogPath, logEntry);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: 'Failed to write debug log' });
