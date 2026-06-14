@@ -94,6 +94,9 @@ import { getSectionContent, createContentLabel } from './Canvas3DBabylon/utils/C
 import { createBulletTextPlane } from './Canvas3DBabylon/utils/BulletTextUtils';
 import { PHASE3_ENABLED } from './Canvas3DBabylon/effects/Phase3Config';
 import { Phase3VisualEffects } from './Canvas3DBabylon/effects/Phase3VisualEffects';
+import { CameraPresetButtons } from './Canvas3DBabylon/ui/CameraPresetButtons';
+import { TimeSliderHUD } from './Canvas3DBabylon/ui/TimeSliderHUD';
+import { FinancialControlsPanel } from './Canvas3DBabylon/ui/FinancialControlsPanel';
 
 // Standard grid positions moved to constants file
 
@@ -385,9 +388,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
   debugLog.verbose('camera', `Canvas3DBabylon: perspective-only camera system`);
 
-
-  // REMOVED: Old content panels system - now using clean billboard panel system
-
   // Unified BMC label manager - inject BMC State Manager
   const cleanBMCRef = useRef<CleanBMCSystem>(new CleanBMCSystem());
 
@@ -398,8 +398,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     debugLog.verbose('init', 'cleanBMCRef.current initialized');
 
     cleanBMCRef.current.setBMCStateManager(bmcState);
-
-    // REMOVED: MaterialManager integration - using direct property modification instead
 
     debugLog.verbose('init', 'Injection complete');
 
@@ -415,14 +413,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     }
   }, [bmcState]);
 
-  // Removed orthographic camera system - only perspective presets available
-
-  // REMOVED: Legacy transform utilities - now handled by unified BMC system
-
-  // BMC Section Name Mapping: Moved to separate utilities file
-
-  // Removed old handleBMCObjectClick - using direct cleanBMCRef.current.onSelect calls
-
   // Clean hover handlers
   const handleBMCObjectHoverEnter = (sectionName: string) => {
     cleanBMCRef.current.onHover(sectionName, true);
@@ -433,8 +423,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
     cleanBMCRef.current.onHover(sectionName, false);
     // Hover exit event
   };
-
-  // REMOVED: Old applyBMCVisualState function - CleanBMCSystem handles all visual states
 
   // Handle background click to clear selection (will be updated inside useEffect)
   let handleBackgroundClick = () => {
@@ -447,19 +435,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
 
 
 
-
-  // REMOVED: Old restoration logic - now handled by applyBMCVisualState
-
-  // Helper function to improve label texture quality - moved to utilities file
-
-
-  // Helper function to get section content from canvas data
-  // getSectionContent and createContentLabel extracted to:
-  // Canvas3DBabylon/utils/ContentLabelUtils.ts
-
-  // Create bullet text plane for BMC section content
-  // createBulletTextPlane extracted to:
-  // Canvas3DBabylon/utils/BulletTextUtils.ts
 
   // Toggle bullet text display
   const toggleBulletText = () => {
@@ -498,14 +473,6 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
       delete (window as any).toggleBulletText;
     };
   }, [showBulletText]);
-
-  // REMOVED: Old restoration function - CleanBMCSystem handles this automatically
-
-  // REMOVED: Old restoration useEffect - CleanBMCSystem handles state automatically
-
-  // GUI state removed since labels are no longer used
-
-
 
   useEffect(() => {
     if (!canvasRef.current || !canvas) return;
@@ -3751,215 +3718,17 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         <h1 className="text-xl font-medium text-gray-900" style={{ fontFamily: 'Segoe UI, sans-serif' }}>{canvas.name}</h1>
       </div>
 
-      {/* Camera Preset Buttons - Top Right with transition feedback */}
-      <div className="absolute right-8 z-10" style={{ top: '25px' }}>
-        <div className="flex gap-2">
-          <button
-            onClick={() => switchCameraPreset('PERSPECTIVE_LEFT')}
-            disabled={isTransitioningCamera}
-            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 w-24 ${
-              (currentCameraPreset === 'PERSPECTIVE_LEFT' && isInPresetPosition)
-                ? 'bg-blue-600 text-white shadow-md'
-                : isTransitioningCamera
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-sm'
-            }`}
-          >
-            {isTransitioningCamera && currentCameraPreset !== 'PERSPECTIVE_LEFT' ? '...' : 'Left View'}
-          </button>
-          <button
-            onClick={() => {
-              const preset = template.name.toLowerCase() === 'financials' ? 'FRONT' : 'TOP';
-              switchCameraPreset(preset);
-            }}
-            disabled={isTransitioningCamera}
-            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 w-24 ${
-              ((currentCameraPreset === 'TOP' || currentCameraPreset === 'FRONT') && isInPresetPosition)
-                ? 'bg-blue-600 text-white shadow-md'
-                : isTransitioningCamera
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-sm'
-            }`}
-          >
-            {isTransitioningCamera && currentCameraPreset !== 'TOP' && currentCameraPreset !== 'FRONT' ? '...' : (template.name.toLowerCase() === 'financials' ? 'Front View' : 'Top View')}
-          </button>
-          <button
-            onClick={() => switchCameraPreset('PERSPECTIVE_RIGHT')}
-            disabled={isTransitioningCamera}
-            className={`px-3 py-1 rounded text-xs font-medium transition-all duration-200 w-24 ${
-              (currentCameraPreset === 'PERSPECTIVE_RIGHT' && isInPresetPosition)
-                ? 'bg-blue-600 text-white shadow-md'
-                : isTransitioningCamera
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-sm'
-            }`}
-          >
-            {isTransitioningCamera && currentCameraPreset !== 'PERSPECTIVE_RIGHT' ? '...' : 'Right View'}
-          </button>
-        </div>
-        {isTransitioningCamera && (
-          <div className="text-xs text-gray-600 mt-1 text-center animate-pulse">
-            ✨ Smoothly transitioning camera...
-          </div>
-        )}
-      </div>
+      <CameraPresetButtons
+        currentCameraPreset={currentCameraPreset}
+        isInPresetPosition={isInPresetPosition}
+        isTransitioningCamera={isTransitioningCamera}
+        templateName={template.name}
+        switchCameraPreset={switchCameraPreset}
+      />
 
 
-      {/* Time Slider HUD - Show for Financials template */}
       {template.name === 'Financials' && (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-8 py-4">
-          <div className="relative" style={{ width: '600px' }}>
-            {/* Slider track */}
-            <div 
-              className="h-1 bg-gray-400 rounded-full mb-4 relative"
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const percentage = clickX / rect.width;
-                
-                let newYear: number;
-                if (percentage < 0.33) {
-                  newYear = 0; // PAST
-                } else if (percentage < 0.67) {
-                  newYear = 1; // PRESENT  
-                } else {
-                  newYear = 2; // FUTURE
-                }
-                
-                console.log(`🕐 Time slider clicked: switching to year ${newYear}`);
-                const financialsDataAdapter = (window as any).financialsDataAdapter;
-                if (financialsDataAdapter) {
-                  financialsDataAdapter.switchToYear(newYear, false);
-                  setSelectedYear(newYear);
-                  if (newYear === 1) {
-                    // Reset the Expenses slider to default $8M for PRESENT
-                    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
-                    if (expensesSlider) expensesSlider.value = '800';
-                  }
-                }
-              }}
-            >
-              {/* Vertical thumb at selected position */}
-              <div 
-                className="absolute top-1/2 transform -translate-y-1/2 transition-all duration-300"
-                style={{ 
-                  left: selectedYear === 0 ? '0%' : selectedYear === 1 ? '50%' : '100%',
-                  transform: `translateX(${selectedYear === 0 ? '0' : selectedYear === 1 ? '-50%' : '-100%'}) translateY(-50%)`,
-                  cursor: 'default'
-                }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  const startX = e.clientX;
-                  const slider = e.currentTarget.parentElement;
-                  if (!slider) return;
-                  
-                  const handleMouseMove = (moveEvent: MouseEvent) => {
-                    const rect = slider.getBoundingClientRect();
-                    const newX = moveEvent.clientX - rect.left;
-                    const percentage = Math.max(0, Math.min(1, newX / rect.width));
-                    
-                    let newYear: number;
-                    if (percentage < 0.33) {
-                      newYear = 0; // PAST
-                    } else if (percentage < 0.67) {
-                      newYear = 1; // PRESENT
-                    } else {
-                      newYear = 2; // FUTURE
-                    }
-                    
-                    if (newYear !== selectedYear) {
-                      console.log(`🕐 Time slider dragged: switching to year ${newYear}`);
-                      const financialsDataAdapter = (window as any).financialsDataAdapter;
-                      if (financialsDataAdapter) {
-                        financialsDataAdapter.switchToYear(newYear, false);
-                        setSelectedYear(newYear);
-                        if (newYear === 1) {
-                          // Reset the Expenses slider to default $8M for PRESENT
-                          const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
-                          if (expensesSlider) expensesSlider.value = '800';
-                        }
-                      }
-                    }
-                  };
-                  
-                  const handleMouseUp = () => {
-                    document.removeEventListener('mousemove', handleMouseMove);
-                    document.removeEventListener('mouseup', handleMouseUp);
-                  };
-                  
-                  document.addEventListener('mousemove', handleMouseMove);
-                  document.addEventListener('mouseup', handleMouseUp);
-                }}
-              >
-                <div className="w-3 h-6 bg-blue-600 rounded-sm hover:bg-blue-700 transition-colors shadow-lg border border-blue-400"></div>
-              </div>
-            </div>
-
-            {/* Labels with years - Edge aligned, uniform half-width */}
-            <div className="flex justify-between text-xs font-medium text-gray-800 mt-2">
-              <span 
-                className="select-none bg-white/90 px-2 py-2 rounded shadow-sm border border-gray-300 text-center w-16" 
-                onClick={() => {
-                  console.log('🕐 PAST (2025) clicked');
-                  const financialsDataAdapter = (window as any).financialsDataAdapter;
-                  if (financialsDataAdapter) {
-                    financialsDataAdapter.switchToYear(0, false); // Index 0 = 2025 (PAST) - no animation for clarity
-                    setSelectedYear(0);
-                  }
-                }}
-                style={{
-                  backgroundColor: selectedYear === 0 ? '#3B82F6' : 'rgba(255, 255, 255, 0.9)',
-                  color: selectedYear === 0 ? 'white' : '#1F2937',
-                  fontWeight: selectedYear === 0 ? 'bold' : 'normal'
-                }}
-              >
-                <div>PAST</div>
-                <div className="text-base font-bold">2025</div>
-              </span>
-              <span 
-                className="select-none bg-white/90 px-2 py-2 rounded shadow-md border border-gray-300 text-center w-16" 
-                onClick={() => {
-                  console.log('🕐 PRESENT (2026) clicked - Resetting sliders to default');
-                  const financialsDataAdapter = (window as any).financialsDataAdapter;
-                  if (financialsDataAdapter) {
-                    financialsDataAdapter.switchToYear(1, false); // Index 1 = 2026 (PRESENT) - no animation
-                    setSelectedYear(1);
-                    // Reset the Expenses slider to default $8M
-                    const expensesSlider = document.getElementById('expenses-slider') as HTMLInputElement;
-                    if (expensesSlider) expensesSlider.value = '800';
-                  }
-                }}
-                style={{
-                  backgroundColor: selectedYear === 1 ? '#3B82F6' : 'rgba(255, 255, 255, 0.9)',
-                  color: selectedYear === 1 ? 'white' : '#1F2937',
-                  fontWeight: selectedYear === 1 ? 'bold' : 'normal'
-                }}
-              >
-                <div>PRESENT</div>
-                <div className="text-base font-bold">2026</div>
-              </span>
-              <span 
-                className="select-none bg-white/90 px-2 py-2 rounded shadow-sm border border-gray-300 text-center w-16" 
-                onClick={() => {
-                  console.log('🕐 FUTURE (2027) clicked');
-                  const financialsDataAdapter = (window as any).financialsDataAdapter;
-                  if (financialsDataAdapter) {
-                    financialsDataAdapter.switchToYear(2, false); // Index 2 = 2027 (FUTURE) - no animation for clarity
-                    setSelectedYear(2);
-                  }
-                }}
-                style={{
-                  backgroundColor: selectedYear === 2 ? '#3B82F6' : 'rgba(255, 255, 255, 0.9)',
-                  color: selectedYear === 2 ? 'white' : '#1F2937',
-                  fontWeight: selectedYear === 2 ? 'bold' : 'normal'
-                }}
-              >
-                <div>FUTURE</div>
-                <div className="text-base font-bold">2027</div>
-              </span>
-            </div>
-          </div>
-        </div>
+        <TimeSliderHUD selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
       )}
 
       <div className="absolute top-4 right-4 z-10 bg-black/90 text-white p-4 rounded-lg shadow-lg hidden">
@@ -4062,90 +3831,13 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
         </div>
       </div>
 
-      {/* Financial Sliders UI - Only shown for Financials template */}
       {template.name === 'Financials' && (
-        <div className="absolute top-24 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 min-w-[280px] z-50">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Financial Controls</h3>
-          
-          {/* Revenue Slider - Locked */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Revenue: $1M - $30M
-            </label>
-            <input
-              id="revenue-slider"
-              type="range"
-              min="100"
-              max="3000"
-              value={revenueSliderValue}
-              className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer slider"
-              onChange={(e) => {
-                const revenueValue = parseInt(e.target.value);
-                setRevenueSliderValue(revenueValue);
-                const expensesValue = expensesSliderValue;
-                const profit = Math.max(0, revenueValue - expensesValue);
-                const loss = Math.max(0, expensesValue - revenueValue);
-                
-                // Update 3D visualization
-                const financialsDataAdapter = (window as any).financialsDataAdapter;
-                if (financialsDataAdapter) {
-                  const businessData = {
-                    totalRevenue: revenueValue,
-                    totalExpenses: expensesValue,
-                    netProfit: profit,
-                    netLoss: loss
-                  };
-                  financialsDataAdapter.updateFromBusinessData(businessData, false);
-                }
-              }}
-            />
-            <div className="revenue-display text-sm text-gray-600 mt-1">${(revenueSliderValue / 100).toFixed(0)}M</div>
-          </div>
-          
-          {/* Expenses Slider - Interactive */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Expenses: $1M - $10M
-            </label>
-            <input
-              id="expenses-slider"
-              type="range"
-              min="100"
-              max="1000"
-              value={expensesSliderValue}
-              className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer slider"
-              onChange={(e) => {
-                const expensesValue = parseInt(e.target.value);
-                setExpensesSliderValue(expensesValue);
-                // Use current Revenue slider value to avoid jumpy behavior
-                const revenueValue = revenueSliderValue;
-                const profit = Math.max(0, revenueValue - expensesValue);
-                const loss = Math.max(0, expensesValue - revenueValue);
-                
-                // Update 3D visualization via FinancialsDataAdapter
-                const financialsDataAdapter = (window as any).financialsDataAdapter;
-                if (financialsDataAdapter) {
-                  const businessData = {
-                    totalRevenue: revenueValue,
-                    totalExpenses: expensesValue,
-                    netProfit: profit,
-                    netLoss: loss
-                  };
-                  financialsDataAdapter.updateFromBusinessData(businessData, false); // No animation for slider
-                }
-              }}
-            />
-            <div className="expenses-display text-sm text-gray-600 mt-1">${(expensesSliderValue / 100).toFixed(0)}M</div>
-          </div>
-          
-          {/* Profit Display - Calculated */}
-          <div className="mb-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Profit (Calculated)
-            </label>
-            <div className="profit-display text-lg font-semibold text-green-600">${(Math.max(0, revenueSliderValue - expensesSliderValue) / 100).toFixed(0)}M</div>
-          </div>
-        </div>
+        <FinancialControlsPanel
+          revenueSliderValue={revenueSliderValue}
+          setRevenueSliderValue={setRevenueSliderValue}
+          expensesSliderValue={expensesSliderValue}
+          setExpensesSliderValue={setExpensesSliderValue}
+        />
       )}
 
       <canvas
