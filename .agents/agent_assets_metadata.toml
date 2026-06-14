@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "BbuEBaxJqV9eK4yeBPwHo"
+uri = "file://PowerPoint Import Fixes.md"
+type = "text"
+title = "PowerPoint Import Fixes"
