@@ -671,7 +671,18 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
               }
             } else {
               console.log('🚨 NO POWERPOINT DATA: Using fallback 2026 financial data');
-              const fallback2026Data = { totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0 };
+              const fallbackIncomeStatement = {
+                years: [
+                  { year: 2025, revenue: 300, expenses: 400, profit: 0, loss: 100 },
+                  { year: 2026, revenue: 1000, expenses: 800, profit: 200, loss: 0 },
+                  { year: 2027, revenue: 2000, expenses: 1000, profit: 1000, loss: 0 }
+                ],
+                currentYearIndex: 1
+              };
+              const fallback2026Data: FinancialBusinessData = {
+                totalRevenue: 1000, totalExpenses: 800, netProfit: 200, netLoss: 0,
+                incomeStatement: fallbackIncomeStatement
+              };
               if (financialsDataAdapter) {
                 console.log('🚨 IMMEDIATE: Loading fallback 2026 data with immediate heights');
                 financialsDataAdapter.updateFromBusinessData(fallback2026Data, false);
@@ -1707,16 +1718,20 @@ export const Canvas3DBabylon: React.FC<Canvas3DBabylonProps> = ({
             }
           } else {
             console.log('🚨 NO POWERPOINT DATA (INITIAL LOAD): Using fallback 2026 financial data');
-            // Initialize with corrected financial data as fallback
-            // Revenue slider default: 1000 → Revenue object height
-            // Expenses slider default: 800 → Expenses object height
-            // Profit: 200 → ExpensesPL object height
-            // Loss: 0 → RevenuePL object height
+            const fallbackIncomeStatement = {
+              years: [
+                { year: 2025, revenue: 300, expenses: 400, profit: 0, loss: 100 },
+                { year: 2026, revenue: 1000, expenses: 800, profit: 200, loss: 0 },
+                { year: 2027, revenue: 2000, expenses: 1000, profit: 1000, loss: 0 }
+              ],
+              currentYearIndex: 1
+            };
             const fallback2026Data: FinancialBusinessData = {
-              totalRevenue: 1000,  // Revenue slider value → Revenue height
-              totalExpenses: 800,  // Expenses slider value → Expenses height
-              netProfit: 200,      // Profit → ExpensesPL height
-              netLoss: 0           // Loss → RevenuePL height
+              totalRevenue: 1000,
+              totalExpenses: 800,
+              netProfit: 200,
+              netLoss: 0,
+              incomeStatement: fallbackIncomeStatement
             };
             
             if (financialsDataAdapter) {
